@@ -31,13 +31,13 @@ const HomePage = () => {
     navigate("/login");
   }
 
-  if (loadingAuth) {
-    return <Loader />;
-  }
+  // if (loadingAuth) {
+  //   return <Loader />;
+  // }
 
-  if (loading) {
-    return <Loader />;
-  }
+  // if (loading) {
+  //   return <Loader />;
+  // }
 
   if (error) {
     return <ErrorMessage error={error} />;

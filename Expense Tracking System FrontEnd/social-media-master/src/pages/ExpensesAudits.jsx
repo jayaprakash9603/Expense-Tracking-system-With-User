@@ -80,7 +80,7 @@ const ExpensesAudits = ({ data, loading, error }) => {
     {
       columns,
       data,
-      initialState: { pageIndex: 0, pageSize: 10 },
+      initialState: { pageIndex: 0, pageSize: 14 },
       defaultColumn: { Filter: DefaultColumnFilter },
     },
     useFilters,
@@ -192,7 +192,7 @@ const ExpensesAudits = ({ data, loading, error }) => {
           value={pageSize}
           onChange={(e) => setPageSize(Number(e.target.value))}
         >
-          {[7, 10, 20, 30, 50, 100].map((size) => (
+          {[14, 20, 30, 50, 100].map((size) => (
             <option key={size} value={size}>
               {size}
             </option>
