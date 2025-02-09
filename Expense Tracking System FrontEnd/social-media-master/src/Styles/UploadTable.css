@@ -1,0 +1,74 @@
+.upload-main-container {
+  max-width: 100vw;
+  height: 80vh;
+  margin-left: 5vw;
+  margin-right: 5vw;
+  margin-top: 5vh;
+  /* background-color: yellow; */
+  position: relative;
+}
+
+.upload-table-container {
+  width: 100%;
+}
+
+.custom-scrollbar {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ff8f8f #ffffff;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 10px;
+  border: 2px solid #f1f1f1;
+}
+
+.table-pagination {
+  margin-top: 20px;
+
+  position: absolute;
+  bottom: 6vw;
+  left: auto;
+}
+
+.MuiTableContainer-root {
+  width: 70vw;
+  margin: 0 5vw;
+  max-height: 50vh;
+  /* background-color: red; */
+}
+
+.MuiTable-root {
+  table-layout: fixed;
+}
+
+.MuiTableCell-root {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.MuiTableRow-root {
+  height: 60px;
+}
+.buttons {
+  margin-left: auto;
+  height: 10vh;
+  width: 100%;
+  position: absolute;
+  bottom: 0vw;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* background-color: aqua; */
+}
