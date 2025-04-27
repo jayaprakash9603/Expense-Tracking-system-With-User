@@ -17,7 +17,7 @@ const FilteredTable = ({ filteredData }) => {
   const [sortConfig, setSortConfig] = useState({});
   const [data, setData] = useState(filteredData);
   {
-    console.log(filteredData);
+    // console.log(filteredData);
   }
 
   const dispatch = useDispatch();

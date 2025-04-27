@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -1025,6 +1026,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         return filePath;
     }
+
+
+
     @Override
     public void sendEmailWithAttachment(String toEmail, String subject, String body, String attachmentPath) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
@@ -1319,4 +1323,91 @@ public List<Expense> saveExpenses(List<Expense> expenses) {
         return sortedGroupedExpenses;
     }
 
+
+
+
+
+    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(User user, String sortOrder, int page, int size, String sortBy) {
+        Sort sort = Sort.by(Sort.Order.by(sortBy).with(Sort.Direction.fromString(sortOrder)));
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Expense> expensesPage = expenseRepository.findByUser(user, pageable);
+
+        Map<String, List<Map<String, Object>>> groupedExpenses = new LinkedHashMap<>();
+        Map<String, Integer> dateIndexMap = new LinkedHashMap<>();
+
+        for (Expense expense : expensesPage.getContent()) {
+            String date = expense.getDate().toString();
+
+            Map<String, Object> expenseMap = new LinkedHashMap<>();
+            expenseMap.put("id", expense.getId());
+
+            int index = dateIndexMap.getOrDefault(date, 0) + 1;
+            expenseMap.put("index", index);
+
+            dateIndexMap.put(date, index);
+
+            if (expense.getExpense() != null) {
+                expenseMap.put("expenseName", expense.getExpense().getExpenseName());
+                expenseMap.put("amount", expense.getExpense().getAmount());
+                expenseMap.put("type", expense.getExpense().getType());
+                expenseMap.put("comments", expense.getExpense().getComments());
+                expenseMap.put("paymentMethod", expense.getExpense().getPaymentMethod());
+                expenseMap.put("netAmount", expense.getExpense().getNetAmount());
+            } else {
+                expenseMap.put("expenseName", "No details available");
+                expenseMap.put("amount", 0.0);
+                expenseMap.put("type", "N/A");
+            }
+
+            groupedExpenses.computeIfAbsent(date, k -> new ArrayList<>()).add(expenseMap);
+        }
+
+        Map<String, List<Map<String, Object>>> sortedGroupedExpenses = new LinkedHashMap<>();
+        groupedExpenses.entrySet().stream()
+                .sorted((entry1, entry2) -> {
+                    LocalDate date1 = LocalDate.parse(entry1.getKey());
+                    LocalDate date2 = LocalDate.parse(entry2.getKey());
+                    return "desc".equalsIgnoreCase(sortOrder) ? date2.compareTo(date1) : date1.compareTo(date2);
+                })
+                .forEach(entry -> sortedGroupedExpenses.put(entry.getKey(), entry.getValue()));
+
+        return sortedGroupedExpenses;
+    }
+
+    @Override
+    public Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date) {
+        // Fetch expenses that occurred before the given date and match the expense name
+        List<Expense>expensesBeforeDate=expenseRepository.findByUserAndExpenseNameBeforeDate(userId, expenseName, date);
+        return expensesBeforeDate.get(0);
+    }
+
+
+
+    @Override
+    public List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, User user) {
+        List<Expense> savedExpenses = new ArrayList<>();
+
+        for (ExpenseDTO dto : expenseDTOs) {
+            Expense expense = new Expense();
+            expense.setDate(LocalDate.parse(dto.getDate()));
+            expense.setUser(user);
+            ExpenseDetailsDTO detailsDTO = dto.getExpense();
+            ExpenseDetails details = new ExpenseDetails();
+            details.setExpenseName(detailsDTO.getExpenseName());
+            details.setAmount(detailsDTO.getAmount());
+            details.setType(detailsDTO.getType());
+            details.setPaymentMethod(detailsDTO.getPaymentMethod());
+            details.setNetAmount(detailsDTO.getNetAmount());
+            details.setComments(detailsDTO.getComments());
+            details.setCreditDue(detailsDTO.getCreditDue());
+
+            details.setExpense(expense);
+            expense.setExpense(details);
+
+            Expense saved = expenseRepository.save(expense);
+            savedExpenses.add(saved);
+        }
+
+        return savedExpenses;
+    }
 }

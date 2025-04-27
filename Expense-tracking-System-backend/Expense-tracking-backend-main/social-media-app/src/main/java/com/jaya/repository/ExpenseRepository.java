@@ -24,6 +24,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     List<Expense>findByUser(User user);
 
 
+    List<Expense> findByUserIdAndDateBetween(Integer userId, LocalDate startDate, LocalDate endDate);
+
+    Page<Expense> findByUser(User user, Pageable pageable);
+    @Query("SELECT e FROM Expense e WHERE e.expense.expenseName = ?1 ORDER BY e.date DESC")
+    List<Expense> findByExpenseNameOrderByDateDesc(String expenseName);
+
     @Query("SELECT e FROM Expense e WHERE e.user = :user AND e.date BETWEEN :startDate AND :endDate")
     List<Expense> findByUserAndDateBetween(
                                            @Param("startDate") LocalDate startDate,
@@ -48,7 +54,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     Page<Expense> findTopNExpensesByUserAndAmount(@Param("userId") Integer userId, Pageable pageable);
 
 
-    @Query("SELECT e FROM Expense e JOIN e.expense d WHERE e.user.id = :userId AND d.expenseName LIKE %:expenseName%")
+    @Query("SELECT e FROM Expense e WHERE e.user.id = ?1 AND e.expense.expenseName = ?2 ORDER BY e.date DESC")
     List<Expense> searchExpensesByUserAndName(@Param("userId") Integer userId, @Param("expenseName") String expenseName);
     
     @Query("SELECT SUM(ed.netAmount) FROM ExpenseDetails ed WHERE LOWER(ed.expenseName) = LOWER(:expenseName)")
@@ -202,6 +208,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
             @Param("paymentMethod") String paymentMethod,
             @Param("minAmount") Double minAmount,
             @Param("maxAmount") Double maxAmount);
+
+
+
+    @Query("SELECT e FROM Expense e WHERE e.user.id = ?1 AND e.expense.expenseName = ?2 AND e.date < ?3 ORDER BY e.date DESC")
+    List<Expense> findByUserAndExpenseNameBeforeDate(Integer userId, String expenseName, LocalDate date);
 }
 
 

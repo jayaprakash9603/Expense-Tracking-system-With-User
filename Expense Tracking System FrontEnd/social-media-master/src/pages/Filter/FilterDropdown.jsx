@@ -1,5 +1,6 @@
 // components/FilterDropdown.jsx
 import React from "react";
+import "./FilterComponent.css";
 
 const FilterDropdown = ({ filterBy, setFilterBy }) => {
   const handleFilterChange = (e) => setFilterBy(e.target.value);
@@ -7,7 +8,7 @@ const FilterDropdown = ({ filterBy, setFilterBy }) => {
   return (
     <select
       id="filterBy"
-      className="custom-select"
+      className="filter-dropdown p-2 rounded"
       value={filterBy}
       onChange={handleFilterChange}
     >

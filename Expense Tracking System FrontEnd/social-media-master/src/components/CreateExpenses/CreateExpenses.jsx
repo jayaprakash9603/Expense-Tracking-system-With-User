@@ -5,9 +5,11 @@ import ExpenseFormLogic from "./ExpenseFormLogic";
 import { useDispatch } from "react-redux";
 import {
   createExpenseAction,
+  fetchPreviousExpenses,
   getExpensesAction,
 } from "../../Redux/Expenses/expense.action";
 import { getSuggestions } from "../Suggestions/fetchSuggestions";
+import { API_BASE_URL } from "../../config/api";
 
 function CreateExpenses() {
   const initialState = {
@@ -52,13 +54,13 @@ function CreateExpenses() {
   const token = localStorage.getItem("jwt");
   useEffect(() => {
     axios
-  .get("http://localhost:8080/api/expenses/top-payment-methods", {
-    headers: {
-      Authorization: `Bearer ${token}`,  // Include the JWT in the Authorization header
-    },
-  })
+      .get(`${API_BASE_URL}/api/expenses/top-payment-methods`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
+        },
+      })
       .then((response) => {
-        if (Array.isArray(response.data) && response.data.length > 0) {
+        if (Array.isArray(response.data) && response.data.length == 3) {
           const mappedMethods = response.data.map(
             (method) => methodMapping[method] || method
           );
@@ -92,11 +94,11 @@ function CreateExpenses() {
       });
   }, []);
 
-  const fetchSuggestions = ()=>{
-      getSuggestions(token, setSuggestions);
-    }
+  const fetchSuggestions = () => {
+    getSuggestions(token, setSuggestions);
+  };
   {
-    console.log(formState);
+    // console.log(formState);
   }
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -142,6 +144,8 @@ function CreateExpenses() {
           expense: newExpense,
         })
       );
+
+      dispatch(fetchPreviousExpenses(expenseName, date));
 
       navigate("/"); // Navigate to the appropriate page after submission
       dispatch(getExpensesAction());

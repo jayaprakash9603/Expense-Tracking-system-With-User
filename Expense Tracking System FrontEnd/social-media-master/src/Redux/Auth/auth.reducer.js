@@ -34,11 +34,7 @@ export const authReducer = (state = initialState, action) => {
     case REGISTER_FAILURE:
       return { ...state, loading: false, error: action.payload };
     case "LOGOUT":
-      return {
-        ...state,
-        jwt: null,
-        loading: false,
-      };
+      return { ...state, user: null, jwt: null };
     default:
       return state;
   }

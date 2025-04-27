@@ -3,6 +3,7 @@ import axios from "axios";
 import DetailedExpensesTable from "../pages/DetailedExpensesTable/DetailsExpensesTable";
 // import DailySummary from "./DailySummary";
 import ExpensesAudits from "./ExpensesAudits";
+import { API_BASE_URL } from "../config/api";
 
 const ExpenseTableParent = ({ Url, setUrl, selectedReport }) => {
   const [expensesData, setExpensesData] = useState([]);
@@ -33,7 +34,7 @@ const ExpenseTableParent = ({ Url, setUrl, selectedReport }) => {
       switch (reportType) {
         case "searchExpenses":
           response = await axios.get(
-            Url || `http://localhost:8080/api/expenses/fetch-expenses`,
+            Url || `${API_BASE_URL}/api/expenses/fetch-expenses`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -42,20 +43,17 @@ const ExpenseTableParent = ({ Url, setUrl, selectedReport }) => {
           );
           if (response.status === 204 || response.data.length === 0) {
             alert("No expenses found.");
-            response = await axios.get(
-              "http://localhost:8080/api/expenses/user",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+            response = await axios.get(`${API_BASE_URL}/api/expenses/user`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
           }
           setExpensesData(response.data);
           break;
         case "searchAudits":
           response = await axios.get(
-            Url || "http://localhost:8080/api/audit-logs/all",
+            Url || `${API_BASE_URL}/api/audit-logs/all`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -64,7 +62,7 @@ const ExpenseTableParent = ({ Url, setUrl, selectedReport }) => {
           );
           if (response.status === 204 || response.data.length === 0) {
             alert("No logs found.");
-            response = await axios.get("http://localhost:3000/audit-logs/all", {
+            response = await axios.get(`${API_BASE_URL}/audit-logs/all`, {
               headers: {
                 Authorization: `Bearer ${token}`,
               },

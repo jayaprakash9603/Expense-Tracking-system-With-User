@@ -39,24 +39,24 @@ const handleShowExpenses = (
       url = `${url}/last-month`;
       break;
     case "All Expenses":
-      url = `${url}/user`;
+      url = `${url}/fetch-expenses`;
       break;
     case "Within Range Expenses":
       if (!fromDay || !toDay) {
         setError("Please provide both From and To dates");
         return;
       }
-      url = `${url}/within-range`;
-      params.startDate = fromDay;
-      params.endDate = toDay;
+      url = `${url}/fetch-expenses-by-date`;
+      params.from = fromDay;
+      params.to = toDay;
       break;
     case "Expenses By Name":
       if (!expenseName) {
         setError("Please provide an expense name");
         return;
       }
-      url = `${url}/name`;
-      params.name = expenseName;
+      url = `${url}/search`;
+      params.expenseName = expenseName;
       break;
     case "Expenses By Payment Method":
       if (!paymentMethod) {
@@ -70,14 +70,14 @@ const handleShowExpenses = (
         setError("Please provide type and payment");
         return;
       }
-      url = `${url}/type-payment-method/${category}/${paymentMethod}`;
+      url = `${url}/${category}/${paymentMethod}`;
       break;
     case "Expenses By Type":
       if (!category) {
         setError("Please provide a category");
         return;
       }
-      url = `${url}/type/${category}`;
+      url = `${url}/${category}`;
       break;
     case "Particular Month Expenses":
       if (!startMonth || !startYear) {

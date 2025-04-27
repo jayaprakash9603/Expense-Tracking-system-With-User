@@ -4,7 +4,7 @@ import useFilter from "./useFilter";
 import FilterDropdown from "./FilterDropdown";
 import FilterInput from "./FilterInput";
 import ResetButton from "./ResetButton";
-// import "../../Styles/FilterComponent.css";
+import "./FilterComponent.css";
 
 const FilterComponent = ({ inputData, setFilteredData }) => {
   const {

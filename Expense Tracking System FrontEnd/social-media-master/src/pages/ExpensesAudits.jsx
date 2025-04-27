@@ -26,7 +26,7 @@ const ExpensesAudits = ({ data, loading, error }) => {
     () => [
       {
         Header: "ID",
-        accessor: "id",
+        accessor: "userAuditIndex",
         Filter: DefaultColumnFilter,
         sortType: "basic",
       },
@@ -38,7 +38,7 @@ const ExpensesAudits = ({ data, loading, error }) => {
       },
       {
         Header: "Expense ID",
-        accessor: "expenseId",
+        accessor: "expenseAuditIndex",
         Filter: DefaultColumnFilter,
         sortType: "basic",
       },

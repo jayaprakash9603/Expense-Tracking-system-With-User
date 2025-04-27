@@ -42,7 +42,7 @@ public class ExpenseController {
     @Autowired
     private UserService userService;
     
-    
+
     @Autowired
     public ExpenseController(ExpenseService expenseService) {
         this.expenseService = expenseService;
@@ -57,7 +57,7 @@ public class ExpenseController {
         Expense createExpense=expenseService.addExpense(expense,reqUser);
         if(createExpense!=null)
         {
-        auditExpenseService.logAudit(expense.getId(), "create", "Expense created with ID: " + expense.getId());
+            auditExpenseService.logAudit(reqUser,expense.getId(), "create", "Expense created with ID: " + expense.getId());
 
         }
         return ResponseEntity.ok(createExpense);
@@ -65,19 +65,45 @@ public class ExpenseController {
 
     @PostMapping("/add-multiple")
     public ResponseEntity<?> addMultipleExpenses(@RequestHeader("Authorization") String jwt, @RequestBody List<Expense> expenses) {
-        User user = userService.findUserByJwt(jwt); // Get the user by ID
+        User user = userService.findUserByJwt(jwt); // Get the user by JWT
         if (user == null) {
             return ResponseEntity.status(404).body("User not found");
         }
 
-        // Associate each expense with the user
+        // Clean and associate each expense with the user
         for (Expense expense : expenses) {
-            expense.setUser(user);  // Set the user for each expense
+            // Set to null to ensure it's treated as a new entity
+            expense.setId(null);
+            expense.setUser(user);
+
+            // Handle ExpenseDetails
+            if (expense.getExpense() != null) {
+                expense.getExpense().setId(null); // Reset ExpenseDetails ID
+                expense.getExpense().setExpense(expense); // Set back-reference
+            }
         }
 
-        List<Expense> savedExpenses = expenseService.saveExpenses(expenses);  // Save the expenses in the database
-        return ResponseEntity.status(201).body(savedExpenses);  // Return the saved expenses as a response
+        // Save the new expenses
+        List<Expense> savedExpenses = expenseService.saveExpenses(expenses);
+
+        // Create audit logs for saved expenses
+        for (Expense expense : savedExpenses) {
+            String expenseDetails = String.format(
+                    "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                    expense.getId(),
+                    expense.getExpense().getExpenseName(),
+                    expense.getExpense().getAmount(),
+                    expense.getExpense().getType(),
+                    expense.getExpense().getPaymentMethod()
+            );
+
+            // Log the creation
+            auditExpenseService.logAudit(user, expense.getId(), "create", expenseDetails);
+        }
+
+        return ResponseEntity.status(201).body(savedExpenses);
     }
+
 
     @DeleteMapping("/delete-all")
     public ResponseEntity<String> deleteAllExpenses(@RequestHeader("Authorization") String jwt) {
@@ -92,12 +118,12 @@ public class ExpenseController {
                         expense.getId(), expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
                         expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
                     );
-                    auditExpenseService.logAudit(expense.getId(), "delete", expenseDetails);
+                    auditExpenseService.logAudit( reqUser,expense.getId(), "delete", expenseDetails);
                 }
                 expenseService.deleteAllExpenses(allExpenses);
-                auditExpenseService.logAudit(null, "delete", "All expenses deleted successfully.");
+                auditExpenseService.logAudit(reqUser,null, "delete", "All expenses deleted successfully.");
             } else {
-                auditExpenseService.logAudit(null, "delete", "Attempted to delete expenses, but no expenses were found.");
+                auditExpenseService.logAudit(reqUser,null, "delete", "Attempted to delete expenses, but no expenses were found.");
             }
 
             return ResponseEntity.ok("All expenses have been deleted successfully.");
@@ -161,10 +187,10 @@ public class ExpenseController {
                     id, beforeUpdateDetails, afterUpdateDetails
                 );
 
-                auditExpenseService.logAudit(id, "update", logDetails);
+                auditExpenseService.logAudit(reqUser,id, "update", logDetails);
                 return ResponseEntity.ok("Expense updated successfully");
             } else {
-                auditExpenseService.logAudit(id, "update", "Attempted to update non-existent expense with ID " + id);
+                auditExpenseService.logAudit(reqUser,id, "update", "Attempted to update non-existent expense with ID " + id);
 
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Expense Not found");
@@ -193,9 +219,9 @@ public class ExpenseController {
                     expense.getId(), expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
                     expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
                 );
-                auditExpenseService.logAudit(id, "delete", expenseDetails);
+                auditExpenseService.logAudit(reqUser,id, "delete", expenseDetails);
             } else {
-                auditExpenseService.logAudit(id, "delete", "Attempted to delete non-existent expense with ID " + id);
+                auditExpenseService.logAudit(reqUser,id, "delete", "Attempted to delete non-existent expense with ID " + id);
             }
 
             expenseService.deleteExpense(id,reqUser);
@@ -222,10 +248,10 @@ public class ExpenseController {
                     );
                     
                     // Log the deletion action with detailed info
-                    auditExpenseService.logAudit(id, "delete", expenseDetails);
+                    auditExpenseService.logAudit(reqUser,id, "delete", expenseDetails);
                 } else {
                     // Log an attempt to delete a non-existent expense
-                    auditExpenseService.logAudit(id, "delete", "Attempted to delete non-existent expense with ID " + id);
+                    auditExpenseService.logAudit(reqUser,id, "delete", "Attempted to delete non-existent expense with ID " + id);
                 }
             }
             
@@ -1028,7 +1054,7 @@ User reqUser=userService.findUserByJwt(jwt);
         return expenseService.getExpensesByDate(LocalDate.now().minusDays(1),reqUser);
     }
 
-    @GetMapping("/expenses/particular-date")
+    @GetMapping("/particular-date")
     public List<Expense> getParticularDateExpenses(@RequestParam String date,@RequestHeader("Authorization")String jwt) {
         User reqUser=userService.findUserByJwt(jwt);
         LocalDate specificDate = LocalDate.parse(date);
@@ -1151,14 +1177,41 @@ User reqUser=userService.findUserByJwt(jwt);
     public Set<String> getPaymentMethodNames(@RequestBody List<ExpenseDTO> expenses) {
         return expenseService.getPaymentMethodNames(expenses);
     }
-    
+
+    @PostMapping("/save")
+    public ResponseEntity<List<Expense>> saveExpenses(
+            @RequestBody List<ExpenseDTO> expenses,
+            @RequestHeader("Authorization") String jwt) {
+
+        User reqUser = userService.findUserByJwt(jwt);
+        List<Expense> saved = expenseService.saveExpenses(expenses, reqUser);
+        for (Expense expense : saved) {
+            String expenseDetails = String.format(
+                    "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                    expense.getId(),
+                    expense.getExpense().getExpenseName(),
+                    expense.getExpense().getAmount(),
+                    expense.getExpense().getType(),
+                    expense.getExpense().getPaymentMethod()
+            );
+
+            // Log the creation
+            auditExpenseService.logAudit(reqUser, expense.getId(), "create", expenseDetails);
+        }
+        return ResponseEntity.ok(saved);
+    }
+
+
+
+
+
+
     @PostMapping("/upload")
-    public ResponseEntity<List<Expense>> uploadFile(@RequestParam("file") MultipartFile file,@RequestHeader("Authorization")String jwt) {
+    public ResponseEntity<List<Expense>>getFileContent(@RequestParam("file") MultipartFile file,@RequestHeader("Authorization")String jwt) {
         User reqUser=userService.findUserByJwt(jwt);
         try {
-            List<Integer> createdIds = excelService.saveAndReturnIds(file,reqUser);
-            List<Expense> createdExpenses = expenseService.getExpensesByIds(createdIds);
-            return ResponseEntity.ok(createdExpenses);
+            List<Expense> expenses = excelService.parseExcelFile(file);
+            return ResponseEntity.ok(expenses);
         } catch (IOException e) {
             return ResponseEntity.status(500).body(null);
         }
@@ -1226,6 +1279,7 @@ User reqUser=userService.findUserByJwt(jwt);
         }).collect(Collectors.toList());
 
         List<Expense> savedExpenses = expenseService.saveExpenses(expenses);
+
         return ResponseEntity.ok(savedExpenses);
     }
 
@@ -1250,6 +1304,34 @@ User reqUser=userService.findUserByJwt(jwt);
 
         return ResponseEntity.ok(groupedExpenses);
     }
-   
+
+
+
+
+    @GetMapping("/sorted")
+    public ResponseEntity<Map<String, List<Map<String, Object>>>> getExpensesGroupedByDate(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "date") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder) throws Exception {
+
+        User user = userService.findUserByJwt(jwt);
+        Map<String, List<Map<String, Object>>> groupedExpenses = expenseService.getExpensesGroupedByDateWithPagination(user, sortOrder, page, size, sortBy);
+        return new ResponseEntity<>(groupedExpenses, HttpStatus.OK);
+    }
+
+
+
+
+    @GetMapping("/before/{expenseName}/{date}")
+    public Expense getExpensesBeforeDate(
+            @RequestHeader("Authorization")String jwt,
+            @PathVariable String expenseName,
+            @PathVariable String date) {
+        LocalDate parsedDate = LocalDate.parse(date);
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.getExpensesBeforeDate(reqUser.getId(), expenseName, parsedDate);
+    }
 }
 

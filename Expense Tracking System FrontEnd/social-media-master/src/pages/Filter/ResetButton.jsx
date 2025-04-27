@@ -1,8 +1,8 @@
 // components/ResetButton.jsx
 import React from "react";
-
+import "./FilterComponent.css";
 const ResetButton = ({ resetFilters }) => (
-  <button className="btn btn-secondary btn-sm ms-2" onClick={resetFilters}>
+  <button className="reset-button" onClick={resetFilters}>
     Reset
   </button>
 );

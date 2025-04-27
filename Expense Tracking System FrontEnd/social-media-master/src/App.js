@@ -8,8 +8,9 @@ import { getProfileAction } from "./Redux/Auth/auth.action";
 import Parent from "./pages/DetailedExpensesTable/Parent";
 import Loader from "./components/Loaders/Loader";
 import CreateExpenses from "./components/CreateExpenses/CreateExpenses";
-import EditExpense from "./pages/EditExpenses/EditExpense"
+import EditExpense from "./pages/EditExpenses/EditExpense";
 import ReportsGeneration from "./pages/ReportsGeneration";
+import Upload from "./pages/Fileupload/Upload"; // Import Upload component
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -17,6 +18,7 @@ function App() {
   const jwt = localStorage.getItem("jwt");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
   useEffect(() => {
     if (jwt) {
       dispatch(getProfileAction(jwt)).finally(() => setLoading(false));
@@ -46,6 +48,8 @@ function App() {
         <Route path="/create" element={<CreateExpenses />} />
         <Route path="/edit/:id" element={<EditExpense />} />
         <Route path="/reports" element={<ReportsGeneration />} />
+        <Route path="/upload" element={<Upload />} />{" "}
+        {/* Add the Upload route */}
         {/* Add any other routes here that need protection */}
       </Routes>
     </div>

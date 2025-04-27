@@ -12,7 +12,10 @@ import java.util.List;
 @Repository
 public interface AuditExpenseRepository extends JpaRepository<AuditExpense, Long> {
 
-	List<AuditExpense> findByExpenseId(Integer expenseId); 
+	List<AuditExpense> findByExpenseId(Integer expenseId);
+
+
+	List<AuditExpense>findByUserId(Integer userId);
 	
 	@Query("SELECT a FROM AuditExpense a WHERE a.timestamp >= :fromTime")
     List<AuditExpense> findLogsFromLastFiveMinutes(@Param("fromTime") LocalDateTime fromTime);

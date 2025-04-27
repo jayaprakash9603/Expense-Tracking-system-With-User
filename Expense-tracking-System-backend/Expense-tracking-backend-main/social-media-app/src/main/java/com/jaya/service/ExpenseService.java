@@ -129,6 +129,9 @@ public interface ExpenseService {
     
     
     String generateExcelReport(User user) throws IOException;
+
+
+    Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date);
     
     void sendEmailWithAttachment(String toEmail, String subject, String body, String attachmentPath) throws MessagingException;
     
@@ -152,4 +155,10 @@ public interface ExpenseService {
 
 
     Map<String, List<Map<String, Object>>> getExpensesGroupedByDate(User user, String sortOrder);
+
+    Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(User user, String sortOrder, int page, int size, String sortBy);
+
+
+
+    List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, User user);
 }

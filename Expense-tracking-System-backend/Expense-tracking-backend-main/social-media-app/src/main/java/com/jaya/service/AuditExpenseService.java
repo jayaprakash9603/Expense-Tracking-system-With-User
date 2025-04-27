@@ -1,10 +1,12 @@
 package com.jaya.service;
 
 import com.jaya.models.AuditExpense;
+import com.jaya.models.User;
 import com.jaya.repository.AuditExpenseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,8 +20,9 @@ public class AuditExpenseService {
     private AuditExpenseRepository auditExpenseRepository;
 
     // Method to log an audit entry when an expense is created, updated, or deleted
-    public void logAudit(Integer expenseId, String actionType, String details) {
+    public void logAudit(User user, Integer expenseId, String actionType, String details) {
         AuditExpense auditExpense = new AuditExpense();
+        auditExpense.setUser(user);
         auditExpense.setExpenseId(expenseId);  // Set expenseId as Integer
         auditExpense.setActionType(actionType);  // Action could be "create", "update", or "delete"
         auditExpense.setDetails(details);
@@ -33,11 +36,33 @@ public class AuditExpenseService {
         // Fetch the audit logs by expense ID
         return auditExpenseRepository.findByExpenseId(expenseId);  // Use Integer for expenseId
     }
-    
-    public List<AuditExpense> getAllAuditLogs() {
-        return auditExpenseRepository.findAll();
+
+    public List<AuditExpense> getAllAuditLogs(User user) {
+        List<AuditExpense> auditExpenses = auditExpenseRepository.findByUserId(user.getId());
+        List<AuditExpense> createdExpenses = new ArrayList<>();
+
+        for (int i = 0; i < auditExpenses.size(); i++) {
+            AuditExpense auditExpense = auditExpenses.get(i);
+            AuditExpense newExpense = new AuditExpense();
+
+            // Don't set the ID – let it auto-generate
+            newExpense.setId(auditExpense.getId());
+            newExpense.setExpenseId(auditExpense.getExpenseId());
+            newExpense.setActionType(auditExpense.getActionType());
+            newExpense.setDetails(auditExpense.getDetails());
+            newExpense.setTimestamp(auditExpense.getTimestamp());
+            newExpense.setUser(auditExpense.getUser());
+
+            // This is your per-user audit log index
+            newExpense.setUserAuditIndex(i + 1);
+            newExpense.setExpenseAuditIndex(i+1);
+            createdExpenses.add(newExpense);
+        }
+
+        return createdExpenses;
     }
-    
+
+
     public List<AuditExpense> getLogsFromLastFiveMinutes() {
         LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
         return auditExpenseRepository.findLogsFromLastFiveMinutes(fiveMinutesAgo);

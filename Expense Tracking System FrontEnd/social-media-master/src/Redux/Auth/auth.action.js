@@ -13,11 +13,15 @@ import {
 } from "./auth.actionType";
 import axios from "axios";
 
+// Redirect helper function
 const redirectToHome = (navigate) => {
   navigate("/");
 };
+
+// Login User Action
 export const loginUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
+
   try {
     const { data } = await axios.post(
       `${API_BASE_URL}/auth/signin`,
@@ -27,21 +31,29 @@ export const loginUserAction = (loginData) => async (dispatch) => {
     if (data.token) {
       localStorage.setItem("jwt", data.token);
     }
-    console.log("login success", data);
-    dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
+
+    // Dispatch LOGIN_SUCCESS with the token
+    dispatch({ type: LOGIN_SUCCESS, payload: data.token });
+
+    // Immediately fetch the user profile after login
+    dispatch(getProfileAction(data.token));
+
     return { success: true }; // Return success to trigger navigation in component
   } catch (error) {
-    console.log("-------", error);
+    console.log("Login error:", error);
     dispatch({ type: LOGIN_FAILURE, payload: error });
+
     return {
       success: false,
       message: error.response?.data?.message || error.message,
-    }; // Return error message
+    };
   }
 };
 
+// Register User Action
 export const registerUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
+
   try {
     const { data } = await axios.post(
       `${API_BASE_URL}/auth/signup`,
@@ -51,21 +63,28 @@ export const registerUserAction = (loginData) => async (dispatch) => {
     if (data.token) {
       localStorage.setItem("jwt", data.token);
     }
-    console.log("register success", data);
-    dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
-    return { success: true }; // Return success to trigger navigation in component
+
+    dispatch({ type: LOGIN_SUCCESS, payload: data.token });
+
+    // Fetch the user profile after registration
+    dispatch(getProfileAction(data.token));
+
+    return { success: true };
   } catch (error) {
-    console.log("-------", error);
+    console.log("Register error:", error);
     dispatch({ type: LOGIN_FAILURE, payload: error });
+
     return {
       success: false,
       message: error.response?.data?.message || error.message,
-    }; // Return error message
+    };
   }
 };
 
+// Get Profile Action
 export const getProfileAction = (jwt) => async (dispatch) => {
   dispatch({ type: GET_PROFILE_REQUEST });
+
   try {
     const { data } = await axios.get(`${API_BASE_URL}/api/users/profile`, {
       headers: {
@@ -73,23 +92,21 @@ export const getProfileAction = (jwt) => async (dispatch) => {
       },
     });
 
-    console.log("User Profile", data);
     dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
   } catch (error) {
-    console.log("-------", error);
     dispatch({ type: GET_PROFILE_FAILURE, payload: error });
   }
 };
 
+// Update Profile Action
 export const updateProfileAction = (reqData) => async (dispatch) => {
   dispatch({ type: UPDATE_PROFILE_REQUEST });
+
   try {
     const token = localStorage.getItem("jwt");
     if (!token) {
       throw new Error("Authorization token is missing");
     }
-
-    console.log("Request Data:", reqData); // Log the request data
 
     const { data } = await axios.put(`${API_BASE_URL}/api/users`, reqData, {
       headers: {
@@ -97,10 +114,8 @@ export const updateProfileAction = (reqData) => async (dispatch) => {
       },
     });
 
-    console.log("User Profile Updated:", data);
     dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: data });
   } catch (error) {
-    console.log("------- Error Updating Profile:", error);
     dispatch({
       type: UPDATE_PROFILE_FAILURE,
       payload: error.response?.data || error.message,
@@ -108,10 +123,14 @@ export const updateProfileAction = (reqData) => async (dispatch) => {
   }
 };
 
+// Logout Action
 export const logoutAction = () => (dispatch) => {
+  // Remove JWT from localStorage
   localStorage.removeItem("jwt");
 
-  dispatch({
-    type: "LOGOUT",
-  });
+  // Dispatch the logout action to reset user state
+  dispatch({ type: "LOGOUT" });
+
+  // Optionally, redirect user to login page
+  // navigate("/login");
 };

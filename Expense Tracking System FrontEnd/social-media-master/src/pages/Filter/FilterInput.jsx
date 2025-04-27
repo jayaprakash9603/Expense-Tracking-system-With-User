@@ -1,6 +1,6 @@
 // components/FilterInput.jsx
 import React, { useRef } from "react";
-
+import "./FilterComponent.css";
 const FilterInput = ({
   filterBy,
   filterValue,
@@ -27,7 +27,7 @@ const FilterInput = ({
       <input
         ref={inputRef}
         type={filterBy === "date" ? "date" : "text"}
-        className="custom-select"
+        className="filter-input p-2 rounded"
         placeholder="Enter value"
         value={filterBy === "date" ? filterDate : filterValue}
         onChange={handleChange}

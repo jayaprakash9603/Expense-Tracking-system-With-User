@@ -16,6 +16,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "app_user")
 public class User  {
 
 	@Id
@@ -33,6 +34,8 @@ public class User  {
 
 	@OneToMany(mappedBy = "user", cascade =CascadeType.ALL)
 	private List<EmailLog>emailLogs=new ArrayList<>();
-	
+
+	@OneToMany(mappedBy = "user", cascade =CascadeType.ALL)
+	private List<AuditExpense>audits=new ArrayList<>();
 
 }

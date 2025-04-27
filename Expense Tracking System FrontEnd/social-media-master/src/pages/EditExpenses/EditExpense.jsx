@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   editExpenseAction,
+  fetchPreviousExpenses,
   getExpenseAction,
   getExpensesAction,
 } from "../../Redux/Expenses/expense.action";
@@ -103,8 +104,11 @@ function EditExpense() {
       editExpenseAction(
         id,
         convertToOldFormat(convertToNewFormat(updatedData))[0]
-      )
+      ),
+     
     );
+
+    dispatch(fetchPreviousExpenses(expenses.expenseName,expenses.date))
     // dispatch(getExpensesAction());
     navigate("/");
   };

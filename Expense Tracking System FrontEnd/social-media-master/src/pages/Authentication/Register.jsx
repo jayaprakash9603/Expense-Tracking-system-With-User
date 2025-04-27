@@ -143,8 +143,8 @@ const Register = () => {
         </Form>
       </Formik>
 
-      <div className="flex gap-2 items-center justify-center pt-5">
-        <p>if you have already account?</p>
+      <div className="flex items-center justify-center gap-2 pt-5">
+        <p className="m-0">Already have an account?</p>
         <Button onClick={() => navigate("/login")}>Login</Button>
       </div>
     </>

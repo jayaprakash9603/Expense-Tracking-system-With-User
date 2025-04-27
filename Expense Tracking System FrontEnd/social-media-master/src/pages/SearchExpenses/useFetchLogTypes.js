@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { expensesTypesEmail } from "../Input Fields/InputFields";
 
 const useFetchLogTypes = () => {
   const [logTypes, setLogTypes] = useState([]);
@@ -7,15 +8,8 @@ const useFetchLogTypes = () => {
 
   useEffect(() => {
     const fetchLogTypes = () => {
-      axios
-        .get("http://localhost:8080/expenses/expenses-types")
-        .then((response) => {
-          setLogTypes(response.data);
-          setFilteredLogTypes(response.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching log types:", error);
-        });
+      setLogTypes(expensesTypesEmail);
+      setFilteredLogTypes(expensesTypesEmail);
     };
 
     fetchLogTypes();

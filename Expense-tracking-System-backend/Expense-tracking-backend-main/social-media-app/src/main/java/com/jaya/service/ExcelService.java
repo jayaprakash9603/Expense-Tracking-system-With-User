@@ -411,12 +411,12 @@ public class ExcelService {
         for (Expense expense : expenses) {
             Expense savedExpense = expenseService.addExpense(expense,user);
             addedIds.add(savedExpense.getId());
-            auditExpenseService.logAudit(savedExpense.getId(), "create", "Expense created with ID: " + savedExpense.getId());
+            auditExpenseService.logAudit(user,savedExpense.getId(), "create", "Expense created with ID: " + savedExpense.getId());
         }
         return addedIds;
     }
 
-    private List<Expense> parseExcelFile(MultipartFile file) throws IOException {
+    public List<Expense> parseExcelFile(MultipartFile file) throws IOException {
         List<Expense> expenses = new ArrayList<>();
         Workbook workbook = WorkbookFactory.create(file.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);

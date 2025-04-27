@@ -6,19 +6,32 @@ import {
   DELETE_EXPENSE_FAILURE,
   DELETE_EXPENSE_REQUEST,
   DELETE_EXPENSE_SUCCESS,
+  FETCH_PREVIOUS_EXPENSES_FAILURE,
+  FETCH_PREVIOUS_EXPENSES_REQUEST,
+  FETCH_PREVIOUS_EXPENSES_SUCCESS,
   GET_ALL_EXPENSES_FAILURE,
   GET_ALL_EXPENSES_REQUEST,
   GET_ALL_EXPENSES_SUCCESS,
   GET_EXPENSE_FAILURE,
   GET_EXPENSE_REQUEST,
   GET_EXPENSE_SUCCESS,
+  RESET_UPLOAD_STATE,
+  SAVE_EXPENSES_FAILURE,
+  SAVE_EXPENSES_REQUEST,
+  SAVE_EXPENSES_SUCCESS,
+  UPLOAD_FILE_FAILURE,
+  UPLOAD_FILE_REQUEST,
+  UPLOAD_FILE_SUCCESS,
 } from "./expense.actionType";
 
 const initialState = {
   expenses: [],
+  previousExpenses: [],
   expense: null, // For single expense
   loading: false,
   error: null,
+  uploadSuccess: false,
+  uploadError: null,
 };
 
 export const expenseReducer = (state = initialState, action) => {
@@ -69,8 +82,53 @@ export const expenseReducer = (state = initialState, action) => {
     case GET_EXPENSE_FAILURE:
     case DELETE_EXPENSE_FAILURE:
       return { ...state, error: action.payload, loading: false };
+    case FETCH_PREVIOUS_EXPENSES_REQUEST:
+      return {
+        ...state,
+        loading: true,
+      };
+    case FETCH_PREVIOUS_EXPENSES_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        previousExpenses: action.payload,
+      };
+    case FETCH_PREVIOUS_EXPENSES_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
 
     // Default case
+    default:
+      return state;
+  }
+};
+
+export const uploadReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case UPLOAD_FILE_REQUEST:
+      return { ...state, loading: true, error: null, success: false };
+    case UPLOAD_FILE_SUCCESS:
+      return { ...state, loading: false, success: true, data: action.payload };
+    case UPLOAD_FILE_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+    case RESET_UPLOAD_STATE:
+      return initialState;
+    default:
+      return state;
+  }
+};
+
+export const saveExpensesReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case SAVE_EXPENSES_REQUEST:
+      return { ...state, loading: true, error: null };
+    case SAVE_EXPENSES_SUCCESS:
+      return { ...state, loading: false, savedExpenses: action.payload };
+    case SAVE_EXPENSES_FAILURE:
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }

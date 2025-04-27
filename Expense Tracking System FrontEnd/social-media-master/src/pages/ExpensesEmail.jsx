@@ -6,6 +6,7 @@ import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import EmailLoader from "../components/Loaders/EmailLoader";
 import { expensesTypesEmail } from "./Input Fields/InputFields";
+import { API_BASE_URL } from "../config/api";
 const ExpensesEmail = () => {
   const [logTypes, setLogTypes] = useState([]);
   const [filteredLogTypes, setFilteredLogTypes] = useState([]);
@@ -145,7 +146,7 @@ const ExpensesEmail = () => {
 
       // setLoading(false);
       if (response.status === 204) {
-        alert("No summaries were found.");
+        alert("No Expenses were found.");
         handleClearAll();
       } else {
         alert("Email sent successfully!");
@@ -169,60 +170,60 @@ const ExpensesEmail = () => {
     let url = "";
     let params = { email };
 
-    const baseUrl = "http://localhost:8080/api"; // Use dynamic base URL
+    const baseUrl = `${API_BASE_URL}`; // Use dynamic base URL
 
     switch (searchTerm) {
       case "Today":
-        url = `${baseUrl}/expenses/email/today`;
+        url = `${baseUrl}/api/expenses/email/today`;
         break;
       case "Yesterday":
-        url = `${baseUrl}/expenses/email/yesterday`;
+        url = `${baseUrl}/api/expenses/email/yesterday`;
         break;
       case "Last Week":
-        url = `${baseUrl}/expenses/email/current-week`;
+        url = `${baseUrl}/api/expenses/email/current-week`;
         break;
       case "Current Week":
-        url = `${baseUrl}/expenses/email/last-week`;
+        url = `${baseUrl}/api/expenses/email/last-week`;
         break;
       case "Current Month":
-        url = `${baseUrl}/expenses/email/current-month`;
+        url = `${baseUrl}/api/expenses/email/current-month`;
         break;
       case "Last Month":
-        url = `${baseUrl}/expenses/email/last-month`;
+        url = `${baseUrl}/api/expenses/email/last-month`;
         break;
       case "All Expenses":
-        url = `${baseUrl}/expenses/email/all`;
+        url = `${baseUrl}/api/expenses/email/all`;
         break;
       case "Within Range Expenses":
-        url = `${baseUrl}/expenses/email/range`;
+        url = `${baseUrl}/api/expenses/email/range`;
         params.startDate = fromDay;
         params.endDate = toDay;
         break;
       case "Expenses By Name":
-        url = `${baseUrl}/expenses/email/name`;
+        url = `${baseUrl}/api/expenses/email/name`;
         params.expenseName = expenseName;
         break;
       case "Expenses By Payment Method":
-        url = `${baseUrl}/expenses/email/payment-method/${paymentMethod}`;
+        url = `${baseUrl}/api/expenses/email/payment-method/${paymentMethod}`;
         break;
       case "Expenses By Type and Payment Method":
-        url = `${baseUrl}/expenses/email/type-payment-method/${category}/${paymentMethod}`;
+        url = `${baseUrl}/api/expenses/email/type-payment-method/${category}/${paymentMethod}`;
         break;
       case "Expenses By Type":
-        url = `${baseUrl}/expenses/email/type/${category}`;
+        url = `${baseUrl}/api/expenses/email/type/${category}`;
         break;
       case "Expenses Within Amount Range":
-        url = `${baseUrl}/expenses/email/amount-range`;
+        url = `${baseUrl}/api/expenses/email/amount-range`;
         params.minAmount = minAmount;
         params.maxAmount = maxAmount;
         break;
       case "Particular Month Expenses":
-        url = `${baseUrl}/expenses/email/by-month`;
+        url = `${baseUrl}/api/expenses/email/by-month`;
         params.month = startMonth;
         params.year = startYear;
         break;
       case "Particular Date Expenses":
-        url = `${baseUrl}/expenses/email/by-date`;
+        url = `${baseUrl}/api/expenses/email/by-date`;
         params.date = fromDay;
         break;
       default:

@@ -1,10 +1,12 @@
 package com.jaya.controller;
 
 import com.jaya.models.AuditExpense;
+import com.jaya.models.User;
 import com.jaya.service.AuditExpenseService;
 import com.jaya.service.EmailService;
 import com.jaya.service.ExcelService;
 
+import com.jaya.service.UserService;
 import jakarta.mail.MessagingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class AuditExpenseController {
     @Autowired
     private AuditExpenseService auditExpenseService;
 
+    @Autowired
+    private UserService userservice;
+
     @GetMapping("/audit-logs/expenses/{expenseId}")
     public ResponseEntity<List<AuditExpense>> getAuditLogsForExpense(@PathVariable Integer expenseId) {
         List<AuditExpense> auditLogs = auditExpenseService.getAuditLogsForExpense(expenseId);
@@ -37,8 +42,9 @@ public class AuditExpenseController {
         return ResponseEntity.ok(auditLogs);
     }
     @GetMapping("/audit-logs/all")
-    public ResponseEntity<List<AuditExpense>> getAllAuditLogs() {
-        List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs();
+    public ResponseEntity<List<AuditExpense>> getAllAuditLogs(@RequestHeader ("Authorization") String token) {
+        User reqUser=userservice.findUserByJwt(token);
+        List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs(reqUser);
         return ResponseEntity.ok(auditLogs);
     }
     
@@ -138,8 +144,9 @@ public class AuditExpenseController {
     
 
     @GetMapping("/audit-logs/all/email")
-    public ResponseEntity<String> sendAllAuditLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
-        List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs();
+    public ResponseEntity<String> sendAllAuditLogsByEmail(@RequestParam String email,@RequestParam("Authorization")String jwt) throws IOException, MessagingException {
+        User reqUser=userservice.findUserByJwt(jwt);
+        List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs(reqUser);
 
         ByteArrayInputStream in = excelService.generateAuditLogsExcel(auditLogs);
         byte[] bytes = in.readAllBytes();

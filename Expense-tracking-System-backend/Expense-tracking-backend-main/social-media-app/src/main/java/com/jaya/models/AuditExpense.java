@@ -1,5 +1,6 @@
 package com.jaya.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -23,9 +24,12 @@ public class AuditExpense {
     private String actionType;
     private String details;
     private LocalDateTime timestamp;
-    
-    
-    @ElementCollection
-    @OneToOne(mappedBy = "auditExpense", cascade = CascadeType.ALL)
-    private CommonLog commonLog;
+    @ManyToOne
+    @JsonIgnore
+    private User user;
+    private Integer userAuditIndex; // This is your per-user serial number
+    private Integer expenseAuditIndex; // This is your per-expense serial number
+
+
+
 }
