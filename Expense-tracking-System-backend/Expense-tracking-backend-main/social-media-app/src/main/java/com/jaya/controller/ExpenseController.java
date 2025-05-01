@@ -22,12 +22,8 @@ import jakarta.mail.MessagingException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.time.Year;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -159,7 +155,102 @@ public class ExpenseController {
         List<Expense> expenses = expenseService.getAllExpenses(reqUser);
         return ResponseEntity.ok(expenses);
     }
-    
+
+    @GetMapping("/summary-expenses")
+    public ResponseEntity<Map<String, Object>> summary(@RequestHeader("Authorization") String jwt) {
+        User reqUser = userService.findUserByJwt(jwt);
+        List<Expense> expenses = expenseService.getAllExpenses(reqUser);
+
+        LocalDate today = LocalDate.now();
+
+        // Common period: 17th last month to 16th this month
+        LocalDate periodStart = today.minusMonths(1).withDayOfMonth(17);
+        LocalDate periodEnd = today.withDayOfMonth(16);
+
+        double totalGains = 0.0;
+        double totalLosses = 0.0;
+        double totalCreditDue = 0.0;
+        double totalCreditPaid = 0.0;
+        double todayExpenses = 0.0;
+
+        Map<String, Double> lossesByPaymentMethod = new HashMap<>();
+
+        List<Expense> lastFiveExpenses = expenses.stream()
+                .sorted(Comparator.comparing(Expense::getDate).reversed())
+                .limit(5)
+                .collect(Collectors.toList());
+
+        for (Expense expense : expenses) {
+            ExpenseDetails details = expense.getExpense();
+            if (details == null) continue;
+
+            LocalDate date = expense.getDate();
+            if (date == null) continue;
+
+            String type = details.getType();
+            String paymentMethod = details.getPaymentMethod();
+
+            // === Total Salary Amount (for Remaining Budget) ===
+            // Exclude gain/loss entries with paymentMethod "creditNeedToPaid"
+            if ((type.equalsIgnoreCase("gain") || type.equalsIgnoreCase("loss")) &&
+                    !"creditNeedToPaid".equalsIgnoreCase(paymentMethod)) {
+                totalGains += details.getNetAmount();  // No null check needed (primitive)
+            }
+
+            // === Losses from 17th last month to 16th this month (only cash) ===
+            if (!date.isBefore(periodStart) && !date.isAfter(periodEnd)) {
+                if ("loss".equalsIgnoreCase(type) && "cash".equalsIgnoreCase(paymentMethod)) {
+                    totalLosses += details.getAmount();
+                    lossesByPaymentMethod.merge(
+                            paymentMethod.toLowerCase(),
+                            details.getAmount(),
+                            Double::sum
+                    );
+                }
+            }
+
+            // === Today's total expenses (all types) ===
+            if (date.isEqual(today) && "loss".equalsIgnoreCase(type)) {
+                todayExpenses += details.getAmount();
+            }
+
+            // === Credit Due Calculation ===
+            // Matches JS logic:
+            // +amount for creditNeedToPaid
+            // -amount for creditPaid
+            if ("creditNeedToPaid".equalsIgnoreCase(paymentMethod)) {
+                totalCreditDue += details.getAmount();
+            } else if ("creditPaid".equalsIgnoreCase(paymentMethod)) {
+                totalCreditDue -= details.getAmount();
+                totalCreditPaid += details.getAmount();
+            }
+        }
+
+        double remainingBudget = totalGains - totalLosses;
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("totalGains", totalGains);
+        response.put("totalLosses", totalLosses);
+        response.put("totalCreditDue", totalCreditDue);
+        response.put("totalCreditPaid", totalCreditPaid);
+        response.put("lossesByPaymentMethod", lossesByPaymentMethod);
+        response.put("lastFiveExpenses", lastFiveExpenses);
+        response.put("todayExpenses", todayExpenses);
+        response.put("remainingBudget", remainingBudget);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
+
+
+
+
+
+
+
+
 
     @PutMapping("/edit-expense/{id}")
     public ResponseEntity<String> updateExpense(@PathVariable Integer id, @RequestBody Expense expense,@RequestHeader("Authorization") String jwt) {
@@ -1211,6 +1302,11 @@ User reqUser=userService.findUserByJwt(jwt);
         User reqUser=userService.findUserByJwt(jwt);
         try {
             List<Expense> expenses = excelService.parseExcelFile(file);
+            int i=0;
+            for(Expense expense : expenses) {
+                expense.setId(i++);
+                expense.getExpense().setId(i);
+            }
             return ResponseEntity.ok(expenses);
         } catch (IOException e) {
             return ResponseEntity.status(500).body(null);
@@ -1332,6 +1428,173 @@ User reqUser=userService.findUserByJwt(jwt);
         LocalDate parsedDate = LocalDate.parse(date);
         User reqUser=userService.findUserByJwt(jwt);
         return expenseService.getExpensesBeforeDate(reqUser.getId(), expenseName, parsedDate);
+    }
+
+
+    @GetMapping("/current-month-top-expenses")
+    public Map<String, Object> getTopExpensesForCustomMonth(@RequestHeader("Authorization")String jwt) {
+        User reqUser=userService.findUserByJwt(jwt);
+        LocalDate now = LocalDate.now();
+
+        // Calculate the start date (17th of the previous month)
+        LocalDate startDate = now.minusMonths(1).withDayOfMonth(17);
+
+        // Calculate the end date (16th of the current month)
+        LocalDate endDate = now.withDayOfMonth(16);
+
+        // Fetch all expenses and filter by the custom date range (17th of last month to 16th of current month)
+        List<Expense> expenses = expenseService.getAllExpenses(reqUser);
+
+        // Initialize data structures for expense trend, monthly breakdown, and expense distribution
+        List<Map<String, Object>> expenseTrend = new ArrayList<>();
+        List<Map<String, Object>> monthlyBreakdown = new ArrayList<>();
+        List<Map<String, Object>> expenseDistribution = new ArrayList<>();
+
+        // Group expenses by category for the custom month range
+        Map<String, Double> categoryTotals = new LinkedHashMap<>();
+
+        // Process the expenses and categorize them by expense category
+        for (Expense expense : expenses) {
+            LocalDate expenseDate = expense.getDate();
+
+            // Check if the expense date is within the custom month range (17th of last month to 16th of current month)
+            if ((expenseDate.isAfter(startDate) || expenseDate.isEqual(startDate)) && (expenseDate.isBefore(endDate) || expenseDate.isEqual(endDate))) {
+                ExpenseDetails details = expense.getExpense();
+                if (details != null) {
+                    String category = details.getExpenseName(); // Expense categories like 'Food', 'Entertainment', etc.
+                    double amount = details.getAmount();
+
+                    // Accumulate total for each category
+                    categoryTotals.merge(category, amount, Double::sum);
+                }
+            }
+        }
+
+        // Sort the categories by amount and get the top 3
+        List<Map.Entry<String, Double>> sortedCategories = new ArrayList<>(categoryTotals.entrySet());
+        sortedCategories.sort((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()));
+
+        // Prepare the data for Line Chart and Bar Chart (only top 3 categories)
+        Map<String, Object> trendData = new HashMap<>();
+        Map<String, Object> monthlyData = new HashMap<>();
+        int count = 0;
+        for (Map.Entry<String, Double> entry : sortedCategories) {
+            if (count == 3) break;  // Only top 3 categories
+
+            String category = entry.getKey();
+            Double amount = entry.getValue();
+
+            // For Line Chart and Bar Chart
+            trendData.put(category.toLowerCase(), amount);
+            monthlyData.put(category, amount);
+
+            // Prepare Pie Chart Data
+            Map<String, Object> pieData = new HashMap<>();
+            pieData.put("name", category);
+            pieData.put("value", amount);
+            expenseDistribution.add(pieData);
+
+            count++;
+        }
+
+        // Add the data to the response map
+        expenseTrend.add(trendData);  // Line Chart data
+        monthlyBreakdown.add(monthlyData);  // Bar Chart data
+
+        // Return the combined data for the custom "current month" (Line Chart, Bar Chart, Pie Chart)
+        Map<String, Object> result = new HashMap<>();
+        result.put("expenseTrend", expenseTrend);  // Line Chart Data
+        result.put("monthlyBreakdown", monthlyBreakdown);  // Bar Chart Data
+        result.put("expenseDistribution", expenseDistribution);  // Pie Chart Data
+
+        return result;
+    }
+
+
+    @GetMapping("/by-name")
+    public Map<String, Object> getExpenseByName(
+            @RequestHeader("Authorization")String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year) {
+        User reqUser=userService.findUserByJwt(jwt);
+        if (year == 0) {
+            year = Year.now().getValue();
+        }
+        return expenseService.getExpenseByName(reqUser,year);
+    }
+
+    @GetMapping("/monthly")
+    public Map<String, Object> getMonthlyExpenses(
+            @RequestHeader("Authorization")String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year) {
+        if (year == 0) {
+            year = Year.now().getValue();
+        }
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.getMonthlyExpenses(reqUser,year);
+    }
+
+    @GetMapping("/trend")
+    public Map<String, Object> getExpenseTrend(
+            @RequestHeader("Authorization")String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year) {
+        if (year == 0) {
+            year = Year.now().getValue();
+        }
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.getExpenseTrend(reqUser,year);
+    }
+
+    @GetMapping("/payment-methods")
+    public Map<String, Object> getPaymentMethodDistribution(
+            @RequestHeader("Authorization")String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year) {
+        if (year == 0) {
+            year = Year.now().getValue();
+        }
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.getPaymentMethodDistribution(reqUser,year);
+    }
+
+    @GetMapping("/cumulative")
+    public Map<String, Object> getCumulativeExpenses(
+            @RequestHeader("Authorization")String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year) {
+        if (year == 0) {
+            year = Year.now().getValue();
+        }
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.getCumulativeExpenses(reqUser,year);
+    }
+
+    @GetMapping("/name-over-time")
+    public Map<String, Object> getExpenseNameOverTime(
+            @RequestHeader("Authorization")String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year,
+            @RequestParam(value = "limit", defaultValue = "5") int limit) {
+        if (year == 0) {
+            year = Year.now().getValue();
+        }
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.getExpenseNameOverTime(reqUser,year, limit);
+    }
+
+
+    @GetMapping("/current-month/daily-spending")
+    public List<Map<String, Object>> getDailySpendingCurrentMonth(@RequestHeader("Authorization")String jwt) {
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.getDailySpendingCurrentMonth(reqUser.getId());
+    }
+
+    @GetMapping("/current-month/totals")
+    public List<Map<String, Object>> getMonthlySpendingAndIncomeCurrentMonth(@RequestHeader("Authorization")String jwt) {
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.getMonthlySpendingAndIncomeCurrentMonth(reqUser.getId());
+    }
+
+    @GetMapping("/current-month/distribution")
+    public List<Map<String, Object>> getExpenseDistributionCurrentMonth(@RequestHeader("Authorization")String jwt) {
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.getExpenseDistributionCurrentMonth(reqUser.getId());
     }
 }
 

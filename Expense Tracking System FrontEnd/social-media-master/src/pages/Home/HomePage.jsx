@@ -9,14 +9,17 @@ import FilteredTable from "./FilteredTable";
 import Loader from "../../components/Loaders/Loader";
 import FilterComponent from "../Filter/FilterComponent";
 import { logoutAction } from "../../Redux/Auth/auth.action";
-import { getExpensesAction } from "../../Redux/Expenses/expense.action";
+import {
+  getExpensesAction,
+  getHomeExpensesAction,
+} from "../../Redux/Expenses/expense.action";
 import ReportsGeneration from "../ReportsGeneration";
 // Removed FileUploadModal import since it's now handled in /upload route
 
 const HomePage = () => {
   const jwt = localStorage.getItem("jwt");
   const { user, error: authError } = useSelector((state) => state.auth);
-  const { expenses } = useSelector((state) => state.expenses);
+  const { expensesBydate } = useSelector((state) => state.expenses);
   const { loadingAuth } = useAuthentication(jwt);
   const { dataForTable, loading, error } = useExpenses(jwt);
   const [convertedData, setConvertedData] = useState({});
@@ -29,7 +32,7 @@ const HomePage = () => {
   useEffect(() => {
     if (jwt) {
       console.log("entered into login");
-      dispatch(getExpensesAction(jwt, sortOrder));
+      dispatch(getHomeExpensesAction(jwt, sortOrder));
     }
   }, [dispatch, jwt, sortOrder]);
 
@@ -45,7 +48,7 @@ const HomePage = () => {
 
     try {
       await dispatch(
-        getExpensesAction(localStorage.getItem("jwt"), selectedOrder)
+        getHomeExpensesAction(localStorage.getItem("jwt"), selectedOrder)
       );
     } finally {
       setSortLoading(false); // stop loading
@@ -137,7 +140,7 @@ const HomePage = () => {
           style={{ width: "50%" }}
         >
           <FilterComponent
-            inputData={expenses}
+            inputData={expensesBydate}
             setFilteredData={setFilteredData}
           />
         </div>
@@ -164,7 +167,7 @@ const HomePage = () => {
           </Link>
         </div>
       </div>
-      {expenses.length === 0 ? (
+      {expensesBydate.length === 0 ? (
         <p>No expenses available.</p>
       ) : (
         <FilteredTable filteredData={filteredData} />

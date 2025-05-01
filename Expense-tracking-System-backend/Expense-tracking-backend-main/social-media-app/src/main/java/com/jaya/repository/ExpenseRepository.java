@@ -12,6 +12,7 @@ import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -25,6 +26,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
 
     List<Expense> findByUserIdAndDateBetween(Integer userId, LocalDate startDate, LocalDate endDate);
+    List<Expense> findByUserIdAndDateBetween(Integer userId, LocalDateTime start, LocalDateTime end);
 
     Page<Expense> findByUser(User user, Pageable pageable);
     @Query("SELECT e FROM Expense e WHERE e.expense.expenseName = ?1 ORDER BY e.date DESC")
@@ -213,6 +215,104 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
     @Query("SELECT e FROM Expense e WHERE e.user.id = ?1 AND e.expense.expenseName = ?2 AND e.date < ?3 ORDER BY e.date DESC")
     List<Expense> findByUserAndExpenseNameBeforeDate(Integer userId, String expenseName, LocalDate date);
+
+
+
+    @Query("SELECT ed.expenseName, SUM(ed.amount) as total " +
+            "FROM Expense e JOIN e.expense ed " +
+            "WHERE YEAR(e.date) = :year AND e.user.id = :userId " +
+            "GROUP BY ed.expenseName " +
+            "ORDER BY total DESC")
+    List<Object[]> findExpenseByNameAndUserId(@Param("year") int year, @Param("userId") Integer userId);
+
+
+    // For Bar/Line Chart: Monthly Expenses
+    @Query("SELECT MONTH(e.date) as month, SUM(ed.amount) as total " +
+            "FROM Expense e JOIN e.expense ed " +
+            "WHERE YEAR(e.date) = :year AND e.user.id = :userId " +
+            "AND ed.type = 'loss' AND ed.paymentMethod <> 'creditPaid' " +
+            "GROUP BY MONTH(e.date) " +
+            "ORDER BY MONTH(e.date)")
+    List<Object[]> findMonthlyLossExpensesByUserId(@Param("year") int year, @Param("userId") Integer userId);
+
+
+
+
+
+    // For Polar Area Chart: Payment Method Distribution
+    @Query("SELECT ed.paymentMethod, SUM(ed.amount) as total " +
+            "FROM Expense e JOIN e.expense ed " +
+            "WHERE YEAR(e.date) = :year AND e.user.id = :userId " +
+            "GROUP BY ed.paymentMethod")
+    List<Object[]> findPaymentMethodDistributionByUserId(@Param("year") int year, @Param("userId") Integer userId);
+
+
+    // For Area Chart: Cumulative Expenses
+    @Query(value = "SELECT MONTHNAME(e.date) as month, " +
+            "SUM(ed.amount) as total, " +
+            "SUM(SUM(ed.amount)) OVER (ORDER BY MONTH(e.date)) as cumulative_total " +
+            "FROM expenses e " +
+            "JOIN expense_details ed ON e.id = ed.expense_id " +
+            "WHERE YEAR(e.date) = :year AND e.user_id = :userId " +
+            "AND ed.payment_method != 'creditPaid' " +   // Exclude payment method 'creditPaid'
+            "AND ed.type = 'loss' " +                    // Include only 'loss' type records
+            "GROUP BY MONTH(e.date), MONTHNAME(e.date) " +
+            "ORDER BY MONTH(e.date)",
+            nativeQuery = true)
+    List<Object[]> findCumulativeExpensesByUserId(@Param("year") int year, @Param("userId") Integer userId);
+
+
+
+
+
+
+
+
+    // For Stacked Bar Chart: Expenses by Name Over Time
+    @Query(value = "SELECT ed2.expense_name " +
+            "FROM expenses e2 " +
+            "JOIN expense_details ed2 ON e2.id = ed2.expense_id " +
+            "WHERE YEAR(e2.date) = :year AND e2.user_id = :userId " +
+            "GROUP BY ed2.expense_name " +
+            "ORDER BY SUM(ed2.amount) DESC", nativeQuery = true)
+    List<String> findTopExpenseNames(@Param("year") int year, @Param("userId") Integer userId);
+
+    @Query(value = """
+    SELECT MONTHNAME(e.date) AS month, ed.expense_name, SUM(ed.amount) AS total
+    FROM expenses e
+    JOIN expense_details ed ON e.id = ed.expense_id
+    WHERE YEAR(e.date) = :year AND e.user_id = :userId
+      AND ed.expense_name IN (
+          SELECT ed2.expense_name
+          FROM expenses e2
+          JOIN expense_details ed2 ON e2.id = ed2.expense_id
+          WHERE YEAR(e2.date) = :year AND e2.user_id = :userId
+          GROUP BY ed2.expense_name
+          ORDER BY SUM(ed2.amount) DESC
+          LIMIT :limit
+      )
+    GROUP BY MONTH(e.date), ed.expense_name
+    ORDER BY MONTH(e.date), ed.expense_name
+    """, nativeQuery = true)
+    List<Object[]> findExpenseNameOverTimeByUserNative(@Param("year") int year,
+                                                       @Param("limit") int limit,
+                                                       @Param("userId") int userId);
+
+
+    @Query("SELECT e FROM Expense e WHERE YEAR(e.date) = :year AND e.user.id = :userId")
+    List<Expense> findByYearAndUser(@Param("year") int year, @Param("userId") int userId);
+
+
+
+
+
+
+
+
+
+
 }
+
+
 
 

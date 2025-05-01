@@ -161,4 +161,18 @@ public interface ExpenseService {
 
 
     List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, User user);
+
+    Map<String, Object> getExpenseNameOverTime(User user,int year, int limit);
+    Map<String, Object> getPaymentMethodDistribution(User user,int year);
+    Map<String, Object> getMonthlyExpenses(User user,int year);
+    Map<String, Object> getExpenseByName(User user,int year);
+    Map<String, Object> getExpenseTrend(User user,int year);
+    Map<String, Object> getCumulativeExpenses(User user,int year);
+
+
+
+    List<Map<String, Object>> getExpenseDistributionCurrentMonth(Integer userId);
+    List<Map<String, Object>> getMonthlySpendingAndIncomeCurrentMonth(Integer userId);
+    List<Map<String, Object>> getDailySpendingCurrentMonth(Integer userId);
+
 }

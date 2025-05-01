@@ -92,6 +92,9 @@ export const getProfileAction = (jwt) => async (dispatch) => {
       },
     });
 
+    const firstName = data.firstName;
+
+    console.log("First Name:", firstName);
     dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
   } catch (error) {
     dispatch({ type: GET_PROFILE_FAILURE, payload: error });

@@ -37,11 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
@@ -405,21 +401,37 @@ public class ExpenseServiceImpl implements ExpenseService {
     public List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount,User user) {
         return expenseRepository.filterExpensesByUser(user.getId(),expenseName, startDate, endDate, type, paymentMethod, minAmount, maxAmount);
     }
-    
-    @Override
-    public List<String> getTopExpenseNames(int topN,User user) {
-        // Create a Pageable object to limit the results to top N
-        Page<Object[]> results = expenseRepository.findTopExpenseNamesByUser(user.getId(),PageRequest.of(0, topN));
 
-        List<String> topExpenseNames = new ArrayList<>();
-        
+    @Override
+    public List<String> getTopExpenseNames(int topN, User user) {
+        Page<Object[]> results = expenseRepository.findTopExpenseNamesByUser(user.getId(), PageRequest.of(0, topN));
+        Set<String> topExpenseNamesSet = new HashSet<>();
+
         for (Object[] result : results) {
-            topExpenseNames.add((String) result[0]);  // Add expense name to the list
+            String expenseName = ((String) result[0]).toLowerCase();
+            String capitalizedExpenseName = capitalizeWords(expenseName);
+            topExpenseNamesSet.add(capitalizedExpenseName);
         }
 
-        return topExpenseNames;
+        return new ArrayList<>(topExpenseNamesSet);
     }
-    
+
+    private String capitalizeWords(String str) {
+        String[] words = str.split(" ");
+        StringBuilder capitalizedString = new StringBuilder();
+
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                capitalizedString.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1).toLowerCase())
+                        .append(" ");
+            }
+        }
+
+        return capitalizedString.toString().trim();
+    }
+
+
     @Override
     public Map<String, Object> getMonthlySpendingInsights(int year, int month,User user) {
         LocalDate startDate = LocalDate.of(year, Month.of(month), 1);
@@ -1410,4 +1422,293 @@ public List<Expense> saveExpenses(List<Expense> expenses) {
 
         return savedExpenses;
     }
+
+
+    @Override
+    public Map<String, Object> getExpenseByName(User user,int year) {
+        List<Object[]> results = expenseRepository.findExpenseByNameAndUserId(year,user.getId());
+        Map<String, Object> response = new LinkedHashMap<>();
+        String[] labels = new String[Math.min(results.size(), 5)];
+        Double[] data = new Double[Math.min(results.size(), 5)];
+
+        for (int i = 0; i < Math.min(results.size(), 5); i++) {
+            labels[i] = (String) results.get(i)[0];
+            data[i] = (Double) results.get(i)[1];
+        }
+
+        response.put("labels", labels);
+        response.put("datasets", List.of(Map.of("data", data)));
+        return response;
+    }
+
+    @Override
+    public Map<String, Object> getMonthlyExpenses(User user, int year) {
+        List<Object[]> results = expenseRepository.findMonthlyLossExpensesByUserId(year, user.getId());
+
+        // Short month labels (Jan to Dec)
+        String[] labels = new String[]{"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        Double[] data = new Double[12];
+        Arrays.fill(data, 0.0);
+
+        for (Object[] result : results) {
+            int month = ((Number) result[0]).intValue(); // 1 = Jan, ..., 12 = Dec
+            double total = ((Number) result[1]).doubleValue();
+            data[month - 1] = total;
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("labels", labels);
+        response.put("datasets", List.of(Map.of("label", "Expenses ($)", "data", data)));
+
+        return response;
+    }
+
+
+    @Override
+    public Map<String, Object> getExpenseTrend(User user, int year) {
+        List<Object[]> results = expenseRepository.findMonthlyLossExpensesByUserId(year, user.getId());
+
+        String[] labels = new String[]{"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        Double[] data = new Double[12];
+        Arrays.fill(data, 0.0);
+
+        for (Object[] result : results) {
+            int month = ((Number) result[0]).intValue();  // ✅ Correct cast
+            double total = ((Number) result[1]).doubleValue();
+            if (month >= 1 && month <= 12) {
+                data[month - 1] = total;
+            }
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("labels", labels);
+        response.put("datasets", List.of(Map.of("label", "Expense Trend ($)", "data", data)));
+
+        return response;
+    }
+
+
+    @Override
+    public Map<String, Object> getPaymentMethodDistribution(User user,int year) {
+        List<Object[]> results = expenseRepository.findPaymentMethodDistributionByUserId(year,user.getId());
+        Map<String, Object> response = new LinkedHashMap<>();
+        String[] labels = new String[results.size()];
+        Double[] data = new Double[results.size()];
+
+        for (int i = 0; i < results.size(); i++) {
+            labels[i] = (String) results.get(i)[0];
+            data[i] = (Double) results.get(i)[1];
+        }
+
+        response.put("labels", labels);
+        response.put("datasets", List.of(Map.of("data", data)));
+        return response;
+    }
+
+    @Override
+    public Map<String, Object> getCumulativeExpenses(User user, int year) {
+        List<Object[]> results = expenseRepository.findCumulativeExpensesByUserId(year, user.getId());
+
+        Map<String, String> monthMapping = new HashMap<>();
+        monthMapping.put("January", "Jan");
+        monthMapping.put("February", "Feb");
+        monthMapping.put("March", "Mar");
+        monthMapping.put("April", "Apr");
+        monthMapping.put("May", "May");
+        monthMapping.put("June", "Jun");
+        monthMapping.put("July", "Jul");
+        monthMapping.put("August", "Aug");
+        monthMapping.put("September", "Sep");
+        monthMapping.put("October", "Oct");
+        monthMapping.put("November", "Nov");
+        monthMapping.put("December", "Dec");
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        String[] labels = new String[]{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        Double[] data = new Double[12];
+        Arrays.fill(data, 0.0);
+
+        double cumulativeSum = 0.0;
+
+        for (Object[] result : results) {
+            String month = (String) result[0];
+            double total = ((Number) result[1]).doubleValue();
+            cumulativeSum += total;
+            String monthAbbr = monthMapping.get(month);
+
+            if (monthAbbr != null) {
+                int index = Arrays.asList(labels).indexOf(monthAbbr);
+                if (index >= 0) {
+                    data[index] = cumulativeSum;
+                }
+            }
+        }
+
+        response.put("labels", labels);
+        response.put("datasets", List.of(Map.of("label", "Cumulative Expenses ($)", "data", data)));
+
+        return response;
+    }
+
+
+
+
+
+    @Override
+    public Map<String, Object> getExpenseNameOverTime(User user, int year, int limit) {
+        List<Expense> expenses = expenseRepository.findByYearAndUser(year, user.getId());
+
+        Map<String, Map<Integer, Double>> monthlySums = new HashMap<>();
+        Map<String, Double> totalPerExpense = new HashMap<>();
+
+        for (Expense e : expenses) {
+            ExpenseDetails ed = e.getExpense();
+            if (ed == null) continue;
+
+            String expenseName = ed.getExpenseName();
+            if (expenseName == null || expenseName.toLowerCase().contains("given")) continue;
+
+            int month = e.getDate().getMonthValue();  // 1 = Jan, 12 = Dec
+            double amount = ed.getAmount();
+
+            monthlySums
+                    .computeIfAbsent(expenseName, k -> new HashMap<>())
+                    .merge(month, amount, Double::sum);
+
+            totalPerExpense.merge(expenseName, amount, Double::sum);
+        }
+
+        // Get top-N expense names by total amount
+        List<String> topExpenseNames = totalPerExpense.entrySet().stream()
+                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+                .limit(limit)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        // Labels for months
+        String[] labels = new String[]{"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("labels", labels);
+
+        List<Map<String, Object>> datasets = new ArrayList<>();
+
+        for (String name : topExpenseNames) {
+            List<Double> data = new ArrayList<>(Collections.nCopies(12, 0.0));
+            Map<Integer, Double> monthData = monthlySums.getOrDefault(name, new HashMap<>());
+            for (Map.Entry<Integer, Double> entry : monthData.entrySet()) {
+                data.set(entry.getKey() - 1, entry.getValue()); // monthIndex = month - 1
+            }
+            datasets.add(Map.of("label", name, "data", data));
+        }
+
+        response.put("datasets", datasets);
+        return response;
+    }
+
+
+
+
+
+
+    @Override
+    public List<Map<String, Object>> getDailySpendingCurrentMonth(Integer userId) {
+        YearMonth currentMonth = YearMonth.now();
+        LocalDate startOfMonth = currentMonth.atDay(1);
+        LocalDate endOfMonth = currentMonth.atEndOfMonth();
+
+        List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, startOfMonth, endOfMonth);
+
+        Map<LocalDate, Double> dailySpending = new HashMap<>();
+
+        for (Expense e : expenses) {
+            if (e.getExpense() != null) {
+                ExpenseDetails details = e.getExpense();
+                if ("loss".equalsIgnoreCase(details.getType()) && !"creditPaid".equalsIgnoreCase(details.getPaymentMethod())) {
+                    LocalDate date = e.getDate();
+                    double amount = details.getAmount();
+                    dailySpending.merge(date, amount, Double::sum);
+                }
+            }
+        }
+
+        List<Map<String, Object>> response = new ArrayList<>();
+        LocalDate date = startOfMonth;
+        while (!date.isAfter(endOfMonth)) {
+            Map<String, Object> dayEntry = new HashMap<>();
+            dayEntry.put("day", date.toString());
+            dayEntry.put("spending", dailySpending.getOrDefault(date, 0.0));
+            response.add(dayEntry);
+            date = date.plusDays(1);
+        }
+
+        return response;
+    }
+
+
+
+
+
+
+    @Override
+    public List<Map<String, Object>> getMonthlySpendingAndIncomeCurrentMonth(Integer userId) {
+        YearMonth currentMonth = YearMonth.now();
+        LocalDate startOfMonth = currentMonth.atDay(1);
+        LocalDate endOfMonth = currentMonth.atEndOfMonth();
+
+        List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, startOfMonth, endOfMonth);
+
+        double totalSpending = expenses.stream()
+                .filter(e -> e.getExpense() != null)
+                .mapToDouble(e -> e.getExpense().getAmount())
+                .sum();
+
+        // No IncomeRepository, so income is 0
+        double totalIncome = 0.0;
+
+        List<Map<String, Object>> response = new ArrayList<>();
+        Map<String, Object> spendingData = new HashMap<>();
+        spendingData.put("name", "Spending");
+        spendingData.put("value", totalSpending);
+        response.add(spendingData);
+
+        Map<String, Object> incomeData = new HashMap<>();
+        incomeData.put("name", "Income");
+        incomeData.put("value", totalIncome);
+        response.add(incomeData);
+
+        return response;
+    }
+
+
+    @Override
+    public List<Map<String, Object>> getExpenseDistributionCurrentMonth(Integer userId) {
+        YearMonth currentMonth = YearMonth.now();
+        LocalDate startOfMonth = currentMonth.atDay(1);
+        LocalDate endOfMonth = currentMonth.atEndOfMonth();
+
+        List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, startOfMonth, endOfMonth);
+
+        Map<String, Double> expenseNameTotals = expenses.stream()
+                .filter(e -> e.getExpense() != null)
+                .collect(Collectors.groupingBy(
+                        e -> e.getExpense().getExpenseName(),
+                        Collectors.summingDouble(e -> e.getExpense().getAmount())
+                ));
+
+        return expenseNameTotals.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(5)
+                .map(entry -> {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("name", entry.getKey());
+                    data.put("value", entry.getValue());
+                    return data;
+                })
+                .collect(Collectors.toList());
+    }
+
 }
