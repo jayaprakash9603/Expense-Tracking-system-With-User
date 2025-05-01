@@ -1,6 +1,7 @@
 package com.jaya.repository;
 
 import com.jaya.models.User;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +24,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     Expense findByUserIdAndId(Integer userId, Integer id);
 
     List<Expense>findByUser(User user);
-
+    List<Expense>findByUserId(Integer userId);
+    List<Expense> findByUserId(Integer userId, Sort sort);
+    List<Expense> findByUserOrderByDateAsc(User user);
+    List<Expense> findByUserOrderByDateDesc(User user);
 
     List<Expense> findByUserIdAndDateBetween(Integer userId, LocalDate startDate, LocalDate endDate);
     List<Expense> findByUserIdAndDateBetween(Integer userId, LocalDateTime start, LocalDateTime end);

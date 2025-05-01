@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getExpensesSummaryAction } from "../../Redux/Expenses/expense.action";
-import { Skeleton } from "@mui/material"; // ✅ Import Skeleton
+import { Skeleton } from "@mui/material";
 
 const shimmerKeyframes = {
   "@keyframes shimmer": {
@@ -58,16 +58,16 @@ const RecentExpenses = () => {
           borderRadius: "8px",
           border: "1px solid rgb(56, 56, 56)",
           padding: "16px",
-          overflowY: "auto",
+          boxSizing: "border-box",
         }}
       >
-        <div style={{ width: "100%" }}>
+        <div style={{ width: "100%", marginBottom: "12px" }}>
           <p
             style={{
               color: "white",
               fontWeight: "bold",
               fontSize: "22px",
-              marginBottom: "12px",
+              margin: 0,
             }}
           >
             Recent Expenses
@@ -84,10 +84,53 @@ const RecentExpenses = () => {
                   padding: "10px 0",
                   borderBottom: "1px solid rgb(40, 40, 40)",
                   height: "50px",
+                  boxSizing: "border-box",
                 }}
               >
                 <Skeleton
                   variant="text"
+                  width="25%"
+                  height={20}
+                  sx={{
+                    ...shimmerKeyframes,
+                    bgcolor: "#2c2c2c",
+                    backgroundImage:
+                      "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
+                    backgroundSize: "1000px 100%",
+                    animation: "shimmer 2s infinite linear",
+                    marginRight: "10px",
+                  }}
+                />
+                <Skeleton
+                  variant="text"
+                  width="15%"
+                  height={20}
+                  sx={{
+                    ...shimmerKeyframes,
+                    bgcolor: "#2c2c2c",
+                    backgroundImage:
+                      "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
+                    backgroundSize: "1000px 100%",
+                    animation: "shimmer 2s infinite linear",
+                    marginRight: "10px",
+                  }}
+                />
+                <Skeleton
+                  variant="text"
+                  width="15%"
+                  height={20}
+                  sx={{
+                    ...shimmerKeyframes,
+                    bgcolor: "#2c2c2c",
+                    backgroundImage:
+                      "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
+                    backgroundSize: "1000px 100%",
+                    animation: "shimmer 2s infinite linear",
+                    marginRight: "10px",
+                  }}
+                />
+                <Skeleton
+                  variant="text"
                   width="20%"
                   height={20}
                   sx={{
@@ -97,54 +140,12 @@ const RecentExpenses = () => {
                       "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
                     backgroundSize: "1000px 100%",
                     animation: "shimmer 2s infinite linear",
-                    marginRight: 2,
+                    marginRight: "10px",
                   }}
                 />
                 <Skeleton
                   variant="text"
-                  width="10%"
-                  height={20}
-                  sx={{
-                    ...shimmerKeyframes,
-                    bgcolor: "#2c2c2c",
-                    backgroundImage:
-                      "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
-                    backgroundSize: "1000px 100%",
-                    animation: "shimmer 2s infinite linear",
-                    marginRight: 2,
-                  }}
-                />
-                <Skeleton
-                  variant="text"
-                  width="10%"
-                  height={20}
-                  sx={{
-                    ...shimmerKeyframes,
-                    bgcolor: "#2c2c2c",
-                    backgroundImage:
-                      "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
-                    backgroundSize: "1000px 100%",
-                    animation: "shimmer 2s infinite linear",
-                    marginRight: 2,
-                  }}
-                />
-                <Skeleton
-                  variant="text"
-                  width="20%"
-                  height={20}
-                  sx={{
-                    ...shimmerKeyframes,
-                    bgcolor: "#2c2c2c",
-                    backgroundImage:
-                      "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
-                    backgroundSize: "1000px 100%",
-                    animation: "shimmer 2s infinite linear",
-                    marginRight: 2,
-                  }}
-                />
-                <Skeleton
-                  variant="text"
-                  width="30%"
+                  width="25%"
                   height={20}
                   sx={{
                     ...shimmerKeyframes,
@@ -174,29 +175,69 @@ const RecentExpenses = () => {
                   transition: "all 0.3s ease",
                   height: hoveredId === id ? "60px" : "50px",
                   backgroundColor: hoveredId === id ? "#29282b" : "transparent",
+                  boxSizing: "border-box",
+                  alignItems: "center",
                 }}
               >
                 <div
                   style={{
-                    flex: 2,
+                    width: "25%",
                     paddingLeft: "10px",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    boxSizing: "border-box",
                   }}
+                  title={expense.expenseName} // Show full name on hover
                 >
                   {expense.expenseName}
                 </div>
                 <div
                   style={{
-                    flex: 1,
+                    width: "15%",
                     color: expense.type === "loss" ? "red" : "limegreen",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    boxSizing: "border-box",
                   }}
                 >
                   {mapExpenseType(expense.type)}
                 </div>
-                <div style={{ flex: 1 }}>{expense.amount}</div>
-                <div style={{ flex: 2 }}>
+                <div
+                  style={{
+                    width: "15%",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  {expense.amount}
+                </div>
+                <div
+                  style={{
+                    width: "20%",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    boxSizing: "border-box",
+                  }}
+                >
                   {mapPaymentMethod(expense.paymentMethod)}
                 </div>
-                <div style={{ flex: 2, color: "gray" }}>{date}</div>
+                <div
+                  style={{
+                    width: "25%",
+                    color: "gray",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  {date}
+                </div>
               </div>
             ))}
       </div>

@@ -22,8 +22,8 @@ public interface ExpenseService {
 
     List<Expense> getExpensesByDateRange(LocalDate from, LocalDate to,User user);
 
+    List<Expense> getAllExpenses(User user,String sortOrder);
     List<Expense> getAllExpenses(User user);
-    
     List<Expense> searchExpensesByName(String expenseName,User user);
     
     List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount,User user);

@@ -29,6 +29,20 @@ const MonthlyReport = () => {
   // Color palette for charts
   const colorPalette = ["#8884d8", "#82ca9d", "#ff7300", "#FF6B6B", "#4ECDC4"];
 
+  // Default datasets for empty responses
+  const defaultDailySpending = Array.from({ length: 31 }, (_, i) => ({
+    day: `2025-05-${String(i + 1).padStart(2, "0")}`,
+    spending: 0,
+  }));
+
+  const defaultMonthlySpendingIncome = [{ name: "No Expenses", value: 0 }];
+
+  const defaultPieData = [{ name: "No Expenses", value: 1 }];
+
+  // Truncate long names
+  const truncate = (str, maxLength = 20) =>
+    str.length > maxLength ? `${str.slice(0, maxLength - 3)}...` : str;
+
   useEffect(() => {
     if (!token) {
       setError("Please log in to view the monthly report.");
@@ -52,9 +66,26 @@ const MonthlyReport = () => {
           }),
         ]);
 
-        setDailySpendingData(spendingRes.data);
-        setMonthlySpendingIncomeData(totalsRes.data);
-        setPieData(distributionRes.data);
+        // Truncate names in data
+        setDailySpendingData(
+          spendingRes.data.length > 0 ? spendingRes.data : defaultDailySpending
+        );
+        setMonthlySpendingIncomeData(
+          totalsRes.data.length > 0
+            ? totalsRes.data.map((item) => ({
+                ...item,
+                name: truncate(item.name),
+              }))
+            : defaultMonthlySpendingIncome
+        );
+        setPieData(
+          distributionRes.data.length > 0
+            ? distributionRes.data.map((item) => ({
+                ...item,
+                name: truncate(item.name),
+              }))
+            : defaultPieData
+        );
         setError(null);
       } catch (error) {
         console.error("Error fetching monthly report data:", error);
@@ -70,7 +101,7 @@ const MonthlyReport = () => {
     fetchData();
   }, [token]);
 
-  // Custom label renderer for Pie Chart to ensure white text
+  // Custom label renderer for Pie Chart with truncated names
   const renderCustomLabel = ({
     cx,
     cy,
@@ -80,7 +111,7 @@ const MonthlyReport = () => {
     percent,
     name,
   }) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.1; // Reduced radius
     const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
     const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
 
@@ -91,11 +122,51 @@ const MonthlyReport = () => {
         fill="#ffffff"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
-        style={{ fontSize: 12 }}
+        style={{ fontSize: 10 }} // Smaller font
       >
-        {`${name} (${(percent * 100).toFixed(0)}%)`}
+        {`${truncate(name)} (${(percent * 100).toFixed(0)}%)`}
       </text>
     );
+  };
+
+  // Custom XAxis tick for BarChart
+  const CustomTick = ({ x, y, payload }) => {
+    return (
+      <text
+        x={x}
+        y={y + 10}
+        fill="#ffffff"
+        textAnchor="middle"
+        style={{ fontSize: 12 }}
+      >
+        {truncate(payload.value)}
+      </text>
+    );
+  };
+
+  // Custom tooltip with truncated names
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div
+          style={{
+            backgroundColor: "#333",
+            border: "1px solid #444",
+            padding: "8px",
+            color: "#ffffff",
+            borderRadius: "4px",
+          }}
+        >
+          <p>{truncate(label || payload[0].name)}</p>
+          {payload.map((entry, index) => (
+            <p key={index} style={{ color: entry.color || "#ffffff" }}>
+              {`${entry.name}: ${entry.value}`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -108,7 +179,6 @@ const MonthlyReport = () => {
         border: "1px solid rgb(80, 80, 80)",
         backgroundColor: "rgb(27, 27, 27)",
         boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-        // padding: "16px",
       }}
     >
       {error && (
@@ -157,37 +227,24 @@ const MonthlyReport = () => {
             Daily Spending (May 2025)
           </p>
           <ResponsiveContainer width="100%" height="80%">
-            {dailySpendingData.length > 0 ? (
-              <LineChart data={dailySpendingData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                <XAxis
-                  dataKey="day"
-                  stroke="#ffffff"
-                  tick={{ fill: "#ffffff" }}
-                  tickFormatter={(value) => value.split("-")[2]}
-                />
-                <YAxis stroke="#ffffff" tick={{ fill: "#ffffff" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#333",
-                    border: "1px solid #444",
-                    color: "#ffffff",
-                  }}
-                  itemStyle={{ color: "#ffffff" }}
-                />
-                <Legend wrapperStyle={{ color: "#ffffff" }} />
-                <Line
-                  type="monotone"
-                  dataKey="spending"
-                  stroke="#FF6B6B"
-                  name="Spending"
-                />
-              </LineChart>
-            ) : (
-              <p style={{ color: "#ffffff", textAlign: "center" }}>
-                {error ? "Error loading data" : "Loading..."}
-              </p>
-            )}
+            <LineChart data={dailySpendingData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis
+                dataKey="day"
+                stroke="#ffffff"
+                tick={{ fill: "#ffffff" }}
+                tickFormatter={(value) => value.split("-")[2]}
+              />
+              <YAxis stroke="#ffffff" tick={{ fill: "#ffffff" }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend wrapperStyle={{ color: "#ffffff" }} />
+              <Line
+                type="monotone"
+                dataKey="spending"
+                stroke="#FF6B6B"
+                name="Spending"
+              />
+            </LineChart>
           </ResponsiveContainer>
         </div>
 
@@ -216,38 +273,27 @@ const MonthlyReport = () => {
             Monthly Spending vs Income (May 2025)
           </p>
           <ResponsiveContainer width="100%" height="80%">
-            {monthlySpendingIncomeData.length > 0 ? (
-              <BarChart data={monthlySpendingIncomeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                <XAxis
-                  dataKey="name"
-                  stroke="#ffffff"
-                  tick={{ fill: "#ffffff" }}
-                />
-                <YAxis stroke="#ffffff" tick={{ fill: "#ffffff" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#333",
-                    border: "1px solid #444",
-                    color: "#ffffff",
-                  }}
-                  itemStyle={{ color: "#ffffff" }}
-                />
-                <Legend wrapperStyle={{ color: "#ffffff" }} />
-                <Bar dataKey="value" name="Amount">
-                  {monthlySpendingIncomeData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.name === "Spending" ? "#FF6B6B" : "#4ECDC4"}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            ) : (
-              <p style={{ color: "#ffffff", textAlign: "center" }}>
-                {error ? "Error loading data" : "Loading..."}
-              </p>
-            )}
+            <BarChart data={monthlySpendingIncomeData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis dataKey="name" stroke="#ffffff" tick={<CustomTick />} />
+              <YAxis stroke="#ffffff" tick={{ fill: "#ffffff" }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend wrapperStyle={{ color: "#ffffff" }} />
+              <Bar dataKey="value" name="Amount">
+                {monthlySpendingIncomeData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      entry.name === "No Expenses"
+                        ? "#8884d8"
+                        : entry.name === "Spending"
+                        ? "#FF6B6B"
+                        : "#4ECDC4"
+                    }
+                  />
+                ))}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
@@ -275,37 +321,28 @@ const MonthlyReport = () => {
             Expense Distribution (May 2025)
           </p>
           <ResponsiveContainer width="100%" height="80%">
-            {pieData.length > 0 ? (
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={60}
-                  label={renderCustomLabel}
-                  labelLine={false}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={colorPalette[index % colorPalette.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#333",
-                    border: "1px solid #444",
-                    color: "#ffffff",
-                  }}
-                  itemStyle={{ color: "#ffffff" }}
-                />
-              </PieChart>
-            ) : (
-              <p style={{ color: "#ffffff", textAlign: "center" }}>
-                {error ? "Error loading data" : "Loading..."}
-              </p>
-            )}
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={60}
+                label={renderCustomLabel}
+                labelLine={false}
+              >
+                {pieData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      entry.name === "No Expenses"
+                        ? "#8884d8"
+                        : colorPalette[index % colorPalette.length]
+                    }
+                  />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
           </ResponsiveContainer>
         </div>
       </div>

@@ -1,11 +1,16 @@
 package com.jaya.controller;
 
 import com.jaya.models.*;
+import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.*;
 import org.apache.commons.collections4.map.HashedMap;
+import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -149,10 +154,17 @@ public class ExpenseController {
         return ResponseEntity.ok(expenses);
     }
 
+    @Autowired
+    ExpenseRepository expenseRepository;
     @GetMapping("/fetch-expenses")
-    public ResponseEntity<List<Expense>> getAllExpenses(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getAllExpenses(reqUser);
+    public ResponseEntity<List<Expense>> getAllExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(defaultValue = "desc") String sort
+    ) {
+        User reqUser = userService.findUserByJwt(jwt);
+        List<Expense> expenses = sort.equalsIgnoreCase("asc")
+                ? expenseRepository.findByUserOrderByDateAsc(reqUser)
+                : expenseRepository.findByUserOrderByDateDesc(reqUser);
         return ResponseEntity.ok(expenses);
     }
 

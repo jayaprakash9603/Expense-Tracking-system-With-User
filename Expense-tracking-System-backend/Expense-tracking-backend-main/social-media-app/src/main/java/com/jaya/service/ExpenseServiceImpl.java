@@ -5,7 +5,10 @@ import com.jaya.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +54,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseReportRepository expenseReportRepository;
 
 
+    private static final Logger logger = (Logger) LoggerFactory.getLogger(ExpenseService.class);
     @Autowired
     private UserRepository userRepository;
 
@@ -101,8 +105,17 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public List<Expense> getAllExpenses(User user) {
-        return expenseRepository.findByUser(user);
+        logger.info("Fetching from DATABASE for user {}", user.getId());
+        return expenseRepository.findByUserId(user.getId());
     }
+
+    @Override
+    public List<Expense> getAllExpenses(User user, String sortOrder) {
+        // Check for "asc" or "desc", default to "desc"
+        Sort sort = "asc".equalsIgnoreCase(sortOrder) ? Sort.by(Sort.Order.asc("date")) : Sort.by(Sort.Order.desc("date"));
+        return expenseRepository.findByUserId(user.getId(), sort);
+    }
+
 
     @Override
     @Transactional
@@ -1652,7 +1665,6 @@ public List<Expense> saveExpenses(List<Expense> expenses) {
 
 
 
-
     @Override
     public List<Map<String, Object>> getMonthlySpendingAndIncomeCurrentMonth(Integer userId) {
         YearMonth currentMonth = YearMonth.now();
@@ -1663,13 +1675,20 @@ public List<Expense> saveExpenses(List<Expense> expenses) {
 
         double totalSpending = expenses.stream()
                 .filter(e -> e.getExpense() != null)
+                .filter(e -> "loss".equalsIgnoreCase(e.getExpense().getType()))
+                .filter(e -> !"creditPaid".equalsIgnoreCase(e.getExpense().getPaymentMethod()))
                 .mapToDouble(e -> e.getExpense().getAmount())
                 .sum();
 
-        // No IncomeRepository, so income is 0
-        double totalIncome = 0.0;
+        double totalIncome = expenses.stream()
+                .filter(e -> e.getExpense() != null)
+                .filter(e -> "gain".equalsIgnoreCase(e.getExpense().getType()))
+                .filter(e -> "cash".equalsIgnoreCase(e.getExpense().getPaymentMethod()))
+                .mapToDouble(e -> e.getExpense().getAmount())
+                .sum();
 
         List<Map<String, Object>> response = new ArrayList<>();
+
         Map<String, Object> spendingData = new HashMap<>();
         spendingData.put("name", "Spending");
         spendingData.put("value", totalSpending);
@@ -1682,6 +1701,8 @@ public List<Expense> saveExpenses(List<Expense> expenses) {
 
         return response;
     }
+
+
 
 
     @Override
