@@ -1,6 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.models.*;
+import com.jaya.repository.BudgetRepository;
 import com.jaya.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -60,6 +61,12 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private BudgetService budgetService;
+
+    @Autowired
+    private BudgetRepository budgetRepository;
     
     @Autowired
     private AuditExpenseService auditExpenseService;
@@ -73,7 +80,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
-    public Expense addExpense(Expense expense , User user) {
+    public Expense addExpense(Expense expense, User user) {
+
+        boolean includeInBudget = expense.isIncludeInBudget();
 
         ExpenseDetails expenseDetails = new ExpenseDetails();
         expenseDetails.setExpenseName(expense.getExpense().getExpenseName());
@@ -83,14 +92,26 @@ public class ExpenseServiceImpl implements ExpenseService {
         expenseDetails.setType(expense.getExpense().getType());
         expenseDetails.setComments(expense.getExpense().getComments());
         expenseDetails.setCreditDue(expense.getExpense().getCreditDue());
+
         expense.setUser(user);
-        // Link the ExpenseDetails to Expense
+        expense.setIncludeInBudget(includeInBudget);
         expenseDetails.setExpense(expense);
         expense.setExpense(expenseDetails);
 
-        // Save Expense object (this will cascade and save ExpenseDetails too)
-       return  expenseRepository.save(expense);
+        if (includeInBudget) {
+            List<Budget> budgets = budgetRepository.findByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                    user.getId(), expense.getDate(), expense.getDate());
+
+            for (Budget budget : budgets) {
+                budget.setBudgetHasExpenses(true);
+                budgetRepository.save(budget);
+            }
+        }
+
+
+        return expenseRepository.save(expense);
     }
+
 
     @Override
     public Expense getExpenseById(Integer id,User user) {
@@ -121,6 +142,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Transactional
     public void updateExpense(Integer id, Expense expense) {
         Expense existingExpense = expenseRepository.findById(id).orElse(null);
+        boolean includeInBudget = expense.isIncludeInBudget();
 
         if (existingExpense != null) {
             ExpenseDetails existingExpenseDetails = existingExpense.getExpense();
@@ -136,12 +158,25 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
 
             existingExpense.setDate(expense.getDate());
+            existingExpense.setIncludeInBudget(includeInBudget);
 
-            expenseRepository.save(existingExpense);
+            Expense savedExpense = expenseRepository.save(existingExpense);
+
+            if (includeInBudget) {
+                User user = savedExpense.getUser();
+                List<Budget> budgets = budgetRepository.findByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                        user.getId(), expense.getDate(), expense.getDate());
+
+                for (Budget budget : budgets) {
+                    budget.setBudgetHasExpenses(true);
+                    budgetRepository.save(budget);
+                }
+            }
         } else {
             throw new RuntimeException("Expense not found with ID: " + id);
         }
     }
+
 
 
     @Override

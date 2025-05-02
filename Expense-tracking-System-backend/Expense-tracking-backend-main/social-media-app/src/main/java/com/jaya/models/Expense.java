@@ -25,6 +25,11 @@ public class Expense {
 
     private LocalDate date;
 
+
+
+    @Column(nullable = false)
+    private boolean includeInBudget = true;
+
     // One-to-one relationship, mappedBy indicates that this side doesn't own the relationship
     @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL)
     @JsonManagedReference

@@ -7,7 +7,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Getter
@@ -20,24 +24,22 @@ public class Budget {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
+    private String name;
     private double amount;
     private LocalDate startDate;
     private LocalDate endDate;
 
-    // Many-to-one relationship with User
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;
 
-    // Method to deduct expenses from the budget
+    private double remainingAmount;
+    private boolean isBudgetHasExpenses;
+
+
     public void deductAmount(double expenseAmount) {
         this.amount -= expenseAmount;
     }
 
-    // Method to check if the budget is still valid (i.e., within the date range)
-    public boolean isBudgetValid() {
-        LocalDate today = LocalDate.now();
-        return today.isAfter(startDate) && today.isBefore(endDate);
-    }
 }

@@ -5,6 +5,7 @@ import com.jaya.exceptions.UserException;
 import com.jaya.models.Budget;
 import com.jaya.models.Expense;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface BudgetService {
@@ -13,10 +14,10 @@ public interface BudgetService {
     Budget createBudget(Budget budget,Integer userId) throws UserException;
 
     // Edit an existing budget
-    Budget editBudget(Integer budgetId, Budget budget,Integer userId);
+    Budget editBudget(Integer budgetId, Budget budget,Integer userId) throws Exception;
 
     // Delete a budget by ID
-    void deleteBudget(Integer budgetId,Integer userId);
+    void deleteBudget(Integer budgetId,Integer userId) throws UserException;
 
     // Get all budgets for a specific user
     List<Budget> getBudgetsForUser(Integer userId);
@@ -34,4 +35,8 @@ public interface BudgetService {
     List<Budget> getAllBudgetForUser(Integer userId);
 
     List<BudgetReport> getAllBudgetReportsForUser(Integer userId) throws Exception;
+
+    List<Budget> getBudgetsForDate(Integer userId, LocalDate date);
+
+    boolean isBudgetValid(Integer budgetId);
 }

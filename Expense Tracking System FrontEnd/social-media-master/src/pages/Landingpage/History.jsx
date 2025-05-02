@@ -1,86 +1,115 @@
 import React, { useState } from "react";
-import Modal from "./Modal";
+import ExpensesEmail from "../ExpensesEmail"; // Adjust path as needed
+import ExpensesAudits from "../ExpensesAudits"; // Adjust path as needed
+import SearchAudits from "../SearchAudits/SearchAudits";
+import ExpenseEmail from "./ExpenseEmail";
+import ExpenseTableParent from "../ExpenseTableParent";
+import ReportsGeneration from "../ReportsGeneration";
+import SearchExpenses from "../SearchExpenses/SearchExpenses";
+
+const mockAuditData = [
+  {
+    userAuditIndex: 1,
+    details: "Office Supplies",
+    expenseAuditIndex: 101,
+    actionType: "Create",
+    timestamp: "2025-05-01T10:00:00Z",
+  },
+  {
+    userAuditIndex: 2,
+    details: "Travel Expense",
+    expenseAuditIndex: 102,
+    actionType: "Update",
+    timestamp: "2025-05-01T12:00:00Z",
+  },
+  {
+    userAuditIndex: 3,
+    details: "Software License",
+    expenseAuditIndex: 103,
+    actionType: "Delete",
+    timestamp: "2025-05-01T14:00:00Z",
+  },
+  {
+    userAuditIndex: 4,
+    details: "Client Meeting",
+    expenseAuditIndex: 104,
+    actionType: "Create",
+    timestamp: "2025-05-01T16:00:00Z",
+  },
+  {
+    userAuditIndex: 5,
+    details: "Maintenance",
+    expenseAuditIndex: 105,
+    actionType: "Update",
+    timestamp: "2025-05-01T18:00:00Z",
+  },
+];
 
 const History = () => {
-  const [isDataModalOpen, setIsDataModalOpen] = useState(false);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [view, setView] = useState("email");
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [Url, setUrl] = useState(null);
 
-  const sampleData = {
-    amount: "$500",
-    category: "Development",
-    project: "Website Redesign",
-    description: "Redesign of the main website for better UX.",
-    team: "Frontend Team",
+  const handleDropdownChange = (event) => {
+    setSelectedReport(event.target.value);
+    setUrl(null);
   };
-
-  const headerNames = {
-    amount: "Total Amount",
-    category: "Category",
-    project: "Project Name",
-    description: "Details",
-    team: "Assigned Team",
-  };
-
-  const handleApproveData = () => {
-    alert("Data approved!");
-    setIsDataModalOpen(false);
-  };
-
-  const handleDeclineData = () => {
-    setIsDataModalOpen(false);
-  };
-
-  const handleApproveConfirm = () => {
-    alert("Deletion confirmed!");
-    setIsConfirmModalOpen(false);
-  };
-
-  const handleDeclineConfirm = () => {
-    setIsConfirmModalOpen(false);
-  };
-
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
-      <h1 className="text-3xl text-white font-bold mb-8">Modal Demo</h1>
-      <div className="flex gap-4">
-        <button
-          onClick={() => setIsDataModalOpen(true)}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Open Data Modal
-        </button>
-        <button
-          onClick={() => setIsConfirmModalOpen(true)}
-          className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
-        >
-          Open Confirmation Modal
-        </button>
+    <div className="bg-[#1b1b1b]">
+      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+
+      <div
+        className="flex flex-col justify-start items-start flex-shrink-1 flex-grow-1 align-self-stretch"
+        style={{
+          width: "calc(100vw - 370px)",
+          height: "calc(100vh - 100px)",
+          backgroundColor: "rgb(11, 11, 11)",
+          borderRadius: "8px",
+          boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
+          border: "1px solid rgb(0, 0, 0)",
+          opacity: 1,
+        }}
+      >
+        <div className=" h-full w-full bg-[#333333] flex">
+          <div className="w-1/2 h-full bg-red-500 b">
+            <div className="w-full max-w-xs mb-4 ">
+              <select
+                onChange={handleDropdownChange}
+                className="w-full px-4 py-2 bg-[#333333] text-white border border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
+              >
+                <option value="select" className="bg-black text-white">
+                  Select Report
+                </option>
+                <option value="expenseReport" className="bg-black text-white">
+                  Expense Report
+                </option>
+                <option value="searchExpenses" className="bg-black text-white">
+                  Search Expenses
+                </option>
+                <option value="searchAudits" className="bg-black text-white">
+                  Search Audits
+                </option>
+              </select>
+            </div>
+
+            <div className="">
+              {selectedReport === "select" && <></>}
+
+              {selectedReport === "expenseReport" && <ExpenseEmail />}
+
+              {/* {selectedReport === "searchExpenses" && (
+                <SearchExpenses Url={Url} setUrl={setUrl} />
+              )}
+
+              {selectedReport === "searchAudits" && (
+                <SearchAudits Url={Url} setUrl={setUrl} />
+              )} */}
+            </div>
+          </div>
+          <div className="w-1/2 h-full bg-green-500"></div>
+        </div>
       </div>
-
-      {/* Data Modal */}
-      <Modal
-        isOpen={isDataModalOpen}
-        onClose={() => setIsDataModalOpen(false)}
-        title="Transaction Details"
-        data={sampleData}
-        onApprove={handleApproveData}
-        onDecline={handleDeclineData}
-        approveText="Confirm"
-        declineText="Cancel"
-        headerNames={headerNames}
-      />
-
-      {/* Confirmation Modal */}
-      <Modal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-        title="Delete Confirmation"
-        confirmationText="Are you sure you want to delete this item?"
-        onApprove={handleApproveConfirm}
-        onDecline={handleDeclineConfirm}
-        approveText="Yes, Delete"
-        declineText="No, Cancel"
-      />
+      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b] "></div>
     </div>
   );
 };

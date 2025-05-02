@@ -23,6 +23,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
     Expense findByUserIdAndId(Integer userId, Integer id);
 
+    List<Expense> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(Integer userId, LocalDate startDate, LocalDate endDate);
+
+
     List<Expense>findByUser(User user);
     List<Expense>findByUserId(Integer userId);
     List<Expense> findByUserId(Integer userId, Sort sort);

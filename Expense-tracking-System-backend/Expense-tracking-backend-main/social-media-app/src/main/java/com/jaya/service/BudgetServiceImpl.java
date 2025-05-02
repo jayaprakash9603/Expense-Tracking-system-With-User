@@ -9,6 +9,7 @@ import com.jaya.repository.BudgetRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,41 +24,107 @@ public class BudgetServiceImpl implements BudgetService {
     private BudgetRepository budgetRepository;
 
     @Autowired
+    private AuditExpenseService auditExpenseService;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private ExpenseRepository expenseRepository;
 
     @Autowired
+    @Lazy
+    private ExpenseService expenseService;
+
+    @Autowired
     private UserService userService;
 
     @Override
-    public Budget createBudget(Budget budget,Integer userId) throws UserException {
+    public Budget createBudget(Budget budget, Integer userId) throws UserException {
+        if (budget.getStartDate().isAfter(budget.getEndDate())) {
+            throw new IllegalArgumentException("Start date cannot be after end date.");
+        }
+
+        if (budget.getAmount() < 0) {
+            throw new IllegalArgumentException("Budget amount cannot be negative.");
+        }
+
+        if (budget.getName() == null || budget.getName().isEmpty()) {
+            throw new IllegalArgumentException("Budget name cannot be empty.");
+        }
+
+        if (budget.getRemainingAmount() <= 0) {
+            budget.setRemainingAmount(budget.getAmount());
+        }
+
         User user = userService.findUserById(userId);
+        if (user == null) {
+            throw new UserException("User not found.");
+        }
+
         budget.setUser(user);
-        return budgetRepository.save(budget);
+        budget.setBudgetHasExpenses(false);
+
+
+        Budget savedBudget=budgetRepository.save(budget);
+        auditExpenseService.logAudit( user, savedBudget.getId(), "Budget Created", budget.getName());
+        return savedBudget;
     }
 
+
+
     @Override
-    public Budget editBudget(Integer budgetId, Budget budget,Integer userId) {
+    public Budget editBudget(Integer budgetId, Budget budget, Integer userId) throws Exception {
         Optional<Budget> existingBudgetOpt = budgetRepository.findByUserIdAndId(userId, budgetId);
 
         if (existingBudgetOpt.isPresent()) {
             Budget existingBudget = existingBudgetOpt.get();
+
+            if (budget.getStartDate().isAfter(budget.getEndDate())) {
+                throw new IllegalArgumentException("Start date cannot be after end date.");
+            }
+
+            if (budget.getAmount() < 0) {
+                throw new IllegalArgumentException("Budget amount cannot be negative.");
+            }
+
+            if (budget.getName() == null || budget.getName().isEmpty()) {
+                throw new IllegalArgumentException("Budget name cannot be empty.");
+            }
+
             existingBudget.setAmount(budget.getAmount());
             existingBudget.setStartDate(budget.getStartDate());
             existingBudget.setEndDate(budget.getEndDate());
+
+            // Calculate remaining amount based on updated expenses
+            BudgetReport budgetReport = calculateBudgetReport(userId, budgetId);
+            existingBudget.setRemainingAmount(budgetReport.getRemainingAmount());
+
+            auditExpenseService.logAudit( userService.findUserById(userId), budget.getId(), "Budget Edited", budget.getName());
             return budgetRepository.save(existingBudget);
         } else {
             throw new RuntimeException("Budget not found");
         }
     }
 
+
     @Override
-    public void deleteBudget(Integer budgetId,Integer userId) {
+    public void deleteBudget(Integer budgetId,Integer userId) throws UserException {
         Optional<Budget> existingBudgetOpt = budgetRepository.findByUserIdAndId(userId, budgetId);
         if (existingBudgetOpt.isPresent()) {
             budgetRepository.delete(existingBudgetOpt.get());
+            auditExpenseService.logAudit( userService.findUserById(userId), budgetId, "Budget Edited", existingBudgetOpt.get().getName());
+        } else {
+            throw new RuntimeException("Budget not found");
+        }
+    }
+    @Override
+    public boolean isBudgetValid(Integer budgetId) {
+        Optional<Budget> budgetOpt = budgetRepository.findById(budgetId);
+        if (budgetOpt.isPresent()) {
+            Budget budget = budgetOpt.get();
+            LocalDate today = LocalDate.now();
+            return today.isAfter(budget.getStartDate()) && today.isBefore(budget.getEndDate());
         } else {
             throw new RuntimeException("Budget not found");
         }
@@ -89,7 +156,7 @@ public class BudgetServiceImpl implements BudgetService {
 
         if (budgetOpt.isPresent()) {
             Budget budget = budgetOpt.get();
-            if (budget.isBudgetValid()) {
+            if (isBudgetValid(budgetId)) {
                 budget.deductAmount(expenseAmount);
                 return budgetRepository.save(budget);
             } else {
@@ -108,7 +175,7 @@ public class BudgetServiceImpl implements BudgetService {
         if (!budget.getUser().getId().equals(userId)) {
             throw new Exception("You can't access another user's budget");
         }
-        return expenseRepository.findByUserIdAndDateBetween(userId, budget.getStartDate(), budget.getEndDate());
+        return expenseRepository.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(userId, budget.getStartDate(), budget.getEndDate());
     }
 
 
@@ -121,7 +188,7 @@ public class BudgetServiceImpl implements BudgetService {
                 throw new Exception("You do not have access to this budget.");
             }
 
-            List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, budget.getStartDate(), budget.getEndDate());
+            List<Expense> expenses = expenseRepository.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(userId, budget.getStartDate(), budget.getEndDate());
 
             double totalCashLosses = expenses.stream()
                     .filter(expense -> "cash".equals(expense.getExpense().getPaymentMethod()) && "loss".equals(expense.getExpense().getType()))
@@ -137,7 +204,7 @@ public class BudgetServiceImpl implements BudgetService {
                     .mapToDouble(expense -> expense.getExpense().getAmount())
                     .sum();
             double remainingAmount = budget.getAmount() - totalExpenses;
-            boolean isBudgetValid = budget.isBudgetValid();
+            boolean isBudgetValid = isBudgetValid(budgetId);
 
             return new BudgetReport(
                     budget.getId(),
@@ -167,5 +234,11 @@ public class BudgetServiceImpl implements BudgetService {
         }
         return budgetReports;
     }
+
+    @Override
+    public List<Budget> getBudgetsForDate(Integer userId, LocalDate date) {
+        return budgetRepository.findByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(userId, date, date);
+    }
+
 
 }

@@ -33,13 +33,13 @@ public class BudgetController {
     }
 
     @PutMapping("/{budgetId}")
-    public ResponseEntity<Budget> editBudget(@PathVariable Integer budgetId, @RequestBody @Valid Budget budget, @RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<Budget> editBudget(@PathVariable Integer budgetId, @RequestBody @Valid Budget budget, @RequestHeader("Authorization") String jwt) throws Exception {
         User user = userService.findUserByJwt(jwt);
         return new ResponseEntity<>(budgetService.editBudget(budgetId, budget, user.getId()), HttpStatus.OK);
     }
 
     @DeleteMapping("/{budgetId}")
-    public ResponseEntity<Void> deleteBudget(@PathVariable Integer budgetId, @RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<Void> deleteBudget(@PathVariable Integer budgetId, @RequestHeader("Authorization") String jwt) throws UserException {
         User user = userService.findUserByJwt(jwt);
         budgetService.deleteBudget(budgetId, user.getId());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
