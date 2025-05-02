@@ -9,34 +9,27 @@ import {
   FaTimes,
   FaFilePowerpoint,
 } from "react-icons/fa";
-import "./FileUploadModal.css";
 import { Button } from "@mui/material";
 import {
   resetUploadState,
   uploadFile,
 } from "../../Redux/Expenses/expense.action";
-
 import { useDispatch, useSelector } from "react-redux";
-
-// Assume Loader is a component that you already have
-import Loader from "../../components/Loaders/Loader"; // You can replace this with your actual Loader component
+import Loader from "../../components/Loaders/Loader";
 
 const FileUploadModal = ({ isOpen, onClose }) => {
   const [files, setFiles] = useState([]);
   const [progress, setProgress] = useState({});
-  const [loading, setLoading] = useState(false); // Loading state to manage loader visibility
+  const [loading, setLoading] = useState(false);
   const uploadState = useSelector((state) => state.fileUpload);
-
   const dispatch = useDispatch();
 
-  // Handle file selection
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     handleFiles(selectedFiles);
-    e.target.value = ""; // Reset input
+    e.target.value = "";
   };
 
-  // Handle dropped files
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -44,7 +37,6 @@ const FileUploadModal = ({ isOpen, onClose }) => {
     handleFiles(droppedFiles);
   };
 
-  // Only keep one file, replace if user uploads another
   const handleFiles = (newFiles) => {
     const file = newFiles[0];
     setFiles([file]);
@@ -54,45 +46,43 @@ const FileUploadModal = ({ isOpen, onClose }) => {
     setProgress(progressBar);
 
     const interval = setInterval(() => {
-      setProgress((prevProgress) => {
-        const newProgress = { ...prevProgress };
-        if (newProgress[file.name] < 100) {
-          newProgress[file.name] += 10;
-          return newProgress;
+      setProgress((prev) => {
+        const updated = { ...prev };
+        if (updated[file.name] < 100) {
+          updated[file.name] += 10;
+          return updated;
         } else {
           clearInterval(interval);
-          return newProgress;
+          return updated;
         }
       });
     }, 300);
   };
 
-  // Upload to backend with JWT
   const handleUploadClick = () => {
     if (!files.length) {
       alert("Please select a file.");
       return;
     }
-
-    setLoading(true); // Set loading to true to show the loader
-    dispatch(uploadFile(files[0])); // Dispatch the file upload
+    setLoading(true);
+    dispatch(uploadFile(files[0]));
   };
 
   useEffect(() => {
     if (uploadState.success) {
       alert("Upload successful!");
-      setLoading(false); // Hide the loader on success
-      setFiles([]); // Clear the file details
-      setProgress({}); // Clear the progress
-      dispatch(resetUploadState()); // Reset upload state after success
-      onClose(); // Close the modal on success
+      setLoading(false);
+      setFiles([]);
+      setProgress({});
+      dispatch(resetUploadState());
+      onClose();
     } else if (uploadState.error) {
       alert("Upload failed: " + uploadState.error);
-      setLoading(false); // Hide the loader on error
+      setLoading(false);
     }
   }, [uploadState, dispatch, onClose]);
 
-  const handleRemoveFile = (fileName) => {
+  const handleRemoveFile = () => {
     setFiles([]);
     setProgress({});
   };
@@ -126,58 +116,73 @@ const FileUploadModal = ({ isOpen, onClose }) => {
 
   return (
     isOpen && (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <div className="modal-header">
-            <button className="close-button" onClick={handleClose}>
-              <FaTimes />
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4 sm:p-2">
+        <div className="bg-[#1b1b1b] text-white rounded-lg w-full max-w-2xl shadow-xl relative p-6 sm:p-4">
+          {/* Close Button */}
+          <div className="flex justify-end">
+            <button
+              onClick={handleClose}
+              className="text-gray-400 hover:text-white"
+            >
+              <FaTimes className="text-2xl" />
             </button>
           </div>
-          <div className="file-upload-wrapper">
-            <label className="file-upload-box mb-0">
-              <input
-                type="file"
-                className="file-upload-input"
-                onChange={handleFileChange}
-                onDrop={handleDrop}
-              />
-              <div className="upload-content">
-                <i className="fas fa-cloud-upload-alt upload-icon"></i>
-                <h5 className="mb-2">Drag & Drop file here</h5>
-                <p className="text-muted mb-0">or click to browse</p>
-              </div>
-            </label>
 
-            <div className="file-list-container">
-              <div className="file-list">
-                {files.map((file) => (
-                  <div className="file-item" key={file.name}>
-                    <div className="file-icon">{getFileIcon(file)}</div>
-                    <span className="file-name" title={file.name}>
+          {/* Upload Area */}
+          <label
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
+            className="block mt-4 p-6 m-[30px] border-2  border-[#14b8a6] rounded-lg bg-[#383838] text-center cursor-pointer  transition"
+          >
+            <input type="file" className="hidden" onChange={handleFileChange} />
+            <div>
+              <i className="fas fa-cloud-upload-alt text-4xl text-[#14b8a6] mb-3"></i>
+              <p className="text-lg font-medium mb-1">Drag & drop file here</p>
+              <p className="text-sm text-gray-400">or click to browse</p>
+            </div>
+          </label>
+
+          {/* File List */}
+          {files.length > 0 && (
+            <div className="mt-6">
+              {files.map((file) => (
+                <div
+                  key={file.name}
+                  className="flex items-center justify-between p-3 bg-[#29282b] border border-[#383838] rounded-md mb-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-[#14b8a6] text-xl">
+                      {getFileIcon(file)}
+                    </span>
+                    <span className="truncate max-w-[180px] sm:max-w-[120px]">
                       {file.name}
                     </span>
-                    <FaTimes
-                      className="remove-file"
-                      onClick={() => handleRemoveFile(file.name)}
-                    />
                   </div>
-                ))}
-              </div>
+                  <FaTimes
+                    onClick={handleRemoveFile}
+                    className="text-red-500 hover:text-red-600 cursor-pointer text-xl"
+                  />
+                </div>
+              ))}
             </div>
+          )}
 
-            {/* Conditionally render the loader */}
-            {loading && <Loader />}
+          {loading && <Loader />}
 
-            <div className="modal-footer">
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleUploadClick}
-                disabled={loading} // Disable the button while uploading
-              >
-                Upload
-              </Button>
-            </div>
+          {/* Upload Button */}
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={handleUploadClick}
+              variant="contained"
+              disabled={loading}
+              style={{
+                backgroundColor: "#14b8a6",
+                color: "#1b1b1b",
+                fontWeight: "bold",
+              }}
+            >
+              Upload
+            </Button>
           </div>
         </div>
       </div>

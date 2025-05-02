@@ -28,7 +28,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 		
 		if(user==null)
 		{
-			throw new UsernameNotFoundException("user not found with email"+username);
+			throw new UsernameNotFoundException("user not found");
 			
 		}
 		

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.jaya.config.JwtProvider;
@@ -17,6 +18,9 @@ public class UserServiceImplementation implements UserService {
 	
 	@Autowired
 	UserRepository userRepository;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	@Override
 	public User registerUser(User user) {
 		User newUser=new User();
@@ -72,7 +76,30 @@ Optional<User> user=userRepository.findById(userId);
 	    if (user.getGender() != null) {
 	        oldUser.setGender(user.getGender());
 	    }
-
+		if(user.getImage()!=null)
+		{
+			oldUser.setImage(user.getImage());
+		}
+		if(user.getBio()!=null)
+		{
+			oldUser.setBio(user.getBio());
+		}
+		if(user.getPhoneNumber()!=null)
+		{
+			oldUser.setPhoneNumber(user.getPhoneNumber());
+		}
+		if(user.getWebsite()!=null)
+		{
+			oldUser.setWebsite(user.getWebsite());
+		}
+		if(user.getUsername()!=null)
+		{
+			oldUser.setUsername(user.getUsername());
+		}
+		if(user.getLocation()!=null)
+		{
+			oldUser.setLocation(user.getLocation());
+		}
 	    User updatedUser = userRepository.save(oldUser);
 	    return updatedUser;
 	}
@@ -91,4 +118,18 @@ Optional<User> user=userRepository.findById(userId);
 		return user;
 	}
 
+
+	@Override
+	public boolean checkEmailAvailability(String email) {
+		return !userRepository.existsByEmail(email);
+	}
+@Override
+	public User findByEmail(String email) {
+		return userRepository.findByEmail(email);
+	}
+@Override
+	public void updatePassword(User user, String newPassword) {
+		user.setPassword(passwordEncoder.encode(newPassword));
+		userRepository.save(user);
+	}
 }

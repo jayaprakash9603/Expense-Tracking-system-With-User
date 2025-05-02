@@ -16,10 +16,10 @@ const HomeContent = () => {
 
   return (
     <div className="bg-[#1b1b1b]">
-      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      <div className="h-[50px] bg-[#1b1b1b]"></div>
 
       <div
-        className="flex flex-col items-center"
+        className="flex flex-col items-center md:w-[calc(100vw-370px)] sm:w-full sm:h-auto sm:p-2"
         style={{
           width: "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
@@ -30,26 +30,19 @@ const HomeContent = () => {
           opacity: 1,
         }}
       >
-        {/* Horizontal layout for both divs */}
         <div
-          className="flex flex-row justify-center items-start gap-4"
+          className="flex md:flex-row flex-col justify-center items-start gap-4 md:mt-10 sm:mt-5"
           style={{ marginTop: "40px" }}
         >
-          {/* First box - 600px */}
           <Overview />
-
-          {/* Second box - 800px */}
           <RecentExpenses />
         </div>
 
-        {/* Third box - 1420px */}
         <QuickAccess />
-
-        {/* Fourth box - same width as third (1420px) */}
         <MonthlyReport />
       </div>
 
-      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      <div className="md:w-[calc(100vw-350px)] sm:w-full h-[50px] bg-[#1b1b1b]"></div>
     </div>
   );
 };

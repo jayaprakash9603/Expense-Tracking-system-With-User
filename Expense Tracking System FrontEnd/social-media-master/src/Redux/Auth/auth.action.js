@@ -7,9 +7,13 @@ import {
   LOGIN_FAILURE,
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
+  RESET_CLOUDINARY_STATE,
   UPDATE_PROFILE_FAILURE,
   UPDATE_PROFILE_REQUEST,
   UPDATE_PROFILE_SUCCESS,
+  UPLOAD_TO_CLOUDINARY_FAILURE,
+  UPLOAD_TO_CLOUDINARY_REQUEST,
+  UPLOAD_TO_CLOUDINARY_SUCCESS,
 } from "./auth.actionType";
 import axios from "axios";
 
@@ -40,15 +44,49 @@ export const loginUserAction = (loginData) => async (dispatch) => {
 
     return { success: true }; // Return success to trigger navigation in component
   } catch (error) {
-    console.log("Login error:", error);
-    dispatch({ type: LOGIN_FAILURE, payload: error });
+    const errorMessage =
+      error.response?.data?.message || "Login failed. Please try again.";
+    console.log("Login error:", errorMessage);
+    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
 
     return {
       success: false,
-      message: error.response?.data?.message || error.message,
+      message: errorMessage,
     };
   }
 };
+
+const CLOUDINARY_UPLOAD_PRESET = "expense_tracker";
+const CLOUDINARY_CLOUD_NAME = "dtun8attk";
+const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+// Action Creators
+export const uploadToCloudinary = (file) => {
+  return async (dispatch) => {
+    dispatch({ type: UPLOAD_TO_CLOUDINARY_REQUEST });
+
+    try {
+      const uploadData = new FormData();
+      uploadData.append("file", file);
+      uploadData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+      const response = await axios.post(CLOUDINARY_UPLOAD_URL, uploadData);
+      dispatch({
+        type: UPLOAD_TO_CLOUDINARY_SUCCESS,
+        payload: response.data.secure_url,
+      });
+    } catch (error) {
+      dispatch({
+        type: UPLOAD_TO_CLOUDINARY_FAILURE,
+        payload: error.response?.data?.message || "Image upload failed",
+      });
+    }
+  };
+};
+
+export const resetCloudinaryState = () => ({
+  type: RESET_CLOUDINARY_STATE,
+});
 
 // Register User Action
 export const registerUserAction = (loginData) => async (dispatch) => {

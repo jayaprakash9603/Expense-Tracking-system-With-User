@@ -22,11 +22,17 @@ public class User  {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
+	private String username;
+	private String phoneNumber;
+	private String website;
+	private String location;
+	private String bio;
 	private String firstName;
 	private String lastName;
 	private String email;
 	private String password;
 	private String gender;
+	private String image="";
 
 
 	@OneToMany(mappedBy = "user", cascade =CascadeType.ALL)

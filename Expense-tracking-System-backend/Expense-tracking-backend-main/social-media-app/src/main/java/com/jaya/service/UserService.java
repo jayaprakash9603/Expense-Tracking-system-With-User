@@ -18,4 +18,7 @@ public List<User>searchUser(String query);
 
 
 public User findUserByJwt(String jwt);
+    public boolean checkEmailAvailability(String email);
+    public User findByEmail(String email);
+    public void updatePassword(User user, String newPassword);
 }

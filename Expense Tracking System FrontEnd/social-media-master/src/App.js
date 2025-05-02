@@ -19,6 +19,7 @@ import History from "./pages/Landingpage/History";
 import Budget from "./pages/Landingpage/Budget";
 import EditExpense from "./pages/Landingpage/EditExpense";
 import NewExpense from "./pages/Landingpage/NewExpense";
+import Profile from "./pages/Landingpage/Profile";
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -56,6 +57,7 @@ function App() {
         <Route path="/" element={<Home />}>
           <Route index element={<Navigate to="/home" />} />
           <Route path="home" element={<HomeContent />} />
+          <Route path="profile" element={<Profile />} />
 
           <Route path="upload" element={<Upload />} />
           {/* Nested expenses route */}

@@ -12,6 +12,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import ToastNotification from "./ToastNotification";
+import Modal from "./Modal";
 
 const ExpensesTable = ({ expenses: propExpenses }) => {
   const dispatch = useDispatch();
@@ -23,6 +24,9 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
   const navigate = useNavigate();
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState(null);
+  const [expenseData, setExpenseData] = useState({});
 
   // Use propExpenses if provided, otherwise fall back to reduxExpenses
   const expenses = propExpenses || reduxExpenses;
@@ -59,9 +63,6 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
         })
     : [];
 
-  // Log rows for debugging
-  console.log("Mapped rows:", rows);
-
   // Action menu for each row (Edit and Delete buttons)
   const ActionMenu = ({ rowId, expenseId }) => {
     const [anchorEl, setAnchorEl] = useState(null);
@@ -82,21 +83,22 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
     };
 
     const handleDelete = () => {
-      const confirmDelete = window.confirm(
-        "Are you sure you want to delete this expense?"
-      );
-      if (confirmDelete) {
-        dispatch(deleteExpenseAction(expenseId))
-          .then(() => dispatch(getExpensesAction()))
-          .catch((error) => {
-            console.error("Error deleting expense:", error);
-            setToastMessage("Error deleting expense. Please try again.");
-            setToastOpen(true);
-          })
-          .finally(() => handleClose());
-      } else {
-        handleClose();
+      const expense = rows.find((row) => row.expenseId === expenseId);
+      if (expense) {
+        setExpenseData({
+          expenseName: expense.expenseName || "",
+          amount: expense.amount || "",
+          type: expense.type || "",
+          paymentMethod: expense.paymentMethod || "",
+          netAmount: expense.netAmount || "",
+          comments: expense.comments || "",
+          creditDue: expense.creditDue || "",
+          date: expense.date || "",
+        });
+        setExpenseToDelete(expenseId);
+        setIsDeleteModalOpen(true);
       }
+      handleClose();
     };
 
     return (
@@ -139,6 +141,45 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
     );
   };
 
+  const handleConfirmDelete = () => {
+    if (expenseToDelete) {
+      dispatch(deleteExpenseAction(expenseToDelete))
+        .then(() => {
+          dispatch(getExpensesAction());
+          setToastMessage("Expense deleted successfully.");
+          setToastOpen(true);
+        })
+        .catch((error) => {
+          console.error("Error deleting expense:", error);
+          setToastMessage("Error deleting expense. Please try again.");
+          setToastOpen(true);
+        })
+        .finally(() => {
+          setIsDeleteModalOpen(false);
+          setExpenseToDelete(null);
+          setExpenseData({});
+        });
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setExpenseToDelete(null);
+    setExpenseData({});
+  };
+
+  // Define header names for the modal
+  const headerNames = {
+    expenseName: "Expense Name",
+    amount: "Amount",
+    type: "Type",
+    paymentMethod: "Payment Method",
+    netAmount: "Net Amount",
+    comments: "Comments",
+    creditDue: "Credit Due",
+    date: "Date",
+  };
+
   // Columns definition for DataGrid
   const columns = [
     { field: "id", headerName: "Index", flex: 1 },
@@ -163,83 +204,98 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
   ];
 
   return (
-    <Box
-      sx={{ height: 700, width: "100%", bgcolor: "#121212", padding: "10px" }}
-    >
+    <>
       <ToastNotification
         open={toastOpen}
         message={toastMessage}
         onClose={handleToastClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       />
-      {loading ? (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Skeleton
-            variant="rectangular"
-            height={40}
-            sx={{ bgcolor: "#2c2c2c", borderRadius: 1 }}
-          />
-          {Array.from({ length: 10 }).map((_, i) => (
+
+      <Box
+        sx={{ height: 700, width: "100%", bgcolor: "#121212", padding: "10px" }}
+      >
+        {loading ? (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <Skeleton
-              key={i}
               variant="rectangular"
-              height={45}
-              sx={{ bgcolor: "#1f1f1f", borderRadius: 1 }}
+              height={40}
+              sx={{ bgcolor: "#2c2c2c", borderRadius: 1 }}
             />
-          ))}
-        </Box>
-      ) : (
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          getRowId={(row) => row.id} // Explicitly define ID field
-          pageSize={pageSize}
-          onPageSizeChange={(newSize) => setPageSize(newSize)}
-          rowsPerPageOptions={[10, 20, 50, 100]}
-          checkboxSelection
-          disableSelectionOnClick
-          onSelectionModelChange={(newSelection) =>
-            setSelectedIds(newSelection)
-          }
-          sx={{
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#0b0b0b",
-              color: "#00dac6",
-              fontWeight: "bold",
-            },
-            "& .MuiDataGrid-cell": {
-              backgroundColor: "#1b1b1b",
-              color: "#fff",
-            },
-            "& .MuiDataGrid-row:hover": {
-              backgroundColor: "#28282a",
-            },
-            "& .MuiCheckbox-root svg": {
-              fill: "#666666",
-            },
-            "& .Mui-checked .MuiSvgIcon-root": {
-              color: "#00dac6",
-            },
-            "& .MuiDataGrid-footerContainer": {
-              backgroundColor: "#1b1b1b",
-              color: "#00dac6",
-            },
-            "& .MuiDataGrid-footerContainer .MuiTypography-root": {
-              color: "#00dac6",
-            },
-            "& .MuiDataGrid-footerContainer .MuiPaginationItem-root": {
-              color: "#00dac6",
-            },
-            "& .MuiPaginationItem-root, .MuiDataGrid-sortIcon, .MuiIconButton-root":
-              {
+            {Array.from({ length: 10 }).map((_, i) => (
+              <Skeleton
+                key={i}
+                variant="rectangular"
+                height={45}
+                sx={{ bgcolor: "#1f1f1f", borderRadius: 1 }}
+              />
+            ))}
+          </Box>
+        ) : (
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            getRowId={(row) => row.id}
+            pageSize={pageSize}
+            onPageSizeChange={(newSize) => setPageSize(newSize)}
+            rowsPerPageOptions={[10, 20, 50, 100]}
+            checkboxSelection
+            disableSelectionOnClick
+            onSelectionModelChange={(newSelection) =>
+              setSelectedIds(newSelection)
+            }
+            sx={{
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#0b0b0b",
+                color: "#00dac6",
+                fontWeight: "bold",
+              },
+              "& .MuiDataGrid-cell": {
+                backgroundColor: "#1b1b1b",
+                color: "#fff",
+              },
+              "& .MuiDataGrid-row:hover": {
+                backgroundColor: "#28282a",
+              },
+              "& .MuiCheckbox-root svg": {
+                fill: "#666666",
+              },
+              "& .Mui-checked .MuiSvgIcon-root": {
                 color: "#00dac6",
               },
-            "& .MuiPaginationItem-root:hover, .MuiIconButton-root:hover": {
-              backgroundColor: "rgba(0, 218, 198, 0.1)",
-            },
-          }}
+              "& .MuiDataGrid-footerContainer": {
+                backgroundColor: "#1b1b1b",
+                color: "#00dac6",
+              },
+              "& .MuiDataGrid-footerContainer .MuiTypography-root": {
+                color: "#00dac6",
+              },
+              "& .MuiDataGrid-footerContainer .MuiPaginationItem-root": {
+                color: "#00dac6",
+              },
+              "& .MuiPaginationItem-root, .MuiDataGrid-sortIcon, .MuiIconButton-root":
+                {
+                  color: "#00dac6",
+                },
+              "& .MuiPaginationItem-root:hover, .MuiIconButton-root:hover": {
+                backgroundColor: "rgba(0, 218, 198, 0.1)",
+              },
+            }}
+          />
+        )}
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onClose={handleCancelDelete}
+          title="Deletion Confimation"
+          data={expenseData}
+          headerNames={headerNames}
+          onApprove={handleConfirmDelete}
+          onDecline={handleCancelDelete}
+          approveText="Yes, Delete"
+          declineText="No, Cancel"
         />
-      )}
-    </Box>
+      </Box>
+    </>
   );
 };
 

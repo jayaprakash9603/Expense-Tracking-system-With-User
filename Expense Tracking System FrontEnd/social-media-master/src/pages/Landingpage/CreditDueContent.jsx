@@ -283,7 +283,6 @@ const CreditDueContent = () => {
               )}
             </div>
           </div>
-
           <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
             <div className="w-full h-72">
               {monthlyExpensesData ? (
@@ -311,7 +310,6 @@ const CreditDueContent = () => {
               )}
             </div>
           </div>
-
           <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
             <div className="w-full h-72">
               {expenseTrendData ? (
@@ -339,9 +337,11 @@ const CreditDueContent = () => {
               )}
             </div>
           </div>
-
-          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-72">
+          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
+            <h2 className="text-white text-lg font-semibold ">
+              Payment Distribution
+            </h2>
+            <div className="w-full h-72 flex justify-center">
               {paymentMethodData ? (
                 <PolarArea
                   data={paymentMethodData}
@@ -386,7 +386,6 @@ const CreditDueContent = () => {
               )}
             </div>
           </div>
-
           <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
             <div className="w-full h-72">
               {expenseOverTimeData ? (
