@@ -62,16 +62,16 @@ const Modal = ({
         {/* Actions */}
         <div className="flex justify-between gap-4 mt-10">
           <button
-            onClick={onApprove}
-            className="bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-500"
-          >
-            {approveText}
-          </button>
-          <button
             onClick={onDecline}
             className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-500"
           >
             {declineText}
+          </button>
+          <button
+            onClick={onApprove}
+            className="bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-500"
+          >
+            {approveText}
           </button>
         </div>
       </div>

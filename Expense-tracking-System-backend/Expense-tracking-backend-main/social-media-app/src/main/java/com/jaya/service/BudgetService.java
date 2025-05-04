@@ -39,4 +39,5 @@ public interface BudgetService {
     List<Budget> getBudgetsForDate(Integer userId, LocalDate date);
 
     boolean isBudgetValid(Integer budgetId);
+    void deleteAllBudget(Integer userId) throws UserException;
 }

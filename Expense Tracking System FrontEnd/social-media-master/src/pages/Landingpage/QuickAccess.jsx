@@ -14,6 +14,9 @@ const QuickAccess = () => {
     if (route == "/expenses") {
       dispatch(getExpensesSuggestions());
     }
+    if (route == "/budget/create") {
+      navigate("/budget/create");
+    }
     navigate(route);
   };
 
@@ -119,7 +122,7 @@ const QuickAccess = () => {
             top: "447px",
             left: "393px",
           }}
-          onClick={() => handleClick("/budget")}
+          onClick={() => handleClick("/budget/create")}
         >
           <div className="w-[48px] h-[48px] bg-[#682b3b] rounded-full flex items-center justify-center">
             <img

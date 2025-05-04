@@ -70,10 +70,7 @@ const Profile = () => {
         location: user.location || "",
         image: user.image || "",
       });
-      setPreviewImage(
-        user.image ||
-          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop"
-      );
+      setPreviewImage(user.image || "");
     }
   }, [user]);
 
@@ -138,10 +135,7 @@ const Profile = () => {
         location: user?.location || "",
         image: user?.image || "",
       });
-      setPreviewImage(
-        user?.image ||
-          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop"
-      );
+      setPreviewImage(user?.image || "");
       setSelectedFile(null);
       dispatch(resetCloudinaryState());
     }

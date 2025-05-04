@@ -21,6 +21,7 @@ public interface ExpenseService {
     List<Expense> getTopNExpenses(int n,User user);
 
     List<Expense> getExpensesByDateRange(LocalDate from, LocalDate to,User user);
+    List<Expense>findByUserIdAndDateBetweenAndIncludeInBudgetTrue(LocalDate from, LocalDate to,Integer userId);
 
     List<Expense> getAllExpenses(User user,String sortOrder);
     List<Expense> getAllExpenses(User user);
@@ -29,7 +30,7 @@ public interface ExpenseService {
     List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount,User user);
 
     void updateExpense(Integer id, Expense expense);
-    void updateMultipleExpenses(List<Expense> expenses);
+    void updateMultipleExpenses(User user,List<Expense> expenses);
     MonthlySummary getMonthlySummary(Integer year, Integer month,User user);
     Map<String, MonthlySummary> getYearlySummary(Integer year,User user);
     List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth, Integer endYear, Integer endMonth,User user);

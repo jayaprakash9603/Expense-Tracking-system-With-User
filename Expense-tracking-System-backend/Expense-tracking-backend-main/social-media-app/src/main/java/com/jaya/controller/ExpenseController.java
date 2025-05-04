@@ -307,7 +307,7 @@ public class ExpenseController {
     @PutMapping("/edit-multiple")
     public ResponseEntity<String> updateMultipleExpenses(@RequestBody List<Expense> expenses,@RequestHeader("Authorization") String jwt) {
         User reqUser=userService.findUserByJwt(jwt);
-        expenseService.updateMultipleExpenses(expenses);
+        expenseService.updateMultipleExpenses(reqUser,expenses);
         return ResponseEntity.ok("Expenses updated successfully.");
     }
     @DeleteMapping("/delete/{id}")
@@ -1607,6 +1607,12 @@ User reqUser=userService.findUserByJwt(jwt);
     public List<Map<String, Object>> getExpenseDistributionCurrentMonth(@RequestHeader("Authorization")String jwt) {
         User reqUser=userService.findUserByJwt(jwt);
         return expenseService.getExpenseDistributionCurrentMonth(reqUser.getId());
+    }
+
+    @GetMapping("/included-in-budget/{startDate}/{endDate}")
+    public List<Expense> getIncludeInBudgetExpenses(@RequestHeader("Authorization")String jwt,@PathVariable LocalDate startDate, @PathVariable LocalDate endDate) {
+        User reqUser=userService.findUserByJwt(jwt);
+        return expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(startDate, endDate, reqUser.getId());
     }
 }
 

@@ -39,10 +39,17 @@ public class BudgetController {
     }
 
     @DeleteMapping("/{budgetId}")
-    public ResponseEntity<Void> deleteBudget(@PathVariable Integer budgetId, @RequestHeader("Authorization") String jwt) throws UserException {
+    public ResponseEntity<String> deleteBudget(@PathVariable Integer budgetId, @RequestHeader("Authorization") String jwt) throws UserException {
         User user = userService.findUserByJwt(jwt);
         budgetService.deleteBudget(budgetId, user.getId());
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("Budget is deleted successfully", HttpStatus.NO_CONTENT);
+    }
+
+    @DeleteMapping("/delete-all")
+    public ResponseEntity<String> deleteAllBudget( @RequestHeader("Authorization") String jwt) throws UserException {
+        User user = userService.findUserByJwt(jwt);
+        budgetService.deleteAllBudget(user.getId());
+        return new ResponseEntity<>("All budgets deleted successfully", HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/{budgetId}")

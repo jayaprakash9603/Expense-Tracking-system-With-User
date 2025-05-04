@@ -125,6 +125,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    public List<Expense>findByUserIdAndDateBetweenAndIncludeInBudgetTrue(LocalDate from, LocalDate to,Integer userId) {
+        return expenseRepository.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(userId, from, to);
+    }
+    @Override
     public List<Expense> getAllExpenses(User user) {
         logger.info("Fetching from DATABASE for user {}", user.getId());
         return expenseRepository.findByUserId(user.getId());
@@ -181,7 +185,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
-    public void updateMultipleExpenses(List<Expense> expenses) {
+    public void updateMultipleExpenses(User user, List<Expense> expenses) {
         if (expenses == null || expenses.isEmpty()) {
             throw new IllegalArgumentException("Expense list cannot be null or empty.");
         }
@@ -193,19 +197,37 @@ public class ExpenseServiceImpl implements ExpenseService {
 
             if (id == null) {
                 errorMessages.add("Expense ID cannot be null.");
-                continue; // Skip to the next item
+                continue;
             }
 
-            if (expenseRepository.existsById(id)) {
-                try {
-                    expenseRepository.save(expense);
-                } catch (DataIntegrityViolationException e) {
-                    errorMessages.add("Duplicate entry for Expense with ID: " + id + " - " + e.getMessage());
-                } catch (Exception e) {
-                    errorMessages.add("Failed to update Expense with ID: " + id + " - " + e.getMessage());
-                }
-            } else {
+            Optional<Expense> existingOpt = expenseRepository.findById(id);
+            if (existingOpt.isEmpty()) {
                 errorMessages.add("Expense not found with ID: " + id);
+                continue;
+            }
+
+            Expense existing = existingOpt.get();
+
+            // Check if the expense belongs to the user
+            if (!existing.getUser().getId().equals(user.getId())) {
+                errorMessages.add("User not authorized to update Expense ID: " + id);
+                continue; // Skip to the next expense
+            }
+
+            try {
+                // Preserve the relationship between Expense and ExpenseDetails
+                ExpenseDetails details = expense.getExpense();
+                if (details != null) {
+                    details.setExpense(expense); // maintain the bi-directional relationship
+                    expense.setExpense(details);
+                }
+
+                expense.setUser(user); // Reattach the user in case it's missing
+                expenseRepository.save(expense);
+            } catch (DataIntegrityViolationException e) {
+                errorMessages.add("Duplicate entry for Expense with ID: " + id + " - " + e.getMessage());
+            } catch (Exception e) {
+                errorMessages.add("Failed to update Expense with ID: " + id + " - " + e.getMessage());
             }
         }
 
@@ -213,6 +235,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             throw new RuntimeException("Errors occurred while updating expenses: " + String.join("; ", errorMessages));
         }
     }
+
 
 
 

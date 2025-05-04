@@ -1,6 +1,7 @@
 import axios from "axios";
 import { api, API_BASE_URL } from "../../config/api";
 import {
+  CLEAR_ERROR,
   CREATE_EXPENSE_FAILURE,
   CREATE_EXPENSE_REQUEST,
   CREATE_EXPENSE_SUCCESS,
@@ -10,12 +11,23 @@ import {
   EDIT_EXPENSE_FAILURE,
   EDIT_EXPENSE_REQUEST,
   EDIT_EXPENSE_SUCCESS,
+  EDIT_MUTLTIPLE_EXPENSE_REQUEST,
+  EDIT_MUTLTIPLE_EXPENSE_SUCCESS,
+  FETCH_EXPENSES_FAILURE,
+  FETCH_EXPENSES_REQUEST,
+  FETCH_EXPENSES_SUCCESS,
   FETCH_PREVIOUS_EXPENSES_FAILURE,
   FETCH_PREVIOUS_EXPENSES_REQUEST,
   FETCH_PREVIOUS_EXPENSES_SUCCESS,
   GET_ALL_EXPENSES_FAILURE,
   GET_ALL_EXPENSES_REQUEST,
   GET_ALL_EXPENSES_SUCCESS,
+  GET_BUDGET_EXPENSES_FAILURE,
+  GET_BUDGET_EXPENSES_REQUEST,
+  GET_BUDGET_EXPENSES_SUCCESS,
+  GET_BUDGET_FAILURE,
+  GET_BUDGET_REQUEST,
+  GET_BUDGET_SUCCESS,
   GET_DATE_EXPENSES_FAILURE,
   GET_DATE_EXPENSES_REQUEST,
   GET_DATE_EXPENSES_SUCCESS,
@@ -180,6 +192,30 @@ export const getExpenseAction = (id) => async (dispatch) => {
   }
 };
 
+export const getExpensesByBudgetId = (id) => async (dispatch) => {
+  dispatch({ type: GET_BUDGET_EXPENSES_REQUEST });
+
+  const jwt = localStorage.getItem("jwt");
+
+  if (!jwt) {
+    console.error("JWT not found in localStorage");
+    dispatch({ type: GET_BUDGET_EXPENSES_FAILURE, payload: "JWT not found" });
+    return;
+  }
+
+  try {
+    const { data } = await api.get(`/api/budgets/${id}/expenses`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    dispatch({ type: GET_BUDGET_EXPENSES_SUCCESS, payload: data });
+    console.log("get expenses by budget id", data);
+  } catch (error) {
+    console.log("error user expense error ", error);
+    dispatch({ type: GET_BUDGET_EXPENSES_FAILURE, payload: error });
+  }
+};
 export const getExpenseHistory = () => async (dispatch) => {
   dispatch({ type: GET_EXPENSES_HISTORY_REQUEST });
 
@@ -250,6 +286,19 @@ export const editExpenseAction =
       console.error("Error editing expense:", error);
     }
   };
+
+export const editMultipleExpenseAction = (updatedData) => async (dispatch) => {
+  dispatch({ type: EDIT_MUTLTIPLE_EXPENSE_REQUEST });
+
+  try {
+    const response = await api.put(`/api/expenses/edit-multiple`, updatedData); // Adjust the API endpoint
+    dispatch({ type: EDIT_MUTLTIPLE_EXPENSE_SUCCESS, payload: response.data });
+    console.log("Expense edited successfully:", response.data);
+  } catch (error) {
+    dispatch({ type: EDIT_EXPENSE_FAILURE, payload: error.message });
+    console.error("Error editing expense:", error);
+  }
+};
 
 export const deleteExpenseAction = (id) => async (dispatch) => {
   dispatch({ type: DELETE_EXPENSE_REQUEST });
@@ -379,3 +428,38 @@ export const saveExpenses = (expenses) => {
     }
   };
 };
+export const fetchExpenses =
+  (from, to, sortOrder = "desc") =>
+  async (dispatch) => {
+    dispatch({ type: FETCH_EXPENSES_REQUEST });
+
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      console.error("JWT not found in localStorage");
+      dispatch({ type: FETCH_EXPENSES_FAILURE, payload: "JWT not found" });
+      return;
+    }
+
+    try {
+      const { data } = await api.get("/api/expenses/fetch-expenses-by-date", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          from,
+          to,
+          sortOrder, // optional, only if backend supports it
+        },
+      });
+
+      console.log("Fetched expenses by date:", data);
+      dispatch({ type: FETCH_EXPENSES_SUCCESS, payload: data });
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+      dispatch({ type: FETCH_EXPENSES_FAILURE, payload: error.message });
+    }
+  };
+
+export const clearError = () => ({
+  type: CLEAR_ERROR,
+});

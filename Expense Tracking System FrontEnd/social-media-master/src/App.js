@@ -20,6 +20,9 @@ import Budget from "./pages/Landingpage/Budget";
 import EditExpense from "./pages/Landingpage/EditExpense";
 import NewExpense from "./pages/Landingpage/NewExpense";
 import Profile from "./pages/Landingpage/Profile";
+import NewBudget from "./pages/Landingpage/NewBudget";
+import EditBudget from "./pages/Landingpage/EditBudget";
+import BudgetReport from "./pages/Landingpage/BudgetReport";
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -53,7 +56,8 @@ function App() {
   return (
     <div className="">
       <Routes>
-        <Route path="/main" element={<HomePage />} />
+        {/* Other Routes */}
+
         <Route path="/" element={<Home />}>
           <Route index element={<Navigate to="/home" />} />
           <Route path="home" element={<HomeContent />} />
@@ -70,11 +74,15 @@ function App() {
           <Route path="transactions" element={<TransactionsContent />} />
           <Route path="credit-due" element={<CreditDueContent />} />
           <Route path="settings" element={<History />} />
-          <Route path="budget" element={<Budget />} />
+          <Route path="budget">
+            <Route index element={<Budget />} />
+            <Route path="create" element={<NewBudget />} />
+            <Route path="edit/:id" element={<EditBudget />} />
+            <Route path="report/:id" element={<BudgetReport />} />
+          </Route>
         </Route>
 
-        <Route path="/create" element={<CreateExpenses />} />
-        <Route path="/reports" element={<ReportsGeneration />} />
+        {/* Other Routes */}
       </Routes>
     </div>
   );

@@ -25,6 +25,7 @@ public class Budget {
     private Integer id;
 
     private String name;
+    private String description;
     private double amount;
     private LocalDate startDate;
     private LocalDate endDate;
