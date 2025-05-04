@@ -20,7 +20,6 @@ import {
   GET_BUDGET_DATA_REQUEST,
   GET_BUDGET_DATA_SUCCESS,
   GET_BUDGET_REPORT_REQUEST,
-  GET_BUDGET_REQUEST,
 } from "./budget.actionType";
 
 const token = localStorage.getItem("jwt"); // ✅ move inside the function
@@ -178,30 +177,5 @@ export const deleteBudgetData = (deleteId) => async (dispatch) => {
   } catch (error) {
     console.error("Error creating budget:", error);
     dispatch({ type: DELETE_BUDGET_FAILURE, payload: error });
-  }
-};
-
-export const getExpensesByBudgetId = (id) => async (dispatch) => {
-  dispatch({ type: GET_BUDGET_REQUEST });
-
-  const jwt = localStorage.getItem("jwt");
-
-  if (!jwt) {
-    console.error("JWT not found in localStorage");
-    dispatch({ type: GET_BUDGET_FAILURE, payload: "JWT not found" });
-    return;
-  }
-
-  try {
-    const { data } = await api.get(`/api/budgets/${id}/expenses`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-      },
-    });
-    dispatch({ type: GET_BUDGET_SUCCESS, payload: data });
-    console.log("get expenses by budget id", data);
-  } catch (error) {
-    console.log("error user expense error ", error);
-    dispatch({ type: GET_BUDGET_FAILURE, payload: error });
   }
 };
