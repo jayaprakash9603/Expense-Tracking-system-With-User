@@ -130,7 +130,7 @@ const Left = () => {
             />
             <MenuItem
               name="Reports"
-              path="/settings"
+              path="/reports"
               icon="https://cdn-icons-png.flaticon.com/128/3094/3094851.png"
               setIsSidebarOpen={setIsSidebarOpen}
             />

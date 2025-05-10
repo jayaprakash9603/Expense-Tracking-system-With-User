@@ -74,13 +74,18 @@ const NewBudget = () => {
 
     if (Object.keys(newErrors).length === 0) {
       try {
-        console.log("Form data before submission:", formData);
+        // Collect expense IDs where includeInBudget is checked
+        const expenseIds = expenses
+          .filter((expense, index) => checkboxStates[index])
+          .map((expense) => expense.id);
+
         const budgetData = {
           name: formData.name.trim(),
           description: formData.description.trim(),
           startDate: formData.startDate,
           endDate: formData.endDate,
           amount: parseInt(formData.amount) || 0,
+          expenseIds: expenseIds,
         };
 
         const updatedExpenses = expenses.map((expense, index) => ({
@@ -92,9 +97,9 @@ const NewBudget = () => {
         console.log("Saving all expenses:", updatedExpenses);
 
         await dispatch(createBudgetAction(budgetData));
-        if (updatedExpenses.length > 0) {
-          await dispatch(editMultipleExpenseAction(updatedExpenses));
-        }
+        // if (updatedExpenses.length > 0) {
+        //   await dispatch(editMultipleExpenseAction(updatedExpenses));
+        // }
 
         navigate(
           `/budget?message=${encodeURIComponent(
@@ -292,7 +297,7 @@ const NewBudget = () => {
               Error: {expenseError.message || "Failed to load expenses."}
             </div>
           )}
-          <div className="mt-6 sm:mt-[50px] w-full flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="mt-4 sm:mt-[50px] w-full flex flex-col sm:flex-row items-center justify-between gap-2">
             <button
               onClick={handleLinkExpenses}
               className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[150px]"

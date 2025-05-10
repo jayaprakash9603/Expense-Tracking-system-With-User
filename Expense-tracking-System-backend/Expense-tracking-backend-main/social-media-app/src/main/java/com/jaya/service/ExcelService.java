@@ -1,6 +1,7 @@
 package com.jaya.service;
 
 import com.google.j2objc.annotations.AutoreleasePool;
+import com.jaya.exceptions.UserException;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseRepository;
 
@@ -405,7 +406,7 @@ public class ExcelService {
     private ExpenseService expenseService;
     @Autowired
     private AuditExpenseService auditExpenseService;
-    public List<Integer> saveAndReturnIds(MultipartFile file, User user) throws IOException {
+    public List<Integer> saveAndReturnIds(MultipartFile file, User user) throws Exception {
         List<Expense> expenses = parseExcelFile(file);
         List<Integer> addedIds = new ArrayList<>();
         for (Expense expense : expenses) {

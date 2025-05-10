@@ -15,7 +15,6 @@ import HomeContent from "./pages/Landingpage/HomeContent";
 import ExpensesContent from "./pages/Landingpage/ExpensesContent";
 import TransactionsContent from "./pages/Landingpage/TransactionsContent";
 import CreditDueContent from "./pages/Landingpage/CreditDueContent";
-import History from "./pages/Landingpage/History";
 import Budget from "./pages/Landingpage/Budget";
 import EditExpense from "./pages/Landingpage/EditExpense";
 import NewExpense from "./pages/Landingpage/NewExpense";
@@ -23,6 +22,7 @@ import Profile from "./pages/Landingpage/Profile";
 import NewBudget from "./pages/Landingpage/NewBudget";
 import EditBudget from "./pages/Landingpage/EditBudget";
 import BudgetReport from "./pages/Landingpage/BudgetReport";
+import Reports from "./pages/Landingpage/Reports";
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -73,7 +73,7 @@ function App() {
 
           <Route path="transactions" element={<TransactionsContent />} />
           <Route path="credit-due" element={<CreditDueContent />} />
-          <Route path="settings" element={<History />} />
+          <Route path="reports" element={<Reports />} />
           <Route path="budget">
             <Route index element={<Budget />} />
             <Route path="create" element={<NewBudget />} />

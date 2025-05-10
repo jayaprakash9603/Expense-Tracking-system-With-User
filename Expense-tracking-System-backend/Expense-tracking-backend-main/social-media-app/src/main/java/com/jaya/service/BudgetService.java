@@ -24,6 +24,8 @@ public interface BudgetService {
 
     Budget getBudgetById(Integer budgetId,Integer userId) throws Exception;
 
+    List<Budget> getBudgetsByDate(LocalDate date, Integer userId);
+
     // Deduct amount from the budget
     Budget deductAmount(Integer userId, Integer budgetId, double expenseAmount);
 
@@ -40,4 +42,7 @@ public interface BudgetService {
 
     boolean isBudgetValid(Integer budgetId);
     void deleteAllBudget(Integer userId) throws UserException;
+
+
+    List<Budget> getBudgetsByExpenseId(Integer expenseId, Integer userId, LocalDate expenseDate);
 }

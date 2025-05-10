@@ -32,7 +32,7 @@ const HomeContent = () => {
       >
         <div
           className="flex md:flex-row flex-col justify-center items-start gap-4 md:mt-10 sm:mt-5"
-          style={{ marginTop: "40px" }}
+          style={{ marginTop: "20px" }}
         >
           <Overview />
           <RecentExpenses />

@@ -127,7 +127,7 @@ const Upload = () => {
 
             <ExpensesTable expenses={filteredExpenses} />
 
-            <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[2px]">
+            <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">
               <button
                 className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 z-10"
                 onClick={hideTable}

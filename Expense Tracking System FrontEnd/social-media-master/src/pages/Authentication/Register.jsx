@@ -93,7 +93,7 @@ const Register = () => {
       initialValues={initialValues}
     >
       {({ values, setFieldValue }) => (
-        <Form className="space-y-4">
+        <Form className="space-y-4 p-4">
           <div className="min-h-[80px]">
             <Field
               as={TextField}

@@ -1,31 +1,71 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, Skeleton } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridToolbarContainer,
+  GridToolbarQuickFilter,
+} from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getExpenseHistory,
   getExpensesAction,
 } from "../../Redux/Expenses/expense.action";
+import { ThemeProvider } from "@mui/material/styles";
+import { FilterList as FilterListIcon } from "@mui/icons-material";
+import { IconButton } from "@mui/material";
+import theme from "./theme"; // Import the global theme
 import ToastNotification from "./ToastNotification";
 
 const HistoryTable = () => {
   const dispatch = useDispatch();
   const { history, loading } = useSelector((state) => state.expenses || {});
-  const [pageSize, setPageSize] = useState(10);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10); // Default to 10 rows
   const [selectedIds, setSelectedIds] = useState([]);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const apiRef = useRef(null);
 
   useEffect(() => {
     dispatch(getExpenseHistory());
+    dispatch(getExpensesAction());
   }, [dispatch]);
+  const handleSelectionChange = (newSelection) => {
+    if (!apiRef.current) {
+      setSelectedIds(newSelection);
+      return;
+    }
+
+    // Get pagination info
+    const paginationInfo = apiRef.current.state.pagination;
+    const page = paginationInfo.page;
+    const pageSize = paginationInfo.pageSize;
+
+    // Get all rows
+    const allRows = apiRef.current.getRowModels();
+    const allRowIds = Array.from(allRows.keys());
+
+    // Compute visible row IDs based on pagination
+    const start = page * pageSize;
+    const end = start + pageSize;
+    const visibleRowIds = allRowIds.slice(start, end);
+
+    const isSelectAll =
+      visibleRowIds.every((id) => newSelection.includes(id)) &&
+      newSelection.length >= visibleRowIds.length;
+
+    if (isSelectAll) {
+      setSelectedIds(visibleRowIds);
+    } else {
+      setSelectedIds(newSelection);
+    }
+  };
 
   const handleToastClose = () => {
     setToastOpen(false);
     setToastMessage("");
   };
 
-  // Map API data to rows
   const rows = Array.isArray(history)
     ? history.map((item) => ({
         id: item.id,
@@ -36,93 +76,130 @@ const HistoryTable = () => {
       }))
     : [];
 
-  // Columns for audit data
   const columns = [
-    { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "expenseId", headerName: "Expense ID", flex: 0.8 },
-    { field: "actionType", headerName: "Action Type", flex: 1 },
-    { field: "details", headerName: "Details", flex: 3 },
-    { field: "timestamp", headerName: "Timestamp", flex: 1.5 },
+    {
+      field: "id",
+      headerName: "ID",
+      flex: 1,
+      minWidth: 80,
+      maxWidth: 120,
+    },
+    {
+      field: "expenseId",
+      headerName: "Expense ID",
+      flex: 1,
+      minWidth: 100,
+      maxWidth: 150,
+    },
+    {
+      field: "actionType",
+      headerName: "Action Type",
+      flex: 1,
+      minWidth: 100,
+      maxWidth: 160,
+    },
+    {
+      field: "details",
+      headerName: "Details",
+      flex: 1,
+      minWidth: 450,
+      maxWidth: 550,
+    },
+    {
+      field: "timestamp",
+      headerName: "Timestamp",
+      flex: 1,
+      minWidth: 120,
+      maxWidth: 200,
+    },
   ];
 
-  return (
-    <Box
-      sx={{ height: 700, width: "100%", bgcolor: "#121212", padding: "10px" }}
-    >
-      <ToastNotification
-        open={toastOpen}
-        message={toastMessage}
-        onClose={handleToastClose}
-      />
+  // Match ExpensesTable's table height
+  const tableHeight = 700; // Match ExpensesTable's 700px
 
-      {loading ? (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Skeleton
-            variant="rectangular"
-            height={40}
-            sx={{ bgcolor: "#2c2c2c", borderRadius: 1 }}
-          />
-          {Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton
-              key={i}
-              variant="rectangular"
-              height={45}
-              sx={{ bgcolor: "#1f1f1f", borderRadius: 1 }}
-            />
-          ))}
-        </Box>
-      ) : (
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          pageSize={pageSize}
-          onPageSizeChange={(newSize) => setPageSize(newSize)}
-          rowsPerPageOptions={[10, 20, 50, 100]}
-          checkboxSelection
-          disableSelectionOnClick
-          onSelectionModelChange={(newSelection) =>
-            setSelectedIds(newSelection)
-          }
-          sx={{
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#0b0b0b",
-              color: "#00dac6",
-              fontWeight: "bold",
-            },
-            "& .MuiDataGrid-cell": {
-              backgroundColor: "#1b1b1b",
-              color: "#fff",
-            },
-            "& .MuiDataGrid-row:hover": {
-              backgroundColor: "#28282a",
-            },
-            "& .MuiCheckbox-root svg": {
-              fill: "#666666",
-            },
-            "& .Mui-checked .MuiSvgIcon-root": {
-              color: "#00dac6",
-            },
-            "& .MuiDataGrid-footerContainer": {
-              backgroundColor: "#1b1b1b",
-              color: "#00dac6",
-            },
-            "& .MuiDataGrid-footerContainer .MuiTypography-root": {
-              color: "#00dac6",
-            },
-            "& .MuiDataGrid-footerContainer .MuiPaginationItem-root": {
-              color: "#00dac6",
-            },
-            "& .MuiPaginationItem-root, .MuiDataGrid-sortIcon, .MuiIconButton-root":
-              {
-                color: "#00dac6",
-              },
-            "& .MuiPaginationItem-root:hover, .MuiIconButton-root:hover": {
-              backgroundColor: "rgba(0, 218, 198, 0.1)",
-            },
-          }}
+  const CustomToolbar = () => (
+    <GridToolbarContainer sx={{ display: "flex", gap: 1, p: 1 }}>
+      <GridToolbarQuickFilter
+        sx={{
+          "& .MuiInputBase-root": {
+            backgroundColor: "#1b1b1b",
+            color: "#ffffff",
+            borderRadius: "8px",
+          },
+          "& .MuiInputBase-input::placeholder": {
+            color: "#666666",
+          },
+        }}
+      />
+      <IconButton sx={{ color: "#00dac6" }}>
+        <FilterListIcon />
+      </IconButton>
+    </GridToolbarContainer>
+  );
+
+  return (
+    <>
+      <ThemeProvider theme={theme}>
+        <ToastNotification
+          open={toastOpen}
+          message={toastMessage}
+          onClose={handleToastClose}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         />
-      )}
-    </Box>
+        <Box
+          sx={{
+            height: tableHeight,
+            width: "100%",
+            backgroundColor: "#0b0b0b",
+          }}
+        >
+          {loading ? (
+            <Box sx={{ height: tableHeight, overflow: "hidden" }}>
+              {[...Array(15)].map((_, index) => (
+                <Skeleton
+                  key={index}
+                  sx={{
+                    height: "43.5px",
+                    width: "100%",
+                    mb: index < 14 ? "3px" : 0,
+                    borderRadius: "4px",
+                    backgroundColor: "#0b0b0b",
+                  }}
+                />
+              ))}
+            </Box>
+          ) : (
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              getRowId={(row) => row.id}
+              paginationMode="client"
+              pageSizeOptions={[10, 15, 20]}
+              paginationModel={{ page: pageIndex, pageSize }}
+              onPaginationModelChange={(model) => {
+                setPageIndex(model.page);
+                setPageSize(model.pageSize);
+                setSelectedIds([]);
+              }}
+              checkboxSelection
+              disableRowSelectionOnClick
+              rowSelectionModel={selectedIds}
+              onRowSelectionModelChange={handleSelectionChange}
+              apiRef={apiRef}
+              rowHeight={53}
+              headerHeight={52}
+              slots={{ toolbar: CustomToolbar }}
+              slotProps={{
+                toolbar: {
+                  showQuickFilter: true,
+                  quickFilterProps: { debounceMs: 500 },
+                },
+              }}
+            />
+          )}
+        </Box>
+      </ThemeProvider>
+    </>
   );
 };
 

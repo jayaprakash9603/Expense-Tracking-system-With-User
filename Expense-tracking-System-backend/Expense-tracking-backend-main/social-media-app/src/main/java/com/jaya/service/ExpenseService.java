@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.jaya.exceptions.UserException;
 import com.jaya.models.*;
 import org.springframework.http.ResponseEntity;
 
@@ -15,7 +16,9 @@ import jakarta.mail.MessagingException;
 
 public interface ExpenseService {
     
-    Expense addExpense(Expense expense, User user);
+    Expense addExpense(Expense expense, User user) throws Exception;
+
+
 
     Expense getExpenseById(Integer id,User user);
     List<Expense> getTopNExpenses(int n,User user);
@@ -35,8 +38,8 @@ public interface ExpenseService {
     Map<String, MonthlySummary> getYearlySummary(Integer year,User user);
     List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth, Integer endYear, Integer endMonth,User user);
     public List<Expense> saveMultipleExpenses(List<Expense> expenses, User user);
-    void deleteAllExpenses(List<Expense>expenses);
-    void deleteExpensesByIds(List<Integer> ids) throws Exception;
+    void deleteAllExpenses(User user, List<Expense> expenses);
+    void deleteExpensesByIds(List<Integer> ids, User user) throws Exception;
     List<Expense> getExpensesByDate(LocalDate date,User user);
     void deleteExpense(Integer id,User user);
     List<String> getTopExpenseNames(int topN,User user);
@@ -175,5 +178,12 @@ public interface ExpenseService {
     List<Map<String, Object>> getExpenseDistributionCurrentMonth(Integer userId);
     List<Map<String, Object>> getMonthlySpendingAndIncomeCurrentMonth(Integer userId);
     List<Map<String, Object>> getDailySpendingCurrentMonth(Integer userId);
+
+
+    List<Expense> getExpensesInBudgetRangeWithIncludeFlag(
+            LocalDate startDate,
+            LocalDate endDate,
+            Integer budgetId,
+            Integer userId);
 
 }

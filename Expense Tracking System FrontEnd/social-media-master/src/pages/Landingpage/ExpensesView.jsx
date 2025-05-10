@@ -1,54 +1,75 @@
 import React from "react";
-import { CiFilter } from "react-icons/ci";
-import { MdFilterList } from "react-icons/md";
-import { BsThreeDots } from "react-icons/bs";
+import { Box, Typography, Divider, IconButton, Button } from "@mui/material";
+import {
+  FilterList as FilterListIcon,
+  MoreVert as MoreVertIcon,
+} from "@mui/icons-material";
 import ExpensesTable from "./ExpensesTable";
 
 const ExpensesView = ({ onNewExpenseClick }) => {
   return (
-    <div
-      className="flex flex-col justify-between items-center"
-      style={{
-        width: "calc(100vw - 370px)",
-        height: "calc(100vh - 100px)",
-        backgroundColor: "rgb(11, 11, 11)",
-        borderRadius: "8px",
-        boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-        border: "1px solid rgb(0, 0, 0)",
-        opacity: 1,
-        padding: "20px",
-      }}
-    >
-      <div className="w-full flex-col">
-        <div className="w-full flex justify-between items-center">
-          <div>
-            <p className="text-white font-bold text-5xl">Expenses</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
+    <>
+      <Box
+        sx={{
+          bgcolor: "#0b0b0b",
+          width: "calc(100vw - 370px)",
+          height: "calc(100vh - 100px)",
+          borderRadius: "8px",
+          border: "1px solid #000",
+          p: 2,
+          mr: "20px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 1,
+          }}
+        >
+          <Typography
+            variant="h3"
+            sx={{ color: "#ffffff", fontWeight: "bold" }}
+          >
+            Expenses
+          </Typography>
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            <Button
               onClick={onNewExpenseClick}
-              className="bg-[#00dac6] text-black font-bold px-4 py-2 rounded cursor-pointer"
+              sx={{
+                bgcolor: "#00dac6",
+                color: "#000000",
+                fontWeight: "bold",
+                px: 2,
+                py: 1,
+                borderRadius: "4px",
+                "&:hover": {
+                  bgcolor: "#00b8a0",
+                },
+              }}
             >
               + New Expense
-            </button>
-            <div className="w-10 h-10 bg-[#1b1b1b] flex items-center justify-center rounded cursor-pointer">
-              <CiFilter className="text-[#00dac6]" />
-            </div>
-            <div className="w-10 h-10 bg-[#1b1b1b] flex items-center justify-center rounded cursor-pointer">
-              <MdFilterList className="text-[#00dac6]" />
-            </div>
-            <div className="w-10 h-10 bg-[#1b1b1b] flex items-center justify-center rounded cursor-pointer">
-              <BsThreeDots className="text-[#00dac6]" />
-            </div>
-          </div>
-        </div>
-        <hr className="border-t border-gray-600 w-full mt-4 mb-4" />
-      </div>
-
-      <div className="w-full bg-green-500 h-full">
-        <ExpensesTable />
-      </div>
-    </div>
+            </Button>
+            <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+              <FilterListIcon />
+            </IconButton>
+            <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+              <FilterListIcon />
+            </IconButton>
+            <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+              <MoreVertIcon />
+            </IconButton>
+          </Box>
+        </Box>
+        <Divider sx={{ borderColor: "#28282a", my: 1 }} />
+        <Box sx={{ flex: 1, bgcolor: "#0b0b0b" }}>
+          <ExpensesTable />
+        </Box>
+      </Box>
+    </>
   );
 };
 

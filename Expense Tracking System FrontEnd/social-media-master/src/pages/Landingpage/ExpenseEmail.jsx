@@ -1,20 +1,27 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "../../Styles/ExpensesEmail.css";
-import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import EmailLoader from "../../components/Loaders/EmailLoader";
-import { expensesTypesEmail } from "../Input Fields/InputFields";
+import {
+  Autocomplete,
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+  Alert,
+} from "@mui/material";
 import { API_BASE_URL } from "../../config/api";
+import { expensesTypesEmail } from "../Input Fields/InputFields";
+
 const ExpenseEmail = () => {
-  const [logTypes, setLogTypes] = useState([]);
-  const [filteredLogTypes, setFilteredLogTypes] = useState([]);
+  const [logTypes] = useState(expensesTypesEmail);
   const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [isInputClicked, setIsInputClicked] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [specificYear, setSpecificYear] = useState("");
   const [specificMonth, setSpecificMonth] = useState("");
   const [specificDay, setSpecificDay] = useState("");
@@ -30,96 +37,10 @@ const ExpenseEmail = () => {
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
   const [loading, setLoading] = useState(false);
-  const suggestionsContainerRef = useRef(null);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  useEffect(() => {
-    fetchLogTypes();
-  }, []);
-
-  const fetchLogTypes = async () => {
-    try {
-      // const response = await axios.get(
-      //   "http://localhost:3000/expenses/expenses-types"
-      // );
-      setLogTypes(expensesTypesEmail);
-      setFilteredLogTypes(expensesTypesEmail);
-    } catch (error) {
-      console.error("Error fetching log types:", error);
-    }
-  };
-
-  const handleChange1 = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    filterLogTypes(value);
-    setSelectedIndex(-1);
-  };
-
-  const filterLogTypes = (value) => {
-    if (value.length > 0) {
-      const filtered = logTypes.filter((item) =>
-        item.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredLogTypes(filtered);
-    } else {
-      setFilteredLogTypes(logTypes);
-    }
-  };
-
-  const handleClick = () => {
-    setIsInputClicked(true);
-    if (searchTerm.length > 0) {
-      const nearestMatch = logTypes.find((item) =>
-        item.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredLogTypes(nearestMatch ? [nearestMatch] : []);
-    }
-  };
-
-  const handleBlur = () => {
-    setIsInputClicked(false);
-    setFilteredLogTypes([]);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      selectSuggestion();
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedIndex((prevIndex) =>
-        Math.min(filteredLogTypes.length - 1, prevIndex + 1)
-      );
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedIndex((prevIndex) => Math.max(0, prevIndex - 1));
-    }
-  };
-
-  const selectSuggestion = () => {
-    const selectedSuggestion =
-      selectedIndex >= 0
-        ? filteredLogTypes[selectedIndex]
-        : filteredLogTypes[0];
-    if (selectedSuggestion) {
-      setSearchTerm(selectedSuggestion);
-      setFilteredLogTypes([]);
-    }
-  };
-
-  useEffect(() => {
-    if (suggestionsContainerRef.current) {
-      const selectedItem =
-        suggestionsContainerRef.current.children[selectedIndex];
-      if (selectedItem) {
-        selectedItem.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-        });
-      }
-    }
-  }, [selectedIndex, filteredLogTypes]);
   const jwt = localStorage.getItem("jwt");
+
   const handleSendEmail = async () => {
     if (!email) {
       setError("Please enter an email.");
@@ -137,32 +58,31 @@ const ExpenseEmail = () => {
     }
 
     try {
-      const response = await axios.get(url, {
+      const response = await axios.post(url, {
         params,
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
       });
 
-      // setLoading(false);
       if (response.status === 204) {
         alert("No Expenses were found.");
         handleClearAll();
       } else {
         alert("Email sent successfully!");
         handleClearAll();
-        setLoading(false);
       }
     } catch (error) {
-      setLoading(false);
       if (error.response && error.response.status === 400) {
         alert(error.response.data.message);
         handleClearAll();
       } else {
         console.error("Error sending email:", error);
-        handleClearAll();
         alert("Failed to send email.");
+        handleClearAll();
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -170,7 +90,7 @@ const ExpenseEmail = () => {
     let url = "";
     let params = { email };
 
-    const baseUrl = `${API_BASE_URL}`; // Use dynamic base URL
+    const baseUrl = `${API_BASE_URL}`;
 
     switch (searchTerm) {
       case "Today":
@@ -236,6 +156,7 @@ const ExpenseEmail = () => {
 
   const handleClearAll = () => {
     setSearchTerm("");
+    setInputValue("");
     setSpecificYear("");
     setSpecificMonth("");
     setSpecificDay("");
@@ -251,248 +172,293 @@ const ExpenseEmail = () => {
     setMinAmount("");
     setMaxAmount("");
     setError("");
-    setFilteredLogTypes(logTypes);
-    setSelectedIndex(-1);
     setEmail("");
   };
 
+  const highlightText = (option, inputValue) => {
+    if (!inputValue) return <div>{option}</div>;
+
+    const regex = new RegExp(
+      `(${inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi"
+    );
+    const parts = option.split(regex);
+
+    return (
+      <div>
+        {parts.map((part, index) =>
+          regex.test(part) ? (
+            <span key={index} style={{ fontWeight: "bold", color: "#00dac6" }}>
+              {part}
+            </span>
+          ) : (
+            <span key={index}>{part}</span>
+          )
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
-    return <div className="loader-container">{<EmailLoader />}</div>;
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div className="audit-container">
-      <div className="error-message">
-        {error && (
-          <div className="error-message-div">
-            <div className="error-icon-div">
-              <FontAwesomeIcon
-                icon={faCircleExclamation}
-                className="me-2 error-icon"
-              />
-            </div>
-            <div className="error-message">
-              <p className="text-danger mt-3 fw-bold">{error}</p>
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="width main-text">
-        <p className="filters-text">Filters</p>
-        <p className="clear-all-text" onClick={handleClearAll}>
-          Clear All
-        </p>
-      </div>
-      <div className="header">
-        <h5>Send Expenses by Email</h5>
-      </div>
-      <div className="form-group mb-3">
-        <div
-          style={{ position: "relative", width: "100%" }}
-          className="audit-expense-period-div"
+    <Box
+      sx={{
+        p: 3,
+        borderRadius: "8px",
+        maxWidth: 500,
+        width: "100%",
+        background: "#1b1b1b",
+      }}
+    >
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Typography variant="h6">Filters</Typography>
+        <Button
+          variant="text"
+          onClick={handleClearAll}
+          sx={{
+            textTransform: "none",
+            color: "#00dac6",
+            backgroundColor: "rgba(0, 218, 198, 0.1)",
+            "&:hover": {
+              backgroundColor: "rgba(0, 218, 198, 0.1)",
+            },
+          }}
         >
-          <input
-            type="text"
-            className="log-period"
-            value={searchTerm}
-            onChange={handleChange1}
-            onClick={handleClick}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            autoComplete="off"
-            placeholder="Search expense period..."
-            style={{
-              marginTop: "5px",
-              fontFamily: "Arial, sans-serif",
-              zIndex: 1,
-            }}
-          />
-          {isInputClicked && filteredLogTypes.length > 0 && (
-            <div
-              ref={suggestionsContainerRef}
-              style={{
-                position: "absolute",
-                top: "100%",
-                left: "1vw",
-                width: "18vw",
-                border: "1px solid white",
-                borderTop: "none",
-                backgroundColor: "white",
-                zIndex: 10,
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                maxHeight: "200px",
-                overflowY: "auto",
-                borderRadius: "0 0 5px 5px",
-                scrollbarWidth: "thin",
-                scrollbarColor: "#A7C4C2 transparent",
+          Clear All
+        </Button>
+      </Box>
+      <Typography variant="h5" sx={{ mb: 3 }}>
+        Send Expenses by Email
+      </Typography>
+      <Box sx={{ mb: 3 }}>
+        <Autocomplete
+          autoHighlight
+          options={logTypes}
+          value={searchTerm}
+          onChange={(event, newValue) => setSearchTerm(newValue || "")}
+          onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
+          loading={loadingSuggestions}
+          loadingText="Loading"
+          noOptionsText="No Data Found"
+          openOnFocus
+          sx={{ width: "100%", maxWidth: 600 }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Search expense period"
+              variant="outlined"
+              fullWidth
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {loadingSuggestions ? (
+                      <CircularProgress color="inherit" size={20} />
+                    ) : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
               }}
-            >
-              {filteredLogTypes.map((item, index) => (
-                <div
-                  key={index}
-                  style={{
-                    padding: "10px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    color: "#333",
-                    backgroundColor:
-                      selectedIndex === index ? "#79E0EE" : "transparent",
-                    transition: "background-color 0.3s ease",
-                  }}
-                  onMouseDown={() => setSearchTerm(item)}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
+            />
           )}
-        </div>
-      </div>
+          renderOption={(props, option, { inputValue }) => {
+            const { key, ...optionProps } = props;
+            return (
+              <li key={key} {...optionProps}>
+                {highlightText(option, inputValue)}
+              </li>
+            );
+          }}
+        />
+      </Box>
       {searchTerm === "Particular Date Expenses" && (
-        <div className="form-group mb-3">
-          <label className="label">Enter Date</label>
-          <input
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="Enter Date"
             type="date"
-            className="log-period"
             value={fromDay}
             onChange={(e) => setFromDay(e.target.value)}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
           />
-        </div>
+        </Box>
       )}
       {searchTerm === "Particular Month Expenses" && (
-        <div className="form-group mb-3">
-          <label className="label">Enter Start Year:</label>
-          <input
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="Enter Start Year"
             type="number"
-            className="log-period mb-3"
             value={startYear}
             onChange={(e) => setStartYear(e.target.value)}
+            fullWidth
+            sx={{ mb: 2 }}
           />
-          <label className="label">Enter Start Month:</label>
-          <input
+          <TextField
+            label="Enter Start Month"
             type="number"
-            className="log-period mb-3"
             value={startMonth}
             onChange={(e) => setStartMonth(e.target.value)}
+            fullWidth
           />
-        </div>
+        </Box>
       )}
       {searchTerm === "Expenses By Name" && (
-        <div className="form-group mb-3">
-          <input
-            type="text"
-            className="log-period"
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="Enter Expense Name"
             value={expenseName}
-            placeholder="Enter Expense Name"
             onChange={(e) => setExpenseName(e.target.value)}
+            fullWidth
           />
-        </div>
+        </Box>
       )}
       {searchTerm === "Expenses By Payment Method" && (
-        <div className="form-group mb-3 ">
-          <select
-            className="log-period"
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-          >
-            <option value="">-- Select Payment Method --</option>
-            <option value="cash">Cash</option>
-            <option value="creditNeedToPaid">Credit Due</option>
-            <option value="creditPaid">Credit Paid</option>
-          </select>
-        </div>
+        <Box sx={{ mb: 3 }}>
+          <FormControl fullWidth>
+            <InputLabel>Select Payment Method</InputLabel>
+            <Select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            >
+              <MenuItem value="">-- Select Payment Method --</MenuItem>
+              <MenuItem value="cash">Cash</MenuItem>
+              <MenuItem value="creditNeedToPaid">Credit Due</MenuItem>
+              <MenuItem value="creditPaid">Credit Paid</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       )}
       {searchTerm === "Within Range Expenses" && (
-        <div className="form-group mb-3">
-          <label className="label">From Date</label>
-          <input
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="From Date"
             type="date"
-            className="log-period mb-3"
             value={fromDay}
             onChange={(e) => setFromDay(e.target.value)}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            sx={{ mb: 2 }}
           />
-          <label className="label">To Date</label>
-          <input
+          <TextField
+            label="To Date"
             type="date"
-            className="log-period mb-3"
             value={toDay}
             onChange={(e) => setToDay(e.target.value)}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
           />
-        </div>
+        </Box>
       )}
       {searchTerm === "Expenses By Type and Payment Method" && (
-        <div className="form-group mb-3">
-          <select
-            className="log-period mb-3"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="">-- Select Category --</option>
-            <option value="loss">Loss</option>
-            <option value="gain">Gain</option>
-          </select>
-
-          <select
-            className="log-period"
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-          >
-            <option value="">-- Select Payment Method --</option>
-            <option value="cash">Cash</option>
-            <option value="creditNeedToPaid">Credit Due</option>
-            <option value="creditPaid">Credit Paid</option>
-          </select>
-        </div>
+        <Box sx={{ mb: 3 }}>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Select Category</InputLabel>
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <MenuItem value="">-- Select Category --</MenuItem>
+              <MenuItem value="loss">Loss</MenuItem>
+              <MenuItem value="gain">Gain</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth>
+            <InputLabel>Select Payment Method</InputLabel>
+            <Select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            >
+              <MenuItem value="">-- Select Payment Method --</MenuItem>
+              <MenuItem value="cash">Cash</MenuItem>
+              <MenuItem value="creditNeedToPaid">Credit Due</MenuItem>
+              <MenuItem value="creditPaid">Credit Paid</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       )}
       {searchTerm === "Expenses By Type" && (
-        <div className="form-group mb-3">
-          <select
-            className="log-period"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="">-- Select Category --</option>
-            <option value="loss">Loss</option>
-            <option value="gain">Gain</option>
-          </select>
-        </div>
+        <Box sx={{ mb: 3 }}>
+          <FormControl fullWidth>
+            <InputLabel>Select Category</InputLabel>
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <MenuItem value="">-- Select Category --</MenuItem>
+              <MenuItem value="loss">Loss</MenuItem>
+              <MenuItem value="gain">Gain</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       )}
       {searchTerm === "Expenses Within Amount Range" && (
-        <div className="form-group mb-3">
-          <input
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            label="Enter Minimum Amount"
             type="number"
             step="0.01"
-            className="log-period mb-3"
             value={minAmount}
             onChange={(e) => setMinAmount(e.target.value)}
-            placeholder="Enter minimum amount"
+            fullWidth
+            sx={{ mb: 2 }}
           />
-          <input
+          <TextField
+            label="Enter Maximum Amount"
             type="number"
             step="0.01"
-            className="log-period"
             value={maxAmount}
             onChange={(e) => setMaxAmount(e.target.value)}
-            placeholder="Enter maximum amount"
+            fullWidth
           />
-        </div>
+        </Box>
       )}
-      <div className="form-group mb-3">
-        <input
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          label="Enter Your Email Address"
           type="email"
-          className="log-period"
           value={email}
-          placeholder="Enter Your Email Address"
           onChange={(e) => setEmail(e.target.value)}
+          fullWidth
         />
-      </div>
-      <div className="form-group">
-        <button className="send-mail-btn width mt-3" onClick={handleSendEmail}>
-          Send Email
-        </button>
-      </div>
-    </div>
+      </Box>
+      <Button
+        variant="contained"
+        onClick={handleSendEmail}
+        sx={{
+          textTransform: "none",
+          width: "100%",
+          py: 1.5,
+        }}
+      >
+        Send Email
+      </Button>
+    </Box>
   );
 };
 

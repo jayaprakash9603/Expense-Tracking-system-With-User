@@ -42,7 +42,7 @@ const Login = () => {
   };
 
   return (
-    <div>
+    <div className="p-3">
       {!showForgotPassword ? (
         <Formik
           onSubmit={handleSubmit}
@@ -153,12 +153,13 @@ const Login = () => {
 
               {/* Links */}
               <div className="flex flex-col items-center gap-2 pt-1">
-                <Button
+                <p
+                  className="cursor-pointer"
                   onClick={() => setShowForgotPassword(true)}
                   style={{ color: "#14b8a6", textTransform: "none" }}
                 >
                   Forgot Password?
-                </Button>
+                </p>
                 <Button
                   onClick={() => navigate("/register")}
                   style={{

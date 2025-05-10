@@ -35,6 +35,9 @@ import {
   GET_EXPENSES_SUGGESTIONS_FAILURE,
   GET_EXPENSES_SUGGESTIONS_REQUEST,
   GET_EXPENSES_SUGGESTIONS_SUCCESS,
+  GET_SELECTED_EXPENSE_BUDGET_FAILURE,
+  GET_SELECTED_EXPENSE_BUDGET_REQUEST,
+  GET_SELECTED_EXPENSE_BUDGET_SUCCESS,
   RESET_UPLOAD_STATE,
   SAVE_EXPENSES_FAILURE,
   SAVE_EXPENSES_REQUEST,
@@ -73,10 +76,12 @@ export const expenseReducer = (state = initialState, action) => {
     case GET_EXPENSES_HISTORY_REQUEST:
     case FETCH_EXPENSES_REQUEST:
     case GET_BUDGET_EXPENSES_REQUEST:
+    case GET_SELECTED_EXPENSE_BUDGET_REQUEST:
       return { ...state, error: null, loading: true };
 
     // Success actions
     case GET_ALL_EXPENSES_SUCCESS:
+    case GET_SELECTED_EXPENSE_BUDGET_SUCCESS:
       return {
         ...state,
         expenses: action.payload,
@@ -171,6 +176,7 @@ export const expenseReducer = (state = initialState, action) => {
     case FETCH_EXPENSES_FAILURE:
     case GET_BUDGET_EXPENSES_FAILURE:
     case GET_BUDGET_FAILURE:
+    case GET_SELECTED_EXPENSE_BUDGET_FAILURE:
       return {
         ...state,
         error: action.payload,

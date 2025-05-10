@@ -16,6 +16,15 @@ import {
   GET_BUDGET_DATA_FAILURE,
   GET_BUDGET_DATA_REQUEST,
   GET_BUDGET_DATA_SUCCESS,
+  GET_LIST_BUDGETS_FAILURE,
+  GET_LIST_BUDGETS_REQUEST,
+  GET_LIST_BUDGETS_SUCCESS,
+  GET_SELECT_BUDGETS_FAILURE,
+  GET_SELECT_BUDGETS_FAILURE_BY_EXPENSE_ID,
+  GET_SELECT_BUDGETS_REQUEST,
+  GET_SELECT_BUDGETS_REQUEST_BY_EXPENSE_ID,
+  GET_SELECT_BUDGETS_SUCCESS,
+  GET_SELECT_BUDGETS_SUCCESS_BY_EXPENSE_ID,
 } from "./budget.actionType";
 
 const initialState = {
@@ -34,8 +43,14 @@ export const budgetReducer = (state = initialState, action) => {
     case DELETE_BUDGET_REQUEST:
     case GET_BUDGET_DATA_REQUEST:
     case GET_BUDGET_REQUEST:
+    case GET_LIST_BUDGETS_REQUEST:
+    case GET_SELECT_BUDGETS_REQUEST:
+    case GET_SELECT_BUDGETS_REQUEST_BY_EXPENSE_ID:
       return { ...state, error: null, loading: true };
     case GET_ALL_BUDGET_DATA_SUCCESS:
+    case GET_LIST_BUDGETS_SUCCESS:
+    case GET_SELECT_BUDGETS_SUCCESS:
+    case GET_SELECT_BUDGETS_SUCCESS_BY_EXPENSE_ID:
       return {
         ...state,
         budgets: action.payload,
@@ -70,6 +85,9 @@ export const budgetReducer = (state = initialState, action) => {
     case DELETE_BUDGET_FAILURE:
     case GET_BUDGET_DATA_FAILURE:
     case GET_BUDGET_FAILURE:
+    case GET_LIST_BUDGETS_FAILURE:
+    case GET_SELECT_BUDGETS_FAILURE:
+    case GET_SELECT_BUDGETS_FAILURE_BY_EXPENSE_ID:
       return { ...state, error: action.payload, loading: false };
     default:
       return state;

@@ -1,6 +1,8 @@
 package com.jaya.controller;
 
+import com.jaya.exceptions.UserException;
 import com.jaya.models.*;
+import com.jaya.repository.BudgetRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.*;
 import org.apache.commons.collections4.map.HashedMap;
@@ -40,6 +42,10 @@ public class ExpenseController {
     @Autowired
     private AuditExpenseService auditExpenseService;
 
+
+    @Autowired
+    private BudgetRepository budgetRepository;
+
     @Autowired
     private UserService userService;
     
@@ -52,7 +58,7 @@ public class ExpenseController {
     }
 
     @PostMapping("/add-expense")
-    public ResponseEntity<Expense> addExpense(@Validated @RequestBody Expense expense,@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<Expense> addExpense(@Validated @RequestBody Expense expense,@RequestHeader("Authorization") String jwt) throws Exception {
 
         User reqUser=userService.findUserByJwt(jwt);
         Expense createExpense=expenseService.addExpense(expense,reqUser);
@@ -71,39 +77,68 @@ public class ExpenseController {
             return ResponseEntity.status(404).body("User not found");
         }
 
-        // Clean and associate each expense with the user
+        List<String> errorMessages = new ArrayList<>();
+
         for (Expense expense : expenses) {
-            // Set to null to ensure it's treated as a new entity
+            // Reset ID to treat it as a new entity
             expense.setId(null);
             expense.setUser(user);
 
-            // Handle ExpenseDetails
+            // Reset ExpenseDetails and link back
             if (expense.getExpense() != null) {
-                expense.getExpense().setId(null); // Reset ExpenseDetails ID
-                expense.getExpense().setExpense(expense); // Set back-reference
+                expense.getExpense().setId(null);
+                expense.getExpense().setExpense(expense);
             }
+
+            // Clean budget IDs based on user and date range
+            Set<Integer> validBudgetIds = new HashSet<>();
+            if (expense.getBudgetIds() != null) {
+                for (Integer budgetId : expense.getBudgetIds()) {
+                    Optional<Budget> optionalBudget = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
+                    if (optionalBudget.isPresent()) {
+                        Budget budget = optionalBudget.get();
+                        if (expense.getDate() != null &&
+                                !expense.getDate().isBefore(budget.getStartDate()) &&
+                                !expense.getDate().isAfter(budget.getEndDate())) {
+                            validBudgetIds.add(budgetId);
+                        }
+                    }
+                }
+            }
+            expense.setBudgetIds(validBudgetIds);
         }
 
         // Save the new expenses
         List<Expense> savedExpenses = expenseService.saveExpenses(expenses);
 
-        // Create audit logs for saved expenses
-        for (Expense expense : savedExpenses) {
-            String expenseDetails = String.format(
-                    "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                    expense.getId(),
-                    expense.getExpense().getExpenseName(),
-                    expense.getExpense().getAmount(),
-                    expense.getExpense().getType(),
-                    expense.getExpense().getPaymentMethod()
-            );
+        // Update corresponding Budgets with new expense IDs
+        for (Expense savedExpense : savedExpenses) {
+            for (Integer budgetId : savedExpense.getBudgetIds()) {
+                Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+                if (budget != null) {
+                    if (budget.getExpenseIds() == null) budget.setExpenseIds(new HashSet<>());
+                    budget.getExpenseIds().add(savedExpense.getId());
+                    budget.setBudgetHasExpenses(true);
+                    budgetRepository.save(budget);
+                }
+            }
 
-            // Log the creation
-            auditExpenseService.logAudit(user, expense.getId(), "create", expenseDetails);
+            // Audit log
+            ExpenseDetails details = savedExpense.getExpense();
+            String logMessage = String.format(
+                    "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                    savedExpense.getId(),
+                    details.getExpenseName(),
+                    details.getAmount(),
+                    details.getType(),
+                    details.getPaymentMethod()
+            );
+            auditExpenseService.logAudit(user, savedExpense.getId(), "create", logMessage);
         }
 
         return ResponseEntity.status(201).body(savedExpenses);
     }
+
 
 
     @DeleteMapping("/delete-all")
@@ -121,7 +156,7 @@ public class ExpenseController {
                     );
                     auditExpenseService.logAudit( reqUser,expense.getId(), "delete", expenseDetails);
                 }
-                expenseService.deleteAllExpenses(allExpenses);
+                expenseService.deleteAllExpenses(reqUser,allExpenses);
                 auditExpenseService.logAudit(reqUser,null, "delete", "All expenses deleted successfully.");
             } else {
                 auditExpenseService.logAudit(reqUser,null, "delete", "Attempted to delete expenses, but no expenses were found.");
@@ -359,7 +394,7 @@ public class ExpenseController {
             }
             
             // Now delete all specified expenses
-            expenseService.deleteExpensesByIds(ids);
+            expenseService.deleteExpensesByIds(ids,reqUser);
             return ResponseEntity.ok("Expenses deleted successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -1348,12 +1383,13 @@ User reqUser=userService.findUserByJwt(jwt);
 
 
     @PostMapping("/expenses/delete-and-send")
-    public ResponseEntity<List<Map<String, Object>>> deleteExpenses(@RequestBody Map<String, Object> requestBody) throws Exception {
+    public ResponseEntity<List<Map<String, Object>>> deleteExpenses(@RequestBody Map<String, Object> requestBody,@RequestParam("Authorization")String jwt) throws Exception {
+        User reqUser=userService.findUserByJwt(jwt);
         List<Integer> ids = (List<Integer>) requestBody.get("deleteid");
         List<Map<String, Object>> expenses = (List<Map<String, Object>>) requestBody.get("expenses");
 
         // Delete expenses by IDs
-        expenseService.deleteExpensesByIds(ids);
+        expenseService.deleteExpensesByIds(ids,reqUser);
 
         // Filter out deleted expenses from the input list
         List<Map<String, Object>> filteredExpenses = expenses.stream()
@@ -1614,5 +1650,32 @@ User reqUser=userService.findUserByJwt(jwt);
         User reqUser=userService.findUserByJwt(jwt);
         return expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(startDate, endDate, reqUser.getId());
     }
+
+
+    @GetMapping("/{budgetId}/expenses")
+    public ResponseEntity<?> getExpensesForBudgetRange(
+            @PathVariable Integer budgetId,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate) {
+
+        User user = userService.findUserByJwt(jwt);
+        if (user == null) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+
+        try {
+            List<Expense> expenses = expenseService.getExpensesInBudgetRangeWithIncludeFlag(
+                    startDate,
+                    endDate,
+                    budgetId,
+                    user.getId()
+            );
+            return ResponseEntity.ok(expenses);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
 }
+
 

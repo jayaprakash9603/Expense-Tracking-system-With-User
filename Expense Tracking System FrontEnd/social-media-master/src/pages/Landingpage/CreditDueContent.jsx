@@ -14,7 +14,7 @@ import {
   Legend,
   RadialLinearScale,
 } from "chart.js";
-import { Skeleton } from "@mui/material"; // Import MUI Skeleton
+import { Skeleton } from "@mui/material";
 import { API_BASE_URL } from "../../config/api";
 
 // Register Chart.js components
@@ -61,7 +61,7 @@ const CreditDueContent = () => {
       return;
     }
 
-    const year = 2025; // Can be made dynamic via UI
+    const year = 2025;
     const headers = { Authorization: `Bearer ${token}` };
 
     const fetchData = async () => {
@@ -96,7 +96,6 @@ const CreditDueContent = () => {
           ),
         ]);
 
-        // Assign colors to datasets
         const assignColors = (data, isMultiDataset = false) => {
           if (isMultiDataset) {
             return {
@@ -220,6 +219,14 @@ const CreditDueContent = () => {
           label: (context) => `${context.label}: $${context.raw}`,
         },
       },
+      title: {
+        display: true,
+        text: "Payment Method Distribution",
+        color: "#ffffff",
+        font: {
+          size: 16,
+        },
+      },
     },
     scales: {
       r: {
@@ -232,32 +239,28 @@ const CreditDueContent = () => {
   };
 
   return (
-    <div className="bg-[#1b1b1b] min-h-screen flex flex-col">
+    <>
+      <div className="w-[calc(100vw-370px)] h-[50px] bg-[#1b1b1b]"></div>
       <div
-        stadio-div
-        className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"
-      ></div>
-
-      <div
-        className="flex flex-col flex-shrink-0 flex-grow-1 p-6 mx-4"
+        className="flex flex-col p-4"
         style={{
           width: "calc(100vw - 370px)",
-          backgroundColor: "rgb(11, 11, 11)",
+          height: "calc(100vh - 100px)",
+          backgroundColor: "#0b0b0b",
           borderRadius: "8px",
-          boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-          border: "1px solid rgb(0, 0, 0)",
-          opacity: 1,
+          border: "1px solid #000",
+          marginRight: "20px",
         }}
       >
-        <h1 className="text-2xl font-bold text-white mb-6 text-center">
+        <h1 className="text-2xl font-bold text-white mb-4 text-center">
           Expense Dashboard
         </h1>
 
         {error && <div className="text-red-500 text-center mb-4">{error}</div>}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full h-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full flex-1">
           <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-72">
+            <div className="w-full h-[250px]">
               {expenseNamesData ? (
                 <Pie
                   data={expenseNamesData}
@@ -276,7 +279,7 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={288}
+                  height={250}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
@@ -284,7 +287,7 @@ const CreditDueContent = () => {
             </div>
           </div>
           <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-72">
+            <div className="w-full h-[250px]">
               {monthlyExpensesData ? (
                 <Bar
                   data={monthlyExpensesData}
@@ -303,7 +306,7 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={288}
+                  height={250}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
@@ -311,7 +314,7 @@ const CreditDueContent = () => {
             </div>
           </div>
           <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-72">
+            <div className="w-full h-[250px]">
               {expenseTrendData ? (
                 <Line
                   data={expenseTrendData}
@@ -330,37 +333,34 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={288}
+                  height={250}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
               )}
             </div>
           </div>
-          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
-            <h2 className="text-white text-lg font-semibold ">
-              Payment Distribution
-            </h2>
-            <div className="w-full h-72 flex justify-center">
+          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
+            <div className="w-full h-[250px]">
               {paymentMethodData ? (
                 <PolarArea
                   data={paymentMethodData}
                   options={polarAreaOptions}
+                  title="Payment Method Distribution"
                 />
               ) : (
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={288}
+                  height={250}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
               )}
             </div>
           </div>
-
           <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-72">
+            <div className="w-full h-[250px]">
               {cumulativeExpensesData ? (
                 <Line
                   data={cumulativeExpensesData}
@@ -379,7 +379,7 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={288}
+                  height={250}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
@@ -387,7 +387,7 @@ const CreditDueContent = () => {
             </div>
           </div>
           <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-72">
+            <div className="w-full h-[250px]">
               {expenseOverTimeData ? (
                 <Bar
                   data={expenseOverTimeData}
@@ -406,7 +406,7 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={288}
+                  height={250}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
@@ -415,9 +415,7 @@ const CreditDueContent = () => {
           </div>
         </div>
       </div>
-
-      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
-    </div>
+    </>
   );
 };
 

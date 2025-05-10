@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 
 
 import java.time.LocalDate;
-import java.util.UUID;
+import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -28,7 +28,10 @@ public class Expense {
 
 
     @Column(nullable = false)
-    private boolean includeInBudget = true;
+    private boolean includeInBudget = false;
+
+
+    private Set<Integer> budgetIds=new HashSet<>();
 
     // One-to-one relationship, mappedBy indicates that this side doesn't own the relationship
     @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL)

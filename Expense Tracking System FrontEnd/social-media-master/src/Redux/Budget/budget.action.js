@@ -20,6 +20,17 @@ import {
   GET_BUDGET_DATA_REQUEST,
   GET_BUDGET_DATA_SUCCESS,
   GET_BUDGET_REPORT_REQUEST,
+  GET_LIST_BUDGETS_FAILURE,
+  GET_LIST_BUDGETS_REQUEST,
+  GET_LIST_BUDGETS_SUCCESS,
+  GET_SELECT_BUDGETS_FAILURE,
+  GET_SELECT_BUDGETS_FAILURE_BY_EXPENSE_ID,
+  GET_SELECT_BUDGETS_REQUEST,
+  GET_SELECT_BUDGETS_REQUEST_BY_EXPENSE_ID,
+  GET_SELECT_BUDGETS_SUCCESS_BY_EXPENSE_ID,
+  GET_SELECTED_EXPENSE_BUDGET_FAILURE,
+  GET_SELECTED_EXPENSE_BUDGET_REQUEST,
+  GET_SELECTED_EXPENSE_BUDGET_SUCCESS,
 } from "./budget.actionType";
 
 const token = localStorage.getItem("jwt"); // ✅ move inside the function
@@ -103,6 +114,71 @@ export const getBudgetById = (id) => async (dispatch) => {
     dispatch({ type: GET_BUDGET_DATA_FAILURE, payload: error });
   }
 };
+
+export const getListOfBudgetsById = (date) => async (dispatch) => {
+  dispatch({ type: GET_LIST_BUDGETS_REQUEST });
+
+  if (!token) {
+    console.error("JWT not found in localStorage");
+    dispatch({ type: GET_BUDGET_DATA_FAILURE, payload: "JWT not found" });
+    return;
+  }
+
+  try {
+    const { data } = await api.get(`/api/budgets/filter-by-date`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json", // optional, but good to include
+      },
+      params: {
+        date: date,
+      },
+    });
+
+    console.log("budget creation response:", data);
+    dispatch({ type: GET_LIST_BUDGETS_SUCCESS, payload: data });
+  } catch (error) {
+    console.error("Error creating budget:", error);
+    dispatch({ type: GET_LIST_BUDGETS_FAILURE, payload: error });
+  }
+};
+
+export const getListOfBudgetsByExpenseId =
+  ({ id, date }) =>
+  async (dispatch) => {
+    dispatch({ type: GET_SELECT_BUDGETS_REQUEST_BY_EXPENSE_ID });
+
+    if (!token) {
+      console.error("JWT not found in localStorage");
+      dispatch({
+        type: GET_SELECT_BUDGETS_FAILURE_BY_EXPENSE_ID,
+        payload: "JWT not found",
+      });
+      return;
+    }
+
+    try {
+      const { data } = await api.get(`/api/budgets/expenses`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        params: { expenseId: id, date: date },
+      });
+
+      console.log("budget list of summary response:", data);
+      dispatch({
+        type: GET_SELECT_BUDGETS_SUCCESS_BY_EXPENSE_ID,
+        payload: data,
+      });
+    } catch (error) {
+      console.error("Error fetching budgets by expense ID:", error);
+      dispatch({
+        type: GET_SELECT_BUDGETS_FAILURE_BY_EXPENSE_ID,
+        payload: error.response?.data || error.message,
+      });
+    }
+  };
 
 export const getBudgetReportById = (id) => async (dispatch) => {
   dispatch({ type: GET_BUDGET_REPORT_REQUEST });

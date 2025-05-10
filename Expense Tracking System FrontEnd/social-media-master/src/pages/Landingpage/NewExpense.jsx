@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createExpenseAction,
@@ -6,17 +6,29 @@ import {
   getExpensesSuggestions,
 } from "../../Redux/Expenses/expense.action";
 import { Autocomplete, TextField, CircularProgress } from "@mui/material";
-import axios from "axios";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+} from "@tanstack/react-table";
+import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 
 const fieldStyles =
-  "px-6 py-3 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-[400px]";
-const labelStyle = "text-white text-lg font-semibold mr-6";
-const formRow = "mt-6 w-full flex flex-col items-start";
-const inputWrapper = { width: "180px" };
+  "px-3 py-2 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[350px] max-w-[250px]";
+const labelStyle = "text-white text-sm sm:text-base font-semibold mr-2";
+const formRow = "mt-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
+const firstFormRow =
+  "mt-2 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
+const inputWrapper = { width: "150px" };
 
 const NewExpense = ({ onClose, onSuccess }) => {
   const today = new Date().toISOString().split("T")[0];
-  const { topExpenses, loading } = useSelector((state) => state.expenses || {});
+  const { topExpenses, loading: loading } = useSelector(
+    (state) => state.expenses || {}
+  );
+  const { budgets, error: budgetError } = useSelector(
+    (state) => state.budgets || {}
+  );
   const dispatch = useDispatch();
   const [expenseData, setExpenseData] = useState({
     expenseName: "",
@@ -28,13 +40,28 @@ const NewExpense = ({ onClose, onSuccess }) => {
     date: today,
     creditDue: "",
   });
-
-  // useEffect(() => {
-  //   dispatch(getExpensesSuggestions());
-  // }, []);
   const [errors, setErrors] = useState({});
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showTable, setShowTable] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+  const [checkboxStates, setCheckboxStates] = useState([]);
+
+  // Fetch budgets on component mount
+  useEffect(() => {
+    dispatch(getListOfBudgetsById(today));
+  }, [dispatch, today]);
+
+  // Update checkbox states when budgets change
+  useEffect(() => {
+    setCheckboxStates(budgets.map((budget) => budget.includeInBudget || false));
+  }, [budgets]);
+
+  // Fetch expenses suggestions
+  useEffect(() => {
+    dispatch(getExpensesSuggestions());
+  }, [dispatch]);
 
   const fetchSuggestions = (query) => {
     if (!query.trim()) {
@@ -51,6 +78,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     setSuggestions(filtered);
     setLoadingSuggestions(false);
   };
+
   const highlightText = (text, inputValue) => {
     const regex = new RegExp(`(${inputValue})`, "gi");
     return text.split(regex).map((part, index) =>
@@ -93,6 +121,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
       date: value,
       transactionType: isSalary ? "gain" : "loss",
     }));
+
+    // Dispatch getListOfBudgetsById with the selected date
+    dispatch(getListOfBudgetsById(value));
   };
 
   const handleSubmit = (e) => {
@@ -105,9 +136,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
+    const budgetIds = budgets
+      .filter((budget, index) => checkboxStates[index])
+      .map((budget) => budget.id);
+
     dispatch(
       createExpenseAction({
         date: expenseData.date,
+        budgetIds: budgetIds,
         expense: {
           expenseName: expenseData.expenseName,
           amount: expenseData.amount,
@@ -126,9 +162,23 @@ const NewExpense = ({ onClose, onSuccess }) => {
     }
   };
 
+  const handleLinkBudgets = () => {
+    setShowTable(true);
+  };
+
+  const handleCloseTable = () => {
+    setShowTable(false);
+  };
+
+  const handleCheckboxChange = (index) => {
+    setCheckboxStates((prev) =>
+      prev.map((state, i) => (i === index ? !state : state))
+    );
+  };
+
   const renderInput = (id, type = "text", isTextarea = false) => (
-    <div className={formRow}>
-      <div className="flex items-center w-full">
+    <div className="flex flex-col flex-1">
+      <div className="flex items-center">
         <label htmlFor={id} className={labelStyle} style={inputWrapper}>
           {id
             .replace(/([A-Z])/g, " $1")
@@ -141,7 +191,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             value={expenseData[id]}
             onChange={handleInputChange}
             placeholder={`Enter ${id}`}
-            rows="5"
+            rows="3"
             className={fieldStyles}
           />
         ) : (
@@ -157,37 +207,46 @@ const NewExpense = ({ onClose, onSuccess }) => {
         )}
       </div>
       {errors[id] && (
-        <span className="text-red-500 text-sm ml-[210px]">{errors[id]}</span>
+        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
+          {errors[id]}
+        </span>
       )}
     </div>
   );
 
   const renderSelect = (id, options) => (
-    <div className="mt-6 w-full flex items-center">
-      <label htmlFor={id} className={labelStyle} style={inputWrapper}>
-        {id
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (str) => str.toUpperCase())}
-      </label>
-      <select
-        id={id}
-        name={id}
-        value={expenseData[id]}
-        onChange={handleInputChange}
-        className={fieldStyles}
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt.charAt(0).toUpperCase() + opt.slice(1)}
-          </option>
-        ))}
-      </select>
+    <div className="flex flex-col flex-1">
+      <div className="flex items-center">
+        <label htmlFor={id} className={labelStyle} style={inputWrapper}>
+          {id
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase())}
+        </label>
+        <select
+          id={id}
+          name={id}
+          value={expenseData[id]}
+          onChange={handleInputChange}
+          className={fieldStyles}
+        >
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt.charAt(0).toUpperCase() + opt.slice(1)}
+            </option>
+          ))}
+        </select>
+      </div>
+      {errors[id] && (
+        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
+          {errors[id]}
+        </span>
+      )}
     </div>
   );
 
   const renderCustomDateInput = () => (
-    <div className={formRow}>
-      <div className="flex items-center w-full">
+    <div className="flex flex-col flex-1">
+      <div className="flex items-center">
         <label htmlFor="date" className={labelStyle} style={inputWrapper}>
           Date
         </label>
@@ -201,14 +260,16 @@ const NewExpense = ({ onClose, onSuccess }) => {
         />
       </div>
       {errors.date && (
-        <span className="text-red-500 text-sm ml-[210px]">{errors.date}</span>
+        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
+          {errors.date}
+        </span>
       )}
     </div>
   );
 
   const renderExpenseNameWithSuggestions = () => (
-    <div className={formRow}>
-      <div className="flex items-center w-full">
+    <div className="flex flex-col flex-1">
+      <div className="flex items-center">
         <label
           htmlFor="expenseName"
           className={labelStyle}
@@ -220,29 +281,30 @@ const NewExpense = ({ onClose, onSuccess }) => {
           freeSolo
           autoHighlight
           options={suggestions}
-          loading={loadingSuggestions}
+          loading={loading}
+          loadingText="Loading"
+          noOptionsText="No Data Found"
           value={expenseData.expenseName}
           onInputChange={(event, newValue) => {
             setExpenseData((prev) => ({ ...prev, expenseName: newValue }));
             fetchSuggestions(newValue);
           }}
-          onFocus={() => {
-            if (expenseData.expenseName) {
-              fetchSuggestions(expenseData.expenseName);
-            }
-          }}
+          // onFocus={() => {
+          //   if (expenseData.expenseName) {
+          //     fetchSuggestions(expenseData.expenseName);
+          //   }
+          // }}
           onChange={(event, newValue) => {
             setExpenseData((prev) => ({ ...prev, expenseName: newValue }));
           }}
           openOnFocus
           sx={{
-            width: "400px",
-            // Styling the input box
+            width: "100%",
+            maxWidth: "350px",
             "& .MuiInputBase-root": {
               backgroundColor: "#29282b",
               color: "white",
             },
-            // Outline styling for the input field
             "& .MuiOutlinedInput-notchedOutline": {
               borderColor: "#444",
             },
@@ -252,28 +314,29 @@ const NewExpense = ({ onClose, onSuccess }) => {
             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
               borderColor: "#00dac6",
             },
-            // Styling the dropdown listbox
             "& .MuiAutocomplete-listbox": {
               backgroundColor: "#29282b",
               color: "white",
+              "& .MuiAutocomplete-noOptions": {
+                color: "white",
+                padding: "8px 16px",
+              },
             },
-            // Styling individual options in the dropdown
             "& .MuiAutocomplete-option": {
-              backgroundColor: "transparent", // Default background for options
-              color: "white", // Ensuring the text is white
+              backgroundColor: "transparent",
+              color: "white",
               "&[aria-selected='true']": {
-                backgroundColor: "#00dac6", // Highlight selected option
+                backgroundColor: "#00dac6",
               },
               "&:hover": {
-                backgroundColor: "#444", // Hover effect for options
+                backgroundColor: "#444",
               },
             },
-            // Clear and popup indicators
             "& .MuiAutocomplete-clearIndicator": {
-              color: "white", // Clear icon color
+              color: "white",
             },
             "& .MuiAutocomplete-popupIndicator": {
-              color: "white", // Popup indicator color
+              color: "white",
             },
           }}
           renderInput={(params) => (
@@ -296,7 +359,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
           )}
           renderOption={(props, option, { inputValue }) => {
             const { key, ...optionProps } = props;
-
             return (
               <li key={key} {...optionProps}>
                 <div>{highlightText(option, inputValue)}</div>
@@ -306,16 +368,90 @@ const NewExpense = ({ onClose, onSuccess }) => {
         />
       </div>
       {errors.expenseName && (
-        <span className="text-red-500 text-sm ml-[210px]">
+        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
           {errors.expenseName}
         </span>
       )}
     </div>
   );
 
+  const columns = useMemo(
+    () => [
+      {
+        header: "Name",
+        accessorKey: "name",
+        size: 150,
+      },
+      {
+        header: "In Budget",
+        accessorKey: "includeInBudget",
+        size: 80,
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={checkboxStates[row.index]}
+            onChange={() => handleCheckboxChange(row.index)}
+            className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+          />
+        ),
+      },
+      {
+        header: "Description",
+        accessorKey: "description",
+        size: 200,
+      },
+      {
+        header: "Start Date",
+        accessorKey: "startDate",
+        size: 120,
+      },
+      {
+        header: "End Date",
+        accessorKey: "endDate",
+        size: 120,
+      },
+      {
+        header: "Remaining Amount",
+        accessorKey: "remainingAmount",
+        size: 120,
+      },
+      {
+        header: "Amount",
+        accessorKey: "amount",
+        size: 100,
+      },
+    ],
+    [checkboxStates]
+  );
+
+  const table = useReactTable({
+    data: budgets,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    pageCount: Math.ceil(budgets.length / pageSize),
+    state: {
+      pagination: { pageIndex, pageSize },
+    },
+    onPaginationChange: (updater) => {
+      const newState =
+        typeof updater === "function"
+          ? updater({ pageIndex, pageSize })
+          : updater;
+      setPageIndex(newState.pageIndex);
+      setPageSize(newState.pageSize);
+    },
+  });
+
+  const handlePageSizeChange = (e) => {
+    const newSize = Number(e.target.value);
+    setPageSize(newSize);
+    setPageIndex(0);
+  };
+
   return (
     <div
-      className="flex flex-col items-center"
+      className="flex flex-col relative"
       style={{
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
@@ -337,22 +473,227 @@ const NewExpense = ({ onClose, onSuccess }) => {
       </div>
       <hr className="border-t border-gray-600 w-full mt-[-4px]" />
 
-      {renderExpenseNameWithSuggestions()}
-      {renderInput("amount", "number")}
-      {renderCustomDateInput()}
-      {renderSelect("transactionType", ["gain", "loss"])}
-      {renderSelect("paymentMethod", [
-        "cash",
-        "creditNeedToPaid",
-        "creditPaid",
-      ])}
-      {renderInput("comments", "text", true)}
+      <div className={firstFormRow}>
+        {renderExpenseNameWithSuggestions()}
+        {renderInput("amount", "number")}
+      </div>
+      <div className={formRow}>
+        {renderCustomDateInput()}
+        {renderSelect("transactionType", ["gain", "loss"])}
+      </div>
+      <div className={formRow}>
+        {renderSelect("paymentMethod", [
+          "cash",
+          "creditNeedToPaid",
+          "creditPaid",
+        ])}
+        {renderInput("comments", "text", true)}
+      </div>
 
-      <div className="w-full flex justify-end mt-6">
+      <div className="mt-2 w-full flex flex-col sm:flex-row items-center justify-between gap-2">
+        <button
+          onClick={handleLinkBudgets}
+          className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[150px]"
+        >
+          Link Budgets
+        </button>
+        {showTable && (
+          <button
+            onClick={handleCloseTable}
+            className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a] mt-2 sm:mt-0 hidden sm:block"
+          >
+            X
+          </button>
+        )}
+      </div>
+
+      {showTable && (
+        <div className="mt-4 sm:mt-6 w-full relative">
+          <div className="block sm:hidden space-y-4">
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={handleCloseTable}
+                className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a]"
+              >
+                X
+              </button>
+            </div>
+            {budgets.length === 0 ? (
+              <div className="text-center text-gray-400 py-8">
+                No rows found
+              </div>
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <div
+                  key={row.id}
+                  className="bg-[#29282b] border border-gray-600 rounded-lg p-4"
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white font-semibold">
+                      {row.original.name}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-300 text-sm">In Budget</span>
+                      <input
+                        type="checkbox"
+                        checked={checkboxStates[row.index]}
+                        onChange={() => handleCheckboxChange(row.index)}
+                        className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+                      />
+                    </div>
+                  </div>
+                  <div className="text-gray-300 text-sm space-y-1">
+                    <p>
+                      <span className="font-medium">Description:</span>{" "}
+                      {row.original.description}
+                    </p>
+                    <p>
+                      <span className="font-medium">Start Date:</span>{" "}
+                      {row.original.startDate}
+                    </p>
+                    <p>
+                      <span className="font-medium">End Date:</span>{" "}
+                      {row.original.endDate}
+                    </p>
+                    <p>
+                      <span className="font-medium">Remaining Amount:</span>{" "}
+                      {row.original.remainingAmount}
+                    </p>
+                    <p>
+                      <span className="font-medium">Amount:</span>{" "}
+                      {row.original.amount}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div
+            className="hidden sm:block overflow-x-auto overflow-y-auto border border-gray-600 rounded"
+            style={{ height: "260px" }}
+          >
+            <table className="w-full text-white border-collapse">
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className="px-2 sm:px-4 py-2 text-left bg-[#29282b] border-b border-gray-600 sticky top-0 z-10"
+                        style={{
+                          width: header.column.columnDef.size,
+                          minWidth: header.column.columnDef.size,
+                          maxWidth: header.column.columnDef.size,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : header.column.columnDef.header}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody>
+                {budgets.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="px-2 sm:px-4 py-2 text-center text-gray-400 border-b border-gray-600"
+                      style={{ height: "200px" }}
+                    >
+                      No rows found
+                    </td>
+                  </tr>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <tr key={row.id} className="border-b border-gray-600">
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-2 sm:px-4 py-2"
+                          style={{
+                            width: cell.column.columnDef.size,
+                            minWidth: cell.column.columnDef.size,
+                            maxWidth: cell.column.columnDef.size,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {cell.column.columnDef.cell
+                            ? cell.column.columnDef.cell(cell)
+                            : cell.getValue()}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-2 flex flex-row justify-between items-center bg-[#0b0b0b] py-2 z-20 relative gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPageIndex(pageIndex - 1)}
+                disabled={!table.getCanPreviousPage()}
+                className={`px-3 py-1 rounded text-sm ${
+                  table.getCanPreviousPage()
+                    ? "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
+                    : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Previous
+              </button>
+              <span className="text-white text-sm">
+                Page{" "}
+                <strong>
+                  {pageIndex + 1} of {table.getPageCount()}
+                </strong>
+              </span>
+              <button
+                onClick={() => setPageIndex(pageIndex + 1)}
+                disabled={!table.getCanNextPage()}
+                className={`px-3 py-1 rounded text-sm ${
+                  table.getCanNextPage()
+                    ? "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
+                    : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+            <div>
+              <select
+                value={pageSize}
+                onChange={handlePageSizeChange}
+                className="px-3 py-1 bg-[#29282b] text-white border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
+              >
+                {[5, 10, 20].map((size) => (
+                  <option key={size} value={size}>
+                    Show {size}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {budgetError && (
+        <div className="text-red-500 text-sm mt-4">
+          Error: {budgetError.message || "Failed to load budgets."}
+        </div>
+      )}
+
+      <div className="fixed bottom-12 right-4 sm:bottom-16 sm:right-8">
         <button
           onClick={handleSubmit}
-          className="px-6 py-3 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0]"
-          style={{ width: "150px" }}
+          className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0]"
+          style={{ width: "120px" }}
         >
           Submit
         </button>
@@ -362,7 +703,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         {`
           input[type="date"]::-webkit-calendar-picker-indicator {
             background: url('https://cdn-icons-png.flaticon.com/128/8350/8350450.png') no-repeat;
-            background-size: 20px;
+            background-size: 18px;
             filter: invert(1) brightness(100) contrast(100);
           }
           input[type="date"], input[type="number"] {
@@ -376,6 +717,32 @@ const NewExpense = ({ onClose, onSuccess }) => {
           input[type="number"] {
             -moz-appearance: textfield;
             appearance: none;
+          }
+          .overflow-y-auto::-webkit-scrollbar {
+            width: 8px;
+          }
+          .overflow-y-auto::-webkit-scrollbar-track {
+            background: #1b1b1b;
+          }
+          .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #00dac6;
+            border-radius: 4px;
+          }
+          .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #00b8a0;
+          }
+          .overflow-x-auto::-webkit-scrollbar {
+            height: 8px;
+          }
+          .overflow-x-auto::-webkit-scrollbar-track {
+            background: #1b1b1b;
+          }
+          .overflow-x-auto::-webkit-scrollbar-thumb {
+            background: #00dac6;
+            border-radius: 4px;
+          }
+          .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+            background: #00b8a0;
           }
         `}
       </style>
