@@ -1820,39 +1820,69 @@ public List<Expense> saveExpenses(List<Expense> expenses) {
 
     @Override
     public Map<String, Object> getCumulativeExpenses(User user, int year) {
-        List<Object[]> results = expenseRepository.findCumulativeExpensesByUserId(year, user.getId());
+        // Fetch data from repository
+        List<Object[]> results = expenseRepository.findExpensesWithDetailsByUserIdAndYear(year, user.getId());
 
-        Map<String, String> monthMapping = new HashMap<>();
-        monthMapping.put("January", "Jan");
-        monthMapping.put("February", "Feb");
-        monthMapping.put("March", "Mar");
-        monthMapping.put("April", "Apr");
-        monthMapping.put("May", "May");
-        monthMapping.put("June", "Jun");
-        monthMapping.put("July", "Jul");
-        monthMapping.put("August", "Aug");
-        monthMapping.put("September", "Sep");
-        monthMapping.put("October", "Oct");
-        monthMapping.put("November", "Nov");
-        monthMapping.put("December", "Dec");
+        // Map to store monthly totals
+        Map<Month, Double> monthlyTotals = new TreeMap<>(); // TreeMap to sort by month
 
+        // Process results
+        for (Object[] result : results) {
+            Expense expense = (Expense) result[0];
+            ExpenseDetails details = (ExpenseDetails) result[1];
+
+            Month month = expense.getDate().getMonth();
+            double amount = details.getAmount();
+
+            // Aggregate amount by month
+            monthlyTotals.merge(month, amount, Double::sum);
+        }
+
+        // Calculate cumulative totals
+        List<Double> cumulativeData = new ArrayList<>();
+        double cumulativeSum = 0.0;
+        for (Month month : monthlyTotals.keySet()) {
+            cumulativeSum += monthlyTotals.get(month);
+            cumulativeData.add(cumulativeSum);
+        }
+
+        // Prepare response
         Map<String, Object> response = new LinkedHashMap<>();
         String[] labels = new String[]{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
         Double[] data = new Double[12];
         Arrays.fill(data, 0.0);
 
-        double cumulativeSum = 0.0;
+        // Map months to indices
+        Map<Month, Integer> monthToIndex = new HashMap<>();
+        monthToIndex.put(Month.JANUARY, 0);
+        monthToIndex.put(Month.FEBRUARY, 1);
+        monthToIndex.put(Month.MARCH, 2);
+        monthToIndex.put(Month.APRIL, 3);
+        monthToIndex.put(Month.MAY, 4);
+        monthToIndex.put(Month.JUNE, 5);
+        monthToIndex.put(Month.JULY, 6);
+        monthToIndex.put(Month.AUGUST, 7);
+        monthToIndex.put(Month.SEPTEMBER, 8);
+        monthToIndex.put(Month.OCTOBER, 9);
+        monthToIndex.put(Month.NOVEMBER, 10);
+        monthToIndex.put(Month.DECEMBER, 11);
 
-        for (Object[] result : results) {
-            String month = (String) result[0];
-            double total = ((Number) result[1]).doubleValue();
-            cumulativeSum += total;
-            String monthAbbr = monthMapping.get(month);
+        // Fill data array with cumulative totals
+        int dataIndex = 0;
+        for (Month month : monthlyTotals.keySet()) {
+            Integer index = monthToIndex.get(month);
+            if (index != null && dataIndex < cumulativeData.size()) {
+                data[index] = cumulativeData.get(dataIndex);
+                dataIndex++;
+            }
+        }
 
-            if (monthAbbr != null) {
-                int index = Arrays.asList(labels).indexOf(monthAbbr);
-                if (index >= 0) {
-                    data[index] = cumulativeSum;
+        // Fill remaining months with the last cumulative value (if any)
+        if (!cumulativeData.isEmpty()) {
+            double lastCumulative = cumulativeData.get(cumulativeData.size() - 1);
+            for (int i = 0; i < data.length; i++) {
+                if (data[i] == 0.0) {
+                    data[i] = lastCumulative;
                 }
             }
         }
@@ -2029,5 +2059,36 @@ public List<Expense> saveExpenses(List<Expense> expenses) {
                 })
                 .collect(Collectors.toList());
     }
+
+
+    @Override
+    public List<Expense> getExpensesWithinRange(
+            Integer userId,
+            LocalDate startDate,
+            LocalDate endDate,
+            String flowType
+    ) {
+        // Retrieve expenses in date range
+        List<Expense> allExpenses = expenseRepository.findByUserIdAndDateBetween(
+                userId, startDate, endDate
+        );
+
+        // Optional filtering by inflow or outflow (e.g. "loss" or "gain")
+        if (flowType != null) {
+            return allExpenses.stream()
+                    .filter(e -> {
+                        String expenseType = e.getExpense().getType();
+                        if ("inflow".equalsIgnoreCase(flowType)) {
+                            return "gain".equalsIgnoreCase(expenseType);
+                        } else if ("outflow".equalsIgnoreCase(flowType)) {
+                            return "loss".equalsIgnoreCase(expenseType);
+                        }
+                        return true;
+                    })
+                    .toList();
+        }
+        return allExpenses;
+    }
+
 
 }

@@ -37,23 +37,24 @@ public class AppConfig {
         return http.build();
     }
 
-	private CorsConfigurationSource corsConfigurationSource() {
-		return request -> {
-			CorsConfiguration cfg = new CorsConfiguration();
-
-			cfg.setAllowedOrigins(Arrays.asList(
-					"http://localhost:3000",
-					"http://localhost:5173",
-					"https://jjayaprakash.netlify.app"
-			));
-
-			cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-			cfg.setAllowCredentials(true);
-			cfg.setAllowedHeaders(Collections.singletonList("*"));
-			cfg.setExposedHeaders(Arrays.asList("Authorization"));
-			cfg.setMaxAge(3600L);
-
-			return cfg;
+	private  CorsConfigurationSource corsConfigurationSource() {
+		return new CorsConfigurationSource() {
+			@Override
+			public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+				CorsConfiguration cfg = new CorsConfiguration();
+				String origin = request.getHeader("Origin");
+				if (origin != null) {
+					cfg.setAllowedOrigins(Arrays.asList(origin));
+				} else {
+					cfg.setAllowedOrigins(Arrays.asList("*"));
+				}
+				cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+				cfg.setAllowedHeaders(Collections.singletonList("*"));
+				cfg.setExposedHeaders(Arrays.asList("Authorization"));
+				cfg.setMaxAge(3600L);
+				cfg.setAllowCredentials(true);
+				return cfg;
+			}
 		};
 	}
 

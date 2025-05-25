@@ -23,6 +23,7 @@ import NewBudget from "./pages/Landingpage/NewBudget";
 import EditBudget from "./pages/Landingpage/EditBudget";
 import BudgetReport from "./pages/Landingpage/BudgetReport";
 import Reports from "./pages/Landingpage/Reports";
+import Cashflow from "./pages/Landingpage/CashFlow";
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -74,6 +75,7 @@ function App() {
           <Route path="transactions" element={<TransactionsContent />} />
           <Route path="credit-due" element={<CreditDueContent />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="cashflow" element={<Cashflow />} />
           <Route path="budget">
             <Route index element={<Budget />} />
             <Route path="create" element={<NewBudget />} />

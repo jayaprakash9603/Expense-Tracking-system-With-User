@@ -59,7 +59,7 @@ public class EmailService {
 
     public void sendOtpEmail(String to, String otp) {
         // Temporarily commented out email sending for testing
-        /*
+
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -77,7 +77,7 @@ public class EmailService {
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send OTP email", e);
         }
-        */
+
         logger.info("OTP for {}: {}", to, otp);
     }
     public List<EmailLog> getAllEmailLogs() {

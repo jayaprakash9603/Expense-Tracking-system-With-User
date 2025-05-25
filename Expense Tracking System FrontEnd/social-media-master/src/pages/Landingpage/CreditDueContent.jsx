@@ -14,7 +14,7 @@ import {
   Legend,
   RadialLinearScale,
 } from "chart.js";
-import { Skeleton } from "@mui/material";
+import { Skeleton, useMediaQuery, useTheme } from "@mui/material";
 import { API_BASE_URL } from "../../config/api";
 
 // Register Chart.js components
@@ -32,6 +32,8 @@ ChartJS.register(
 );
 
 const CreditDueContent = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [expenseNamesData, setExpenseNamesData] = useState(null);
   const [monthlyExpensesData, setMonthlyExpensesData] = useState(null);
   const [expenseTrendData, setExpenseTrendData] = useState(null);
@@ -41,7 +43,6 @@ const CreditDueContent = () => {
   const [error, setError] = useState(null);
   const token = localStorage.getItem("jwt");
 
-  // Common color palette for all charts
   const colorPalette = [
     "#FF6B6B",
     "#4ECDC4",
@@ -168,21 +169,16 @@ const CreditDueContent = () => {
     fetchData();
   }, [token]);
 
+  // Remove legend for all screens
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        labels: {
-          color: "#ffffff",
-          font: { size: 14 },
-        },
+        display: false,
+        labels: { color: "#ffffff", font: { size: 14 } },
       },
-      title: {
-        display: true,
-        color: "#ffffff",
-        font: { size: 16 },
-      },
+      title: { display: true, color: "#ffffff", font: { size: 16 } },
       tooltip: {
         enabled: true,
         backgroundColor: "rgba(0, 0, 0, 0.8)",
@@ -210,22 +206,11 @@ const CreditDueContent = () => {
     ...chartOptions,
     plugins: {
       ...chartOptions.plugins,
-      datalabels: {
-        display: false,
-      },
-      tooltip: {
-        ...chartOptions.plugins.tooltip,
-        callbacks: {
-          label: (context) => `${context.label}: $${context.raw}`,
-        },
-      },
       title: {
         display: true,
         text: "Payment Method Distribution",
         color: "#ffffff",
-        font: {
-          size: 16,
-        },
+        font: { size: 16 },
       },
     },
     scales: {
@@ -238,29 +223,40 @@ const CreditDueContent = () => {
     },
   };
 
+  const containerStyle = {
+    width: isMobile ? "100vw" : "calc(100vw - 370px)",
+    height: isMobile ? "100%" : "calc(100vh - 100px)",
+    backgroundColor: "#0b0b0b",
+    borderRadius: "8px",
+    border: "1px solid #000",
+    marginRight: isMobile ? 0 : "20px",
+    display: "flex",
+    flexDirection: "column",
+  };
+
+  const headerStyle = {
+    width: isMobile ? "100vw" : "calc(100vw - 370px)",
+    height: "50px",
+    backgroundColor: "#1b1b1b",
+  };
+
+  const chartHeight = isMobile ? 200 : 250;
+  const chartCardBg = isMobile ? "#1b1b1b" : "#1b1b1b";
+
   return (
     <>
-      <div className="w-[calc(100vw-370px)] h-[50px] bg-[#1b1b1b]"></div>
-      <div
-        className="flex flex-col p-4"
-        style={{
-          width: "calc(100vw - 370px)",
-          height: "calc(100vh - 100px)",
-          backgroundColor: "#0b0b0b",
-          borderRadius: "8px",
-          border: "1px solid #000",
-          marginRight: "20px",
-        }}
-      >
+      <div style={headerStyle}></div>
+      <div className="flex flex-col p-4" style={containerStyle}>
         <h1 className="text-2xl font-bold text-white mb-4 text-center">
           Expense Dashboard
         </h1>
-
         {error && <div className="text-red-500 text-center mb-4">{error}</div>}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full flex-1">
-          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-[250px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full flex-1 bg-[#0b0b0b]">
+          <div
+            className="p-4 rounded-lg shadow-lg flex flex-col items-center"
+            style={{ backgroundColor: chartCardBg }}
+          >
+            <div className="w-full" style={{ height: chartHeight }}>
               {expenseNamesData ? (
                 <Pie
                   data={expenseNamesData}
@@ -279,15 +275,18 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={250}
+                  height={chartHeight}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
               )}
             </div>
           </div>
-          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-[250px]">
+          <div
+            className="p-4 rounded-lg shadow-lg flex flex-col items-center"
+            style={{ backgroundColor: chartCardBg }}
+          >
+            <div className="w-full" style={{ height: chartHeight }}>
               {monthlyExpensesData ? (
                 <Bar
                   data={monthlyExpensesData}
@@ -306,15 +305,18 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={250}
+                  height={chartHeight}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
               )}
             </div>
           </div>
-          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-[250px]">
+          <div
+            className="p-4 rounded-lg shadow-lg flex flex-col items-center"
+            style={{ backgroundColor: chartCardBg }}
+          >
+            <div className="w-full" style={{ height: chartHeight }}>
               {expenseTrendData ? (
                 <Line
                   data={expenseTrendData}
@@ -333,34 +335,39 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={250}
+                  height={chartHeight}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
               )}
             </div>
           </div>
-          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-[250px]">
+          <div
+            className="p-4 rounded-lg shadow-lg flex flex-col items-center"
+            style={{ backgroundColor: chartCardBg }}
+          >
+            <div className="w-full" style={{ height: chartHeight }}>
               {paymentMethodData ? (
                 <PolarArea
                   data={paymentMethodData}
                   options={polarAreaOptions}
-                  title="Payment Method Distribution"
                 />
               ) : (
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={250}
+                  height={chartHeight}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
               )}
             </div>
           </div>
-          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-[250px]">
+          <div
+            className="p-4 rounded-lg shadow-lg flex flex-col items-center"
+            style={{ backgroundColor: chartCardBg }}
+          >
+            <div className="w-full" style={{ height: chartHeight }}>
               {cumulativeExpensesData ? (
                 <Line
                   data={cumulativeExpensesData}
@@ -379,15 +386,18 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={250}
+                  height={chartHeight}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />
               )}
             </div>
           </div>
-          <div className="bg-[#1b1b1b] p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <div className="w-full h-[250px]">
+          <div
+            className="p-4 rounded-lg shadow-lg flex flex-col items-center"
+            style={{ backgroundColor: chartCardBg }}
+          >
+            <div className="w-full" style={{ height: chartHeight }}>
               {expenseOverTimeData ? (
                 <Bar
                   data={expenseOverTimeData}
@@ -406,7 +416,7 @@ const CreditDueContent = () => {
                 <Skeleton
                   variant="rectangular"
                   width="100%"
-                  height={250}
+                  height={chartHeight}
                   animation="wave"
                   sx={{ bgcolor: "#2a2a2a" }}
                 />

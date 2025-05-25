@@ -322,6 +322,23 @@ public class BudgetServiceImpl implements BudgetService {
         return expenseRepository.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(userId, budget.getStartDate(), budget.getEndDate());
     }
 
+    @Override
+    public List<Expense> getExpensesForUserByBudgetId(Integer userId, Integer budgetId) throws Exception {
+        Budget budget = budgetRepository.findByUserIdAndId(userId, budgetId)
+                .orElseThrow(() -> new RuntimeException("Budget not found"));
+
+        Set<Integer> expenseIds = budget.getExpenseIds();
+        if (expenseIds == null || expenseIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(userId, expenseIds);
+        for (Expense expense : expenses) {
+            expense.setIncludeInBudget(true);
+        }
+        return expenses;
+    }
+
 
     @Override
     public BudgetReport calculateBudgetReport(Integer userId, Integer budgetId) throws Exception {

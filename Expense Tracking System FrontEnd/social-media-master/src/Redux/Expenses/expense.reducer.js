@@ -7,6 +7,9 @@ import {
   DELETE_EXPENSE_FAILURE,
   DELETE_EXPENSE_REQUEST,
   DELETE_EXPENSE_SUCCESS,
+  FETCH_CASHFLOW_EXPENSES_FAILURE,
+  FETCH_CASHFLOW_EXPENSES_REQUEST,
+  FETCH_CASHFLOW_EXPENSES_SUCCESS,
   FETCH_EXPENSES_FAILURE,
   FETCH_EXPENSES_REQUEST,
   FETCH_EXPENSES_SUCCESS,
@@ -60,6 +63,7 @@ const initialState = {
   topExpenses: [],
   history: [],
   budgetExpenses: [],
+  cashflowExpenses: [],
 };
 
 export const expenseReducer = (state = initialState, action) => {
@@ -77,9 +81,18 @@ export const expenseReducer = (state = initialState, action) => {
     case FETCH_EXPENSES_REQUEST:
     case GET_BUDGET_EXPENSES_REQUEST:
     case GET_SELECTED_EXPENSE_BUDGET_REQUEST:
+    case FETCH_CASHFLOW_EXPENSES_REQUEST:
       return { ...state, error: null, loading: true };
 
     // Success actions
+
+    case FETCH_CASHFLOW_EXPENSES_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        cashflowExpenses: action.payload,
+        error: null,
+      };
     case GET_ALL_EXPENSES_SUCCESS:
     case GET_SELECTED_EXPENSE_BUDGET_SUCCESS:
       return {
@@ -177,6 +190,7 @@ export const expenseReducer = (state = initialState, action) => {
     case GET_BUDGET_EXPENSES_FAILURE:
     case GET_BUDGET_FAILURE:
     case GET_SELECTED_EXPENSE_BUDGET_FAILURE:
+    case FETCH_CASHFLOW_EXPENSES_FAILURE:
       return {
         ...state,
         error: action.payload,

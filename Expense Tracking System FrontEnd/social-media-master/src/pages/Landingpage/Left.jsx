@@ -135,6 +135,12 @@ const Left = () => {
               setIsSidebarOpen={setIsSidebarOpen}
             />
             <MenuItem
+              name="Cash Flow"
+              path="/cashflow"
+              icon={require("../../assests/money-flow.png")}
+              setIsSidebarOpen={setIsSidebarOpen}
+            />
+            <MenuItem
               name="Budget"
               path="/budget"
               icon="https://cdn-icons-png.flaticon.com/128/2488/2488980.png"
@@ -146,6 +152,7 @@ const Left = () => {
               icon="https://cdn-icons-png.flaticon.com/128/456/456283.png"
               setIsSidebarOpen={setIsSidebarOpen}
             />
+
             <MenuItem
               name="Logout"
               path="/login"

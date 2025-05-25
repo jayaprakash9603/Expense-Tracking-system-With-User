@@ -186,4 +186,12 @@ public interface ExpenseService {
             Integer budgetId,
             Integer userId);
 
+
+    List<Expense> getExpensesWithinRange(
+            Integer userId,
+            LocalDate startDate,
+            LocalDate endDate,
+            String flowType
+    );
+
 }

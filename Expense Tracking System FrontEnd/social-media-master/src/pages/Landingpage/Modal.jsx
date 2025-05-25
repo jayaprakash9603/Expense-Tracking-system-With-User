@@ -19,14 +19,13 @@ const Modal = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
       <div
-        className={`bg-[#1b1b1b] text-white rounded-xl shadow-lg p-6 w-[700px] ${
+        className={`bg-[#1b1b1b] text-white rounded-xl shadow-lg p-6 w-[90%] max-w-[700px] ${
           hasData ? "min-h-[300px]" : "min-h-[50px] max-w-[500px]"
         } relative`}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{title}</h2>
-
           <button
             className="text-white text-2xl absolute top-4 right-4"
             onClick={onClose}
@@ -60,16 +59,16 @@ const Modal = ({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between gap-4 mt-10">
+        <div className="flex flex sm:flex-row justify-between gap-4 mt-10">
           <button
             onClick={onDecline}
-            className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-500"
+            className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-500 w-full sm:w-auto"
           >
             {declineText}
           </button>
           <button
             onClick={onApprove}
-            className="bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-500"
+            className="bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-500 w-full sm:w-auto"
           >
             {approveText}
           </button>

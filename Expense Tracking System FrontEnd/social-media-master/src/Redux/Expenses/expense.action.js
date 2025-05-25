@@ -13,6 +13,9 @@ import {
   EDIT_EXPENSE_SUCCESS,
   EDIT_MUTLTIPLE_EXPENSE_REQUEST,
   EDIT_MUTLTIPLE_EXPENSE_SUCCESS,
+  FETCH_CASHFLOW_EXPENSES_FAILURE,
+  FETCH_CASHFLOW_EXPENSES_REQUEST,
+  FETCH_CASHFLOW_EXPENSES_SUCCESS,
   FETCH_EXPENSES_FAILURE,
   FETCH_EXPENSES_REQUEST,
   FETCH_EXPENSES_SUCCESS,
@@ -495,6 +498,21 @@ export const getExpensesByBudget =
       dispatch({ type: GET_SELECTED_EXPENSE_BUDGET_FAILURE, payload: error });
     }
   };
-export const clearError = () => ({
-  type: CLEAR_ERROR,
-});
+export const fetchCashflowExpenses =
+  (rangeType, offset = 0, flowType = "outflow") =>
+  async (dispatch) => {
+    dispatch({ type: FETCH_CASHFLOW_EXPENSES_REQUEST });
+    const jwt = localStorage.getItem("jwt");
+    try {
+      const { data } = await api.get("/api/expenses/range/offset", {
+        params: { rangeType, offset, flowType }, // Pass flowType to API
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      dispatch({ type: FETCH_CASHFLOW_EXPENSES_SUCCESS, payload: data });
+    } catch (error) {
+      dispatch({
+        type: FETCH_CASHFLOW_EXPENSES_FAILURE,
+        payload: error.message,
+      });
+    }
+  };

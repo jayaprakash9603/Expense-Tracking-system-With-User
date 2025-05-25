@@ -74,7 +74,8 @@ public class BudgetController {
     @GetMapping("/{budgetId}/expenses")
     public ResponseEntity<List<Expense>> getExpensesWithinBudgetDates(@RequestHeader("Authorization") String jwt, @PathVariable Integer budgetId) throws Exception {
         User user = userService.findUserByJwt(jwt);
-        List<Expense> expenses = budgetService.getExpensesForUserWithinBudgetDates(user.getId(), budgetId);
+
+        List<Expense> expenses = budgetService.getExpensesForUserByBudgetId(user.getId(), budgetId);
         return ResponseEntity.ok(expenses);
     }
 

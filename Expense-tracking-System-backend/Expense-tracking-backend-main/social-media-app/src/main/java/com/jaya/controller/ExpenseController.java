@@ -28,8 +28,10 @@ import jakarta.mail.MessagingException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Year;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1675,6 +1677,42 @@ User reqUser=userService.findUserByJwt(jwt);
         } catch (RuntimeException e) {
             return ResponseEntity.status(404).body(e.getMessage());
         }
+    }
+
+
+
+
+
+    @GetMapping("/range/offset")
+    public List<Expense> getExpensesByRangeOffset(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam String rangeType,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(required = false) String flowType
+    ) {
+        User reqUser = userService.findUserByJwt(jwt);
+        LocalDate now = LocalDate.now();
+        LocalDate startDate;
+        LocalDate endDate;
+
+        switch (rangeType.toLowerCase()) {
+            case "week":
+                startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
+                endDate = now.with(DayOfWeek.SUNDAY).plusWeeks(offset);
+                break;
+            case "month":
+                startDate = now.withDayOfMonth(1).plusMonths(offset);
+                endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+                break;
+            case "year":
+                startDate = LocalDate.of(now.getYear(), 1, 1).plusYears(offset);
+                endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid rangeType");
+        }
+
+        return expenseService.getExpensesWithinRange(reqUser.getId(), startDate, endDate, flowType);
     }
 }
 

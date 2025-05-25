@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Skeleton } from "@mui/material";
+import { Box, Skeleton, useMediaQuery } from "@mui/material";
 import {
   DataGrid,
   GridToolbarContainer,
@@ -10,42 +10,43 @@ import {
   getExpenseHistory,
   getExpensesAction,
 } from "../../Redux/Expenses/expense.action";
-import { ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider, useTheme } from "@mui/material/styles";
 import { FilterList as FilterListIcon } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
-import theme from "./theme"; // Import the global theme
+import theme from "./theme";
 import ToastNotification from "./ToastNotification";
 
 const HistoryTable = () => {
   const dispatch = useDispatch();
   const { history, loading } = useSelector((state) => state.expenses || {});
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10); // Default to 10 rows
+  const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState([]);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const apiRef = useRef(null);
 
+  const muiTheme = useTheme();
+  const isSmallScreen = useMediaQuery(muiTheme.breakpoints.down("sm"));
+
   useEffect(() => {
     dispatch(getExpenseHistory());
     dispatch(getExpensesAction());
   }, [dispatch]);
+
   const handleSelectionChange = (newSelection) => {
     if (!apiRef.current) {
       setSelectedIds(newSelection);
       return;
     }
 
-    // Get pagination info
     const paginationInfo = apiRef.current.state.pagination;
     const page = paginationInfo.page;
     const pageSize = paginationInfo.pageSize;
 
-    // Get all rows
     const allRows = apiRef.current.getRowModels();
     const allRowIds = Array.from(allRows.keys());
 
-    // Compute visible row IDs based on pagination
     const start = page * pageSize;
     const end = start + pageSize;
     const visibleRowIds = allRowIds.slice(start, end);
@@ -72,11 +73,13 @@ const HistoryTable = () => {
         expenseId: item.expenseId,
         actionType: item.actionType,
         details: item.details,
-        timestamp: new Date(item.timestamp).toLocaleString(),
+        timestamp: isSmallScreen
+          ? new Date(item.timestamp).toLocaleDateString()
+          : new Date(item.timestamp).toLocaleString(),
       }))
     : [];
 
-  const columns = [
+  const allColumns = [
     {
       field: "id",
       headerName: "ID",
@@ -102,23 +105,33 @@ const HistoryTable = () => {
       field: "details",
       headerName: "Details",
       flex: 1,
-      minWidth: 450,
-      maxWidth: 550,
+      minWidth: isSmallScreen ? 250 : 450,
+      maxWidth: isSmallScreen ? 200 : 550,
     },
     {
       field: "timestamp",
-      headerName: "Timestamp",
+      headerName: isSmallScreen ? "Time" : "Timestamp",
       flex: 1,
-      minWidth: 120,
-      maxWidth: 200,
+      minWidth: isSmallScreen ? 50 : 120,
+      maxWidth: isSmallScreen ? 90 : 200,
     },
   ];
 
-  // Match ExpensesTable's table height
-  const tableHeight = 700; // Match ExpensesTable's 700px
+  const smallScreenColumns = allColumns.filter((col) =>
+    ["details", "timestamp"].includes(col.field)
+  );
+
+  const columns = isSmallScreen ? smallScreenColumns : allColumns;
 
   const CustomToolbar = () => (
-    <GridToolbarContainer sx={{ display: "flex", gap: 1, p: 1 }}>
+    <GridToolbarContainer
+      sx={{
+        display: "flex",
+        gap: 1,
+        p: 1,
+        flexDirection: isSmallScreen ? "row" : "row",
+      }}
+    >
       <GridToolbarQuickFilter
         sx={{
           "& .MuiInputBase-root": {
@@ -137,69 +150,79 @@ const HistoryTable = () => {
     </GridToolbarContainer>
   );
 
+  const tableHeight = 700;
+  const rowHeight = isSmallScreen ? 42 : 53;
+  const headerHeight = isSmallScreen ? 45 : 52;
+
   return (
-    <>
-      <ThemeProvider theme={theme}>
-        <ToastNotification
-          open={toastOpen}
-          message={toastMessage}
-          onClose={handleToastClose}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        />
-        <Box
-          sx={{
-            height: tableHeight,
-            width: "100%",
-            backgroundColor: "#0b0b0b",
-          }}
-        >
-          {loading ? (
-            <Box sx={{ height: tableHeight, overflow: "hidden" }}>
-              {[...Array(15)].map((_, index) => (
-                <Skeleton
-                  key={index}
-                  sx={{
-                    height: "43.5px",
-                    width: "100%",
-                    mb: index < 14 ? "3px" : 0,
-                    borderRadius: "4px",
-                    backgroundColor: "#0b0b0b",
-                  }}
-                />
-              ))}
-            </Box>
-          ) : (
-            <DataGrid
-              rows={rows}
-              columns={columns}
-              getRowId={(row) => row.id}
-              paginationMode="client"
-              pageSizeOptions={[10, 15, 20]}
-              paginationModel={{ page: pageIndex, pageSize }}
-              onPaginationModelChange={(model) => {
-                setPageIndex(model.page);
-                setPageSize(model.pageSize);
-                setSelectedIds([]);
-              }}
-              checkboxSelection
-              disableRowSelectionOnClick
-              rowSelectionModel={selectedIds}
-              onRowSelectionModelChange={handleSelectionChange}
-              apiRef={apiRef}
-              rowHeight={53}
-              headerHeight={52}
-              slots={{ toolbar: CustomToolbar }}
-              slotProps={{
-                toolbar: {
-                  showQuickFilter: true,
-                  quickFilterProps: { debounceMs: 500 },
-                },
-              }}
-            />
-          )}
-        </Box>
-      </ThemeProvider>
-    </>
+    <ThemeProvider theme={theme}>
+      <ToastNotification
+        open={toastOpen}
+        message={toastMessage}
+        onClose={handleToastClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      />
+      <Box
+        sx={{
+          height: tableHeight,
+          width: "100%",
+          backgroundColor: "#0b0b0b",
+        }}
+      >
+        {loading ? (
+          <Box sx={{ height: tableHeight, overflow: "hidden" }}>
+            {[...Array(15)].map((_, index) => (
+              <Skeleton
+                key={index}
+                sx={{
+                  height: rowHeight,
+                  width: "100%",
+                  mb: index < 14 ? "3px" : 0,
+                  borderRadius: "4px",
+                  backgroundColor: "#0b0b0b",
+                }}
+              />
+            ))}
+          </Box>
+        ) : (
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            getRowId={(row) => row.id}
+            paginationMode="client"
+            pageSizeOptions={[10, 15, 20]}
+            paginationModel={{ page: pageIndex, pageSize }}
+            onPaginationModelChange={(model) => {
+              setPageIndex(model.page);
+              setPageSize(model.pageSize);
+              setSelectedIds([]);
+            }}
+            rowHeight={isSmallScreen ? 53 : 53}
+            headerHeight={isSmallScreen ? 45 : 40}
+            checkboxSelection
+            disableRowSelectionOnClick
+            rowSelectionModel={selectedIds}
+            onRowSelectionModelChange={handleSelectionChange}
+            apiRef={apiRef}
+            slots={{ toolbar: CustomToolbar }}
+            slotProps={{
+              toolbar: {
+                showQuickFilter: true,
+                quickFilterProps: { debounceMs: 500 },
+              },
+            }}
+            sx={{
+              "& .MuiDataGrid-cell": {
+                fontSize: isSmallScreen ? "0.75rem" : "0.875rem",
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontSize: isSmallScreen ? "0.8rem" : "0.9rem",
+              },
+            }}
+          />
+        )}
+      </Box>
+    </ThemeProvider>
   );
 };
 

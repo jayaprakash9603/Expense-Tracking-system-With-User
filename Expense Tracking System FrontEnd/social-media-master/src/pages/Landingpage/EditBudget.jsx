@@ -117,6 +117,7 @@ const EditBudget = () => {
           includeInBudget: checkboxStates[index],
         }));
 
+        console.log("Submitting budget data:", budgetData);
         await dispatch(editBudgetAction(budgetData.id, budgetData));
         // if (updatedExpenses.length > 0) {
         //   await dispatch(editMultipleExpenseAction(updatedExpenses));
@@ -365,6 +366,9 @@ const EditBudget = () => {
                             checked={checkboxStates[row.index]}
                             onChange={() => handleCheckboxChange(row.index)}
                             className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+                            style={{
+                              accentColor: "#00b8a0",
+                            }}
                           />
                         </div>
                       </div>

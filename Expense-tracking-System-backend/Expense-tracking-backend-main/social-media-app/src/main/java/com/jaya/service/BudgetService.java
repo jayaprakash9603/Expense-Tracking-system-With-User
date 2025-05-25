@@ -32,6 +32,8 @@ public interface BudgetService {
 
     List<Expense> getExpensesForUserWithinBudgetDates(Integer userId, Integer budgetId) throws Exception;
 
+
+    List<Expense> getExpensesForUserByBudgetId(Integer userId, Integer budgetId) throws Exception;
     BudgetReport calculateBudgetReport(Integer userId, Integer budgetId) throws Exception;
 
     List<Budget> getAllBudgetForUser(Integer userId);

@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import {
   Box,
   FormControl,
-  InputLabel,
   MenuItem,
   Select,
-  Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import ExpenseEmail from "./ExpenseEmail";
@@ -14,7 +14,6 @@ import ReportsGeneration from "../ReportsGeneration";
 import SearchExpenses from "../SearchExpenses/SearchExpenses";
 import SearchAudits from "../SearchAudits/SearchAudits";
 
-// Sample data for different report types
 const expenseReportData = [
   { id: 1, reportName: "Expense Report Q1 2025", date: "2025-03-15" },
   { id: 2, reportName: "Expense Report Q2 2025", date: "2025-06-20" },
@@ -33,24 +32,23 @@ const searchAuditsData = [
   { id: 6, reportName: "Internal Audit Report", date: "2025-02-10" },
 ];
 
-// Define columns for the DataGrid
-const columns = [
+const defaultColumns = [
   { field: "id", headerName: "S.No", width: 100 },
-  { field: "reportName", headerName: "Report Name", width: 300 }, // Increased width
+  { field: "reportName", headerName: "Report Name", width: 300 },
   { field: "date", headerName: "Date", width: 150 },
 ];
 
 const Reports = () => {
-  const [view, setView] = useState("email");
   const [selectedReport, setSelectedReport] = useState("select");
   const [Url, setUrl] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleDropdownChange = (event) => {
     setSelectedReport(event.target.value);
     setUrl(null);
   };
 
-  // Determine which data to display based on selected report
   const getReportData = () => {
     switch (selectedReport) {
       case "expenseReport":
@@ -62,101 +60,120 @@ const Reports = () => {
     }
   };
 
+  // Adjust columns for mobile by removing the "id" column and reducing column widths
+  const mobileColumns = defaultColumns
+    .filter((col) => col.field !== "id")
+    .map((col) => {
+      if (col.field === "reportName") {
+        return { ...col, width: 200 };
+      } else if (col.field === "date") {
+        return { ...col, width: 100 };
+      }
+      return col;
+    });
+
+  const columnsToUse = isMobile ? mobileColumns : defaultColumns;
+
   return (
     <Box sx={{ bgcolor: "#1b1b1b" }}>
       <Box
         sx={{
-          width: "calc(100vw - 370px)",
+          width: isMobile ? "100%" : "calc(100vw - 370px)",
           height: "50px",
           bgcolor: "#1b1b1b",
         }}
       />
       <Box
         sx={{
-          width: "calc(100vw - 370px)",
-          height: "calc(100vh - 100px)",
+          width: isMobile ? "100%" : "calc(100vw - 370px)",
+          height: isMobile ? "auto" : "calc(100vh - 100px)",
           bgcolor: "#0b0b0b",
           borderRadius: "8px",
           border: "1px solid #000",
-          mr: "20px",
+          mr: isMobile ? 0 : "20px",
           p: 4,
           display: "flex",
-          flexDirection: "column",
+          flexDirection: isMobile ? "column" : "row",
         }}
       >
-        <Box sx={{ display: "flex", height: "100%", width: "100%" }}>
-          <Box sx={{ width: "50%", pr: 2 }}>
-            <FormControl fullWidth sx={{ mb: 4, maxWidth: 300 }}>
-              <Select
-                value={selectedReport}
-                onChange={handleDropdownChange}
-                sx={{
+        <Box sx={{ width: isMobile ? "100%" : "50%", pr: isMobile ? 0 : 2 }}>
+          <FormControl
+            fullWidth
+            sx={{ mb: 4, maxWidth: isMobile ? "100%" : 300 }}
+          >
+            <Select
+              value={selectedReport}
+              onChange={handleDropdownChange}
+              sx={{
+                bgcolor: "#333333",
+                color: "#ffffff",
+                border: "1px solid #28282a",
+                "& .MuiSvgIcon-root": { color: "#ffffff" },
+                "&:hover": { bgcolor: "#444444" },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#00dac6",
+                },
+              }}
+            >
+              <MenuItem value="select">Select Report</MenuItem>
+              <MenuItem value="expenseReport">Expense Report</MenuItem>
+              <MenuItem value="searchAudits">Search Audits</MenuItem>
+            </Select>
+          </FormControl>
+          <Box>
+            {selectedReport === "select" && <></>}
+            {selectedReport === "expenseReport" && <ExpenseEmail />}
+          </Box>
+        </Box>
+        <Box
+          sx={{
+            width: isMobile ? "100%" : "50%",
+            pl: isMobile ? 0 : 2,
+            mt: isMobile ? 4 : 0,
+          }}
+        >
+          {selectedReport !== "select" && (
+            <DataGrid
+              rows={getReportData()}
+              columns={columnsToUse}
+              pageSizeOptions={[5]}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 5 } },
+              }}
+              disableColumnMenu
+              sx={{
+                bgcolor: "#1b1b1b",
+                color: "#ffffff",
+                border: "1px solid #28282a",
+                "& .MuiDataGrid-columnHeaders": {
                   bgcolor: "#333333",
                   color: "#ffffff",
-                  border: "1px solid #28282a",
-                  "& .MuiSvgIcon-root": { color: "#ffffff" },
-                  "&:hover": { bgcolor: "#444444" },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#00dac6",
-                  },
-                }}
-              >
-                <MenuItem value="select">Select Report</MenuItem>
-                <MenuItem value="expenseReport">Expense Report</MenuItem>
-                <MenuItem value="searchAudits">Search Audits</MenuItem>
-              </Select>
-            </FormControl>
-            <Box>
-              {selectedReport === "select" && <></>}
-              {selectedReport === "expenseReport" && <ExpenseEmail />}
-              {/* {selectedReport === "searchAudits" && <E />} */}
-            </Box>
-          </Box>
-          <Box sx={{ width: "50%", pl: 2 }}>
-            {selectedReport !== "select" && (
-              <DataGrid
-                rows={getReportData()}
-                columns={columns}
-                pageSizeOptions={[5]}
-                initialState={{
-                  pagination: { paginationModel: { pageSize: 5 } },
-                }}
-                disableColumnMenu
-                sx={{
-                  bgcolor: "#1b1b1b",
+                },
+                "& .MuiDataGrid-cell": {
                   color: "#ffffff",
-                  border: "1px solid #28282a",
-                  "& .MuiDataGrid-columnHeaders": {
-                    bgcolor: "#333333",
-                    color: "#ffffff",
-                  },
-                  "& .MuiDataGrid-cell": {
-                    color: "#ffffff",
-                  },
-                  "& .MuiDataGrid-row:hover": {
-                    bgcolor: "#28282a",
-                  },
-                  "& .MuiDataGrid-footerContainer": {
-                    bgcolor: "#333333",
-                    color: "#ffffff",
-                  },
-                  "& .MuiTablePagination-root": {
-                    color: "#ffffff",
-                  },
-                  "& .MuiSvgIcon-root": {
-                    color: "#ffffff",
-                  },
-                  // Set fixed height for 5 rows + header + pagination
-                  height: 372, // 52px (header) + 5 * 52px (rows) + 40px (pagination)
-                }}
-              />
-            )}
-          </Box>
+                },
+                "& .MuiDataGrid-row:hover": {
+                  bgcolor: "#28282a",
+                },
+                "& .MuiDataGrid-footerContainer": {
+                  bgcolor: "#333333",
+                  color: "#ffffff",
+                },
+                "& .MuiTablePagination-root": {
+                  color: "#ffffff",
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "#ffffff",
+                },
+                height: isMobile ? 377 : 372,
+              }}
+            />
+          )}
         </Box>
       </Box>
       <Box
         sx={{
-          width: "calc(100vw - 370px)",
+          width: isMobile ? "100%" : "calc(100vw - 370px)",
           height: "50px",
           bgcolor: "#1b1b1b",
         }}

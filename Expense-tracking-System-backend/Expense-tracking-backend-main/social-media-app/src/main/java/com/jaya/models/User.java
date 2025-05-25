@@ -29,6 +29,7 @@ public class User  {
 	private String bio;
 	private String firstName;
 	private String lastName;
+	@Column(unique = true, nullable = false)
 	private String email;
 	private String password;
 	private String gender;

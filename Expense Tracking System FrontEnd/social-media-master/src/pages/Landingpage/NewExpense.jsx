@@ -451,7 +451,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   return (
     <div
-      className="flex flex-col relative"
+      className="flex flex-col relative new-expense-container"
       style={{
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
@@ -490,7 +490,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         {renderInput("comments", "text", true)}
       </div>
 
-      <div className="mt-2 w-full flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div className="mt-4 sm:mt-[50px] w-full flex flex-col sm:flex-row items-center justify-between gap-2">
         <button
           onClick={handleLinkBudgets}
           className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[150px]"
@@ -689,11 +689,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
         </div>
       )}
 
-      <div className="fixed bottom-12 right-4 sm:bottom-16 sm:right-8">
+      <div className="w-full flex justify-end mt-4 sm:mt-8">
         <button
           onClick={handleSubmit}
-          className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0]"
-          style={{ width: "120px" }}
+          className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px]"
         >
           Submit
         </button>
@@ -744,6 +743,73 @@ const NewExpense = ({ onClose, onSuccess }) => {
           .overflow-x-auto::-webkit-scrollbar-thumb:hover {
             background: #00b8a0;
           }
+            @media (max-width: 640px) {
+         .new-expense-container {
+        width: 100vw !important;
+        height: auto !important;
+        padding: 16px;
+      }
+      .form-row {
+        flex-direction: column !important;
+        gap: 12px;
+      }
+      .field-styles {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 8px;
+        font-size: 0.875rem;
+      }
+      .label-style {
+        width: 100% !important;
+        font-size: 0.875rem;
+      }
+      .input-wrapper {
+        width: 100% !important;
+      }
+      .error-message {
+        margin-left: 0 !important;
+        text-align: left;
+      }
+      .budget-card {
+        padding: 12px;
+        font-size: 0.875rem;
+      }
+      .table-container {
+        display: none !important;
+      }
+      .mobile-card-container {
+        display: block !important;
+      }
+      .submit-button {
+        bottom: 16px !important;
+        right: 16px !important;
+        width: 100% !important;
+        max-width: 120px;
+      }
+      .link-budget-button,
+      .close-table-button {
+        width: 100% !important;
+        padding: 8px 16px;
+        font-size: 0.875rem;
+      }
+      .autocomplete-container {
+        max-width: 100% !important;
+      }
+      .textarea-field {
+        rows: 2 !important;
+        font-size: 0.875rem;
+      }
+      .overflow-y-auto::-webkit-scrollbar {
+        width: 6px;
+      }
+      .overflow-x-auto::-webkit-scrollbar {
+        height: 6px;
+      }
+    }
+    /* Existing scrollbar styles */
+    .overflow-y-auto::-webkit-scrollbar {
+      width: 8px;
+    }
         `}
       </style>
     </div>

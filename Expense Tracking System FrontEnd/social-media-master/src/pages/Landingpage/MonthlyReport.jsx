@@ -16,6 +16,7 @@ import {
   Cell,
 } from "recharts";
 import { API_BASE_URL } from "../../config/api";
+import { useTheme, useMediaQuery } from "@mui/material";
 
 const MonthlyReport = () => {
   const [dailySpendingData, setDailySpendingData] = useState([]);
@@ -26,6 +27,9 @@ const MonthlyReport = () => {
   const [error, setError] = useState(null);
   const token = localStorage.getItem("jwt");
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   // Color palette for charts
   const colorPalette = ["#8884d8", "#82ca9d", "#ff7300", "#FF6B6B", "#4ECDC4"];
 
@@ -34,9 +38,7 @@ const MonthlyReport = () => {
     day: `2025-05-${String(i + 1).padStart(2, "0")}`,
     spending: 0,
   }));
-
   const defaultMonthlySpendingIncome = [{ name: "No Expenses", value: 0 }];
-
   const defaultPieData = [{ name: "No Expenses", value: 1 }];
 
   // Truncate long names
@@ -48,9 +50,7 @@ const MonthlyReport = () => {
       setError("Please log in to view the monthly report.");
       return;
     }
-
     const headers = { Authorization: `Bearer ${token}` };
-
     const fetchData = async () => {
       try {
         const [spendingRes, totalsRes, distributionRes] = await Promise.all([
@@ -65,8 +65,6 @@ const MonthlyReport = () => {
             headers,
           }),
         ]);
-
-        // Truncate names in data
         setDailySpendingData(
           spendingRes.data.length > 0 ? spendingRes.data : defaultDailySpending
         );
@@ -111,10 +109,9 @@ const MonthlyReport = () => {
     percent,
     name,
   }) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 1.1; // Reduced radius
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.1;
     const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
     const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
-
     return (
       <text
         x={x}
@@ -122,7 +119,7 @@ const MonthlyReport = () => {
         fill="#ffffff"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
-        style={{ fontSize: 10 }} // Smaller font
+        style={{ fontSize: 10 }}
       >
         {`${truncate(name)} (${(percent * 100).toFixed(0)}%)`}
       </text>
@@ -130,19 +127,17 @@ const MonthlyReport = () => {
   };
 
   // Custom XAxis tick for BarChart
-  const CustomTick = ({ x, y, payload }) => {
-    return (
-      <text
-        x={x}
-        y={y + 10}
-        fill="#ffffff"
-        textAnchor="middle"
-        style={{ fontSize: 12 }}
-      >
-        {truncate(payload.value)}
-      </text>
-    );
-  };
+  const CustomTick = ({ x, y, payload }) => (
+    <text
+      x={x}
+      y={y + 10}
+      fill="#ffffff"
+      textAnchor="middle"
+      style={{ fontSize: 12 }}
+    >
+      {truncate(payload.value)}
+    </text>
+  );
 
   // Custom tooltip with truncated names
   const CustomTooltip = ({ active, payload, label }) => {
@@ -173,12 +168,15 @@ const MonthlyReport = () => {
     <div
       style={{
         marginTop: "20px",
-        width: "1460px",
-        height: "250px",
+        width: isMobile ? "90vw" : "100%",
+        maxWidth: isMobile ? "90vw" : "1460px",
+        height: isMobile ? "100vh" : "250px",
         borderRadius: "8px",
         border: "1px solid rgb(80, 80, 80)",
         backgroundColor: "rgb(27, 27, 27)",
         boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
+        padding: "10px",
+        boxSizing: "border-box",
       }}
     >
       {error && (
@@ -199,16 +197,16 @@ const MonthlyReport = () => {
           justifyContent: "space-between",
           marginTop: "20px",
           flexWrap: "wrap",
-          height: "80%",
+          height: isMobile ? "100vh" : "80%",
         }}
       >
         {/* Line Chart - Daily Spending */}
         <div
           style={{
             flex: "1 1 30%",
-            minWidth: "300px",
+            minWidth: isMobile ? "300px" : "300px",
             marginRight: "20px",
-            height: "100%",
+            height: isMobile ? "30%" : "100%",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
@@ -216,16 +214,18 @@ const MonthlyReport = () => {
             marginBottom: "10px",
           }}
         >
-          <p
-            style={{
-              color: "#ffffff",
-              fontWeight: "bold",
-              marginBottom: "10px",
-              textAlign: "center",
-            }}
-          >
-            Daily Spending (May 2025)
-          </p>
+          {!isMobile && (
+            <p
+              style={{
+                color: "#ffffff",
+                fontWeight: "bold",
+                marginBottom: "10px",
+                textAlign: "center",
+              }}
+            >
+              Daily Spending (May 2025)
+            </p>
+          )}
           <ResponsiveContainer width="100%" height="80%">
             <LineChart data={dailySpendingData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -254,7 +254,7 @@ const MonthlyReport = () => {
             flex: "1 1 30%",
             minWidth: "300px",
             marginRight: "20px",
-            height: "100%",
+            height: isMobile ? "30%" : "100%",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
@@ -262,16 +262,18 @@ const MonthlyReport = () => {
             marginBottom: "10px",
           }}
         >
-          <p
-            style={{
-              color: "#ffffff",
-              fontWeight: "bold",
-              marginBottom: "10px",
-              textAlign: "center",
-            }}
-          >
-            Monthly Spending vs Income (May 2025)
-          </p>
+          {!isMobile && (
+            <p
+              style={{
+                color: "#ffffff",
+                fontWeight: "bold",
+                marginBottom: "10px",
+                textAlign: "center",
+              }}
+            >
+              Monthly Spending vs Income (May 2025)
+            </p>
+          )}
           <ResponsiveContainer width="100%" height="80%">
             <BarChart data={monthlySpendingIncomeData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -302,7 +304,7 @@ const MonthlyReport = () => {
           style={{
             flex: "1 1 30%",
             minWidth: "300px",
-            height: "100%",
+            height: isMobile ? "30%" : "100%",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
@@ -310,16 +312,18 @@ const MonthlyReport = () => {
             marginBottom: "10px",
           }}
         >
-          <p
-            style={{
-              color: "#ffffff",
-              fontWeight: "bold",
-              marginBottom: "10px",
-              textAlign: "center",
-            }}
-          >
-            Expense Distribution (May 2025)
-          </p>
+          {!isMobile && (
+            <p
+              style={{
+                color: "#ffffff",
+                fontWeight: "bold",
+                marginBottom: "10px",
+                textAlign: "center",
+              }}
+            >
+              Expense Distribution (May 2025)
+            </p>
+          )}
           <ResponsiveContainer width="100%" height="80%">
             <PieChart>
               <Pie

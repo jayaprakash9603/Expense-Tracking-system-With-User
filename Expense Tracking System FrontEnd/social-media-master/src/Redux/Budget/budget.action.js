@@ -33,7 +33,7 @@ import {
   GET_SELECTED_EXPENSE_BUDGET_SUCCESS,
 } from "./budget.actionType";
 
-const token = localStorage.getItem("jwt"); // ✅ move inside the function
+const token = localStorage.getItem("jwt");
 export const createBudgetAction = (budgetData) => async (dispatch) => {
   dispatch({ type: CREATE_BUDGET_REQUEST });
 
@@ -66,6 +66,7 @@ export const createBudgetAction = (budgetData) => async (dispatch) => {
 };
 
 export const getBudgetData = () => async (dispatch) => {
+  const token = localStorage.getItem("jwt");
   dispatch({ type: GET_ALL_BUDGET_DATA_REQUEST });
 
   if (!token) {

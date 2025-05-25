@@ -21,6 +21,7 @@ import {
 } from "@tanstack/react-table";
 import { getExpensesByBudgetId } from "../../Redux/Expenses/expense.action";
 import { getBudgetReportById } from "../../Redux/Budget/budget.action";
+import { useMediaQuery } from "@mui/material";
 
 // BudgetReport component
 const BudgetReport = () => {
@@ -39,6 +40,7 @@ const BudgetReport = () => {
   const expensesError = useSelector((state) => state.expenses.error);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
   // Ensure budgetExpenses is an array and log for debugging
   const safeBudgetExpenses = Array.isArray(budgetExpenses)
@@ -195,9 +197,12 @@ const BudgetReport = () => {
         cell: ({ getValue }) => (
           <input
             type="checkbox"
-            checked={getValue()}
-            disabled
-            className="h-5 w-5 text-[#00dac6] border-gray-700 rounded"
+            checked={!!getValue()}
+            // disabled
+            className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+            style={{
+              accentColor: "#00b8a0",
+            }}
           />
         ),
       },
@@ -362,8 +367,8 @@ const BudgetReport = () => {
       <div
         className="flex flex-col justify-start items-start flex-shrink-1 flex-grow-1 align-self-stretch"
         style={{
-          width: "calc(100vw - 370px)",
-          height: "calc(100vh - 100px)",
+          width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
+          height: isSmallScreen ? "100%" : "calc(100vh - 100px)",
           backgroundColor: "rgb(11, 11, 11)",
           borderRadius: "8px",
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
@@ -379,20 +384,23 @@ const BudgetReport = () => {
             <div
               style={{
                 display: "flex",
-                flexDirection: "row",
+                flexDirection: isSmallScreen ? "column" : "row",
                 justifyContent: "space-between",
                 alignItems: "flex-start",
-                padding: "0 8px",
+                padding: isSmallScreen ? "0" : "0 8px",
+                gap: isSmallScreen ? "12px" : "0",
+                position: "relative",
+                height: isSmallScreen ? "80vh" : "240px",
               }}
             >
-              {/* Budget Details */}
               <div
                 style={{
-                  flex: "1 1 50%",
-                  width: "50%",
-                  minWidth: "280px",
-                  padding: "8px",
-                  marginRight: "8px",
+                  flex: isSmallScreen ? "1 1 100%" : "1 1 50%",
+                  width: isSmallScreen ? "100%" : "50%",
+                  minWidth: "0",
+                  padding: isSmallScreen ? "4px" : "8px",
+                  marginRight: isSmallScreen ? "0" : "8px",
+                  marginBottom: isSmallScreen ? "0" : "0",
                 }}
               >
                 <div className="bg-[#29282b] p-3 rounded-lg border border-gray-600 relative">
@@ -449,19 +457,19 @@ const BudgetReport = () => {
                 </div>
               </div>
 
-              {/* Pie Chart - Expense Distribution */}
               <div
                 style={{
-                  flex: "1 1 50%",
-                  width: "50%",
-                  minWidth: "280px",
-                  height: "240px",
+                  flex: isSmallScreen ? "1 1 100%" : "1 1 50%",
+                  width: isSmallScreen ? "100%" : "50%",
+                  minWidth: isSmallScreen ? "0" : "280px",
+                  height: isSmallScreen ? "200px" : "240px",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
                   alignItems: "center",
-                  padding: "8px",
-                  marginLeft: "8px",
+                  padding: isSmallScreen ? "4px" : "8px",
+                  marginLeft: isSmallScreen ? "0" : "8px",
+                  marginTop: isSmallScreen ? "12px" : "0",
                 }}
               >
                 <p
@@ -504,12 +512,32 @@ const BudgetReport = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <button
-                onClick={() => navigate("/budget")}
-                className="absolute top-[55px] right-[30px] px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a]"
-              >
-                X
-              </button>
+              {!isSmallScreen && (
+                <button
+                  onClick={() => navigate("/budget")}
+                  className="absolute top-[=15px] right-[-8px] px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a]"
+                >
+                  X
+                </button>
+              )}
+              {isSmallScreen && (
+                <button
+                  onClick={() => navigate("/budget")}
+                  style={{
+                    position: "absolute",
+                    top: -60,
+                    right: -10,
+                    zIndex: 10,
+                    padding: "4px 10px",
+                    background: "#29282b",
+                    color: "#fff",
+                    border: "1px solid #444",
+                    borderRadius: "6px",
+                  }}
+                >
+                  X
+                </button>
+              )}
             </div>
           </div>
 
@@ -703,7 +731,7 @@ const BudgetReport = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="mt-4 flex flex-row justify-between items-center bg-[#0b0b0b] py-2 z-20 relative gap-2">
+              <div className="mt-2 flex flex-row justify-between items-center bg-[#0b0b0b] py-2 z-20 relative gap-2">
                 {/* Centered pagination controls */}
                 <div className="flex-1 flex justify-center items-center gap-2">
                   <button

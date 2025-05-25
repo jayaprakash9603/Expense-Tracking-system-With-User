@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getExpensesSummaryAction } from "../../Redux/Expenses/expense.action";
-import { Skeleton } from "@mui/material";
+import { Skeleton, useTheme, useMediaQuery } from "@mui/material";
 
 const Overview = () => {
   const dispatch = useDispatch();
@@ -15,6 +15,9 @@ const Overview = () => {
   useEffect(() => {
     dispatch(getExpensesSummaryAction());
   }, [dispatch]);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const shimmerKeyframes = {
     "@keyframes shimmer": {
@@ -39,14 +42,15 @@ const Overview = () => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        width: "640px",
+        width: isMobile ? "100%" : "640px",
         backgroundColor: "rgb(27, 27, 27)",
         borderRadius: "8px",
-        boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
+        boxShadow: "rgba(0, 0, 0, 0.08) 0 0 0",
         border: "1px solid rgb(80, 80, 80)",
         padding: "20px",
         color: "#ffffff",
-        height: "300px",
+        height: isMobile ? "auto" : "300px",
+        boxSizing: "border-box",
       }}
     >
       {/* Header */}

@@ -96,7 +96,7 @@ const NewBudget = () => {
         console.log("Submitting budget:", budgetData);
         console.log("Saving all expenses:", updatedExpenses);
 
-        await dispatch(createBudgetAction(budgetData));
+        dispatch(createBudgetAction(budgetData));
         // if (updatedExpenses.length > 0) {
         //   await dispatch(editMultipleExpenseAction(updatedExpenses));
         // }

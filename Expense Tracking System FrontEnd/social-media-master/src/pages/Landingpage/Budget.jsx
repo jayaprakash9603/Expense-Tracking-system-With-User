@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getBudgetData,
@@ -25,6 +25,7 @@ import {
   Skeleton,
   Box,
   Divider,
+  useMediaQuery,
 } from "@mui/material";
 import {
   FilterList as FilterListIcon,
@@ -32,6 +33,7 @@ import {
   Description as ReportIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 import Modal from "./Modal";
 import ToastNotification from "./ToastNotification";
@@ -46,6 +48,7 @@ const Budget = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [budgetToDelete, setBudgetToDelete] = useState(null);
   const [toast, setToast] = useState({ open: false, message: "" });
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -122,88 +125,121 @@ const Budget = () => {
     setToast({ open: false, message: "" });
   };
 
-  const columns = useMemo(
-    () => [
-      {
-        field: "checkbox",
-        headerName: "",
-        flex: 0.5,
-        minWidth: 80,
-        maxWidth: 100,
-        sortable: false,
-        renderCell: () => null,
-      },
-      {
-        field: "name",
-        headerName: "Name",
-        flex: 2,
-        minWidth: 150,
-        maxWidth: 250,
-        sortable: true,
-        renderCell: (params) => params.value || "N/A",
-      },
-      {
-        field: "description",
-        headerName: "Description",
-        flex: 2.5,
-        minWidth: 200,
-        maxWidth: 350,
-        sortable: true,
-        renderCell: (params) => params.value || "N/A",
-      },
-      {
-        field: "amount",
-        headerName: "Amount",
-        flex: 0.8,
-        minWidth: 100,
-        maxWidth: 150,
-        sortable: true,
-        renderCell: (params) => `$${params.value.toFixed(2)}`,
-      },
-      {
-        field: "startDate",
-        headerName: "Start Date",
-        flex: 0.8,
-        minWidth: 100,
-        maxWidth: 150,
-        sortable: true,
-        renderCell: (params) => params.value || "N/A",
-      },
-      {
-        field: "endDate",
-        headerName: "End Date",
-        flex: 0.8,
-        minWidth: 100,
-        maxWidth: 150,
-        sortable: true,
-        renderCell: (params) => params.value || "N/A",
-      },
-      {
-        field: "remainingAmount",
-        headerName: "Remaining",
-        flex: 1,
-        minWidth: 120,
-        maxWidth: 170,
-        sortable: true,
-        renderCell: (params) => `$${params.value.toFixed(2)}`,
-      },
-      {
-        field: "actions",
-        headerName: "",
-        width: 50,
-        sortable: false,
-        renderCell: (params) => (
-          <IconButton
-            onClick={(e) => handleMenuClick(e, params.row.id)}
-            sx={{ color: "#ffffff", "&:hover": { color: "#00dac6" } }}
-          >
-            <MoreVertIcon />
-          </IconButton>
-        ),
-      },
-    ],
-    []
-  );
+  // Define columns based on screen size.
+  // For small screens: only name, start date, end date and remaining (short headers)
+  // For larger screens: include description, amount and action button.
+  const columns = useMemo(() => {
+    if (isSmallScreen) {
+      return [
+        {
+          field: "name",
+          headerName: "Name",
+          flex: 2,
+          minWidth: 120,
+          maxWidth: 200,
+          sortable: true,
+          renderCell: (params) => params.value || "N/A",
+        },
+        {
+          field: "remainingAmount",
+          headerName: "Remaining",
+          flex: 1,
+          minWidth: 100,
+          maxWidth: 180,
+          sortable: true,
+          renderCell: (params) =>
+            `$${params.value ? params.value.toFixed(2) : "0.00"}`,
+        },
+        {
+          field: "actions",
+          headerName: "",
+          width: 40,
+          sortable: false,
+          renderCell: (params) => (
+            <IconButton
+              onClick={(e) => handleMenuClick(e, params.row.id)}
+              sx={{ color: "#ffffff", "&:hover": { color: "#00dac6" } }}
+            >
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+          ),
+        },
+      ];
+    } else {
+      return [
+        {
+          field: "name",
+          headerName: "Name",
+          flex: 2,
+          minWidth: 120,
+          maxWidth: 300,
+          sortable: true,
+          renderCell: (params) => params.value || "N/A",
+        },
+        {
+          field: "description",
+          headerName: "Description",
+          flex: 3,
+          minWidth: 180,
+          maxWidth: 450,
+          sortable: true,
+          renderCell: (params) => params.value || "N/A",
+        },
+        {
+          field: "amount",
+          headerName: "Amount",
+          flex: 0.8,
+          minWidth: 90,
+          maxWidth: 150,
+          sortable: true,
+          renderCell: (params) =>
+            `$${params.value ? params.value.toFixed(2) : "0.00"}`,
+        },
+        {
+          field: "startDate",
+          headerName: "Start Date",
+          flex: 0.8,
+          minWidth: 90,
+          maxWidth: 150,
+          sortable: true,
+          renderCell: (params) => params.value || "N/A",
+        },
+        {
+          field: "endDate",
+          headerName: "End Date",
+          flex: 0.8,
+          minWidth: 90,
+          maxWidth: 150,
+          sortable: true,
+          renderCell: (params) => params.value || "N/A",
+        },
+        {
+          field: "remainingAmount",
+          headerName: "Remaining",
+          flex: 1,
+          minWidth: 100,
+          maxWidth: 180,
+          sortable: true,
+          renderCell: (params) =>
+            `$${params.value ? params.value.toFixed(2) : "0.00"}`,
+        },
+        {
+          field: "actions",
+          headerName: "",
+          width: 40,
+          sortable: false,
+          renderCell: (params) => (
+            <IconButton
+              onClick={(e) => handleMenuClick(e, params.row.id)}
+              sx={{ color: "#ffffff", "&:hover": { color: "#00dac6" } }}
+            >
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+          ),
+        },
+      ];
+    }
+  }, [isSmallScreen]);
 
   const rows = useMemo(
     () =>
@@ -234,17 +270,7 @@ const Budget = () => {
       }
     : {};
 
-  const headerNames = {
-    name: "Name",
-    amount: "Amount",
-    description: "Description",
-    startDate: "Start Date",
-    endDate: "End Date",
-    remainingAmount: "Remaining",
-  };
-
-  // Calculate fixed table height: header (40px) + 10 rows (43.5px each)
-  const tableHeight = 40 + 10 * 43.5; // ~475px
+  const tableHeight = 30 + 10 * 45; // headerHeight: 30, rowHeight: 45
 
   const CustomToolbar = () => (
     <GridToolbarContainer sx={{ display: "flex", gap: 1, p: 1 }}>
@@ -254,14 +280,13 @@ const Budget = () => {
             backgroundColor: "#1b1b1b",
             color: "#ffffff",
             borderRadius: "8px",
+            fontSize: "0.75rem",
           },
-          "& .MuiInputBase-input::placeholder": {
-            color: "#666666",
-          },
+          "& .MuiInputBase-input::placeholder": { color: "#666666" },
         }}
       />
       <IconButton sx={{ color: "#00dac6" }}>
-        <FilterListIcon />
+        <FilterListIcon fontSize="small" />
       </IconButton>
     </GridToolbarContainer>
   );
@@ -272,12 +297,12 @@ const Budget = () => {
       <Box
         sx={{
           bgcolor: "#0b0b0b",
-          width: "calc(100vw - 370px)",
+          width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
           borderRadius: "8px",
           border: "1px solid #000",
           p: 2,
-          mr: "20px",
+          mr: isSmallScreen ? 0 : "20px",
           display: "flex",
           flexDirection: "column",
         }}
@@ -285,6 +310,7 @@ const Budget = () => {
         <Box
           sx={{
             display: "flex",
+            flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
             mb: 1,
@@ -292,31 +318,48 @@ const Budget = () => {
         >
           <Typography
             variant="h3"
-            sx={{ color: "#ffffff", fontWeight: "bold" }}
+            sx={{
+              color: "#ffffff",
+              fontWeight: "bold",
+              fontSize: "1.25rem",
+            }}
           >
             Budgets
           </Typography>
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <Button
-              variant="contained"
+          {isSmallScreen ? (
+            <IconButton
               onClick={handleNewBudgetClick}
-              sx={{ textTransform: "none" }}
+              sx={{
+                color: "#ffffff",
+                bgcolor: "#00dac6",
+                borderRadius: "50%",
+                p: 1,
+              }}
             >
-              + New Budget
-            </Button>
-            <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
-              <FilterListIcon />
+              <AddIcon fontSize="small" />
             </IconButton>
-            <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
-              <FilterListIcon />
-            </IconButton>
-            <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
-              <MoreVertIcon />
-            </IconButton>
-          </Box>
+          ) : (
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <Button
+                variant="contained"
+                onClick={handleNewBudgetClick}
+                sx={{ textTransform: "none" }}
+              >
+                + New Budget
+              </Button>
+              <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+                <FilterListIcon fontSize="small" />
+              </IconButton>
+              <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+                <FilterListIcon fontSize="small" />
+              </IconButton>
+              <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+                <MoreVertIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
         </Box>
         <Divider sx={{ borderColor: "#28282a", my: 1 }} />
-
         <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
           {loading ? (
             <Box sx={{ height: `${tableHeight}px`, overflow: "hidden" }}>
@@ -324,7 +367,7 @@ const Budget = () => {
                 <Skeleton
                   key={index}
                   sx={{
-                    height: "43.5px",
+                    height: 45,
                     width: "100%",
                     mb: index < 9 ? "3px" : 0,
                     borderRadius: "4px",
@@ -367,8 +410,8 @@ const Budget = () => {
               onSortModelChange={setSortModel}
               rowSelectionModel={selectedRows}
               onRowSelectionModelChange={setSelectedRows}
-              rowHeight={55}
-              headerHeight={40}
+              rowHeight={isSmallScreen ? 55 : 54}
+              headerHeight={isSmallScreen ? 55 : 54}
               slots={{ toolbar: CustomToolbar }}
               slotProps={{
                 toolbar: {
@@ -376,10 +419,19 @@ const Budget = () => {
                   quickFilterProps: { debounceMs: 500 },
                 },
               }}
+              sx={{
+                "& .MuiDataGrid-cell": {
+                  fontSize: isSmallScreen ? "0.85rem" : "0.875rem",
+                  py: 0.5,
+                },
+                "& .MuiDataGrid-columnHeaders": {
+                  fontSize: "0.75rem",
+                  py: 0.5,
+                },
+              }}
             />
           )}
         </Box>
-
         <Menu
           anchorEl={menuAnchor}
           open={Boolean(menuAnchor)}
@@ -433,7 +485,6 @@ const Budget = () => {
             Delete
           </MenuItem>
         </Menu>
-
         <ToastNotification
           open={toast.open}
           message={toast.message}
@@ -445,7 +496,14 @@ const Budget = () => {
           onClose={handleCancelDelete}
           title="Deletion Confirmation"
           data={modalData}
-          headerNames={headerNames}
+          headerNames={{
+            name: "Name",
+            amount: "Amount",
+            description: "Description",
+            startDate: "Start Date",
+            endDate: "End Date",
+            remainingAmount: "Remaining",
+          }}
           onApprove={handleConfirmDelete}
           onDecline={handleCancelDelete}
           approveText="Yes, Delete"

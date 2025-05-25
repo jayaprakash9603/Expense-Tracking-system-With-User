@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getExpensesSummaryAction } from "../../Redux/Expenses/expense.action";
-import { Skeleton } from "@mui/material";
+import { Skeleton, useMediaQuery, useTheme } from "@mui/material";
 
 const shimmerKeyframes = {
   "@keyframes shimmer": {
@@ -15,6 +15,8 @@ const RecentExpenses = () => {
   const { summary, loading } = useSelector((state) => state.expenses || {});
   const lastFiveExpenses = summary?.lastFiveExpenses || [];
   const [hoveredId, setHoveredId] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     dispatch(getExpensesSummaryAction());
@@ -52,13 +54,14 @@ const RecentExpenses = () => {
           flexDirection: "column",
           justifyContent: "flex-start",
           alignItems: "flex-start",
-          width: "800px",
+          width: isMobile ? "90vw" : "800px",
           height: "300px",
           backgroundColor: "rgb(27, 27, 27)",
           borderRadius: "8px",
           border: "1px solid rgb(56, 56, 56)",
           padding: "16px",
           boxSizing: "border-box",
+          // overflowX: "auto",
         }}
       >
         <div style={{ width: "100%", marginBottom: "12px" }}>
@@ -75,7 +78,9 @@ const RecentExpenses = () => {
         </div>
 
         {loading
-          ? Array.from({ length: 5 }).map((_, i) => (
+          ? Array.from({
+              length: isMobile ? 3 : 5,
+            }).map((_, i) => (
               <div
                 key={i}
                 style={{
@@ -89,7 +94,7 @@ const RecentExpenses = () => {
               >
                 <Skeleton
                   variant="text"
-                  width="25%"
+                  width={isMobile ? "40%" : "25%"}
                   height={20}
                   sx={{
                     ...shimmerKeyframes,
@@ -101,9 +106,25 @@ const RecentExpenses = () => {
                     marginRight: "10px",
                   }}
                 />
+                {!isMobile && (
+                  <Skeleton
+                    variant="text"
+                    width="15%"
+                    height={20}
+                    sx={{
+                      ...shimmerKeyframes,
+                      bgcolor: "#2c2c2c",
+                      backgroundImage:
+                        "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
+                      backgroundSize: "1000px 100%",
+                      animation: "shimmer 2s infinite linear",
+                      marginRight: "10px",
+                    }}
+                  />
+                )}
                 <Skeleton
                   variant="text"
-                  width="15%"
+                  width={isMobile ? "30%" : "15%"}
                   height={20}
                   sx={{
                     ...shimmerKeyframes,
@@ -115,37 +136,25 @@ const RecentExpenses = () => {
                     marginRight: "10px",
                   }}
                 />
+                {!isMobile && (
+                  <Skeleton
+                    variant="text"
+                    width="20%"
+                    height={20}
+                    sx={{
+                      ...shimmerKeyframes,
+                      bgcolor: "#2c2c2c",
+                      backgroundImage:
+                        "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
+                      backgroundSize: "1000px 100%",
+                      animation: "shimmer 2s infinite linear",
+                      marginRight: "10px",
+                    }}
+                  />
+                )}
                 <Skeleton
                   variant="text"
-                  width="15%"
-                  height={20}
-                  sx={{
-                    ...shimmerKeyframes,
-                    bgcolor: "#2c2c2c",
-                    backgroundImage:
-                      "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
-                    backgroundSize: "1000px 100%",
-                    animation: "shimmer 2s infinite linear",
-                    marginRight: "10px",
-                  }}
-                />
-                <Skeleton
-                  variant="text"
-                  width="20%"
-                  height={20}
-                  sx={{
-                    ...shimmerKeyframes,
-                    bgcolor: "#2c2c2c",
-                    backgroundImage:
-                      "linear-gradient(90deg, #2c2c2c 0%, #3a3a3a 50%, #2c2c2c 100%)",
-                    backgroundSize: "1000px 100%",
-                    animation: "shimmer 2s infinite linear",
-                    marginRight: "10px",
-                  }}
-                />
-                <Skeleton
-                  variant="text"
-                  width="25%"
+                  width={isMobile ? "30%" : "25%"}
                   height={20}
                   sx={{
                     ...shimmerKeyframes,
@@ -181,32 +190,39 @@ const RecentExpenses = () => {
               >
                 <div
                   style={{
-                    width: "25%",
+                    width: isMobile ? "40%" : "25%",
                     paddingLeft: "10px",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     boxSizing: "border-box",
                   }}
-                  title={expense.expenseName} // Show full name on hover
+                  title={expense.expenseName}
                 >
                   {expense.expenseName}
                 </div>
+                {!isMobile && (
+                  <div
+                    style={{
+                      width: "15%",
+                      color: expense.type === "loss" ? "red" : "limegreen",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    {mapExpenseType(expense.type)}
+                  </div>
+                )}
                 <div
                   style={{
-                    width: "15%",
-                    color: expense.type === "loss" ? "red" : "limegreen",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    boxSizing: "border-box",
-                  }}
-                >
-                  {mapExpenseType(expense.type)}
-                </div>
-                <div
-                  style={{
-                    width: "15%",
+                    width: isMobile ? "30%" : "15%",
+                    color: isMobile
+                      ? expense.type === "loss"
+                        ? "red"
+                        : "limegreen"
+                      : "inherit",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -215,20 +231,22 @@ const RecentExpenses = () => {
                 >
                   {expense.amount}
                 </div>
+                {!isMobile && (
+                  <div
+                    style={{
+                      width: "20%",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    {mapPaymentMethod(expense.paymentMethod)}
+                  </div>
+                )}
                 <div
                   style={{
-                    width: "20%",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    boxSizing: "border-box",
-                  }}
-                >
-                  {mapPaymentMethod(expense.paymentMethod)}
-                </div>
-                <div
-                  style={{
-                    width: "25%",
+                    width: isMobile ? "30%" : "25%",
                     color: "gray",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
