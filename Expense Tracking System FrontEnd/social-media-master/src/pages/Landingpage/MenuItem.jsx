@@ -10,7 +10,7 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
   const handleClick = () => {
     if (onClick) {
       onClick(); // Custom action (e.g., logout)
-    } else if (path === "/expenses") {
+    } else if (path === "/cashflow") {
       navigate(path, { state: { fromMenu: true } });
     } else {
       navigate(path);

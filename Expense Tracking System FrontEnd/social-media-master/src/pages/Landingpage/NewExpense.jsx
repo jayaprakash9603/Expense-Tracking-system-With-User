@@ -12,6 +12,7 @@ import {
   getPaginationRowModel,
 } from "@tanstack/react-table";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
+import { useNavigate } from "react-router-dom";
 
 const fieldStyles =
   "px-3 py-2 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[350px] max-w-[250px]";
@@ -22,6 +23,7 @@ const firstFormRow =
 const inputWrapper = { width: "150px" };
 
 const NewExpense = ({ onClose, onSuccess }) => {
+  const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
   const { topExpenses, loading: loading } = useSelector(
     (state) => state.expenses || {}
@@ -464,7 +466,13 @@ const NewExpense = ({ onClose, onSuccess }) => {
       <div className="w-full flex justify-between items-center mb-1">
         <p className="text-white font-extrabold text-4xl">New Expense</p>
         <button
-          onClick={onClose}
+          onClick={() => {
+            if (onClose) {
+              onClose();
+            } else {
+              navigate(-1);
+            }
+          }}
           className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
           style={{ color: "#00dac6" }}
         >

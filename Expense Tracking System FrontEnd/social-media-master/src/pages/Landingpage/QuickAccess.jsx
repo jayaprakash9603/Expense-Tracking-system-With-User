@@ -95,7 +95,7 @@ const QuickAccess = () => {
         />
       </div>
       <div style={quickAccessBoxContainer}>
-        <div style={boxStyle} onClick={() => handleClick("/expenses")}>
+        <div style={boxStyle} onClick={() => handleClick("/expenses/create")}>
           <div style={iconContainerStyle("#f11f99")}>
             <img
               src="https://cdn-icons-png.flaticon.com/128/5501/5501384.png"

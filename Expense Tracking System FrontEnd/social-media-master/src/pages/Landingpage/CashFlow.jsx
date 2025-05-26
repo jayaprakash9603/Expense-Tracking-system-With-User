@@ -21,6 +21,8 @@ import { createPortal } from "react-dom";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import recentPng from "../../assests/recent.png";
+import CalendarViewMonthIcon from "@mui/icons-material/CalendarViewMonth";
+import { useNavigate } from "react-router-dom";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -128,6 +130,7 @@ const Cashflow = () => {
   const dispatch = useDispatch();
   const { cashflowExpenses, loading } = useSelector((state) => state.expenses);
   const filterBtnRef = useRef(null);
+  const navigate = useNavigate();
 
   // Fetch data from API with correct flowType ("outflow" or "inflow")
   useEffect(() => {
@@ -622,6 +625,13 @@ const Cashflow = () => {
           onFilterClick={() => setPopoverOpen((v) => !v)}
           filterRef={filterBtnRef}
         />
+        <IconButton
+          sx={{ color: "#00dac6", ml: 1 }}
+          onClick={() => navigate("/calendar-view")}
+          aria-label="Calendar View"
+        >
+          <CalendarViewMonthIcon />
+        </IconButton>
       </div>
       {/* Sort Popover */}
       {popoverOpen &&
