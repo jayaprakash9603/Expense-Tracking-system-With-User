@@ -124,7 +124,7 @@ const EditExpense = ({}) => {
     }));
 
     console.log("Fetching budgets for expenseId:", id, "date:", value);
-    dispatch(getListOfBudgetsByExpenseId({ expenseId: id, date: value }));
+    dispatch(getListOfBudgetsByExpenseId({ id, date: value }));
   };
 
   const handleSubmit = (e) => {
@@ -163,7 +163,7 @@ const EditExpense = ({}) => {
       .then(() => {
         setToastMessage("Expense updated successfully!");
         setOpenToast(true);
-        navigate("/", {
+        navigate(-1, {
           state: { successMessage: "Expense updated successfully!" },
         });
       })
@@ -176,6 +176,7 @@ const EditExpense = ({}) => {
 
   const handleLinkBudgets = () => {
     const fetchDate = expense?.date || today;
+
     setShowTable(true);
   };
 
@@ -357,7 +358,7 @@ const EditExpense = ({}) => {
   };
 
   const handleOnClose = () => {
-    navigate("/");
+    navigate(-1);
   };
 
   return (

@@ -17,7 +17,7 @@ import jakarta.mail.MessagingException;
 public interface ExpenseService {
     
     Expense addExpense(Expense expense, User user) throws Exception;
-
+//    List<Expense> addMultipleExpenses(User user, List<Expense> expenses) throws Exception;
 
 
     Expense getExpenseById(Integer id,User user);
@@ -32,8 +32,9 @@ public interface ExpenseService {
     
     List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount,User user);
 
-    void updateExpense(Integer id, Expense expense);
-    void updateMultipleExpenses(User user,List<Expense> expenses);
+
+    void updateExpense(Integer id, Expense expense,User user)  throws  Exception;
+    void updateMultipleExpenses(User user,List<Expense> expenses) throws Exception;
     MonthlySummary getMonthlySummary(Integer year, Integer month,User user);
     Map<String, MonthlySummary> getYearlySummary(Integer year,User user);
     List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth, Integer endYear, Integer endMonth,User user);

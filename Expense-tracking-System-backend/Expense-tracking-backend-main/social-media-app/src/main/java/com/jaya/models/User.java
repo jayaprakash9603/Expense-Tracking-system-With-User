@@ -45,4 +45,11 @@ public class User  {
 	@OneToMany(mappedBy = "user", cascade =CascadeType.ALL)
 	private List<AuditExpense>audits=new ArrayList<>();
 
+	@OneToMany
+	private List<PaymentMethod> paymentMethod = new ArrayList<>();
+
+
+	@OneToMany
+	private List<Category>categoryies=new ArrayList<>();
+
 }

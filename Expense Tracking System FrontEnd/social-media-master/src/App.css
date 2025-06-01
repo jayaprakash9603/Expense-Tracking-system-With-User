@@ -36,3 +36,20 @@
     transform: rotate(360deg);
   }
 }
+
+/* Change calendar icon color in date input to #00dac6 */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(62%) sepia(98%) saturate(469%) hue-rotate(124deg)
+    brightness(98%) contrast(101%);
+}
+
+/* For Firefox */
+input[type="date"]::-moz-calendar-picker-indicator {
+  filter: invert(62%) sepia(98%) saturate(469%) hue-rotate(124deg)
+    brightness(98%) contrast(101%);
+}
+
+/* For Edge/IE (if supported) */
+input[type="date"]::-ms-input-placeholder {
+  color: #00dac6;
+}

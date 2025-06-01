@@ -197,29 +197,29 @@ const RecentExpenses = () => {
                     overflow: "hidden",
                     boxSizing: "border-box",
                   }}
-                  title={expense.expenseName}
+                  title={expense?.expenseName || "N/A"}
                 >
-                  {expense.expenseName}
+                  {expense?.expenseName || "N/A"}
                 </div>
                 {!isMobile && (
                   <div
                     style={{
                       width: "15%",
-                      color: expense.type === "loss" ? "red" : "limegreen",
+                      color: expense?.type === "loss" ? "red" : "limegreen",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       boxSizing: "border-box",
                     }}
                   >
-                    {mapExpenseType(expense.type)}
+                    {mapExpenseType(expense?.type || "Unknown")}
                   </div>
                 )}
                 <div
                   style={{
                     width: isMobile ? "30%" : "15%",
                     color: isMobile
-                      ? expense.type === "loss"
+                      ? expense?.type === "loss"
                         ? "red"
                         : "limegreen"
                       : "inherit",
@@ -229,7 +229,7 @@ const RecentExpenses = () => {
                     boxSizing: "border-box",
                   }}
                 >
-                  {expense.amount}
+                  {expense?.amount || 0}
                 </div>
                 {!isMobile && (
                   <div
@@ -241,7 +241,7 @@ const RecentExpenses = () => {
                       boxSizing: "border-box",
                     }}
                   >
-                    {mapPaymentMethod(expense.paymentMethod)}
+                    {mapPaymentMethod(expense?.paymentMethod || "Unknown")}
                   </div>
                 )}
                 <div
@@ -254,7 +254,7 @@ const RecentExpenses = () => {
                     boxSizing: "border-box",
                   }}
                 >
-                  {date}
+                  {date || "Unknown Date"}
                 </div>
               </div>
             ))}

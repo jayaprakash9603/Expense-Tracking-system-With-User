@@ -33,7 +33,7 @@ const ExpensesContent = () => {
 
   return (
     <div className="bg-[#1b1b1b]">
-      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
 
       <Snackbar
         open={open}

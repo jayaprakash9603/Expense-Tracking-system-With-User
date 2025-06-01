@@ -16,11 +16,14 @@ import {
 } from "../../Redux/Expenses/expense.action";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../../components/Loaders/Loader";
+import Modal from "../../pages/Landingpage/Modal"; // Updated import path for Modal component
 
 const FileUploadModal = ({ isOpen, onClose }) => {
   const [files, setFiles] = useState([]);
   const [progress, setProgress] = useState({});
   const [loading, setLoading] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
   const uploadState = useSelector((state) => state.fileUpload);
   const dispatch = useDispatch();
 
@@ -39,6 +42,15 @@ const FileUploadModal = ({ isOpen, onClose }) => {
 
   const handleFiles = (newFiles) => {
     const file = newFiles[0];
+    const allowedExtensions = ["xls", "xlsx"];
+    const fileExtension = file.name.split(".").pop().toLowerCase();
+
+    if (!allowedExtensions.includes(fileExtension)) {
+      setPopupMessage("You can only upload Excel files.");
+      setPopupOpen(true);
+      return;
+    }
+
     setFiles([file]);
 
     const progressBar = {};
@@ -148,13 +160,14 @@ const FileUploadModal = ({ isOpen, onClose }) => {
               {files.map((file) => (
                 <div
                   key={file.name}
-                  className="flex items-center justify-between p-3 bg-[#29282b] border border-[#383838] rounded-md mb-2"
+                  className="flex items-center justify-between p-3 bg-[#29282b] border border-[#383838] rounded-md mb-2 mx-auto"
+                  style={{ maxWidth: "calc(100% - 60px)" }} // Adjusted width and centered the div
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-[#14b8a6] text-xl">
                       {getFileIcon(file)}
                     </span>
-                    <span className="truncate max-w-[180px] sm:max-w-[120px]">
+                    <span className="truncate max-w-full sm:max-w-full">
                       {file.name}
                     </span>
                   </div>
@@ -184,6 +197,16 @@ const FileUploadModal = ({ isOpen, onClose }) => {
               Upload
             </Button>
           </div>
+
+          {/* Popup Modal for Unsupported Files */}
+          <Modal
+            isOpen={popupOpen}
+            onClose={() => setPopupOpen(false)}
+            title="Invalid File Type"
+            confirmationText={popupMessage}
+            onApprove={() => setPopupOpen(false)}
+            approveText="OK"
+          />
         </div>
       </div>
     )

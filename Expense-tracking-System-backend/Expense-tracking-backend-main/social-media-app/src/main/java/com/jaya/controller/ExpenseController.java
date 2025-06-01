@@ -302,36 +302,36 @@ public class ExpenseController {
 
 
     @PutMapping("/edit-expense/{id}")
-    public ResponseEntity<String> updateExpense(@PathVariable Integer id, @RequestBody Expense expense,@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<String> updateExpense(@PathVariable Integer id, @RequestBody Expense expense, @RequestHeader("Authorization") String jwt) {
         try {
-            User reqUser=userService.findUserByJwt(jwt);
-            Expense existingExpense = expenseService.getExpenseById(id,reqUser);
+            User reqUser = userService.findUserByJwt(jwt); // Retrieve the user
+            Expense existingExpense = expenseService.getExpenseById(id, reqUser);
 
             if (existingExpense != null) {
                 String beforeUpdateDetails = String.format(
-                    "Before Update - Name: %s, Amount: %.2f, Type: %s, Payment Method: %s",
-                    existingExpense.getExpense().getExpenseName(), existingExpense.getExpense().getAmount(),
-                    existingExpense.getExpense().getType(), existingExpense.getExpense().getPaymentMethod()
+                        "Before Update - Name: %s, Amount: %.2f, Type: %s, Payment Method: %s",
+                        existingExpense.getExpense().getExpenseName(), existingExpense.getExpense().getAmount(),
+                        existingExpense.getExpense().getType(), existingExpense.getExpense().getPaymentMethod()
                 );
 
-                expenseService.updateExpense(id, expense);
+                // Pass the User object as the third argument
+                expenseService.updateExpense(id, expense, reqUser);
 
                 String afterUpdateDetails = String.format(
-                    "After Update - Name: %s, Amount: %.2f, Type: %s, Payment Method: %s",
-                    expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
-                    expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
+                        "After Update - Name: %s, Amount: %.2f, Type: %s, Payment Method: %s",
+                        expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
+                        expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
                 );
 
                 String logDetails = String.format(
-                    "Expense with ID %d updated. %s | %s", 
-                    id, beforeUpdateDetails, afterUpdateDetails
+                        "Expense with ID %d updated. %s | %s",
+                        id, beforeUpdateDetails, afterUpdateDetails
                 );
 
-                auditExpenseService.logAudit(reqUser,id, "update", logDetails);
+                auditExpenseService.logAudit(reqUser, id, "update", logDetails);
                 return ResponseEntity.ok("Expense updated successfully");
             } else {
-                auditExpenseService.logAudit(reqUser,id, "update", "Attempted to update non-existent expense with ID " + id);
-
+                auditExpenseService.logAudit(reqUser, id, "update", "Attempted to update non-existent expense with ID " + id);
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Expense Not found");
 
@@ -340,12 +340,15 @@ public class ExpenseController {
         }
     }
 
-
     @PutMapping("/edit-multiple")
-    public ResponseEntity<String> updateMultipleExpenses(@RequestBody List<Expense> expenses,@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        expenseService.updateMultipleExpenses(reqUser,expenses);
-        return ResponseEntity.ok("Expenses updated successfully.");
+    public ResponseEntity<String> updateMultipleExpenses(@RequestBody List<Expense> expenses, @RequestHeader("Authorization") String jwt) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            expenseService.updateMultipleExpenses(reqUser, expenses);
+            return ResponseEntity.ok("Expenses updated successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update expenses: " + e.getMessage());
+        }
     }
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteExpense(@PathVariable Integer id,@RequestHeader("Authorization") String jwt) {

@@ -11,6 +11,8 @@ import java.util.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.ToString;
+
 @Entity
 @Table(name = "expenses")
 @Data
@@ -33,9 +35,13 @@ public class Expense {
 
     private Set<Integer> budgetIds=new HashSet<>();
 
+   private Integer categoryId=0;
+
+
     // One-to-one relationship, mappedBy indicates that this side doesn't own the relationship
     @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL)
     @JsonManagedReference
+    @ToString.Exclude
     private ExpenseDetails expense;
 
     @JsonIgnore

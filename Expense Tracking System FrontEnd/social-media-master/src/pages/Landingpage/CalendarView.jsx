@@ -7,6 +7,7 @@ import {
   Box,
   useTheme,
   IconButton,
+  useMediaQuery,
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -23,6 +24,41 @@ function getDaysArray(year, month) {
   return Array.from({ length: numDays }, (_, i) => i + 1);
 }
 
+// Helper to format numbers as K, M, B, etc.
+function formatAmount(num) {
+  if (num === 0) return "0";
+  const absNum = Math.abs(num);
+  if (absNum >= 1e12)
+    return (
+      (num / 1e12).toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+      }) + "T"
+    ); // Trillion
+  if (absNum >= 1e9)
+    return (
+      (num / 1e9).toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+      }) + "B"
+    ); // Billion
+  if (absNum >= 1e6)
+    return (
+      (num / 1e6).toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+      }) + "M"
+    ); // Million
+  if (absNum >= 1e3)
+    return (
+      (num / 1e3).toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+      }) + "K"
+    ); // Thousand
+  return num.toLocaleString();
+}
+
 const CalendarView = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -30,6 +66,7 @@ const CalendarView = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [monthOffset, setMonthOffset] = useState(0);
   const navigate = useNavigate();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   // Fetch cashflow expenses for the selected month
   React.useEffect(() => {
@@ -100,31 +137,64 @@ const CalendarView = () => {
     <div
       className="bg-[#0b0b0b] p-4 rounded-lg mt-[50px]"
       style={{
-        width: "calc(100vw - 370px)",
-        height: "calc(100vh - 100px)",
-        marginRight: "20px",
+        width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
+        height: isSmallScreen ? "auto" : "calc(100vh - 100px)",
+        marginRight: isSmallScreen ? "0" : "20px",
         borderRadius: "8px",
         boxSizing: "border-box",
         position: "relative",
         display: "flex",
         flexDirection: "column",
+        minHeight: isSmallScreen ? "auto" : "800px",
+        maxHeight: isSmallScreen ? "none" : "calc(100vh - 100px)",
       }}
     >
-      <IconButton
-        onClick={() => navigate("/cashflow", { replace: true })}
-        sx={{
-          position: "absolute",
-          top: 16,
-          left: 16,
-          color: "#00dac6",
-          zIndex: 2,
-        }}
-        aria-label="Back"
-      >
-        <ArrowBackIcon />
-      </IconButton>
+      {/* Back to expenses button */}
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+        <Button
+          onClick={() => navigate("/expenses", { replace: true })}
+          sx={{
+            background: "#00dac6",
+            color: "#111", // black text
+            textTransform: "none",
+            fontWeight: 700,
+            fontSize: isSmallScreen ? 14 : 16,
+            pl: 2,
+            pr: 2,
+            minWidth: 0,
+            justifyContent: "flex-start",
+            alignItems: "center",
+            gap: 1,
+            ml: 0,
+            borderRadius: 2,
+            boxShadow: 2,
+            height: isSmallScreen ? 36 : 40,
+            "&:hover": {
+              background: "#00dac6",
+              color: "#111",
+              opacity: 0.9,
+            },
+          }}
+          startIcon={
+            <img
+              src={require("../../assests/less-than-symbol.png")}
+              alt="Back"
+              style={{
+                width: isSmallScreen ? 12 : 14,
+                height: isSmallScreen ? 12 : 14,
+                marginRight: 2,
+                verticalAlign: "middle",
+                display: "inline-block",
+              }}
+            />
+          }
+        >
+          Back
+        </Button>
+      </Box>
+      {/* Header for Day/Calendar View */}
       <Typography
-        variant="h5"
+        variant={isSmallScreen ? "h6" : "h5"}
         sx={{
           mb: 2,
           fontWeight: 700,
@@ -141,91 +211,258 @@ const CalendarView = () => {
           alignItems: "center",
           mb: 2,
           justifyContent: "center",
-          gap: 2,
+          gap: isSmallScreen ? 1 : 2,
           position: "relative",
+          mt: isSmallScreen ? 0 : -4,
+          flexDirection: isSmallScreen ? "column" : "row",
         }}
       >
-        {/* Total Gains card on the left */}
+        {/* Total Losses card on the left */}
         <Box
           sx={{
-            background: "#23243a",
-            borderRadius: 2,
-            px: 3,
+            background: "#cf667a",
+            borderRadius: "40px",
             py: 1.5,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             boxShadow: 2,
-            minWidth: 120,
-            mr: 4,
+            minWidth: isSmallScreen ? "100%" : 190,
+            maxWidth: isSmallScreen ? "100%" : 190,
+            mr: isSmallScreen ? 0 : 4,
           }}
         >
-          <Typography variant="subtitle2" color="#06d6a0" fontWeight={700}>
-            Total Gains
-          </Typography>
-          <Typography variant="h6" color="#fff" fontWeight={700}>
-            ₹{totalGains.toFixed(2)}
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              mb: 0.5,
+              flexDirection: "row",
+              justifyContent: "space-around",
+              height: 40, // Set a fixed height for the row
+              width: "100%",
+            }}
+          >
+            {/* Fixed-width arrow container */}
+            <Box
+              sx={{
+                width: 48,
+                minWidth: 48,
+                maxWidth: 48,
+                height: 48,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#e2a4af",
+                borderRadius: "50%",
+                mr: 1,
+                ml: 1.5, // Move arrow a little right
+              }}
+            >
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 32 32"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ display: "block" }}
+              >
+                <circle cx="16" cy="16" r="15" fill="#e2a4af" />
+                <path
+                  d="M16 8v16M16 24l7-7M16 24l-7-7"
+                  stroke="#fff"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Box>
+            {/* Text content grows to fill */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                height: "100%",
+                flex: 1,
+                ml: -0.5, // Move text a little left
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: "#e6a2af",
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  textAlign: "justify",
+                }}
+              >
+                Spending
+              </Typography>
+              <Typography
+                variant="h6"
+                color="#fff"
+                fontWeight={700}
+                sx={{
+                  lineHeight: 1.2,
+                  fontSize: "1.25rem",
+                  textAlign: "left",
+                  mt: 0.5,
+                }}
+              >
+                ₹{formatAmount(totalLosses)}
+              </Typography>
+            </Box>
+          </Box>
         </Box>
         {/* Month selection controls in the center */}
-        <IconButton onClick={handlePrevMonth} sx={{ color: "#00dac6" }}>
-          <ArrowBackIcon />
-        </IconButton>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            views={["year", "month"]}
-            value={selectedDate}
-            onChange={handleDatePicker}
-            sx={{
-              background: "#23243a",
-              borderRadius: 2,
-              color: "#fff",
-              ".MuiInputBase-input": { color: "#fff" },
-              ".MuiSvgIcon-root": { color: "#00dac6" },
-              width: 180,
-            }}
-            slotProps={{
-              textField: {
-                size: "small",
-                variant: "outlined",
-                sx: { color: "#fff" },
-              },
-            }}
-          />
-        </LocalizationProvider>
-        <IconButton onClick={handleNextMonth} sx={{ color: "#00dac6" }}>
-          <ArrowBackIcon style={{ transform: "scaleX(-1)" }} />
-        </IconButton>
-        {/* Total Losses card on the right */}
         <Box
           sx={{
-            background: "#23243a",
-            borderRadius: 2,
-            px: 3,
+            display: "flex",
+            flexDirection: isSmallScreen ? "column" : "row",
+            alignItems: "center",
+            gap: isSmallScreen ? 1 : 2,
+          }}
+        >
+          <IconButton onClick={handlePrevMonth} sx={{ color: "#00dac6" }}>
+            <ArrowBackIcon />
+          </IconButton>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              views={["year", "month"]}
+              value={selectedDate}
+              onChange={handleDatePicker}
+              sx={{
+                background: "#23243a",
+                borderRadius: 2,
+                color: "#fff",
+                ".MuiInputBase-input": { color: "#fff" },
+                ".MuiSvgIcon-root": { color: "#00dac6" },
+                width: isSmallScreen ? "100%" : 140,
+              }}
+              slotProps={{
+                textField: {
+                  size: "small",
+                  variant: "outlined",
+                  sx: { color: "#fff" },
+                },
+              }}
+            />
+          </LocalizationProvider>
+          <IconButton onClick={handleNextMonth} sx={{ color: "#00dac6" }}>
+            <ArrowBackIcon style={{ transform: "scaleX(-1)" }} />
+          </IconButton>
+        </Box>
+        {/* Total Gains card on the right */}
+        <Box
+          sx={{
+            background: "#437746",
+            borderRadius: "40px",
             py: 1.5,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             boxShadow: 2,
-            minWidth: 120,
-            ml: 4,
+            minWidth: isSmallScreen ? "100%" : 190,
+            maxWidth: isSmallScreen ? "100%" : 190,
+            ml: isSmallScreen ? 0 : 4,
           }}
         >
-          <Typography variant="subtitle2" color="#ff4d4f" fontWeight={700}>
-            Total Losses
-          </Typography>
-          <Typography variant="h6" color="#fff" fontWeight={700}>
-            ₹{totalLosses.toFixed(2)}
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              mb: 0.5,
+              flexDirection: "row",
+              justifyContent: "space-around",
+              height: 40, // Set a fixed height for the row
+              width: "100%",
+            }}
+          >
+            {/* Fixed-width arrow container */}
+            <Box
+              sx={{
+                width: 48,
+                minWidth: 48,
+                maxWidth: 48,
+                height: 48,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#84ba86",
+                borderRadius: "50%",
+                mr: 1,
+                ml: 1.5, // Move arrow a little right
+              }}
+            >
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 32 32"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ display: "block" }}
+              >
+                <circle cx="16" cy="16" r="15" fill="#84ba86" />
+                <path
+                  d="M16 24V8M16 8L9 15M16 8L23 15"
+                  stroke="#fff"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Box>
+            {/* Text content grows to fill */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                height: "100%",
+                flex: 1,
+                ml: -0.5, // Move text a little left
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: "#83b985",
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  textAlign: "justify",
+                }}
+              >
+                Income
+              </Typography>
+              <Typography
+                variant="h6"
+                color="#fff"
+                fontWeight={700}
+                sx={{
+                  lineHeight: 1.2,
+                  fontSize: "1.25rem",
+                  textAlign: "left",
+                  mt: 0.5,
+                }}
+              >
+                ₹{formatAmount(totalGains)}
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </Box>
       <Box
         sx={{
           flex: 1,
-          overflow: "auto",
+          overflow: "hidden", // Prevent pagination by hiding overflow
           background: "#1b1b1b",
           borderRadius: 2,
           p: 2,
+          minHeight: isSmallScreen ? "auto" : "0px",
+          height: isSmallScreen ? "auto" : "100%",
         }}
       >
         <Grid
@@ -234,7 +471,7 @@ const CalendarView = () => {
           columns={7}
           sx={{
             mb: 2,
-            background: "#bdbdbd", // Gray background for weekday header
+            background: "#1b1b1b", // Changed from #bdbdbd to #1b1b1b for weekname header background
             borderRadius: 2,
             borderBottom: 0,
             position: "relative",
@@ -249,7 +486,7 @@ const CalendarView = () => {
               background: (() => {
                 let total = totalGains + Math.abs(totalLosses);
                 if (total === 0)
-                  return "linear-gradient(90deg, #bdbdbd 100%, #bdbdbd 100%)";
+                  return "linear-gradient(90deg, #1b1b1b 100%, #1b1b1b 100%)";
                 let gainPercent = (totalGains / total) * 100;
                 let lossPercent = 100 - gainPercent;
                 return `linear-gradient(90deg, #06d6a0 ${gainPercent}%, #ff4d4f ${gainPercent}%, #ff4d4f 100%)`;
@@ -303,8 +540,8 @@ const CalendarView = () => {
                     background: "#0b0b0b",
                     cursor: "pointer",
                     p: 1,
-                    minHeight: 60,
-                    height: 80,
+                    minHeight: isSmallScreen ? 50 : 60,
+                    height: isSmallScreen ? 70 : 80,
                     textAlign: "center",
                     transition: "background 0.2s",
                     display: "flex",
@@ -335,7 +572,7 @@ const CalendarView = () => {
                           variant="caption"
                           sx={{
                             color: "#fff",
-                            background: "#ff4d4f",
+                            background: "rgba(255, 77, 79, 0.4)", // Lower transparency for losses
                             display: "inline-block",
                             fontWeight: 700,
                             borderRadius: 1,
@@ -352,7 +589,7 @@ const CalendarView = () => {
                           variant="caption"
                           sx={{
                             color: "#fff",
-                            background: "#06d6a0",
+                            background: "rgba(6, 214, 160, 0.4)", // Lower transparency for gains
                             display: "inline-block",
                             fontWeight: 700,
                             borderRadius: 1,

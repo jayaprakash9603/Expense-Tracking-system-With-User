@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.ToString;
 
 @Entity
 @Table(name = "expense_details")
@@ -32,6 +33,7 @@ public class ExpenseDetails {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "expense_id")
     @JsonBackReference
+    @ToString.Exclude
     private Expense expense;
 
 

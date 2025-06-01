@@ -2,8 +2,7 @@ package com.jaya.service;
 
 import com.jaya.exceptions.UserException;
 import com.jaya.models.*;
-import com.jaya.repository.BudgetRepository;
-import com.jaya.repository.UserRepository;
+import com.jaya.repository.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -27,8 +26,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
-import com.jaya.repository.ExpenseReportRepository;
-import com.jaya.repository.ExpenseRepository;
 
 import ch.qos.logback.classic.Logger;
 import jakarta.mail.MessagingException;
@@ -68,7 +65,12 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Autowired
     private BudgetRepository budgetRepository;
-    
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private CategoryService categoryService;
     @Autowired
     private AuditExpenseService auditExpenseService;
     @Autowired
@@ -76,7 +78,6 @@ public class ExpenseServiceImpl implements ExpenseService {
         this.expenseRepository = expenseRepository;
         this.expenseReportRepository = expenseReportRepository;
     }
-
 
 
     @Override
@@ -134,20 +135,47 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         expense.setBudgetIds(validBudgetIds);
 
+        try {
+            Category category = categoryService.getById(expense.getCategoryId(), user);
+            if (category != null) {
+                expense.setCategoryId(category.getId());
+            }
+        } catch (Exception e) {
+            try {
+                System.out.println("Entered into catchblock" +expense.getCategoryId());
+                Category category = categoryService.getByName("Others", user).get(0);
+                System.out.println("Category name"+category.getName());
+                expense.setCategoryId(category.getId());
+            } catch (Exception notFound) {
+                System.out.println("eentered into not found");
+                Category createdCategory = new Category();
+                createdCategory.setDescription("Others Description");
+                createdCategory.setName("Others");
+                Category newCategory = categoryService.create(createdCategory, user);
+                expense.setCategoryId(newCategory.getId());
+            }
+        }
+
         Expense savedExpense = expenseRepository.save(expense);
+
+        Category getCategory = categoryService.getById(savedExpense.getCategoryId(), user);
+        if (getCategory.getExpenseIds() == null) {
+            getCategory.setExpenseIds(new HashMap<>());
+        }
+        Set<Integer> expenseSet = getCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+        expenseSet.add(savedExpense.getId());
+        getCategory.getExpenseIds().put(user.getId(), expenseSet);
+        categoryRepository.save(getCategory);
 
         // Now update the valid budgets with the new expense ID
         for (Integer validBudgetId : validBudgetIds) {
-            Optional<Budget> budgetOptional = budgetRepository.findByUserIdAndId(user.getId(), validBudgetId);
-            if (budgetOptional.isPresent()) {
-                Budget budget = budgetOptional.get();
-                if (budget.getExpenseIds() == null) {
-                    budget.setExpenseIds(new HashSet<>());
-                }
-                if (!budget.getExpenseIds().contains(savedExpense.getId())) {
-                    budget.getExpenseIds().add(savedExpense.getId());
-                    budgetRepository.save(budget);
-                }
+            Budget budget = budgetRepository.findByUserIdAndId(user.getId(), validBudgetId).orElseThrow(() -> new RuntimeException("Budget not found"));
+            if (budget.getExpenseIds() == null) {
+                budget.setExpenseIds(new HashSet<>());
+            }
+            if (!budget.getExpenseIds().contains(savedExpense.getId())) {
+                budget.getExpenseIds().add(savedExpense.getId());
+                budgetRepository.save(budget);
             }
         }
 
@@ -192,13 +220,15 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
-    public void updateExpense(Integer id, Expense expense) {
-        Expense existingExpense = expenseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Expense not found with ID: " + id));
+    public void updateExpense(Integer id, Expense expense, User user) {
+        // Fetch the existing expense by ID and user
+        Expense existingExpense = expenseRepository.findByUserIdAndId(user.getId(), id);
+        if (existingExpense == null) {
+            throw new RuntimeException("Expense not found with ID: " + id);
+        }
 
-        boolean includeInBudget = expense.isIncludeInBudget();
+        // Update the expense details
         ExpenseDetails existingDetails = existingExpense.getExpense();
-
         if (existingDetails != null && expense.getExpense() != null) {
             ExpenseDetails newDetails = expense.getExpense();
             existingDetails.setAmount(newDetails.getAmount());
@@ -210,53 +240,58 @@ public class ExpenseServiceImpl implements ExpenseService {
             existingDetails.setCreditDue(newDetails.getCreditDue());
         }
 
+        // Update other fields
         existingExpense.setDate(expense.getDate());
-        existingExpense.setIncludeInBudget(includeInBudget);
+        existingExpense.setIncludeInBudget(expense.isIncludeInBudget());
 
-        if (existingExpense.getBudgetIds() == null) {
-            existingExpense.setBudgetIds(new HashSet<>());
-        }
-
+        // Update budget IDs
         Set<Integer> validBudgetIds = new HashSet<>();
         if (expense.getBudgetIds() != null) {
             for (Integer budgetId : expense.getBudgetIds()) {
-                Optional<Budget> budgetOpt = budgetRepository.findByUserIdAndId(existingExpense.getUser().getId(), budgetId);
+                Optional<Budget> budgetOpt = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
                 if (budgetOpt.isPresent()) {
                     Budget budget = budgetOpt.get();
-                    if (!existingExpense.getDate().isBefore(budget.getStartDate()) &&
-                            !existingExpense.getDate().isAfter(budget.getEndDate())) {
+                    if (!expense.getDate().isBefore(budget.getStartDate()) &&
+                            !expense.getDate().isAfter(budget.getEndDate())) {
                         validBudgetIds.add(budgetId);
                     }
                 }
             }
         }
 
-        // Remove old links
-        for (Integer oldBudgetId : existingExpense.getBudgetIds()) {
-            if (!validBudgetIds.contains(oldBudgetId)) {
-                budgetRepository.findByUserIdAndId(existingExpense.getUser().getId(), oldBudgetId)
-                        .ifPresent(b -> {
-                            b.getExpenseIds().remove(existingExpense.getId());
-                            b.setBudgetHasExpenses(!b.getExpenseIds().isEmpty());
-                            budgetRepository.save(b);
-                        });
+        // Remove old budget links
+        if (existingExpense.getBudgetIds() != null) {
+            for (Integer oldBudgetId : existingExpense.getBudgetIds()) {
+                if (!validBudgetIds.contains(oldBudgetId)) {
+                    Budget oldBudget = budgetRepository.findByUserIdAndId(user.getId(), oldBudgetId).orElse(null);
+                    if (oldBudget != null && oldBudget.getExpenseIds() != null) {
+                        oldBudget.getExpenseIds().remove(existingExpense.getId());
+                        oldBudget.setBudgetHasExpenses(!oldBudget.getExpenseIds().isEmpty());
+                        budgetRepository.save(oldBudget);
+                    }
+                }
             }
         }
 
         existingExpense.setBudgetIds(validBudgetIds);
+
+        // Save the updated expense
         Expense savedExpense = expenseRepository.save(existingExpense);
 
+        // Update new budget links
         for (Integer budgetId : validBudgetIds) {
-            Budget budget = budgetRepository.findByUserIdAndId(savedExpense.getUser().getId(), budgetId).orElse(null);
+            Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
             if (budget != null) {
                 if (budget.getExpenseIds() == null) budget.setExpenseIds(new HashSet<>());
-                if (!budget.getExpenseIds().contains(savedExpense.getId())) {
-                    budget.getExpenseIds().add(savedExpense.getId());
-                    budget.setBudgetHasExpenses(true);
-                    budgetRepository.save(budget);
-                }
+                budget.getExpenseIds().add(savedExpense.getId());
+                budget.setBudgetHasExpenses(true);
+                budgetRepository.save(budget);
             }
         }
+
+        // Log the update
+        auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Updated",
+                "Updated expense with ID: " + savedExpense.getId());
     }
 
 

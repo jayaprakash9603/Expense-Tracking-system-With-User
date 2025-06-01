@@ -158,6 +158,7 @@ export const getListOfBudgetsByExpenseId =
       return;
     }
 
+    console.log("Fetching budgets by expense ID:", id, "and date:", date);
     try {
       const { data } = await api.get(`/api/budgets/expenses`, {
         headers: {

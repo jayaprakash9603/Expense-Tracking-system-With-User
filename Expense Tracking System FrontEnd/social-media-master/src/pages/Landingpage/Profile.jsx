@@ -63,7 +63,10 @@ const Profile = () => {
         lastName: user.lastName || "",
         email: user.email || "",
         username: user.username || emailUsername,
-        gender: user.gender || "",
+        gender: user.gender
+          ? user.gender.charAt(0).toUpperCase() +
+            user.gender.slice(1).toLowerCase()
+          : "",
         bio: user.bio || "",
         website: user.website || "",
         phoneNumber: user.phoneNumber || "",

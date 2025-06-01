@@ -12,6 +12,7 @@ import {
   uploadReducer,
 } from "./Expenses/expense.reducer";
 import { budgetReducer } from "./Budget/budget.reducer";
+import categoryReducer from "./Category/categoryReducer";
 
 // Combine reducers
 const rootreducers = combineReducers({
@@ -20,6 +21,7 @@ const rootreducers = combineReducers({
   fileUpload: uploadReducer,
   savedExpenses: saveExpensesReducer,
   budgets: budgetReducer,
+  categories: categoryReducer,
 });
 
 // Compose enhancer with DevTools support

@@ -56,6 +56,9 @@ import {
   UPLOAD_FILE_FAILURE,
   UPLOAD_FILE_REQUEST,
   UPLOAD_FILE_SUCCESS,
+  GET_PARTICULAR_DATE_EXPENSES_REQUEST,
+  GET_PARTICULAR_DATE_EXPENSES_SUCCESS,
+  GET_PARTICULAR_DATE_EXPENSES_FAILURE,
 } from "./expense.actionType";
 
 const token = localStorage.getItem("jwt");
@@ -499,7 +502,7 @@ export const getExpensesByBudget =
     }
   };
 export const fetchCashflowExpenses =
-  (rangeType, offset = 0, flowType = "outflow") =>
+  (rangeType, offset = 0, flowType = "") =>
   async (dispatch) => {
     dispatch({ type: FETCH_CASHFLOW_EXPENSES_REQUEST });
     const jwt = localStorage.getItem("jwt");
@@ -516,3 +519,23 @@ export const fetchCashflowExpenses =
       });
     }
   };
+export const getExpensesByParticularDate = (date) => async (dispatch) => {
+  dispatch({ type: GET_PARTICULAR_DATE_EXPENSES_REQUEST });
+  const token = localStorage.getItem("jwt");
+  try {
+    const { data } = await axios.get(
+      `${API_BASE_URL}/api/expenses/particular-date?date=${date}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    dispatch({ type: GET_PARTICULAR_DATE_EXPENSES_SUCCESS, payload: data });
+  } catch (error) {
+    dispatch({
+      type: GET_PARTICULAR_DATE_EXPENSES_FAILURE,
+      payload: error?.response?.data?.message || error.message,
+    });
+  }
+};

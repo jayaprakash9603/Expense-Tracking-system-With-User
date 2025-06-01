@@ -10,6 +10,7 @@ import ExpensesTable from "./ExpensesTable";
 const ExpensesView = ({ onNewExpenseClick }) => {
   return (
     <>
+      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
       <Box
         sx={{
           bgcolor: "#0b0b0b",

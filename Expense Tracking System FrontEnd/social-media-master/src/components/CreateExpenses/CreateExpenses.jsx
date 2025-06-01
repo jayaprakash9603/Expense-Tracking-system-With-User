@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
 import ExpenseFormLogic from "./ExpenseFormLogic";
 import { useDispatch } from "react-redux";
 import {
@@ -12,10 +12,15 @@ import { getSuggestions } from "../Suggestions/fetchSuggestions";
 import { API_BASE_URL } from "../../config/api";
 
 function CreateExpenses() {
+  const location = useLocation();
+  // Get date from query param if present
+  const searchParams = new URLSearchParams(location.search);
+  const dateFromQuery = searchParams.get("date");
+
   const initialState = {
     expenseName: "",
     amount: "",
-    date: new Date().toISOString().split("T")[0],
+    date: dateFromQuery || new Date().toISOString().split("T")[0],
     type: "loss", // Default to loss
     paymentMethod: "cash",
     comments: "",

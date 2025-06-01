@@ -18,7 +18,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { Menu, MenuItem } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
 import ToastNotification from "./ToastNotification";
@@ -31,6 +31,7 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
   );
   const [selectedIds, setSelectedIds] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -45,7 +46,14 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
     if (!propExpenses) {
       dispatch(getExpensesAction());
     }
-  }, [dispatch, propExpenses]);
+    // Show toast if redirected from NewExpense
+    if (location.state && location.state.toastMessage) {
+      setToastMessage(location.state.toastMessage);
+      setToastOpen(true);
+      // Remove the toastMessage from history state so it doesn't show again on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [dispatch, propExpenses, location.state]);
 
   const handleToastClose = () => {
     setToastOpen(false);
