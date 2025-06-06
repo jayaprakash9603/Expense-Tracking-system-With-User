@@ -265,12 +265,23 @@ const theme = createTheme({
           },
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: "#666666",
+            borderWidth: "1px",
+            borderStyle: "solid",
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: "#00dac6",
+            borderWidth: "1px",
+            borderStyle: "solid",
           },
           "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
             borderColor: "#00dac6",
+            borderWidth: "2px",
+            borderStyle: "solid",
+          },
+          "& .Mui-error .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#f44336",
+            borderWidth: "2px",
+            borderStyle: "solid",
           },
           "& .MuiInputLabel-root": {
             color: "#666666",

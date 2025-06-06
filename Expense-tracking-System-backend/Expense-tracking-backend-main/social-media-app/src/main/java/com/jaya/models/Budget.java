@@ -7,13 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-
 
 @Entity
 @Getter
@@ -37,18 +33,17 @@ public class Budget {
     @JsonIgnore
     private User user;
 
-
-    Set<Integer> expenseIds=new HashSet<>();
+    @Column(name = "expense_ids", columnDefinition = "TEXT")
+    @Convert(converter = SetIntegerConverter.class)
+    private Set<Integer> expenseIds = new HashSet<>();
 
     private double remainingAmount;
     private boolean isBudgetHasExpenses;
 
     @Column(nullable = false)
-    private boolean includeInBudget=false;
-
+    private boolean includeInBudget = false;
 
     public void deductAmount(double expenseAmount) {
         this.amount -= expenseAmount;
     }
-
 }

@@ -26,6 +26,7 @@ import Reports from "./pages/Landingpage/Reports";
 import Cashflow from "./pages/Landingpage/CashFlow";
 import CalendarView from "./pages/Landingpage/CalendarView";
 import DayTransactionsView from "./pages/Landingpage/DayTransactionsView";
+import CategoryFlow from "./pages/Landingpage/CategoryFlow";
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -73,7 +74,7 @@ function App() {
             <Route path="create" element={<NewExpense />} />
             <Route path="edit/:id" element={<EditExpense />} />
           </Route>
-
+          <Route path="/category-flow" element={<CategoryFlow />} />
           <Route path="transactions" element={<TransactionsContent />} />
           <Route path="credit-due" element={<CreditDueContent />} />
           <Route path="reports" element={<Reports />} />

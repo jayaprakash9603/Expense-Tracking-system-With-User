@@ -15,7 +15,7 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { API_BASE_URL } from "../../config/api";
+import { api, API_BASE_URL } from "../../config/api";
 import { expensesTypesEmail } from "../Input Fields/InputFields";
 
 const ExpenseEmail = () => {
@@ -58,7 +58,7 @@ const ExpenseEmail = () => {
       return;
     }
     try {
-      const response = await axios.post(url, {
+      const response = await api.get(url, {
         params,
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -213,10 +213,10 @@ const ExpenseEmail = () => {
       sx={{
         p: isMobile ? 2 : 3,
         borderRadius: "8px",
-        maxWidth: isMobile ? "100%" : 500,
+        maxWidth: isMobile ? "100%" : 400, // Outer width remains the same
         width: "100%",
         background: "#1b1b1b",
-        mx: isMobile ? 0 : "auto",
+        mx: isMobile ? 0 : "0", // Align to the left side
       }}
     >
       {error && (
@@ -254,7 +254,7 @@ const ExpenseEmail = () => {
       <Typography variant="h5" sx={{ mb: 3 }}>
         Send Expenses by Email
       </Typography>
-      <Box sx={{ mb: 3 }}>
+      <div className="mb-3">
         <Autocomplete
           autoHighlight
           options={logTypes}
@@ -294,7 +294,7 @@ const ExpenseEmail = () => {
             );
           }}
         />
-      </Box>
+      </div>
       {searchTerm === "Particular Date Expenses" && (
         <Box sx={{ mb: 3 }}>
           <TextField
@@ -303,6 +303,7 @@ const ExpenseEmail = () => {
             value={fromDay}
             onChange={(e) => setFromDay(e.target.value)}
             fullWidth
+            sx={{ width: "100%" }}
             InputLabelProps={{ shrink: true }}
           />
         </Box>
@@ -315,7 +316,7 @@ const ExpenseEmail = () => {
             value={startYear}
             onChange={(e) => setStartYear(e.target.value)}
             fullWidth
-            sx={{ mb: 2 }}
+            sx={{ width: "100%" }}
           />
           <TextField
             label="Enter Start Month"
@@ -323,6 +324,7 @@ const ExpenseEmail = () => {
             value={startMonth}
             onChange={(e) => setStartMonth(e.target.value)}
             fullWidth
+            sx={{ width: "100%" }}
           />
         </Box>
       )}
@@ -333,6 +335,7 @@ const ExpenseEmail = () => {
             value={expenseName}
             onChange={(e) => setExpenseName(e.target.value)}
             fullWidth
+            sx={{ width: "100%" }}
           />
         </Box>
       )}
@@ -443,6 +446,7 @@ const ExpenseEmail = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           fullWidth
+          sx={{ width: "100%" }}
         />
       </Box>
       <Button

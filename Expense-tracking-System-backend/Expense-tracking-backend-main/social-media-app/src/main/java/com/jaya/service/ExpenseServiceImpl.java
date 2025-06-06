@@ -188,6 +188,107 @@ public class ExpenseServiceImpl implements ExpenseService {
 
 
 
+    @Override
+    public List<Expense> addMultipleExpenses(List<Expense> expenses, User user) throws Exception {
+        if (user == null) {
+            throw new UserException("User not found.");
+        }
+
+        List<String> errorMessages = new ArrayList<>();
+
+        for (Expense expense : expenses) {
+            // Reset ID to treat it as a new entity
+            expense.setId(null);
+            expense.setUser(user);
+
+            // Reset ExpenseDetails and link back
+            if (expense.getExpense() != null) {
+                expense.getExpense().setId(null);
+                expense.getExpense().setExpense(expense);
+            }
+
+            // Clean budget IDs based on user and date range
+            Set<Integer> validBudgetIds = new HashSet<>();
+            if (expense.getBudgetIds() != null) {
+                for (Integer budgetId : expense.getBudgetIds()) {
+                    Optional<Budget> optionalBudget = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
+                    if (optionalBudget.isPresent()) {
+                        Budget budget = optionalBudget.get();
+                        if (expense.getDate() != null &&
+                                !expense.getDate().isBefore(budget.getStartDate()) &&
+                                !expense.getDate().isAfter(budget.getEndDate())) {
+                            validBudgetIds.add(budgetId);
+                        }
+                    }
+                }
+            }
+            expense.setBudgetIds(validBudgetIds);
+            try {
+                Category category = categoryService.getById(expense.getCategoryId(), user);
+                if (category != null) {
+                    expense.setCategoryId(category.getId());
+                }
+            } catch (Exception e) {
+                try {
+                    System.out.println("Entered into catchblock" +expense.getCategoryId());
+                    Category category = categoryService.getByName("Others", user).get(0);
+                    System.out.println("Category name"+category.getName());
+                    expense.setCategoryId(category.getId());
+                } catch (Exception notFound) {
+                    System.out.println("eentered into not found");
+                    Category createdCategory = new Category();
+                    createdCategory.setDescription("Others Description");
+                    createdCategory.setName("Others");
+                    Category newCategory = categoryService.create(createdCategory, user);
+                    expense.setCategoryId(newCategory.getId());
+                }
+            }
+
+        }
+
+        // Save the new expenses
+        List<Expense> savedExpenses = saveExpenses(expenses);
+
+
+
+
+        // Update corresponding Budgets with new expense IDs
+        for (Expense savedExpense : savedExpenses) {
+
+            Category getCategory = categoryService.getById(savedExpense.getCategoryId(), user);
+            if (getCategory.getExpenseIds() == null) {
+                getCategory.setExpenseIds(new HashMap<>());
+            }
+            Set<Integer> expenseSet = getCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+            expenseSet.add(savedExpense.getId());
+            getCategory.getExpenseIds().put(user.getId(), expenseSet);
+            categoryRepository.save(getCategory);
+            for (Integer budgetId : savedExpense.getBudgetIds()) {
+                Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+                if (budget != null) {
+                    if (budget.getExpenseIds() == null) budget.setExpenseIds(new HashSet<>());
+                    budget.getExpenseIds().add(savedExpense.getId());
+                    budget.setBudgetHasExpenses(true);
+                    budgetRepository.save(budget);
+                }
+            }
+
+            // Audit log
+            ExpenseDetails details = savedExpense.getExpense();
+            String logMessage = String.format(
+                    "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                    savedExpense.getId(),
+                    details.getExpenseName(),
+                    details.getAmount(),
+                    details.getType(),
+                    details.getPaymentMethod()
+            );
+            auditExpenseService.logAudit(user, savedExpense.getId(), "create", logMessage);
+        }
+
+        return savedExpenses;
+    }
+
 
     @Override
     public Expense getExpenseById(Integer id,User user) {
@@ -220,39 +321,111 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
-    public void updateExpense(Integer id, Expense expense, User user) {
-        // Fetch the existing expense by ID and user
+    public Expense updateExpense(Integer id, Expense updatedExpense, User user) {
+        // Fetch the existing expense
         Expense existingExpense = expenseRepository.findByUserIdAndId(user.getId(), id);
         if (existingExpense == null) {
             throw new RuntimeException("Expense not found with ID: " + id);
         }
 
-        // Update the expense details
-        ExpenseDetails existingDetails = existingExpense.getExpense();
-        if (existingDetails != null && expense.getExpense() != null) {
-            ExpenseDetails newDetails = expense.getExpense();
-            existingDetails.setAmount(newDetails.getAmount());
-            existingDetails.setType(newDetails.getType());
-            existingDetails.setPaymentMethod(newDetails.getPaymentMethod());
-            existingDetails.setComments(newDetails.getComments());
-            existingDetails.setNetAmount(newDetails.getNetAmount());
-            existingDetails.setExpenseName(newDetails.getExpenseName());
-            existingDetails.setCreditDue(newDetails.getCreditDue());
+        // Validate the updated expense data
+        if (updatedExpense.getDate() == null) {
+            throw new IllegalArgumentException("Expense date must not be null.");
         }
 
-        // Update other fields
-        existingExpense.setDate(expense.getDate());
-        existingExpense.setIncludeInBudget(expense.isIncludeInBudget());
+        if (updatedExpense.getExpense() == null) {
+            throw new IllegalArgumentException("Expense details must not be null.");
+        }
 
-        // Update budget IDs
+        ExpenseDetails details = updatedExpense.getExpense();
+        if (details.getExpenseName() == null || details.getExpenseName().isEmpty()) {
+            throw new IllegalArgumentException("Expense name must not be empty.");
+        }
+
+        if (details.getAmount() < 0) {
+            throw new IllegalArgumentException("Expense amount cannot be negative.");
+        }
+
+        if (details.getPaymentMethod() == null || details.getPaymentMethod().isEmpty()) {
+            throw new IllegalArgumentException("Payment method must not be empty.");
+        }
+
+        if (details.getType() == null || details.getType().isEmpty()) {
+            throw new IllegalArgumentException("Expense type must not be empty.");
+        }
+
+        // Handle category changes
+        Integer oldCategoryId = existingExpense.getCategoryId();
+        Integer newCategoryId = updatedExpense.getCategoryId();
+
+        // If category has changed, update category associations
+        if (!Objects.equals(oldCategoryId, newCategoryId)) {
+            // Remove expense from old category
+            if (oldCategoryId != null) {
+                try {
+                    Category oldCategory = categoryService.getById(oldCategoryId, user);
+                    if (oldCategory != null && oldCategory.getExpenseIds() != null) {
+                        Set<Integer> expenseSet = oldCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                        expenseSet.remove(existingExpense.getId());
+                        oldCategory.getExpenseIds().put(user.getId(), expenseSet);
+                        categoryRepository.save(oldCategory);
+                    }
+                } catch (Exception e) {
+                    // Log error but continue with update
+                    System.out.println("Error removing expense from old category: " + e.getMessage());
+                }
+            }
+
+            // Add expense to new category
+            try {
+                Category newCategory = categoryService.getById(newCategoryId, user);
+                if (newCategory != null) {
+                    existingExpense.setCategoryId(newCategory.getId());
+                }
+            } catch (Exception e) {
+                try {
+                    System.out.println("Entered into catchblock for update: " + newCategoryId);
+                    Category category = categoryService.getByName("Others", user).get(0);
+                    System.out.println("Category name: " + category.getName());
+                    existingExpense.setCategoryId(category.getId());
+                } catch (Exception notFound) {
+                    System.out.println("Entered into not found for update");
+                    Category createdCategory = new Category();
+                    createdCategory.setDescription("Others Description");
+                    createdCategory.setName("Others");
+                    try {
+                        Category newCategory = categoryService.create(createdCategory, user);
+                        existingExpense.setCategoryId(newCategory.getId());
+                    } catch (Exception createError) {
+                        System.out.println("Error creating Others category: " + createError.getMessage());
+                    }
+                }
+            }
+        }
+
+        // Update expense details
+        ExpenseDetails existingDetails = existingExpense.getExpense();
+        existingDetails.setExpenseName(details.getExpenseName());
+        existingDetails.setAmount(details.getAmount());
+        existingDetails.setType(details.getType());
+        existingDetails.setPaymentMethod(details.getPaymentMethod());
+        existingDetails.setNetAmount(details.getNetAmount());
+        existingDetails.setComments(details.getComments());
+        existingDetails.setCreditDue(details.getCreditDue());
+
+        // Update expense date
+        existingExpense.setDate(updatedExpense.getDate());
+        existingExpense.setIncludeInBudget(updatedExpense.isIncludeInBudget());
+
+        // Handle budget associations
         Set<Integer> validBudgetIds = new HashSet<>();
-        if (expense.getBudgetIds() != null) {
-            for (Integer budgetId : expense.getBudgetIds()) {
+        if (updatedExpense.getBudgetIds() != null) {
+            for (Integer budgetId : updatedExpense.getBudgetIds()) {
                 Optional<Budget> budgetOpt = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
                 if (budgetOpt.isPresent()) {
                     Budget budget = budgetOpt.get();
-                    if (!expense.getDate().isBefore(budget.getStartDate()) &&
-                            !expense.getDate().isAfter(budget.getEndDate())) {
+                    LocalDate expenseDate = updatedExpense.getDate();
+                    if (!expenseDate.isBefore(budget.getStartDate()) && !expenseDate.isAfter(budget.getEndDate())) {
                         validBudgetIds.add(budgetId);
                     }
                 }
@@ -274,9 +447,25 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
 
         existingExpense.setBudgetIds(validBudgetIds);
-
-        // Save the updated expense
         Expense savedExpense = expenseRepository.save(existingExpense);
+
+        // Update new category with expense ID
+        if (savedExpense.getCategoryId() != null) {
+            try {
+                Category getCategory = categoryService.getById(savedExpense.getCategoryId(), user);
+                if (getCategory != null) {
+                    if (getCategory.getExpenseIds() == null) {
+                        getCategory.setExpenseIds(new HashMap<>());
+                    }
+                    Set<Integer> expenseSet = getCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                    expenseSet.add(savedExpense.getId());
+                    getCategory.getExpenseIds().put(user.getId(), expenseSet);
+                    categoryRepository.save(getCategory);
+                }
+            } catch (Exception e) {
+                System.out.println("Error updating category with expense ID: " + e.getMessage());
+            }
+        }
 
         // Update new budget links
         for (Integer budgetId : validBudgetIds) {
@@ -289,9 +478,9 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
         }
 
-        // Log the update
         auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Updated",
-                "Updated expense with ID: " + savedExpense.getId());
+                "Expense: " + existingDetails.getExpenseName() + ", Amount: " + existingDetails.getAmount());
+        return savedExpense;
     }
 
 
@@ -300,12 +489,13 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
-    public void updateMultipleExpenses(User user, List<Expense> expenses) {
+    public List<Expense> updateMultipleExpenses(User user, List<Expense> expenses) {
         if (expenses == null || expenses.isEmpty()) {
             throw new IllegalArgumentException("Expense list cannot be null or empty.");
         }
 
         List<String> errorMessages = new ArrayList<>();
+        List<Expense> updatedExpenses = new ArrayList<>();
 
         for (Expense expense : expenses) {
             Integer id = expense.getId();
@@ -321,12 +511,110 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
 
             Expense existingExpense = existingOpt.get();
-            if (!existingExpense.getUser().getId().equals(user.getId())) {
-                errorMessages.add("User not authorized to update Expense ID: " + id);
+
+            // Debug logging to help identify the issue
+            System.out.println("Expense ID: " + id);
+            System.out.println("Expense User ID: " + (existingExpense.getUser() != null ? existingExpense.getUser().getId() : "null"));
+            System.out.println("Current User ID: " + user.getId());
+
+            // Check if the user is authorized to update this expense
+            if (existingExpense.getUser() == null || !existingExpense.getUser().getId().equals(user.getId())) {
+                errorMessages.add("User not authorized to update Expense ID: " + id +
+                        " (Expense belongs to user " +
+                        (existingExpense.getUser() != null ? existingExpense.getUser().getId() : "unknown") +
+                        ", current user is " + user.getId() + ")");
                 continue;
             }
 
             try {
+                // Handle category changes if needed
+                Integer oldCategoryId = existingExpense.getCategoryId();
+                Integer newCategoryId = expense.getCategoryId();
+
+                // If category has changed, update category associations
+                if (!Objects.equals(oldCategoryId, newCategoryId)) {
+                    // Remove expense from old category
+                    if (oldCategoryId != null) {
+                        try {
+                            Category oldCategory = categoryService.getById(oldCategoryId, user);
+                            if (oldCategory != null && oldCategory.getExpenseIds() != null) {
+                                Set<Integer> expenseSet = oldCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                                expenseSet.remove(existingExpense.getId());
+
+                                // If there are no more expenses for this user, remove the user key entirely
+                                if (expenseSet.isEmpty()) {
+                                    oldCategory.getExpenseIds().remove(user.getId());
+                                } else {
+                                    oldCategory.getExpenseIds().put(user.getId(), expenseSet);
+                                }
+
+                                categoryRepository.save(oldCategory);
+                            }
+                        } catch (Exception e) {
+                            // Log error but continue with update
+                            System.out.println("Error removing expense from old category: " + e.getMessage());
+                        }
+                    }
+
+                    // Add expense to new category
+                    if (newCategoryId != null) {
+                        try {
+                            Category newCategory = categoryService.getById(newCategoryId, user);
+                            if (newCategory != null) {
+                                existingExpense.setCategoryId(newCategory.getId());
+
+                                if (newCategory.getExpenseIds() == null) {
+                                    newCategory.setExpenseIds(new HashMap<>());
+                                }
+
+                                Set<Integer> expenseSet = newCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                                expenseSet.add(existingExpense.getId());
+                                newCategory.getExpenseIds().put(user.getId(), expenseSet);
+                                categoryRepository.save(newCategory);
+                            }
+                        } catch (Exception e) {
+                            // Try to use "Others" category as fallback
+                            try {
+                                System.out.println("Entered into catchblock for update: " + newCategoryId);
+                                Category category = categoryService.getByName("Others", user).get(0);
+                                System.out.println("Category name: " + category.getName());
+                                existingExpense.setCategoryId(category.getId());
+
+                                if (category.getExpenseIds() == null) {
+                                    category.setExpenseIds(new HashMap<>());
+                                }
+
+                                Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                                expenseSet.add(existingExpense.getId());
+                                category.getExpenseIds().put(user.getId(), expenseSet);
+                                categoryRepository.save(category);
+                            } catch (Exception notFound) {
+                                // Create "Others" category if it doesn't exist
+                                System.out.println("Entered into not found for update");
+                                Category createdCategory = new Category();
+                                createdCategory.setDescription("Others Description");
+                                createdCategory.setName("Others");
+                                try {
+                                    Category newCategory = categoryService.create(createdCategory, user);
+                                    existingExpense.setCategoryId(newCategory.getId());
+
+                                    if (newCategory.getExpenseIds() == null) {
+                                        newCategory.setExpenseIds(new HashMap<>());
+                                    }
+
+                                    Set<Integer> expenseSet = new HashSet<>();
+                                    expenseSet.add(existingExpense.getId());
+                                    newCategory.getExpenseIds().put(user.getId(), expenseSet);
+                                    categoryRepository.save(newCategory);
+                                } catch (Exception createError) {
+                                    System.out.println("Error creating Others category: " + createError.getMessage());
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Update expense details
                 ExpenseDetails newDetails = expense.getExpense();
                 if (newDetails != null && existingExpense.getExpense() != null) {
                     ExpenseDetails existingDetails = existingExpense.getExpense();
@@ -356,7 +644,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
-                // Remove old links
+                // Remove old budget links
                 if (existingExpense.getBudgetIds() != null) {
                     for (Integer oldBudgetId : existingExpense.getBudgetIds()) {
                         if (!validBudgetIds.contains(oldBudgetId)) {
@@ -373,6 +661,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 existingExpense.setBudgetIds(validBudgetIds);
                 Expense savedExpense = expenseRepository.save(existingExpense);
 
+                // Add new budget links
                 for (Integer budgetId : validBudgetIds) {
                     Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
                     if (budget != null) {
@@ -383,15 +672,31 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
+                // Log successful update
+                auditExpenseService.logAudit(
+                        user,
+                        savedExpense.getId(),
+                        "Expense Updated",
+                        "Expense: " + savedExpense.getExpense().getExpenseName() + ", Amount: " + savedExpense.getExpense().getAmount()
+                );
+
+                // Add the successfully updated expense to the result list
+                updatedExpenses.add(savedExpense);
+
             } catch (Exception e) {
                 errorMessages.add("Failed to update Expense with ID: " + id + " - " + e.getMessage());
             }
         }
 
+        // Log errors but don't throw exception, so we can return the successfully updated expenses
         if (!errorMessages.isEmpty()) {
-            throw new RuntimeException("Errors occurred while updating expenses: " + String.join("; ", errorMessages));
+            System.err.println("Errors occurred while updating expenses: " + String.join("; ", errorMessages));
         }
+
+        return updatedExpenses;
     }
+
+
 
 
 
@@ -441,11 +746,32 @@ public class ExpenseServiceImpl implements ExpenseService {
             throw new IllegalArgumentException("Expenses list cannot be null or empty.");
         }
 
+        List<String> errorMessages = new ArrayList<>();
+        List<Expense> expensesToDelete = new ArrayList<>();
+
         for (Expense expense : expenses) {
+            if (expense.getId() == null) {
+                errorMessages.add("Expense ID cannot be null.");
+                continue;
+            }
+
             Expense existing = expenseRepository.findById(expense.getId()).orElse(null);
+            if (existing == null) {
+                errorMessages.add("Expense not found with ID: " + expense.getId());
+                continue;
+            }
 
-            if (existing != null && existing.getUser().getId().equals(user.getId())) {
+            // Check if the user is authorized to delete this expense
+            if (existing.getUser() == null || !existing.getUser().getId().equals(user.getId())) {
+                errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() +
+                        " (Expense belongs to user " +
+                        (existing.getUser() != null ? existing.getUser().getId() : "unknown") +
+                        ", current user is " + user.getId() + ")");
+                continue;
+            }
 
+            try {
+                // Remove expense from associated budgets
                 Set<Integer> budgetIds = existing.getBudgetIds();
                 if (budgetIds != null) {
                     for (Integer budgetId : budgetIds) {
@@ -458,16 +784,54 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
+                // Remove expense from associated category
+                Integer categoryId = existing.getCategoryId();
+                if (categoryId != null) {
+                    try {
+                        Category category = categoryService.getById(categoryId, user);
+                        if (category != null && category.getExpenseIds() != null) {
+                            Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                            expenseSet.remove(existing.getId());
+
+                            // If there are no more expenses for this user, remove the user key entirely
+                            if (expenseSet.isEmpty()) {
+                                category.getExpenseIds().remove(user.getId());
+                            } else {
+                                category.getExpenseIds().put(user.getId(), expenseSet);
+                            }
+
+                            categoryRepository.save(category);
+                        }
+                    } catch (Exception e) {
+                        // Log error but continue with deletion
+                        System.out.println("Error removing expense from category: " + e.getMessage());
+                    }
+                }
+
+                // Log the audit
                 auditExpenseService.logAudit(
                         user,
                         existing.getId(),
                         "Expense Deleted",
                         existing.getExpense().getExpenseName()
                 );
+
+                // Add to the list of expenses to delete
+                expensesToDelete.add(existing);
+            } catch (Exception e) {
+                errorMessages.add("Failed to process deletion for Expense ID: " + expense.getId() + " - " + e.getMessage());
             }
         }
 
-        expenseRepository.deleteAll(expenses);
+        // Delete all valid expenses in a batch operation
+        if (!expensesToDelete.isEmpty()) {
+            expenseRepository.deleteAll(expensesToDelete);
+        }
+
+        // If there were any errors, throw an exception with all error messages
+        if (!errorMessages.isEmpty()) {
+            throw new RuntimeException("Errors occurred while deleting expenses: " + String.join("; ", errorMessages));
+        }
     }
 
 
@@ -483,32 +847,81 @@ public class ExpenseServiceImpl implements ExpenseService {
             throw new Exception("No expenses found for the given IDs");
         }
 
-        for (Expense expense : expenses) {
-            if (!expense.getUser().getId().equals(user.getId())) {
-                throw new RuntimeException("Unauthorized deletion attempt for Expense ID: " + expense.getId());
-            }
+        List<String> errorMessages = new ArrayList<>();
+        List<Expense> expensesToDelete = new ArrayList<>();
 
-            Set<Integer> budgetIds = expense.getBudgetIds();
-            if (budgetIds != null) {
-                for (Integer budgetId : budgetIds) {
-                    Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
-                    if (budget != null && budget.getExpenseIds() != null) {
-                        budget.getExpenseIds().remove(expense.getId());
-                        budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
-                        budgetRepository.save(budget);
+        for (Expense expense : expenses) {
+            try {
+                // Check if the user is authorized to delete this expense
+                if (expense.getUser() == null || !expense.getUser().getId().equals(user.getId())) {
+                    errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() +
+                            " (Expense belongs to user " +
+                            (expense.getUser() != null ? expense.getUser().getId() : "unknown") +
+                            ", current user is " + user.getId() + ")");
+                    continue;
+                }
+
+                // Remove expense from associated budgets
+                Set<Integer> budgetIds = expense.getBudgetIds();
+                if (budgetIds != null) {
+                    for (Integer budgetId : budgetIds) {
+                        Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+                        if (budget != null && budget.getExpenseIds() != null) {
+                            budget.getExpenseIds().remove(expense.getId());
+                            budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
+                            budgetRepository.save(budget);
+                        }
                     }
                 }
-            }
 
-            auditExpenseService.logAudit(
-                    user,
-                    expense.getId(),
-                    "Expense Deleted",
-                    expense.getExpense().getExpenseName()
-            );
+                // Remove expense from associated category
+                Integer categoryId = expense.getCategoryId();
+                if (categoryId != null) {
+                    try {
+                        Category category = categoryService.getById(categoryId, user);
+                        if (category != null && category.getExpenseIds() != null) {
+                            Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                            expenseSet.remove(expense.getId());
+
+                            // If there are no more expenses for this user, remove the user key entirely
+                            if (expenseSet.isEmpty()) {
+                                category.getExpenseIds().remove(user.getId());
+                            } else {
+                                category.getExpenseIds().put(user.getId(), expenseSet);
+                            }
+
+                            categoryRepository.save(category);
+                        }
+                    } catch (Exception e) {
+                        // Log error but continue with deletion
+                        System.out.println("Error removing expense from category: " + e.getMessage());
+                    }
+                }
+
+                // Log the audit
+                auditExpenseService.logAudit(
+                        user,
+                        expense.getId(),
+                        "Expense Deleted",
+                        expense.getExpense().getExpenseName()
+                );
+
+                // Add to the list of expenses to delete
+                expensesToDelete.add(expense);
+            } catch (Exception e) {
+                errorMessages.add("Failed to process deletion for Expense ID: " + expense.getId() + " - " + e.getMessage());
+            }
         }
 
-        expenseRepository.deleteAll(expenses);
+        // Delete all valid expenses in a batch operation
+        if (!expensesToDelete.isEmpty()) {
+            expenseRepository.deleteAll(expensesToDelete);
+        }
+
+        // If there were any errors, throw an exception with all error messages
+        if (!errorMessages.isEmpty()) {
+            throw new Exception("Errors occurred while deleting expenses: " + String.join("; ", errorMessages));
+        }
     }
 
 
@@ -520,6 +933,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             throw new RuntimeException("Expense not found with ID: " + id);
         }
 
+        // Remove expense from associated budgets
         Set<Integer> budgetIds = expense.getBudgetIds();
         if (budgetIds != null) {
             for (Integer budgetId : budgetIds) {
@@ -529,6 +943,30 @@ public class ExpenseServiceImpl implements ExpenseService {
                     budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
                     budgetRepository.save(budget);
                 }
+            }
+        }
+
+        // Remove expense from associated category
+        Integer categoryId = expense.getCategoryId();
+        if (categoryId != null) {
+            try {
+                Category category = categoryService.getById(categoryId, user);
+                if (category != null && category.getExpenseIds() != null) {
+                    Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                    expenseSet.remove(expense.getId());
+
+                    // If there are no more expenses for this user, remove the user key entirely
+                    if (expenseSet.isEmpty()) {
+                        category.getExpenseIds().remove(user.getId());
+                    } else {
+                        category.getExpenseIds().put(user.getId(), expenseSet);
+                    }
+
+                    categoryRepository.save(category);
+                }
+            } catch (Exception e) {
+                // Log error but continue with deletion
+                System.out.println("Error removing expense from category: " + e.getMessage());
             }
         }
 
@@ -563,7 +1001,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         BigDecimal totalLoss = BigDecimal.ZERO;
         BigDecimal totalCreditPaid = BigDecimal.ZERO;
 
-        Map<String, BigDecimal> categoryBreakdown = new HashMap<>();
+    Map<String, BigDecimal> categoryBreakdown = new HashMap<>();
         CashSummary cashSummary = new CashSummary();
         BigDecimal currentMonthCreditDue = BigDecimal.ZERO;
         BigDecimal creditDue = BigDecimal.ZERO;
@@ -1341,28 +1779,199 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     public String generateExcelReport(User user) throws IOException {
         List<Expense> expenses = expenseRepository.findByUser(user);
-        List<ExpenseDetails> expenseDetails = expenses.stream()
-                .map(expense -> expense.getExpense())
-                .collect(Collectors.toList());
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Expenses");
 
+        // Create header row with additional category columns
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("Expense Name");
         headerRow.createCell(1).setCellValue("Payment Method");
-        headerRow.createCell(2).setCellValue("Net Amount");
-        headerRow.createCell(3).setCellValue("Credit Due");
+        headerRow.createCell(2).setCellValue("Amount");
+        headerRow.createCell(3).setCellValue("Net Amount");
+        headerRow.createCell(4).setCellValue("Credit Due");
+        headerRow.createCell(5).setCellValue("Type");
+        headerRow.createCell(6).setCellValue("Date");
+        headerRow.createCell(7).setCellValue("Category ID");
+        headerRow.createCell(8).setCellValue("Category Name");
+        headerRow.createCell(9).setCellValue("Category Color");
+        headerRow.createCell(10).setCellValue("Category Icon");
+        headerRow.createCell(11).setCellValue("Category Description");
+        headerRow.createCell(12).setCellValue("Is Global Category");
+        headerRow.createCell(13).setCellValue("Comments");
+
+        // Create a map to cache category information to avoid repeated database lookups
+        Map<Integer, Category> categoryCache = new HashMap<>();
 
         int rowNum = 1;
-        for (ExpenseDetails expense : expenseDetails) {
+        for (Expense expense : expenses) {
+            ExpenseDetails details = expense.getExpense();
+            if (details == null) continue;
+
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(expense.getExpenseName());
-            row.createCell(1).setCellValue(expense.getPaymentMethod());
-            row.createCell(2).setCellValue(expense.getNetAmount());
-            row.createCell(3).setCellValue(expense.getCreditDue());
+            row.createCell(0).setCellValue(details.getExpenseName());
+            row.createCell(1).setCellValue(details.getPaymentMethod());
+            row.createCell(2).setCellValue(details.getAmount());
+            row.createCell(3).setCellValue(details.getNetAmount());
+            row.createCell(4).setCellValue(details.getCreditDue());
+            row.createCell(5).setCellValue(details.getType());
+            row.createCell(6).setCellValue(expense.getDate().toString());
+
+            // Add category information
+            Integer categoryId = expense.getCategoryId();
+            row.createCell(7).setCellValue(categoryId != null ? categoryId : 0);
+
+            // Get category details
+            String categoryName = "Uncategorized";
+            String categoryColor = "";
+            String categoryIcon = "";
+            String categoryDescription = "";
+            boolean isGlobal = false;
+
+            if (categoryId != null && categoryId > 0) {
+                // Check cache first
+                Category category = categoryCache.get(categoryId);
+                if (category == null) {
+                    try {
+                        category = categoryService.getById(categoryId, user);
+                        categoryCache.put(categoryId, category);
+                    } catch (Exception e) {
+                        // Category not found, use default values
+                    }
+                }
+
+                if (category != null) {
+                    categoryName = category.getName();
+                    categoryColor = category.getColor();
+                    categoryIcon = category.getIcon();
+                    categoryDescription = category.getDescription();
+                    isGlobal = category.isGlobal();
+                }
+            }
+
+            row.createCell(8).setCellValue(categoryName);
+            row.createCell(9).setCellValue(categoryColor);
+            row.createCell(10).setCellValue(categoryIcon);
+            row.createCell(11).setCellValue(categoryDescription);
+            row.createCell(12).setCellValue(isGlobal);
+
+            // Add comments
+            row.createCell(13).setCellValue(details.getComments() != null ? details.getComments() : "");
         }
 
+        // Auto-size columns for better readability
+        for (int i = 0; i < 14; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Create a summary sheet
+        Sheet summarySheet = workbook.createSheet("Category Summary");
+        Row summaryHeader = summarySheet.createRow(0);
+        summaryHeader.createCell(0).setCellValue("Category ID");
+        summaryHeader.createCell(1).setCellValue("Category Name");
+        summaryHeader.createCell(2).setCellValue("Category Color");
+        summaryHeader.createCell(3).setCellValue("Category Icon");
+        summaryHeader.createCell(4).setCellValue("Category Description");
+        summaryHeader.createCell(5).setCellValue("Is Global");
+        summaryHeader.createCell(6).setCellValue("Total Amount");
+        summaryHeader.createCell(7).setCellValue("Number of Expenses");
+
+        // Calculate totals by category
+        Map<Integer, Double> categoryTotals = new HashMap<>();
+        Map<Integer, Integer> categoryExpenseCounts = new HashMap<>();
+
+        for (Expense expense : expenses) {
+            Integer categoryId = expense.getCategoryId();
+            if (categoryId == null) categoryId = 0;
+
+            double amount = expense.getExpense() != null ? expense.getExpense().getAmount() : 0;
+            categoryTotals.put(categoryId, categoryTotals.getOrDefault(categoryId, 0.0) + amount);
+            categoryExpenseCounts.put(categoryId, categoryExpenseCounts.getOrDefault(categoryId, 0) + 1);
+        }
+
+        // Write summary data
+        int summaryRowNum = 1;
+        for (Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
+            Integer categoryId = entry.getKey();
+            Double totalAmount = entry.getValue();
+            Integer expenseCount = categoryExpenseCounts.get(categoryId);
+
+            Row row = summarySheet.createRow(summaryRowNum++);
+            row.createCell(0).setCellValue(categoryId);
+
+            // Get category details
+            String categoryName = "Uncategorized";
+            String categoryColor = "";
+            String categoryIcon = "";
+            String categoryDescription = "";
+            boolean isGlobal = false;
+
+            if (categoryId > 0) {
+                Category category = categoryCache.get(categoryId);
+                if (category != null) {
+                    categoryName = category.getName();
+                    categoryColor = category.getColor();
+                    categoryIcon = category.getIcon();
+                    categoryDescription = category.getDescription();
+                    isGlobal = category.isGlobal();
+                }
+            }
+
+            row.createCell(1).setCellValue(categoryName);
+            row.createCell(2).setCellValue(categoryColor);
+            row.createCell(3).setCellValue(categoryIcon);
+            row.createCell(4).setCellValue(categoryDescription);
+            row.createCell(5).setCellValue(isGlobal);
+            row.createCell(6).setCellValue(totalAmount);
+            row.createCell(7).setCellValue(expenseCount);
+        }
+
+        // Auto-size summary columns
+        for (int i = 0; i < 8; i++) {
+            summarySheet.autoSizeColumn(i);
+        }
+
+        // Create a payment method summary sheet
+        Sheet paymentMethodSheet = workbook.createSheet("Payment Method Summary");
+        Row paymentMethodHeader = paymentMethodSheet.createRow(0);
+        paymentMethodHeader.createCell(0).setCellValue("Payment Method");
+        paymentMethodHeader.createCell(1).setCellValue("Total Amount");
+        paymentMethodHeader.createCell(2).setCellValue("Number of Expenses");
+
+        // Calculate totals by payment method
+        Map<String, Double> paymentMethodTotals = new HashMap<>();
+        Map<String, Integer> paymentMethodCounts = new HashMap<>();
+
+        for (Expense expense : expenses) {
+            if (expense.getExpense() != null) {
+                String paymentMethod = expense.getExpense().getPaymentMethod();
+                if (paymentMethod != null && !paymentMethod.isEmpty()) {
+                    double amount = expense.getExpense().getAmount();
+                    paymentMethodTotals.put(paymentMethod, paymentMethodTotals.getOrDefault(paymentMethod, 0.0) + amount);
+                    paymentMethodCounts.put(paymentMethod, paymentMethodCounts.getOrDefault(paymentMethod, 0) + 1);
+                }
+            }
+        }
+
+        // Write payment method summary data
+        int paymentMethodRowNum = 1;
+        for (Map.Entry<String, Double> entry : paymentMethodTotals.entrySet()) {
+            String paymentMethod = entry.getKey();
+            Double totalAmount = entry.getValue();
+            Integer expenseCount = paymentMethodCounts.get(paymentMethod);
+
+            Row row = paymentMethodSheet.createRow(paymentMethodRowNum++);
+            row.createCell(0).setCellValue(paymentMethod);
+            row.createCell(1).setCellValue(totalAmount);
+            row.createCell(2).setCellValue(expenseCount);
+        }
+
+        // Auto-size payment method columns
+        for (int i = 0; i < 3; i++) {
+            paymentMethodSheet.autoSizeColumn(i);
+        }
+
+        // Create the file
         String emailPrefix = user.getEmail().split("@")[0];  // Get the part before '@' in the email address
         String userFolderName = emailPrefix + "_" + user.getId();
         String userFolderPath = Paths.get(System.getProperty("user.home"), "reports", userFolderName).toString();
@@ -1743,30 +2352,215 @@ public List<Expense> saveExpenses(List<Expense> expenses) {
 
     @Override
     public List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, User user) {
+        if (expenseDTOs == null || expenseDTOs.isEmpty()) {
+            throw new IllegalArgumentException("Expense DTO list cannot be null or empty.");
+        }
+
         List<Expense> savedExpenses = new ArrayList<>();
+        List<String> errorMessages = new ArrayList<>();
+
+        // Create or get the "Others" category once for all expenses
+        Category othersCategory = null;
+        try {
+            // Try to find existing "Others" category
+            List<Category> othersCategories = categoryService.getByName("Others", user);
+
+            if (othersCategories != null && !othersCategories.isEmpty()) {
+                othersCategory = othersCategories.get(0);
+                System.out.println("Found existing 'Others' category with ID: " + othersCategory.getId());
+            } else {
+                // Create "Others" category if it doesn't exist
+                othersCategory = createOthersCategory(user);
+                System.out.println("Created new 'Others' category with ID: " + othersCategory.getId());
+            }
+        } catch (Exception e) {
+            System.err.println("Error preparing 'Others' category: " + e.getMessage());
+            e.printStackTrace();
+            // Continue with null othersCategory - we'll handle individual failures per expense
+        }
 
         for (ExpenseDTO dto : expenseDTOs) {
-            Expense expense = new Expense();
-            expense.setDate(LocalDate.parse(dto.getDate()));
-            expense.setUser(user);
-            ExpenseDetailsDTO detailsDTO = dto.getExpense();
-            ExpenseDetails details = new ExpenseDetails();
-            details.setExpenseName(detailsDTO.getExpenseName());
-            details.setAmount(detailsDTO.getAmount());
-            details.setType(detailsDTO.getType());
-            details.setPaymentMethod(detailsDTO.getPaymentMethod());
-            details.setNetAmount(detailsDTO.getNetAmount());
-            details.setComments(detailsDTO.getComments());
-            details.setCreditDue(detailsDTO.getCreditDue());
+            try {
+                Expense expense = new Expense();
+                expense.setUser(user);
+                expense.setDate(LocalDate.parse(dto.getDate()));
 
-            details.setExpense(expense);
-            expense.setExpense(details);
+                // Set up ExpenseDetails
+                ExpenseDetailsDTO detailsDTO = dto.getExpense();
+                if (detailsDTO == null) {
+                    errorMessages.add("Expense details cannot be null for date: " + dto.getDate());
+                    continue;
+                }
 
-            Expense saved = expenseRepository.save(expense);
-            savedExpenses.add(saved);
+                ExpenseDetails details = new ExpenseDetails();
+                details.setExpenseName(detailsDTO.getExpenseName());
+                details.setAmount(detailsDTO.getAmount());
+                details.setType(detailsDTO.getType());
+                details.setPaymentMethod(detailsDTO.getPaymentMethod());
+                details.setNetAmount(detailsDTO.getNetAmount());
+                details.setComments(detailsDTO.getComments());
+                details.setCreditDue(detailsDTO.getCreditDue());
+                details.setExpense(expense);
+                expense.setExpense(details);
+
+                // Save expense first to get an ID
+                Expense savedExpense = expenseRepository.save(expense);
+
+                // Handle category assignment
+                Category category = null;
+                Integer categoryId = dto.getCategoryId();
+
+                // Try to get the specified category
+                if (categoryId != null) {
+                    try {
+                        category = categoryService.getById(categoryId, user);
+                    } catch (Exception e) {
+                        System.out.println("Specified category not found: " + e.getMessage());
+                        // Will fall back to "Others" category
+                    }
+                }
+
+                // If category is still null, use the pre-fetched "Others" category
+                if (category == null) {
+                    if (othersCategory != null) {
+                        category = othersCategory;
+                    } else {
+                        // If we couldn't prepare the Others category earlier, try one more time
+                        // But first check if it exists now (might have been created in a previous iteration)
+                        try {
+                            List<Category> existingOthers = categoryService.getByName("Others", user);
+                            if (existingOthers != null && !existingOthers.isEmpty()) {
+                                category = existingOthers.get(0);
+                                // Save this for future iterations
+                                othersCategory = category;
+                            } else {
+                                category = createOthersCategory(user);
+                                // Save this for future iterations
+                                othersCategory = category;
+                            }
+                        } catch (Exception e) {
+                            errorMessages.add("Failed to create 'Others' category: " + e.getMessage());
+                            // Delete the saved expense to avoid orphaned records
+                            expenseRepository.delete(savedExpense);
+                            continue;
+                        }
+                    }
+                }
+
+                // Now we have a valid category, update the expense with it
+                savedExpense.setCategoryId(category.getId());
+
+                // Update the category's expense mapping
+                if (category.getExpenseIds() == null) {
+                    category.setExpenseIds(new HashMap<>());
+                }
+
+                Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                expenseSet.add(savedExpense.getId());
+                category.getExpenseIds().put(user.getId(), expenseSet);
+
+                // Save the updated category
+                categoryRepository.save(category);
+
+                // Handle budgets
+                Set<Integer> validBudgetIds = new HashSet<>();
+                if (dto.getBudgetIds() != null) {
+                    for (Integer budgetId : dto.getBudgetIds()) {
+                        Optional<Budget> budgetOpt = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
+                        if (budgetOpt.isPresent()) {
+                            Budget budget = budgetOpt.get();
+                            if (!savedExpense.getDate().isBefore(budget.getStartDate()) &&
+                                    !savedExpense.getDate().isAfter(budget.getEndDate())) {
+                                validBudgetIds.add(budgetId);
+                            }
+                        }
+                    }
+                }
+                savedExpense.setBudgetIds(validBudgetIds);
+
+                // Save expense again with updated category and budget info
+                savedExpense = expenseRepository.save(savedExpense);
+                savedExpenses.add(savedExpense);
+
+                // Update budget links
+                for (Integer budgetId : validBudgetIds) {
+                    Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+                    if (budget != null) {
+                        if (budget.getExpenseIds() == null) budget.setExpenseIds(new HashSet<>());
+                        budget.getExpenseIds().add(savedExpense.getId());
+                        budget.setBudgetHasExpenses(true);
+                        budgetRepository.save(budget);
+                    }
+                }
+
+                // Log successful creation
+                auditExpenseService.logAudit(
+                        user,
+                        savedExpense.getId(),
+                        "Expense Created",
+                        "Expense: " + savedExpense.getExpense().getExpenseName() + ", Amount: " + savedExpense.getExpense().getAmount()
+                );
+
+            } catch (Exception e) {
+                errorMessages.add("Failed to save expense for date " + dto.getDate() + ": " + e.getMessage());
+            }
+        }
+
+        if (!errorMessages.isEmpty()) {
+            throw new RuntimeException("Errors occurred while saving expenses: " + String.join("; ", errorMessages));
         }
 
         return savedExpenses;
+    }
+
+    // Helper method to create the "Others" category
+    // Helper method to create the "Others" category
+    private Category createOthersCategory(User user) throws Exception {
+        try {
+            // First, check if the category already exists in the database directly
+            List<Category> existingCategories = categoryService.getByName("Others",user);
+            if (existingCategories != null && !existingCategories.isEmpty()) {
+                Category existingCategory = existingCategories.get(0);
+
+                // Make sure this user is associated with the category
+                if (existingCategory.getUserIds() == null) {
+                    existingCategory.setUserIds(new HashSet<>());
+                }
+                existingCategory.getUserIds().add(user.getId());
+
+                if (existingCategory.getEditUserIds() == null) {
+                    existingCategory.setEditUserIds(new HashSet<>());
+                }
+                existingCategory.getEditUserIds().add(user.getId());
+
+                // Save the updated category
+                return categoryRepository.save(existingCategory);
+            }
+
+            // If not found, create a new one
+            Category newCategory = new Category();
+            newCategory.setName("Others");
+            newCategory.setDescription("Default category for uncategorized expenses");
+            newCategory.setColor("#808080"); // Gray color for Others category
+            newCategory.setIcon("category");
+            newCategory.setGlobal(true); // Make it a global category
+
+            // Initialize collections to avoid NPE
+            newCategory.setUserIds(new HashSet<>());
+            newCategory.getUserIds().add(user.getId());
+
+            newCategory.setEditUserIds(new HashSet<>());
+            newCategory.getEditUserIds().add(user.getId());
+
+            newCategory.setExpenseIds(new HashMap<>());
+
+            // Save directly to repository instead of using the service
+            return categoryRepository.save(newCategory);
+        } catch (Exception e) {
+            System.err.println("Error creating 'Others' category: " + e.getMessage());
+            e.printStackTrace();
+            throw new Exception("Failed to create 'Others' category: " + e.getMessage());
+        }
     }
 
 
@@ -2101,29 +2895,462 @@ public List<Expense> saveExpenses(List<Expense> expenses) {
             Integer userId,
             LocalDate startDate,
             LocalDate endDate,
-            String flowType
-    ) {
-        // Retrieve expenses in date range
-        List<Expense> allExpenses = expenseRepository.findByUserIdAndDateBetween(
-                userId, startDate, endDate
-        );
+            String flowType) {
 
-        // Optional filtering by inflow or outflow (e.g. "loss" or "gain")
-        if (flowType != null) {
-            return allExpenses.stream()
-                    .filter(e -> {
-                        String expenseType = e.getExpense().getType();
+        List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
+
+        // If flowType is specified, filter by type
+        if (flowType != null && !flowType.isEmpty()) {
+            return expenses.stream()
+                    .filter(expense -> {
+                        String type = expense.getExpense().getType();
                         if ("inflow".equalsIgnoreCase(flowType)) {
-                            return "gain".equalsIgnoreCase(expenseType);
+                            return "gain".equalsIgnoreCase(type) || "income".equalsIgnoreCase(type);
                         } else if ("outflow".equalsIgnoreCase(flowType)) {
-                            return "loss".equalsIgnoreCase(expenseType);
+                            return "loss".equalsIgnoreCase(type) || "expense".equalsIgnoreCase(type);
                         }
-                        return true;
+                        return true; // Return all if flowType is not recognized
                     })
-                    .toList();
+                    .collect(Collectors.toList());
         }
-        return allExpenses;
+
+        return expenses;
     }
 
 
+
+    @Override
+    public List<Expense> getExpensesByCategoryId(Integer categoryId, User user) {
+        try {
+            // First, get the category to verify it exists and the user has access to it
+            Category category = categoryService.getById(categoryId, user);
+            if (category == null) {
+                throw new RuntimeException("Category not found with ID: " + categoryId);
+            }
+
+            // Get the expense IDs associated with this user and category
+            Set<Integer> expenseIds = new HashSet<>();
+            if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(user.getId())) {
+                expenseIds = category.getExpenseIds().get(user.getId());
+            }
+
+            if (expenseIds.isEmpty()) {
+                return new ArrayList<>(); // Return empty list if no expenses found
+            }
+
+            // Fetch all expenses by their IDs and filter by user
+            List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(user.getId(), expenseIds);
+
+            return expenses;
+        } catch (Exception e) {
+            System.out.println("Error retrieving expenses by category ID: " + e.getMessage());
+            throw new RuntimeException("Failed to retrieve expenses for category ID: " + categoryId, e);
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public Map<Category, List<Expense>> getAllExpensesByCategories(User user) {
+        // Get all categories for the user
+        List<Category> userCategories = categoryService.getAllForUser(user);
+
+        List<Expense> userExpenses = getAllExpenses(user);
+
+        // Create a map to store category -> expenses mapping
+        Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
+
+        // Initialize the map with empty lists for each category
+        for (Category category : userCategories) {
+            categoryExpensesMap.put(category, new ArrayList<>());
+        }
+
+        // Populate the map with expenses
+        for (Expense expense : userExpenses) {
+            for (Category category : userCategories) {
+                // Check if this expense is associated with this category
+                if (category.getExpenseIds() != null) {
+                    for (Map.Entry<Integer, Set<Integer>> entry : category.getExpenseIds().entrySet()) {
+                        if (entry.getValue().contains(expense.getId())) {
+                            categoryExpensesMap.get(category).add(expense);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Remove categories with no expenses
+        categoryExpensesMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+
+        return categoryExpensesMap;
+    }
+
+
+    @Override
+    public Map<String, Object> getFilteredExpensesByCategories(
+            User user,
+            String rangeType,
+            int offset,
+            String flowType) {
+
+        // Calculate date range based on rangeType and offset
+        LocalDate now = LocalDate.now();
+        LocalDate startDate;
+        LocalDate endDate;
+
+        switch (rangeType.toLowerCase()) {
+            case "week":
+                startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
+                endDate = now.with(DayOfWeek.SUNDAY).plusWeeks(offset);
+                break;
+            case "month":
+                startDate = now.withDayOfMonth(1).plusMonths(offset);
+                endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+                break;
+            case "year":
+                startDate = LocalDate.of(now.getYear(), 1, 1).plusYears(offset);
+                endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
+                break;
+            case "custom":
+                // For custom range, offset is ignored and we use the current date as reference
+                startDate = now.minusDays(30);  // Default to last 30 days
+                endDate = now;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid rangeType. Valid options are: week, month, year, custom");
+        }
+
+        // Get all categories for the user
+        List<Category> userCategories = categoryService.getAllForUser(user);
+
+        // Get filtered expenses for the user
+        List<Expense> filteredExpenses = getExpensesWithinRange(user.getId(), startDate, endDate, flowType);
+
+        // Create a map to store category -> expenses mapping
+        Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
+
+        // Initialize the map with empty lists for each category
+        for (Category category : userCategories) {
+            categoryExpensesMap.put(category, new ArrayList<>());
+        }
+
+        // Populate the map with filtered expenses
+        for (Expense expense : filteredExpenses) {
+            for (Category category : userCategories) {
+                // Check if this expense is associated with this category
+                if (category.getExpenseIds() != null) {
+                    for (Map.Entry<Integer, Set<Integer>> entry : category.getExpenseIds().entrySet()) {
+                        if (entry.getValue().contains(expense.getId())) {
+                            categoryExpensesMap.get(category).add(expense);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Remove categories with no expenses
+        categoryExpensesMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+
+        // Transform the map to have a more JSON-friendly structure
+        Map<String, Object> response = new HashMap<>();
+
+        // Summary statistics
+        int totalCategories = categoryExpensesMap.size();
+        int totalExpenses = 0;
+        double totalAmount = 0.0;
+        Map<String, Double> categoryTotals = new HashMap<>();
+
+        for (Map.Entry<Category, List<Expense>> entry : categoryExpensesMap.entrySet()) {
+            Category category = entry.getKey();
+            List<Expense> expenses = entry.getValue();
+            totalExpenses += expenses.size();
+
+            // Calculate total amount for this category
+            double categoryTotal = 0.0;
+            for (Expense expense : expenses) {
+                if (expense.getExpense() != null) {
+                    categoryTotal += expense.getExpense().getAmount();
+                    totalAmount += expense.getExpense().getAmount();
+                }
+            }
+            categoryTotals.put(category.getName(), categoryTotal);
+
+            // Create a category details object
+            Map<String, Object> categoryDetails = buildCategoryDetailsMap(category, expenses, categoryTotal);
+
+            // Add to response with category name as key
+            response.put(category.getName(), categoryDetails);
+        }
+
+        // Add summary statistics to the response
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("totalCategories", totalCategories);
+        summary.put("totalExpenses", totalExpenses);
+        summary.put("totalAmount", totalAmount);
+        summary.put("categoryTotals", categoryTotals);
+        summary.put("dateRange", Map.of(
+                "startDate", startDate,
+                "endDate", endDate,
+                "rangeType", rangeType,
+                "offset", offset,
+                "flowType", flowType != null ? flowType : "all"
+        ));
+
+        response.put("summary", summary);
+
+        return response;
+    }
+
+    // Helper method to build category details map
+    private Map<String, Object> buildCategoryDetailsMap(Category category, List<Expense> expenses, double categoryTotal) {
+        Map<String, Object> categoryDetails = new HashMap<>();
+        categoryDetails.put("id", category.getId());
+        categoryDetails.put("name", category.getName());
+        categoryDetails.put("description", category.getDescription());
+        categoryDetails.put("isGlobal", category.isGlobal());
+
+        // Include color and icon if they exist in the model
+        if (category.getColor() != null) {
+            categoryDetails.put("color", category.getColor());
+        }
+        if (category.getIcon() != null) {
+            categoryDetails.put("icon", category.getIcon());
+        }
+
+        // Include user IDs information
+        categoryDetails.put("userIds", category.getUserIds());
+        categoryDetails.put("editUserIds", category.getEditUserIds());
+
+        // Include expense mapping information
+        categoryDetails.put("expenseIds", category.getExpenseIds());
+
+        // Format expenses with detailed information
+        List<Map<String, Object>> formattedExpenses = formatExpensesForResponse(expenses);
+
+        categoryDetails.put("expenses", formattedExpenses);
+        categoryDetails.put("totalAmount", categoryTotal);
+        categoryDetails.put("expenseCount", expenses.size());
+
+        return categoryDetails;
+    }
+
+    // Helper method to format expenses for response
+    private List<Map<String, Object>> formatExpensesForResponse(List<Expense> expenses) {
+        List<Map<String, Object>> formattedExpenses = new ArrayList<>();
+        for (Expense expense : expenses) {
+            Map<String, Object> expenseMap = new HashMap<>();
+            expenseMap.put("id", expense.getId());
+            expenseMap.put("date", expense.getDate());
+
+            if (expense.getExpense() != null) {
+                ExpenseDetails details = expense.getExpense();
+                Map<String, Object> detailsMap = new HashMap<>();
+                detailsMap.put("id", details.getId());
+                detailsMap.put("expenseName", details.getExpenseName());
+                detailsMap.put("amount", details.getAmount());
+                detailsMap.put("type", details.getType());
+                detailsMap.put("paymentMethod", details.getPaymentMethod());
+                detailsMap.put("netAmount", details.getNetAmount());
+                detailsMap.put("comments", details.getComments());
+                detailsMap.put("creditDue", details.getCreditDue());
+
+                expenseMap.put("details", detailsMap);
+            }
+
+            formattedExpenses.add(expenseMap);
+        }
+        return formattedExpenses;
+    }
+
+    @Override
+    public Map<String, Object> getFilteredExpensesByDateRange(
+            User user,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String flowType) {
+
+        // Get all categories for the user
+        List<Category> userCategories = categoryService.getAllForUser(user);
+
+        // Get filtered expenses for the user
+        List<Expense> filteredExpenses = getExpensesWithinRange(user.getId(), fromDate, toDate, flowType);
+
+        // Create a map to store category -> expenses mapping
+        Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
+
+        // Initialize the map with empty lists for each category
+        for (Category category : userCategories) {
+            categoryExpensesMap.put(category, new ArrayList<>());
+        }
+
+        // Populate the map with filtered expenses
+        for (Expense expense : filteredExpenses) {
+            // If flowType is specified as "inflow" or "outflow", apply special filtering
+            if (flowType != null && !flowType.isEmpty()) {
+                String expenseType = expense.getExpense().getType();
+
+                if (flowType.equalsIgnoreCase("inflow") && !expenseType.equalsIgnoreCase("gain")) {
+                    continue; // Skip if not an inflow (gain)
+                } else if (flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase("loss")) {
+                    continue; // Skip if not an outflow (loss)
+                } else if (!flowType.equalsIgnoreCase("inflow") &&
+                        !flowType.equalsIgnoreCase("outflow") &&
+                        !expenseType.equalsIgnoreCase(flowType)) {
+                    continue; // Skip if specific flowType doesn't match
+                }
+            }
+
+            for (Category category : userCategories) {
+                // Check if this expense is associated with this category
+                if (category.getExpenseIds() != null) {
+                    for (Map.Entry<Integer, Set<Integer>> entry : category.getExpenseIds().entrySet()) {
+                        if (entry.getValue().contains(expense.getId())) {
+                            categoryExpensesMap.get(category).add(expense);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Remove categories with no expenses
+        categoryExpensesMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+
+        // Transform the map to have a more JSON-friendly structure
+        Map<String, Object> response = new HashMap<>();
+
+        // Summary statistics
+        int totalCategories = categoryExpensesMap.size();
+        int totalExpenses = 0;
+        double totalAmount = 0.0;
+        Map<String, Double> categoryTotals = new HashMap<>();
+
+        for (Map.Entry<Category, List<Expense>> entry : categoryExpensesMap.entrySet()) {
+            Category category = entry.getKey();
+            List<Expense> expenses = entry.getValue();
+            totalExpenses += expenses.size();
+
+            // Calculate total amount for this category
+            double categoryTotal = 0.0;
+            for (Expense expense : expenses) {
+                if (expense.getExpense() != null) {
+                    categoryTotal += expense.getExpense().getAmount();
+                    totalAmount += expense.getExpense().getAmount();
+                }
+            }
+            categoryTotals.put(category.getName(), categoryTotal);
+
+            // Create a category details object with all fields from the Category model
+            Map<String, Object> categoryDetails = new HashMap<>();
+            categoryDetails.put("id", category.getId());
+            categoryDetails.put("name", category.getName());
+            categoryDetails.put("description", category.getDescription());
+            categoryDetails.put("isGlobal", category.isGlobal());
+
+            // Include color and icon if they exist in the model
+            if (category.getColor() != null) {
+                categoryDetails.put("color", category.getColor());
+            }
+            if (category.getIcon() != null) {
+                categoryDetails.put("icon", category.getIcon());
+            }
+
+            // Include user IDs information
+            categoryDetails.put("userIds", category.getUserIds());
+            categoryDetails.put("editUserIds", category.getEditUserIds());
+
+            // Include expense mapping information
+            categoryDetails.put("expenseIds", category.getExpenseIds());
+
+            // Format expenses with detailed information
+            List<Map<String, Object>> formattedExpenses = new ArrayList<>();
+            for (Expense expense : expenses) {
+                Map<String, Object> expenseMap = new HashMap<>();
+                expenseMap.put("id", expense.getId());
+                expenseMap.put("date", expense.getDate());
+
+                if (expense.getExpense() != null) {
+                    ExpenseDetails details = expense.getExpense();
+                    Map<String, Object> detailsMap = new HashMap<>();
+                    detailsMap.put("id", details.getId());
+                    detailsMap.put("expenseName", details.getExpenseName());
+                    detailsMap.put("amount", details.getAmount());
+                    detailsMap.put("type", details.getType());
+                    detailsMap.put("paymentMethod", details.getPaymentMethod());
+                    detailsMap.put("netAmount", details.getNetAmount());
+                    detailsMap.put("comments", details.getComments());
+                    detailsMap.put("creditDue", details.getCreditDue());
+
+                    expenseMap.put("details", detailsMap);
+                }
+
+                formattedExpenses.add(expenseMap);
+            }
+
+            categoryDetails.put("expenses", formattedExpenses);
+            categoryDetails.put("totalAmount", categoryTotal);
+            categoryDetails.put("expenseCount", expenses.size());
+
+            // Add to response with category name as key
+            response.put(category.getName(), categoryDetails);
+        }
+
+        // Add summary statistics to the response
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("totalCategories", totalCategories);
+        summary.put("totalExpenses", totalExpenses);
+        summary.put("totalAmount", totalAmount);
+        summary.put("categoryTotals", categoryTotals);
+
+        // Add date range information to the summary
+        Map<String, Object> dateRangeInfo = new HashMap<>();
+        dateRangeInfo.put("fromDate", fromDate);
+        dateRangeInfo.put("toDate", toDate);
+        dateRangeInfo.put("flowType", flowType);
+        summary.put("dateRange", dateRangeInfo);
+
+        response.put("summary", summary);
+
+        return response;
+    }
+
+
+
+    private String getThemeAppropriateColor(String categoryName) {
+        // Map of predefined colors suitable for dark theme
+        Map<String, String> colorMap = new HashMap<>();
+        colorMap.put("food", "#5b7fff");       // Blue
+        colorMap.put("groceries", "#00dac6");  // Teal
+        colorMap.put("shopping", "#bb86fc");   // Purple
+        colorMap.put("entertainment", "#ff7597"); // Pink
+        colorMap.put("utilities", "#ffb74d");  // Orange
+        colorMap.put("rent", "#ff5252");       // Red
+        colorMap.put("transportation", "#69f0ae"); // Green
+        colorMap.put("health", "#ff4081");     // Bright Pink
+        colorMap.put("education", "#64b5f6");  // Light Blue
+        colorMap.put("travel", "#ffd54f");     // Yellow
+        colorMap.put("others", "#b0bec5");     // Gray
+        colorMap.put("salary", "#69f0ae");     // Green
+        colorMap.put("investment", "#00e676"); // Bright Green
+        colorMap.put("gift", "#e040fb");       // Violet
+        colorMap.put("refund", "#ffab40");     // Amber
+
+        // Check if the category name matches any of our predefined categories
+        String lowerCaseName = categoryName.toLowerCase();
+        for (Map.Entry<String, String> entry : colorMap.entrySet()) {
+            if (lowerCaseName.contains(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+
+        // If no match is found, generate a color based on the hash of the category name
+        // This ensures the same category name always gets the same color
+        int hash = categoryName.hashCode();
+        // Use the hash to select from our predefined colors to ensure they're theme-appropriate
+        String[] colorArray = colorMap.values().toArray(new String[0]);
+        int index = Math.abs(hash % colorArray.length);
+        return colorArray[index];
+    }
 }

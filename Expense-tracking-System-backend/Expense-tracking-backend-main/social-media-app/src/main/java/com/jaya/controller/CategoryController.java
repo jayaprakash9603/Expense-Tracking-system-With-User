@@ -120,7 +120,7 @@ public class CategoryController {
     public ResponseEntity<Void> deleteAllCategories(
             @RequestHeader("Authorization") String jwt) {
         User user = userService.findUserByJwt(jwt);
-        categoryService.deleteAll();
+        categoryService.deleteAllUserCategories(user);
         return ResponseEntity.noContent().build();
     }
 }

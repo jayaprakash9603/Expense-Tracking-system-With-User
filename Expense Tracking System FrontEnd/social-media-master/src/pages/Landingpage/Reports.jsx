@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import {
   Box,
+  Button,
   FormControl,
   MenuItem,
   Select,
+  Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -133,41 +135,124 @@ const Reports = () => {
           }}
         >
           {selectedReport !== "select" && (
-            <DataGrid
-              rows={getReportData()}
-              columns={columnsToUse}
-              pageSizeOptions={[5]}
-              initialState={{
-                pagination: { paginationModel: { pageSize: 5 } },
-              }}
-              disableColumnMenu
-              sx={{
-                bgcolor: "#1b1b1b",
-                color: "#ffffff",
-                border: "1px solid #28282a",
-                "& .MuiDataGrid-columnHeaders": {
-                  bgcolor: "#333333",
+            <>
+              {/* Expense Details Table */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                }}
+              >
+                <Typography variant="h6" sx={{ color: "#ffffff" }}>
+                  Expense Details
+                </Typography>
+                <Button
+                  variant="contained"
+                  sx={{
+                    textTransform: "none",
+                    bgcolor: "#00dac6",
+                    color: "#000",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <img
+                    src={require("../../assests/download.png")}
+                    alt="Download Icon"
+                    style={{ width: 24, height: 24, marginRight: 8 }} // Adjusted width and height
+                  />
+                </Button>
+              </Box>
+              <DataGrid
+                rows={getReportData()} // Replace with API data later
+                columns={columnsToUse}
+                pageSizeOptions={[5]}
+                initialState={{
+                  pagination: { paginationModel: { pageSize: 5 } },
+                }}
+                disableColumnMenu
+                rowHeight={40} // Decreased row height
+                sx={{
+                  bgcolor: "#1b1b1b",
                   color: "#ffffff",
-                },
-                "& .MuiDataGrid-cell": {
+                  border: "1px solid #28282a",
+                  "& .MuiDataGrid-columnHeaders": {
+                    bgcolor: "#333333",
+                    color: "#ffffff",
+                  },
+                  "& .MuiDataGrid-cell": {
+                    color: "#ffffff",
+                  },
+                  "& .MuiDataGrid-row:hover": {
+                    bgcolor: "#28282a",
+                  },
+                  "& .MuiDataGrid-footerContainer": {
+                    bgcolor: "#333333",
+                    color: "#ffffff",
+                  },
+                  "& .MuiTablePagination-root": {
+                    color: "#ffffff",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "#ffffff",
+                  },
+                  height: isMobile ? 300 : 320, // Adjusted table height
+                }}
+              />
+
+              {/* Reports History Table */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                  mt: 4,
+                }}
+              >
+                <Typography variant="h6" sx={{ color: "#ffffff" }}>
+                  Reports History
+                </Typography>
+              </Box>
+              <DataGrid
+                rows={getReportData()} // Replace with API data later
+                columns={columnsToUse}
+                pageSizeOptions={[5]}
+                initialState={{
+                  pagination: { paginationModel: { pageSize: 5 } },
+                }}
+                disableColumnMenu
+                rowHeight={40} // Decreased row height
+                sx={{
+                  bgcolor: "#1b1b1b",
                   color: "#ffffff",
-                },
-                "& .MuiDataGrid-row:hover": {
-                  bgcolor: "#28282a",
-                },
-                "& .MuiDataGrid-footerContainer": {
-                  bgcolor: "#333333",
-                  color: "#ffffff",
-                },
-                "& .MuiTablePagination-root": {
-                  color: "#ffffff",
-                },
-                "& .MuiSvgIcon-root": {
-                  color: "#ffffff",
-                },
-                height: isMobile ? 377 : 372,
-              }}
-            />
+                  border: "1px solid #28282a",
+                  "& .MuiDataGrid-columnHeaders": {
+                    bgcolor: "#333333",
+                    color: "#ffffff",
+                  },
+                  "& .MuiDataGrid-cell": {
+                    color: "#ffffff",
+                  },
+                  "& .MuiDataGrid-row:hover": {
+                    bgcolor: "#28282a",
+                  },
+                  "& .MuiDataGrid-footerContainer": {
+                    bgcolor: "#333333",
+                    color: "#ffffff",
+                  },
+                  "& .MuiTablePagination-root": {
+                    color: "#ffffff",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "#ffffff",
+                  },
+                  height: isMobile ? 300 : 320, // Adjusted table height
+                }}
+              />
+            </>
           )}
         </Box>
       </Box>

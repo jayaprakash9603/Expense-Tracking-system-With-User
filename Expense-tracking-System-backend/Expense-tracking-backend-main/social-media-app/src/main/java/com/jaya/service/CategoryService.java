@@ -1,8 +1,10 @@
 package com.jaya.service;
 
 import com.jaya.models.Category;
+import com.jaya.models.Expense;
 import com.jaya.models.User;
 import com.jaya.repository.CategoryRepository;
+import com.jaya.repository.ExpenseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,12 +13,16 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private ExpenseRepository expenseRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(CategoryService.class);
 
@@ -127,15 +133,122 @@ public class CategoryService {
         Category existing = categoryRepository.findById(id)
                 .orElseThrow(() -> new Exception("Category not found"));
 
+        // Check if the category being deleted is already named "Others"
+        boolean isOthersCategory = "Others".equals(existing.getName());
+
+        // Store affected expenses for later processing
+        List<Expense> affectedExpenses = new ArrayList<>();
+
         if (existing.isGlobal()) {
-           existing.getUserIds().add(user.getId());
-           categoryRepository.save(existing);
-           return "Category Deleted Successfully";
-        } else if(existing.getUser().equals(user)){
+            existing.getUserIds().add(user.getId());
+            categoryRepository.save(existing);
+
+            Category category = getById(id, user);
+
+            if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(user.getId())) {
+                Set<Integer> expenseIds = category.getExpenseIds().get(user.getId());
+
+                if (expenseIds != null && !expenseIds.isEmpty()) {
+                    // Collect all affected expenses first
+                    for (Integer expenseId : expenseIds) {
+                        Expense expense = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
+                        if (expense != null) {
+                            // Temporarily set categoryId to null
+                            expense.setCategoryId(null);
+                            expenseRepository.save(expense);
+                            affectedExpenses.add(expense);
+                        }
+                    }
+
+                    // Remove expenses from the deleted category
+                    category.getExpenseIds().remove(user.getId());
+                    categoryRepository.save(category);
+                }
+            }
+
+            // Return early if we're not deleting an "Others" category
+            if (!isOthersCategory) {
+                // Find or create "Others" category and assign expenses
+                assignExpensesToOthersCategory(user, affectedExpenses);
+                return "Category Deleted Successfully";
+            }
+        } else if (existing.getUser() != null && existing.getUser().equals(user)) {
+            if (existing.getExpenseIds() != null && !existing.getExpenseIds().isEmpty()) {
+                for (Integer userId : existing.getExpenseIds().keySet()) {
+                    Set<Integer> expenseIds = existing.getExpenseIds().get(userId);
+
+                    if (expenseIds != null && !expenseIds.isEmpty()) {
+                        // Collect all affected expenses first
+                        for (Integer expenseId : expenseIds) {
+                            Expense expense = expenseRepository.findByUserIdAndId(userId, expenseId);
+                            if (expense != null) {
+                                // Temporarily set categoryId to null
+                                expense.setCategoryId(null);
+                                expenseRepository.save(expense);
+                                affectedExpenses.add(expense);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Delete the category
             categoryRepository.delete(existing);
+
+            // If we deleted an "Others" category, create a new one and reassign expenses
+            if (isOthersCategory && !affectedExpenses.isEmpty()) {
+                assignExpensesToOthersCategory(user, affectedExpenses);
+            } else if (!isOthersCategory && !affectedExpenses.isEmpty()) {
+                // If not deleting "Others", still assign to existing/new "Others"
+                assignExpensesToOthersCategory(user, affectedExpenses);
+            }
+
             return "Category Deleted Successfully";
         }
+
         return "You can't delete another user's category";
+    }
+
+    // Helper method to assign expenses to Others category
+    private void assignExpensesToOthersCategory(User user, List<Expense> expenses) {
+        if (expenses.isEmpty()) {
+            return;
+        }
+
+        // Try to find existing "Others" category or create a new one
+        Category othersCategory;
+        try {
+            othersCategory = getByName("Others", user).get(0);
+        } catch (Exception e) {
+            // Create "Others" category if it doesn't exist
+            Category newCategory = new Category();
+            newCategory.setName("Others");
+            newCategory.setDescription("Default category for uncategorized expenses");
+            newCategory.setUser(user);
+            newCategory.setGlobal(false);
+            othersCategory = categoryRepository.save(newCategory);
+        }
+
+        // Initialize expenseIds map if needed
+        if (othersCategory.getExpenseIds() == null) {
+            othersCategory.setExpenseIds(new java.util.HashMap<>());
+        }
+
+        // Process all expenses
+        for (Expense expense : expenses) {
+            // Set the expense's category to Others
+            expense.setCategoryId(othersCategory.getId());
+            expenseRepository.save(expense);
+
+            // Add expense to Others category's tracking
+            Set<Integer> othersExpenseIds = othersCategory.getExpenseIds()
+                    .getOrDefault(expense.getUser().getId(), new java.util.HashSet<>());
+            othersExpenseIds.add(expense.getId());
+            othersCategory.getExpenseIds().put(expense.getUser().getId(), othersExpenseIds);
+        }
+
+        // Save the Others category with all the updated references
+        categoryRepository.save(othersCategory);
     }
 
     public String deleteGlobalCategoryById(Integer id, User user) throws Exception {
@@ -198,9 +311,64 @@ public class CategoryService {
     }
 
     public void deleteAllUserCategories(User user) {
+        logger.info("Deleting all user categories for user ID: {}", user.getId());
 
-        List<Category> globalCategories = categoryRepository.findAllByUserId(user.getId());
-        categoryRepository.deleteAll(globalCategories);
+        List<Category> userCategories = categoryRepository.findAllByUserId(user.getId());
+        List<Expense> affectedExpenses = new ArrayList<>();
+
+        for (Category category : userCategories) {
+            if ("Others".equals(category.getName())) {
+                continue;
+            }
+
+            if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(user.getId())) {
+                Set<Integer> expenseIds = category.getExpenseIds().get(user.getId());
+
+                if (expenseIds != null && !expenseIds.isEmpty()) {
+                    for (Integer expenseId : expenseIds) {
+                        Expense expense = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
+                        if (expense != null) {
+                            expense.setCategoryId(null);
+                            expenseRepository.save(expense);
+                            affectedExpenses.add(expense);
+                        }
+                    }
+                }
+            }
+        }
+
+        List<Category> categoriesToDelete = userCategories.stream()
+                .filter(category -> !"Others".equals(category.getName()))
+                .collect(Collectors.toList());
+
+        categoryRepository.deleteAll(categoriesToDelete);
+
+        if (!affectedExpenses.isEmpty()) {
+            assignExpensesToOthersCategory(user, affectedExpenses);
+        }
+
+        Category othersCategory = userCategories.stream()
+                .filter(category -> "Others".equals(category.getName()))
+                .findFirst()
+                .orElse(null);
+
+        if (othersCategory != null) {
+            if (othersCategory.getExpenseIds() != null && othersCategory.getExpenseIds().containsKey(user.getId())) {
+                Set<Integer> expenseIds = othersCategory.getExpenseIds().get(user.getId());
+
+                if (expenseIds != null && !expenseIds.isEmpty()) {
+                    for (Integer expenseId : expenseIds) {
+                        Expense expense = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
+                        if (expense != null) {
+                            expense.setCategoryId(null);
+                            expenseRepository.save(expense);
+                        }
+                    }
+                }
+            }
+
+            categoryRepository.delete(othersCategory);
+        }
     }
 
 
@@ -226,5 +394,31 @@ public class CategoryService {
     public void deleteAll()
     {
         categoryRepository.deleteAll();
+    }
+
+
+    /**
+     * Get all categories for a specific user
+     * This includes both user-created categories and global categories
+     */
+    public List<Category> getAllForUser(User user) {
+        // Get user's own categories
+        List<Category> userCategories = categoryRepository.findByUserId(user.getId());
+
+        // Get global categories
+        List<Category> globalCategories = categoryRepository.findByIsGlobalTrue();
+
+        // Combine both lists, avoiding duplicates
+        Set<Integer> userCategoryIds = userCategories.stream()
+                .map(Category::getId)
+                .collect(Collectors.toSet());
+
+        for (Category globalCategory : globalCategories) {
+            if (!userCategoryIds.contains(globalCategory.getId())) {
+                userCategories.add(globalCategory);
+            }
+        }
+
+        return userCategories;
     }
 }

@@ -7,10 +7,10 @@ const Overview = () => {
   const dispatch = useDispatch();
   const { summary, loading } = useSelector((state) => state.expenses || {});
 
-  const totalExpenses = summary?.totalLosses || 0;
+  const totalExpenses = summary?.currentMonthLosses || 0;
   const todayExpenses = summary?.todayExpenses || 0;
   const creditDue = -summary?.totalCreditDue || 0;
-  const remainingBudget = summary?.totalGains || 0;
+  const remainingBudget = summary?.remainingBudget || 0;
 
   useEffect(() => {
     dispatch(getExpensesSummaryAction());

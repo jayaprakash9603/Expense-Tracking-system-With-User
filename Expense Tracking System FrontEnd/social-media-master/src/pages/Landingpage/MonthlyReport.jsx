@@ -164,13 +164,21 @@ const MonthlyReport = () => {
     return null;
   };
 
+  // Add a utility function to get the current month and year dynamically
+  const getCurrentMonthYear = () => {
+    const date = new Date();
+    const month = date.toLocaleString("default", { month: "long" });
+    const year = date.getFullYear();
+    return `${month} ${year}`;
+  };
+
   return (
     <div
       style={{
-        marginTop: "20px",
+        marginTop: "30px",
         width: isMobile ? "90vw" : "100%",
         maxWidth: isMobile ? "90vw" : "1460px",
-        height: isMobile ? "100vh" : "250px",
+        height: isMobile ? "100vh" : "270px",
         borderRadius: "8px",
         border: "1px solid rgb(80, 80, 80)",
         backgroundColor: "rgb(27, 27, 27)",
@@ -223,7 +231,7 @@ const MonthlyReport = () => {
                 textAlign: "center",
               }}
             >
-              Daily Spending (May 2025)
+              Daily Spending ({getCurrentMonthYear()})
             </p>
           )}
           <ResponsiveContainer width="100%" height="80%">
@@ -271,7 +279,7 @@ const MonthlyReport = () => {
                 textAlign: "center",
               }}
             >
-              Monthly Spending vs Income (May 2025)
+              Monthly Spending vs Income ({getCurrentMonthYear()})
             </p>
           )}
           <ResponsiveContainer width="100%" height="80%">
@@ -321,7 +329,7 @@ const MonthlyReport = () => {
                 textAlign: "center",
               }}
             >
-              Expense Distribution (May 2025)
+              Expense Distribution ({getCurrentMonthYear()})
             </p>
           )}
           <ResponsiveContainer width="100%" height="80%">

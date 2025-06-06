@@ -23,7 +23,11 @@ public class Category {
     private String name;
     private String description;
 
+    private String type; // e.g., "income", "expense", "transfer"
     private boolean isGlobal = false;
+
+    private String icon = "";
+    private String color = "";
 
     @ManyToOne
     @JsonIgnore
@@ -32,12 +36,14 @@ public class Category {
     @ElementCollection
     @CollectionTable(name = "category_expense_ids", joinColumns = @JoinColumn(name = "category_id"))
     @MapKeyColumn(name = "expense_key")
-    @Column(name = "expense_value")
+    @Lob
+    @Column(name = "expense_value", columnDefinition = "LONGBLOB") // Changed to LONGBLOB
     private Map<Integer, Set<Integer>> expenseIds = new HashMap<>();
 
     @ElementCollection
     @CollectionTable(name = "category_user_ids", joinColumns = @JoinColumn(name = "category_id"))
-    @Column(name = "user_id")
+    @Column(name = "user_id", columnDefinition = "TEXT")
+    @Convert(converter = SetIntegerConverter.class)
     private Set<Integer> userIds = new HashSet<>();
 
     @ElementCollection

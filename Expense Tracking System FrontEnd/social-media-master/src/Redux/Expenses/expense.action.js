@@ -59,6 +59,9 @@ import {
   GET_PARTICULAR_DATE_EXPENSES_REQUEST,
   GET_PARTICULAR_DATE_EXPENSES_SUCCESS,
   GET_PARTICULAR_DATE_EXPENSES_FAILURE,
+  FETCH_CATEGORIES_WITH_EXPENSES_REQUEST,
+  FETCH_CATEGORIES_WITH_EXPENSES_SUCCESS,
+  FETCH_CATEGORIES_WITH_EXPENSES_FAILURE,
 } from "./expense.actionType";
 
 const token = localStorage.getItem("jwt");
@@ -501,21 +504,29 @@ export const getExpensesByBudget =
       dispatch({ type: GET_SELECTED_EXPENSE_BUDGET_FAILURE, payload: error });
     }
   };
+// Update the existing fetchCashflowExpenses function
 export const fetchCashflowExpenses =
-  (rangeType, offset = 0, flowType = "") =>
-  async (dispatch) => {
-    dispatch({ type: FETCH_CASHFLOW_EXPENSES_REQUEST });
-    const jwt = localStorage.getItem("jwt");
+  (range, offset, flowType, category) => async (dispatch) => {
     try {
-      const { data } = await api.get("/api/expenses/range/offset", {
-        params: { rangeType, offset, flowType }, // Pass flowType to API
-        headers: { Authorization: `Bearer ${jwt}` },
+      dispatch({ type: FETCH_CASHFLOW_EXPENSES_REQUEST });
+
+      // Build the query parameters
+      let queryParams = `?range=${range}&offset=${offset}`;
+      if (flowType) queryParams += `&flowType=${flowType}`;
+      if (category) queryParams += `&category=${encodeURIComponent(category)}`;
+
+      // Use the api instance that's already configured with headers
+      const { data } = await api.get(`/api/expenses/cashflow${queryParams}`);
+
+      dispatch({
+        type: FETCH_CASHFLOW_EXPENSES_SUCCESS,
+        payload: data,
       });
-      dispatch({ type: FETCH_CASHFLOW_EXPENSES_SUCCESS, payload: data });
     } catch (error) {
+      console.log("Error fetching cashflow expenses:", error);
       dispatch({
         type: FETCH_CASHFLOW_EXPENSES_FAILURE,
-        payload: error.message,
+        payload: error.response?.data?.message || "Failed to fetch expenses",
       });
     }
   };
@@ -539,3 +550,36 @@ export const getExpensesByParticularDate = (date) => async (dispatch) => {
     });
   }
 };
+
+export const fetchCategoriesWithExpenses =
+  (rangeType, offset, flowType) => async (dispatch) => {
+    dispatch({ type: FETCH_CATEGORIES_WITH_EXPENSES_REQUEST });
+
+    try {
+      // Build the query parameters
+      let queryParams = `?rangeType=${rangeType}&offset=${offset}`;
+      if (flowType && flowType !== "all") {
+        queryParams += `&flowType=${flowType}`;
+      }
+
+      // Use the api instance that's already configured with headers
+      const { data } = await api.get(
+        `/api/expenses/all-by-categories/detailed/filtered${queryParams}`
+      );
+
+      dispatch({
+        type: FETCH_CATEGORIES_WITH_EXPENSES_SUCCESS,
+        payload: data,
+      });
+
+      return data;
+    } catch (error) {
+      console.log("Error fetching categories with expenses:", error);
+      dispatch({
+        type: FETCH_CATEGORIES_WITH_EXPENSES_FAILURE,
+        payload:
+          error.response?.data?.message || "Failed to fetch category expenses",
+      });
+      throw error;
+    }
+  };

@@ -160,14 +160,64 @@ const Cashflow = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
 
-  // Fetch data from API with correct flowType ("outflow", "inflow", or "all")
   useEffect(() => {
-    if (flowTab === "all") {
-      dispatch(fetchCashflowExpenses(activeRange, offset));
-    } else {
-      dispatch(fetchCashflowExpenses(activeRange, offset, flowTab));
+    if (location.state && location.state.selectedCategory) {
+      // Set the range type and offset from the navigation state if available
+      if (location.state.rangeType) {
+        setActiveRange(location.state.rangeType);
+      }
+      if (location.state.offset !== undefined) {
+        setOffset(location.state.offset);
+      }
+      if (location.state.flowType) {
+        setFlowTab(location.state.flowType);
+      }
+
+      // Set search to filter by the selected category
+      setSearch(location.state.selectedCategory);
+
+      // Clear the navigation state to prevent reapplying on refresh
+      window.history.replaceState({}, document.title);
     }
-  }, [activeRange, offset, flowTab, dispatch]);
+  }, [location.state]);
+
+  // Fetch data from API with correct flowType ("outflow", "inflow", or "all")
+  // Replace the existing useEffect for fetching data with this one
+  // Replace the existing useEffect for fetching data with this one
+  // Replace the existing useEffect for fetching data with this one
+  // Replace the existing useEffect for fetching data with this one
+  useEffect(() => {
+    // Get the category filter from search term
+    const categoryFilter = search.trim() || null;
+
+    console.log("Fetching expenses with filters:", {
+      range: activeRange,
+      offset: offset,
+      flowType: flowTab === "all" ? null : flowTab,
+      categoryFilter: categoryFilter,
+    });
+
+    // Make the API call with proper parameters
+    dispatch(
+      fetchCashflowExpenses(
+        activeRange,
+        offset,
+        flowTab === "all" ? null : flowTab,
+        categoryFilter
+      )
+    );
+  }, [activeRange, offset, flowTab, dispatch, search]);
+
+  // Add this to your component to debug the category selection
+  useEffect(() => {
+    if (location.state && location.state.selectedCategory) {
+      console.log(
+        "Category selected from navigation:",
+        location.state.selectedCategory
+      );
+      console.log("Current search term:", search);
+    }
+  }, [location.state, search]);
 
   useEffect(() => {
     setOffset(0);
@@ -625,10 +675,10 @@ const Cashflow = () => {
             "bg-[#29282b] text-white"
           }`}
           style={{
-            minWidth: 90,
-            minHeight: 44,
-            width: 90,
-            height: 44,
+            minWidth: isMobile ? 40 : 70, // Decreased size for small screens
+            minHeight: isMobile ? 32 : 38, // Decreased size for small screens
+            width: isMobile ? 40 : 70, // Decreased size for small screens
+            height: isMobile ? 32 : 38, // Decreased size for small screens
             padding: 0,
             border: "none",
             outline: "none",
@@ -654,9 +704,9 @@ const Cashflow = () => {
               src={require("../../assests/unfold.png")}
               alt="Unfold"
               style={{
-                width: 22,
-                height: 22,
-                marginRight: 8,
+                width: isMobile ? 20 : 25,
+                height: isMobile ? 25 : 25,
+                marginRight: isMobile ? 4 : 8,
                 verticalAlign: "middle",
               }}
             />
@@ -666,44 +716,51 @@ const Cashflow = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: 36,
-                height: 36,
+                alignItems: isMobile ? "center" : "flex-start",
+                width: isMobile ? 24 : 36, // Decrease size for small screens
+                height: isMobile ? 24 : 36, // Decrease size for small screens
                 transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
               }}
             >
-              {flowTab === "outflow" && (
-                <img
-                  src={moneyWithdrawalImg}
-                  alt="Money Out"
-                  style={{
-                    width: 32,
-                    height: 32,
-                    transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
-                  }}
-                />
-              )}
-              {flowTab === "inflow" && (
-                <img
-                  src={saveMoneyImg}
-                  alt="Money In"
-                  style={{
-                    width: 32,
-                    height: 32,
-                    transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
-                  }}
-                />
-              )}
-              {flowTab === "all" && (
-                <img
-                  src={moneyInAndOutImg}
-                  alt="Money In & Out"
-                  style={{
-                    width: 32,
-                    height: 32,
-                    transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
-                  }}
-                />
-              )}
+              {isMobile
+                ? null
+                : flowTab === "outflow" && (
+                    <img
+                      src={moneyWithdrawalImg}
+                      alt="Money Out"
+                      style={{
+                        width: isMobile ? 18 : 32,
+                        height: isMobile ? 18 : 32,
+                        transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
+                      }}
+                    />
+                  )}
+              {isMobile
+                ? null
+                : flowTab === "inflow" && (
+                    <img
+                      src={saveMoneyImg}
+                      alt="Money In"
+                      style={{
+                        width: isMobile ? 18 : 32,
+                        height: isMobile ? 18 : 32,
+                        transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
+                      }}
+                    />
+                  )}
+              {isMobile
+                ? null
+                : flowTab === "all" && (
+                    <img
+                      src={moneyInAndOutImg}
+                      alt="Money In & Out"
+                      style={{
+                        width: isMobile ? 18 : 32,
+                        height: isMobile ? 18 : 32,
+                        transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
+                      }}
+                    />
+                  )}
             </span>
           </span>
         </button>
@@ -798,7 +855,7 @@ const Cashflow = () => {
           <div
             style={{
               width: "100%",
-              height: 150, // Decreased height
+              height: isMobile ? "80px" : "150px", // Adjust height for small screens
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -808,13 +865,14 @@ const Cashflow = () => {
               position: "relative",
               minWidth: 0,
               boxSizing: "border-box",
+              padding: isMobile ? "5px" : "16px", // Add padding for small screens
             }}
           >
             <span
               style={{
                 color: "#5b7fff",
                 fontWeight: 600,
-                fontSize: 18,
+                fontSize: isMobile ? "14px" : "18px", // Adjust font size for small screens
                 width: "100%",
                 textAlign: "center",
                 position: "absolute",
@@ -847,6 +905,17 @@ const Cashflow = () => {
           onFilterClick={() => setPopoverOpen((v) => !v)}
           filterRef={filterBtnRef}
         />
+
+        {search && (
+          <div className="flex items-center ml-2">
+            <button
+              onClick={() => navigate("/category-flow")}
+              className="bg-[#5b7fff] text-white px-3 py-1 rounded-md text-sm flex items-center gap-1"
+            >
+              <span>←</span> Back to Categories
+            </button>
+          </div>
+        )}
         <IconButton
           sx={{ ml: 1, p: 0.5 }}
           onClick={() => navigate("/calendar-view")}

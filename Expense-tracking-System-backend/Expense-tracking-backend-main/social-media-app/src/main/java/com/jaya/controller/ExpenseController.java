@@ -73,70 +73,20 @@ public class ExpenseController {
     }
 
     @PostMapping("/add-multiple")
-    public ResponseEntity<?> addMultipleExpenses(@RequestHeader("Authorization") String jwt, @RequestBody List<Expense> expenses) {
+    public ResponseEntity<?> addMultipleExpenses(@RequestHeader("Authorization") String jwt, @RequestBody List<Expense> expenses) throws Exception {
         User user = userService.findUserByJwt(jwt); // Get the user by JWT
         if (user == null) {
             return ResponseEntity.status(404).body("User not found");
         }
 
-        List<String> errorMessages = new ArrayList<>();
 
-        for (Expense expense : expenses) {
-            // Reset ID to treat it as a new entity
-            expense.setId(null);
-            expense.setUser(user);
 
-            // Reset ExpenseDetails and link back
-            if (expense.getExpense() != null) {
-                expense.getExpense().setId(null);
-                expense.getExpense().setExpense(expense);
-            }
 
-            // Clean budget IDs based on user and date range
-            Set<Integer> validBudgetIds = new HashSet<>();
-            if (expense.getBudgetIds() != null) {
-                for (Integer budgetId : expense.getBudgetIds()) {
-                    Optional<Budget> optionalBudget = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
-                    if (optionalBudget.isPresent()) {
-                        Budget budget = optionalBudget.get();
-                        if (expense.getDate() != null &&
-                                !expense.getDate().isBefore(budget.getStartDate()) &&
-                                !expense.getDate().isAfter(budget.getEndDate())) {
-                            validBudgetIds.add(budgetId);
-                        }
-                    }
-                }
-            }
-            expense.setBudgetIds(validBudgetIds);
-        }
 
         // Save the new expenses
-        List<Expense> savedExpenses = expenseService.saveExpenses(expenses);
+        List<Expense> savedExpenses = expenseService.addMultipleExpenses(expenses,user);
 
-        // Update corresponding Budgets with new expense IDs
-        for (Expense savedExpense : savedExpenses) {
-            for (Integer budgetId : savedExpense.getBudgetIds()) {
-                Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
-                if (budget != null) {
-                    if (budget.getExpenseIds() == null) budget.setExpenseIds(new HashSet<>());
-                    budget.getExpenseIds().add(savedExpense.getId());
-                    budget.setBudgetHasExpenses(true);
-                    budgetRepository.save(budget);
-                }
-            }
 
-            // Audit log
-            ExpenseDetails details = savedExpense.getExpense();
-            String logMessage = String.format(
-                    "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                    savedExpense.getId(),
-                    details.getExpenseName(),
-                    details.getAmount(),
-                    details.getType(),
-                    details.getPaymentMethod()
-            );
-            auditExpenseService.logAudit(user, savedExpense.getId(), "create", logMessage);
-        }
 
         return ResponseEntity.status(201).body(savedExpenses);
     }
@@ -221,6 +171,8 @@ public class ExpenseController {
         double totalCreditDue = 0.0;
         double totalCreditPaid = 0.0;
         double todayExpenses = 0.0;
+        double currentMonthLosses=0.0;
+        double currentMonthGains=0.0;
 
         Map<String, Double> lossesByPaymentMethod = new HashMap<>();
 
@@ -241,15 +193,26 @@ public class ExpenseController {
 
             // === Total Salary Amount (for Remaining Budget) ===
             // Exclude gain/loss entries with paymentMethod "creditNeedToPaid"
-            if ((type.equalsIgnoreCase("gain") || type.equalsIgnoreCase("loss")) &&
-                    !"creditNeedToPaid".equalsIgnoreCase(paymentMethod)) {
-                totalGains += details.getNetAmount();  // No null check needed (primitive)
+            if ((type.equalsIgnoreCase("gain")) &&
+                    paymentMethod.equals("cash")) {
+                totalGains += details.getAmount();  // No null check needed (primitive)
             }
 
             // === Losses from 17th last month to 16th this month (only cash) ===
-            if (!date.isBefore(periodStart) && !date.isAfter(periodEnd)) {
+
                 if ("loss".equalsIgnoreCase(type) && "cash".equalsIgnoreCase(paymentMethod)) {
                     totalLosses += details.getAmount();
+                    lossesByPaymentMethod.merge(
+                            paymentMethod.toLowerCase(),
+                            details.getAmount(),
+                            Double::sum
+                    );
+                }
+
+
+            if (!date.isBefore(periodStart) && !date.isAfter(periodEnd)) {
+                if ("loss".equalsIgnoreCase(type) && "cash".equalsIgnoreCase(paymentMethod)) {
+                    currentMonthLosses += details.getAmount();
                     lossesByPaymentMethod.merge(
                             paymentMethod.toLowerCase(),
                             details.getAmount(),
@@ -275,7 +238,7 @@ public class ExpenseController {
             }
         }
 
-        double remainingBudget = totalGains - totalLosses;
+        double remainingBudget = totalGains - totalLosses-totalCreditPaid;
 
         Map<String, Object> response = new HashMap<>();
         response.put("totalGains", totalGains);
@@ -286,6 +249,7 @@ public class ExpenseController {
         response.put("lastFiveExpenses", lastFiveExpenses);
         response.put("todayExpenses", todayExpenses);
         response.put("remainingBudget", remainingBudget);
+        response.put("currentMonthLosses",currentMonthLosses);
 
         return ResponseEntity.ok(response);
     }
@@ -302,7 +266,7 @@ public class ExpenseController {
 
 
     @PutMapping("/edit-expense/{id}")
-    public ResponseEntity<String> updateExpense(@PathVariable Integer id, @RequestBody Expense expense, @RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> updateExpense(@PathVariable Integer id, @RequestBody Expense expense, @RequestHeader("Authorization") String jwt) {
         try {
             User reqUser = userService.findUserByJwt(jwt); // Retrieve the user
             Expense existingExpense = expenseService.getExpenseById(id, reqUser);
@@ -315,12 +279,12 @@ public class ExpenseController {
                 );
 
                 // Pass the User object as the third argument
-                expenseService.updateExpense(id, expense, reqUser);
+                Expense updatedExpense = expenseService.updateExpense(id, expense, reqUser);
 
                 String afterUpdateDetails = String.format(
                         "After Update - Name: %s, Amount: %.2f, Type: %s, Payment Method: %s",
-                        expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
-                        expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
+                        updatedExpense.getExpense().getExpenseName(), updatedExpense.getExpense().getAmount(),
+                        updatedExpense.getExpense().getType(), updatedExpense.getExpense().getPaymentMethod()
                 );
 
                 String logDetails = String.format(
@@ -329,23 +293,66 @@ public class ExpenseController {
                 );
 
                 auditExpenseService.logAudit(reqUser, id, "update", logDetails);
-                return ResponseEntity.ok("Expense updated successfully");
+
+                // Return the updated expense object instead of just a success message
+                return ResponseEntity.ok(updatedExpense);
             } else {
                 auditExpenseService.logAudit(reqUser, id, "update", "Attempted to update non-existent expense with ID " + id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Expense not found");
             }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Expense Not found");
-
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
-
     @PutMapping("/edit-multiple")
-    public ResponseEntity<String> updateMultipleExpenses(@RequestBody List<Expense> expenses, @RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> updateMultipleExpenses(@RequestBody List<Expense> expenses, @RequestHeader("Authorization") String jwt) {
         try {
             User reqUser = userService.findUserByJwt(jwt);
-            expenseService.updateMultipleExpenses(reqUser, expenses);
-            return ResponseEntity.ok("Expenses updated successfully.");
+
+            // Get existing expenses before update for audit logging
+            Map<Integer, Expense> existingExpenses = new HashMap<>();
+            for (Expense expense : expenses) {
+                if (expense.getId() != null) {
+                    Expense existingExpense = expenseService.getExpenseById(expense.getId(), reqUser);
+                    if (existingExpense != null) {
+                        existingExpenses.put(expense.getId(), existingExpense);
+                    }
+                }
+            }
+
+            // Update the expenses
+            List<Expense> updatedExpenses = expenseService.updateMultipleExpenses(reqUser, expenses);
+
+            // Log audit information for each updated expense
+            for (Expense updatedExpense : updatedExpenses) {
+                Expense existingExpense = existingExpenses.get(updatedExpense.getId());
+                if (existingExpense != null) {
+                    String beforeUpdateDetails = String.format(
+                            "Before Update - Name: %s, Amount: %.2f, Type: %s, Payment Method: %s",
+                            existingExpense.getExpense().getExpenseName(),
+                            existingExpense.getExpense().getAmount(),
+                            existingExpense.getExpense().getType(),
+                            existingExpense.getExpense().getPaymentMethod()
+                    );
+
+                    String afterUpdateDetails = String.format(
+                            "After Update - Name: %s, Amount: %.2f, Type: %s, Payment Method: %s",
+                            updatedExpense.getExpense().getExpenseName(),
+                            updatedExpense.getExpense().getAmount(),
+                            updatedExpense.getExpense().getType(),
+                            updatedExpense.getExpense().getPaymentMethod()
+                    );
+
+                    String logDetails = String.format(
+                            "Expense with ID %d updated. %s | %s",
+                            updatedExpense.getId(), beforeUpdateDetails, afterUpdateDetails
+                    );
+
+                    auditExpenseService.logAudit(reqUser, updatedExpense.getId(), "update", logDetails);
+                }
+            }
+
+            return ResponseEntity.ok(updatedExpenses);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update expenses: " + e.getMessage());
         }
@@ -1323,11 +1330,11 @@ User reqUser=userService.findUserByJwt(jwt);
 
     @PostMapping("/save")
     public ResponseEntity<List<Expense>> saveExpenses(
-            @RequestBody List<ExpenseDTO> expenses,
-            @RequestHeader("Authorization") String jwt) {
+            @RequestBody List<Expense> expenses,
+            @RequestHeader("Authorization") String jwt) throws Exception {
 
         User reqUser = userService.findUserByJwt(jwt);
-        List<Expense> saved = expenseService.saveExpenses(expenses, reqUser);
+        List<Expense> saved = expenseService.addMultipleExpenses( expenses,reqUser);
         for (Expense expense : saved) {
             String expenseDetails = String.format(
                     "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
@@ -1357,6 +1364,10 @@ User reqUser=userService.findUserByJwt(jwt);
             int i=0;
             for(Expense expense : expenses) {
                 expense.setId(i++);
+                expense.setCategoryId(expense.getCategoryId());
+                expense.setBudgetIds(expense.getBudgetIds());
+                expense.setIncludeInBudget(expense.isIncludeInBudget());
+                expense.setDate(expense.getDate());
                 expense.getExpense().setId(i);
             }
             return ResponseEntity.ok(expenses);
@@ -1683,7 +1694,59 @@ User reqUser=userService.findUserByJwt(jwt);
     }
 
 
+    @GetMapping("/cashflow")
+    public ResponseEntity<List<Expense>> getCashflowExpenses(
+            @RequestParam String range,
+            @RequestParam Integer offset,
+            @RequestParam(required = false) String flowType,
+            @RequestParam(required = false) String category,
+            @RequestHeader("Authorization") String jwt) {
 
+        User reqUser = userService.findUserByJwt(jwt);
+
+        // Calculate date range based on parameters
+        LocalDate startDate;
+        LocalDate endDate;
+        LocalDate now = LocalDate.now();
+
+        // Calculate date range based on range and offset
+        switch (range) {
+            case "week":
+                startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
+                endDate = startDate.plusDays(6);
+                break;
+            case "month":
+                startDate = now.withDayOfMonth(1).plusMonths(offset);
+                endDate = startDate.plusMonths(1).minusDays(1);
+                break;
+            case "year":
+                startDate = now.withDayOfMonth(1).withMonth(1).plusYears(offset);
+                endDate = startDate.plusYears(1).minusDays(1);
+                break;
+            default:
+                return ResponseEntity.badRequest().build();
+        }
+
+        // Get expenses within the date range
+        List<Expense> expenses = expenseService.getExpensesWithinRange(
+                reqUser.getId(),
+                startDate,
+                endDate,
+                flowType
+        );
+
+        // Filter by category if provided
+        if (category != null && !category.isEmpty()) {
+            expenses = expenses.stream()
+                    .filter(expense -> {
+                        String expenseName = expense.getExpense().getExpenseName();
+                        return expenseName != null && expenseName.toLowerCase().contains(category.toLowerCase());
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        return ResponseEntity.ok(expenses);
+    }
 
 
     @GetMapping("/range/offset")
@@ -1716,6 +1779,171 @@ User reqUser=userService.findUserByJwt(jwt);
         }
 
         return expenseService.getExpensesWithinRange(reqUser.getId(), startDate, endDate, flowType);
+    }
+
+
+
+    @GetMapping("/by-category/{categoryId}")
+    public ResponseEntity<List<Expense>> getExpensesByCategoryId(
+            @PathVariable Integer categoryId,
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            User user = userService.findUserByJwt(jwt);
+            List<Expense> expenses = expenseService.getExpensesByCategoryId(categoryId, user);
+
+            if (expenses.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+
+
+    @GetMapping("/all-by-categories/detailed")
+    public ResponseEntity<Map<String, Object>> getAllExpensesByCategoriesDetailed(@RequestHeader("Authorization") String jwt) {
+        try {
+            User user = userService.findUserByJwt(jwt);
+            Map<Category, List<Expense>> categoryExpensesMap = expenseService.getAllExpensesByCategories(user);
+
+            if (categoryExpensesMap.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            // Transform the map to have a more JSON-friendly structure
+            Map<String, Object> response = new HashMap<>();
+
+            // Summary statistics
+            int totalCategories = categoryExpensesMap.size();
+            int totalExpenses = 0;
+            double totalAmount = 0.0;
+            Map<String, Double> categoryTotals = new HashMap<>();
+
+            for (Map.Entry<Category, List<Expense>> entry : categoryExpensesMap.entrySet()) {
+                Category category = entry.getKey();
+                List<Expense> expenses = entry.getValue();
+                totalExpenses += expenses.size();
+
+                // Calculate total amount for this category
+                double categoryTotal = 0.0;
+                for (Expense expense : expenses) {
+                    if (expense.getExpense() != null) {
+                        categoryTotal += expense.getExpense().getAmount();
+                        totalAmount += expense.getExpense().getAmount();
+                    }
+                }
+                categoryTotals.put(category.getName(), categoryTotal);
+
+                // Create a category details object with all fields from the Category model
+                Map<String, Object> categoryDetails = new HashMap<>();
+                categoryDetails.put("id", category.getId());
+                categoryDetails.put("name", category.getName());
+                categoryDetails.put("description", category.getDescription());
+                categoryDetails.put("isGlobal", category.isGlobal());
+
+                // Include color and icon if they exist in the model
+                if (category.getColor() != null) {
+                    categoryDetails.put("color", category.getColor());
+                }
+                if (category.getIcon() != null) {
+                    categoryDetails.put("icon", category.getIcon());
+                }
+
+                // Include user IDs information
+                categoryDetails.put("userIds", category.getUserIds());
+                categoryDetails.put("editUserIds", category.getEditUserIds());
+
+                // Include expense mapping information
+                categoryDetails.put("expenseIds", category.getExpenseIds());
+
+                // Format expenses with detailed information
+                List<Map<String, Object>> formattedExpenses = new ArrayList<>();
+                for (Expense expense : expenses) {
+                    Map<String, Object> expenseMap = new HashMap<>();
+                    expenseMap.put("id", expense.getId());
+                    expenseMap.put("date", expense.getDate());
+
+                    if (expense.getExpense() != null) {
+                        ExpenseDetails details = expense.getExpense();
+                        Map<String, Object> detailsMap = new HashMap<>();
+                        detailsMap.put("id", details.getId());
+                        detailsMap.put("expenseName", details.getExpenseName());
+                        detailsMap.put("amount", details.getAmount());
+                        detailsMap.put("type", details.getType());
+                        detailsMap.put("paymentMethod", details.getPaymentMethod());
+                        detailsMap.put("netAmount", details.getNetAmount());
+                        detailsMap.put("comments", details.getComments());
+                        detailsMap.put("creditDue", details.getCreditDue());
+
+                        expenseMap.put("details", detailsMap);
+                    }
+
+                    formattedExpenses.add(expenseMap);
+                }
+
+                categoryDetails.put("expenses", formattedExpenses);
+                categoryDetails.put("totalAmount", categoryTotal);
+                categoryDetails.put("expenseCount", expenses.size());
+
+                // Add to response with category name as key
+                response.put(category.getName(), categoryDetails);
+            }
+
+            // Add summary statistics to the response
+            Map<String, Object> summary = new HashMap<>();
+            summary.put("totalCategories", totalCategories);
+            summary.put("totalExpenses", totalExpenses);
+            summary.put("totalAmount", totalAmount);
+            summary.put("categoryTotals", categoryTotals);
+            response.put("summary", summary);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
+
+    @GetMapping("/all-by-categories/detailed/filtered")
+    public ResponseEntity<Map<String, Object>> getAllExpensesByCategoriesDetailedFiltered(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String rangeType,
+            @RequestParam(required = false, defaultValue = "0") int offset,
+            @RequestParam(required = false) String flowType) {
+
+        try {
+            User user = userService.findUserByJwt(jwt);
+            Map<String, Object> response;
+
+            // If fromDate and toDate are provided, use them directly
+            if (fromDate != null && toDate != null) {
+                response = expenseService.getFilteredExpensesByDateRange(user, fromDate, toDate, flowType);
+            }
+            // Otherwise, use the rangeType and offset to calculate the date range
+            else if (rangeType != null) {
+                response = expenseService.getFilteredExpensesByCategories(user, rangeType, offset, flowType);
+            }
+            // If neither approach is specified, return an error
+            else {
+                return ResponseEntity.badRequest().body(Map.of("error",
+                        "Either provide fromDate and toDate, or provide rangeType"));
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 }
 

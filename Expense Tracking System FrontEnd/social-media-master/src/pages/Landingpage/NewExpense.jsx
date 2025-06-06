@@ -137,6 +137,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setExpenseData({ ...expenseData, [name]: value });
+
+    // Clear the error for this field when the user updates it
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: false });
+    }
   };
 
   const handleDateChange = (e) => {
@@ -164,6 +169,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
       transactionType: isSalary ? "gain" : "loss",
     }));
 
+    // Clear the date error when the user updates it
+    if (errors.date) {
+      setErrors({ ...errors, date: false });
+    }
+
     // Dispatch getListOfBudgetsById with the selected date
     dispatch(getListOfBudgetsById(value));
   };
@@ -171,10 +181,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!expenseData.expenseName)
-      newErrors.expenseName = "Expense title is required.";
-    if (!expenseData.amount) newErrors.amount = "Amount is required.";
-    if (!expenseData.date) newErrors.date = "Date is required.";
+    if (!expenseData.expenseName) newErrors.expenseName = true;
+    if (!expenseData.amount) newErrors.amount = true;
+    if (!expenseData.date) newErrors.date = true;
+    if (!expenseData.transactionType) newErrors.transactionType = true;
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
@@ -192,10 +202,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
           amount: expenseData.amount,
           netAmount: expenseData.amount,
           paymentMethod: expenseData.paymentMethod,
-          type: expenseData.transactionType,
+          type: expenseData.transactionType.toLowerCase(),
           comments: expenseData.comments,
           creditDue: expenseData.creditDue || 0,
-          // Include the selected category ID
         },
       })
     );
@@ -225,7 +234,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
       prev.map((state, i) => (i === index ? !state : state))
     );
   };
-
   const renderInput = (id, type = "text", isTextarea = false) => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
@@ -233,9 +241,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
           {id
             .replace(/([A-Z])/g, " $1")
             .replace(/^./, (str) => str.toUpperCase())}
-          {['expenseName', 'amount', 'date', 'transactionType', 'category'].includes(id) && (
-            <span className="text-red-500"> *</span>
-          )}
+          {["expenseName", "amount", "date", "transactionType"].includes(
+            id
+          ) && <span className="text-red-500"> *</span>}
         </label>
         {isTextarea ? (
           <textarea
@@ -246,7 +254,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
             placeholder={`Enter ${id}`}
             rows="3"
             className={fieldStyles}
-            style={{ height: "80px" }}
+            style={{
+              height: "80px",
+              borderColor: errors[id] ? "#ff4d4f" : "rgb(75, 85, 99)",
+              borderWidth: errors[id] ? "2px" : "1px",
+            }}
           />
         ) : (
           <input
@@ -257,14 +269,13 @@ const NewExpense = ({ onClose, onSuccess }) => {
             onChange={handleInputChange}
             placeholder={`Enter ${id}`}
             className={fieldStyles}
+            style={{
+              borderColor: errors[id] ? "#ff4d4f" : "rgb(75, 85, 99)",
+              borderWidth: errors[id] ? "2px" : "1px",
+            }}
           />
         )}
       </div>
-      {errors[id] && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors[id]}
-        </span>
-      )}
     </div>
   );
 
@@ -302,31 +313,60 @@ const NewExpense = ({ onClose, onSuccess }) => {
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
         <label htmlFor="amount" className={labelStyle} style={inputWrapper}>
-          Amount
+          Amount<span className="text-red-500"> *</span>
         </label>
         <TextField
           id="amount"
           name="amount"
           type="number"
           value={expenseData.amount || ""}
-          onChange={(e) => handleInputChange(e)}
+          onChange={(e) => {
+            handleInputChange(e);
+
+            // Clear the error when the user types
+            if (errors.amount) {
+              setErrors({ ...errors, amount: false });
+            }
+          }}
           placeholder="Enter amount"
           variant="outlined"
+          error={errors.amount}
           InputProps={{
             className: fieldStyles,
-            style: { height: "52px" }, // Reduced height
+            style: {
+              height: "52px",
+              borderColor: errors.amount ? "#ff4d4f" : "rgb(75, 85, 99)",
+              borderWidth: errors.amount ? "2px" : "1px",
+            },
           }}
           sx={{
             width: "100%",
             maxWidth: "300px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: errors.amount ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.amount ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+              "&:hover fieldset": {
+                borderColor: errors.amount ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.amount ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: errors.amount ? "#ff4d4f" : "#00dac6",
+                borderWidth: errors.amount ? "2px" : "2px",
+                borderStyle: "solid",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: errors.amount ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.amount ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+            },
           }}
         />
       </div>
-      {errors.amount && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors.amount}
-        </span>
-      )}
     </div>
   );
 
@@ -334,7 +374,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
         <label htmlFor="date" className={labelStyle} style={inputWrapper}>
-          Date
+          Date<span className="text-red-500"> *</span>
         </label>
         <TextField
           id="date"
@@ -343,25 +383,42 @@ const NewExpense = ({ onClose, onSuccess }) => {
           value={expenseData.date || ""}
           onChange={(e) => handleDateChange(e)}
           variant="outlined"
+          error={errors.date}
           InputProps={{
             className: fieldStyles,
-            style: { height: "52px" }, // Reduced height
+            style: { height: "52px" },
           }}
           sx={{
             width: "100%",
             maxWidth: "300px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.date ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+              "&:hover fieldset": {
+                borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.date ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: errors.date ? "#ff4d4f" : "#00dac6",
+                borderWidth: errors.date ? "2px" : "2px",
+                borderStyle: "solid",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.date ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+            },
           }}
         />
       </div>
-      {errors.date && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors.date}
-        </span>
-      )}
     </div>
   );
 
-  // Add a safeguard to ensure expenseData is not null or undefined
   const renderExpenseNameWithSuggestions = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
@@ -370,7 +427,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           className={labelStyle}
           style={inputWrapper}
         >
-          Expense Name
+          Expense Name<span className="text-red-500"> *</span>
         </label>
         <Autocomplete
           freeSolo
@@ -379,10 +436,15 @@ const NewExpense = ({ onClose, onSuccess }) => {
           loading={loading}
           loadingText="Loading"
           noOptionsText={expenseData?.expenseName ? "No Data Found" : ""}
-          value={expenseData?.expenseName || ""} // Safeguard added here
+          value={expenseData?.expenseName || ""}
           onInputChange={(event, newValue) => {
             setExpenseData((prev) => ({ ...prev, expenseName: newValue }));
             fetchSuggestions(newValue);
+
+            // Clear the error when the user types
+            if (errors.expenseName) {
+              setErrors({ ...errors, expenseName: false });
+            }
           }}
           onChange={(event, newValue) => {
             setExpenseData((prev) => ({ ...prev, expenseName: newValue }));
@@ -390,13 +452,26 @@ const NewExpense = ({ onClose, onSuccess }) => {
           openOnFocus
           sx={{
             width: "100%",
-            maxWidth: "300px", // Adjusted to match the size of other input fields
+            maxWidth: "300px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: errors.expenseName ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.expenseName ? "2px" : "1px",
+              },
+              "&:hover fieldset": {
+                borderColor: errors.expenseName ? "#ff4d4f" : "rgb(75, 85, 99)",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: errors.expenseName ? "#ff4d4f" : "#00dac6",
+              },
+            },
           }}
           renderInput={(params) => (
             <TextField
               {...params}
               placeholder="Enter expense name"
               variant="outlined"
+              error={errors.expenseName}
               InputProps={{
                 ...params.InputProps,
                 endAdornment: (
@@ -420,11 +495,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
           }}
         />
       </div>
-      {errors.expenseName && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors.expenseName}
-        </span>
-      )}
     </div>
   );
 
@@ -432,7 +502,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
         <label htmlFor="category" className={labelStyle} style={inputWrapper}>
-          Category<span className="text-red-500"> *</span>
+          Category
         </label>
         <Autocomplete
           autoHighlight
@@ -561,7 +631,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
       )}
     </div>
   );
-
   const renderTransactionTypeAutocomplete = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
@@ -570,7 +639,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           className={labelStyle}
           style={inputWrapper}
         >
-          Transaction Type
+          Transaction Type<span className="text-red-500"> *</span>
         </label>
         <Autocomplete
           autoHighlight
@@ -579,16 +648,59 @@ const NewExpense = ({ onClose, onSuccess }) => {
           value={expenseData.transactionType || ""}
           onInputChange={(event, newValue) => {
             setExpenseData((prev) => ({ ...prev, transactionType: newValue }));
+
+            // Clear the error when the user types
+            if (errors.transactionType) {
+              setErrors({ ...errors, transactionType: false });
+            }
           }}
           onChange={(event, newValue) => {
             setExpenseData((prev) => ({ ...prev, transactionType: newValue }));
+
+            // Clear the error when the user selects a value
+            if (errors.transactionType) {
+              setErrors({ ...errors, transactionType: false });
+            }
           }}
           noOptionsText="No options found"
+          sx={{
+            width: "100%",
+            maxWidth: "300px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: errors.transactionType
+                  ? "#ff4d4f"
+                  : "rgb(75, 85, 99)",
+                borderWidth: errors.transactionType ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+              "&:hover fieldset": {
+                borderColor: errors.transactionType
+                  ? "#ff4d4f"
+                  : "rgb(75, 85, 99)",
+                borderWidth: errors.transactionType ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: errors.transactionType ? "#ff4d4f" : "#00dac6",
+                borderWidth: errors.transactionType ? "2px" : "2px",
+                borderStyle: "solid",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: errors.transactionType
+                  ? "#ff4d4f"
+                  : "rgb(75, 85, 99)",
+                borderWidth: errors.transactionType ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+            },
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
               placeholder="Select transaction type"
               variant="outlined"
+              error={errors.transactionType}
               InputProps={{
                 ...params.InputProps,
                 className: fieldStyles,
@@ -607,17 +719,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
               </li>
             );
           }}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-          }}
         />
       </div>
-      {errors.transactionType && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors.transactionType}
-        </span>
-      )}
     </div>
   );
 
@@ -1054,8 +1157,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
       }
       .overflow-y-auto::-webkit-scrollbar {
         width: 6px;
-      }
-      .overflow-x-auto::-webkit-scrollbar {
+      }      .overflow-x-auto::-webkit-scrollbar {
         height: 6px;
       }
     }

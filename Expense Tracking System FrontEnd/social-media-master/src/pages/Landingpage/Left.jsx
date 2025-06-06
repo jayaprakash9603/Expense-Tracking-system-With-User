@@ -146,6 +146,13 @@ const Left = () => {
               icon="https://cdn-icons-png.flaticon.com/128/2488/2488980.png"
               setIsSidebarOpen={setIsSidebarOpen}
             />
+
+            <MenuItem
+              name="Profile"
+              path="/category-flow"
+              icon="https://cdn-icons-png.flaticon.com/128/456/456283.png"
+              setIsSidebarOpen={setIsSidebarOpen}
+            />
             <MenuItem
               name="Profile"
               path="/profile"
