@@ -28,8 +28,7 @@ public class Expense {
     @Column(nullable = false)
     private boolean includeInBudget = false;
 
-    @Column(name = "budget_ids", columnDefinition = "TEXT")
-    @Convert(converter = SetIntegerConverter.class)
+    @Column(name = "budget_ids", columnDefinition = "LONGBLOB")
     private Set<Integer> budgetIds = new HashSet<>();
 
     private Integer categoryId = 0;

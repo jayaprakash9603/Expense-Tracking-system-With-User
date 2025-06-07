@@ -1,14 +1,14 @@
 package com.jaya.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @AllArgsConstructor
@@ -21,7 +21,6 @@ public class PaymentMethod {
     @Id
     private Integer id;
 
-
     @ManyToOne
     @JsonIgnore
     private User user;
@@ -32,5 +31,22 @@ public class PaymentMethod {
 
     private String type = "";
 
+    private boolean isGlobal = false;
 
+    @ElementCollection
+    @CollectionTable(name = "payment_method_user_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
+    @Column(name = "user_id" , columnDefinition = "LONGBLOB")
+    private Set<Integer> userIds = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "payment_method_edit_user_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
+    @Column(name = "edit_user_id" , columnDefinition = "LONGBLOB")
+    private Set<Integer> editUserIds = new HashSet<>();
+
+
+
+    @ElementCollection
+    @CollectionTable(name = "payment_method_expense_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
+    @Column(name = "expense_id", columnDefinition = "LONGBLOB")
+    private Set<Integer> expenseIds = new HashSet<>();
 }

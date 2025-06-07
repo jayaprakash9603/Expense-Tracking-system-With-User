@@ -42,13 +42,15 @@ public class Category {
 
     @ElementCollection
     @CollectionTable(name = "category_user_ids", joinColumns = @JoinColumn(name = "category_id"))
-    @Column(name = "user_id", columnDefinition = "TEXT")
-    @Convert(converter = SetIntegerConverter.class)
+    @Column(name = "user_id", columnDefinition = "LONGBLOB")
     private Set<Integer> userIds = new HashSet<>();
 
     @ElementCollection
-    @CollectionTable(name = "category_edit_user_ids", joinColumns = @JoinColumn(name = "category_id"))
-    @Column(name = "edit_user_id")
+    @CollectionTable(
+            name = "category_edit_user_ids",
+            joinColumns = @JoinColumn(name = "category_id")
+    )
+    @Column(name = "edit_user_id", columnDefinition = "LONGBLOB")
     private Set<Integer> editUserIds = new HashSet<>();
 
 

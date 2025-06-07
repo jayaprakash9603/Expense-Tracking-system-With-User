@@ -33,7 +33,14 @@ public class PaymentMethodController {
         return ResponseEntity.ok(list);
     }
 
-    @PostMapping
+    @GetMapping("/name")
+    public ResponseEntity<PaymentMethod> getByName(@RequestHeader("Authorization") String jwt,@RequestParam String name) {
+        User reqUser = userService.findUserByJwt(jwt);
+        PaymentMethod paymentMethod = paymentMethodService.getByName(reqUser.getId(),name);
+        return ResponseEntity.ok(paymentMethod);
+    }
+
+    @PostMapping()
     public ResponseEntity<PaymentMethod> createPaymentMethod(@RequestHeader("Authorization") String jwt, @RequestBody PaymentMethod paymentMethod) throws UserException {
         User reqUser = userService.findUserByJwt(jwt);
         PaymentMethod created = paymentMethodService.createPaymentMethod(reqUser.getId(), paymentMethod);
@@ -51,6 +58,13 @@ public class PaymentMethodController {
     public ResponseEntity<Void> deletePaymentMethod(@PathVariable Integer id, @RequestHeader("Authorization") String jwt) throws Exception {
         User reqUser = userService.findUserByJwt(jwt);
         paymentMethodService.deletePaymentMethod(reqUser.getId(), id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/all")
+    public ResponseEntity<Void> deleteAllUserPaymentMethods( @RequestHeader("Authorization") String jwt) throws Exception {
+        User reqUser = userService.findUserByJwt(jwt);
+        paymentMethodService.deleteAllUserPaymentMethods(reqUser.getId());
         return ResponseEntity.noContent().build();
     }
 }

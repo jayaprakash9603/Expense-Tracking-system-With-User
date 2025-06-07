@@ -4,13 +4,12 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
 } from "@tanstack/react-table";
-import {
-  editMultipleExpenseAction,
-  fetchExpenses,
-} from "../../Redux/Expenses/expense.action";
+import { fetchExpenses } from "../../Redux/Expenses/expense.action";
 import { createBudgetAction } from "../../Redux/Budget/budget.action";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { DataGrid } from "@mui/x-data-grid";
+import { Box, useMediaQuery } from "@mui/material";
 
 const NewBudget = () => {
   const navigate = useNavigate();
@@ -72,52 +71,49 @@ const NewBudget = () => {
       newErrors.amount = "Valid amount is required.";
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length === 0) {
-      try {
-        // Collect expense IDs where includeInBudget is checked
-        const expenseIds = expenses
-          .filter((expense, index) => checkboxStates[index])
-          .map((expense) => expense.id);
+    // If there are errors, do not submit or navigate
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
 
-        const budgetData = {
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          startDate: formData.startDate,
-          endDate: formData.endDate,
-          amount: parseInt(formData.amount) || 0,
-          expenseIds: expenseIds,
-        };
+    try {
+      // Collect expense IDs where includeInBudget is checked
+      const expenseIds = expenses
+        .filter((expense, index) => checkboxStates[index])
+        .map((expense) => expense.id);
 
-        const updatedExpenses = expenses.map((expense, index) => ({
-          ...expense,
-          includeInBudget: checkboxStates[index],
-        }));
+      const budgetData = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        amount: parseInt(formData.amount) || 0,
+        expenseIds: expenseIds,
+      };
 
-        console.log("Submitting budget:", budgetData);
-        console.log("Saving all expenses:", updatedExpenses);
+      const updatedExpenses = expenses.map((expense, index) => ({
+        ...expense,
+        includeInBudget: checkboxStates[index],
+      }));
 
-        dispatch(createBudgetAction(budgetData));
-        // if (updatedExpenses.length > 0) {
-        //   await dispatch(editMultipleExpenseAction(updatedExpenses));
-        // }
+      console.log("Submitting budget:", budgetData);
+      console.log("Saving all expenses:", updatedExpenses);
 
-        navigate(
-          `/budget?message=${encodeURIComponent(
-            "Budget created successfully!"
-          )}&type=success`
-        );
-      } catch (error) {
-        console.error("Submission error:", error);
-        navigate(
-          `/budget?message=${encodeURIComponent(
-            error.message || "Failed to create budget."
-          )}&type=error`
-        );
-      }
-    } else {
+      dispatch(createBudgetAction(budgetData));
+      // if (updatedExpenses.length > 0) {
+      //   await dispatch(editMultipleExpenseAction(updatedExpenses));
+      // }
+
       navigate(
         `/budget?message=${encodeURIComponent(
-          "Please fill out all required fields correctly."
+          "Budget created successfully!"
+        )}&type=success`
+      );
+    } catch (error) {
+      console.error("Submission error:", error);
+      navigate(
+        `/budget?message=${encodeURIComponent(
+          error.message || "Failed to create budget."
         )}&type=error`
       );
     }
@@ -160,16 +156,66 @@ const NewBudget = () => {
           value={formData[id]}
           onChange={handleInputChange}
           placeholder={`Enter ${id}`}
-          className={fieldStyles}
+          className={
+            fieldStyles +
+            (errors[id] ? " border-red-500 focus:ring-red-500" : "")
+          }
+          style={
+            errors[id]
+              ? { borderColor: "#ef4444", boxShadow: "0 0 0 2px #ef4444" }
+              : {}
+          }
         />
       </div>
-      {errors[id] && (
-        <span className="text-red-500 text-sm ml-[100px] sm:ml-[120px]">
-          {errors[id]}
-        </span>
-      )}
+      {/* No error message below the field */}
     </div>
   );
+
+  // DataGrid columns for desktop
+  const dataGridColumns = [
+    { field: "date", headerName: "Date", flex: 1, minWidth: 80 },
+    {
+      field: "expenseName",
+      headerName: "Expense Name",
+      flex: 1,
+      minWidth: 120,
+    },
+    { field: "amount", headerName: "Amount", flex: 1, minWidth: 80 },
+    {
+      field: "paymentMethod",
+      headerName: "Payment Method",
+      flex: 1,
+      minWidth: 120,
+    },
+    { field: "type", headerName: "Type", flex: 1, minWidth: 80 },
+    { field: "comments", headerName: "Comments", flex: 1, minWidth: 120 },
+  ];
+
+  // DataGrid selection logic
+  const dataGridRows = Array.isArray(expenses)
+    ? expenses.map((item, index) => ({
+        ...item, // keep all original fields
+        id: item.id ?? `temp-${index}-${Date.now()}`,
+        expenseName: item.expense?.expenseName || "",
+        amount: item.expense?.amount || "",
+        paymentMethod: item.expense?.paymentMethod || "",
+        type: item.expense?.type || "",
+        comments: item.expense?.comments || "",
+      }))
+    : [];
+
+  // Map checkboxStates to DataGrid selection model
+  const selectedIds = dataGridRows
+    .filter((_, idx) => checkboxStates[idx])
+    .map((row) => row.id);
+
+  const handleDataGridSelection = (newSelection) => {
+    // Map DataGrid selection to checkboxStates
+    const newCheckboxStates = dataGridRows.map((row, idx) =>
+      newSelection.includes(row.id)
+    );
+    setCheckboxStates(newCheckboxStates);
+  };
 
   const columns = useMemo(
     () => [
@@ -239,12 +285,6 @@ const NewBudget = () => {
     },
   });
 
-  const handlePageSizeChange = (e) => {
-    const newSize = Number(e.target.value);
-    setPageSize(newSize);
-    setPageIndex(0);
-  };
-
   return (
     <div className="bg-[#1b1b1b]">
       <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
@@ -259,7 +299,6 @@ const NewBudget = () => {
           border: "1px solid rgb(0, 0, 0)",
           opacity: 1,
           padding: "16px",
-          margin: "0 auto",
         }}
       >
         <div>
@@ -376,118 +415,44 @@ const NewBudget = () => {
                   ))
                 )}
               </div>
-              <div
-                className="hidden sm:block overflow-x-auto overflow-y-auto border border-gray-600 rounded"
-                style={{ height: "260px" }}
-              >
-                <table className="w-full text-white border-collapse">
-                  <thead>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <th
-                            key={header.id}
-                            className="px-2 sm:px-4 py-2 text-left bg-[#29282b] border-b border-gray-600 sticky top-0 z-10"
-                            style={{
-                              width: header.column.columnDef.size,
-                              minWidth: header.column.columnDef.size,
-                              maxWidth: header.column.columnDef.size,
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : header.column.columnDef.header}
-                          </th>
-                        ))}
-                      </tr>
-                    ))}
-                  </thead>
-                  <tbody>
-                    {expenses.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={columns.length}
-                          className="px-2 sm:px-4 py-2 text-center text-gray-400 border-b border-gray-600"
-                          style={{ height: "200px" }}
-                        >
-                          No rows found
-                        </td>
-                      </tr>
-                    ) : (
-                      table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="border-b border-gray-600">
-                          {row.getVisibleCells().map((cell) => (
-                            <td
-                              key={cell.id}
-                              className="px-2 sm:px-4 py-2"
-                              style={{
-                                width: cell.column.columnDef.size,
-                                minWidth: cell.column.columnDef.size,
-                                maxWidth: cell.column.columnDef.size,
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
-                              {cell.column.columnDef.cell
-                                ? cell.column.columnDef.cell(cell)
-                                : cell.getValue()}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              <div className="hidden sm:block">
+                <Box
+                  sx={{
+                    height: 340,
+                    width: "100%",
+                    background: "#29282b",
+                    borderRadius: 2,
+                    border: "1px solid #444",
+                  }}
+                >
+                  <DataGrid
+                    rows={dataGridRows}
+                    columns={dataGridColumns}
+                    getRowId={(row) => row.id}
+                    checkboxSelection
+                    disableRowSelectionOnClick
+                    selectionModel={selectedIds}
+                    onRowSelectionModelChange={handleDataGridSelection}
+                    pageSizeOptions={[5, 10, 20]}
+                    initialState={{
+                      pagination: {
+                        paginationModel: { page: 0, pageSize: pageSize },
+                      },
+                    }}
+                    rowHeight={45}
+                    headerHeight={32}
+                    sx={{
+                      color: "#fff",
+                      border: 0,
+                      "& .MuiDataGrid-columnHeaders": { background: "#222" },
+                      "& .MuiDataGrid-row": { background: "#29282b" },
+                      "& .MuiCheckbox-root": { color: "#00dac6 !important" },
+                      fontSize: "0.92rem",
+                    }}
+                  />
+                </Box>
               </div>
-              <div className="mt-4 flex flex-row justify-between items-center bg-[#0b0b0b] py-2 z-20 relative gap-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPageIndex(pageIndex - 1)}
-                    disabled={!table.getCanPreviousPage()}
-                    className={`px-3 py-1 rounded text-sm ${
-                      table.getCanPreviousPage()
-                        ? "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-                        : "bg-gray-700 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    Previous
-                  </button>
-                  <span className="text-white text-sm">
-                    Page{" "}
-                    <strong>
-                      {pageIndex + 1} of {table.getPageCount()}
-                    </strong>{" "}
-                  </span>
-                  <button
-                    onClick={() => setPageIndex(pageIndex + 1)}
-                    disabled={!table.getCanNextPage()}
-                    className={`px-3 py-1 rounded text-sm ${
-                      table.getCanNextPage()
-                        ? "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-                        : "bg-gray-700 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    Next
-                  </button>
-                </div>
-                <div>
-                  <select
-                    value={pageSize}
-                    onChange={handlePageSizeChange}
-                    className="px-3 py-1 bg-[#29282b] text-white border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
-                  >
-                    {[5, 10, 20].map((size) => (
-                      <option key={size} value={size}>
-                        Show {size}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              {/* ...existing pagination for mobile only... */}
             </div>
           )}
         </div>

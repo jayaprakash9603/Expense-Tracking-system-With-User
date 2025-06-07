@@ -33,8 +33,7 @@ public class Budget {
     @JsonIgnore
     private User user;
 
-    @Column(name = "expense_ids", columnDefinition = "TEXT")
-    @Convert(converter = SetIntegerConverter.class)
+    @Column(name = "expense_ids", columnDefinition = "LONGBLOB")
     private Set<Integer> expenseIds = new HashSet<>();
 
     private double remainingAmount;

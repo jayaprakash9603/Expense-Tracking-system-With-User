@@ -73,7 +73,13 @@ public class ExpenseServiceImpl implements ExpenseService {
     private CategoryService categoryService;
     @Autowired
     private AuditExpenseService auditExpenseService;
+
+
     @Autowired
+    private PaymentMethodService paymentMethodService;
+
+    @Autowired
+    private PaymentMethodRepository paymentMethodRepository;
     public ExpenseServiceImpl(ExpenseRepository expenseRepository,ExpenseReportRepository expenseReportRepository) {
         this.expenseRepository = expenseRepository;
         this.expenseReportRepository = expenseReportRepository;
@@ -83,41 +89,22 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     @Transactional
     public Expense addExpense(Expense expense, User user) throws Exception {
-        if (expense.getDate() == null) {
-            throw new IllegalArgumentException("Expense date must not be null.");
-        }
-
-        if (expense.getExpense() == null) {
-            throw new IllegalArgumentException("Expense details must not be null.");
-        }
+        if (expense.getDate() == null) throw new IllegalArgumentException("Expense date must not be null.");
+        if (expense.getExpense() == null) throw new IllegalArgumentException("Expense details must not be null.");
 
         ExpenseDetails details = expense.getExpense();
-        if (details.getExpenseName() == null || details.getExpenseName().isEmpty()) {
+        if (details.getExpenseName() == null || details.getExpenseName().isEmpty())
             throw new IllegalArgumentException("Expense name must not be empty.");
-        }
-
-        if (details.getAmount() < 0) {
-            throw new IllegalArgumentException("Expense amount cannot be negative.");
-        }
-
-        if (details.getPaymentMethod() == null || details.getPaymentMethod().isEmpty()) {
+        if (details.getAmount() < 0) throw new IllegalArgumentException("Expense amount cannot be negative.");
+        if (details.getPaymentMethod() == null || details.getPaymentMethod().isEmpty())
             throw new IllegalArgumentException("Payment method must not be empty.");
-        }
-
-        if (details.getType() == null || details.getType().isEmpty()) {
+        if (details.getType() == null || details.getType().isEmpty())
             throw new IllegalArgumentException("Expense type must not be empty.");
-        }
-
-        if (user == null) {
-            throw new UserException("User not found.");
-        }
+        if (user == null) throw new UserException("User not found.");
 
         expense.setUser(user);
-        if (expense.getBudgetIds() == null) {
-            expense.setBudgetIds(new HashSet<>());
-        }
+        if (expense.getBudgetIds() == null) expense.setBudgetIds(new HashSet<>());
 
-        // Establish bidirectional link for details
         details.setExpense(expense);
         expense.setExpense(details);
 
@@ -132,22 +119,16 @@ public class ExpenseServiceImpl implements ExpenseService {
                 }
             }
         }
-
         expense.setBudgetIds(validBudgetIds);
 
         try {
             Category category = categoryService.getById(expense.getCategoryId(), user);
-            if (category != null) {
-                expense.setCategoryId(category.getId());
-            }
+            if (category != null) expense.setCategoryId(category.getId());
         } catch (Exception e) {
             try {
-                System.out.println("Entered into catchblock" +expense.getCategoryId());
                 Category category = categoryService.getByName("Others", user).get(0);
-                System.out.println("Category name"+category.getName());
                 expense.setCategoryId(category.getId());
             } catch (Exception notFound) {
-                System.out.println("eentered into not found");
                 Category createdCategory = new Category();
                 createdCategory.setDescription("Others Description");
                 createdCategory.setName("Others");
@@ -158,21 +139,37 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         Expense savedExpense = expenseRepository.save(expense);
 
-        Category getCategory = categoryService.getById(savedExpense.getCategoryId(), user);
-        if (getCategory.getExpenseIds() == null) {
-            getCategory.setExpenseIds(new HashMap<>());
+        // Payment method logic
+        String paymentMethodName = details.getPaymentMethod().trim();
+        String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
+        PaymentMethod paymentMethod = paymentMethodService.getAllPaymentMethods(user.getId()).stream()
+                .filter(pm -> pm.getName().equalsIgnoreCase(paymentMethodName) && pm.getType().equalsIgnoreCase(paymentType))
+                .findFirst()
+                .orElse(null);
+
+        if (paymentMethod == null) {
+            paymentMethod = new PaymentMethod();
+            paymentMethod.setUser(user);
+            paymentMethod.setName(paymentMethodName);
+            paymentMethod.setType(paymentType);
+            paymentMethod.setAmount(0);
+            paymentMethod.setGlobal(false);
         }
+        if (paymentMethod.getExpenseIds() == null) paymentMethod.setExpenseIds(new HashSet<>());
+        paymentMethod.getExpenseIds().add(savedExpense.getId());
+        paymentMethodRepository.save(paymentMethod);
+
+        Category getCategory = categoryService.getById(savedExpense.getCategoryId(), user);
+        if (getCategory.getExpenseIds() == null) getCategory.setExpenseIds(new HashMap<>());
         Set<Integer> expenseSet = getCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
         expenseSet.add(savedExpense.getId());
         getCategory.getExpenseIds().put(user.getId(), expenseSet);
         categoryRepository.save(getCategory);
 
-        // Now update the valid budgets with the new expense ID
         for (Integer validBudgetId : validBudgetIds) {
-            Budget budget = budgetRepository.findByUserIdAndId(user.getId(), validBudgetId).orElseThrow(() -> new RuntimeException("Budget not found"));
-            if (budget.getExpenseIds() == null) {
-                budget.setExpenseIds(new HashSet<>());
-            }
+            Budget budget = budgetRepository.findByUserIdAndId(user.getId(), validBudgetId)
+                    .orElseThrow(() -> new RuntimeException("Budget not found"));
+            if (budget.getExpenseIds() == null) budget.setExpenseIds(new HashSet<>());
             if (!budget.getExpenseIds().contains(savedExpense.getId())) {
                 budget.getExpenseIds().add(savedExpense.getId());
                 budgetRepository.save(budget);
@@ -230,12 +227,9 @@ public class ExpenseServiceImpl implements ExpenseService {
                 }
             } catch (Exception e) {
                 try {
-                    System.out.println("Entered into catchblock" +expense.getCategoryId());
                     Category category = categoryService.getByName("Others", user).get(0);
-                    System.out.println("Category name"+category.getName());
                     expense.setCategoryId(category.getId());
                 } catch (Exception notFound) {
-                    System.out.println("eentered into not found");
                     Category createdCategory = new Category();
                     createdCategory.setDescription("Others Description");
                     createdCategory.setName("Others");
@@ -243,18 +237,36 @@ public class ExpenseServiceImpl implements ExpenseService {
                     expense.setCategoryId(newCategory.getId());
                 }
             }
-
         }
 
         // Save the new expenses
         List<Expense> savedExpenses = saveExpenses(expenses);
 
-
-
-
-        // Update corresponding Budgets with new expense IDs
+        // Payment method logic for each saved expense
         for (Expense savedExpense : savedExpenses) {
+            ExpenseDetails details = savedExpense.getExpense();
+            if (details != null && details.getPaymentMethod() != null && details.getType() != null) {
+                String paymentMethodName = details.getPaymentMethod().trim();
+                String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
+                PaymentMethod paymentMethod = paymentMethodService.getAllPaymentMethods(user.getId()).stream()
+                        .filter(pm -> pm.getName().equalsIgnoreCase(paymentMethodName) && pm.getType().equalsIgnoreCase(paymentType))
+                        .findFirst()
+                        .orElse(null);
 
+                if (paymentMethod == null) {
+                    paymentMethod = new PaymentMethod();
+                    paymentMethod.setUser(user);
+                    paymentMethod.setName(paymentMethodName);
+                    paymentMethod.setType(paymentType);
+                    paymentMethod.setAmount(0);
+                    paymentMethod.setGlobal(false);
+                }
+                if (paymentMethod.getExpenseIds() == null) paymentMethod.setExpenseIds(new HashSet<>());
+                paymentMethod.getExpenseIds().add(savedExpense.getId());
+                paymentMethodRepository.save(paymentMethod);
+            }
+
+            // Update Category
             Category getCategory = categoryService.getById(savedExpense.getCategoryId(), user);
             if (getCategory.getExpenseIds() == null) {
                 getCategory.setExpenseIds(new HashMap<>());
@@ -263,6 +275,8 @@ public class ExpenseServiceImpl implements ExpenseService {
             expenseSet.add(savedExpense.getId());
             getCategory.getExpenseIds().put(user.getId(), expenseSet);
             categoryRepository.save(getCategory);
+
+            // Update Budgets
             for (Integer budgetId : savedExpense.getBudgetIds()) {
                 Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
                 if (budget != null) {
@@ -274,14 +288,13 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
 
             // Audit log
-            ExpenseDetails details = savedExpense.getExpense();
             String logMessage = String.format(
                     "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
                     savedExpense.getId(),
-                    details.getExpenseName(),
-                    details.getAmount(),
-                    details.getType(),
-                    details.getPaymentMethod()
+                    details != null ? details.getExpenseName() : "",
+                    details != null ? details.getAmount() : 0.0,
+                    details != null ? details.getType() : "",
+                    details != null ? details.getPaymentMethod() : ""
             );
             auditExpenseService.logAudit(user, savedExpense.getId(), "create", logMessage);
         }
@@ -332,24 +345,19 @@ public class ExpenseServiceImpl implements ExpenseService {
         if (updatedExpense.getDate() == null) {
             throw new IllegalArgumentException("Expense date must not be null.");
         }
-
         if (updatedExpense.getExpense() == null) {
             throw new IllegalArgumentException("Expense details must not be null.");
         }
-
         ExpenseDetails details = updatedExpense.getExpense();
         if (details.getExpenseName() == null || details.getExpenseName().isEmpty()) {
             throw new IllegalArgumentException("Expense name must not be empty.");
         }
-
         if (details.getAmount() < 0) {
             throw new IllegalArgumentException("Expense amount cannot be negative.");
         }
-
         if (details.getPaymentMethod() == null || details.getPaymentMethod().isEmpty()) {
             throw new IllegalArgumentException("Payment method must not be empty.");
         }
-
         if (details.getType() == null || details.getType().isEmpty()) {
             throw new IllegalArgumentException("Expense type must not be empty.");
         }
@@ -357,8 +365,6 @@ public class ExpenseServiceImpl implements ExpenseService {
         // Handle category changes
         Integer oldCategoryId = existingExpense.getCategoryId();
         Integer newCategoryId = updatedExpense.getCategoryId();
-
-        // If category has changed, update category associations
         if (!Objects.equals(oldCategoryId, newCategoryId)) {
             // Remove expense from old category
             if (oldCategoryId != null) {
@@ -371,11 +377,9 @@ public class ExpenseServiceImpl implements ExpenseService {
                         categoryRepository.save(oldCategory);
                     }
                 } catch (Exception e) {
-                    // Log error but continue with update
                     System.out.println("Error removing expense from old category: " + e.getMessage());
                 }
             }
-
             // Add expense to new category
             try {
                 Category newCategory = categoryService.getById(newCategoryId, user);
@@ -384,12 +388,9 @@ public class ExpenseServiceImpl implements ExpenseService {
                 }
             } catch (Exception e) {
                 try {
-                    System.out.println("Entered into catchblock for update: " + newCategoryId);
                     Category category = categoryService.getByName("Others", user).get(0);
-                    System.out.println("Category name: " + category.getName());
                     existingExpense.setCategoryId(category.getId());
                 } catch (Exception notFound) {
-                    System.out.println("Entered into not found for update");
                     Category createdCategory = new Category();
                     createdCategory.setDescription("Others Description");
                     createdCategory.setName("Others");
@@ -403,8 +404,45 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
         }
 
-        // Update expense details
+        // --- Payment Method Update Logic ---
         ExpenseDetails existingDetails = existingExpense.getExpense();
+        String oldPaymentMethodName = existingDetails.getPaymentMethod();
+        String oldPaymentType = existingDetails.getType() != null && existingDetails.getType().equalsIgnoreCase("loss") ? "expense" : "income";
+        String newPaymentMethodName = details.getPaymentMethod().trim();
+        String newPaymentType = details.getType() != null && details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
+
+        // Remove from old payment method if changed
+        if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty()) {
+            List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
+            PaymentMethod oldPaymentMethod = allMethods.stream()
+                    .filter(pm -> pm.getName().equalsIgnoreCase(oldPaymentMethodName.trim()) && pm.getType().equalsIgnoreCase(oldPaymentType))
+                    .findFirst()
+                    .orElse(null);
+            if (oldPaymentMethod != null && oldPaymentMethod.getExpenseIds() != null) {
+                oldPaymentMethod.getExpenseIds().remove(existingExpense.getId());
+                paymentMethodRepository.save(oldPaymentMethod);
+            }
+        }
+
+        // Add to new payment method
+        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
+        PaymentMethod newPaymentMethod = allMethods.stream()
+                .filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName) && pm.getType().equalsIgnoreCase(newPaymentType))
+                .findFirst()
+                .orElse(null);
+        if (newPaymentMethod == null) {
+            newPaymentMethod = new PaymentMethod();
+            newPaymentMethod.setUser(user);
+            newPaymentMethod.setName(newPaymentMethodName);
+            newPaymentMethod.setType(newPaymentType);
+            newPaymentMethod.setAmount(0);
+            newPaymentMethod.setGlobal(false);
+        }
+        if (newPaymentMethod.getExpenseIds() == null) newPaymentMethod.setExpenseIds(new HashSet<>());
+        newPaymentMethod.getExpenseIds().add(existingExpense.getId());
+        paymentMethodRepository.save(newPaymentMethod);
+
+        // Update expense details
         existingDetails.setExpenseName(details.getExpenseName());
         existingDetails.setAmount(details.getAmount());
         existingDetails.setType(details.getType());
@@ -512,96 +550,69 @@ public class ExpenseServiceImpl implements ExpenseService {
 
             Expense existingExpense = existingOpt.get();
 
-            // Debug logging to help identify the issue
-            System.out.println("Expense ID: " + id);
-            System.out.println("Expense User ID: " + (existingExpense.getUser() != null ? existingExpense.getUser().getId() : "null"));
-            System.out.println("Current User ID: " + user.getId());
-
-            // Check if the user is authorized to update this expense
             if (existingExpense.getUser() == null || !existingExpense.getUser().getId().equals(user.getId())) {
-                errorMessages.add("User not authorized to update Expense ID: " + id +
-                        " (Expense belongs to user " +
-                        (existingExpense.getUser() != null ? existingExpense.getUser().getId() : "unknown") +
-                        ", current user is " + user.getId() + ")");
+                errorMessages.add("User not authorized to update Expense ID: " + id);
                 continue;
             }
 
             try {
-                // Handle category changes if needed
+                // --- Category update logic (unchanged) ---
                 Integer oldCategoryId = existingExpense.getCategoryId();
                 Integer newCategoryId = expense.getCategoryId();
-
-                // If category has changed, update category associations
                 if (!Objects.equals(oldCategoryId, newCategoryId)) {
-                    // Remove expense from old category
+                    // Remove from old category
                     if (oldCategoryId != null) {
                         try {
                             Category oldCategory = categoryService.getById(oldCategoryId, user);
                             if (oldCategory != null && oldCategory.getExpenseIds() != null) {
                                 Set<Integer> expenseSet = oldCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
                                 expenseSet.remove(existingExpense.getId());
-
-                                // If there are no more expenses for this user, remove the user key entirely
                                 if (expenseSet.isEmpty()) {
                                     oldCategory.getExpenseIds().remove(user.getId());
                                 } else {
                                     oldCategory.getExpenseIds().put(user.getId(), expenseSet);
                                 }
-
                                 categoryRepository.save(oldCategory);
                             }
                         } catch (Exception e) {
-                            // Log error but continue with update
                             System.out.println("Error removing expense from old category: " + e.getMessage());
                         }
                     }
-
-                    // Add expense to new category
+                    // Add to new category
                     if (newCategoryId != null) {
                         try {
                             Category newCategory = categoryService.getById(newCategoryId, user);
                             if (newCategory != null) {
                                 existingExpense.setCategoryId(newCategory.getId());
-
                                 if (newCategory.getExpenseIds() == null) {
                                     newCategory.setExpenseIds(new HashMap<>());
                                 }
-
                                 Set<Integer> expenseSet = newCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
                                 expenseSet.add(existingExpense.getId());
                                 newCategory.getExpenseIds().put(user.getId(), expenseSet);
                                 categoryRepository.save(newCategory);
                             }
                         } catch (Exception e) {
-                            // Try to use "Others" category as fallback
                             try {
-                                System.out.println("Entered into catchblock for update: " + newCategoryId);
                                 Category category = categoryService.getByName("Others", user).get(0);
-                                System.out.println("Category name: " + category.getName());
                                 existingExpense.setCategoryId(category.getId());
-
                                 if (category.getExpenseIds() == null) {
                                     category.setExpenseIds(new HashMap<>());
                                 }
-
                                 Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
                                 expenseSet.add(existingExpense.getId());
                                 category.getExpenseIds().put(user.getId(), expenseSet);
                                 categoryRepository.save(category);
                             } catch (Exception notFound) {
-                                // Create "Others" category if it doesn't exist
-                                System.out.println("Entered into not found for update");
                                 Category createdCategory = new Category();
                                 createdCategory.setDescription("Others Description");
                                 createdCategory.setName("Others");
                                 try {
                                     Category newCategory = categoryService.create(createdCategory, user);
                                     existingExpense.setCategoryId(newCategory.getId());
-
                                     if (newCategory.getExpenseIds() == null) {
                                         newCategory.setExpenseIds(new HashMap<>());
                                     }
-
                                     Set<Integer> expenseSet = new HashSet<>();
                                     expenseSet.add(existingExpense.getId());
                                     newCategory.getExpenseIds().put(user.getId(), expenseSet);
@@ -614,10 +625,47 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
-                // Update expense details
+                // --- Payment Method update logic ---
                 ExpenseDetails newDetails = expense.getExpense();
                 if (newDetails != null && existingExpense.getExpense() != null) {
                     ExpenseDetails existingDetails = existingExpense.getExpense();
+                    String oldPaymentMethodName = existingDetails.getPaymentMethod();
+                    String oldPaymentType = existingDetails.getType() != null && existingDetails.getType().equalsIgnoreCase("loss") ? "expense" : "income";
+                    String newPaymentMethodName = newDetails.getPaymentMethod() != null ? newDetails.getPaymentMethod().trim() : null;
+                    String newPaymentType = newDetails.getType() != null && newDetails.getType().equalsIgnoreCase("loss") ? "expense" : "income";
+
+                    // Remove from old payment method if changed
+                    if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty() &&
+                            (newPaymentMethodName == null || !oldPaymentMethodName.trim().equalsIgnoreCase(newPaymentMethodName) || !oldPaymentType.equalsIgnoreCase(newPaymentType))) {
+                        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
+                        PaymentMethod oldPaymentMethod = allMethods.stream()
+                                .filter(pm -> pm.getName().equalsIgnoreCase(oldPaymentMethodName.trim()) && pm.getType().equalsIgnoreCase(oldPaymentType))
+                                .findFirst().orElse(null);
+                        if (oldPaymentMethod != null && oldPaymentMethod.getExpenseIds() != null) {
+                            oldPaymentMethod.getExpenseIds().remove(existingExpense.getId());
+                            paymentMethodRepository.save(oldPaymentMethod);
+                        }
+                    }
+
+                    // Add to new payment method
+                    if (newPaymentMethodName != null && !newPaymentMethodName.isEmpty()) {
+                        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
+                        PaymentMethod newPaymentMethod = allMethods.stream()
+                                .filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName) && pm.getType().equalsIgnoreCase(newPaymentType))
+                                .findFirst().orElse(null);
+                        if (newPaymentMethod == null) {
+                            PaymentMethod pm = new PaymentMethod();
+                            pm.setName(newPaymentMethodName);
+                            pm.setType(newPaymentType);
+                            pm.setUser(user);
+                            newPaymentMethod = paymentMethodRepository.save(pm);
+                        }
+                        if (newPaymentMethod.getExpenseIds() == null) newPaymentMethod.setExpenseIds(new HashSet<>());
+                        newPaymentMethod.getExpenseIds().add(existingExpense.getId());
+                        paymentMethodRepository.save(newPaymentMethod);
+                    }
+
+                    // Update expense details
                     existingDetails.setAmount(newDetails.getAmount());
                     existingDetails.setExpenseName(newDetails.getExpenseName());
                     existingDetails.setNetAmount(newDetails.getNetAmount());
@@ -630,6 +678,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 existingExpense.setDate(expense.getDate());
                 existingExpense.setIncludeInBudget(expense.isIncludeInBudget());
 
+                // --- Budget update logic (unchanged) ---
                 Set<Integer> validBudgetIds = new HashSet<>();
                 if (expense.getBudgetIds() != null) {
                     for (Integer budgetId : expense.getBudgetIds()) {
@@ -672,7 +721,6 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
-                // Log successful update
                 auditExpenseService.logAudit(
                         user,
                         savedExpense.getId(),
@@ -680,7 +728,6 @@ public class ExpenseServiceImpl implements ExpenseService {
                         "Expense: " + savedExpense.getExpense().getExpenseName() + ", Amount: " + savedExpense.getExpense().getAmount()
                 );
 
-                // Add the successfully updated expense to the result list
                 updatedExpenses.add(savedExpense);
 
             } catch (Exception e) {
@@ -688,7 +735,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
         }
 
-        // Log errors but don't throw exception, so we can return the successfully updated expenses
         if (!errorMessages.isEmpty()) {
             System.err.println("Errors occurred while updating expenses: " + String.join("; ", errorMessages));
         }
@@ -792,19 +838,31 @@ public class ExpenseServiceImpl implements ExpenseService {
                         if (category != null && category.getExpenseIds() != null) {
                             Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
                             expenseSet.remove(existing.getId());
-
-                            // If there are no more expenses for this user, remove the user key entirely
                             if (expenseSet.isEmpty()) {
                                 category.getExpenseIds().remove(user.getId());
                             } else {
                                 category.getExpenseIds().put(user.getId(), expenseSet);
                             }
-
                             categoryRepository.save(category);
                         }
                     } catch (Exception e) {
-                        // Log error but continue with deletion
                         System.out.println("Error removing expense from category: " + e.getMessage());
+                    }
+                }
+
+                // --- Remove expense from associated payment method ---
+                ExpenseDetails details = existing.getExpense();
+                if (details != null && details.getPaymentMethod() != null && !details.getPaymentMethod().trim().isEmpty()) {
+                    String paymentMethodName = details.getPaymentMethod().trim();
+                    String paymentType = (details.getType() != null && details.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
+                    List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
+                    PaymentMethod paymentMethod = allMethods.stream()
+                            .filter(pm -> pm.getName().equalsIgnoreCase(paymentMethodName) && pm.getType().equalsIgnoreCase(paymentType))
+                            .findFirst()
+                            .orElse(null);
+                    if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
+                        paymentMethod.getExpenseIds().remove(existing.getId());
+                        paymentMethodRepository.save(paymentMethod);
                     }
                 }
 
@@ -816,19 +874,16 @@ public class ExpenseServiceImpl implements ExpenseService {
                         existing.getExpense().getExpenseName()
                 );
 
-                // Add to the list of expenses to delete
                 expensesToDelete.add(existing);
             } catch (Exception e) {
                 errorMessages.add("Failed to process deletion for Expense ID: " + expense.getId() + " - " + e.getMessage());
             }
         }
 
-        // Delete all valid expenses in a batch operation
         if (!expensesToDelete.isEmpty()) {
             expenseRepository.deleteAll(expensesToDelete);
         }
 
-        // If there were any errors, throw an exception with all error messages
         if (!errorMessages.isEmpty()) {
             throw new RuntimeException("Errors occurred while deleting expenses: " + String.join("; ", errorMessages));
         }
@@ -893,8 +948,21 @@ public class ExpenseServiceImpl implements ExpenseService {
                             categoryRepository.save(category);
                         }
                     } catch (Exception e) {
-                        // Log error but continue with deletion
                         System.out.println("Error removing expense from category: " + e.getMessage());
+                    }
+                }
+
+                // Remove expense from associated payment method
+                ExpenseDetails details = expense.getExpense();
+                if (details != null && details.getPaymentMethod() != null && !details.getPaymentMethod().isEmpty()) {
+                    try {
+                        PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), details.getPaymentMethod());
+                        if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
+                            paymentMethod.getExpenseIds().remove(expense.getId());
+                            paymentMethodRepository.save(paymentMethod);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error removing expense from payment method: " + e.getMessage());
                     }
                 }
 
@@ -906,19 +974,16 @@ public class ExpenseServiceImpl implements ExpenseService {
                         expense.getExpense().getExpenseName()
                 );
 
-                // Add to the list of expenses to delete
                 expensesToDelete.add(expense);
             } catch (Exception e) {
                 errorMessages.add("Failed to process deletion for Expense ID: " + expense.getId() + " - " + e.getMessage());
             }
         }
 
-        // Delete all valid expenses in a batch operation
         if (!expensesToDelete.isEmpty()) {
             expenseRepository.deleteAll(expensesToDelete);
         }
 
-        // If there were any errors, throw an exception with all error messages
         if (!errorMessages.isEmpty()) {
             throw new Exception("Errors occurred while deleting expenses: " + String.join("; ", errorMessages));
         }
@@ -967,6 +1032,21 @@ public class ExpenseServiceImpl implements ExpenseService {
             } catch (Exception e) {
                 // Log error but continue with deletion
                 System.out.println("Error removing expense from category: " + e.getMessage());
+            }
+        }
+
+        // Remove expense from associated payment method
+        if (expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null) {
+            String paymentMethodName = expense.getExpense().getPaymentMethod();
+            try {
+                PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), paymentMethodName);
+                if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
+                    paymentMethod.getExpenseIds().remove(expense.getId());
+                    paymentMethodRepository.save(paymentMethod);
+                }
+            } catch (Exception e) {
+                // Log error but continue with deletion
+                System.out.println("Error removing expense from payment method: " + e.getMessage());
             }
         }
 

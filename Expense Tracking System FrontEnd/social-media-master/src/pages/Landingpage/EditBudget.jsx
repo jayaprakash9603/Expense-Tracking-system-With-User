@@ -15,6 +15,8 @@ import {
 } from "../../Redux/Budget/budget.action";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
+import { DataGrid } from "@mui/x-data-grid";
+import { Box } from "@mui/material";
 
 const EditBudget = () => {
   const navigate = useNavigate();
@@ -60,6 +62,7 @@ const EditBudget = () => {
     }
   }, [budget, id, dispatch, today]);
 
+  // Checkbox state for 'In Budget' column
   useEffect(() => {
     setCheckboxStates(
       expenses.map((expense) => expense.includeInBudget || false)
@@ -164,32 +167,77 @@ const EditBudget = () => {
     );
   };
 
-  const renderInput = (id, type = "text") => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center">
-        <label htmlFor={id} className={labelStyle} style={{ width: "100px" }}>
-          {id
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())}
-        </label>
+  // DataGrid columns for desktop
+  const dataGridColumns = [
+    {
+      field: "includeInBudget",
+      headerName: (
         <input
-          id={id}
-          name={id}
-          type={type}
-          value={formData[id]}
-          onChange={handleInputChange}
-          placeholder={`Enter ${id}`}
-          className={fieldStyles}
+          type="checkbox"
+          checked={checkboxStates.length > 0 && checkboxStates.every(Boolean)}
+          ref={(el) => {
+            if (el) {
+              el.indeterminate =
+                checkboxStates.some(Boolean) && !checkboxStates.every(Boolean);
+            }
+          }}
+          onChange={(e) => {
+            const checked = e.target.checked;
+            setCheckboxStates(Array(expenses.length).fill(checked));
+          }}
+          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+          style={{ accentColor: "#00b8a0", marginLeft: 2, marginRight: 2 }}
         />
-      </div>
-      {errors[id] && (
-        <span className="text-red-500 text-sm ml-[100px] sm:ml-[120px]">
-          {errors[id]}
-        </span>
-      )}
-    </div>
-  );
+      ),
+      flex: 0.25,
+      minWidth: 40,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      renderCell: (params) => (
+        <input
+          type="checkbox"
+          checked={checkboxStates[params.row.index]}
+          onChange={() => handleCheckboxChange(params.row.index)}
+          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+          style={{ accentColor: "#00b8a0" }}
+        />
+      ),
+    },
+    { field: "date", headerName: "Date", flex: 0.5, minWidth: 60 },
+    {
+      field: "expenseName",
+      headerName: "Expense Name",
+      flex: 1,
+      minWidth: 120,
+    },
+    { field: "amount", headerName: "Amount", flex: 0.4, minWidth: 50 },
+    {
+      field: "paymentMethod",
+      headerName: "Payment Method",
+      flex: 0.7,
+      minWidth: 80,
+    },
+    { field: "type", headerName: "Type", flex: 0.4, minWidth: 50 },
+    { field: "comments", headerName: "Comments", flex: 2, minWidth: 200 },
+  ];
 
+  // DataGrid rows
+  const dataGridRows = Array.isArray(expenses)
+    ? expenses.map((item, index) => ({
+        ...item,
+        index,
+        id: item.id ?? `temp-${index}-${Date.now()}`,
+        expenseName: item.expense?.expenseName || "",
+        amount: item.expense?.amount || "",
+        paymentMethod: item.expense?.paymentMethod || "",
+        type: item.expense?.type || "",
+        comments: item.expense?.comments || "",
+        includeInBudget: checkboxStates[index],
+      }))
+    : [];
+
+  // Table columns for mobile view
   const columns = useMemo(
     () => [
       {
@@ -264,6 +312,33 @@ const EditBudget = () => {
     setPageIndex(0);
   };
 
+  // Add renderInput function
+  const renderInput = (id, type = "text") => (
+    <div className="flex flex-col flex-1">
+      <div className="flex items-center">
+        <label htmlFor={id} className={labelStyle} style={{ width: "100px" }}>
+          {id
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase())}
+        </label>
+        <input
+          id={id}
+          name={id}
+          type={type}
+          value={formData[id]}
+          onChange={handleInputChange}
+          placeholder={`Enter ${id}`}
+          className={fieldStyles}
+        />
+      </div>
+      {errors[id] && (
+        <span className="text-red-500 text-sm ml-[100px] sm:ml-[120px]">
+          {errors[id]}
+        </span>
+      )}
+    </div>
+  );
+
   return (
     <div className="bg-[#1b1b1b]">
       <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
@@ -278,7 +353,6 @@ const EditBudget = () => {
           border: "1px solid rgb(0, 0, 0)",
           opacity: 1,
           padding: "16px",
-          margin: "0 auto",
         }}
       >
         <div>
@@ -398,117 +472,39 @@ const EditBudget = () => {
                   ))
                 )}
               </div>
-              <div
-                className="hidden sm:block overflow-x-auto overflow-y-auto border border-gray-600 rounded"
-                style={{ height: "260px" }}
-              >
-                <table className="w-full text-white border-collapse">
-                  <thead>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <th
-                            key={header.id}
-                            className="px-2 sm:px-4 py-2 text-left bg-[#29282b] border-b border-gray-600 sticky top-0 z-10"
-                            style={{
-                              width: header.column.columnDef.size,
-                              minWidth: header.column.columnDef.size,
-                              maxWidth: header.column.columnDef.size,
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : header.column.columnDef.header}
-                          </th>
-                        ))}
-                      </tr>
-                    ))}
-                  </thead>
-                  <tbody>
-                    {expenses.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={columns.length}
-                          className="px-2 sm:px-4 py-2 text-center text-gray-400 border-b border-gray-600"
-                          style={{ height: "200px" }}
-                        >
-                          No rows found
-                        </td>
-                      </tr>
-                    ) : (
-                      table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="border-b border-gray-600">
-                          {row.getVisibleCells().map((cell) => (
-                            <td
-                              key={cell.id}
-                              className="px-2 sm:px-4 py-2"
-                              style={{
-                                width: cell.column.columnDef.size,
-                                minWidth: cell.column.columnDef.size,
-                                maxWidth: cell.column.columnDef.size,
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
-                              {cell.column.columnDef.cell
-                                ? cell.column.columnDef.cell(cell)
-                                : cell.getValue()}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-4 flex flex-row justify-between items-center bg-[#0b0b0b] py-2 z-20 relative gap-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPageIndex(pageIndex - 1)}
-                    disabled={!table.getCanPreviousPage()}
-                    className={`px-3 py-1 rounded text-sm ${
-                      table.getCanPreviousPage()
-                        ? "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-                        : "bg-gray-700 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    Previous
-                  </button>
-                  <span className="text-white text-sm">
-                    Page{" "}
-                    <strong>
-                      {pageIndex + 1} of {table.getPageCount()}
-                    </strong>{" "}
-                  </span>
-                  <button
-                    onClick={() => setPageIndex(pageIndex + 1)}
-                    disabled={!table.getCanNextPage()}
-                    className={`px-3 py-1 rounded text-sm ${
-                      table.getCanNextPage()
-                        ? "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-                        : "bg-gray-700 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    Next
-                  </button>
-                </div>
-                <div>
-                  <select
-                    value={pageSize}
-                    onChange={handlePageSizeChange}
-                    className="px-3 py-1 bg-[#29282b] text-white border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
-                  >
-                    {[5, 10, 20].map((size) => (
-                      <option key={size} value={size}>
-                        Show {size}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="hidden sm:block">
+                <Box
+                  sx={{
+                    height: 340,
+                    width: "100%",
+                    background: "#29282b",
+                    borderRadius: 2,
+                    border: "1px solid #444",
+                  }}
+                >
+                  <DataGrid
+                    rows={dataGridRows}
+                    columns={dataGridColumns}
+                    getRowId={(row) => row.id}
+                    disableRowSelectionOnClick
+                    pageSizeOptions={[5, 10, 20]}
+                    initialState={{
+                      pagination: {
+                        paginationModel: { page: 0, pageSize: pageSize },
+                      },
+                    }}
+                    rowHeight={45}
+                    headerHeight={32}
+                    sx={{
+                      color: "#fff",
+                      border: 0,
+                      "& .MuiDataGrid-columnHeaders": { background: "#222" },
+                      "& .MuiDataGrid-row": { background: "#29282b" },
+                      "& .MuiCheckbox-root": { color: "#00dac6 !important" },
+                      fontSize: "0.92rem",
+                    }}
+                  />
+                </Box>
               </div>
             </div>
           )}
@@ -522,7 +518,7 @@ const EditBudget = () => {
           </button>
         </div>
       </div>
-      <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <style>
         {`
           input[type="date"]::-webkit-calendar-picker-indicator {

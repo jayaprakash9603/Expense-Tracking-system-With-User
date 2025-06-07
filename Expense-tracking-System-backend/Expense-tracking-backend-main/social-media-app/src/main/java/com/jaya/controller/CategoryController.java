@@ -1,6 +1,7 @@
 package com.jaya.controller;
 
 import com.jaya.models.Category;
+import com.jaya.models.Expense;
 import com.jaya.models.User;
 import com.jaya.service.CategoryService;
 import com.jaya.service.UserService;
@@ -122,5 +123,13 @@ public class CategoryController {
         User user = userService.findUserByJwt(jwt);
         categoryService.deleteAllUserCategories(user);
         return ResponseEntity.noContent().build();
+    }
+
+    // In CategoryController.java or ExpenseController.java
+    @GetMapping("/uncategorized")
+    public ResponseEntity<List<Expense>> getUncategorizedExpenses(@RequestHeader("Authorization") String jwt) {
+        User user = userService.findUserByJwt(jwt);
+        List<Expense> uncategorizedExpenses = categoryService.getOthersAndUncategorizedExpenses(user);
+        return ResponseEntity.ok(uncategorizedExpenses);
     }
 }

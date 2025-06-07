@@ -29,7 +29,9 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
+  Fab,
 } from "@mui/material";
+import { CreateCategory } from "../../components/Category";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { createPortal } from "react-dom";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
@@ -41,6 +43,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 import SortIcon from "@mui/icons-material/Sort";
+import AddIcon from "@mui/icons-material/Add";
 import { DataGrid } from "@mui/x-data-grid";
 
 const rangeTypes = [
@@ -192,7 +195,7 @@ const renderActiveShape = (props) => {
         textAnchor={textAnchor}
         fill="#b0b6c3"
         fontSize={12}
-      >{`₹${value.toFixed(2)}`}</text>
+      >{`₹${value}`}</text>
       <text
         x={ex + (cos >= 0 ? 1 : -1) * 12}
         y={ey}
@@ -215,6 +218,7 @@ const CategoryFlow = () => {
   const [selectedCategory, setSelectedCategory] = useState(null); // For pie chart selection
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sortType, setSortType] = useState("high"); // Default to high-to-low for categories
+  const [createCategoryModalOpen, setCreateCategoryModalOpen] = useState(false); // State for create category modal
   const [activeIndex, setActiveIndex] = useState(0); // For pie chart active segment
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -556,6 +560,17 @@ const CategoryFlow = () => {
     setCategoryToDelete(null);
   };
 
+  // Handlers for create category modal
+  const handleOpenCreateCategoryModal = () => {
+    setCreateCategoryModalOpen(true);
+  };
+
+  const handleCloseCreateCategoryModal = () => {
+    setCreateCategoryModalOpen(false);
+    // Refresh categories after a new one is created
+    dispatch(fetchCategoriesWithExpenses(activeRange, offset, flowTab));
+  };
+
   useEffect(() => {
     // Show toast if redirected with toastMessage
     if (location.state && location.state.toastMessage) {
@@ -602,7 +617,7 @@ const CategoryFlow = () => {
           ))}
         </Pie>
         <Tooltip
-          formatter={(value) => [`₹${value.toFixed(2)}`, "Amount"]}
+          formatter={(value) => [`₹${value}`, "Amount"]}
           contentStyle={{
             background: "#1b1b1b",
             border: "1px solid #00dac6",
@@ -682,7 +697,7 @@ const CategoryFlow = () => {
                 fontWeight: "bold",
               }}
             >
-              ₹{Number(params.value).toFixed(2)}
+              ₹{Number(params.value)}
             </div>
           );
         },
@@ -707,7 +722,7 @@ const CategoryFlow = () => {
     ];
 
     // Calculate appropriate height based on screen size and available space
-    const tableHeight = isMobile ? 250 : isTablet ? 300 : 330;
+    const tableHeight = isMobile ? 200 : isTablet ? 250 : 300;
 
     return (
       <div
@@ -738,62 +753,51 @@ const CategoryFlow = () => {
           <DataGrid
             rows={rows}
             columns={columns}
-            pageSize={5} // Set default rows per page to 5
-            rowsPerPageOptions={[5, 10, 20]} // Set page size options to 5, 10, and 20
+            pageSize={5}
+            rowsPerPageOptions={[5, 10, 20]}
             disableSelectionOnClick
             autoHeight={false}
             hideFooterSelectedRowCount
-            disableExtendRowFullWidth={true} // Prevent rendering of empty rows
+            disableExtendRowFullWidth={true}
+            rowHeight={40} // Consistent row height
+            disableColumnMenu
+            pageSizeOptions={[5]}
+            initialState={{
+              pagination: { paginationModel: { pageSize: 5 } },
+            }}
             sx={{
-              border: "none",
-              "& .MuiDataGrid-cell": {
-                borderBottom: "1px solid #333",
-                padding: "8px",
-                display: "flex",
-                alignItems: "center", // Center content vertically
-              },
+              bgcolor: "#1b1b1b",
+              color: "#ffffff",
+              border: "1px solid #28282a",
               "& .MuiDataGrid-columnHeaders": {
-                color: "#fff",
-                borderBottom: "2px solid #333",
+                bgcolor: "#333333",
+                color: "#ffffff",
               },
               "& .MuiDataGrid-row": {
-                "&:hover": {
-                  backgroundColor: "#2a2b45",
-                },
-                // Set fixed row height with enough space for content
-                maxHeight: "45px !important",
-                minHeight: "45px !important",
-                "&.MuiDataGrid-row--lastVisible": {
-                  borderBottom: "none", // Remove bottom border for the last visible row
-                },
+                maxHeight: "40px !important",
+                minHeight: "40px !important",
+                borderBottom: "none", // Remove bottom border from rows
               },
-              "& .MuiDataGrid-virtualScroller": {
-                // Removed background color
+              "& .MuiDataGrid-cell": {
+                padding: "4px 8px",
+                display: "flex",
+                alignItems: "center", // Centers content vertically
+                color: "#ffffff",
               },
-              "& .MuiDataGrid-main": {
-                // Remove outline on focus
-                outline: "none !important",
+              "& .MuiDataGrid-row:hover": {
+                bgcolor: "#28282a",
               },
-              // Ensure the grid stays within bounds
-              maxHeight: tableHeight,
-              overflow: "hidden",
-              // Fix for text alignment
-              "& .MuiDataGrid-cellContent": {
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                lineHeight: "normal",
-              },
-              // Ensure consistent cell height
-              "& .MuiDataGrid-viewport": {
-                maxHeight: "100%",
-              },
-              // Ensure pagination is visible
               "& .MuiDataGrid-footerContainer": {
-                borderTop: "1px solid #333",
-                position: "relative",
-                bottom: 0,
+                bgcolor: "#333333",
+                color: "#ffffff",
               },
+              "& .MuiTablePagination-root": {
+                color: "#ffffff",
+              },
+              "& .MuiSvgIcon-root": {
+                color: "#ffffff",
+              },
+              height: isMobile ? 200 : isTablet ? 250 : 315, // Maintain your responsive heights
             }}
           />
         </div>
@@ -854,6 +858,36 @@ const CategoryFlow = () => {
             Delete
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* Create Category Dialog */}
+      <Dialog
+        open={createCategoryModalOpen}
+        onClose={() => setCreateCategoryModalOpen(false)}
+        PaperProps={{
+          style: {
+            backgroundColor: "#1b1b1b",
+            color: "#fff",
+            borderRadius: "12px",
+          },
+        }}
+      >
+        <DialogTitle>Create Category</DialogTitle>
+        <DialogContent>
+          <CreateCategory
+            onClose={() => setCreateCategoryModalOpen(false)}
+            onCategoryCreated={(newCategory) => {
+              setToastMessage(
+                `Category "${newCategory.categoryName}" created successfully`
+              );
+              setToastOpen(true);
+              // Refresh categories after creation
+              dispatch(
+                fetchCategoriesWithExpenses(activeRange, offset, flowTab)
+              );
+            }}
+          />
+        </DialogContent>
       </Dialog>
 
       {/* Flow Type Toggle Button */}
@@ -1049,7 +1083,7 @@ const CategoryFlow = () => {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value) => [`₹${value.toFixed(2)}`, "Amount"]}
+                formatter={(value) => [`₹${value}`, "Amount"]}
                 contentStyle={{
                   background: "#1b1b1b",
                   border: "1px solid #00dac6",
@@ -1090,7 +1124,7 @@ const CategoryFlow = () => {
             />
             <IconButton
               sx={{ color: "#5b7fff", ml: 1 }}
-              onClick={() => navigate("/categories/create")}
+              onClick={() => navigate("/category-flow/create")}
               aria-label="New Category"
             >
               <svg
@@ -1361,7 +1395,7 @@ const CategoryFlow = () => {
                           fontWeight: 700,
                         }}
                       >
-                        ₹{category.totalAmount.toFixed(2)}
+                        ₹{category.totalAmount}
                       </span>
                     </div>
 

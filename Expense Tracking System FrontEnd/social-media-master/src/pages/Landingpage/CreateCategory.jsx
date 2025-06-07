@@ -5,7 +5,7 @@ import {
   fetchPreviousExpenses,
   getExpensesSuggestions,
 } from "../../Redux/Expenses/expense.action";
-import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
+import { Autocomplete, TextField, CircularProgress } from "@mui/material";
 import {
   useReactTable,
   getCoreRowModel,
@@ -14,10 +14,6 @@ import {
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
-import { DataGrid } from "@mui/x-data-grid";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
 
 const fieldStyles =
   "px-3 py-2 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[300px] max-w-[200px]";
@@ -27,7 +23,7 @@ const firstFormRow =
   "mt-2 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
 const inputWrapper = { width: "150px" };
 
-const NewExpense = ({ onClose, onSuccess }) => {
+const CreateCategory = ({ onClose, onSuccess }) => {
   const location = useLocation();
   // Get date from query param if present
   const searchParams = new URLSearchParams(location.search);
@@ -148,11 +144,30 @@ const NewExpense = ({ onClose, onSuccess }) => {
     }
   };
 
-  const handleDateChange = (newValue) => {
-    if (newValue) {
-      const formatted = dayjs(newValue).format("YYYY-MM-DD");
-      setExpenseData((prev) => ({ ...prev, date: formatted }));
+  const handleDateChange = (e) => {
+    const { value } = e.target;
+    const newDate = new Date(value);
+
+    const lastDayOfMonth = new Date(
+      newDate.getFullYear(),
+      newDate.getMonth() + 1,
+      0
+    );
+
+    let salaryDate = new Date(lastDayOfMonth);
+    if (salaryDate.getDay() === 6) {
+      salaryDate.setDate(salaryDate.getDate() - 1);
+    } else if (salaryDate.getDay() === 0) {
+      salaryDate.setDate(salaryDate.getDate() - 2);
     }
+
+    const isSalary = newDate.toDateString() === salaryDate.toDateString();
+
+    setExpenseData((prevState) => ({
+      ...prevState,
+      date: value,
+      transactionType: isSalary ? "gain" : "loss",
+    }));
 
     // Clear the date error when the user updates it
     if (errors.date) {
@@ -160,7 +175,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     }
 
     // Dispatch getListOfBudgetsById with the selected date
-    dispatch(getListOfBudgetsById(newValue));
+    dispatch(getListOfBudgetsById(value));
   };
 
   const handleSubmit = (e) => {
@@ -361,66 +376,46 @@ const NewExpense = ({ onClose, onSuccess }) => {
         <label htmlFor="date" className={labelStyle} style={inputWrapper}>
           Date<span className="text-red-500"> *</span>
         </label>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            value={expenseData.date ? dayjs(expenseData.date) : null}
-            onChange={(newValue) => {
-              if (newValue) {
-                const formatted = dayjs(newValue).format("YYYY-MM-DD");
-                setExpenseData((prev) => ({ ...prev, date: formatted }));
-              }
-            }}
-            sx={{
-              background: "#1b1b1b",
-              borderRadius: 2,
-              color: "#fff",
-              ".MuiInputBase-input": {
-                color: "#fff",
-                height: 32,
-                fontSize: 18,
+        <TextField
+          id="date"
+          name="date"
+          type="date"
+          value={expenseData.date || ""}
+          onChange={(e) => handleDateChange(e)}
+          variant="outlined"
+          error={errors.date}
+          InputProps={{
+            className: fieldStyles,
+            style: { height: "52px" },
+          }}
+          sx={{
+            width: "100%",
+            maxWidth: "300px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.date ? "2px" : "1px",
+                borderStyle: "solid",
               },
-              ".MuiSvgIcon-root": { color: "#00dac6" },
-              width: 300,
-              height: 56,
-              minHeight: 56,
-              maxHeight: 56,
-            }}
-            slotProps={{
-              textField: {
-                size: "medium",
-                variant: "outlined",
-                sx: {
-                  color: "#fff",
-                  height: 56,
-                  minHeight: 56,
-                  maxHeight: 56,
-                  width: 300,
-                  fontSize: 18,
-                  "& .MuiInputBase-root": {
-                    height: 56,
-                    minHeight: 56,
-                    maxHeight: 56,
-                  },
-                  "& input": {
-                    height: 32,
-                    fontSize: 18,
-                  },
-                },
-                inputProps: {
-                  max: dayjs().format("YYYY-MM-DD"),
-                },
+              "&:hover fieldset": {
+                borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.date ? "2px" : "1px",
+                borderStyle: "solid",
               },
-            }}
-            disableFuture
-            format="DD-MM-YYYY"
-          />
-        </LocalizationProvider>
+              "&.Mui-focused fieldset": {
+                borderColor: errors.date ? "#ff4d4f" : "#00dac6",
+                borderWidth: errors.date ? "2px" : "2px",
+                borderStyle: "solid",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderWidth: errors.date ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+            },
+          }}
+        />
       </div>
-      {errors.date && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors.date}
-        </span>
-      )}
     </div>
   );
 
@@ -778,42 +773,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
     [checkboxStates]
   );
 
-  // DataGrid columns for budgets
-  const dataGridColumns = [
-    { field: "name", headerName: "Name", flex: 1, minWidth: 120 },
-    { field: "description", headerName: "Description", flex: 1, minWidth: 120 },
-    { field: "startDate", headerName: "Start Date", flex: 1, minWidth: 100 },
-    { field: "endDate", headerName: "End Date", flex: 1, minWidth: 100 },
-    {
-      field: "remainingAmount",
-      headerName: "Remaining Amount",
-      flex: 1,
-      minWidth: 120,
-    },
-    { field: "amount", headerName: "Amount", flex: 1, minWidth: 100 },
-  ];
-
-  // DataGrid rows for budgets
-  const dataGridRows = Array.isArray(budgets)
-    ? budgets.map((item, index) => ({
-        ...item,
-        id: item.id ?? `temp-${index}-${Date.now()}`,
-      }))
-    : [];
-
-  // Map checkboxStates to DataGrid selection model
-  const selectedIds = dataGridRows
-    .filter((_, idx) => checkboxStates[idx])
-    .map((row) => row.id);
-
-  const handleDataGridSelection = (newSelection) => {
-    // Map DataGrid selection to checkboxStates
-    const newCheckboxStates = dataGridRows.map((row, idx) =>
-      newSelection.includes(row.id)
-    );
-    setCheckboxStates(newCheckboxStates);
-  };
-
   const table = useReactTable({
     data: budgets,
     columns,
@@ -903,6 +862,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             </button>
           )}
         </div>
+
         {showTable && (
           <div className="mt-4 sm:mt-6 w-full relative">
             <div className="block sm:hidden space-y-4">
@@ -919,21 +879,21 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   No rows found
                 </div>
               ) : (
-                budgets.map((row, index) => (
+                table.getRowModel().rows.map((row) => (
                   <div
                     key={row.id}
                     className="bg-[#29282b] border border-gray-600 rounded-lg p-4"
                   >
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-white font-semibold">
-                        {row.name}
+                        {row.original.name}
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-gray-300 text-sm">In Budget</span>
                         <input
                           type="checkbox"
-                          checked={checkboxStates[index]}
-                          onChange={() => handleCheckboxChange(index)}
+                          checked={checkboxStates[row.index]}
+                          onChange={() => handleCheckboxChange(row.index)}
                           className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
                         />
                       </div>
@@ -941,65 +901,140 @@ const NewExpense = ({ onClose, onSuccess }) => {
                     <div className="text-gray-300 text-sm space-y-1">
                       <p>
                         <span className="font-medium">Description:</span>{" "}
-                        {row.description}
+                        {row.original.description}
                       </p>
                       <p>
                         <span className="font-medium">Start Date:</span>{" "}
-                        {row.startDate}
+                        {row.original.startDate}
                       </p>
                       <p>
                         <span className="font-medium">End Date:</span>{" "}
-                        {row.endDate}
+                        {row.original.endDate}
                       </p>
                       <p>
                         <span className="font-medium">Remaining Amount:</span>{" "}
-                        {row.remainingAmount}
+                        {row.original.remainingAmount}
                       </p>
                       <p>
                         <span className="font-medium">Amount:</span>{" "}
-                        {row.amount}
+                        {row.original.amount}
                       </p>
                     </div>
                   </div>
                 ))
               )}
             </div>
-            <div className="hidden sm:block">
-              <Box
-                sx={{
-                  height: 320,
-                  width: "100%",
-                  background: "#29282b",
-                  borderRadius: 2,
-                  border: "1px solid #444",
-                }}
-              >
-                <DataGrid
-                  rows={dataGridRows}
-                  columns={dataGridColumns}
-                  getRowId={(row) => row.id}
-                  checkboxSelection
-                  disableRowSelectionOnClick
-                  selectionModel={selectedIds}
-                  onRowSelectionModelChange={handleDataGridSelection}
-                  pageSizeOptions={[5, 10, 20]}
-                  initialState={{
-                    pagination: {
-                      paginationModel: { page: 0, pageSize: pageSize },
-                    },
-                  }}
-                  rowHeight={41}
-                  headerHeight={32}
-                  sx={{
-                    color: "#fff",
-                    border: 0,
-                    "& .MuiDataGrid-columnHeaders": { background: "#222" },
-                    "& .MuiDataGrid-row": { background: "#29282b" },
-                    "& .MuiCheckbox-root": { color: "#00dac6 !important" },
-                    fontSize: "0.92rem",
-                  }}
-                />
-              </Box>
+            <div
+              className="hidden sm:block overflow-x-auto overflow-y-auto border border-gray-600 rounded"
+              style={{ height: "260px" }}
+            >
+              <table className="w-full text-white border-collapse">
+                <thead>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <th
+                          key={header.id}
+                          className="px-2 sm:px-4 py-2 text-left bg-[#29282b] border-b border-gray-600 sticky top-0 z-10"
+                          style={{
+                            width: header.column.columnDef.size,
+                            minWidth: header.column.columnDef.size,
+                            maxWidth: header.column.columnDef.size,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : header.column.columnDef.header}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody>
+                  {budgets.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={columns.length}
+                        className="px-2 sm:px-4 py-2 text-center text-gray-400 border-b border-gray-600"
+                        style={{ height: "200px" }}
+                      >
+                        No rows found
+                      </td>
+                    </tr>
+                  ) : (
+                    table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="border-b border-gray-600">
+                        {row.getVisibleCells().map((cell) => (
+                          <td
+                            key={cell.id}
+                            className="px-2 sm:px-4 py-2"
+                            style={{
+                              width: cell.column.columnDef.size,
+                              minWidth: cell.column.columnDef.size,
+                              maxWidth: cell.column.columnDef.size,
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {cell.column.columnDef.cell
+                              ? cell.column.columnDef.cell(cell)
+                              : cell.getValue()}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-2 flex flex-row justify-between items-center bg-[#0b0b0b] py-2 z-20 relative gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPageIndex(pageIndex - 1)}
+                  disabled={!table.getCanPreviousPage()}
+                  className={`px-3 py-1 rounded text-sm ${
+                    table.getCanPreviousPage()
+                      ? "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
+                      : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className="text-white text-sm">
+                  Page{" "}
+                  <strong>
+                    {pageIndex + 1} of {table.getPageCount()}
+                  </strong>
+                </span>
+                <button
+                  onClick={() => setPageIndex(pageIndex + 1)}
+                  disabled={!table.getCanNextPage()}
+                  className={`px-3 py-1 rounded text-sm ${
+                    table.getCanNextPage()
+                      ? "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
+                      : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+              <div>
+                <select
+                  value={pageSize}
+                  onChange={handlePageSizeChange}
+                  className="px-3 py-1 bg-[#29282b] text-white border border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
+                >
+                  {[5, 10, 20].map((size) => (
+                    <option key={size} value={size}>
+                      Show {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         )}
@@ -1137,4 +1172,4 @@ const NewExpense = ({ onClose, onSuccess }) => {
   );
 };
 
-export default NewExpense;
+export default CreateCategory;
