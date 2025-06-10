@@ -87,8 +87,13 @@ public class ExpenseServiceImpl implements ExpenseService {
 
 
     @Override
-    @Transactional
     public Expense addExpense(Expense expense, User user) throws Exception {
+        // Always reset IDs to ensure new records are created
+        expense.setId(null);
+        if (expense.getExpense() != null) {
+            expense.getExpense().setId(null);
+        }
+
         if (expense.getDate() == null) throw new IllegalArgumentException("Expense date must not be null.");
         if (expense.getExpense() == null) throw new IllegalArgumentException("Expense details must not be null.");
 

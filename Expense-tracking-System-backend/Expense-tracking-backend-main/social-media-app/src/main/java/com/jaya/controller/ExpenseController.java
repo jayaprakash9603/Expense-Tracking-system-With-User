@@ -50,6 +50,9 @@ public class ExpenseController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FriendshipService friendshipService;
     
 
     @Autowired
@@ -60,16 +63,94 @@ public class ExpenseController {
     }
 
     @PostMapping("/add-expense")
-    public ResponseEntity<Expense> addExpense(@Validated @RequestBody Expense expense,@RequestHeader("Authorization") String jwt) throws Exception {
-
+    public ResponseEntity<?> addExpense(@Validated @RequestBody Expense expense,@RequestHeader("Authorization") String jwt,@RequestParam(required = false)Integer targetId) throws Exception {
         User reqUser=userService.findUserByJwt(jwt);
-        Expense createExpense=expenseService.addExpense(expense,reqUser);
+        Expense createExpense=new Expense();
+        if (targetId == null) {
+            createExpense=expenseService.addExpense(expense,reqUser);
+        }
+        else
+        {
+            User targetUser = userService.findUserById(targetId);
+            if (targetUser == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            boolean hasAccess = friendshipService.canUserModifyExpenses(targetId, reqUser.getId());
+            if (!hasAccess) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You don't have permission to create this user's expenses");
+            }
+
+            createExpense = expenseService.addExpense(expense, targetUser);
+        }
+
+
         if(createExpense!=null)
         {
             auditExpenseService.logAudit(reqUser,expense.getId(), "create", "Expense created with ID: " + expense.getId());
 
         }
         return ResponseEntity.ok(createExpense);
+    }
+
+
+
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getUserExpenses(
+            @PathVariable Integer userId,
+            @RequestHeader("Authorization") String jwt) throws UserException {
+
+        User viewer = userService.findUserByJwt(jwt);
+
+        if (viewer.getId().equals(userId)) {
+            List<Expense> expenses = expenseService.getAllExpenses(viewer);
+            return ResponseEntity.ok(expenses);
+        }
+
+        boolean hasAccess = friendshipService.canUserAccessExpenses(userId, viewer.getId());
+
+
+        if (!hasAccess) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You don't have permission to view this user's expenses");
+        }
+
+        AccessLevel accessLevel = friendshipService.getUserAccessLevel(userId, viewer.getId());
+
+        User targetUser = userService.findUserById(userId);
+        if (targetUser == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        System.out.println("Access level "+accessLevel);
+        if (accessLevel == AccessLevel.READ || accessLevel == AccessLevel.WRITE || accessLevel == AccessLevel.FULL)  {
+            List<Expense> expenses = expenseService.getAllExpenses(targetUser);
+            return ResponseEntity.ok(expenses);
+        } else if (accessLevel == AccessLevel.SUMMARY) {
+            Map<String, MonthlySummary> yearlySummary = expenseService.getYearlySummary(
+                    LocalDate.now().getYear(), targetUser);
+            return ResponseEntity.ok(yearlySummary);
+        } else if (accessLevel == AccessLevel.LIMITED) {
+            Map<String, Object> limitedData = new HashMap<>();
+
+            MonthlySummary currentMonthSummary = expenseService.getMonthlySummary(
+                    LocalDate.now().getYear(),
+                    LocalDate.now().getMonthValue(),
+                    targetUser);
+
+            Map<String, Double> simplifiedSummary = new HashMap<>();
+            simplifiedSummary.put("totalIncome", currentMonthSummary.getTotalAmount().doubleValue());
+            simplifiedSummary.put("totalExpense", currentMonthSummary.getCash().getDifference().doubleValue());
+            simplifiedSummary.put("balance", currentMonthSummary.getBalanceRemaining().doubleValue());
+
+            limitedData.put("currentMonth", simplifiedSummary);
+            return ResponseEntity.ok(limitedData);
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("You don't have permission to view this user's expenses");
+        }
     }
 
     @PostMapping("/add-multiple")
@@ -1945,6 +2026,11 @@ User reqUser=userService.findUserByJwt(jwt);
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
+
+
+
+
 }
 
 
