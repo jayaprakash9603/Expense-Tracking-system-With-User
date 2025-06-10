@@ -17,3 +17,41 @@ export const fetchCategories = () => {
     }
   };
 };
+
+export const fetchUncategorizedExpenses = () => async (dispatch, getState) => {
+  dispatch({ type: "FETCH_UNCATEGORIZED_EXPENSES_REQUEST" });
+  try {
+    const token = getState().auth?.token;
+    const response = await api.get("/api/categories/uncategorized", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    dispatch({
+      type: "FETCH_UNCATEGORIZED_EXPENSES_SUCCESS",
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: "FETCH_UNCATEGORIZED_EXPENSES_FAILURE",
+      payload: error.message,
+    });
+  }
+};
+
+export const createCategory = (formData) => async (dispatch, getState) => {
+  dispatch({ type: "CREATE_CATEGORY_REQUEST" });
+  try {
+    const token = getState().auth?.token;
+    const response = await api.post("/api/categories", formData, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    dispatch({
+      type: "CREATE_CATEGORY_SUCCESS",
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: "CREATE_CATEGORY_FAILURE",
+      payload: error.message,
+    });
+  }
+};

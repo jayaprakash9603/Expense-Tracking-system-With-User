@@ -1,0 +1,17 @@
+export const ASSET_ICONS = [
+  "/src/assests/money-withdrawal.png",
+  "/src/assests/money-transfer.png",
+  "/src/assests/money-in-and-out.png",
+  "/src/assests/money-flow.png",
+  "/src/assests/mail.png",
+  "/src/assests/less-than-symbol.png",
+  "/src/assests/home.png",
+  "/src/assests/expenses.png",
+  "/src/assests/download.png",
+  "/src/assests/customer-analysis.png",
+  "/src/assests/card-payment.png",
+  "/src/assests/recent.png",
+  "/src/assests/calendar.png",
+  "/src/assests/unfold.png",
+  "/src/assests/save-money.png",
+];

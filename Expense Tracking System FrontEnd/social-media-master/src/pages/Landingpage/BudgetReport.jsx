@@ -494,6 +494,7 @@ const BudgetReport = () => {
                       dataKey="value"
                       nameKey="name"
                       outerRadius={80}
+                      innerRadius={45} // Donut chart: set innerRadius
                       label={renderCustomLabel}
                       labelLine={false}
                     >
