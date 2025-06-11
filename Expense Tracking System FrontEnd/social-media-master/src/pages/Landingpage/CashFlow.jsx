@@ -101,13 +101,29 @@ const CashflowSearchToolbar = ({
   setSearch,
   onFilterClick,
   filterRef,
+  setIsFiltering,
 }) => (
-  <div style={{ display: "flex", gap: 8, padding: 8 }}>
+  <div
+    style={{
+      display: "flex",
+      gap: 8,
+      padding: 8,
+      alignItems: "center",
+      width: "100%",
+      maxWidth: "320px",
+    }}
+  >
     <input
       type="text"
       placeholder="Search expenses..."
       value={search}
-      onChange={(e) => setSearch(e.target.value)}
+      onChange={(e) => {
+        // Set filtering flag to true when user is typing
+        setIsFiltering(true);
+        setSearch(e.target.value);
+        // Reset filtering flag after a short delay
+        setTimeout(() => setIsFiltering(false), 300);
+      }}
       style={{
         backgroundColor: "#1b1b1b",
         color: "#ffffff",
@@ -115,14 +131,12 @@ const CashflowSearchToolbar = ({
         fontSize: "0.75rem",
         border: "1px solid #00dac6",
         padding: "8px 16px",
-        minWidth: 220,
-        maxWidth: 320,
         width: "100%",
         outline: "none",
       }}
     />
     <IconButton
-      sx={{ color: "#00dac6" }}
+      sx={{ color: "#00dac6", flexShrink: 0 }}
       onClick={onFilterClick}
       ref={filterRef}
     >
@@ -159,7 +173,7 @@ const Cashflow = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
-
+  const [isFiltering, setIsFiltering] = useState(false);
   useEffect(() => {
     if (location.state && location.state.selectedCategory) {
       // Set the range type and offset from the navigation state if available
@@ -181,10 +195,6 @@ const Cashflow = () => {
     }
   }, [location.state]);
 
-  // Fetch data from API with correct flowType ("outflow", "inflow", or "all")
-  // Replace the existing useEffect for fetching data with this one
-  // Replace the existing useEffect for fetching data with this one
-  // Replace the existing useEffect for fetching data with this one
   // Replace the existing useEffect for fetching data with this one
   useEffect(() => {
     // Get the category filter from search term
@@ -197,6 +207,9 @@ const Cashflow = () => {
       categoryFilter: categoryFilter,
     });
 
+    // Set filtering flag to true when making API call
+    setIsFiltering(true);
+
     // Make the API call with proper parameters
     dispatch(
       fetchCashflowExpenses(
@@ -205,7 +218,10 @@ const Cashflow = () => {
         flowTab === "all" ? null : flowTab,
         categoryFilter
       )
-    );
+    ).finally(() => {
+      // Reset filtering flag when API call completes
+      setIsFiltering(false);
+    });
   }, [activeRange, offset, flowTab, dispatch, search]);
 
   // Add this to your component to debug the category selection
@@ -843,7 +859,7 @@ const Cashflow = () => {
           minWidth: 0,
         }}
       >
-        {loading ? (
+        {loading && !isFiltering ? (
           <Skeleton
             variant="rectangular"
             width="100%"
@@ -892,11 +908,11 @@ const Cashflow = () => {
       </div>
       {/* Search Bar */}
       <div
-        className="flex justify-start mt-2 mb-2"
+        className="flex items-center mt-2 mb-2"
         style={{
-          flexDirection: isMobile ? "column" : "row",
-          gap: isMobile ? 4 : 8,
-          flexWrap: "wrap",
+          width: "100%",
+          justifyContent: "flex-start",
+          flexWrap: "nowrap", // Prevent wrapping
         }}
       >
         <CashflowSearchToolbar
@@ -904,69 +920,70 @@ const Cashflow = () => {
           setSearch={setSearch}
           onFilterClick={() => setPopoverOpen((v) => !v)}
           filterRef={filterBtnRef}
+          setIsFiltering={setIsFiltering}
         />
 
-        {search && (
-          <div className="flex items-center ml-2">
-            <button
-              onClick={() => navigate("/category-flow")}
-              className="bg-[#5b7fff] text-white px-3 py-1 rounded-md text-sm flex items-center gap-1"
-            >
-              <span>←</span> Back to Categories
-            </button>
-          </div>
-        )}
-        <IconButton
-          sx={{ ml: 1, p: 0.5 }}
-          onClick={() => navigate("/calendar-view")}
-          aria-label="Calendar View"
+        {/* Fixed position for these buttons */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginLeft: "8px",
+            flexShrink: 0, // Prevent shrinking
+          }}
         >
-          <img
-            src={require("../../assests/calendar.png")}
-            alt="Calendar View"
-            style={{
-              width: 24,
-              height: 24,
-              display: "block",
-              filter:
-                "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-            }}
-          />
-        </IconButton>
-        <IconButton
-          sx={{ color: "#5b7fff", ml: 1 }}
-          onClick={() => navigate("/expenses/create")}
-          aria-label="New Expense"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+          <IconButton
+            sx={{ p: 0.5 }}
+            onClick={() => navigate("/calendar-view")}
+            aria-label="Calendar View"
           >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="#5b7fff"
-              strokeWidth="2"
-              fill="#23243a"
+            <img
+              src={require("../../assests/calendar.png")}
+              alt="Calendar View"
+              style={{
+                width: 24,
+                height: 24,
+                display: "block",
+                filter:
+                  "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+              }}
             />
-            <path
-              d="M12 8V16"
-              stroke="#5b7fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M8 12H16"
-              stroke="#5b7fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </IconButton>
+          </IconButton>
+          <IconButton
+            sx={{ color: "#5b7fff", ml: 1 }}
+            onClick={() => navigate("/expenses/create")}
+            aria-label="New Expense"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="#5b7fff"
+                strokeWidth="2"
+                fill="#23243a"
+              />
+              <path
+                d="M12 8V16"
+                stroke="#5b7fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M8 12H16"
+                stroke="#5b7fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </IconButton>
+        </div>
       </div>
       {/* Sort Popover */}
       {popoverOpen &&
@@ -1132,7 +1149,7 @@ const Cashflow = () => {
               }
         }
       >
-        {loading ? (
+        {loading && !isFiltering ? (
           Array.from({ length: 3 }).map((_, idx) => (
             <Skeleton
               key={idx}

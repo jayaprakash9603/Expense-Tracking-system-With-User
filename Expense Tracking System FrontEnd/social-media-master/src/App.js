@@ -28,6 +28,7 @@ import CalendarView from "./pages/Landingpage/CalendarView";
 import DayTransactionsView from "./pages/Landingpage/DayTransactionsView";
 import CategoryFlow from "./pages/Landingpage/CategoryFlow";
 import CreateCategory from "./pages/Landingpage/CreateCategory";
+import EditCategory from "./pages/Landingpage/EditCategory";
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -78,6 +79,7 @@ function App() {
           <Route path="category-flow">
             <Route index element={<CategoryFlow />} />
             <Route path="create" element={<CreateCategory />} />
+            <Route path="edit/:id" element={<EditCategory />} />
           </Route>
 
           <Route path="transactions" element={<TransactionsContent />} />

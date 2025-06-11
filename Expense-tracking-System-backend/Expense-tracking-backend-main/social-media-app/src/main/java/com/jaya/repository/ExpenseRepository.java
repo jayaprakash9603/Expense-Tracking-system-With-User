@@ -23,7 +23,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     List<Expense> findByDateBetween(LocalDate from, LocalDate to);
 
     Expense findByUserIdAndId(Integer userId, Integer id);
-
+    // Add these methods to your ExpenseRepository interface
+    Page<Expense> findByUserId(Integer userId, Pageable pageable);
+    Page<Expense> findByUserIdAndDateBetween(Integer userId, LocalDate startDate, LocalDate endDate, Pageable pageable);
     List<Expense> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(Integer userId, LocalDate startDate, LocalDate endDate);
 
 

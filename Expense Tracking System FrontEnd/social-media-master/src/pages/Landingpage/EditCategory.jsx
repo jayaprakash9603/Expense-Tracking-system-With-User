@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchUncategorizedExpenses,
-  createCategory,
-} from "../../Redux/Category/categoryActions";
+
 import { getProfileAction } from "../../Redux/Auth/auth.action";
 import {
   Box,
@@ -17,13 +14,14 @@ import {
   Tab,
   Snackbar,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import CategoryIcon from "@mui/icons-material/Category";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -34,8 +32,13 @@ import {
   CATEGORY_ICONS,
   CATEGORY_TYPES,
 } from "../../components/constants/categoryIcons";
+import {
+  fetchCategoryById,
+  fetchCategoryExpenses,
+  updateCategory,
+} from "../../Redux/Category/categoryActions";
 
-// Define icon categories for better organization
+// Import the same icon categories from CreateCategory
 const ICON_CATEGORIES = {
   "Financial & Money": [
     "cash",
@@ -266,32 +269,74 @@ const ICON_CATEGORIES = {
   ],
 };
 
-const CreateCategory = ({ onClose, onCategoryCreated }) => {
+const EditCategory = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { id } = useParams(); // Get category ID from URL
+
   const [categoryData, setCategoryData] = useState({
     name: "",
     description: "",
-    type: "Expense", // Default type
-    color: DEFAULT_CATEGORY_COLOR, // Default color
+    type: "Expense",
+    color: DEFAULT_CATEGORY_COLOR,
     isGlobal: false,
     selectedExpenses: [],
-    selectedIconKey: null, // Add this to track selected icon
+    selectedIconKey: null,
   });
+  const [loadingExpenses, setLoadingExpenses] = useState(false);
   const [errors, setErrors] = useState({});
   const [showExpenses, setShowExpenses] = useState(false);
-  const { uncategorizedExpenses } = useSelector(
-    (state) => state.categories || {}
-  );
-  const userId = useSelector((state) => state.auth?.user?.id);
   const [currentIconTab, setCurrentIconTab] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [localExpenses, setLocalExpenses] = useState([]);
+  const { currentCategory, categoryExpenses } = useSelector(
+    (state) => state.categories || {}
+  );
+  const userId = useSelector((state) => state.auth?.user?.id);
 
+  // Fetch category data when component mounts
+  // Fetch category data when component mounts
   useEffect(() => {
-    // Fetch uncategorized expenses when component mounts
-    dispatch(fetchUncategorizedExpenses());
-  }, [dispatch]);
+    const fetchData = async () => {
+      try {
+        setInitialLoading(true);
+        await dispatch(fetchCategoryById(id));
+        // Remove the fetchCategoryExpenses call from here
+      } catch (error) {
+        console.error("Error fetching category data:", error);
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          fetch: "Failed to load category data. Please try again.",
+        }));
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Update local state when category data is fetched
+  useEffect(() => {
+    if (currentCategory) {
+      setCategoryData({
+        name: currentCategory.name || "",
+        description: currentCategory.description || "",
+        type: currentCategory.type || "Expense",
+        color: currentCategory.color || DEFAULT_CATEGORY_COLOR,
+        isGlobal: currentCategory.global || false,
+        selectedExpenses: currentCategory.expenseIds?.[userId] || [],
+        selectedIconKey: currentCategory.icon || null,
+      });
+    }
+  }, [currentCategory, userId]);
+  useEffect(() => {
+    if (categoryExpenses) {
+      setLocalExpenses(categoryExpenses);
+    }
+  }, [categoryExpenses]);
 
   useEffect(() => {
     const token = localStorage.getItem("jwt");
@@ -316,7 +361,6 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
     }
   };
 
-  // Update the handleColorChange function to apply the selected color only to the icon and button
   const handleColorChange = (color) => {
     setCategoryData((prev) => ({
       ...prev,
@@ -324,7 +368,6 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
     }));
   };
 
-  // Add a function to handle icon selection
   const handleIconSelect = (iconKey) => {
     setCategoryData((prev) => ({
       ...prev,
@@ -361,25 +404,30 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
     // If no icon is selected, default to "other" icon
     const iconToUse = categoryData.selectedIconKey || "other";
 
+    // Collect all checked IDs for includeInBudget
+    const checkedIds = localExpenses
+      .filter((expense) => expense.includeInBudget)
+      .map((expense) => expense.id);
+
     const formattedData = {
-      id: null, // Assuming ID is generated server-side
+      id: parseInt(id), // Use the ID from URL
       name: categoryData.name,
       description: categoryData.description,
       type: categoryData.type || null,
-      icon: iconToUse, // Use selected icon or default to "other"
+      icon: iconToUse,
       color: categoryData.color || "",
       expenseIds: {
-        [userId]: categoryData.selectedExpenses,
+        [userId]: checkedIds,
       },
-      userIds: [],
-      editUserIds: [],
+      userIds: currentCategory.userIds || [],
+      editUserIds: currentCategory.editUserIds || [],
       global: categoryData.isGlobal,
     };
 
     setIsSubmitting(true);
 
-    // Dispatch the action and handle the response
-    dispatch(createCategory(formattedData))
+    // Dispatch the update action
+    dispatch(updateCategory(id, formattedData))
       .then(() => {
         setShowSuccessMessage(true);
 
@@ -391,7 +439,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
       .catch((error) => {
         setErrors({
           ...errors,
-          submit: "Failed to create category. Please try again.",
+          submit: "Failed to update category. Please try again.",
         });
       })
       .finally(() => {
@@ -400,19 +448,44 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
   };
 
   const handleShowExpenses = () => {
+    if (true == true) {
+      setLoadingExpenses(true);
+      dispatch(fetchCategoryExpenses(id)).finally(() => {
+        setLoadingExpenses(false);
+      });
+    }
     setShowExpenses(!showExpenses);
   };
-
   const handleCloseCategory = () => {
-    console.log("Close Category clicked");
     navigate(-1);
   };
 
   const handleIconTabChange = (event, newValue) => {
     setCurrentIconTab(newValue);
   };
-
+  const handleIncludeInBudgetChange = (id, checked) => {
+    setLocalExpenses((prevExpenses) =>
+      prevExpenses.map((expense) =>
+        expense.id === id ? { ...expense, includeInBudget: checked } : expense
+      )
+    );
+  };
+  // Prepare data for the DataGrid
   const columns = [
+    {
+      field: "includeInBudget",
+      headerName: "Include in Budget",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (params) => (
+        <Checkbox
+          checked={params.row.includeInBudget || false}
+          onChange={(event) =>
+            handleIncludeInBudgetChange(params.row.id, event.target.checked)
+          }
+        />
+      ),
+    },
     { field: "date", headerName: "Date", flex: 1, minWidth: 80 },
     {
       field: "expenseName",
@@ -431,21 +504,39 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
     { field: "comments", headerName: "Comments", flex: 1, minWidth: 120 },
   ];
 
-  const rows = uncategorizedExpenses?.map((expense, index) => ({
-    id: index,
-    date: expense.date,
-    expenseName: expense.expense.expenseName,
-    amount: expense.expense.amount,
-    type: expense.expense.type,
-    paymentMethod: expense.expense.paymentMethod,
-    comments: expense.expense.comments,
-  }));
+  const rows =
+    localExpenses?.map((expense, index) => ({
+      id: expense.id || index,
+      date: expense.date || "N/A",
+      expenseName: expense.expense.expenseName || "N/A",
+      amount: expense.expense.amount || 0,
+      type: expense.expense.type || "N/A",
+      paymentMethod: expense.expense.paymentMethod || "N/A",
+      comments: expense.expense.comments || "N/A",
+      includeInBudget: expense.includeInBudget || false,
+    })) || [];
 
   // Get the icon category names for tabs
   const iconCategoryNames = Object.keys(ICON_CATEGORIES);
   // Get the icons for the current tab
   const currentTabIcons =
     ICON_CATEGORIES[iconCategoryNames[currentIconTab]] || [];
+
+  if (initialLoading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "#1b1b1b",
+        }}
+      >
+        <CircularProgress sx={{ color: categoryData.color || "#1976d2" }} />
+      </Box>
+    );
+  }
 
   return (
     <div className="bg-[#1b1b1b]">
@@ -466,7 +557,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
         <div>
           <div className="w-full flex justify-between items-center mb-2">
             <p className="text-white font-extrabold text-2xl sm:text-3xl">
-              Create New Category
+              Edit Category
             </p>
             <button
               onClick={handleCloseCategory}
@@ -513,7 +604,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                       )}
                     </>
                   ),
-                  style: { color: "white" }, // Set input text color to white
+                  style: { color: "white" },
                 }}
                 sx={{
                   flex: 1,
@@ -527,7 +618,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                     "&.Mui-focused fieldset": {
                       borderColor: categoryData.color,
                     },
-                    color: "white", // Set input text color to white
+                    color: "white",
                   },
                   "& .MuiFormHelperText-root": {
                     color: categoryData.color,
@@ -551,7 +642,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                       sx={{ mr: 1, color: categoryData.color }}
                     />
                   ),
-                  style: { color: "white" }, // Set input text color to white
+                  style: { color: "white" },
                 }}
                 sx={{
                   flex: 1,
@@ -565,7 +656,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                     "&.Mui-focused fieldset": {
                       borderColor: categoryData.color,
                     },
-                    color: "white", // Set input text color to white
+                    color: "white",
                   },
                   "& .MuiFormHelperText-root": {
                     color: categoryData.color,
@@ -632,7 +723,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                       border: "1px solid rgba(255,255,255,0.3)",
                       borderRadius: 1,
                       p: 2,
-                      height: "200px", // Reduced from 250px
+                      height: "200px",
                       overflowY: "auto",
                     }}
                   >
@@ -641,8 +732,8 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                         key={color}
                         onClick={() => handleColorChange(color)}
                         sx={{
-                          width: 32, // Slightly smaller color circles
-                          height: 32, // Slightly smaller color circles
+                          width: 32,
+                          height: 32,
                           bgcolor: color,
                           borderRadius: "50%",
                           cursor: "pointer",
@@ -667,7 +758,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                     sx={{
                       border: "1px solid rgba(255,255,255,0.3)",
                       borderRadius: 1,
-                      height: "200px", // Reduced from 250px
+                      height: "200px",
                       display: "flex",
                       flexDirection: "column",
                     }}
@@ -692,7 +783,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                                   ? "0 4px 0 0"
                                   : "4px 0 0 0",
                               width: 28,
-                              height: 40, // Reduced from 48px
+                              height: 40,
                               "&:hover": {
                                 backgroundColor: `${categoryData.color}33`,
                               },
@@ -734,9 +825,9 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                           "&.Mui-selected": {
                             color: categoryData.color,
                           },
-                          minHeight: "40px", // Reduced from 48px
-                          padding: "8px 12px", // Reduced padding
-                          fontSize: "0.85rem", // Smaller font size
+                          minHeight: "40px",
+                          padding: "8px 12px",
+                          fontSize: "0.85rem",
                         },
                         "& .MuiTabs-indicator": {
                           backgroundColor: categoryData.color,
@@ -769,11 +860,11 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                         display: "flex",
                         flexWrap: "wrap",
                         gap: 1,
-                        p: 1.5, // Reduced padding
+                        p: 1.5,
                         overflowY: "auto",
                         flex: 1,
                         "&::-webkit-scrollbar": {
-                          width: "6px", // Thinner scrollbar
+                          width: "6px",
                         },
                         "&::-webkit-scrollbar-track": {
                           background: "rgba(255,255,255,0.05)",
@@ -793,8 +884,8 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                           key={iconKey}
                           onClick={() => handleIconSelect(iconKey)}
                           sx={{
-                            width: "45px", // Reduced from 50px
-                            height: "45px", // Reduced from 50px
+                            width: "45px",
+                            height: "45px",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -819,11 +910,11 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                                 ? {
                                     content: '""',
                                     position: "absolute",
-                                    bottom: "-3px", // Adjusted from -4px
+                                    bottom: "-3px",
                                     left: "50%",
                                     transform: "translateX(-50%)",
-                                    width: "5px", // Slightly smaller dot
-                                    height: "5px", // Slightly smaller dot
+                                    width: "5px",
+                                    height: "5px",
                                     borderRadius: "50%",
                                     backgroundColor: categoryData.color,
                                   }
@@ -836,7 +927,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                                 categoryData.selectedIconKey === iconKey
                                   ? categoryData.color
                                   : "white",
-                              fontSize: "26px", // Reduced from 30px
+                              fontSize: "26px",
                             },
                           })}
                         </Box>
@@ -887,7 +978,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                         },
                       }}
                     >
-                      {showExpenses ? "Hide Expenses" : "Link Expenses"}
+                      {showExpenses ? "Hide Expenses" : "View Expenses"}
                     </Button>
                   </Box>
                 </FormControl>
@@ -905,18 +996,8 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                         },
                       }}
                       pageSizeOptions={[5, 10, 20]}
-                      checkboxSelection
-                      onRowSelectionModelChange={(newSelectionModel) => {
-                        const selectedIds = newSelectionModel
-                          .map((id) => uncategorizedExpenses[id]?.id)
-                          .filter(Boolean);
-
-                        setCategoryData((prev) => ({
-                          ...prev,
-                          selectedExpenses: selectedIds,
-                        }));
-                      }}
                       rowHeight={42}
+                      disableSelectionOnClick
                     />
                   </Box>
                 </Grid>
@@ -950,7 +1031,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                   },
                 }}
               >
-                {isSubmitting ? "Creating..." : "Create Category"}
+                {isSubmitting ? "Updating..." : "Update Category"}
               </Button>
             </Box>
           </Box>
@@ -974,7 +1055,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
               },
             }}
           >
-            Category created successfully!
+            Category updated successfully!
           </Alert>
         </Snackbar>
       </div>
@@ -982,4 +1063,4 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
   );
 };
 
-export default CreateCategory;
+export default EditCategory;

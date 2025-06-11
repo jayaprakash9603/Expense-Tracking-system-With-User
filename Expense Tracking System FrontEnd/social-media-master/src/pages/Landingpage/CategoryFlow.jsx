@@ -30,7 +30,14 @@ import {
   DialogTitle,
   Button,
   Fab,
+  CircularProgress,
 } from "@mui/material";
+
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
 import { CreateCategory } from "../../components/Category";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { createPortal } from "react-dom";
@@ -45,6 +52,11 @@ import CloseIcon from "@mui/icons-material/Close";
 import SortIcon from "@mui/icons-material/Sort";
 import AddIcon from "@mui/icons-material/Add";
 import { DataGrid } from "@mui/x-data-grid";
+import {
+  fetchCategoryById,
+  deleteCategory,
+} from "../../Redux/Category/categoryActions";
+import Modal from "./Modal";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -230,7 +242,10 @@ const CategoryFlow = () => {
   const [selectedCategoryExpenses, setSelectedCategoryExpenses] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
-
+  const [isDeleting, setIsDeleting] = useState(false);
+  // Add these state variables with your other state declarations
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [selectedMenuCategory, setSelectedMenuCategory] = useState(null);
   const dispatch = useDispatch();
   const { categoryExpenses, loading } = useSelector((state) => state.expenses);
   const filterBtnRef = useRef(null);
@@ -260,6 +275,43 @@ const CategoryFlow = () => {
     setShowExpenseTable(false);
   }, [activeRange, offset, flowTab]);
 
+  // Add these handlers with your other handler functions
+  const handleMenuOpen = (event, category) => {
+    event.stopPropagation(); // Prevent card click
+    setMenuAnchorEl(event.currentTarget);
+    setSelectedMenuCategory(category);
+  };
+
+  const handleMenuClose = (event) => {
+    if (event) event.stopPropagation(); // Prevent card click
+    setMenuAnchorEl(null);
+  };
+
+  const handleEditCategory = (event) => {
+    event.stopPropagation(); // Prevent card click
+    if (selectedMenuCategory) {
+      navigate(`/category-flow/edit/${selectedMenuCategory.categoryId}`);
+    }
+    handleMenuClose(event);
+  };
+
+  const handleDeleteCategoryFromMenu = (event) => {
+    event.stopPropagation(); // Prevent card click
+    if (selectedMenuCategory) {
+      // Fetch category details dynamically
+      const categoryDetails = {
+        name: selectedMenuCategory.categoryName,
+        expenseCount: selectedMenuCategory.expenseCount,
+      };
+
+      setCategoryToDelete({
+        ...selectedMenuCategory,
+        details: categoryDetails,
+      });
+      setDeleteDialogOpen(true);
+    }
+    handleMenuClose(event);
+  };
   // Popover close on outside click
   useEffect(() => {
     if (!popoverOpen) return;
@@ -542,22 +594,30 @@ const CategoryFlow = () => {
     setDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
-    // Implement the delete functionality here
-    // You would typically dispatch an action to delete the category
-    setToastMessage(
-      `Category "${categoryToDelete.categoryName}" deleted successfully`
-    );
-    setToastOpen(true);
-    setDeleteDialogOpen(false);
-    setCategoryToDelete(null);
-    // After successful deletion, refresh the categories
-    dispatch(fetchCategoriesWithExpenses(activeRange, offset, flowTab));
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteCategory(categoryToDelete.categoryId));
+      setToastMessage(
+        `Category '${categoryToDelete.details.name}' deleted successfully!`
+      );
+      setToastOpen(true);
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      setToastMessage(
+        `Failed to delete category '${categoryToDelete.details.name}'. Please try again.`
+      );
+      setToastOpen(true);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
-  const handleDeleteCancel = () => {
+  // Rename the existing handleDeleteCancel to avoid conflict
+  const handleDeleteCancelModal = () => {
     setDeleteDialogOpen(false);
-    setCategoryToDelete(null);
   };
 
   // Handlers for create category modal
@@ -828,37 +888,21 @@ const CategoryFlow = () => {
       />
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleDeleteCancel}
-        PaperProps={{
-          style: {
-            backgroundColor: "#1b1b1b",
-            color: "#fff",
-            borderRadius: "12px",
-          },
+      <Modal
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        title="Delete Category"
+        data={categoryToDelete?.details || {}}
+        headerNames={{
+          name: "Category Name",
+          expenseCount: "Number of Expenses",
         }}
-      >
-        <DialogTitle>Delete Category</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: "#b0b6c3" }}>
-            Are you sure you want to delete the category "
-            {categoryToDelete?.categoryName}"? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel} sx={{ color: "#00dac6" }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            sx={{ color: "#ff5252" }}
-            autoFocus
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        confirmationText="Are you sure you want to delete this category? This action will remove all associated expenses."
+        onApprove={handleDeleteCategory}
+        onDecline={() => setDeleteDialogOpen(false)}
+        approveText={isDeleting ? "Deleting..." : "Delete"}
+        declineText="Cancel"
+      />
 
       {/* Create Category Dialog */}
       <Dialog
@@ -1175,8 +1219,8 @@ const CategoryFlow = () => {
                   zIndex: 1000,
                   background: "#0b0b0b",
                   border: "1px solid #333",
-                  borderRadius: 8,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
                   minWidth: 140,
                   maxWidth: 180,
                   padding: 0,
@@ -1366,6 +1410,30 @@ const CategoryFlow = () => {
                   onClick={() => handleCategoryClick(category)}
                   onDoubleClick={(e) => handleCategoryDoubleClick(e, category)}
                 >
+                  {/* Three-dot menu in the top right corner - Always visible with white color */}
+                  <div
+                    className="absolute top-2 right-2 transition-opacity"
+                    onClick={(e) => e.stopPropagation()} // Prevent card click
+                    style={{
+                      opacity: 0.9,
+                      zIndex: 10,
+                    }}
+                  >
+                    <IconButton
+                      size="small"
+                      sx={{
+                        color: "#ffffff",
+                        padding: "4px",
+                        backgroundColor: "#28282a80",
+                        "&:hover": {
+                          backgroundColor: `${category.color}22`,
+                        },
+                      }}
+                      onClick={(e) => handleMenuOpen(e, category)}
+                    >
+                      <MoreVertIcon fontSize="small" />
+                    </IconButton>
+                  </div>
                   {/* Card content remains the same */}
                   <div
                     className="flex flex-col gap-2"
@@ -1417,6 +1485,55 @@ const CategoryFlow = () => {
               ))
             )}
           </div>
+          {/* Category Menu */}
+          <Menu
+            anchorEl={menuAnchorEl}
+            open={Boolean(menuAnchorEl)}
+            onClose={handleMenuClose}
+            onClick={(e) => e.stopPropagation()}
+            PaperProps={{
+              sx: {
+                backgroundColor: "#1b1b1b",
+                color: "white",
+                border: "1px solid #333",
+                borderRadius: "8px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                minWidth: "150px",
+                "& .MuiMenuItem-root": {
+                  fontSize: "14px",
+                  padding: "8px 16px",
+                  "&:hover": {
+                    backgroundColor: "#333",
+                  },
+                },
+              },
+            }}
+            transformOrigin={{ horizontal: "right", vertical: "top" }}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+          >
+            <MenuItem onClick={handleEditCategory}>
+              <ListItemIcon>
+                <EditIcon
+                  fontSize="small"
+                  sx={{ color: selectedMenuCategory?.color || "#00dac6" }}
+                />
+              </ListItemIcon>
+              <ListItemText primary="Edit" />
+            </MenuItem>
+            <MenuItem onClick={handleDeleteCategoryFromMenu}>
+              <ListItemIcon>
+                <DeleteIcon fontSize="small" sx={{ color: "#ff5252" }} />
+              </ListItemIcon>
+              <ListItemText primary="Delete" />
+            </MenuItem>
+          </Menu>
+
+          {/* Loader Overlay */}
+          {isDeleting && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <CircularProgress sx={{ color: "#00dac6" }} />
+            </div>
+          )}
         </>
       )}
 
