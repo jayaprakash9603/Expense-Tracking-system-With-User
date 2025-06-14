@@ -29,6 +29,8 @@ import DayTransactionsView from "./pages/Landingpage/DayTransactionsView";
 import CategoryFlow from "./pages/Landingpage/CategoryFlow";
 import CreateCategory from "./pages/Landingpage/CreateCategory";
 import EditCategory from "./pages/Landingpage/EditCategory";
+import Utilities from "./pages/Landingpage/Utilities";
+import Friends from "./pages/Landingpage/Friends";
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -68,6 +70,8 @@ function App() {
           <Route index element={<Navigate to="/home" />} />
           <Route path="home" element={<HomeContent />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="friends" element={<Friends />} />
+          <Route path="all" element={<Utilities />} />
 
           <Route path="upload" element={<Upload />} />
           {/* Nested expenses route */}
@@ -83,7 +87,7 @@ function App() {
           </Route>
 
           <Route path="transactions" element={<TransactionsContent />} />
-          <Route path="credit-due" element={<CreditDueContent />} />
+          <Route path="insights" element={<CreditDueContent />} />
           <Route path="reports" element={<Reports />} />
           <Route path="cashflow" element={<ExpensesContent />} />
           <Route path="budget">

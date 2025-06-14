@@ -9,6 +9,7 @@ import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
 import com.jaya.models.User;
 import com.jaya.service.FriendshipService;
+import com.jaya.service.SocketService;
 import com.jaya.service.UserService;
 import com.jaya.util.FriendshipMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,24 +33,24 @@ public class FriendshipController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/request")
-    public ResponseEntity<FriendshipResponseDTO> sendFriendRequest(
-            @RequestHeader("Authorization") String jwt,
-            @RequestParam Integer recipientId) throws UserException {
-        User requester = userService.findUserByJwt(jwt);
-        Friendship friendship = friendshipService.sendFriendRequest(requester.getId(), recipientId);
-        return new ResponseEntity<>(FriendshipMapper.toDTO(friendship), HttpStatus.CREATED);
-    }
+//    @PostMapping("/request")
+//    public ResponseEntity<FriendshipResponseDTO> sendFriendRequest(
+//            @RequestHeader("Authorization") String jwt,
+//            @RequestParam Integer recipientId) throws UserException {
+//        User requester = userService.findUserByJwt(jwt);
+//        Friendship friendship = friendshipService.sendFriendRequest(requester.getId(), recipientId);
+//        return new ResponseEntity<>(FriendshipMapper.toDTO(friendship), HttpStatus.CREATED);
+//    }
 
-    @PutMapping("/{friendshipId}/respond")
-    public ResponseEntity<FriendshipResponseDTO> respondToRequest(
-            @RequestHeader("Authorization") String jwt,
-            @PathVariable Integer friendshipId,
-            @RequestParam boolean accept) throws UserException {
-        User user = userService.findUserByJwt(jwt);
-        Friendship friendship = friendshipService.respondToRequest(friendshipId, user.getId(), accept);
-        return ResponseEntity.ok(FriendshipMapper.toDTO(friendship));
-    }
+//    @PutMapping("/{friendshipId}/respond")
+//    public ResponseEntity<FriendshipResponseDTO> respondToRequest(
+//            @RequestHeader("Authorization") String jwt,
+//            @PathVariable Integer friendshipId,
+//            @RequestParam boolean accept) throws UserException {
+//        User user = userService.findUserByJwt(jwt);
+//        Friendship friendship = friendshipService.respondToRequest(friendshipId, user.getId(), accept);
+//        return ResponseEntity.ok(FriendshipMapper.toDTO(friendship));
+//    }
 
     @PutMapping("/{friendshipId}/access")
     public ResponseEntity<FriendshipResponseDTO> setAccessLevel(
@@ -277,5 +278,37 @@ public class FriendshipController {
         User user = userService.findUserByJwt(jwt);
         List<Map<String, Object>> recommendations = friendshipService.getRecommendedToShare(user.getId());
         return ResponseEntity.ok(recommendations);
+    }
+
+
+
+    @Autowired
+    private SocketService socketService;
+
+    @PostMapping("/request")
+    public ResponseEntity<?> sendFriendRequest(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam  Integer recipientId) throws UserException {
+        User user = userService.findUserByJwt(jwt);
+        Friendship friendship = friendshipService.sendFriendRequest(user.getId(), recipientId);
+
+        // Notify recipient about new friend request
+        socketService.notifyNewFriendRequest(friendship);
+
+        return ResponseEntity.ok(friendship);
+    }
+
+    @PutMapping("/{requestId}/respond")
+    public ResponseEntity<?> respondToFriendRequest(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Integer requestId,
+            @RequestParam boolean accept) throws UserException {
+        User user = userService.findUserByJwt(jwt);
+        Friendship friendship = friendshipService.respondToRequest(requestId, user.getId(), accept);
+
+        // Notify requester about friend request response
+        socketService.notifyFriendRequestResponse(friendship);
+
+        return ResponseEntity.ok(friendship);
     }
 }

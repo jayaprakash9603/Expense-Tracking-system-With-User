@@ -298,16 +298,7 @@ const CategoryFlow = () => {
   const handleDeleteCategoryFromMenu = (event) => {
     event.stopPropagation(); // Prevent card click
     if (selectedMenuCategory) {
-      // Fetch category details dynamically
-      const categoryDetails = {
-        name: selectedMenuCategory.categoryName,
-        expenseCount: selectedMenuCategory.expenseCount,
-      };
-
-      setCategoryToDelete({
-        ...selectedMenuCategory,
-        details: categoryDetails,
-      });
+      setCategoryToDelete(selectedMenuCategory);
       setDeleteDialogOpen(true);
     }
     handleMenuClose(event);
@@ -594,24 +585,24 @@ const CategoryFlow = () => {
     setDeleteDialogOpen(true);
   };
 
-  const handleDeleteCategory = async () => {
-    if (!categoryToDelete) return;
-
-    setIsDeleting(true);
-    try {
-      await dispatch(deleteCategory(categoryToDelete.categoryId));
-      setToastMessage(
-        `Category '${categoryToDelete.details.name}' deleted successfully!`
-      );
-      setToastOpen(true);
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      setToastMessage(
-        `Failed to delete category '${categoryToDelete.details.name}'. Please try again.`
-      );
-      setToastOpen(true);
-    } finally {
-      setIsDeleting(false);
+  const handleDeleteConfirm = async () => {
+    if (categoryToDelete) {
+      setIsDeleting(true);
+      try {
+        await dispatch(deleteCategory(categoryToDelete.categoryId));
+        setToastMessage(
+          `Category "${categoryToDelete.categoryName}" deleted successfully.`
+        );
+        setToastOpen(true);
+        setDeleteDialogOpen(false);
+        // Refresh categories after deletion
+        dispatch(fetchCategoriesWithExpenses(activeRange, offset, flowTab));
+      } catch (error) {
+        setToastMessage("Failed to delete category. Please try again.");
+        setToastOpen(true);
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -782,7 +773,7 @@ const CategoryFlow = () => {
     ];
 
     // Calculate appropriate height based on screen size and available space
-    const tableHeight = isMobile ? 200 : isTablet ? 250 : 300;
+    const tableHeight = isMobile ? 200 : isTablet ? 250 : 320;
 
     return (
       <div
@@ -879,6 +870,37 @@ const CategoryFlow = () => {
         minWidth: 0,
       }}
     >
+      {/* <IconButton
+        sx={{
+          position: "absolute",
+          top: 16,
+          left: 16,
+          color: "#00DAC6",
+          backgroundColor: "#1b1b1b",
+          "&:hover": {
+            backgroundColor: "#28282a",
+          },
+          zIndex: 10,
+        }}
+        onClick={() => navigate(-1)}
+        aria-label="Back"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M15 18L9 12L15 6"
+            stroke="#00DAC6"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </IconButton> */}
       <ToastNotification
         open={toastOpen}
         message={toastMessage}
@@ -890,17 +912,12 @@ const CategoryFlow = () => {
       {/* Delete Confirmation Dialog */}
       <Modal
         isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        onClose={handleDeleteCancelModal}
         title="Delete Category"
-        data={categoryToDelete?.details || {}}
-        headerNames={{
-          name: "Category Name",
-          expenseCount: "Number of Expenses",
-        }}
-        confirmationText="Are you sure you want to delete this category? This action will remove all associated expenses."
-        onApprove={handleDeleteCategory}
-        onDecline={() => setDeleteDialogOpen(false)}
-        approveText={isDeleting ? "Deleting..." : "Delete"}
+        confirmationText="Are you sure you want to delete this category?"
+        onApprove={handleDeleteConfirm}
+        onDecline={handleDeleteCancelModal}
+        approveText="Delete"
         declineText="Cancel"
       />
 

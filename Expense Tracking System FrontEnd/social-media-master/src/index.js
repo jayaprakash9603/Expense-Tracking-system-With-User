@@ -8,8 +8,12 @@ import { Provider } from "react-redux";
 import { store } from "./Redux/store";
 import { ThemeProvider } from "@emotion/react";
 import theme from "./pages/Landingpage/theme";
+import { getStore, setStore } from "./utils/store";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
+
+setStore(store);
+
 root.render(
   <React.StrictMode>
     <BrowserRouter>

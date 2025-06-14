@@ -932,6 +932,114 @@ const Cashflow = () => {
             flexShrink: 0, // Prevent shrinking
           }}
         >
+          {/* Categories Icon Button */}
+          <IconButton
+            sx={{ p: 0.5, color: "#00DAC6" }}
+            onClick={() => navigate("/category-flow")}
+            aria-label="Categories"
+          >
+            <img
+              src={require("../../assests/category.png")}
+              alt="Categories"
+              style={{
+                width: 24,
+                height: 24,
+                display: "block",
+                filter:
+                  "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+              }}
+            />
+          </IconButton>
+
+          <IconButton
+            sx={{ p: 0.5, color: "#00DAC6" }}
+            onClick={() => navigate("/transactions")}
+            aria-label="Transactions"
+          >
+            <img
+              src={require("../../assests/history.png")}
+              alt="Transactions"
+              style={{
+                width: 24,
+                height: 24,
+                display: "block",
+                filter:
+                  "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+              }}
+            />
+          </IconButton>
+
+          <IconButton
+            sx={{ p: 0.5, color: "#00DAC6" }}
+            onClick={() => navigate("/insights")}
+            aria-label="Insights"
+          >
+            <img
+              src={require("../../assests/insight.png")}
+              alt="Insights"
+              style={{
+                width: 24,
+                height: 24,
+                display: "block",
+                filter:
+                  "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+              }}
+            />
+          </IconButton>
+
+          <IconButton
+            sx={{ p: 0.5, color: "#00DAC6" }}
+            onClick={() => navigate("/reports")}
+            aria-label="Reports"
+          >
+            <img
+              src={require("../../assests/report.png")}
+              alt="Reports"
+              style={{
+                width: 24,
+                height: 24,
+                display: "block",
+                filter:
+                  "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+              }}
+            />
+          </IconButton>
+
+          <IconButton
+            sx={{ p: 0.5, color: "#00DAC6" }}
+            onClick={() => navigate("/cashflow")}
+            aria-label="All Expenses"
+          >
+            <img
+              src={require("../../assests/list.png")}
+              alt="All Expenses"
+              style={{
+                width: 24,
+                height: 24,
+                display: "block",
+                filter:
+                  "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+              }}
+            />
+          </IconButton>
+
+          <IconButton
+            sx={{ p: 0.5, color: "#00DAC6" }}
+            onClick={() => navigate("/budget")}
+            aria-label="All Budgets"
+          >
+            <img
+              src={require("../../assests/budget.png")}
+              alt="All Budgets"
+              style={{
+                width: 24,
+                height: 24,
+                display: "block",
+                filter:
+                  "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+              }}
+            />
+          </IconButton>
           <IconButton
             sx={{ p: 0.5 }}
             onClick={() => navigate("/calendar-view")}

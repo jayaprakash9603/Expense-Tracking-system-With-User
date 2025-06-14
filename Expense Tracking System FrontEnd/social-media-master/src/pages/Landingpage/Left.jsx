@@ -17,7 +17,7 @@ const Left = () => {
   const handleLogout = () => {
     dispatch(logoutAction());
     navigate("/login");
-    setIsSidebarOpen(false); // Close sidebar on logout
+    setIsSidebarOpen(false);
     setIsConfirmModalOpen(false);
   };
 
@@ -116,47 +116,24 @@ const Left = () => {
               icon="https://cdn-icons-png.flaticon.com/128/5501/5501384.png"
               setIsSidebarOpen={setIsSidebarOpen}
             />
-            <MenuItem
-              name="Transactions"
-              path="/transactions"
-              icon="https://cdn-icons-png.flaticon.com/128/4475/4475436.png"
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Insights"
-              path="/credit-due"
-              icon="https://cdn-icons-png.flaticon.com/128/15867/15867059.png"
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Reports"
-              path="/reports"
-              icon="https://cdn-icons-png.flaticon.com/128/3094/3094851.png"
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Cash Flow"
-              path="/cashflow"
-              icon={require("../../assests/money-flow.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Budget"
-              path="/budget"
-              icon="https://cdn-icons-png.flaticon.com/128/2488/2488980.png"
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
 
-            <MenuItem
-              name="Profile"
-              path="/category-flow"
-              icon="https://cdn-icons-png.flaticon.com/128/456/456283.png"
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
             <MenuItem
               name="Profile"
               path="/profile"
               icon="https://cdn-icons-png.flaticon.com/128/456/456283.png"
+              setIsSidebarOpen={setIsSidebarOpen}
+            />
+
+            <MenuItem
+              name="Friends"
+              path="/friends"
+              icon={require("../../assests/friends.png")}
+              setIsSidebarOpen={setIsSidebarOpen}
+            />
+            <MenuItem
+              name="More"
+              path="/all"
+              icon={require("../../assests/grid.png")}
               setIsSidebarOpen={setIsSidebarOpen}
             />
 

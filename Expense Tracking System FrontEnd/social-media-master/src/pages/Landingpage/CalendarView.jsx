@@ -151,46 +151,37 @@ const CalendarView = () => {
     >
       {/* Back to expenses button */}
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-        <Button
-          onClick={() => navigate("/expenses", { replace: true })}
+        <IconButton
           sx={{
-            background: "#00dac6",
-            color: "#111", // black text
-            textTransform: "none",
-            fontWeight: 700,
-            fontSize: isSmallScreen ? 14 : 16,
-            pl: 2,
-            pr: 2,
-            minWidth: 0,
-            justifyContent: "flex-start",
-            alignItems: "center",
-            gap: 1,
-            ml: 0,
-            borderRadius: 2,
-            boxShadow: 2,
-            height: isSmallScreen ? 36 : 40,
+            position: "absolute",
+            top: 16,
+            left: 16,
+            color: "#00DAC6",
+            backgroundColor: "#1b1b1b",
             "&:hover": {
-              background: "#00dac6",
-              color: "#111",
-              opacity: 0.9,
+              backgroundColor: "#28282a",
             },
+            zIndex: 10,
           }}
-          startIcon={
-            <img
-              src={require("../../assests/less-than-symbol.png")}
-              alt="Back"
-              style={{
-                width: isSmallScreen ? 12 : 14,
-                height: isSmallScreen ? 12 : 14,
-                marginRight: 2,
-                verticalAlign: "middle",
-                display: "inline-block",
-              }}
-            />
-          }
+          onClick={() => navigate("/expenses")}
+          aria-label="Back"
         >
-          Back
-        </Button>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 18L9 12L15 6"
+              stroke="#00DAC6"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </IconButton>
       </Box>
       {/* Header for Day/Calendar View */}
       <Typography

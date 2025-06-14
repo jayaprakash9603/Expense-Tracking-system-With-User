@@ -13,6 +13,7 @@ import {
 } from "./Expenses/expense.reducer";
 import { budgetReducer } from "./Budget/budget.reducer";
 import categoryReducer from "./Category/categoryReducer";
+import friendsReducer from "./Friends/friendsReducer";
 
 // Combine reducers
 const rootreducers = combineReducers({
@@ -22,6 +23,7 @@ const rootreducers = combineReducers({
   savedExpenses: saveExpensesReducer,
   budgets: budgetReducer,
   categories: categoryReducer,
+  friends: friendsReducer,
 });
 
 // Compose enhancer with DevTools support

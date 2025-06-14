@@ -163,46 +163,37 @@ const DayTransactionsView = () => {
       />
       {/* Back to calendar button */}
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-        <Button
-          onClick={() => navigate("/calendar-view", { replace: true })}
+        <IconButton
           sx={{
-            background: "#00dac6",
-            color: "#111", // black text
-            textTransform: "none",
-            fontWeight: 700,
-            fontSize: 16,
-            pl: 2,
-            pr: 2,
-            minWidth: 0,
-            justifyContent: "flex-start",
-            alignItems: "center",
-            gap: 1,
-            ml: 0,
-            borderRadius: 2,
-            boxShadow: 2,
-            height: 40,
+            position: "absolute",
+            top: 16,
+            left: 16,
+            color: "#00DAC6",
+            backgroundColor: "#1b1b1b",
             "&:hover": {
-              background: "#00dac6",
-              color: "#111",
-              opacity: 0.9,
+              backgroundColor: "#28282a",
             },
+            zIndex: 10,
           }}
-          startIcon={
-            <img
-              src={require("../../assests/less-than-symbol.png")}
-              alt="Back"
-              style={{
-                width: 14,
-                height: 14,
-                marginRight: 2, // Reduce space between icon and text
-                verticalAlign: "middle",
-                display: "inline-block",
-              }}
-            />
-          }
+          onClick={() => navigate("/calendar-view")}
+          aria-label="Back"
         >
-          Back
-        </Button>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 18L9 12L15 6"
+              stroke="#00DAC6"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </IconButton>
       </Box>
       {/* Header for Day View */}
       <Typography
