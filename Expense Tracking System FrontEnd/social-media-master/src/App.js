@@ -31,6 +31,8 @@ import CreateCategory from "./pages/Landingpage/CreateCategory";
 import EditCategory from "./pages/Landingpage/EditCategory";
 import Utilities from "./pages/Landingpage/Utilities";
 import Friends from "./pages/Landingpage/Friends";
+import FriendExpenses from "./pages/Landingpage/FriendsExpenses";
+import ExpensesView from "./pages/Landingpage/ExpensesView";
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -71,6 +73,11 @@ function App() {
           <Route path="home" element={<HomeContent />} />
           <Route path="profile" element={<Profile />} />
           <Route path="friends" element={<Friends />} />
+
+          <Route path="friends">
+            <Route index element={<Friends />} />
+            <Route path="expenses/:friendId" element={<FriendExpenses />} />
+          </Route>
           <Route path="all" element={<Utilities />} />
 
           <Route path="upload" element={<Upload />} />
@@ -78,26 +85,66 @@ function App() {
           <Route path="expenses">
             <Route index element={<Cashflow />} />
             <Route path="create" element={<NewExpense />} />
+            <Route path="create/:friendId" element={<NewExpense />} />
             <Route path="edit/:id" element={<EditExpense />} />
+            <Route path="edit/:id/friend/:friendId" element={<EditExpense />} />
           </Route>
           <Route path="category-flow">
             <Route index element={<CategoryFlow />} />
+            <Route path=":friendId" element={<CategoryFlow />} />
             <Route path="create" element={<CreateCategory />} />
+            <Route path="create/:friendId" element={<CreateCategory />} />
             <Route path="edit/:id" element={<EditCategory />} />
+            <Route
+              path="edit/:id/friend/:friendId"
+              element={<EditCategory />}
+            />
+            <Route
+              path="edit/:id/friend/:friendId"
+              element={<EditCategory />}
+            />
           </Route>
 
-          <Route path="transactions" element={<TransactionsContent />} />
-          <Route path="insights" element={<CreditDueContent />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="cashflow" element={<ExpensesContent />} />
+          <Route path="transactions">
+            <Route index element={<TransactionsContent />} />
+            <Route path=":friendId" element={<TransactionsContent />} />
+          </Route>
+          <Route path="insights">
+            <Route index element={<CreditDueContent />} />
+            <Route path=":friendId" element={<CreditDueContent />} />
+          </Route>
+          <Route path="reports">
+            <Route index element={<Reports />} />
+            <Route path=":friendId" element={<Reports />} />
+          </Route>
+          <Route path="cashflow">
+            <Route index element={<ExpensesView />} />
+            <Route path=":friendId" element={<ExpensesView />} />
+          </Route>
           <Route path="budget">
             <Route index element={<Budget />} />
+            <Route path=":friendId" element={<Budget />} />
             <Route path="create" element={<NewBudget />} />
+            <Route path="create/:friendId" element={<NewBudget />} />
             <Route path="edit/:id" element={<EditBudget />} />
+            <Route path="edit/:id/friend/:friendId" element={<EditBudget />} />
             <Route path="report/:id" element={<BudgetReport />} />
+            <Route
+              path="report/:id/friend/:friendId"
+              element={<BudgetReport />}
+            />
           </Route>
-          <Route path="/calendar-view" element={<CalendarView />} />
-          <Route path="/day-view/:date" element={<DayTransactionsView />} />
+          <Route path="/calendar-view">
+            <Route index element={<CalendarView />} />
+            <Route path=":friendId" element={<CalendarView />} />
+          </Route>
+          <Route path="/day-view">
+            <Route path=":date" element={<DayTransactionsView />} />
+            <Route
+              path=":date/friend/:friendId"
+              element={<DayTransactionsView />}
+            />
+          </Route>
         </Route>
 
         {/* Other Routes */}

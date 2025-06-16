@@ -30,7 +30,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,6 +55,16 @@ public class ExpenseController {
 
     @Autowired
     private FriendshipService friendshipService;
+
+    @Autowired
+    ExpenseRepository expenseRepository;
+
+
+    @Autowired
+    private ExcelService excelService;
+
+    @Autowired
+    private EmailService emailService;
     
 
     @Autowired
@@ -62,36 +74,55 @@ public class ExpenseController {
 		
     }
 
-    @PostMapping("/add-expense")
-    public ResponseEntity<?> addExpense(@Validated @RequestBody Expense expense,@RequestHeader("Authorization") String jwt,@RequestParam(required = false)Integer targetId) throws Exception {
-        User reqUser=userService.findUserByJwt(jwt);
-        Expense createExpense=new Expense();
+
+    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) throws UserException {
         if (targetId == null) {
-            createExpense=expenseService.addExpense(expense,reqUser);
+            return reqUser;
         }
-        else
-        {
-            User targetUser = userService.findUserById(targetId);
-            if (targetUser == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
 
-            boolean hasAccess = friendshipService.canUserModifyExpenses(targetId, reqUser.getId());
-            if (!hasAccess) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("You don't have permission to create this user's expenses");
-            }
+        User targetUser = userService.findUserById(targetId);
+        if (targetUser == null) {
+            throw new RuntimeException("Target user not found");
+        }
 
+        boolean hasAccess = needWriteAccess ?
+                friendshipService.canUserModifyExpenses(targetId, reqUser.getId()) :
+                friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
+
+        if (!hasAccess) {
+            String action = needWriteAccess ? "modify" : "access";
+            throw new RuntimeException("You don't have permission to " + action + " this user's expenses");
+        }
+
+        return targetUser;
+    }
+
+    @PostMapping("/add-expense")
+    public ResponseEntity<?> addExpense(@Validated @RequestBody Expense expense,
+                                        @RequestHeader("Authorization") String jwt,
+                                        @RequestParam(required = false) Integer targetId) throws Exception {
+        User reqUser = userService.findUserByJwt(jwt);
+        Expense createExpense;
+
+        try {
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             createExpense = expenseService.addExpense(expense, targetUser);
+
+            if (createExpense != null) {
+                auditExpenseService.logAudit(reqUser, expense.getId(), "create",
+                        "Expense created with ID: " + expense.getId());
+            }
+
+            return ResponseEntity.ok(createExpense);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            } else if (e.getMessage().contains("permission")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+            } else {
+                throw e;
+            }
         }
-
-
-        if(createExpense!=null)
-        {
-            auditExpenseService.logAudit(reqUser,expense.getId(), "create", "Expense created with ID: " + expense.getId());
-
-        }
-        return ResponseEntity.ok(createExpense);
     }
 
 
@@ -154,45 +185,90 @@ public class ExpenseController {
     }
 
     @PostMapping("/add-multiple")
-    public ResponseEntity<?> addMultipleExpenses(@RequestHeader("Authorization") String jwt, @RequestBody List<Expense> expenses) throws Exception {
-        User user = userService.findUserByJwt(jwt); // Get the user by JWT
-        if (user == null) {
-            return ResponseEntity.status(404).body("User not found");
+    public ResponseEntity<?> addMultipleExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestBody List<Expense> expenses,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+
+        User reqUser = userService.findUserByJwt(jwt);
+        List<Expense> savedExpenses;
+
+        try {
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            savedExpenses = expenseService.addMultipleExpenses(expenses, targetUser);
+
+            // Log audit information for each created expense
+            for (Expense expense : savedExpenses) {
+                String expenseDetails = String.format(
+                        "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                        expense.getId(),
+                        expense.getExpense().getExpenseName(),
+                        expense.getExpense().getAmount(),
+                        expense.getExpense().getType(),
+                        expense.getExpense().getPaymentMethod()
+                );
+
+                auditExpenseService.logAudit(reqUser, expense.getId(), "create", expenseDetails);
+            }
+
+            return ResponseEntity.status(201).body(savedExpenses);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            } else if (e.getMessage().contains("permission")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+            } else {
+                throw e;
+            }
         }
-
-
-
-
-
-        // Save the new expenses
-        List<Expense> savedExpenses = expenseService.addMultipleExpenses(expenses,user);
-
-
-
-        return ResponseEntity.status(201).body(savedExpenses);
     }
 
 
 
     @DeleteMapping("/delete-all")
-    public ResponseEntity<String> deleteAllExpenses(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<String> deleteAllExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
-            User reqUser=userService.findUserByJwt(jwt);
-            List<Expense> allExpenses = expenseService.getAllExpenses(reqUser);
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> allExpenses = expenseService.getAllExpenses(targetUser);
 
             if (!allExpenses.isEmpty()) {
                 for (Expense expense : allExpenses) {
                     String expenseDetails = String.format(
-                        "Deleting Expense with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                        expense.getId(), expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
-                        expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
+                            "Deleting Expense with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                            expense.getId(), expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
+                            expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
                     );
-                    auditExpenseService.logAudit( reqUser,expense.getId(), "delete", expenseDetails);
+                    auditExpenseService.logAudit(reqUser, expense.getId(), "delete", expenseDetails);
                 }
-                expenseService.deleteAllExpenses(reqUser,allExpenses);
-                auditExpenseService.logAudit(reqUser,null, "delete", "All expenses deleted successfully.");
+                expenseService.deleteAllExpenses(targetUser, allExpenses);
+
+                String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                        ? "All expenses deleted successfully for user ID: " + targetId
+                        : "All expenses deleted successfully.";
+
+                auditExpenseService.logAudit(reqUser, null, "delete", auditMessage);
             } else {
-                auditExpenseService.logAudit(reqUser,null, "delete", "Attempted to delete expenses, but no expenses were found.");
+                String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                        ? "Attempted to delete expenses for user ID: " + targetId + ", but no expenses were found."
+                        : "Attempted to delete expenses, but no expenses were found.";
+
+                auditExpenseService.logAudit(reqUser, null, "delete", auditMessage);
             }
 
             return ResponseEntity.ok("All expenses have been deleted successfully.");
@@ -202,85 +278,164 @@ public class ExpenseController {
     }
 
     @GetMapping("/expense/{id}")
-    public ResponseEntity<Expense> getExpenseById(@PathVariable Integer id ,@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        Expense expense = expenseService.getExpenseById(id,reqUser);
-        if(expense==null)
-        {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(expense);
+    public ResponseEntity<?> getExpenseById(
+            @PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Expense expense = expenseService.getExpenseById(id, targetUser);
+
+            if (expense == null) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+            }
+
+            return ResponseEntity.ok(expense);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        return ResponseEntity.ok(expense);
     }
 
     @GetMapping("/fetch-expenses-by-date")
-    public ResponseEntity<List<Expense>> getExpensesByDateRange(
+    public ResponseEntity<?> getExpensesByDateRange(
             @RequestParam LocalDate from,
-            @RequestParam LocalDate to
-    ,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesByDateRange(from, to,reqUser);
-        return ResponseEntity.ok(expenses);
+            @RequestParam LocalDate to,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByDateRange(from, to, targetUser);
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
-    @Autowired
-    ExpenseRepository expenseRepository;
+
     @GetMapping("/fetch-expenses")
-    public ResponseEntity<List<Expense>> getAllExpenses(
+    public ResponseEntity<?> getAllExpenses(
             @RequestHeader("Authorization") String jwt,
-            @RequestParam(defaultValue = "desc") String sort
-    ) {
-        User reqUser = userService.findUserByJwt(jwt);
-        List<Expense> expenses = sort.equalsIgnoreCase("asc")
-                ? expenseRepository.findByUserOrderByDateAsc(reqUser)
-                : expenseRepository.findByUserOrderByDateDesc(reqUser);
-        return ResponseEntity.ok(expenses);
+            @RequestParam(defaultValue = "desc") String sort,
+            @RequestParam(required = false) Integer targetId) {
+
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = sort.equalsIgnoreCase("asc")
+                    ? expenseRepository.findByUserOrderByDateAsc(targetUser)
+                    : expenseRepository.findByUserOrderByDateDesc(targetUser);
+
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     @GetMapping("/summary-expenses")
-    public ResponseEntity<Map<String, Object>> summary(@RequestHeader("Authorization") String jwt) {
-        User reqUser = userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getAllExpenses(reqUser);
+    public ResponseEntity<?> summary(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
 
-        LocalDate today = LocalDate.now();
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        // Common period: 17th last month to 16th this month
-        LocalDate periodStart = today.minusMonths(1).withDayOfMonth(17);
-        LocalDate periodEnd = today.withDayOfMonth(16);
-
-        double totalGains = 0.0;
-        double totalLosses = 0.0;
-        double totalCreditDue = 0.0;
-        double totalCreditPaid = 0.0;
-        double todayExpenses = 0.0;
-        double currentMonthLosses=0.0;
-        double currentMonthGains=0.0;
-
-        Map<String, Double> lossesByPaymentMethod = new HashMap<>();
-
-        List<Expense> lastFiveExpenses = expenses.stream()
-                .sorted(Comparator.comparing(Expense::getDate).reversed())
-                .limit(5)
-                .collect(Collectors.toList());
-
-        for (Expense expense : expenses) {
-            ExpenseDetails details = expense.getExpense();
-            if (details == null) continue;
-
-            LocalDate date = expense.getDate();
-            if (date == null) continue;
-
-            String type = details.getType();
-            String paymentMethod = details.getPaymentMethod();
-
-            // === Total Salary Amount (for Remaining Budget) ===
-            // Exclude gain/loss entries with paymentMethod "creditNeedToPaid"
-            if ((type.equalsIgnoreCase("gain")) &&
-                    paymentMethod.equals("cash")) {
-                totalGains += details.getAmount();  // No null check needed (primitive)
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
             }
 
-            // === Losses from 17th last month to 16th this month (only cash) ===
+            List<Expense> expenses = expenseService.getAllExpenses(targetUser);
 
+            LocalDate today = LocalDate.now();
+
+            // Common period: 17th last month to 16th this month
+            LocalDate periodStart = today.minusMonths(1).withDayOfMonth(17);
+            LocalDate periodEnd = today.withDayOfMonth(16);
+
+            double totalGains = 0.0;
+            double totalLosses = 0.0;
+            double totalCreditDue = 0.0;
+            double totalCreditPaid = 0.0;
+            double todayExpenses = 0.0;
+            double currentMonthLosses = 0.0;
+            double currentMonthGains = 0.0;
+
+            Map<String, Double> lossesByPaymentMethod = new HashMap<>();
+
+            List<Expense> lastFiveExpenses = expenses.stream()
+                    .sorted(Comparator.comparing(Expense::getDate).reversed())
+                    .limit(5)
+                    .collect(Collectors.toList());
+
+            for (Expense expense : expenses) {
+                ExpenseDetails details = expense.getExpense();
+                if (details == null) continue;
+
+                LocalDate date = expense.getDate();
+                if (date == null) continue;
+
+                String type = details.getType();
+                String paymentMethod = details.getPaymentMethod();
+
+                // === Total Salary Amount (for Remaining Budget) ===
+                // Exclude gain/loss entries with paymentMethod "creditNeedToPaid"
+                if ((type.equalsIgnoreCase("gain")) &&
+                        paymentMethod.equals("cash")) {
+                    totalGains += details.getAmount();
+                }
+
+                // === Losses from 17th last month to 16th this month (only cash) ===
                 if ("loss".equalsIgnoreCase(type) && "cash".equalsIgnoreCase(paymentMethod)) {
                     totalLosses += details.getAmount();
                     lossesByPaymentMethod.merge(
@@ -290,51 +445,52 @@ public class ExpenseController {
                     );
                 }
 
+                if (!date.isBefore(periodStart) && !date.isAfter(periodEnd)) {
+                    if ("loss".equalsIgnoreCase(type) && "cash".equalsIgnoreCase(paymentMethod)) {
+                        currentMonthLosses += details.getAmount();
+                        lossesByPaymentMethod.merge(
+                                paymentMethod.toLowerCase(),
+                                details.getAmount(),
+                                Double::sum
+                        );
+                    }
+                }
 
-            if (!date.isBefore(periodStart) && !date.isAfter(periodEnd)) {
-                if ("loss".equalsIgnoreCase(type) && "cash".equalsIgnoreCase(paymentMethod)) {
-                    currentMonthLosses += details.getAmount();
-                    lossesByPaymentMethod.merge(
-                            paymentMethod.toLowerCase(),
-                            details.getAmount(),
-                            Double::sum
-                    );
+                // === Today's total expenses (all types) ===
+                if (date.isEqual(today) && "loss".equalsIgnoreCase(type)) {
+                    todayExpenses += details.getAmount();
+                }
+
+                // === Credit Due Calculation ===
+                // Matches JS logic:
+                // +amount for creditNeedToPaid
+                // -amount for creditPaid
+                if ("creditNeedToPaid".equalsIgnoreCase(paymentMethod)) {
+                    totalCreditDue += details.getAmount();
+                } else if ("creditPaid".equalsIgnoreCase(paymentMethod)) {
+                    totalCreditDue -= details.getAmount();
+                    totalCreditPaid += details.getAmount();
                 }
             }
 
-            // === Today's total expenses (all types) ===
-            if (date.isEqual(today) && "loss".equalsIgnoreCase(type)) {
-                todayExpenses += details.getAmount();
-            }
+            double remainingBudget = totalGains - totalLosses - totalCreditPaid;
 
-            // === Credit Due Calculation ===
-            // Matches JS logic:
-            // +amount for creditNeedToPaid
-            // -amount for creditPaid
-            if ("creditNeedToPaid".equalsIgnoreCase(paymentMethod)) {
-                totalCreditDue += details.getAmount();
-            } else if ("creditPaid".equalsIgnoreCase(paymentMethod)) {
-                totalCreditDue -= details.getAmount();
-                totalCreditPaid += details.getAmount();
-            }
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalGains", totalGains);
+            response.put("totalLosses", totalLosses);
+            response.put("totalCreditDue", totalCreditDue);
+            response.put("totalCreditPaid", totalCreditPaid);
+            response.put("lossesByPaymentMethod", lossesByPaymentMethod);
+            response.put("lastFiveExpenses", lastFiveExpenses);
+            response.put("todayExpenses", todayExpenses);
+            response.put("remainingBudget", remainingBudget);
+            response.put("currentMonthLosses", currentMonthLosses);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-
-        double remainingBudget = totalGains - totalLosses-totalCreditPaid;
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("totalGains", totalGains);
-        response.put("totalLosses", totalLosses);
-        response.put("totalCreditDue", totalCreditDue);
-        response.put("totalCreditPaid", totalCreditPaid);
-        response.put("lossesByPaymentMethod", lossesByPaymentMethod);
-        response.put("lastFiveExpenses", lastFiveExpenses);
-        response.put("todayExpenses", todayExpenses);
-        response.put("remainingBudget", remainingBudget);
-        response.put("currentMonthLosses",currentMonthLosses);
-
-        return ResponseEntity.ok(response);
     }
-
 
 
 
@@ -347,10 +503,28 @@ public class ExpenseController {
 
 
     @PutMapping("/edit-expense/{id}")
-    public ResponseEntity<?> updateExpense(@PathVariable Integer id, @RequestBody Expense expense, @RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> updateExpense(
+            @PathVariable Integer id,
+            @RequestBody Expense expense,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
-            User reqUser = userService.findUserByJwt(jwt); // Retrieve the user
-            Expense existingExpense = expenseService.getExpenseById(id, reqUser);
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Expense existingExpense = expenseService.getExpenseById(id, targetUser);
 
             if (existingExpense != null) {
                 String beforeUpdateDetails = String.format(
@@ -359,8 +533,8 @@ public class ExpenseController {
                         existingExpense.getExpense().getType(), existingExpense.getExpense().getPaymentMethod()
                 );
 
-                // Pass the User object as the third argument
-                Expense updatedExpense = expenseService.updateExpense(id, expense, reqUser);
+                // Pass the target user object as the third argument
+                Expense updatedExpense = expenseService.updateExpense(id, expense, targetUser);
 
                 String afterUpdateDetails = String.format(
                         "After Update - Name: %s, Amount: %.2f, Type: %s, Payment Method: %s",
@@ -373,28 +547,54 @@ public class ExpenseController {
                         id, beforeUpdateDetails, afterUpdateDetails
                 );
 
-                auditExpenseService.logAudit(reqUser, id, "update", logDetails);
+                String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                        ? "Updated expense ID: " + id + " for user ID: " + targetId
+                        : logDetails;
 
-                // Return the updated expense object instead of just a success message
+                auditExpenseService.logAudit(reqUser, id, "update", auditMessage);
+
+                // Return the updated expense object
                 return ResponseEntity.ok(updatedExpense);
             } else {
-                auditExpenseService.logAudit(reqUser, id, "update", "Attempted to update non-existent expense with ID " + id);
+                String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                        ? "Attempted to update non-existent expense with ID " + id + " for user ID: " + targetId
+                        : "Attempted to update non-existent expense with ID " + id;
+
+                auditExpenseService.logAudit(reqUser, id, "update", auditMessage);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Expense not found");
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+
+
     @PutMapping("/edit-multiple")
-    public ResponseEntity<?> updateMultipleExpenses(@RequestBody List<Expense> expenses, @RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> updateMultipleExpenses(
+            @RequestBody List<Expense> expenses,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
             User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
             // Get existing expenses before update for audit logging
             Map<Integer, Expense> existingExpenses = new HashMap<>();
             for (Expense expense : expenses) {
                 if (expense.getId() != null) {
-                    Expense existingExpense = expenseService.getExpenseById(expense.getId(), reqUser);
+                    Expense existingExpense = expenseService.getExpenseById(expense.getId(), targetUser);
                     if (existingExpense != null) {
                         existingExpenses.put(expense.getId(), existingExpense);
                     }
@@ -402,7 +602,7 @@ public class ExpenseController {
             }
 
             // Update the expenses
-            List<Expense> updatedExpenses = expenseService.updateMultipleExpenses(reqUser, expenses);
+            List<Expense> updatedExpenses = expenseService.updateMultipleExpenses(targetUser, expenses);
 
             // Log audit information for each updated expense
             for (Expense updatedExpense : updatedExpenses) {
@@ -424,10 +624,18 @@ public class ExpenseController {
                             updatedExpense.getExpense().getPaymentMethod()
                     );
 
-                    String logDetails = String.format(
-                            "Expense with ID %d updated. %s | %s",
-                            updatedExpense.getId(), beforeUpdateDetails, afterUpdateDetails
-                    );
+                    String logDetails;
+                    if (targetId != null && !targetId.equals(reqUser.getId())) {
+                        logDetails = String.format(
+                                "Updated expense ID: %d for user ID: %d. %s | %s",
+                                updatedExpense.getId(), targetId, beforeUpdateDetails, afterUpdateDetails
+                        );
+                    } else {
+                        logDetails = String.format(
+                                "Expense with ID %d updated. %s | %s",
+                                updatedExpense.getId(), beforeUpdateDetails, afterUpdateDetails
+                        );
+                    }
 
                     auditExpenseService.logAudit(reqUser, updatedExpense.getId(), "update", logDetails);
                 }
@@ -438,24 +646,51 @@ public class ExpenseController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update expenses: " + e.getMessage());
         }
     }
+
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteExpense(@PathVariable Integer id,@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<String> deleteExpense(
+            @PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
-            User reqUser=userService.findUserByJwt(jwt);
-            Expense expense = expenseService.getExpenseById(id,reqUser);
-            
-            if (expense != null) {
-                String expenseDetails = String.format(
-                    "Expense deleted with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                    expense.getId(), expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
-                    expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
-                );
-                auditExpenseService.logAudit(reqUser,id, "delete", expenseDetails);
-            } else {
-                auditExpenseService.logAudit(reqUser,id, "delete", "Attempted to delete non-existent expense with ID " + id);
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
             }
 
-            expenseService.deleteExpense(id,reqUser);
+            Expense expense = expenseService.getExpenseById(id, targetUser);
+
+            if (expense != null) {
+                String expenseDetails = String.format(
+                        "Expense deleted with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                        expense.getId(), expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
+                        expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
+                );
+
+                String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                        ? "Deleted expense ID: " + id + " for user ID: " + targetId + ". " + expenseDetails
+                        : expenseDetails;
+
+                auditExpenseService.logAudit(reqUser, id, "delete", auditMessage);
+            } else {
+                String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                        ? "Attempted to delete non-existent expense with ID " + id + " for user ID: " + targetId
+                        : "Attempted to delete non-existent expense with ID " + id;
+
+                auditExpenseService.logAudit(reqUser, id, "delete", auditMessage);
+            }
+
+            expenseService.deleteExpense(id, targetUser);
             return ResponseEntity.ok("Expense deleted successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -463,31 +698,56 @@ public class ExpenseController {
     }
 
 
+
     @DeleteMapping("/delete-multiple")
-    public ResponseEntity<String> deleteMultipleExpenses(@RequestBody List<Integer> ids,@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<String> deleteMultipleExpenses(
+            @RequestBody List<Integer> ids,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
-            User reqUser=userService.findUserByJwt(jwt);
-            for (Integer id : ids) {
-                // Retrieve the expense details before deletion
-                Expense expenseOpt = expenseService.getExpenseById(id,reqUser);
-                if (expenseOpt!=null) {
-                    Expense expense = expenseOpt;
-                    String expenseDetails = String.format(
-                        "Expense deleted with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                        expense.getId(), expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
-                        expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
-                    );
-                    
-                    // Log the deletion action with detailed info
-                    auditExpenseService.logAudit(reqUser,id, "delete", expenseDetails);
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
                 } else {
-                    // Log an attempt to delete a non-existent expense
-                    auditExpenseService.logAudit(reqUser,id, "delete", "Attempted to delete non-existent expense with ID " + id);
+                    throw e;
                 }
             }
-            
+
+            for (Integer id : ids) {
+                // Retrieve the expense details before deletion
+                Expense expense = expenseService.getExpenseById(id, targetUser);
+                if (expense != null) {
+                    String expenseDetails = String.format(
+                            "Expense deleted with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                            expense.getId(), expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
+                            expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
+                    );
+
+                    String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                            ? "Deleted expense ID: " + id + " for user ID: " + targetId + ". " + expenseDetails
+                            : expenseDetails;
+
+                    // Log the deletion action with detailed info
+                    auditExpenseService.logAudit(reqUser, id, "delete", auditMessage);
+                } else {
+                    String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                            ? "Attempted to delete non-existent expense with ID " + id + " for user ID: " + targetId
+                            : "Attempted to delete non-existent expense with ID " + id;
+
+                    // Log an attempt to delete a non-existent expense
+                    auditExpenseService.logAudit(reqUser, id, "delete", auditMessage);
+                }
+            }
+
             // Now delete all specified expenses
-            expenseService.deleteExpensesByIds(ids,reqUser);
+            expenseService.deleteExpensesByIds(ids, targetUser);
             return ResponseEntity.ok("Expenses deleted successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -495,52 +755,160 @@ public class ExpenseController {
     }
 
 
-    
-    
     @GetMapping("/monthly-summary/{year}/{month}")
-    public ResponseEntity<MonthlySummary> getMonthlySummary(
-    		@PathVariable Integer year, 
-    	    @PathVariable Integer month,
-            @RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        MonthlySummary summary = expenseService.getMonthlySummary(year, month,reqUser);
-        return ResponseEntity.ok(summary);
+    public ResponseEntity<?> getMonthlySummary(
+            @PathVariable Integer year,
+            @PathVariable Integer month,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            MonthlySummary summary = expenseService.getMonthlySummary(year, month, targetUser);
+            return ResponseEntity.ok(summary);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
     @GetMapping("/yearly-summary/{year}")
-    public ResponseEntity<Map<String, MonthlySummary>> getYearlySummary(@PathVariable Integer year,@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        Map<String, MonthlySummary> yearlySummary = expenseService.getYearlySummary(year,reqUser);
-        return ResponseEntity.ok(yearlySummary);
+    public ResponseEntity<?> getYearlySummary(
+            @PathVariable Integer year,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, MonthlySummary> yearlySummary = expenseService.getYearlySummary(year, targetUser);
+            return ResponseEntity.ok(yearlySummary);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
     @GetMapping("/between-dates")
-    public ResponseEntity<List<MonthlySummary>> getSummaryBetweenDates(
+    public ResponseEntity<?> getSummaryBetweenDates(
             @RequestParam Integer startYear,
             @RequestParam Integer startMonth,
             @RequestParam Integer endYear,
             @RequestParam Integer endMonth,
-            @RequestHeader("Authorization") String jwt) {
-User reqUser=userService.findUserByJwt(jwt);
-        List<MonthlySummary> summaries = expenseService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth,reqUser);
-        return ResponseEntity.ok(summaries);
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<MonthlySummary> summaries = expenseService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth, targetUser);
+            return ResponseEntity.ok(summaries);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
+
+
+
+
     @GetMapping("/top-n")
-    public List<Expense> getTopNExpenses(@RequestParam int n,@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getTopNExpenses(n,reqUser);
+    public ResponseEntity<?> getTopNExpenses(
+            @RequestParam int n,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> topExpenses = expenseService.getTopNExpenses(n, targetUser);
+            return ResponseEntity.ok(topExpenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
+
+
+
+
     @GetMapping("/search")
-    public ResponseEntity<List<Expense>> searchExpenses(@RequestParam String expenseName,@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.searchExpensesByName(expenseName,reqUser);
-        return ResponseEntity.ok(expenses);
+    public ResponseEntity<?> searchExpenses(
+            @RequestParam String expenseName,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.searchExpensesByName(expenseName, targetUser);
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
-    
+
+
     @GetMapping("/filter")
-    public ResponseEntity<List<Expense>> filterExpenses(
+    public ResponseEntity<?> filterExpenses(
             @RequestParam(required = false) String expenseName,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
@@ -548,704 +916,2328 @@ User reqUser=userService.findUserByJwt(jwt);
             @RequestParam(required = false) String paymentMethod,
             @RequestParam(required = false) Double minAmount,
             @RequestParam(required = false) Double maxAmount,
-            @RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> filteredExpenses = expenseService.filterExpenses(expenseName, startDate, endDate, type, paymentMethod, minAmount, maxAmount,reqUser);
-        return ResponseEntity.ok(filteredExpenses);
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> filteredExpenses = expenseService.filterExpenses(expenseName, startDate, endDate, type, paymentMethod, minAmount, maxAmount, targetUser);
+            return ResponseEntity.ok(filteredExpenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
     @GetMapping("/top-expense-names")
-    public List<String> getTopExpenseNames(@RequestParam int topN,@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getTopExpenseNames(topN,reqUser);
+    public ResponseEntity<?> getTopExpenseNames(
+            @RequestParam int topN,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<String> topExpenseNames = expenseService.getTopExpenseNames(topN, targetUser);
+            return ResponseEntity.ok(topExpenseNames);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
-    
+
+
     @GetMapping("/insights/monthly")
-    public Map<String, Object> getMonthlySpendingInsights(@RequestParam("year") int year, @RequestParam("month") int month,@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> getMonthlySpendingInsights(
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getMonthlySpendingInsights(year, month,reqUser);
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, Object> insights = expenseService.getMonthlySpendingInsights(year, month, targetUser);
+            return ResponseEntity.ok(insights);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
     @GetMapping("/payment-method")
-    public ResponseEntity<List<String>> getPaymentMethods(@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<String> paymentMethods = expenseService.getPaymentMethods(reqUser);
-        return ResponseEntity.ok(paymentMethods);
+    public ResponseEntity<?> getPaymentMethods(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<String> paymentMethods = expenseService.getPaymentMethods(targetUser);
+            return ResponseEntity.ok(paymentMethods);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
     @GetMapping("/payment-method-summary")
-    public ResponseEntity<Map<String, Map<String, Double>>> getPaymentMethodSummary(@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        Map<String, Map<String, Double>> paymentMethodSummary = expenseService.getPaymentMethodSummary(reqUser);
-        return ResponseEntity.ok(paymentMethodSummary);
+    public ResponseEntity<?> getPaymentMethodSummary(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, Map<String, Double>> paymentMethodSummary = expenseService.getPaymentMethodSummary(targetUser);
+            return ResponseEntity.ok(paymentMethodSummary);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
     @GetMapping("/gain")
-    public List<Expense> getAllGainExpenses(@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpensesByType("gain",reqUser);
+    public ResponseEntity<?> getAllGainExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByType("gain", targetUser);
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
     @GetMapping("/loss")
-    public ResponseEntity<List<Expense>> getLossExpenses(@RequestHeader("Authorization") String jwt) {
-        User  reqUser=userService.findUserByJwt(jwt);
-        List<Expense> lossExpenses = expenseService.getLossExpenses(reqUser);
-        if (lossExpenses.isEmpty()) {
-            return ResponseEntity.noContent().build();
+    public ResponseEntity<?> getLossExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> lossExpenses = expenseService.getLossExpenses(targetUser);
+            if (lossExpenses.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(lossExpenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        return ResponseEntity.ok(lossExpenses);
     }
-    
+
     @GetMapping("/payment-method/{paymentMethod}")
-    public ResponseEntity<List<Expense>> getExpensesByPaymentMethod(@PathVariable String paymentMethod,@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesByPaymentMethod(paymentMethod,reqUser);
-        if (expenses.isEmpty()) {
-            return ResponseEntity.noContent().build();
+    public ResponseEntity<?> getExpensesByPaymentMethod(
+            @PathVariable String paymentMethod,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByPaymentMethod(paymentMethod, targetUser);
+            if (expenses.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        return ResponseEntity.ok(expenses);
     }
-    
+
+
     @GetMapping("/{type}/{paymentMethod}")
-    public ResponseEntity<List<Expense>> getExpensesByTypeAndPaymentMethod(
-        @PathVariable String type, 
-        @PathVariable String paymentMethod,
-        @RequestHeader("Authorization") String jwt) {
-User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesByTypeAndPaymentMethod(type, paymentMethod,reqUser);
+    public ResponseEntity<?> getExpensesByTypeAndPaymentMethod(
+            @PathVariable String type,
+            @PathVariable String paymentMethod,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        if (expenses.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByTypeAndPaymentMethod(type, paymentMethod, targetUser);
+
+            if (expenses.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-
-        return ResponseEntity.ok(expenses);
     }
-    
+
 
     @GetMapping("/top-payment-methods")
-    public List<String> getTopPaymentMethods(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getTopPaymentMethods(reqUser);
+    public ResponseEntity<?> getTopPaymentMethods(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<String> topPaymentMethods = expenseService.getTopPaymentMethods(targetUser);
+            return ResponseEntity.ok(topPaymentMethods);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
     @GetMapping("/top-gains")
-    public List<Expense> getTopGains(
-            @RequestHeader("Authorization") String jwt
-    ) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getTopGains(reqUser);
+    public ResponseEntity<?> getTopGains(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> topGains = expenseService.getTopGains(targetUser);
+            return ResponseEntity.ok(topGains);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
+
     @GetMapping("/top-losses")
-    public List<Expense> getTopLosses(@RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getTopLosses(reqUser);
+    public ResponseEntity<?> getTopLosses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> topLosses = expenseService.getTopLosses(targetUser);
+            return ResponseEntity.ok(topLosses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
-    
-    
+
+
     @GetMapping("/by-month")
-    public List<Expense> getExpensesByMonthAndYear(
+    public ResponseEntity<?> getExpensesByMonthAndYear(
             @RequestParam int month,
             @RequestParam int year,
-            @RequestHeader("Authorization") String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpensesByMonthAndYear(month, year,reqUser);
-    }
-    
-    
-    // Endpoint to get top N expenses with type 'gain'
-    @GetMapping("/top-gains/unique")
-    public List<String> getTopGains(@RequestParam(value = "limit", defaultValue = "10") int limit,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        // Fetch the unique top 'gain' expenses
-        List<String> topGains = expenseService.getUniqueTopExpensesByGain(reqUser,limit);
-        
-        // Limit the results based on the 'limit' parameter
-        if (topGains.size() > limit) {
-            return topGains.subList(0, limit);
-        }
-        
-        return topGains;
-    }
-    
-    @GetMapping("/top-losses/unique")
-    public List<String> getTopLosses(@RequestParam(value = "limit", defaultValue = "10") int limit,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        // Fetch the unique top 'gain' expenses
-        List<String> topLosses = expenseService.getUniqueTopExpensesByLoss(reqUser,limit);
-        
-        // Limit the results based on the 'limit' parameter
-        if (topLosses.size() > limit) {
-            return topLosses.subList(0, limit);
-        }
-        
-        return topLosses;
-    }
-    
-    @GetMapping("/today")
-    public List<Expense> getExpensesForToday(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpensesForToday(reqUser);  // Call the service method to get today's expenses
-    }
-    
-    @GetMapping("/last-month")
-    public List<Expense> getExpensesForLastMonth(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpensesForLastMonth(reqUser);  // Call the service method to get last month's expenses
-    }
-    
-    @GetMapping("/current-month")
-    public List<Expense> getExpensesForCurrentMonth(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpensesForCurrentMonth(reqUser);  // Fetch current month's expenses
-    }
-    
-    @GetMapping("/{id}/comments")
-    public String getCommentsForExpense(@PathVariable Integer id,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        // Call the service to get comments for the expense with the provided id
-        return expenseService.getCommentsForExpense(id,reqUser);
-    }
-    
-    @DeleteMapping("/{id}/remove-comment")
-    public String removeCommentForExpense(@PathVariable Integer id,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        // Call the service to remove the comment for the expense with the provided id
-        return expenseService.removeCommentFromExpense(id,reqUser);
-    }
-    
-    @PostMapping("/{id}/generate-report")
-    public ResponseEntity<ExpenseReport> generateReport(@PathVariable Integer id,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByMonthAndYear(month, year, targetUser);
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+
+    @GetMapping("/top-gains/unique")
+    public ResponseEntity<?> getTopGains(
+            @RequestParam(value = "limit", defaultValue = "10") int limit,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Fetch the unique top 'gain' expenses
+            List<String> topGains = expenseService.getUniqueTopExpensesByGain(targetUser, limit);
+
+            // Limit the results based on the 'limit' parameter
+            if (topGains.size() > limit) {
+                topGains = topGains.subList(0, limit);
+            }
+
+            return ResponseEntity.ok(topGains);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/top-losses/unique")
+    public ResponseEntity<?> getTopLosses(
+            @RequestParam(value = "limit", defaultValue = "10") int limit,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Fetch the unique top 'loss' expenses
+            List<String> topLosses = expenseService.getUniqueTopExpensesByLoss(targetUser, limit);
+
+            // Limit the results based on the 'limit' parameter
+            if (topLosses.size() > limit) {
+                topLosses = topLosses.subList(0, limit);
+            }
+
+            return ResponseEntity.ok(topLosses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/today")
+    public ResponseEntity<?> getExpensesForToday(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesForToday(targetUser);
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/last-month")
+    public ResponseEntity<?> getExpensesForLastMonth(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesForLastMonth(targetUser);
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/current-month")
+    public ResponseEntity<?> getExpensesForCurrentMonth(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesForCurrentMonth(targetUser);
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<?> getCommentsForExpense(
+            @PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            String comments = expenseService.getCommentsForExpense(id, targetUser);
+            return ResponseEntity.ok(comments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}/remove-comment")
+    public ResponseEntity<?> removeCommentForExpense(
+            @PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            String result = expenseService.removeCommentFromExpense(id, targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Removed comment from expense ID: " + id + " for user ID: " + targetId
+                    : "Removed comment from expense ID: " + id;
+
+            auditExpenseService.logAudit(reqUser, id, "update", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/generate-report")
+    public ResponseEntity<?> generateReport(
+            @PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
             // Generate the report using the service layer
-            ExpenseReport report = expenseService.generateExpenseReport(id,reqUser);
+            ExpenseReport report = expenseService.generateExpenseReport(id, targetUser);
+
+            // Log the report generation
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Generated report for expense ID: " + id + " for user ID: " + targetId
+                    : "Generated report for expense ID: " + id;
+
+            auditExpenseService.logAudit(reqUser, id, "report", auditMessage);
 
             // Return the generated report with a success status
             return new ResponseEntity<>(report, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             // Return a 404 status if the expense is not found
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Expense not found or error generating report: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating report: " + e.getMessage());
         }
     }
-    
+
     @PostMapping("/{id}/copy")
-    public ResponseEntity<Expense> copyExpense(@PathVariable Integer id,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
+    public ResponseEntity<?> copyExpense(
+            @PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
-            Expense copiedExpense = expenseService.copyExpense(id,reqUser);
-            return ResponseEntity.ok(copiedExpense);  // Return the copied expense
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Expense originalExpense = expenseService.getExpenseById(id, targetUser);
+            if (originalExpense == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Original expense not found");
+            }
+
+            Expense copiedExpense = expenseService.copyExpense(id, reqUser);
+
+            // Log the copy action
+            String expenseDetails = String.format(
+                    "Copied expense ID: %d to new expense ID: %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                    id, copiedExpense.getId(),
+                    copiedExpense.getExpense().getExpenseName(),
+                    copiedExpense.getExpense().getAmount(),
+                    copiedExpense.getExpense().getType(),
+                    copiedExpense.getExpense().getPaymentMethod()
+            );
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Copied expense ID: " + id + " from user ID: " + targetId + ". " + expenseDetails
+                    : expenseDetails;
+
+            auditExpenseService.logAudit(reqUser, copiedExpense.getId(), "create", auditMessage);
+
+            return ResponseEntity.ok(copiedExpense);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body(null);  // Return 404 if not found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Failed to copy expense: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error copying expense: " + e.getMessage());
         }
     }
+
+
+
+
     @GetMapping("/amount/{amount}")
-    public ResponseEntity<List<ExpenseDetails>> getExpenseDetailsByAmount(@PathVariable double amount,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<ExpenseDetails> expenseDetails = expenseService.getExpenseDetailsByAmount(amount,reqUser);
-        if (expenseDetails.isEmpty()) {
-            return ResponseEntity.status(404).body(null);  // Return 404 if no data found
+    public ResponseEntity<?> getExpenseDetailsByAmount(
+            @PathVariable double amount,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<ExpenseDetails> expenseDetails = expenseService.getExpenseDetailsByAmount(amount, targetUser);
+
+            if (expenseDetails.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No expenses found with amount: " + amount);
+            }
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved expenses with amount " + amount + " for user ID: " + targetId
+                    : "Retrieved expenses with amount " + amount;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(expenseDetails);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving expenses: " + e.getMessage());
         }
-        return ResponseEntity.ok(expenseDetails);  // Return the found expense details
     }
+
+
+
     @GetMapping("/amount-range")
-    public ResponseEntity<List<Expense>> getExpenseDetailsByAmountRange(
+    public ResponseEntity<?> getExpenseDetailsByAmountRange(
             @RequestParam double minAmount,
             @RequestParam double maxAmount,
-            @RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenseDetails = expenseService.getExpenseDetailsByAmountRange(minAmount, maxAmount,reqUser);
-        if (expenseDetails.isEmpty()) {
-            return ResponseEntity.status(404).body(null);  // Return 404 if no data found
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenseDetails = expenseService.getExpenseDetailsByAmountRange(minAmount, maxAmount, targetUser);
+
+            if (expenseDetails.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No expenses found with amount between " + minAmount + " and " + maxAmount);
+            }
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved expenses with amount between " + minAmount + " and " + maxAmount + " for user ID: " + targetId
+                    : "Retrieved expenses with amount between " + minAmount + " and " + maxAmount;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(expenseDetails);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving expenses: " + e.getMessage());
         }
-        return ResponseEntity.ok(expenseDetails);  // Return the found expense details
     }
-    
-    
+
+
     @GetMapping("/total/{expenseName}")
-    public ResponseEntity<String> getExpenseDetailsAndTotalByName(@PathVariable String expenseName,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<ExpenseDetails> expenses = expenseService.getExpensesByName(expenseName,reqUser);
-        Double totalExpense = expenseService.getTotalExpenseByName(expenseName);
+    public ResponseEntity<?> getExpenseDetailsAndTotalByName(
+            @PathVariable String expenseName,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        if (expenses.isEmpty()) {
-            return ResponseEntity.ok("No expenses found for " + expenseName);
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<ExpenseDetails> expenses = expenseService.getExpensesByName(expenseName, targetUser);
+            Double totalExpense = expenseService.getTotalExpenseByName(expenseName);
+
+            if (expenses.isEmpty()) {
+                return ResponseEntity.ok("No expenses found for " + expenseName);
+            }
+
+            StringBuilder response = new StringBuilder("Expenses for " + expenseName + ":\n");
+            expenses.forEach(expense -> response.append("ID: ").append(expense.getId())
+                    .append(", Date: ").append(expense.getExpense().getDate())
+                    .append(", Name: ").append(expense.getExpenseName())
+                    .append(", Amount: ").append(expense.getAmount())
+                    .append(", Type: ").append(expense.getType())
+                    .append(", Payment Method: ").append(expense.getPaymentMethod())
+                    .append("\n"));
+
+            response.append("Total expenses for ").append(expenseName).append(": ").append(totalExpense);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved expense details and total for expense name: " + expenseName + " for user ID: " + targetId
+                    : "Retrieved expense details and total for expense name: " + expenseName;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(response.toString());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving expense details: " + e.getMessage());
         }
-
-        StringBuilder response = new StringBuilder("Expenses for " + expenseName + ":\n");
-        expenses.forEach(expense -> response.append("ID: ").append(expense.getId())
-        		.append(", Date: ").append(expense.getExpense().getDate())
-                .append(", Name: ").append(expense.getExpenseName())
-                .append(", Amount: ").append(expense.getAmount())
-                .append(", Type: ").append(expense.getType())
-                .append(", Payment Method: ").append(expense.getPaymentMethod())
-                .append("\n"));
-
-        response.append("Total expenses for ").append(expenseName).append(": ").append(totalExpense);
-        return ResponseEntity.ok(response.toString());
     }
 
-    
-    
+
+
     @GetMapping("/total-by-category")
-    public List<Map<String, Object>> getTotalByCategory(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getTotalByCategory(reqUser);
-    }
-    
-    @GetMapping("/total-by-date")
-    public Map<String, Double> getTotalByDate() {
-        // Calling the service method to get the total expenses grouped by date
-        return expenseService.getTotalByDate();
-    }
-    
-    @GetMapping("/expenses/total-today")
-    public Double getTotalForToday() {
-        // Calling the service method to get total expenses for today
-        return expenseService.getTotalForToday();
-    }
-    
-    @GetMapping("/expenses/total-current-month")
-    public Double getTotalForCurrentMonth() {
-        // Calling the service method to get total expenses for the current month
-        return expenseService.getTotalForCurrentMonth();
-    }
-    
-    @GetMapping("/expenses/total-by-month-year")
-    public ResponseEntity<Double> getTotalByMonthAndYear(@RequestParam int month, @RequestParam int year) {
-        Double total = expenseService.getTotalForMonthAndYear(month, year);
-        
-        if (total != null) {
-            return ResponseEntity.ok(total);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
-    
-    @GetMapping("/expenses/total-by-date-range")
-    public ResponseEntity<Double> getTotalByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        
-        Double total = expenseService.getTotalByDateRange(startDate, endDate);
-        
-        if (total != null) {
-            return ResponseEntity.ok(total);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
-    
-    @GetMapping("/expenses/payment-wise-total-current-month")
-    public Map<String, Double> getPaymentWiseTotalForCurrentMonth() {
-        return expenseService.getPaymentWiseTotalForCurrentMonth();
-    }
-    
-    @GetMapping("/expenses/payment-wise-total-last-month")
-    public Map<String, Double> getPaymentWiseTotalForLastMonth() {
-        return expenseService.getPaymentWiseTotalForLastMonth();
-    }
-    
-    @GetMapping("/expenses/payment-wise-total-from-to")
-    public Map<String, Double> getPaymentWiseTotalForDateRange(@RequestParam("startDate") String startDate,
-                                                               @RequestParam("endDate") String endDate) {
-        // Parse the string date into LocalDate
-        LocalDate start = LocalDate.parse(startDate);
-        LocalDate end = LocalDate.parse(endDate);
-        
-        // Call the service method to fetch the data
-        return expenseService.getPaymentWiseTotalForDateRange(start, end);
-    }
-    
-    @GetMapping("/expenses/payment-wise-total-month")
-    public Map<String, Double> getPaymentWiseTotalForMonth(@RequestParam("month") int month,
-                                                           @RequestParam("year") int year) {
-        // Call the service method to fetch the data for the specified month and year
-        return expenseService.getPaymentWiseTotalForMonth(month, year);
-    }
-    
-    
-    @GetMapping("/expenses/total-by-expense-payment-method")
-    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForMonth(
-            @RequestParam("month") int month, @RequestParam("year") int year) {
-        // Call the service method to fetch the data for the specified month and year
-        return expenseService.getTotalByExpenseNameAndPaymentMethod(month, year);
-    }
-    
-    @GetMapping("/expenses/total-by-expense-payment-method-range")
-    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(
-            @RequestParam("startDate") String startDateStr, @RequestParam("endDate") String endDateStr) {
-        // Parse the date strings into LocalDate objects
-        LocalDate startDate = LocalDate.parse(startDateStr);
-        LocalDate endDate = LocalDate.parse(endDateStr);
+    public ResponseEntity<?> getTotalByCategory(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        // Call the service method to fetch the data for the specified date range
-        return expenseService.getTotalByExpenseNameAndPaymentMethodForDateRange(startDate, endDate);
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Map<String, Object>> categoryTotals = expenseService.getTotalByCategory(targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved expense totals by category for user ID: " + targetId
+                    : "Retrieved expense totals by category";
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(categoryTotals);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving category totals: " + e.getMessage());
+        }
     }
-    
+
+    @GetMapping("/total-by-date")
+    public ResponseEntity<?> getTotalByDate(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, Double> totalByDate = expenseService.getTotalByDate(targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved expense totals by date for user ID: " + targetId
+                    : "Retrieved expense totals by date";
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(totalByDate);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving date totals: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/expenses/total-today")
+    public ResponseEntity<?> getTotalForToday(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Double totalToday = expenseService.getTotalForToday(targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved total expenses for today for user ID: " + targetId
+                    : "Retrieved total expenses for today";
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(totalToday);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving today's total: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/expenses/total-current-month")
+    public ResponseEntity<?> getTotalForCurrentMonth(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Double totalCurrentMonth = expenseService.getTotalForCurrentMonth(targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved total expenses for current month for user ID: " + targetId
+                    : "Retrieved total expenses for current month";
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(totalCurrentMonth);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving current month's total: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/expenses/total-by-month-year")
+    public ResponseEntity<?> getTotalByMonthAndYear(
+            @RequestParam int month,
+            @RequestParam int year,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Double total = expenseService.getTotalForMonthAndYear(month, year, targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved total expenses for month " + month + "/" + year + " for user ID: " + targetId
+                    : "Retrieved total expenses for month " + month + "/" + year;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            if (total != null) {
+                return ResponseEntity.ok(total);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No expenses found for the specified month and year");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving total: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/expenses/total-by-date-range")
+    public ResponseEntity<?> getTotalByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Double total = expenseService.getTotalByDateRange(startDate, endDate, targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved total expenses between " + startDate + " and " + endDate + " for user ID: " + targetId
+                    : "Retrieved total expenses between " + startDate + " and " + endDate;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            if (total != null) {
+                return ResponseEntity.ok(total);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No expenses found for the specified date range");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving total: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/expenses/payment-wise-total-current-month")
+    public ResponseEntity<?> getPaymentWiseTotalForCurrentMonth(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForCurrentMonth(targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved payment-wise total expenses for current month for user ID: " + targetId
+                    : "Retrieved payment-wise total expenses for current month";
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(paymentWiseTotals);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving payment-wise totals: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/expenses/payment-wise-total-last-month")
+    public ResponseEntity<?> getPaymentWiseTotalForLastMonth(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForLastMonth(targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved payment-wise total expenses for last month for user ID: " + targetId
+                    : "Retrieved payment-wise total expenses for last month";
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(paymentWiseTotals);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving payment-wise totals: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/expenses/payment-wise-total-from-to")
+    public ResponseEntity<?> getPaymentWiseTotalForDateRange(
+            @RequestParam("startDate") String startDate,
+            @RequestParam("endDate") String endDate,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Parse the string date into LocalDate
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
+
+            // Call the service method to fetch the data
+            Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForDateRange(start, end, targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved payment-wise total expenses between " + startDate + " and " + endDate + " for user ID: " + targetId
+                    : "Retrieved payment-wise total expenses between " + startDate + " and " + endDate;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(paymentWiseTotals);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving payment-wise totals: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/expenses/payment-wise-total-month")
+    public ResponseEntity<?> getPaymentWiseTotalForMonth(
+            @RequestParam("month") int month,
+            @RequestParam("year") int year,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForMonth(month, year, targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved payment-wise total expenses for month " + month + "/" + year + " for user ID: " + targetId
+                    : "Retrieved payment-wise total expenses for month " + month + "/" + year;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(paymentWiseTotals);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving payment-wise totals: " + e.getMessage());
+        }
+    }
+
+
+    @GetMapping("/expenses/total-by-expense-payment-method")
+    public ResponseEntity<?> getTotalByExpenseNameAndPaymentMethodForMonth(
+            @RequestParam("month") int month,
+            @RequestParam("year") int year,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Call the service method to fetch the data for the specified month and year
+            Map<String, Map<String, Double>> result = expenseService.getTotalByExpenseNameAndPaymentMethod(month, year, targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved expense-payment method totals for month " + month + "/" + year + " for user ID: " + targetId
+                    : "Retrieved expense-payment method totals for month " + month + "/" + year;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving expense-payment method totals: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/expenses/total-by-expense-payment-method-range")
+    public ResponseEntity<?> getTotalByExpenseNameAndPaymentMethodForDateRange(
+            @RequestParam("startDate") String startDateStr,
+            @RequestParam("endDate") String endDateStr,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Parse the date strings into LocalDate objects
+            LocalDate startDate = LocalDate.parse(startDateStr);
+            LocalDate endDate = LocalDate.parse(endDateStr);
+
+            // Call the service method to fetch the data for the specified date range
+            Map<String, Map<String, Double>> result = expenseService.getTotalByExpenseNameAndPaymentMethodForDateRange(startDate, endDate, targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved expense-payment method totals between " + startDateStr + " and " + endDateStr + " for user ID: " + targetId
+                    : "Retrieved expense-payment method totals between " + startDateStr + " and " + endDateStr;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving expense-payment method totals: " + e.getMessage());
+        }
+    }
+
 
     @GetMapping("/expenses/total-expense-payment-method")
-    public Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod() {
-        return expenseService.getTotalExpensesGroupedByPaymentMethod();
+    public ResponseEntity<?> getTotalExpensesGroupedByPaymentMethod(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, Map<String, Double>> result = expenseService.getTotalExpensesGroupedByPaymentMethod(targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved total expenses grouped by payment method for user ID: " + targetId
+                    : "Retrieved total expenses grouped by payment method";
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving expense-payment method totals: " + e.getMessage());
+        }
     }
-    
+
 
 
     @GetMapping("/generate-excel-report")
-    public String generateExcelReport(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
+    public ResponseEntity<?> generateExcelReport(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
-            return expenseService.generateExcelReport(reqUser);
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            String reportPath = expenseService.generateExcelReport(targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Generated Excel report for user ID: " + targetId
+                    : "Generated Excel report";
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(reportPath);
         } catch (IOException e) {
             e.printStackTrace();
-            return "Error generating report";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating report: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
     }
 
     @GetMapping("/send-excel-report")
-    public String sendExcelReport(@RequestParam String toEmail,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
+    public ResponseEntity<?> sendExcelReport(
+            @RequestParam String toEmail,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
-            String filePath = expenseService.generateExcelReport(reqUser);
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            String filePath = expenseService.generateExcelReport(targetUser);
             expenseService.sendEmailWithAttachment(toEmail, "Expense Report", "Please find the attached expense report.", filePath);
-            return "Email sent successfully";
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent Excel report via email to " + toEmail + " for user ID: " + targetId
+                    : "Sent Excel report via email to " + toEmail;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
         } catch (IOException | MessagingException e) {
             e.printStackTrace();
-            return "Error sending email";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
     }
-    
+
 
     @PostMapping("/send-monthly-report")
     public ResponseEntity<String> sendMonthlyReport(@RequestBody ReportRequest request) {
         return expenseService.generateAndSendMonthlyReport(request);
     }
-    
-   
 
 
-    @Autowired
-    private ExcelService excelService;
 
-    @Autowired
-    private EmailService emailService;
+
+
 
     @GetMapping("/current-month/excel")
-    public ResponseEntity<InputStreamResource> getCurrentMonthExpensesExcel(@RequestHeader("Authorization")String jwt) throws IOException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesForCurrentMonth(reqUser);
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
+    public ResponseEntity<?> getCurrentMonthExpensesExcel(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=expenses.xlsx");
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        return ResponseEntity
-                .ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(new InputStreamResource(in));
+            List<Expense> expenses = expenseService.getExpensesForCurrentMonth(targetUser);
+            ByteArrayInputStream in = excelService.generateExcel(expenses);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Downloaded current month expenses Excel for user ID: " + targetId
+                    : "Downloaded current month expenses Excel";
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=expenses.xlsx");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(new InputStreamResource(in));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
 
     @GetMapping("/current-month/email")
-    public ResponseEntity<String> sendCurrentMonthExpensesEmail(@RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesForCurrentMonth(reqUser);
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
+    public ResponseEntity<?> sendCurrentMonthExpensesEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        emailService.sendEmailWithAttachment(email, "Current Month Expenses", "Please find attached the current month expenses.", new ByteArrayResource(bytes), "expenses.xlsx");
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        return ResponseEntity.ok("Email sent successfully");
+            List<Expense> expenses = expenseService.getExpensesForCurrentMonth(targetUser);
+            ByteArrayInputStream in = excelService.generateExcel(expenses);
+            byte[] bytes = in.readAllBytes();
+
+            // Send the email with attachment
+            emailService.sendEmailWithAttachment(
+                    email,
+                    "Current Month Expenses",
+                    "Please find attached the current month expenses.",
+                    new ByteArrayResource(bytes),
+                    "expenses.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent current month expenses report via email to " + email + " for user ID: " + targetId
+                    : "Sent current month expenses report via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
-    
+
     @GetMapping("/expenses/last-month/email")
-    public ResponseEntity<String> sendLastMonthExpensesEmail(@RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesForLastMonth(reqUser);
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
+    public ResponseEntity<?> sendLastMonthExpensesEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        String subject = "Last Month's Expenses Report";
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the last month's expenses.", new ByteArrayResource(bytes), "last_month_expenses.xlsx");
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        return ResponseEntity.ok("Email sent successfully");
+            List<Expense> expenses = expenseService.getExpensesForLastMonth(targetUser);
+            ByteArrayInputStream in = excelService.generateExcel(expenses);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Last Month's Expenses Report";
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the last month's expenses.",
+                    new ByteArrayResource(bytes),
+                    "last_month_expenses.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent last month expenses report via email to " + email + " for user ID: " + targetId
+                    : "Sent last month expenses report via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
-    
+
     @GetMapping("/by-month/email")
-    public ResponseEntity<String> sendExpensesByMonthAndYearEmail(
+    public ResponseEntity<?> sendExpensesByMonthAndYearEmail(
             @RequestParam int month,
             @RequestParam int year,
             @RequestHeader("Authorization") String jwt,
-            @RequestParam String email) throws IOException, MessagingException {
-User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesByMonthAndYear(month, year,reqUser);
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
+            @RequestParam String email,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        String subject = "Expenses Report for " + month + "/" + year;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the expenses report for " + month + "/" + year + ".", new ByteArrayResource(bytes), "expenses_" + month + "_" + year + ".xlsx");
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        return ResponseEntity.ok("Email sent successfully");
+            List<Expense> expenses = expenseService.getExpensesByMonthAndYear(month, year, targetUser);
+            ByteArrayInputStream in = excelService.generateExcel(expenses);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Expenses Report for " + month + "/" + year;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the expenses report for " + month + "/" + year + ".",
+                    new ByteArrayResource(bytes),
+                    "expenses_" + month + "_" + year + ".xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent expenses report for " + month + "/" + year + " via email to " + email + " for user ID: " + targetId
+                    : "Sent expenses report for " + month + "/" + year + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
-    
+
     @GetMapping("/email/all")
-    public ResponseEntity<String> sendAllExpensesEmail(@RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getAllExpenses(reqUser);
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
+    public ResponseEntity<?> sendAllExpensesEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        String subject = "All Expenses Report";
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the list of all expenses.", new ByteArrayResource(bytes), "all_expenses.xlsx");
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        return ResponseEntity.ok("Email sent successfully");
+            List<Expense> expenses = expenseService.getAllExpenses(targetUser);
+            ByteArrayInputStream in = excelService.generateExcel(expenses);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "All Expenses Report";
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the list of all expenses.",
+                    new ByteArrayResource(bytes),
+                    "all_expenses.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent all expenses report via email to " + email + " for user ID: " + targetId
+                    : "Sent all expenses report via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
-    
-    
+
+
     @GetMapping("/{type}/{paymentMethod}/email")
-    public ResponseEntity<String> sendExpensesByTypeAndPaymentMethodEmail(
+    public ResponseEntity<?> sendExpensesByTypeAndPaymentMethodEmail(
             @PathVariable String type,
             @PathVariable String paymentMethod,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesByTypeAndPaymentMethod(type, paymentMethod,reqUser);
-        if (expenses.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByTypeAndPaymentMethod(type, paymentMethod, targetUser);
+            if (expenses.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            ByteArrayInputStream in = excelService.generateExcel(expenses);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Expenses Report for Type: " + type + " and Payment Method: " + paymentMethod;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the expenses report for type: " + type + " and payment method: " + paymentMethod + ".",
+                    new ByteArrayResource(bytes),
+                    "expenses_" + type + "_" + paymentMethod + ".xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent expenses report for type: " + type + " and payment method: " + paymentMethod + " via email to " + email + " for user ID: " + targetId
+                    : "Sent expenses report for type: " + type + " and payment method: " + paymentMethod + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
-
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
-
-        String subject = "Expenses Report for Type: " + type + " and Payment Method: " + paymentMethod;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the expenses report for type: " + type + " and payment method: " + paymentMethod + ".", new ByteArrayResource(bytes), "expenses_" + type + "_" + paymentMethod + ".xlsx");
-
-        return ResponseEntity.ok("Email sent successfully");
     }
-    
-    
+
+
     @GetMapping("/fetch-expenses-by-date/email")
-    public ResponseEntity<String> sendExpensesByDateRangeEmail(
+    public ResponseEntity<?> sendExpensesByDateRangeEmail(
             @RequestParam LocalDate from,
             @RequestParam LocalDate to,
-            @RequestHeader("Authorization")String jwt,
-            @RequestParam String email) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesByDateRange(from, to,reqUser);
-        if (expenses.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam String email,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByDateRange(from, to, targetUser);
+            if (expenses.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            ByteArrayInputStream in = excelService.generateExcel(expenses);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Expenses Report from " + from + " to " + to;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the expenses report from " + from + " to " + to + ".",
+                    new ByteArrayResource(bytes),
+                    "expenses_" + from + "_to_" + to + ".xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent expenses report from " + from + " to " + to + " via email to " + email + " for user ID: " + targetId
+                    : "Sent expenses report from " + from + " to " + to + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
-
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
-
-        String subject = "Expenses Report from " + from + " to " + to;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the expenses report from " + from + " to " + to + ".", new ByteArrayResource(bytes), "expenses_" + from + "_to_" + to + ".xlsx");
-
-        return ResponseEntity.ok("Email sent successfully");
     }
     @GetMapping("/expenses/gain/email")
-    public ResponseEntity<String> sendGainExpensesEmail(@RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesByType("gain",reqUser);
-        if (expenses.isEmpty()) {
-            return ResponseEntity.noContent().build();
+    public ResponseEntity<?> sendGainExpensesEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByType("gain", targetUser);
+            if (expenses.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            ByteArrayInputStream in = excelService.generateExcel(expenses);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Gain Expenses Report";
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the gain expenses report.",
+                    new ByteArrayResource(bytes),
+                    "gain_expenses.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent gain expenses report via email to " + email + " for user ID: " + targetId
+                    : "Sent gain expenses report via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
-
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
-
-        String subject = "Gain Expenses Report";
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the gain expenses report.", new ByteArrayResource(bytes), "gain_expenses.xlsx");
-
-        return ResponseEntity.ok("Email sent successfully");
     }
 
     @GetMapping("/expenses/loss/email")
-    public ResponseEntity<String> sendLossExpensesEmail(@RequestParam String email,@RequestHeader("Authorization") String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getLossExpenses(reqUser);
-        if (expenses.isEmpty()) {
-            return ResponseEntity.noContent().build();
+    public ResponseEntity<?> sendLossExpensesEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getLossExpenses(targetUser);
+            if (expenses.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            ByteArrayInputStream in = excelService.generateExcel(expenses);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Loss Expenses Report";
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the loss expenses report.",
+                    new ByteArrayResource(bytes),
+                    "loss_expenses.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent loss expenses report via email to " + email + " for user ID: " + targetId
+                    : "Sent loss expenses report via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
-
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
-
-        String subject = "Loss Expenses Report";
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the loss expenses report.", new ByteArrayResource(bytes), "loss_expenses.xlsx");
-
-        return ResponseEntity.ok("Email sent successfully");
     }
-    
+
     @GetMapping("/expenses/today/email")
-    public ResponseEntity<String> sendExpensesForTodayEmail(@RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesForToday(reqUser);
+    public ResponseEntity<?> sendExpensesForTodayEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        ByteArrayInputStream in;
-        if (expenses.isEmpty()) {
-            in = excelService.generateEmptyExcelWithColumns();
-        } else {
-            in = excelService.generateExcel(expenses);
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesForToday(targetUser);
+
+            ByteArrayInputStream in;
+            if (expenses.isEmpty()) {
+                in = excelService.generateEmptyExcelWithColumns();
+            } else {
+                in = excelService.generateExcel(expenses);
+            }
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Today's Expenses Report";
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached today's expenses report.",
+                    new ByteArrayResource(bytes),
+                    "today_expenses.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent today's expenses report via email to " + email + " for user ID: " + targetId
+                    : "Sent today's expenses report via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
-        byte[] bytes = in.readAllBytes();
-
-        String subject = "Today's Expenses Report";
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached today's expenses report.", new ByteArrayResource(bytes), "today_expenses.xlsx");
-
-        return ResponseEntity.ok("Email sent successfully");
     }
-    
+
     @GetMapping("/payment-method/{paymentMethod}/email")
-    public ResponseEntity<String> sendExpensesByPaymentMethodEmail(
+    public ResponseEntity<?> sendExpensesByPaymentMethodEmail(
             @PathVariable String paymentMethod,
             @RequestHeader("Authorization") String jwt,
-            @RequestParam String email) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesByPaymentMethod(paymentMethod,reqUser);
+            @RequestParam String email,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        ByteArrayInputStream in;
-        if (expenses.isEmpty()) {
-            in = excelService.generateEmptyExcelWithColumns();
-        } else {
-            in = excelService.generateExcel(expenses);
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByPaymentMethod(paymentMethod, targetUser);
+
+            ByteArrayInputStream in;
+            if (expenses.isEmpty()) {
+                in = excelService.generateEmptyExcelWithColumns();
+            } else {
+                in = excelService.generateExcel(expenses);
+            }
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Expenses Report for Payment Method: " + paymentMethod;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the expenses report for payment method: " + paymentMethod + ".",
+                    new ByteArrayResource(bytes),
+                    "expenses_" + paymentMethod + ".xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent expenses report for payment method: " + paymentMethod + " via email to " + email + " for user ID: " + targetId
+                    : "Sent expenses report for payment method: " + paymentMethod + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
-        byte[] bytes = in.readAllBytes();
-
-        String subject = "Expenses Report for Payment Method: " + paymentMethod;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the expenses report for payment method: " + paymentMethod + ".", new ByteArrayResource(bytes), "expenses_" + paymentMethod + ".xlsx");
-
-        return ResponseEntity.ok("Email sent successfully");
     }
-    
-    
+
     @GetMapping("/expenses/amount-range/email")
-    public ResponseEntity<String> sendExpenseDetailsByAmountRangeEmail(
+    public ResponseEntity<?> sendExpenseDetailsByAmountRangeEmail(
             @RequestParam double minAmount,
             @RequestParam double maxAmount,
             @RequestParam String email,
-            @RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenseDetails = expenseService.getExpenseDetailsByAmountRange(minAmount, maxAmount,reqUser);
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        ByteArrayInputStream in;
-        if (expenseDetails.isEmpty()) {
-            in = excelService.generateEmptyExcelWithColumns();
-        } else {
-            in = excelService.generateExpenseDetailsExcel(expenseDetails);
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenseDetails = expenseService.getExpenseDetailsByAmountRange(minAmount, maxAmount, targetUser);
+
+            ByteArrayInputStream in;
+            if (expenseDetails.isEmpty()) {
+                in = excelService.generateEmptyExcelWithColumns();
+            } else {
+                in = excelService.generateExpenseDetailsExcel(expenseDetails);
+            }
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Expense Details Report for Amount Range: " + minAmount + " - " + maxAmount;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the expense details report for amount range: " + minAmount + " - " + maxAmount + ".",
+                    new ByteArrayResource(bytes),
+                    "expense_details_" + minAmount + "_" + maxAmount + ".xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent expense details report for amount range " + minAmount + " - " + maxAmount + " via email to " + email + " for user ID: " + targetId
+                    : "Sent expense details report for amount range " + minAmount + " - " + maxAmount + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
-        byte[] bytes = in.readAllBytes();
-
-        String subject = "Expense Details Report for Amount Range: " + minAmount + " - " + maxAmount;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the expense details report for amount range: " + minAmount + " - " + maxAmount + ".", new ByteArrayResource(bytes), "expense_details_" + minAmount + "_" + maxAmount + ".xlsx");
-
-        return ResponseEntity.ok("Email sent successfully");
     }
-    
-    
+
+
     @GetMapping("/expenses/search/email")
-    public ResponseEntity<String> sendSearchExpensesByEmail(
+    public ResponseEntity<?> sendSearchExpensesByEmail(
             @RequestParam String expenseName,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.searchExpensesByName(expenseName,reqUser);
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        ByteArrayInputStream in;
-        if (expenses.isEmpty()) {
-            in = excelService.generateEmptyExcelWithColumns();
-        } else {
-            in = excelService.generateExcel(expenses);
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.searchExpensesByName(expenseName, targetUser);
+
+            ByteArrayInputStream in;
+            if (expenses.isEmpty()) {
+                in = excelService.generateEmptyExcelWithColumns();
+            } else {
+                in = excelService.generateExcel(expenses);
+            }
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Expense Search Results for: " + expenseName;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the expense search results for: " + expenseName + ".",
+                    new ByteArrayResource(bytes),
+                    "expense_search_results_" + expenseName + ".xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent expense search results for: " + expenseName + " via email to " + email + " for user ID: " + targetId
+                    : "Sent expense search results for: " + expenseName + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
-        byte[] bytes = in.readAllBytes();
-
-        String subject = "Expense Search Results for: " + expenseName;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the expense search results for: " + expenseName + ".", new ByteArrayResource(bytes), "expense_search_results_" + expenseName + ".xlsx");
-
-        return ResponseEntity.ok("Email sent successfully");
     }
 
     @GetMapping("/monthly-summary/{year}/{month}/email")
-    public ResponseEntity<String> sendMonthlySummaryByEmail(
-            @PathVariable Integer year, 
+    public ResponseEntity<?> sendMonthlySummaryByEmail(
+            @PathVariable Integer year,
             @PathVariable Integer month,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        MonthlySummary summary = expenseService.getMonthlySummary(year, month,reqUser);
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        ByteArrayInputStream in = excelService.generateMonthlySummaryExcel(summary);
-        byte[] bytes = in.readAllBytes();
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        String subject = "Monthly Summary for " + year + "-" + month;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the monthly summary for " + year + "-" + month + ".", new ByteArrayResource(bytes), "monthly_summary_" + year + "_" + month + ".xlsx");
+            MonthlySummary summary = expenseService.getMonthlySummary(year, month, targetUser);
 
-        return ResponseEntity.ok("Email sent successfully");
+            ByteArrayInputStream in = excelService.generateMonthlySummaryExcel(summary);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Monthly Summary for " + year + "-" + month;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the monthly summary for " + year + "-" + month + ".",
+                    new ByteArrayResource(bytes),
+                    "monthly_summary_" + year + "_" + month + ".xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent monthly summary for " + year + "-" + month + " via email to " + email + " for user ID: " + targetId
+                    : "Sent monthly summary for " + year + "-" + month + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
-    
-    
-    
-    
+
+
+
+
     @GetMapping("/payment-method-summary/email")
-    public ResponseEntity<String> sendPaymentMethodSummaryByEmail(
+    public ResponseEntity<?> sendPaymentMethodSummaryByEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        Map<String, Map<String, Double>> summary = expenseService.getPaymentMethodSummary(reqUser);
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        ByteArrayInputStream in = excelService.generatePaymentMethodSummaryExcel(summary);
-        byte[] bytes = in.readAllBytes();
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        String subject = "Payment Method Summary";
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the payment method summary.", new ByteArrayResource(bytes), "payment_method_summary.xlsx");
+            Map<String, Map<String, Double>> summary = expenseService.getPaymentMethodSummary(targetUser);
 
-        return ResponseEntity.ok("Email sent successfully");
+            ByteArrayInputStream in = excelService.generatePaymentMethodSummaryExcel(summary);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Payment Method Summary";
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the payment method summary.",
+                    new ByteArrayResource(bytes),
+                    "payment_method_summary.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent payment method summary via email to " + email + " for user ID: " + targetId
+                    : "Sent payment method summary via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
-    
-    
 
-    
-    
+
+
+
+
     @GetMapping("/yearly-summary/email")
-    public ResponseEntity<String> sendYearlySummaryByEmail(
+    public ResponseEntity<?> sendYearlySummaryByEmail(
             @RequestParam Integer year,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        Map<String, MonthlySummary> summary = expenseService.getYearlySummary(year,reqUser);
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        ByteArrayInputStream in = excelService.generateYearlySummaryExcel(summary);
-        byte[] bytes = in.readAllBytes();
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        String subject = "Yearly Summary for " + year;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the yearly summary for " + year + ".", new ByteArrayResource(bytes), "yearly_summary_" + year + ".xlsx");
+            Map<String, MonthlySummary> summary = expenseService.getYearlySummary(year, targetUser);
 
-        return ResponseEntity.ok("Email sent successfully");
+            ByteArrayInputStream in = excelService.generateYearlySummaryExcel(summary);
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Yearly Summary for " + year;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the yearly summary for " + year + ".",
+                    new ByteArrayResource(bytes),
+                    "yearly_summary_" + year + ".xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent yearly summary for " + year + " via email to " + email + " for user ID: " + targetId
+                    : "Sent yearly summary for " + year + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
-    
-    
+
+
     @GetMapping("/between-dates/email")
-    public ResponseEntity<String> sendSummaryBetweenDatesByEmail(
+    public ResponseEntity<?> sendSummaryBetweenDatesByEmail(
             @RequestParam Integer startYear,
             @RequestParam Integer startMonth,
             @RequestParam Integer endYear,
             @RequestParam Integer endMonth,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        List<MonthlySummary> summaries = expenseService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth,reqUser);
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        ByteArrayInputStream in = excelService.generateMonthlySummariesExcel(summaries);
-        byte[] bytes = in.readAllBytes();
+            List<MonthlySummary> summaries = expenseService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth, targetUser);
 
-        String subject = "Monthly Summaries from " + startMonth + "/" + startYear + " to " + endMonth + "/" + endYear;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the monthly summaries.", new ByteArrayResource(bytes), "monthly_summaries.xlsx");
+            ByteArrayInputStream in = excelService.generateMonthlySummariesExcel(summaries);
+            byte[] bytes = in.readAllBytes();
 
-        return ResponseEntity.ok("Email sent successfully");
+            String subject = "Monthly Summaries from " + startMonth + "/" + startYear + " to " + endMonth + "/" + endYear;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the monthly summaries.",
+                    new ByteArrayResource(bytes),
+                    "monthly_summaries.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent monthly summaries from " + startMonth + "/" + startYear + " to " + endMonth + "/" + endYear + " via email to " + email + " for user ID: " + targetId
+                    : "Sent monthly summaries from " + startMonth + "/" + startYear + " to " + endMonth + "/" + endYear + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Email sent successfully");
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
     
     
@@ -1280,26 +3272,93 @@ User reqUser=userService.findUserByJwt(jwt);
 //    }
 
     @GetMapping("/expenses/yesterday")
-    public List<Expense> getYesterdayExpenses(@RequestHeader("Authorization")String jwt){
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpensesByDate(LocalDate.now().minusDays(1),reqUser);
+    public ResponseEntity<?> getYesterdayExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByDate(LocalDate.now().minusDays(1), targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved yesterday's expenses for user ID: " + targetId
+                    : "Retrieved yesterday's expenses";
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving yesterday's expenses: " + e.getMessage());
+        }
     }
 
     @GetMapping("/particular-date")
-    public List<Expense> getParticularDateExpenses(@RequestParam String date,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        LocalDate specificDate = LocalDate.parse(date);
-        return expenseService.getExpensesByDate(specificDate,reqUser);
+    public ResponseEntity<?> getParticularDateExpenses(
+            @RequestParam String date,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
+
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            LocalDate specificDate;
+            try {
+                specificDate = LocalDate.parse(date);
+            } catch (DateTimeParseException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid date format. Please use yyyy-MM-dd format.");
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByDate(specificDate, targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved expenses for date " + specificDate + " for user ID: " + targetId
+                    : "Retrieved expenses for date " + specificDate;
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            return ResponseEntity.ok(expenses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving expenses for date: " + e.getMessage());
+        }
     }
 
     @GetMapping("/expenses/current-week")
-    public List<Expense> getCurrentWeekExpenses() {
-        return expenseService.getExpensesByCurrentWeek();
+    public List<Expense> getCurrentWeekExpenses(@RequestHeader("Authorization") String jwt) {
+        User reqUser = userService.findUserByJwt(jwt);
+        return expenseService.getExpensesByCurrentWeek(reqUser);
     }
 
     @GetMapping("/expenses/last-week")
-    public List<Expense> getLastWeekExpenses() {
-        return expenseService.getExpensesByLastWeek();
+    public List<Expense> getLastWeekExpenses(@RequestHeader("Authorization") String jwt) {
+        User reqUser = userService.findUserByJwt(jwt);
+        return expenseService.getExpensesByLastWeek(reqUser);
     }
     
 //    @GetMapping("/expenses/month/email")
@@ -1320,57 +3379,242 @@ User reqUser=userService.findUserByJwt(jwt);
 //    }
 
 
-    
+
 
     @GetMapping("/expenses/yesterday/email")
-    public ResponseEntity<String> sendYesterdayExpensesEmail(@RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Expense> expenses = expenseService.getExpensesByDate(LocalDate.now().minusDays(1),reqUser);
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
+    public ResponseEntity<?> sendYesterdayExpensesEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        String subject = "Yesterday's Expenses Report";
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the list of expenses for yesterday.", new ByteArrayResource(bytes), "yesterday_expenses.xlsx");
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        return ResponseEntity.ok("Yesterday's expenses report sent successfully");
+            List<Expense> expenses = expenseService.getExpensesByDate(LocalDate.now().minusDays(1), targetUser);
+
+            ByteArrayInputStream in;
+            if (expenses.isEmpty()) {
+                in = excelService.generateEmptyExcelWithColumns();
+            } else {
+                in = excelService.generateExcel(expenses);
+            }
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Yesterday's Expenses Report";
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the list of expenses for yesterday.",
+                    new ByteArrayResource(bytes),
+                    "yesterday_expenses.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent yesterday's expenses report via email to " + email + " for user ID: " + targetId
+                    : "Sent yesterday's expenses report via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Yesterday's expenses report sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
 
     @GetMapping("/expenses/date/email")
-    public ResponseEntity<String> sendDateExpensesEmail(@RequestParam String date, @RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        LocalDate specificDate = LocalDate.parse(date);
-        List<Expense> expenses = expenseService.getExpensesByDate(specificDate,reqUser);
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
+    public ResponseEntity<?> sendDateExpensesEmail(
+            @RequestParam String date,
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        String subject = "Expenses Report for " + date;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the list of expenses for the date " + date + ".", new ByteArrayResource(bytes), "date_expenses_" + date + ".xlsx");
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        return ResponseEntity.ok("Expenses report for " + date + " sent successfully");
+            LocalDate specificDate;
+            try {
+                specificDate = LocalDate.parse(date);
+            } catch (DateTimeParseException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid date format. Please use yyyy-MM-dd format.");
+            }
+
+            List<Expense> expenses = expenseService.getExpensesByDate(specificDate, targetUser);
+
+            ByteArrayInputStream in;
+            if (expenses.isEmpty()) {
+                in = excelService.generateEmptyExcelWithColumns();
+            } else {
+                in = excelService.generateExcel(expenses);
+            }
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Expenses Report for " + date;
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the list of expenses for the date " + date + ".",
+                    new ByteArrayResource(bytes),
+                    "date_expenses_" + date + ".xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent expenses report for date " + date + " via email to " + email + " for user ID: " + targetId
+                    : "Sent expenses report for date " + date + " via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Expenses report for " + date + " sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
 
     @GetMapping("/expenses/current-week/email")
-    public ResponseEntity<String> sendCurrentWeekExpensesEmail(@RequestParam String email) throws IOException, MessagingException {
-        List<Expense> expenses = expenseService.getExpensesByCurrentWeek();
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
+    public ResponseEntity<?> sendCurrentWeekExpensesEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        String subject = "Current Week Expenses Report";
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the list of expenses for the current week.", new ByteArrayResource(bytes), "current_week_expenses.xlsx");
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        return ResponseEntity.ok("Current week expenses report sent successfully");
+            List<Expense> expenses = expenseService.getExpensesByCurrentWeek(targetUser);
+
+            ByteArrayInputStream in;
+            if (expenses.isEmpty()) {
+                in = excelService.generateEmptyExcelWithColumns();
+            } else {
+                in = excelService.generateExcel(expenses);
+            }
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Current Week Expenses Report";
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the list of expenses for the current week.",
+                    new ByteArrayResource(bytes),
+                    "current_week_expenses.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent current week expenses report via email to " + email + " for user ID: " + targetId
+                    : "Sent current week expenses report via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Current week expenses report sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
 
     @GetMapping("/expenses/last-week/email")
-    public ResponseEntity<String> sendLastWeekExpensesEmail(@RequestParam String email) throws IOException, MessagingException {
-        List<Expense> expenses = expenseService.getExpensesByLastWeek();
-        ByteArrayInputStream in = excelService.generateExcel(expenses);
-        byte[] bytes = in.readAllBytes();
+    public ResponseEntity<?> sendLastWeekExpensesEmail(
+            @RequestParam String email,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser;
 
-        String subject = "Last Week Expenses Report";
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the list of expenses for the last week.", new ByteArrayResource(bytes), "last_week_expenses.xlsx");
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        return ResponseEntity.ok("Last week expenses report sent successfully");
+            List<Expense> expenses = expenseService.getExpensesByLastWeek(targetUser);
+
+            ByteArrayInputStream in;
+            if (expenses.isEmpty()) {
+                in = excelService.generateEmptyExcelWithColumns();
+            } else {
+                in = excelService.generateExcel(expenses);
+            }
+            byte[] bytes = in.readAllBytes();
+
+            String subject = "Last Week Expenses Report";
+            emailService.sendEmailWithAttachment(
+                    email,
+                    subject,
+                    "Please find attached the list of expenses for the last week.",
+                    new ByteArrayResource(bytes),
+                    "last_week_expenses.xlsx"
+            );
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Sent last week expenses report via email to " + email + " for user ID: " + targetId
+                    : "Sent last week expenses report via email to " + email;
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok("Last week expenses report sent successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
+        } catch (MessagingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
     }
     
     
@@ -1410,26 +3654,62 @@ User reqUser=userService.findUserByJwt(jwt);
     }
 
     @PostMapping("/save")
-    public ResponseEntity<List<Expense>> saveExpenses(
+    public ResponseEntity<?> saveExpenses(
             @RequestBody List<Expense> expenses,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            // Validate input
+            if (expenses == null || expenses.isEmpty()) {
+                return ResponseEntity.badRequest().body("No expenses provided");
+            }
 
-        User reqUser = userService.findUserByJwt(jwt);
-        List<Expense> saved = expenseService.addMultipleExpenses( expenses,reqUser);
-        for (Expense expense : saved) {
-            String expenseDetails = String.format(
-                    "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                    expense.getId(),
-                    expense.getExpense().getExpenseName(),
-                    expense.getExpense().getAmount(),
-                    expense.getExpense().getType(),
-                    expense.getExpense().getPaymentMethod()
-            );
+            // Get authenticated user
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            }
 
-            // Log the creation
-            auditExpenseService.logAudit(reqUser, expense.getId(), "create", expenseDetails);
+            // Process and save expenses
+            List<Expense> saved = expenseService.addMultipleExpenses(expenses, reqUser);
+
+            // Log each expense creation
+            for (Expense expense : saved) {
+                ExpenseDetails details = expense.getExpense();
+                if (details != null) {
+                    String expenseDetails = String.format(
+                            "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s, Net Amount - %.2f, Credit Due - %.2f",
+                            expense.getId(),
+                            details.getExpenseName(),
+                            details.getAmount(),
+                            details.getType(),
+                            details.getPaymentMethod(),
+                            details.getNetAmount(),
+                            details.getCreditDue()
+                    );
+
+                    // Add comments if present
+                    if (details.getComments() != null && !details.getComments().isEmpty()) {
+                        expenseDetails += String.format(", Comments - %s", details.getComments());
+                    }
+
+                    // Log the creation with detailed information
+                    auditExpenseService.logAudit(reqUser, expense.getId(), "create", expenseDetails);
+                }
+            }
+
+            // Return success response with saved expenses
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (IllegalArgumentException e) {
+            // Handle validation errors
+            return ResponseEntity.badRequest().body("Invalid expense data: " + e.getMessage());
+        } catch (Exception e) {
+            // Log the error
+            System.out.println("Error saving expenses: " + e.getMessage());
+
+            // Return error response
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error saving expenses: " + e.getMessage());
         }
-        return ResponseEntity.ok(saved);
     }
 
 
@@ -1438,22 +3718,76 @@ User reqUser=userService.findUserByJwt(jwt);
 
 
     @PostMapping("/upload")
-    public ResponseEntity<List<Expense>>getFileContent(@RequestParam("file") MultipartFile file,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
+    public ResponseEntity<?> getFileContent(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("Authorization") String jwt) {
         try {
+            // Validate file
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Please upload a valid Excel file");
+            }
+
+            // Check file type
+            String fileName = file.getOriginalFilename();
+            if (fileName == null || !(fileName.endsWith(".xlsx") || fileName.endsWith(".xls"))) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Please upload a valid Excel file (.xlsx or .xls)");
+            }
+
+            // Get authenticated user
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            // Parse the Excel file
             List<Expense> expenses = excelService.parseExcelFile(file);
-            int i=0;
-            for(Expense expense : expenses) {
+
+            // Validate parsed data
+            if (expenses.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No valid expense data found in the uploaded file");
+            }
+
+            // Process expenses
+            int i = 0;
+            for (Expense expense : expenses) {
                 expense.setId(i++);
                 expense.setCategoryId(expense.getCategoryId());
                 expense.setBudgetIds(expense.getBudgetIds());
                 expense.setIncludeInBudget(expense.isIncludeInBudget());
                 expense.setDate(expense.getDate());
-                expense.getExpense().setId(i);
+
+                // Ensure expense details exist
+                if (expense.getExpense() != null) {
+                    expense.getExpense().setId(i);
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Invalid expense data at row " + i + ": Missing expense details");
+                }
             }
+
+            // Log the upload action
+            String auditMessage = String.format(
+                    "Uploaded Excel file with %d expenses from file: %s",
+                    expenses.size(),
+                    fileName
+            );
+            auditExpenseService.logAudit(reqUser, null, "upload", auditMessage);
+
             return ResponseEntity.ok(expenses);
         } catch (IOException e) {
-            return ResponseEntity.status(500).body(null);
+            // Log the error
+            System.out.println("Error processing Excel file: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing Excel file: " + e.getMessage());
+        } catch (Exception e) {
+            // Handle other exceptions
+            System.out.println("Unexpected error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unexpected error: " + e.getMessage());
         }
     }
     
@@ -1475,25 +3809,82 @@ User reqUser=userService.findUserByJwt(jwt);
         List<Expense> expenses = expenseService.getExpensesByIds(ids);
         return ResponseEntity.ok(expenses);
     }
-    
-    
+
+
 
 
     @PostMapping("/expenses/delete-and-send")
-    public ResponseEntity<List<Map<String, Object>>> deleteExpenses(@RequestBody Map<String, Object> requestBody,@RequestParam("Authorization")String jwt) throws Exception {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<Integer> ids = (List<Integer>) requestBody.get("deleteid");
-        List<Map<String, Object>> expenses = (List<Map<String, Object>>) requestBody.get("expenses");
+    public ResponseEntity<?> deleteExpenses(
+            @RequestBody Map<String, Object> requestBody,
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            // Validate input
+            if (requestBody == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Request body cannot be empty");
+            }
 
-        // Delete expenses by IDs
-        expenseService.deleteExpensesByIds(ids,reqUser);
+            List<Integer> ids = (List<Integer>) requestBody.get("deleteid");
+            if (ids == null || ids.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No expense IDs provided for deletion");
+            }
 
-        // Filter out deleted expenses from the input list
-        List<Map<String, Object>> filteredExpenses = expenses.stream()
-                .filter(expense -> !ids.contains((Integer) expense.get("id")))
-                .collect(Collectors.toList());
+            List<Map<String, Object>> expenses = (List<Map<String, Object>>) requestBody.get("expenses");
+            if (expenses == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Expenses list is required");
+            }
 
-        return ResponseEntity.ok(filteredExpenses);
+            // Get authenticated user
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            // Log the deletion request
+            String auditMessage = String.format(
+                    "Requested deletion of %d expenses with IDs: %s",
+                    ids.size(),
+                    ids.toString()
+            );
+            auditExpenseService.logAudit(reqUser, null, "delete-request", auditMessage);
+
+            // Delete expenses by IDs
+            try {
+                expenseService.deleteExpensesByIds(ids, reqUser);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error deleting expenses: " + e.getMessage());
+            }
+
+            // Filter out deleted expenses from the input list
+            List<Map<String, Object>> filteredExpenses = expenses.stream()
+                    .filter(expense -> {
+                        Integer expenseId = (Integer) expense.get("id");
+                        return expenseId != null && !ids.contains(expenseId);
+                    })
+                    .collect(Collectors.toList());
+
+            // Log successful deletion
+            String successMessage = String.format(
+                    "Successfully deleted %d expenses. %d expenses remaining.",
+                    ids.size(),
+                    filteredExpenses.size()
+            );
+            auditExpenseService.logAudit(reqUser, null, "delete-success", successMessage);
+
+            return ResponseEntity.ok(filteredExpenses);
+        } catch (ClassCastException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid data format: " + e.getMessage());
+        } catch (Exception e) {
+            // Log the error
+            System.out.println("Error in deleteExpenses: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unexpected error: " + e.getMessage());
+        }
     }
     
 
@@ -1529,223 +3920,908 @@ User reqUser=userService.findUserByJwt(jwt);
 
 
     @GetMapping("/groupedByDate")
-    public ResponseEntity<Map<String, List<Map<String, Object>>>> getGroupedExpenses(
-            @RequestHeader("Authorization")String jwt,
+    public ResponseEntity<?> getGroupedExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(value = "sortOrder", defaultValue = "desc") String sortOrder,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            // Validate sort order parameter
+            if (!sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid sortOrder parameter. Must be 'asc' or 'desc'");
+            }
 
-            @RequestParam(value = "sortOrder", defaultValue = "desc") String sortOrder) {
+            // Get authenticated user
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
 
+            // Determine target user (if admin is viewing another user's expenses)
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
+            // Get grouped expenses
+            Map<String, List<Map<String, Object>>> groupedExpenses =
+                    expenseService.getExpensesGroupedByDate(targetUser, sortOrder);
 
-        User user = userService.findUserByJwt(jwt);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? "Retrieved grouped expenses (sorted " + sortOrder + ") for user ID: " + targetId
+                    : "Retrieved grouped expenses (sorted " + sortOrder + ")";
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            // Return empty result if no expenses found
+            if (groupedExpenses.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyMap());
+            }
+
+            return ResponseEntity.ok(groupedExpenses);
+        } catch (Exception e) {
+            // Log the error
+            System.out.println("Error retrieving grouped expenses: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving grouped expenses: " + e.getMessage());
         }
-
-        Map<String, List<Map<String, Object>>> groupedExpenses = expenseService.getExpensesGroupedByDate(user ,sortOrder);
-
-        return ResponseEntity.ok(groupedExpenses);
     }
 
 
 
 
     @GetMapping("/sorted")
-    public ResponseEntity<Map<String, List<Map<String, Object>>>> getExpensesGroupedByDate(
+    public ResponseEntity<?> getExpensesGroupedByDate(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "date") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortOrder) throws Exception {
+            @RequestParam(defaultValue = "asc") String sortOrder,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            // Validate pagination parameters
+            if (page < 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Page number cannot be negative");
+            }
+            if (size <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Page size must be greater than zero");
+            }
 
-        User user = userService.findUserByJwt(jwt);
-        Map<String, List<Map<String, Object>>> groupedExpenses = expenseService.getExpensesGroupedByDateWithPagination(user, sortOrder, page, size, sortBy);
-        return new ResponseEntity<>(groupedExpenses, HttpStatus.OK);
+            // Validate sort order parameter
+            if (!sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid sortOrder parameter. Must be 'asc' or 'desc'");
+            }
+
+            // Validate sort by parameter (add more valid fields as needed)
+            List<String> validSortFields = Arrays.asList("date", "amount", "expenseName", "paymentMethod");
+            if (!validSortFields.contains(sortBy.toLowerCase())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid sortBy parameter. Valid values are: " + String.join(", ", validSortFields));
+            }
+
+            // Get authenticated user
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            // Determine target user (if admin is viewing another user's expenses)
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Get paginated and sorted expenses
+            Map<String, List<Map<String, Object>>> groupedExpenses =
+                    expenseService.getExpensesGroupedByDateWithPagination(
+                            targetUser,
+                            sortOrder,
+                            page,
+                            size,
+                            sortBy);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved paginated expenses (page %d, size %d, sorted by %s %s) for user ID: %d",
+                    page, size, sortBy, sortOrder, targetId)
+                    : String.format("Retrieved paginated expenses (page %d, size %d, sorted by %s %s)",
+                    page, size, sortBy, sortOrder);
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            // Return empty result if no expenses found
+            if (groupedExpenses.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyMap());
+            }
+
+            // Add pagination metadata to the response
+            Map<String, Object> response = new HashMap<>();
+            response.put("data", groupedExpenses);
+            response.put("pagination", Map.of(
+                    "page", page,
+                    "size", size,
+                    "sortBy", sortBy,
+                    "sortOrder", sortOrder
+            ));
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            // Log the error
+            System.out.println("Error retrieving paginated expenses: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving paginated expenses: " + e.getMessage());
+        }
     }
 
 
 
 
     @GetMapping("/before/{expenseName}/{date}")
-    public Expense getExpensesBeforeDate(
-            @RequestHeader("Authorization")String jwt,
+    public ResponseEntity<?> getExpensesBeforeDate(
+            @RequestHeader("Authorization") String jwt,
             @PathVariable String expenseName,
-            @PathVariable String date) {
-        LocalDate parsedDate = LocalDate.parse(date);
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpensesBeforeDate(reqUser.getId(), expenseName, parsedDate);
+            @PathVariable String date,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            // Validate input parameters
+            if (expenseName == null || expenseName.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Expense name cannot be empty");
+            }
+
+            // Parse and validate date
+            LocalDate parsedDate;
+            try {
+                parsedDate = LocalDate.parse(date);
+            } catch (DateTimeParseException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid date format. Please use yyyy-MM-dd format");
+            }
+
+            // Get authenticated user
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            // Determine target user (if admin is viewing another user's expenses)
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Get expense before date
+            Expense expense = expenseService.getExpensesBeforeDate(targetUser.getId(), expenseName.trim(), parsedDate);
+
+            // Handle case when no expense is found
+            if (expense == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(String.format("No expense found with name '%s' before date %s", expenseName, date));
+            }
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved expense with name '%s' before date %s for user ID: %d",
+                    expenseName, date, targetId)
+                    : String.format("Retrieved expense with name '%s' before date %s",
+                    expenseName, date);
+
+            auditExpenseService.logAudit(reqUser, expense.getId(), "read", auditMessage);
+
+            return ResponseEntity.ok(expense);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            // Log the error
+            System.out.println("Error retrieving expense before date: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving expense before date: " + e.getMessage());
+        }
     }
 
 
     @GetMapping("/current-month-top-expenses")
-    public Map<String, Object> getTopExpensesForCustomMonth(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        LocalDate now = LocalDate.now();
+    public ResponseEntity<?> getTopExpensesForCustomMonth(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId,
+            @RequestParam(required = false, defaultValue = "3") Integer topCount,
+            @RequestParam(required = false) Integer customStartDay) {
+        try {
+            if (topCount <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("topCount must be greater than zero");
+            }
 
-        // Calculate the start date (17th of the previous month)
-        LocalDate startDate = now.minusMonths(1).withDayOfMonth(17);
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
 
-        // Calculate the end date (16th of the current month)
-        LocalDate endDate = now.withDayOfMonth(16);
-
-        // Fetch all expenses and filter by the custom date range (17th of last month to 16th of current month)
-        List<Expense> expenses = expenseService.getAllExpenses(reqUser);
-
-        // Initialize data structures for expense trend, monthly breakdown, and expense distribution
-        List<Map<String, Object>> expenseTrend = new ArrayList<>();
-        List<Map<String, Object>> monthlyBreakdown = new ArrayList<>();
-        List<Map<String, Object>> expenseDistribution = new ArrayList<>();
-
-        // Group expenses by category for the custom month range
-        Map<String, Double> categoryTotals = new LinkedHashMap<>();
-
-        // Process the expenses and categorize them by expense category
-        for (Expense expense : expenses) {
-            LocalDate expenseDate = expense.getDate();
-
-            // Check if the expense date is within the custom month range (17th of last month to 16th of current month)
-            if ((expenseDate.isAfter(startDate) || expenseDate.isEqual(startDate)) && (expenseDate.isBefore(endDate) || expenseDate.isEqual(endDate))) {
-                ExpenseDetails details = expense.getExpense();
-                if (details != null) {
-                    String category = details.getExpenseName(); // Expense categories like 'Food', 'Entertainment', etc.
-                    double amount = details.getAmount();
-
-                    // Accumulate total for each category
-                    categoryTotals.merge(category, amount, Double::sum);
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
                 }
             }
+
+            LocalDate now = LocalDate.now();
+            int startDay = customStartDay != null ? customStartDay : 17;
+            if (startDay < 1 || startDay > 28) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("customStartDay must be between 1 and 28");
+            }
+
+            LocalDate startDate = now.minusMonths(1).withDayOfMonth(startDay);
+            LocalDate endDate = (startDay == 1)
+                    ? now.withDayOfMonth(now.lengthOfMonth())
+                    : now.withDayOfMonth(startDay - 1);
+
+            List<Expense> expenses = expenseService.getAllExpenses(targetUser);
+
+            List<Map<String, Object>> expenseTrend = new ArrayList<>();
+            List<Map<String, Object>> monthlyBreakdown = new ArrayList<>();
+            List<Map<String, Object>> expenseDistribution = new ArrayList<>();
+            Map<String, Double> categoryTotals = new LinkedHashMap<>();
+
+            for (Expense expense : expenses) {
+                LocalDate expenseDate = expense.getDate();
+                if ((expenseDate.isAfter(startDate) || expenseDate.isEqual(startDate)) &&
+                        (expenseDate.isBefore(endDate) || expenseDate.isEqual(endDate))) {
+                    ExpenseDetails details = expense.getExpense();
+                    if (details != null) {
+                        String category = details.getExpenseName();
+                        double amount = details.getAmount();
+                        categoryTotals.merge(category, amount, Double::sum);
+                    }
+                }
+            }
+
+            List<Map.Entry<String, Double>> sortedCategories = new ArrayList<>(categoryTotals.entrySet());
+            sortedCategories.sort((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()));
+
+            Map<String, Object> trendData = new HashMap<>();
+            Map<String, Object> monthlyData = new HashMap<>();
+            int count = 0;
+            for (Map.Entry<String, Double> entry : sortedCategories) {
+                if (count == topCount) break;
+                String category = entry.getKey();
+                Double amount = entry.getValue();
+                trendData.put(category.toLowerCase(), amount);
+                monthlyData.put(category, amount);
+                Map<String, Object> pieData = new HashMap<>();
+                pieData.put("name", category);
+                pieData.put("value", amount);
+                expenseDistribution.add(pieData);
+                count++;
+            }
+
+            expenseTrend.add(trendData);
+            monthlyBreakdown.add(monthlyData);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("expenseTrend", expenseTrend);
+            result.put("monthlyBreakdown", monthlyBreakdown);
+            result.put("expenseDistribution", expenseDistribution);
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved top %d expenses for custom month (%s to %s) for user ID: %d",
+                    topCount, startDate, endDate, targetId)
+                    : String.format("Retrieved top %d expenses for custom month (%s to %s)",
+                    topCount, startDate, endDate);
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error retrieving top expenses for custom month: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving top expenses for custom month: " + e.getMessage());
         }
-
-        // Sort the categories by amount and get the top 3
-        List<Map.Entry<String, Double>> sortedCategories = new ArrayList<>(categoryTotals.entrySet());
-        sortedCategories.sort((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()));
-
-        // Prepare the data for Line Chart and Bar Chart (only top 3 categories)
-        Map<String, Object> trendData = new HashMap<>();
-        Map<String, Object> monthlyData = new HashMap<>();
-        int count = 0;
-        for (Map.Entry<String, Double> entry : sortedCategories) {
-            if (count == 3) break;  // Only top 3 categories
-
-            String category = entry.getKey();
-            Double amount = entry.getValue();
-
-            // For Line Chart and Bar Chart
-            trendData.put(category.toLowerCase(), amount);
-            monthlyData.put(category, amount);
-
-            // Prepare Pie Chart Data
-            Map<String, Object> pieData = new HashMap<>();
-            pieData.put("name", category);
-            pieData.put("value", amount);
-            expenseDistribution.add(pieData);
-
-            count++;
-        }
-
-        // Add the data to the response map
-        expenseTrend.add(trendData);  // Line Chart data
-        monthlyBreakdown.add(monthlyData);  // Bar Chart data
-
-        // Return the combined data for the custom "current month" (Line Chart, Bar Chart, Pie Chart)
-        Map<String, Object> result = new HashMap<>();
-        result.put("expenseTrend", expenseTrend);  // Line Chart Data
-        result.put("monthlyBreakdown", monthlyBreakdown);  // Bar Chart Data
-        result.put("expenseDistribution", expenseDistribution);  // Pie Chart Data
-
-        return result;
     }
+
 
 
     @GetMapping("/by-name")
-    public Map<String, Object> getExpenseByName(
-            @RequestHeader("Authorization")String jwt,
-            @RequestParam(value = "year", defaultValue = "0") int year) {
-        User reqUser=userService.findUserByJwt(jwt);
-        if (year == 0) {
-            year = Year.now().getValue();
+    public ResponseEntity<?> getExpenseByName(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year,
+            @RequestParam(required = false) Integer targetId,
+            @RequestParam(required = false) String flowType) {
+        try {
+            // Get authenticated user
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            // Determine target user (if admin is viewing another user's expenses)
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Use current year if not specified
+            if (year == 0) {
+                year = Year.now().getValue();
+            }
+
+            // Validate year
+            if (year < 2000 || year > 2100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Year must be between 2000 and 2100");
+            }
+
+            // Get expense data by name
+            Map<String, Object> result = expenseService.getExpenseByName(targetUser, year);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved expenses by name for year %d%s for user ID: %d",
+                    year,
+                    flowType != null ? " (filtered by " + flowType + ")" : "",
+                    targetId)
+                    : String.format("Retrieved expenses by name for year %d%s",
+                    year,
+                    flowType != null ? " (filtered by " + flowType + ")" : "");
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            // Log the error
+            System.out.println("Error retrieving expenses by name: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving expenses by name: " + e.getMessage());
         }
-        return expenseService.getExpenseByName(reqUser,year);
     }
 
     @GetMapping("/monthly")
-    public Map<String, Object> getMonthlyExpenses(
-            @RequestHeader("Authorization")String jwt,
-            @RequestParam(value = "year", defaultValue = "0") int year) {
-        if (year == 0) {
-            year = Year.now().getValue();
+    public ResponseEntity<?> getMonthlyExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year,
+            @RequestParam(required = false) Integer targetId,
+            @RequestParam(required = false) String flowType) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            if (year == 0) {
+                year = Year.now().getValue();
+            }
+
+            if (year < 2000 || year > 2100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Year must be between 2000 and 2100");
+            }
+
+            Map<String, Object> result = expenseService.getMonthlyExpenses(targetUser, year);
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved monthly expenses for year %d%s for user ID: %d",
+                    year,
+                    flowType != null ? " (filtered by " + flowType + ")" : "",
+                    targetId)
+                    : String.format("Retrieved monthly expenses for year %d%s",
+                    year,
+                    flowType != null ? " (filtered by " + flowType + ")" : "");
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error retrieving monthly expenses: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving monthly expenses: " + e.getMessage());
         }
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getMonthlyExpenses(reqUser,year);
     }
 
     @GetMapping("/trend")
-    public Map<String, Object> getExpenseTrend(
-            @RequestHeader("Authorization")String jwt,
-            @RequestParam(value = "year", defaultValue = "0") int year) {
-        if (year == 0) {
-            year = Year.now().getValue();
+    public ResponseEntity<?> getExpenseTrend(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year,
+            @RequestParam(required = false) Integer targetId,
+            @RequestParam(required = false) String flowType) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            if (year == 0) {
+                year = Year.now().getValue();
+            }
+            if (year < 2000 || year > 2100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Year must be between 2000 and 2100");
+            }
+
+            Map<String, Object> result = expenseService.getExpenseTrend(targetUser, year);
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved expense trend for year %d%s for user ID: %d",
+                    year,
+                    flowType != null ? " (filtered by " + flowType + ")" : "",
+                    targetId)
+                    : String.format("Retrieved expense trend for year %d%s",
+                    year,
+                    flowType != null ? " (filtered by " + flowType + ")" : "");
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error retrieving expense trend: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving expense trend: " + e.getMessage());
         }
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpenseTrend(reqUser,year);
     }
 
     @GetMapping("/payment-methods")
-    public Map<String, Object> getPaymentMethodDistribution(
-            @RequestHeader("Authorization")String jwt,
-            @RequestParam(value = "year", defaultValue = "0") int year) {
-        if (year == 0) {
-            year = Year.now().getValue();
+    public ResponseEntity<?> getPaymentMethodDistribution(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            if (year == 0) {
+                year = Year.now().getValue();
+            }
+            if (year < 2000 || year > 2100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Year must be between 2000 and 2100");
+            }
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+            Map<String, Object> result = expenseService.getPaymentMethodDistribution(targetUser, year);
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved payment method distribution for year %d for user ID: %d", year, targetId)
+                    : String.format("Retrieved payment method distribution for year %d", year);
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error retrieving payment method distribution: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving payment method distribution: " + e.getMessage());
         }
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getPaymentMethodDistribution(reqUser,year);
     }
 
     @GetMapping("/cumulative")
-    public Map<String, Object> getCumulativeExpenses(
-            @RequestHeader("Authorization")String jwt,
-            @RequestParam(value = "year", defaultValue = "0") int year) {
-        if (year == 0) {
-            year = Year.now().getValue();
+    public ResponseEntity<?> getCumulativeExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(value = "year", defaultValue = "0") int year,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            if (year == 0) {
+                year = Year.now().getValue();
+            }
+            if (year < 2000 || year > 2100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Year must be between 2000 and 2100");
+            }
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+            Map<String, Object> result = expenseService.getCumulativeExpenses(targetUser, year);
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved cumulative expenses for year %d for user ID: %d", year, targetId)
+                    : String.format("Retrieved cumulative expenses for year %d", year);
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error retrieving cumulative expenses: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving cumulative expenses: " + e.getMessage());
         }
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getCumulativeExpenses(reqUser,year);
     }
 
     @GetMapping("/name-over-time")
-    public Map<String, Object> getExpenseNameOverTime(
-            @RequestHeader("Authorization")String jwt,
+    public ResponseEntity<?> getExpenseNameOverTime(
+            @RequestHeader("Authorization") String jwt,
             @RequestParam(value = "year", defaultValue = "0") int year,
-            @RequestParam(value = "limit", defaultValue = "5") int limit) {
-        if (year == 0) {
-            year = Year.now().getValue();
+            @RequestParam(value = "limit", defaultValue = "5") int limit,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            if (year == 0) {
+                year = Year.now().getValue();
+            }
+            if (year < 2000 || year > 2100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Year must be between 2000 and 2100");
+            }
+            if (limit <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Limit must be greater than zero");
+            }
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+            Map<String, Object> result = expenseService.getExpenseNameOverTime(targetUser, year, limit);
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved top %d expense names over time for year %d for user ID: %d",
+                    limit, year, targetId)
+                    : String.format("Retrieved top %d expense names over time for year %d",
+                    limit, year);
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error retrieving expense names over time: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving expense names over time: " + e.getMessage());
         }
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpenseNameOverTime(reqUser,year, limit);
     }
 
 
     @GetMapping("/current-month/daily-spending")
-    public List<Map<String, Object>> getDailySpendingCurrentMonth(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getDailySpendingCurrentMonth(reqUser.getId());
+    public ResponseEntity<?> getDailySpendingCurrentMonth(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Map<String, Object>> result = expenseService.getDailySpendingCurrentMonth(targetUser.getId());
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved daily spending for current month for user ID: %d", targetId)
+                    : "Retrieved daily spending for current month";
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.out.println("Error retrieving daily spending for current month: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving daily spending for current month: " + e.getMessage());
+        }
     }
 
     @GetMapping("/current-month/totals")
-    public List<Map<String, Object>> getMonthlySpendingAndIncomeCurrentMonth(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getMonthlySpendingAndIncomeCurrentMonth(reqUser.getId());
+    public ResponseEntity<?> getMonthlySpendingAndIncomeCurrentMonth(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Map<String, Object>> result = expenseService.getMonthlySpendingAndIncomeCurrentMonth(targetUser.getId());
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved monthly spending and income for current month for user ID: %d", targetId)
+                    : "Retrieved monthly spending and income for current month";
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.out.println("Error retrieving monthly spending and income for current month: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving monthly spending and income for current month: " + e.getMessage());
+        }
     }
 
     @GetMapping("/current-month/distribution")
-    public List<Map<String, Object>> getExpenseDistributionCurrentMonth(@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.getExpenseDistributionCurrentMonth(reqUser.getId());
+    public ResponseEntity<?> getExpenseDistributionCurrentMonth(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Map<String, Object>> result = expenseService.getExpenseDistributionCurrentMonth(targetUser.getId());
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved expense distribution for current month for user ID: %d", targetId)
+                    : "Retrieved expense distribution for current month";
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.out.println("Error retrieving expense distribution for current month: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving expense distribution for current month: " + e.getMessage());
+        }
     }
 
     @GetMapping("/included-in-budget/{startDate}/{endDate}")
-    public List<Expense> getIncludeInBudgetExpenses(@RequestHeader("Authorization")String jwt,@PathVariable LocalDate startDate, @PathVariable LocalDate endDate) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(startDate, endDate, reqUser.getId());
+    public ResponseEntity<?> getIncludeInBudgetExpenses(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable LocalDate startDate,
+            @PathVariable LocalDate endDate,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            if (startDate == null || endDate == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Start date and end date are required");
+            }
+
+            if (endDate.isBefore(startDate)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("End date cannot be before start date");
+            }
+
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            List<Expense> expenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
+                    startDate, endDate, targetUser.getId());
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved budget-included expenses from %s to %s for user ID: %d",
+                    startDate, endDate, targetId)
+                    : String.format("Retrieved budget-included expenses from %s to %s",
+                    startDate, endDate);
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
+            return ResponseEntity.ok(expenses);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid date format. Please use yyyy-MM-dd format");
+        } catch (Exception e) {
+            System.out.println("Error retrieving budget-included expenses: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving budget-included expenses: " + e.getMessage());
+        }
     }
 
 
@@ -1754,142 +4830,361 @@ User reqUser=userService.findUserByJwt(jwt);
             @PathVariable Integer budgetId,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate) {
-
-        User user = userService.findUserByJwt(jwt);
-        if (user == null) {
-            return ResponseEntity.status(404).body("User not found");
-        }
-
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Integer targetId) {
         try {
+            if (budgetId == null || budgetId <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid budget ID");
+            }
+
+            if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("End date cannot be before start date");
+            }
+
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
             List<Expense> expenses = expenseService.getExpensesInBudgetRangeWithIncludeFlag(
                     startDate,
                     endDate,
                     budgetId,
-                    user.getId()
+                    targetUser.getId()
             );
+
+            // Log the action
+            String dateRangeInfo = "";
+            if (startDate != null && endDate != null) {
+                dateRangeInfo = String.format(" from %s to %s", startDate, endDate);
+            } else if (startDate != null) {
+                dateRangeInfo = String.format(" from %s onwards", startDate);
+            } else if (endDate != null) {
+                dateRangeInfo = String.format(" until %s", endDate);
+            }
+
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved expenses for budget ID %d%s for user ID: %d",
+                    budgetId, dateRangeInfo, targetId)
+                    : String.format("Retrieved expenses for budget ID %d%s",
+                    budgetId, dateRangeInfo);
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
             return ResponseEntity.ok(expenses);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid date format. Please use yyyy-MM-dd format");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            if (e.getMessage().contains("not found") || e.getMessage().contains("Budget")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(e.getMessage());
+            } else {
+                System.out.println("Error retrieving expenses for budget: " + e.getMessage());
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error retrieving expenses for budget: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            System.out.println("Unexpected error retrieving expenses for budget: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unexpected error retrieving expenses for budget: " + e.getMessage());
         }
     }
 
 
     @GetMapping("/cashflow")
-    public ResponseEntity<List<Expense>> getCashflowExpenses(
+    public ResponseEntity<?> getCashflowExpenses(
             @RequestParam String range,
             @RequestParam Integer offset,
             @RequestParam(required = false) String flowType,
             @RequestParam(required = false) String category,
+            @RequestParam(required = false) Integer targetId,
             @RequestHeader("Authorization") String jwt) {
+        try {
+            if (range == null || range.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Range parameter is required");
+            }
+            if (offset == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Offset parameter is required");
+            }
+            if (!Arrays.asList("week", "month", "year").contains(range.toLowerCase())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid range parameter. Valid values are: week, month, year");
+            }
 
-        User reqUser = userService.findUserByJwt(jwt);
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
 
-        // Calculate date range based on parameters
-        LocalDate startDate;
-        LocalDate endDate;
-        LocalDate now = LocalDate.now();
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
 
-        // Calculate date range based on range and offset
-        switch (range) {
-            case "week":
-                startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
-                endDate = startDate.plusDays(6);
-                break;
-            case "month":
-                startDate = now.withDayOfMonth(1).plusMonths(offset);
-                endDate = startDate.plusMonths(1).minusDays(1);
-                break;
-            case "year":
-                startDate = now.withDayOfMonth(1).withMonth(1).plusYears(offset);
-                endDate = startDate.plusYears(1).minusDays(1);
-                break;
-            default:
-                return ResponseEntity.badRequest().build();
+            LocalDate startDate;
+            LocalDate endDate;
+            LocalDate now = LocalDate.now();
+
+            switch (range.toLowerCase()) {
+                case "week":
+                    startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
+                    endDate = startDate.plusDays(6);
+                    break;
+                case "month":
+                    startDate = now.withDayOfMonth(1).plusMonths(offset);
+                    endDate = startDate.plusMonths(1).minusDays(1);
+                    break;
+                case "year":
+                    startDate = now.withDayOfMonth(1).withMonth(1).plusYears(offset);
+                    endDate = startDate.plusYears(1).minusDays(1);
+                    break;
+                default:
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Invalid range parameter");
+            }
+
+            List<Expense> expenses = expenseService.getExpensesWithinRange(
+                    targetUser.getId(),
+                    startDate,
+                    endDate,
+                    flowType
+            );
+
+            if (category != null && !category.isEmpty()) {
+                expenses = expenses.stream()
+                        .filter(expense -> {
+                            if (expense.getExpense() == null || expense.getExpense().getExpenseName() == null) {
+                                return false;
+                            }
+                            String expenseName = expense.getExpense().getExpenseName();
+                            return expenseName.toLowerCase().contains(category.toLowerCase());
+                        })
+                        .collect(Collectors.toList());
+            }
+
+            return ResponseEntity.ok(expenses);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error retrieving cashflow expenses: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving cashflow expenses: " + e.getMessage());
         }
-
-        // Get expenses within the date range
-        List<Expense> expenses = expenseService.getExpensesWithinRange(
-                reqUser.getId(),
-                startDate,
-                endDate,
-                flowType
-        );
-
-        // Filter by category if provided
-        if (category != null && !category.isEmpty()) {
-            expenses = expenses.stream()
-                    .filter(expense -> {
-                        String expenseName = expense.getExpense().getExpenseName();
-                        return expenseName != null && expenseName.toLowerCase().contains(category.toLowerCase());
-                    })
-                    .collect(Collectors.toList());
-        }
-
-        return ResponseEntity.ok(expenses);
     }
 
 
     @GetMapping("/range/offset")
-    public List<Expense> getExpensesByRangeOffset(
+    public ResponseEntity<?> getExpensesByRangeOffset(
             @RequestHeader("Authorization") String jwt,
             @RequestParam String rangeType,
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(required = false) String flowType
+            @RequestParam(required = false) String flowType,
+            @RequestParam(required = false) Integer targetId
     ) {
-        User reqUser = userService.findUserByJwt(jwt);
-        LocalDate now = LocalDate.now();
-        LocalDate startDate;
-        LocalDate endDate;
+        try {
+            if (rangeType == null || rangeType.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Range type parameter is required");
+            }
+            if (!Arrays.asList("week", "month", "year").contains(rangeType.toLowerCase())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid rangeType parameter. Valid values are: week, month, year");
+            }
 
-        switch (rangeType.toLowerCase()) {
-            case "week":
-                startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
-                endDate = now.with(DayOfWeek.SUNDAY).plusWeeks(offset);
-                break;
-            case "month":
-                startDate = now.withDayOfMonth(1).plusMonths(offset);
-                endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-                break;
-            case "year":
-                startDate = LocalDate.of(now.getYear(), 1, 1).plusYears(offset);
-                endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid rangeType");
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            LocalDate now = LocalDate.now();
+            LocalDate startDate;
+            LocalDate endDate;
+
+            switch (rangeType.toLowerCase()) {
+                case "week":
+                    startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
+                    endDate = now.with(DayOfWeek.SUNDAY).plusWeeks(offset);
+                    break;
+                case "month":
+                    startDate = now.withDayOfMonth(1).plusMonths(offset);
+                    endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+                    break;
+                case "year":
+                    startDate = LocalDate.of(now.getYear(), 1, 1).plusYears(offset);
+                    endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
+                    break;
+                default:
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Invalid range type parameter");
+            }
+
+            List<Expense> expenses = expenseService.getExpensesWithinRange(
+                    targetUser.getId(),
+                    startDate,
+                    endDate,
+                    flowType
+            );
+
+            auditExpenseService.logAudit(reqUser, null, "report",
+                    String.format("Retrieved expenses for %s (offset: %d) from %s to %s%s%s",
+                            rangeType, offset, startDate, endDate,
+                            flowType != null ? " with flow type: " + flowType : "",
+                            targetId != null && !targetId.equals(reqUser.getId()) ? " for user ID: " + targetId : ""
+                    )
+            );
+
+            return ResponseEntity.ok(expenses);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid request parameters: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error retrieving expenses by range offset: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving expenses by range offset: " + e.getMessage());
         }
-
-        return expenseService.getExpensesWithinRange(reqUser.getId(), startDate, endDate, flowType);
     }
 
 
 
     @GetMapping("/by-category/{categoryId}")
-    public ResponseEntity<List<Expense>> getExpensesByCategoryId(
+    public ResponseEntity<?> getExpensesByCategoryId(
             @PathVariable Integer categoryId,
-            @RequestHeader("Authorization") String jwt) {
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
-            User user = userService.findUserByJwt(jwt);
-            List<Expense> expenses = expenseService.getExpensesByCategoryId(categoryId, user);
+            // Get authenticated user
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
 
+            // Determine target user (if admin is viewing another user's expenses)
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body("You don't have permission to view this user's expenses");
+                } else {
+                    throw e;
+                }
+            }
+
+            // Get expenses by category ID
+            List<Expense> expenses = expenseService.getExpensesByCategoryId(categoryId, targetUser);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved expenses for category ID %d for user ID: %d", categoryId, targetId)
+                    : String.format("Retrieved expenses for category ID %d", categoryId);
+
+            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+
+            // Return empty result if no expenses found
             if (expenses.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
 
             return ResponseEntity.ok(expenses);
         } catch (Exception e) {
+            // Log the error
+            System.out.println("Error retrieving expenses by category ID: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+                    .body("Error retrieving expenses by category ID: " + e.getMessage());
         }
     }
 
 
 
     @GetMapping("/all-by-categories/detailed")
-    public ResponseEntity<Map<String, Object>> getAllExpensesByCategoriesDetailed(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> getAllExpensesByCategoriesDetailed(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
         try {
-            User user = userService.findUserByJwt(jwt);
-            Map<Category, List<Expense>> categoryExpensesMap = expenseService.getAllExpensesByCategories(user);
+            // Get authenticated user
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
+
+            // Determine target user (if admin is viewing another user's data)
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Get all expenses by categories
+            Map<Category, List<Expense>> categoryExpensesMap = expenseService.getAllExpensesByCategories(targetUser);
 
             if (categoryExpensesMap.isEmpty()) {
                 return ResponseEntity.noContent().build();
@@ -1982,14 +5277,29 @@ User reqUser=userService.findUserByJwt(jwt);
             summary.put("categoryTotals", categoryTotals);
             response.put("summary", summary);
 
+            // Add metadata to the response
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("userId", targetUser.getId());
+            metadata.put("username", targetUser.getFirstName() + " " + targetUser.getLastName());
+            metadata.put("generatedAt", LocalDateTime.now());
+            response.put("metadata", metadata);
+
+            // Log the action
+            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
+                    ? String.format("Retrieved detailed expenses by categories for user ID: %d", targetId)
+                    : "Retrieved detailed expenses by categories";
+
+            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            // Log the error
+            System.out.println("Error retrieving detailed expenses by categories: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", e.getMessage()));
+                    .body("Error retrieving detailed expenses by categories: " + e.getMessage());
         }
     }
-
-
 
     @GetMapping("/all-by-categories/detailed/filtered")
     public ResponseEntity<Map<String, Object>> getAllExpensesByCategoriesDetailedFiltered(
@@ -1998,22 +5308,38 @@ User reqUser=userService.findUserByJwt(jwt);
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(required = false) String rangeType,
             @RequestParam(required = false, defaultValue = "0") int offset,
-            @RequestParam(required = false) String flowType) {
+            @RequestParam(required = false) String flowType,
+            @RequestParam(required = false) Integer targetId) {
 
         try {
-            User user = userService.findUserByJwt(jwt);
-            Map<String, Object> response;
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or expired token"));
+            }
 
-            // If fromDate and toDate are provided, use them directly
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("error", e.getMessage()));
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", e.getMessage()));
+                } else {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(Map.of("error", e.getMessage()));
+                }
+            }
+
+            Map<String, Object> response;
             if (fromDate != null && toDate != null) {
-                response = expenseService.getFilteredExpensesByDateRange(user, fromDate, toDate, flowType);
-            }
-            // Otherwise, use the rangeType and offset to calculate the date range
-            else if (rangeType != null) {
-                response = expenseService.getFilteredExpensesByCategories(user, rangeType, offset, flowType);
-            }
-            // If neither approach is specified, return an error
-            else {
+                response = expenseService.getFilteredExpensesByDateRange(targetUser, fromDate, toDate, flowType);
+            } else if (rangeType != null) {
+                response = expenseService.getFilteredExpensesByCategories(targetUser, rangeType, offset, flowType);
+            } else {
                 return ResponseEntity.badRequest().body(Map.of("error",
                         "Either provide fromDate and toDate, or provide rangeType"));
             }

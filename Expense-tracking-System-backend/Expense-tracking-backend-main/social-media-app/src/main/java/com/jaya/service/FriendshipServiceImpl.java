@@ -747,4 +747,53 @@ public class FriendshipServiceImpl implements FriendshipService {
         accessInfo.put("accessLevel", getUserAccessLevel(ownerId, viewerId));
         return accessInfo;
     }
+
+    @Override
+    public Friendship getFriendshipById(Integer friendshipId, Integer userId) {
+        Friendship friendship = friendshipRepository.findById(friendshipId).orElse(null);
+        if (friendship == null) {
+            return null;
+        }
+        if (!friendship.getRequester().getId().equals(userId) &&
+                !friendship.getRecipient().getId().equals(userId)) {
+            // Not a participant, deny access
+            throw new RuntimeException("Access denied: User is not part of this friendship");
+        }
+        return friendship;
+    }
+
+    // FriendshipServiceImpl.java
+    @Override
+    public List<Map<String, Object>> getDetailedFriends(Integer userId) {
+        List<Friendship> friendships = getUserFriendships(userId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Friendship f : friendships) {
+            User friend = f.getRequester().getId().equals(userId) ? f.getRecipient() : f.getRequester();
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", friend.getId());
+            map.put("name", friend.getFirstName() + " " + friend.getLastName());
+            map.put("status", f.getStatus().name());
+            // Example color logic, adjust as needed
+            String color = "#00DAC6";
+            if (f.getStatus() == FriendshipStatus.PENDING) color = "#FFC107";
+            else if (f.getStatus() == FriendshipStatus.REJECTED) color = "#ff4d4f";
+            else if (f.getStatus() == FriendshipStatus.ACCEPTED) color = "#5b7fff";
+            map.put("color", color);
+            map.put("image", friend.getImage() != null ? friend.getImage() : "");
+
+            // Access level from the perspective of the current user
+            AccessLevel accessLevel = f.getRequester().getId().equals(userId) ? f.getRecipientAccess() : f.getRequesterAccess();
+            map.put("accessLevel", accessLevel.name());
+
+            // Add friendship details
+            map.put("friendshipId", f.getId());
+            map.put("requesterAccess", f.getRequesterAccess().name());
+            map.put("recipientAccess", f.getRecipientAccess().name());
+            map.put("requesterUserId", f.getRequester().getId());
+            map.put("recipientUserId", f.getRecipient().getId());
+
+            result.add(map);
+        }
+        return result;
+    }
 }

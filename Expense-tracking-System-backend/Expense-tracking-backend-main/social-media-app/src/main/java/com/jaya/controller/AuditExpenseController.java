@@ -1,12 +1,10 @@
 package com.jaya.controller;
 
+import com.jaya.exceptions.UserException;
 import com.jaya.models.AuditExpense;
 import com.jaya.models.User;
-import com.jaya.service.AuditExpenseService;
-import com.jaya.service.EmailService;
-import com.jaya.service.ExcelService;
+import com.jaya.service.*;
 
-import com.jaya.service.UserService;
 import jakarta.mail.MessagingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +29,32 @@ public class AuditExpenseController {
     @Autowired
     private UserService userservice;
 
+    @Autowired
+    private FriendshipService friendshipService;
+
+
+    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) throws UserException {
+        if (targetId == null) {
+            return reqUser;
+        }
+
+        User targetUser = userservice.findUserById(targetId);
+        if (targetUser == null) {
+            throw new RuntimeException("Target user not found");
+        }
+
+        boolean hasAccess = needWriteAccess ?
+                friendshipService.canUserModifyExpenses(targetId, reqUser.getId()) :
+                friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
+
+        if (!hasAccess) {
+            String action = needWriteAccess ? "modify" : "access";
+            throw new RuntimeException("You don't have permission to " + action + " this user's expenses");
+        }
+
+        return targetUser;
+    }
+
     @GetMapping("/audit-logs/expenses/{expenseId}")
     public ResponseEntity<List<AuditExpense>> getAuditLogsForExpense(@PathVariable Integer expenseId) {
         List<AuditExpense> auditLogs = auditExpenseService.getAuditLogsForExpense(expenseId);
@@ -42,10 +66,48 @@ public class AuditExpenseController {
         return ResponseEntity.ok(auditLogs);
     }
     @GetMapping("/audit-logs/all")
-    public ResponseEntity<List<AuditExpense>> getAllAuditLogs(@RequestHeader ("Authorization") String token) {
-        User reqUser=userservice.findUserByJwt(token);
-        List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs(reqUser);
-        return ResponseEntity.ok(auditLogs);
+    public ResponseEntity<?> getAllAuditLogs(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            // Get authenticated user
+            User reqUser = userservice.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(401)
+                        .body("Invalid or expired token");
+            }
+
+            // Determine target user (if admin is viewing another user's logs)
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(404)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(403)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            } catch (UserException e) {
+                return ResponseEntity.status(404)
+                        .body("User not found: " + e.getMessage());
+            }
+
+            // Get audit logs for the target user
+            List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs(targetUser);
+
+            if (auditLogs.isEmpty()) {
+                return ResponseEntity.status(204).build(); // No content
+            }
+
+            return ResponseEntity.ok(auditLogs);
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body("Error retrieving audit logs: " + e.getMessage());
+        }
     }
     
     @GetMapping("/audit-logs/last-5-minutes")

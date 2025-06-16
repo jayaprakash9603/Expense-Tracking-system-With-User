@@ -25,7 +25,7 @@ import { useMediaQuery } from "@mui/material";
 
 // BudgetReport component
 const BudgetReport = () => {
-  const { id } = useParams();
+  const { id, friendId } = useParams();
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [sorting, setSorting] = useState([]);
@@ -48,9 +48,9 @@ const BudgetReport = () => {
     : [];
 
   useEffect(() => {
-    dispatch(getBudgetReportById(id));
-    dispatch(getExpensesByBudgetId(id));
-  }, [id]);
+    dispatch(getBudgetReportById(id, friendId || ""));
+    dispatch(getExpensesByBudgetId(id, friendId || ""));
+  }, [id, friendId]);
 
   // Debug data structure
   useEffect(() => {

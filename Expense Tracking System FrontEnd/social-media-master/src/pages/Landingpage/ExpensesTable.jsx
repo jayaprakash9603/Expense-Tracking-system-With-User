@@ -24,7 +24,7 @@ import theme from "./theme";
 import ToastNotification from "./ToastNotification";
 import Modal from "./Modal";
 
-const ExpensesTable = ({ expenses: propExpenses }) => {
+const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
   const dispatch = useDispatch();
   const { expenses: reduxExpenses, loading } = useSelector(
     (state) => state.expenses || {}
@@ -44,7 +44,7 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
 
   useEffect(() => {
     if (!propExpenses) {
-      dispatch(getExpensesAction());
+      dispatch(getExpensesAction("desc", friendId));
     }
     // Show toast if redirected from NewExpense
     if (location.state && location.state.toastMessage) {
@@ -96,8 +96,12 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
     const handleClose = () => setAnchorEl(null);
 
     const handleEdit = () => {
-      navigate(`/expenses/edit/${expenseId}`);
-      dispatch(getExpenseAction(expenseId));
+      if (friendId == "") {
+        navigate(`/expenses/edit/${expenseId}`);
+      } else if (friendId != "") {
+        navigate(`/expenses/edit/${expenseId}/friend/${friendId}`);
+      }
+      dispatch(getExpenseAction(expenseId, friendId));
       handleClose();
     };
 
@@ -134,9 +138,9 @@ const ExpensesTable = ({ expenses: propExpenses }) => {
 
   const handleConfirmDelete = () => {
     if (expenseToDelete) {
-      dispatch(deleteExpenseAction(expenseToDelete))
+      dispatch(deleteExpenseAction(expenseToDelete, friendId || ""))
         .then(() => {
-          dispatch(getExpensesAction());
+          dispatch(getExpensesAction("desc", friendId || ""));
           setToastMessage("Expense deleted successfully.");
           setToastOpen(true);
         })

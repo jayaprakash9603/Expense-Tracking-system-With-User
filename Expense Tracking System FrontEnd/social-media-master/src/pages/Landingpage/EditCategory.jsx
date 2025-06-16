@@ -272,7 +272,7 @@ const ICON_CATEGORIES = {
 const EditCategory = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { id } = useParams(); // Get category ID from URL
+  const { id, friendId } = useParams(); // Get category ID from URL
 
   const [categoryData, setCategoryData] = useState({
     name: "",
@@ -302,7 +302,7 @@ const EditCategory = () => {
     const fetchData = async () => {
       try {
         setInitialLoading(true);
-        await dispatch(fetchCategoryById(id));
+        await dispatch(fetchCategoryById(id, friendId || ""));
         // Remove the fetchCategoryExpenses call from here
       } catch (error) {
         console.error("Error fetching category data:", error);
@@ -417,7 +417,7 @@ const EditCategory = () => {
       icon: iconToUse,
       color: categoryData.color || "",
       expenseIds: {
-        [userId]: checkedIds,
+        [friendId ? friendId : userId]: checkedIds,
       },
       userIds: currentCategory.userIds || [],
       editUserIds: currentCategory.editUserIds || [],
@@ -427,7 +427,7 @@ const EditCategory = () => {
     setIsSubmitting(true);
 
     // Dispatch the update action
-    dispatch(updateCategory(id, formattedData))
+    dispatch(updateCategory(id, formattedData, friendId || ""))
       .then(() => {
         setShowSuccessMessage(true);
 
@@ -450,9 +450,11 @@ const EditCategory = () => {
   const handleShowExpenses = () => {
     if (true == true) {
       setLoadingExpenses(true);
-      dispatch(fetchCategoryExpenses(id)).finally(() => {
-        setLoadingExpenses(false);
-      });
+      dispatch(fetchCategoryExpenses(id, 1, 1000, friendId || "")).finally(
+        () => {
+          setLoadingExpenses(false);
+        }
+      );
     }
     setShowExpenses(!showExpenses);
   };

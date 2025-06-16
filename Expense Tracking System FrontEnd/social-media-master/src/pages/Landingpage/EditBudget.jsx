@@ -20,7 +20,7 @@ import { Box } from "@mui/material";
 
 const EditBudget = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // Get budget ID from URL
+  const { id, friendId } = useParams(); // Get budget ID from URL
   const today = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     name: "",
@@ -58,7 +58,14 @@ const EditBudget = () => {
         amount: budget.amount ? budget.amount.toString() : "",
       });
       setShowTable(!budget.budgetHasExpenses); // Show table if no expenses are linked
-      dispatch(getExpensesByBudget(id, budget.startDate, budget.endDate));
+      dispatch(
+        getExpensesByBudget(
+          id,
+          budget.startDate,
+          budget.endDate,
+          friendId || ""
+        )
+      );
     }
   }, [budget, id, dispatch, today]);
 
@@ -78,7 +85,8 @@ const EditBudget = () => {
           getExpensesByBudget(
             id,
             updatedFormData.startDate,
-            updatedFormData.endDate
+            updatedFormData.endDate,
+            friendId || ""
           )
         );
       }
@@ -121,36 +129,26 @@ const EditBudget = () => {
         }));
 
         console.log("Submitting budget data:", budgetData);
-        await dispatch(editBudgetAction(budgetData.id, budgetData));
+        await dispatch(
+          editBudgetAction(budgetData.id, budgetData, friendId || "")
+        );
         // if (updatedExpenses.length > 0) {
         //   await dispatch(editMultipleExpenseAction(updatedExpenses));
         // }
 
-        navigate(
-          `/budget?message=${encodeURIComponent(
-            "Budget updated successfully!"
-          )}&type=success`
-        );
+        navigate(-1, "budget updated successfully.", "success");
       } catch (error) {
         console.error("Submission error:", error);
-        navigate(
-          `/budget?message=${encodeURIComponent(
-            error.message || "Failed to update budget."
-          )}&type=error`
-        );
+        navigate(-1, "Budget updated successfully.", "success");
       }
     } else {
-      navigate(
-        `/budget?message=${encodeURIComponent(
-          "Please fill out all required fields correctly."
-        )}&type=error`
-      );
+      navigate(-1, "Please fill out all required fields correctly.", "error");
     }
   };
 
   const handleLinkExpenses = () => {
     setShowTable(true);
-    dispatch(getExpensesByBudget(id));
+    dispatch(getExpensesByBudget(id, "", "", friendId || ""));
   };
 
   const handleCloseTable = () => {
@@ -158,7 +156,7 @@ const EditBudget = () => {
   };
 
   const handleCloseBudget = () => {
-    navigate("/budget");
+    navigate(-1);
   };
 
   const handleCheckboxChange = (index) => {

@@ -25,6 +25,10 @@ import {
   FETCH_SHARED_WITH_ME_REQUEST,
   FETCH_SHARED_WITH_ME_SUCCESS,
   FETCH_SHARED_WITH_ME_FAILURE,
+  FETCH_FRIENDS_EXPENSES_SUCCESS,
+  FETCH_FRIENDS_EXPENSES_FAILURE,
+  FETCH_FRIENDSHIP_SUCCESS,
+  FETCH_FRIENDSHIP_FAILURE,
 } from "./friendsActionTypes";
 
 const initialState = {
@@ -65,6 +69,13 @@ const initialState = {
   sharedWithMe: [],
   loadingSharedWithMe: false,
   sharedWithMeError: null,
+
+  // Friends' expenses
+  friendsExpenses: [],
+  friendsExpensesError: null,
+
+  friendship: null,
+  friendshipError: null,
 };
 
 const friendsReducer = (state = initialState, action) => {
@@ -117,6 +128,18 @@ const friendsReducer = (state = initialState, action) => {
         sendRequestError: action.payload,
       };
 
+    case FETCH_FRIENDSHIP_SUCCESS:
+      return {
+        ...state,
+        friendship: action.payload,
+        friendshipError: null,
+      };
+    case FETCH_FRIENDSHIP_FAILURE:
+      return {
+        ...state,
+        friendship: null,
+        friendshipError: action.payload,
+      };
     // Friend requests cases
     case FETCH_FRIEND_REQUESTS_REQUEST:
       return {
@@ -279,6 +302,20 @@ const friendsReducer = (state = initialState, action) => {
         ...state,
         loadingSharedWithMe: false,
         sharedWithMeError: action.payload,
+      };
+
+    // Friends' expenses cases
+    case FETCH_FRIENDS_EXPENSES_SUCCESS:
+      return {
+        ...state,
+        friendsExpenses: action.payload,
+        friendsExpensesError: null,
+      };
+
+    case FETCH_FRIENDS_EXPENSES_FAILURE:
+      return {
+        ...state,
+        friendsExpensesError: action.payload,
       };
 
     default:

@@ -25,7 +25,7 @@ const DayTransactionsView = () => {
   const [toastOpen, setToastOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { date } = useParams(); // date in YYYY-MM-DD
+  const { date, friendId } = useParams(); // date in YYYY-MM-DD
   const { particularDateExpenses = [], loading } = useSelector(
     (state) => state.expenses
   );
@@ -33,7 +33,7 @@ const DayTransactionsView = () => {
 
   useEffect(() => {
     if (date) {
-      dispatch(getExpensesByParticularDate(date));
+      dispatch(getExpensesByParticularDate(date, friendId || ""));
     }
   }, [dispatch, date]);
 
@@ -58,13 +58,17 @@ const DayTransactionsView = () => {
   // Navigation handlers
   const handlePrevDay = () => {
     const prevDate = currentDay.subtract(1, "day").format("YYYY-MM-DD");
-    setSelectedCardIdx(null); // Deselect on date change
-    navigate(`/day-view/${prevDate}`);
+    setSelectedCardIdx(null);
+    friendId && friendId !== "undefined"
+      ? navigate(`/day-view/${prevDate}/friend/${friendId}`)
+      : navigate(`/day-view/${prevDate}`);
   };
   const handleNextDay = () => {
     const nextDate = currentDay.add(1, "day").format("YYYY-MM-DD");
     setSelectedCardIdx(null); // Deselect on date change
-    navigate(`/day-view/${nextDate}`);
+    friendId && friendId !== "undefined"
+      ? navigate(`/day-view/${nextDate}/friend/${friendId}`)
+      : navigate(`/day-view/${nextDate}`);
   };
 
   const handleModalClose = () => {
@@ -76,7 +80,9 @@ const DayTransactionsView = () => {
   const handleEdit = (item) => {
     const id = item.id || item.expense?.id || item.expenseId;
     if (id) {
-      navigate(`/expenses/edit/${id}`);
+      friendId && friendId !== "undefined"
+        ? navigate(`/expenses/edit/${id}/friend/${friendId}`)
+        : navigate(`/expenses/edit/${id}`);
       setToastMessage("Expense edit page opened.");
       setToastOpen(true);
     }
@@ -94,13 +100,18 @@ const DayTransactionsView = () => {
       expenseToDelete.expense?.id ||
       expenseToDelete.expenseId;
     if (!id) return;
-    dispatch(deleteExpenseAction(id))
+    dispatch(deleteExpenseAction(id, friendId || ""))
       .then(() => {
         setToastMessage("Expense deleted successfully.");
         setToastOpen(true);
         setSelectedCardIdx(null);
         // Refresh the list for the current day
-        dispatch(getExpensesByParticularDate(currentDay.format("YYYY-MM-DD")));
+        dispatch(
+          getExpensesByParticularDate(
+            currentDay.format("YYYY-MM-DD"),
+            friendId || ""
+          )
+        );
       })
       .catch(() => {
         setToastMessage("Error deleting expense. Please try again.");
@@ -175,7 +186,13 @@ const DayTransactionsView = () => {
             },
             zIndex: 10,
           }}
-          onClick={() => navigate("/calendar-view")}
+          onClick={() => {
+            if (friendId && friendId !== "undefined") {
+              navigate(`/calendar-view/${friendId}`);
+            } else {
+              navigate("/calendar-view");
+            }
+          }}
           aria-label="Back"
         >
           <svg
@@ -341,7 +358,15 @@ const DayTransactionsView = () => {
               onChange={(newValue) => {
                 if (newValue) {
                   setSelectedCardIdx(null); // Deselect on date change
-                  navigate(`/day-view/${dayjs(newValue).format("YYYY-MM-DD")}`);
+                  friendId && friendId !== "undefined"
+                    ? navigate(
+                        `/day-view/${dayjs(newValue).format(
+                          "YYYY-MM-DD"
+                        )}/friend/${friendId}`
+                      )
+                    : navigate(
+                        `/day-view/${dayjs(newValue).format("YYYY-MM-DD")}`
+                      );
                 }
               }}
               sx={{
@@ -763,7 +788,15 @@ const DayTransactionsView = () => {
             },
           }}
           onClick={() =>
-            navigate(`/expenses/create?date=${currentDay.format("YYYY-MM-DD")}`)
+            friendId && friendId !== "undefined"
+              ? navigate(
+                  `/expenses/create/${friendId}?date=${currentDay.format(
+                    "YYYY-MM-DD"
+                  )}`
+                )
+              : navigate(
+                  `/expenses/create?date=${currentDay.format("YYYY-MM-DD")}`
+                )
           }
           aria-label="Add Expense"
         >

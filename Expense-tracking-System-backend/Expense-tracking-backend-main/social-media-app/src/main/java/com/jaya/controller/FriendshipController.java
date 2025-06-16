@@ -52,6 +52,25 @@ public class FriendshipController {
 //        return ResponseEntity.ok(FriendshipMapper.toDTO(friendship));
 //    }
 
+    @GetMapping("/{friendshipId}")
+    public ResponseEntity<?> getFriendshipById(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Integer friendshipId) throws UserException {
+
+        User user = userService.findUserByJwt(jwt);
+        try {
+            Friendship friendship = friendshipService.getFriendshipById(friendshipId, user.getId());
+            if (friendship == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Friendship not found"));
+            }
+            return ResponseEntity.ok(FriendshipMapper.toDTO(friendship));
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Access denied")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "You are not authorized to view this friendship."));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+        }
+    }
     @PutMapping("/{friendshipId}/access")
     public ResponseEntity<FriendshipResponseDTO> setAccessLevel(
             @RequestHeader("Authorization") String jwt,
@@ -310,5 +329,12 @@ public class FriendshipController {
         socketService.notifyFriendRequestResponse(friendship);
 
         return ResponseEntity.ok(friendship);
+    }
+    @GetMapping("/friends/detailed")
+    public ResponseEntity<List<Map<String, Object>>> getDetailedFriends(
+            @RequestHeader("Authorization") String jwt) throws UserException {
+        User user = userService.findUserByJwt(jwt);
+        List<Map<String, Object>> friends = friendshipService.getDetailedFriends(user.getId());
+        return ResponseEntity.ok(friends);
     }
 }

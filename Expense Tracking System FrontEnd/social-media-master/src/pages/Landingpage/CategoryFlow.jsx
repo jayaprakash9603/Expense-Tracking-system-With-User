@@ -31,6 +31,7 @@ import {
   Button,
   Fab,
   CircularProgress,
+  Box,
 } from "@mui/material";
 
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -44,7 +45,7 @@ import { createPortal } from "react-dom";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import recentPng from "../../assests/recent.png";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import ToastNotification from "./ToastNotification";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -256,11 +257,14 @@ const CategoryFlow = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const { friendId } = useParams();
 
   // Fetch data from API with correct flowType
   useEffect(() => {
-    dispatch(fetchCategoriesWithExpenses(activeRange, offset, flowTab));
-  }, [activeRange, offset, flowTab, dispatch]);
+    dispatch(
+      fetchCategoriesWithExpenses(activeRange, offset, flowTab, friendId)
+    );
+  }, [activeRange, offset, flowTab, dispatch, friendId]);
 
   useEffect(() => {
     setOffset(0);
@@ -290,7 +294,11 @@ const CategoryFlow = () => {
   const handleEditCategory = (event) => {
     event.stopPropagation(); // Prevent card click
     if (selectedMenuCategory) {
-      navigate(`/category-flow/edit/${selectedMenuCategory.categoryId}`);
+      friendId && friendId !== undefined
+        ? navigate(
+            `/category-flow/edit/${selectedMenuCategory.categoryId}/friend/${friendId}`
+          )
+        : navigate(`/category-flow/edit/${selectedMenuCategory.categoryId}`);
     }
     handleMenuClose(event);
   };
@@ -589,14 +597,23 @@ const CategoryFlow = () => {
     if (categoryToDelete) {
       setIsDeleting(true);
       try {
-        await dispatch(deleteCategory(categoryToDelete.categoryId));
+        await dispatch(
+          deleteCategory(categoryToDelete.categoryId, friendId || "")
+        );
         setToastMessage(
           `Category "${categoryToDelete.categoryName}" deleted successfully.`
         );
         setToastOpen(true);
         setDeleteDialogOpen(false);
         // Refresh categories after deletion
-        dispatch(fetchCategoriesWithExpenses(activeRange, offset, flowTab));
+        dispatch(
+          fetchCategoriesWithExpenses(
+            activeRange,
+            offset,
+            flowTab,
+            friendId || ""
+          )
+        );
       } catch (error) {
         setToastMessage("Failed to delete category. Please try again.");
         setToastOpen(true);
@@ -619,7 +636,9 @@ const CategoryFlow = () => {
   const handleCloseCreateCategoryModal = () => {
     setCreateCategoryModalOpen(false);
     // Refresh categories after a new one is created
-    dispatch(fetchCategoriesWithExpenses(activeRange, offset, flowTab));
+    dispatch(
+      fetchCategoriesWithExpenses(activeRange, offset, flowTab, friendId)
+    );
   };
 
   useEffect(() => {
@@ -901,6 +920,70 @@ const CategoryFlow = () => {
           />
         </svg>
       </IconButton> */}
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 2,
+        }}
+      >
+        <div className="flex  flex-start gap-4">
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: "#1b1b1b",
+              borderRadius: "8px",
+              color: "#00DAC6",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px", // Adds spacing between the icon and text
+              padding: "8px 8px", // Adjusts padding for better appearance
+              "&:hover": {
+                backgroundColor: "#28282a",
+              },
+            }}
+            onClick={() =>
+              friendId && friendId !== "undefined"
+                ? navigate(`/friends/expenses/${friendId}`)
+                : navigate("/expenses")
+            }
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="#00DAC6"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Back
+          </Button>
+          {rangeTypes.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => {
+                setActiveRange(tab.value);
+              }}
+              className={`px-4 py-2 rounded font-semibold flex items-center gap-2 ${
+                activeRange === tab.value
+                  ? "bg-[#00DAC6] text-black"
+                  : "bg-[#29282b] text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </Box>
       <ToastNotification
         open={toastOpen}
         message={toastMessage}
@@ -944,7 +1027,12 @@ const CategoryFlow = () => {
               setToastOpen(true);
               // Refresh categories after creation
               dispatch(
-                fetchCategoriesWithExpenses(activeRange, offset, flowTab)
+                fetchCategoriesWithExpenses(
+                  activeRange,
+                  offset,
+                  flowTab,
+                  friendId
+                )
               );
             }}
           />
@@ -1007,23 +1095,9 @@ const CategoryFlow = () => {
       </div>
 
       {/* Range Type Buttons */}
-      <div className="flex gap-4 mb-4">
-        {rangeTypes.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => {
-              setActiveRange(tab.value);
-            }}
-            className={`px-4 py-2 rounded font-semibold flex items-center gap-2 ${
-              activeRange === tab.value
-                ? "bg-[#00DAC6] text-black"
-                : "bg-[#29282b] text-white"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* <div className="flex gap-4 mb-4">
+        
+      </div> */}
 
       {/* Navigation Controls */}
       <div className="flex justify-between items-center mb-2">
@@ -1185,7 +1259,11 @@ const CategoryFlow = () => {
             />
             <IconButton
               sx={{ color: "#5b7fff", ml: 1 }}
-              onClick={() => navigate("/category-flow/create")}
+              onClick={() =>
+                friendId && friendId !== "undefined"
+                  ? navigate(`/category-flow/create/${friendId}`)
+                  : navigate("/category-flow/create")
+              }
               aria-label="New Category"
             >
               <svg

@@ -21,6 +21,14 @@ const useAuthentication = (jwt) => {
     }
   }, [jwt, dispatch, navigate]);
 
+  useEffect(() => {
+    if (!jwt) {
+      dispatch({ type: "LOGOUT" });
+      navigate("/login");
+    } else {
+      dispatch(getProfileAction(jwt));
+    }
+  }, [jwt, dispatch, navigate]);
   return { loadingAuth };
 };
 

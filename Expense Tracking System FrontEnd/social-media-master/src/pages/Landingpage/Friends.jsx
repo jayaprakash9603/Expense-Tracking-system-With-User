@@ -41,6 +41,8 @@ import {
   setAccessLevel,
   fetchISharedWith,
   fetchSharedWithMe,
+  fetchFriendsExpenses,
+  fetchFriendship,
 } from "../../Redux/Friends/friendsActions";
 import {
   initializeSocket,
@@ -48,6 +50,8 @@ import {
   disconnectSocket,
 } from "../../services/socketService";
 import UserAvatar from "./UserAvatar";
+import { useNavigate } from "react-router-dom";
+import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
 
 // Define theme color for icons
 const themeColor = "#14b8a6";
@@ -80,12 +84,12 @@ const scrollbarStyles = `
 const Friends = () => {
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Get user data from Redux store
   const user = useSelector((state) => state.auth.user);
   const token = localStorage.getItem("jwt");
 
-  // Get friend data from Redux store with default values to prevent errors
   const {
     suggestions = [],
     error = null,
@@ -565,8 +569,9 @@ const Friends = () => {
   // Add this function to handle viewing shared expenses
   // Add this function to handle viewing shared expenses
   const handleViewSharedExpenses = (friendId) => {
-    // Emit socket event to notify the friend that you're viewing their expenses
     const socket = getSocket();
+
+    console.log("socket ", socket);
     if (socket) {
       socket.emit("viewingSharedExpenses", {
         viewerId: user.id,
@@ -576,51 +581,42 @@ const Friends = () => {
       });
     }
 
-    // Navigate to the expenses page with the friend's ID
-    // This depends on your routing setup
-    // For now, we'll just show a notification
     setSnackbar({
       open: true,
       message: "Loading shared expenses...",
       severity: "info",
     });
+    dispatch(fetchFriendship(selectedFriendship.id || ""));
+    dispatch(fetchCashflowExpenses("month", 0, "all", "", friendId));
 
-    // Set up a listener for real-time expense updates from this friend
     if (socket) {
-      // Remove any existing listener to avoid duplicates
       socket.off("expenseUpdated");
-
-      // Add a new listener specifically for this friend's updates
       socket.on("expenseUpdated", (data) => {
         if (data.userId === friendId) {
           console.log("Real-time expense update received:", data);
-
-          // Show notification
           setSnackbar({
             open: true,
             message: `${data.updatedBy.firstName} ${data.updatedBy.lastName} updated an expense`,
             severity: "info",
           });
 
-          // Refresh the data
-          dispatch(fetchSharedWithMe());
           setLastUpdate(Date.now());
         }
       });
     }
 
-    // You would typically navigate here, for example:
-    // navigate(`/expenses/shared/${friendId}`);
-
-    // For demonstration, let's simulate a navigation delay
     setTimeout(() => {
       setSnackbar({
         open: true,
         message: "Shared expenses loaded successfully!",
         severity: "success",
       });
+
+      // Redirect to /friends/expenses route with the friendId as a parameter
+      navigate(`/friends/expenses/${friendId}`);
     }, 1500);
   };
+
   // Helper function to get current access level for a friendship
   const getCurrentAccessLevel = (friendship) => {
     if (!friendship) return "NONE";
@@ -645,22 +641,22 @@ const Friends = () => {
   // Filter friends based on search term
   const filteredFriends = friends
     .map((friendship) => {
-      // Extract the other user from the friendship
-      // The FriendshipMapper in the backend swaps the users so the "recipient" is always the other user
-      const otherUser = friendship.recipient;
-      // Add the friendship object to the user for access level control
-      otherUser.friendship = friendship;
+      const otherUser = friendship?.recipient; // Ensure recipient exists
+      if (otherUser) {
+        otherUser.friendship = friendship; // Only set friendship if recipient exists
+      }
       return otherUser;
     })
     .filter(
       (friend) =>
-        friend.firstName
+        friend &&
+        (friend.firstName
           ?.toLowerCase()
           .includes(friendSearchTerm.toLowerCase()) ||
-        friend.lastName
-          ?.toLowerCase()
-          .includes(friendSearchTerm.toLowerCase()) ||
-        friend.email?.toLowerCase().includes(friendSearchTerm.toLowerCase())
+          friend.lastName
+            ?.toLowerCase()
+            .includes(friendSearchTerm.toLowerCase()) ||
+          friend.email?.toLowerCase().includes(friendSearchTerm.toLowerCase()))
     );
 
   // Filter friend requests based on search term
@@ -799,8 +795,24 @@ const Friends = () => {
         >
           {/* Left Section - Friends List */}
           <div className="flex flex-col w-full md:w-1/2 lg:w-2/5 px-4 py-6 border-r border-gray-800">
-            <h1 className="text-3xl font-bold text-white mb-6">Friends</h1>
-
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold text-white">Friends</h1>
+              <Button
+                size="small"
+                onClick={handleManualRefresh}
+                title="Refresh sharing data"
+                sx={{
+                  minWidth: "auto",
+                  color: "#3eb489",
+                  padding: "4px",
+                  "&:hover": {
+                    backgroundColor: "rgba(62, 180, 137, 0.1)",
+                  },
+                }}
+              >
+                <RefreshIcon fontSize="small" />
+              </Button>
+            </div>
             {/* Tabs for Suggestions, Requests, Friends, and Shared Expenses */}
             <div className="mb-4">
               <Tabs
@@ -1229,21 +1241,6 @@ const Friends = () => {
                     <span className="text-xs text-gray-400 mr-2">
                       {socketConnected ? "Live Updates" : "Updates Paused"}
                     </span>
-                    <Button
-                      size="small"
-                      onClick={handleManualRefresh}
-                      title="Refresh sharing data"
-                      sx={{
-                        minWidth: "auto",
-                        color: "#3eb489",
-                        padding: "4px",
-                        "&:hover": {
-                          backgroundColor: "rgba(62, 180, 137, 0.1)",
-                        },
-                      }}
-                    >
-                      <RefreshIcon fontSize="small" />
-                    </Button>
                   </div>
                 </div>
 
@@ -1437,6 +1434,7 @@ const Friends = () => {
                       backgroundColor: getAvatarColor(selectedFriend.id),
                     }}
                   >
+                    {console.log("selected image", selectedFriend.image)}
                     {getInitials(
                       selectedFriend.firstName,
                       selectedFriend.lastName
@@ -1679,9 +1677,6 @@ const Friends = () => {
                     Change Access Level
                   </Button>
                 </div>
-
-                {/* View Shared Expenses Button - Only show if they've shared access with you */}
-                {/* View Shared Expenses Button - Only show if they've shared access with you */}
                 {/* View Shared Expenses Button - Only show if they've shared access with you */}
                 {selectedFriend.friendship?.requesterAccess !== "NONE" &&
                   selectedFriend.friendship?.requesterAccess && (
@@ -1923,7 +1918,7 @@ const Friends = () => {
           open={snackbar.open}
           autoHideDuration={6000}
           onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
           <Alert
             onClose={handleCloseSnackbar}

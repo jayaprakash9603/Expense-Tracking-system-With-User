@@ -23,7 +23,7 @@ import AddIcon from "@mui/icons-material/Add";
 import CategoryIcon from "@mui/icons-material/Category";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -269,6 +269,7 @@ const ICON_CATEGORIES = {
 const CreateCategory = ({ onClose, onCategoryCreated }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { friendId } = useParams();
   const [categoryData, setCategoryData] = useState({
     name: "",
     description: "",
@@ -290,7 +291,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
 
   useEffect(() => {
     // Fetch uncategorized expenses when component mounts
-    dispatch(fetchUncategorizedExpenses());
+    dispatch(fetchUncategorizedExpenses(friendId || ""));
   }, [dispatch]);
 
   useEffect(() => {
@@ -369,7 +370,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
       icon: iconToUse, // Use selected icon or default to "other"
       color: categoryData.color || "",
       expenseIds: {
-        [userId]: categoryData.selectedExpenses,
+        [friendId ? friendId : userId]: categoryData.selectedExpenses,
       },
       userIds: [],
       editUserIds: [],
@@ -379,7 +380,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
     setIsSubmitting(true);
 
     // Dispatch the action and handle the response
-    dispatch(createCategory(formattedData))
+    dispatch(createCategory(formattedData, friendId || ""))
       .then(() => {
         setShowSuccessMessage(true);
 

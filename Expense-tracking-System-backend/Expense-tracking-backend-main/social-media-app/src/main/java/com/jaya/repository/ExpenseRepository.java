@@ -71,50 +71,56 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     
     @Query("SELECT SUM(ed.netAmount) FROM ExpenseDetails ed WHERE LOWER(ed.expenseName) = LOWER(:expenseName)")
     Double getTotalExpenseByName(@Param("expenseName") String expenseName);
-    
-    @Query("SELECT SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year")
-    Double getTotalByMonthAndYear(@Param("month") int month, @Param("year") int year);
 
-    
+
+
+    @Query("SELECT SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year AND e.user.id = :userId")
+    Double getTotalByMonthAndYear(@Param("month") int month, @Param("year") int year, @Param("userId") Integer userId);
+
     @Query("SELECT LOWER(TRIM(ed.expenseName)), ed.paymentMethod, SUM(ed.netAmount) " +
-    	       "FROM Expense e JOIN e.expense ed " +
-    	       "GROUP BY LOWER(TRIM(ed.expenseName)), ed.paymentMethod")
-    	List<Object[]> findTotalExpensesGroupedByCategoryAndPaymentMethod();
+            "FROM Expense e JOIN e.expense ed " +
+            "WHERE e.user.id = :userId " +
+            "GROUP BY LOWER(TRIM(ed.expenseName)), ed.paymentMethod")
+    List<Object[]> findTotalExpensesGroupedByCategoryAndPaymentMethod(@Param("userId") Integer userId);
     	
     	@Query("SELECT ed FROM ExpenseDetails ed")
     	List<ExpenseDetails> findAllExpenseDetails();
-    
-    @Query("SELECT SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE e.date BETWEEN :startDate AND :endDate")
-    Double getTotalByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-    
-    @Query("SELECT ed.paymentMethod, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year GROUP BY ed.paymentMethod")
-    List<Object[]> findTotalByPaymentMethodForCurrentMonth(@Param("month") int month, @Param("year") int year);
+    @Query("SELECT SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE e.date BETWEEN :startDate AND :endDate AND e.user.id = :userId")
+    Double getTotalByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("userId") Integer userId);
 
-    
-    @Query("SELECT ed.paymentMethod, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year GROUP BY ed.paymentMethod")
-    List<Object[]> findTotalByPaymentMethodForLastMonth(@Param("month") int month, @Param("year") int year);
 
-    
-    @Query("SELECT ed.paymentMethod, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE e.date BETWEEN :startDate AND :endDate GROUP BY ed.paymentMethod")
-    List<Object[]> findTotalByPaymentMethodBetweenDates(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    @Query("SELECT ed.paymentMethod, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year AND e.user.id = :userId GROUP BY ed.paymentMethod")
+    List<Object[]> findTotalByPaymentMethodForCurrentMonth(@Param("month") int month, @Param("year") int year, @Param("userId") Integer userId);
 
-    
-    @Query("SELECT ed.paymentMethod, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year GROUP BY ed.paymentMethod")
-    List<Object[]> findTotalByPaymentMethodForMonth(@Param("month") int month, @Param("year") int year);
 
-    
-    
+
+
+    @Query("SELECT ed.paymentMethod, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year AND e.user.id = :userId GROUP BY ed.paymentMethod")
+    List<Object[]> findTotalByPaymentMethodForLastMonth(@Param("month") int month, @Param("year") int year, @Param("userId") Integer userId);
+
+
+    @Query("SELECT ed.paymentMethod, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE e.date BETWEEN :startDate AND :endDate AND e.user.id = :userId GROUP BY ed.paymentMethod")
+    List<Object[]> findTotalByPaymentMethodBetweenDates(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("userId") Integer userId);
+
+
+
+
+    @Query("SELECT ed.paymentMethod, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year AND e.user.id = :userId GROUP BY ed.paymentMethod")
+    List<Object[]> findTotalByPaymentMethodForMonth(@Param("month") int month, @Param("year") int year, @Param("userId") Integer userId);
+
     @Query("SELECT ed.expenseName, ed.paymentMethod, SUM(ed.netAmount) FROM Expense e " +
-    	       "JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year " +
-    	       "GROUP BY ed.expenseName, ed.paymentMethod")
-    	List<Object[]> findTotalByExpenseNameAndPaymentMethodForMonth(@Param("month") int month, @Param("year") int year);
+            "JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year AND e.user.id = :userId " +
+            "GROUP BY ed.expenseName, ed.paymentMethod")
+    List<Object[]> findTotalByExpenseNameAndPaymentMethodForMonth(@Param("month") int month, @Param("year") int year, @Param("userId") Integer userId);
 
-    	
-    	@Query("SELECT ed.expenseName, ed.paymentMethod, SUM(ed.netAmount) FROM Expense e " +
-    		       "JOIN e.expense ed WHERE e.date BETWEEN :startDate AND :endDate " +
-    		       "GROUP BY ed.expenseName, ed.paymentMethod")
-    		List<Object[]> findTotalByExpenseNameAndPaymentMethodForDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT ed.expenseName, ed.paymentMethod, SUM(ed.netAmount) FROM Expense e " +
+            "JOIN e.expense ed WHERE e.date BETWEEN :startDate AND :endDate AND e.user.id = :userId " +
+            "GROUP BY ed.expenseName, ed.paymentMethod")
+    List<Object[]> findTotalByExpenseNameAndPaymentMethodForDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("userId") Integer userId);
+
+
 
     @Query("SELECT ed FROM ExpenseDetails ed JOIN ed.expense e WHERE e.user.id = :userId AND LOWER(ed.expenseName) = LOWER(:expenseName)")
     List<ExpenseDetails> findExpensesByUserAndName(@Param("userId") Integer userId, @Param("expenseName") String expenseName);
@@ -151,17 +157,15 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     List<Expense> findByUserAndPaymentMethod(@Param("userId") Integer userId, @Param("paymentMethod") String paymentMethod);
 
 
-    
-    @Query("SELECT e.date, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed GROUP BY e.date ORDER BY e.date ASC")
-    List<Object[]> findTotalExpensesGroupedByDate();
-    
-    @Query("SELECT SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE e.date = :today")
-    Double findTotalExpensesForToday(@Param("today") LocalDate today);
-    
-    @Query("SELECT SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year")
-    Double findTotalExpensesForCurrentMonth(@Param("month") int month, @Param("year") int year);
 
+    @Query("SELECT e.date, SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE e.user.id = :userId GROUP BY e.date ORDER BY e.date ASC")
+    List<Object[]> findTotalExpensesGroupedByDate(@Param("userId") Integer userId);
 
+    @Query("SELECT SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE e.date = :today AND e.user.id = :userId")
+    Double findTotalExpensesForToday(@Param("today") LocalDate today, @Param("userId") Integer userId);
+
+    @Query("SELECT SUM(ed.netAmount) FROM Expense e JOIN e.expense ed WHERE MONTH(e.date) = :month AND YEAR(e.date) = :year AND e.user.id = :userId")
+    Double findTotalExpensesForCurrentMonth(@Param("month") int month, @Param("year") int year, @Param("userId") Integer userId);
 
 
 

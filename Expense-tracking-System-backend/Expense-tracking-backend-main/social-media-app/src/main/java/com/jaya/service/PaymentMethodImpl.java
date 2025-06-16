@@ -179,30 +179,31 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
     @Override
     public PaymentMethod getByName(Integer userId, String name) {
-        // First try exact match
-        PaymentMethod paymentMethod = paymentMethodRepository.findByUserIdAndName(userId, name);
+        // Try exact match (case-sensitive)
+        List<PaymentMethod> paymentMethods = paymentMethodRepository.findByUserIdAndName(userId, name);
 
-        // If not found, try case-insensitive search
-        if (paymentMethod == null) {
+        if (paymentMethods == null || paymentMethods.isEmpty()) {
+            // Try case-insensitive search among user methods
             List<PaymentMethod> allUserMethods = paymentMethodRepository.findByUserId(userId);
             for (PaymentMethod method : allUserMethods) {
                 if (method.getName().equalsIgnoreCase(name.trim())) {
                     return method;
                 }
             }
-
-            // If still not found, check global payment methods
+            // Try case-insensitive search among global methods
             List<PaymentMethod> globalMethods = paymentMethodRepository.findByIsGlobalTrue();
             for (PaymentMethod method : globalMethods) {
                 if (method.getName().equalsIgnoreCase(name.trim())) {
                     return method;
                 }
             }
-
             throw new EntityNotFoundException("Payment method not found with name: " + name);
+        } else if (paymentMethods.size() >= 1) {
+            return paymentMethods.get(0);
+        } else {
+            // Multiple results found, handle as needed (throwing for clarity)
+            throw new RuntimeException("Multiple payment methods found with name: " + name);
         }
-
-        return paymentMethod;
     }
 
     @Override

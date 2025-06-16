@@ -16,6 +16,8 @@ import {
 } from "chart.js";
 import { Skeleton, useMediaQuery, useTheme } from "@mui/material";
 import { API_BASE_URL } from "../../config/api";
+import { useNavigate, useParams } from "react-router";
+import { Box, Typography, Divider, IconButton } from "@mui/material";
 
 // Register Chart.js components
 ChartJS.register(
@@ -42,7 +44,10 @@ const CreditDueContent = () => {
   const [expenseOverTimeData, setExpenseOverTimeData] = useState(null);
   const [error, setError] = useState(null);
   const token = localStorage.getItem("jwt");
+  const { friendId } = useParams();
+  const navigate = useNavigate();
 
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const colorPalette = [
     "#FF6B6B",
     "#4ECDC4",
@@ -75,24 +80,48 @@ const CreditDueContent = () => {
           cumulativeRes,
           nameOverTimeRes,
         ] = await Promise.all([
-          axios.get(`${API_BASE_URL}/api/expenses/by-name?year=${year}`, {
-            headers,
-          }),
-          axios.get(`${API_BASE_URL}/api/expenses/monthly?year=${year}`, {
-            headers,
-          }),
-          axios.get(`${API_BASE_URL}/api/expenses/trend?year=${year}`, {
-            headers,
-          }),
           axios.get(
-            `${API_BASE_URL}/api/expenses/payment-methods?year=${year}`,
+            `${API_BASE_URL}/api/expenses/by-name?year=${year}&targetId=${
+              friendId || ""
+            }`,
+            {
+              headers,
+            }
+          ),
+          axios.get(
+            `${API_BASE_URL}/api/expenses/monthly?year=${year}&targetId=${
+              friendId || ""
+            }`,
+            {
+              headers,
+            }
+          ),
+          axios.get(
+            `${API_BASE_URL}/api/expenses/trend?year=${year}&targetId=${
+              friendId || ""
+            }`,
+            {
+              headers,
+            }
+          ),
+          axios.get(
+            `${API_BASE_URL}/api/expenses/payment-methods?year=${year}&targetId=${
+              friendId || ""
+            }`,
             { headers }
           ),
-          axios.get(`${API_BASE_URL}/api/expenses/cumulative?year=${year}`, {
-            headers,
-          }),
           axios.get(
-            `${API_BASE_URL}/api/expenses/name-over-time?year=${year}&limit=5`,
+            `${API_BASE_URL}/api/expenses/cumulative?year=${year}&targetId=${
+              friendId || ""
+            }`,
+            {
+              headers,
+            }
+          ),
+          axios.get(
+            `${API_BASE_URL}/api/expenses/name-over-time?year=${year}&limit=5&targetId=${
+              friendId || ""
+            }`,
             { headers }
           ),
         ]);
@@ -246,10 +275,63 @@ const CreditDueContent = () => {
   return (
     <>
       <div style={headerStyle}></div>
+
       <div className="flex flex-col p-4" style={containerStyle}>
-        <h1 className="text-2xl font-bold text-white mb-4 text-center">
-          Expense Dashboard
-        </h1>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between", // Positions the back button on the left and text in the center
+            alignItems: "center",
+            mb: 1,
+          }}
+        >
+          {/* Left Section: Back Button */}
+          <IconButton
+            sx={{
+              color: "#00DAC6",
+              backgroundColor: "#1b1b1b",
+              "&:hover": {
+                backgroundColor: "#28282a",
+              },
+              zIndex: 10,
+            }}
+            onClick={() =>
+              friendId && friendId !== "undefined"
+                ? navigate(`/friends/expenses/${friendId}`)
+                : navigate("/expenses")
+            }
+            aria-label="Back"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="#00DAC6"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </IconButton>
+
+          {/* Center Section: Text */}
+          <Typography
+            variant={isSmallScreen ? "h5" : "h3"} // Reduce font size on small screens
+            sx={{
+              color: "#ffffff",
+              fontWeight: "bold",
+              textAlign: "center", // Ensures the text is centered
+              flex: 1, // Allows the text to take up the remaining space
+            }}
+          >
+            Expense Dashboard
+          </Typography>
+        </Box>
         {error && <div className="text-red-500 text-center mb-4">{error}</div>}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full flex-1 bg-[#0b0b0b]">
           <div

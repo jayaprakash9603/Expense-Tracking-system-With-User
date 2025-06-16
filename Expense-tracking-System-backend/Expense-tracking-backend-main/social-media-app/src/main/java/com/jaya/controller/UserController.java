@@ -38,7 +38,7 @@ public class UserController {
 		return users;
 	}
 	@GetMapping("/api/users/{userId}")
-	public User getUserById(@PathVariable("userId") Integer id,@RequestHeader("Authorization")String jwt) throws UserException
+	public User getUserById(@PathVariable("userId") Integer id,@RequestHeader("Authorization")String jwt,@RequestParam(required = false)Integer targetId) throws UserException
 	{
 		User reqUser=userService.findUserByJwt(jwt);
 		if(reqUser.getId()!=id)

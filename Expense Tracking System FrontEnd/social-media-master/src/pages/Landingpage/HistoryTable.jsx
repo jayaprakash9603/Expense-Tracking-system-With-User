@@ -16,7 +16,7 @@ import { IconButton } from "@mui/material";
 import theme from "./theme";
 import ToastNotification from "./ToastNotification";
 
-const HistoryTable = () => {
+const HistoryTable = ({ friendId }) => {
   const dispatch = useDispatch();
   const { history, loading } = useSelector((state) => state.expenses || {});
   const [pageIndex, setPageIndex] = useState(0);
@@ -30,8 +30,8 @@ const HistoryTable = () => {
   const isSmallScreen = useMediaQuery(muiTheme.breakpoints.down("sm"));
 
   useEffect(() => {
-    dispatch(getExpenseHistory());
-    dispatch(getExpensesAction());
+    dispatch(getExpenseHistory(friendId));
+    dispatch(getExpensesAction(friendId));
   }, [dispatch]);
 
   const handleSelectionChange = (newSelection) => {

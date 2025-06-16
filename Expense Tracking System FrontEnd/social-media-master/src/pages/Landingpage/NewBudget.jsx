@@ -7,7 +7,7 @@ import {
 import { fetchExpenses } from "../../Redux/Expenses/expense.action";
 import { createBudgetAction } from "../../Redux/Budget/budget.action";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box, useMediaQuery } from "@mui/material";
 
@@ -32,6 +32,7 @@ const NewBudget = () => {
   const [checkboxStates, setCheckboxStates] = useState([]);
 
   const dispatch = useDispatch();
+  const { friendId } = useParams();
 
   const fieldStyles =
     "px-3 py-2 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[350px] max-w-[250px]";
@@ -52,7 +53,12 @@ const NewBudget = () => {
       console.log("Updated formData:", updatedFormData);
       if ((name === "startDate" || name === "endDate") && showTable) {
         dispatch(
-          fetchExpenses(updatedFormData.startDate, updatedFormData.endDate)
+          fetchExpenses(
+            updatedFormData.startDate,
+            updatedFormData.endDate,
+            "desc",
+            friendId || ""
+          )
         );
       }
       return updatedFormData;
@@ -99,7 +105,7 @@ const NewBudget = () => {
       console.log("Submitting budget:", budgetData);
       console.log("Saving all expenses:", updatedExpenses);
 
-      dispatch(createBudgetAction(budgetData));
+      dispatch(createBudgetAction(budgetData, friendId || ""));
       // if (updatedExpenses.length > 0) {
       //   await dispatch(editMultipleExpenseAction(updatedExpenses));
       // }
@@ -122,7 +128,14 @@ const NewBudget = () => {
   const handleLinkExpenses = () => {
     console.log("Link Expenses clicked");
     setShowTable(true);
-    dispatch(fetchExpenses(formData.startDate, formData.endDate));
+    dispatch(
+      fetchExpenses(
+        formData.startDate,
+        formData.endDate,
+        "desc",
+        friendId || ""
+      )
+    );
   };
 
   const handleCloseTable = () => {

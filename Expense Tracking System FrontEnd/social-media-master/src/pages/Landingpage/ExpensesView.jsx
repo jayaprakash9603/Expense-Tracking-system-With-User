@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography, Divider, IconButton, Button } from "@mui/material";
 import {
   FilterList as FilterListIcon,
@@ -6,8 +6,28 @@ import {
   Add as AddIcon,
 } from "@mui/icons-material";
 import ExpensesTable from "./ExpensesTable";
+import { useNavigate, useParams } from "react-router";
+import { useDispatch } from "react-redux";
+import { getExpensesAction } from "../../Redux/Expenses/expense.action";
 
-const ExpensesView = ({ onNewExpenseClick }) => {
+const ExpensesView = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { friendId } = useParams();
+  const [expenses, setExpenseData] = useState([]);
+
+  useEffect(() => {
+    dispatch(getExpensesAction("desc", friendId)).then((data) => {
+      setExpenseData(data);
+    });
+  }, [dispatch, friendId]);
+
+  const onNewExpenseClick = () => {
+    friendId
+      ? navigate(`/expenses/create/${friendId}`)
+      : navigate("/expenses/create");
+  };
+
   return (
     <>
       <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
@@ -43,6 +63,38 @@ const ExpensesView = ({ onNewExpenseClick }) => {
             },
           }}
         >
+          <IconButton
+            sx={{
+              color: "#00DAC6",
+              backgroundColor: "#1b1b1b",
+              "&:hover": {
+                backgroundColor: "#28282a",
+              },
+              zIndex: 10,
+            }}
+            onClick={() =>
+              friendId && friendId !== "undefined"
+                ? navigate(`/friends/expenses/${friendId}`)
+                : navigate("/expenses")
+            }
+            aria-label="Back"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="#00DAC6"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </IconButton>
           <Typography
             variant="h3"
             sx={{
@@ -157,7 +209,7 @@ const ExpensesView = ({ onNewExpenseClick }) => {
             },
           }}
         >
-          <ExpensesTable />
+          <ExpensesTable expenses={expenses} friendId={friendId || ""} />
         </Box>
       </Box>
     </>

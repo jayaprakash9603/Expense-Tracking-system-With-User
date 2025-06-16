@@ -64,27 +64,16 @@ import {
   FETCH_CATEGORIES_WITH_EXPENSES_FAILURE,
 } from "./expense.actionType";
 
-const token = localStorage.getItem("jwt");
 export const getExpensesAction =
-  (jwt, sortOrder = "desc") =>
+  (sortOrder = "desc", targetId) =>
   async (dispatch) => {
     dispatch({ type: GET_ALL_EXPENSES_REQUEST });
 
-    const token = localStorage.getItem("jwt"); // ✅ move inside the function
-
-    if (!token) {
-      console.error("JWT not found in localStorage");
-      dispatch({ type: GET_ALL_EXPENSES_FAILURE, payload: "JWT not found" });
-      return;
-    }
-
     try {
       const { data } = await api.get(`/api/expenses/fetch-expenses`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         params: {
           sortOrder,
+          targetId: targetId || "", // Include targetId if provided
         },
       });
 
@@ -96,26 +85,13 @@ export const getExpensesAction =
     }
   };
 
-export const getExpensesSuggestions = () => async (dispatch) => {
+export const getExpensesSuggestions = (targetId) => async (dispatch) => {
   dispatch({ type: GET_EXPENSES_SUGGESTIONS_REQUEST });
 
-  const token = localStorage.getItem("jwt"); // ✅ move inside the function
-
-  if (!token) {
-    console.error("JWT not found in localStorage");
-    dispatch({
-      type: GET_EXPENSES_SUGGESTIONS_FAILURE,
-      payload: "JWT not found",
-    });
-    return;
-  }
-
   try {
-    const { data } = await api.get(`/api/expenses/top-expense-names?topN=500`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const { data } = await api.get(
+      `/api/expenses/top-expense-names?topN=500&targetId=${targetId}`
+    );
 
     dispatch({ type: GET_EXPENSES_SUGGESTIONS_SUCCESS, payload: data });
   } catch (error) {
@@ -125,25 +101,15 @@ export const getExpensesSuggestions = () => async (dispatch) => {
 };
 
 export const getHomeExpensesAction =
-  (jwt, sortOrder = "desc") =>
+  (jwt, sortOrder = "desc", targetId) =>
   async (dispatch) => {
     dispatch({ type: GET_DATE_EXPENSES_REQUEST });
 
-    const token = localStorage.getItem("jwt"); // ✅ move inside the function
-
-    if (!token) {
-      console.error("JWT not found in localStorage");
-      dispatch({ type: GET_DATE_EXPENSES_FAILURE, payload: "JWT not found" });
-      return;
-    }
-
     try {
       const { data } = await api.get(`/api/expenses/groupedByDate`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         params: {
           sortOrder,
+          targetId: targetId || "",
         },
       });
 
@@ -154,21 +120,13 @@ export const getHomeExpensesAction =
     }
   };
 
-export const getExpensesSummaryAction = () => async (dispatch) => {
+export const getExpensesSummaryAction = (targetId) => async (dispatch) => {
   dispatch({ type: GET_EXPENSE_SUMMARY_REQUEST });
-
-  const token = localStorage.getItem("jwt"); // ✅ move inside the function
-
-  if (!token) {
-    console.error("JWT not found in localStorage");
-    dispatch({ type: GET_EXPENSE_SUMMARY_FAILURE, payload: "JWT not found" });
-    return;
-  }
 
   try {
     const { data } = await api.get(`/api/expenses/summary-expenses`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+      params: {
+        targetId: targetId || "", // Include targetId if provided
       },
     });
 
@@ -179,21 +137,13 @@ export const getExpensesSummaryAction = () => async (dispatch) => {
     dispatch({ type: GET_EXPENSE_SUMMARY_FAILURE, payload: error });
   }
 };
-export const getExpenseAction = (id) => async (dispatch) => {
+export const getExpenseAction = (id, targetId) => async (dispatch) => {
   dispatch({ type: GET_EXPENSE_REQUEST });
-
-  const jwt = localStorage.getItem("jwt");
-
-  if (!jwt) {
-    console.error("JWT not found in localStorage");
-    dispatch({ type: CREATE_EXPENSE_FAILURE, payload: "JWT not found" });
-    return;
-  }
 
   try {
     const { data } = await api.get(`/api/expenses/expense/${id}`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
+      params: {
+        targetId: targetId || "", // Include targetId if provided
       },
     });
     dispatch({ type: GET_EXPENSE_SUCCESS, payload: data });
@@ -204,21 +154,13 @@ export const getExpenseAction = (id) => async (dispatch) => {
   }
 };
 
-export const getExpensesByBudgetId = (id) => async (dispatch) => {
+export const getExpensesByBudgetId = (id, targetId) => async (dispatch) => {
   dispatch({ type: GET_BUDGET_EXPENSES_REQUEST });
-
-  const jwt = localStorage.getItem("jwt");
-
-  if (!jwt) {
-    console.error("JWT not found in localStorage");
-    dispatch({ type: GET_BUDGET_EXPENSES_FAILURE, payload: "JWT not found" });
-    return;
-  }
 
   try {
     const { data } = await api.get(`/api/budgets/${id}/expenses`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
+      params: {
+        targetId: targetId || "",
       },
     });
     dispatch({ type: GET_BUDGET_EXPENSES_SUCCESS, payload: data });
@@ -228,21 +170,13 @@ export const getExpensesByBudgetId = (id) => async (dispatch) => {
     dispatch({ type: GET_BUDGET_EXPENSES_FAILURE, payload: error });
   }
 };
-export const getExpenseHistory = () => async (dispatch) => {
+export const getExpenseHistory = (targetId) => async (dispatch) => {
   dispatch({ type: GET_EXPENSES_HISTORY_REQUEST });
-
-  const jwt = localStorage.getItem("jwt");
-
-  if (!jwt) {
-    console.error("JWT not found in localStorage");
-    dispatch({ type: GET_EXPENSES_HISTORY_FAILURE, payload: "JWT not found" });
-    return;
-  }
 
   try {
     const { data } = await api.get(`/api/audit-logs/all`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
+      params: {
+        targetId: targetId || "", // Include targetId if provided
       },
     });
     dispatch({ type: GET_EXPENSES_HISTORY_SUCCESS, payload: data });
@@ -252,44 +186,42 @@ export const getExpenseHistory = () => async (dispatch) => {
     dispatch({ type: GET_EXPENSES_HISTORY_FAILURE, payload: error });
   }
 };
-export const createExpenseAction = (expenseData) => async (dispatch) => {
-  dispatch({ type: CREATE_EXPENSE_REQUEST });
+export const createExpenseAction =
+  (expenseData, targetId) => async (dispatch) => {
+    dispatch({ type: CREATE_EXPENSE_REQUEST });
 
-  const jwt = localStorage.getItem("jwt");
+    try {
+      // Add targetId to the URL if it's provided
+      const endpoint = targetId
+        ? `/api/expenses/add-expense?targetId=${targetId}`
+        : `/api/expenses/add-expense`;
 
-  if (!jwt) {
-    console.error("JWT not found in localStorage");
-    dispatch({ type: CREATE_EXPENSE_FAILURE, payload: "JWT not found" });
-    return;
-  }
+      const { data } = await api.post(
+        endpoint,
+        expenseData // Send the expense data in the body of the POST request
+      );
 
-  try {
-    const { data } = await api.post(
-      `/api/expenses/add-expense`,
-      expenseData, // Send the expense data in the body of the POST request
-      {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      }
-    );
-
-    dispatch({ type: CREATE_EXPENSE_SUCCESS, payload: data });
-    console.log("Expense created successfully:", data);
-  } catch (error) {
-    dispatch({ type: CREATE_EXPENSE_FAILURE, payload: error.message });
-    console.error("Error creating expense:", error);
-  }
-};
+      dispatch({ type: CREATE_EXPENSE_SUCCESS, payload: data });
+      console.log("Expense created successfully:", data);
+    } catch (error) {
+      dispatch({ type: CREATE_EXPENSE_FAILURE, payload: error.message });
+      console.error("Error creating expense:", error);
+    }
+  };
 
 export const editExpenseAction =
-  (expenseId, updatedData) => async (dispatch) => {
+  (expenseId, updatedData, targetId) => async (dispatch) => {
     dispatch({ type: EDIT_EXPENSE_REQUEST });
 
     try {
       const response = await api.put(
         `/api/expenses/edit-expense/${expenseId}`,
-        updatedData
+        updatedData,
+        {
+          params: {
+            targetId: targetId || "",
+          },
+        }
       ); // Adjust the API endpoint
       dispatch({ type: EDIT_EXPENSE_SUCCESS, payload: response.data });
       console.log("Expense edited successfully:", response.data);
@@ -299,24 +231,36 @@ export const editExpenseAction =
     }
   };
 
-export const editMultipleExpenseAction = (updatedData) => async (dispatch) => {
-  dispatch({ type: EDIT_MUTLTIPLE_EXPENSE_REQUEST });
+export const editMultipleExpenseAction =
+  (updatedData, targetId) => async (dispatch) => {
+    dispatch({ type: EDIT_MUTLTIPLE_EXPENSE_REQUEST });
 
-  try {
-    const response = await api.put(`/api/expenses/edit-multiple`, updatedData); // Adjust the API endpoint
-    dispatch({ type: EDIT_MUTLTIPLE_EXPENSE_SUCCESS, payload: response.data });
-    console.log("Expense edited successfully:", response.data);
-  } catch (error) {
-    dispatch({ type: EDIT_EXPENSE_FAILURE, payload: error.message });
-    console.error("Error editing expense:", error);
-  }
-};
+    try {
+      const response = await api.put(
+        `/api/expenses/edit-multiple`,
+        updatedData,
+        {
+          params: {
+            targetId: targetId || "",
+          },
+        }
+      ); // Adjust the API endpoint
+      dispatch({
+        type: EDIT_MUTLTIPLE_EXPENSE_SUCCESS,
+        payload: response.data,
+      });
+      console.log("Expense edited successfully:", response.data);
+    } catch (error) {
+      dispatch({ type: EDIT_EXPENSE_FAILURE, payload: error.message });
+      console.error("Error editing expense:", error);
+    }
+  };
 
-export const deleteExpenseAction = (id) => async (dispatch) => {
+export const deleteExpenseAction = (id, targetId) => async (dispatch) => {
   dispatch({ type: DELETE_EXPENSE_REQUEST });
 
   try {
-    await api.delete(`/api/expenses/delete/${id}`);
+    await api.delete(`/api/expenses/delete/${id}?targetId=${targetId || ""}`);
     dispatch({
       type: DELETE_EXPENSE_SUCCESS,
       payload: "Expense deleted successfully",
@@ -332,22 +276,15 @@ export const deleteExpenseAction = (id) => async (dispatch) => {
 };
 
 export const fetchPreviousExpenses =
-  (expenseName, date) => async (dispatch) => {
+  (expenseName, date, targetId) => async (dispatch) => {
     dispatch({ type: FETCH_PREVIOUS_EXPENSES_REQUEST });
-
-    console.log(
-      "Fetching previous expenses for:",
-      expenseName,
-      "on date:",
-      date
-    );
 
     try {
       const response = await axios.get(
         `${API_BASE_URL}/api/expenses/before/${expenseName}/${date}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
+          params: {
+            targetId: targetId || "", // Include targetId if provided
           },
         }
       );
@@ -368,20 +305,20 @@ export const fetchPreviousExpenses =
     }
   };
 
-export const uploadFile = (file) => async (dispatch) => {
+export const uploadFile = (file, targetId) => async (dispatch) => {
   dispatch({ type: UPLOAD_FILE_REQUEST });
 
-  const token = localStorage.getItem("jwt");
   const formData = new FormData();
   formData.append("file", file);
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/expenses/upload`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+
       body: formData,
+      params: {
+        targetId: targetId || "", // Include targetId if provided
+      },
     });
 
     if (!response.ok) {
@@ -415,16 +352,15 @@ export const saveExpensesFailure = (error) => ({
   payload: error,
 });
 
-export const saveExpenses = (expenses) => {
+export const saveExpenses = (expenses, targetId) => {
   console.log("saved exepsens", expenses);
   return async (dispatch) => {
     dispatch(saveExpensesRequest());
     try {
       const response = await fetch(`${API_BASE_URL}/api/expenses/save`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+        params: {
+          targetId: targetId || "", // Include targetId if provided
         },
         body: JSON.stringify(expenses),
       });
@@ -441,26 +377,17 @@ export const saveExpenses = (expenses) => {
   };
 };
 export const fetchExpenses =
-  (from, to, sortOrder = "desc") =>
+  (from, to, sortOrder = "desc", targetId) =>
   async (dispatch) => {
     dispatch({ type: FETCH_EXPENSES_REQUEST });
 
-    const token = localStorage.getItem("jwt");
-    if (!token) {
-      console.error("JWT not found in localStorage");
-      dispatch({ type: FETCH_EXPENSES_FAILURE, payload: "JWT not found" });
-      return;
-    }
-
     try {
       const { data } = await api.get("/api/expenses/fetch-expenses-by-date", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         params: {
           from,
           to,
-          sortOrder, // optional, only if backend supports it
+          sortOrder,
+          targetId: targetId || "", // optional, only if backend supports it
         },
       });
 
@@ -473,27 +400,15 @@ export const fetchExpenses =
   };
 
 export const getExpensesByBudget =
-  (id, startDate, endDate) => async (dispatch) => {
+  (id, startDate, endDate, targetId) => async (dispatch) => {
     dispatch({ type: GET_SELECTED_EXPENSE_BUDGET_REQUEST });
-
-    if (!token) {
-      console.error("JWT not found in localStorage");
-      dispatch({
-        type: GET_SELECTED_EXPENSE_BUDGET_FAILURE,
-        payload: "JWT not found",
-      });
-      return;
-    }
 
     try {
       const { data } = await api.get(`/api/expenses/${id}/expenses`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json", // optional, but good to include
-        },
         params: {
           startDate: startDate,
           endDate: endDate,
+          targetId: targetId || "", // optional, only if backend supports it
         },
       });
 
@@ -506,12 +421,15 @@ export const getExpensesByBudget =
   };
 // Update the existing fetchCashflowExpenses function
 export const fetchCashflowExpenses =
-  (range, offset, flowType, category) => async (dispatch) => {
+  (range, offset = 0, flowType, category, targetId) =>
+  async (dispatch) => {
     try {
       dispatch({ type: FETCH_CASHFLOW_EXPENSES_REQUEST });
 
       // Build the query parameters
-      let queryParams = `?range=${range}&offset=${offset}`;
+      let queryParams = `?range=${range}&offset=${offset}&targetId=${
+        targetId || ""
+      }`;
       if (flowType) queryParams += `&flowType=${flowType}`;
       if (category) queryParams += `&category=${encodeURIComponent(category)}`;
 
@@ -530,29 +448,30 @@ export const fetchCashflowExpenses =
       });
     }
   };
-export const getExpensesByParticularDate = (date) => async (dispatch) => {
-  dispatch({ type: GET_PARTICULAR_DATE_EXPENSES_REQUEST });
-  const token = localStorage.getItem("jwt");
-  try {
-    const { data } = await axios.get(
-      `${API_BASE_URL}/api/expenses/particular-date?date=${date}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    dispatch({ type: GET_PARTICULAR_DATE_EXPENSES_SUCCESS, payload: data });
-  } catch (error) {
-    dispatch({
-      type: GET_PARTICULAR_DATE_EXPENSES_FAILURE,
-      payload: error?.response?.data?.message || error.message,
-    });
-  }
-};
+export const getExpensesByParticularDate =
+  (date, targetId) => async (dispatch) => {
+    dispatch({ type: GET_PARTICULAR_DATE_EXPENSES_REQUEST });
+
+    try {
+      const { data } = await axios.get(
+        `${API_BASE_URL}/api/expenses/particular-date?date=${date}`,
+        {
+          params: {
+            targetId: targetId || "", // Include targetId if provided
+          },
+        }
+      );
+      dispatch({ type: GET_PARTICULAR_DATE_EXPENSES_SUCCESS, payload: data });
+    } catch (error) {
+      dispatch({
+        type: GET_PARTICULAR_DATE_EXPENSES_FAILURE,
+        payload: error?.response?.data?.message || error.message,
+      });
+    }
+  };
 
 export const fetchCategoriesWithExpenses =
-  (rangeType, offset, flowType) => async (dispatch) => {
+  (rangeType, offset, flowType, targetId) => async (dispatch) => {
     dispatch({ type: FETCH_CATEGORIES_WITH_EXPENSES_REQUEST });
 
     try {
@@ -564,7 +483,12 @@ export const fetchCategoriesWithExpenses =
 
       // Use the api instance that's already configured with headers
       const { data } = await api.get(
-        `/api/expenses/all-by-categories/detailed/filtered${queryParams}`
+        `/api/expenses/all-by-categories/detailed/filtered${queryParams}`,
+        {
+          params: {
+            targetId: targetId || "", // Include targetId if provided
+          },
+        }
       );
 
       dispatch({

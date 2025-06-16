@@ -508,14 +508,69 @@ public class CategoryService {
     }
 
 
-    // Create multiple categories
     public List<Category> createMultiple(List<Category> categories, User user) {
+        List<Category> createdCategories = new ArrayList<>();
         for (Category category : categories) {
-            if (!category.isGlobal()) {
-                category.getUserIds().add(user.getId()); // Associate the category with the user ID if not global
+            // Initialize new Category object as in create()
+            Category createCategory = new Category();
+            if (category.isGlobal()) {
+                createCategory.setUser(null);
+            } else {
+                createCategory.setUser(user);
+            }
+            createCategory.setDescription(category.getDescription());
+            createCategory.setName(category.getName());
+            createCategory.setGlobal(category.isGlobal());
+            createCategory.setType(category.getType());
+            createCategory.setIcon(category.getIcon());
+            createCategory.setColor(category.getColor());
+            createCategory.setExpenseIds(new HashMap<>());
+            createCategory.setUserIds(new HashSet<>());
+            createCategory.setEditUserIds(new HashSet<>());
+
+            // Save to generate ID
+            Category initialSavedCategory = categoryRepository.save(createCategory);
+            final Integer categoryId = initialSavedCategory.getId();
+
+            // Handle expense IDs for this user
+            Set<Integer> requestedExpenseIds = new HashSet<>();
+            if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(user.getId())) {
+                requestedExpenseIds.addAll(category.getExpenseIds().get(user.getId()));
+            }
+
+            Set<Integer> validExpenseIds = new HashSet<>();
+            for (Integer expenseId : requestedExpenseIds) {
+                Expense expense = expenseRepository.findById(expenseId).orElse(null);
+                if (expense != null && expense.getUser() != null && expense.getUser().getId().equals(user.getId())) {
+                    validExpenseIds.add(expenseId);
+                }
+            }
+
+            // Remove these expense IDs from all other categories for this user
+            if (!validExpenseIds.isEmpty()) {
+                List<Category> allCategories = categoryRepository.findAll().stream()
+                        .filter(c -> !c.getId().equals(categoryId) && c.getExpenseIds() != null && c.getExpenseIds().containsKey(user.getId()))
+                        .collect(Collectors.toList());
+                for (Category otherCategory : allCategories) {
+                    Set<Integer> otherExpenseIds = otherCategory.getExpenseIds().get(user.getId());
+                    if (otherExpenseIds != null) {
+                        otherExpenseIds.removeAll(validExpenseIds);
+                        otherCategory.getExpenseIds().put(user.getId(), otherExpenseIds);
+                        categoryRepository.save(otherCategory);
+                    }
+                }
+            }
+
+            // Update the category's expenseIds map for this user and save
+            if (!validExpenseIds.isEmpty()) {
+                Category finalCategory = categoryRepository.findById(categoryId).orElse(initialSavedCategory);
+                finalCategory.getExpenseIds().put(user.getId(), validExpenseIds);
+                createdCategories.add(categoryRepository.save(finalCategory));
+            } else {
+                createdCategories.add(initialSavedCategory);
             }
         }
-        return categoryRepository.saveAll(categories);
+        return createdCategories;
     }
 
     // Update multiple categories

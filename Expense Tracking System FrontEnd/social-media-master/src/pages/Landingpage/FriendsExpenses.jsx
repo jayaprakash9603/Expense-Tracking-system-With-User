@@ -17,8 +17,24 @@ import {
   fetchCashflowExpenses,
   deleteExpenseAction,
 } from "../../Redux/Expenses/expense.action";
+
 import dayjs from "dayjs";
-import { IconButton, Skeleton, useTheme, useMediaQuery } from "@mui/material";
+import {
+  IconButton,
+  Skeleton,
+  useTheme,
+  useMediaQuery,
+  Box,
+  Typography,
+  Avatar,
+  Button,
+  Paper,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  x,
+} from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import { createPortal } from "react-dom";
@@ -26,7 +42,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import recentPng from "../../assests/recent.png";
 import CalendarViewMonthIcon from "@mui/icons-material/CalendarViewMonth";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import ToastNotification from "./ToastNotification";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -35,6 +51,9 @@ import moneyWithdrawalImg from "../../assests/money-withdrawal.png";
 import saveMoneyImg from "../../assests/save-money.png";
 import moneyInAndOutImg from "../../assests/money-in-and-out.png";
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
+import { fetchFriendsDetailed } from "../../Redux/Friends/friendsActions";
+import { fetchFriendship } from "../../Redux/Friends/friends.action";
+import FriendInfoBar from "./FriendInfoBar";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -151,7 +170,7 @@ const flowTypeCycle = [
   { label: "Money Out", value: "outflow", color: "bg-[#FF6B6B] text-white" },
 ];
 
-const Cashflow = () => {
+const FriendsExpenses = () => {
   const [activeRange, setActiveRange] = useState("month"); // Default to month on mount
   const [offset, setOffset] = useState(0);
   const [flowTab, setFlowTab] = useState("all"); // Start with 'all'
@@ -163,9 +182,12 @@ const Cashflow = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
   const [expenseData, setExpenseData] = useState({});
+  const [showFriendDropdown, setShowFriendDropdown] = useState(false);
   const dispatch = useDispatch();
   const { cashflowExpenses, loading } = useSelector((state) => state.expenses);
+  const { friendship, friends } = useSelector((state) => state.friends);
   const filterBtnRef = useRef(null);
+  const friendDropdownRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const [toastOpen, setToastOpen] = useState(false);
@@ -174,6 +196,34 @@ const Cashflow = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [isFiltering, setIsFiltering] = useState(false);
+  const { friendId } = useParams();
+  const [showFriendInfo, setShowFriendInfo] = useState(true);
+
+  // useEffect(() => {
+  //   if (friendId) {
+  //     dispatch(fetchFriendship(friendId));
+  //   }
+  // }, [dispatch, friendId]);
+
+  // Fetch detailed friends list when component mounts
+  useEffect(() => {
+    dispatch(fetchFriendsDetailed());
+  }, [dispatch]);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        friendDropdownRef.current &&
+        !friendDropdownRef.current.contains(event.target)
+      ) {
+        setShowFriendDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   useEffect(() => {
     if (location.state && location.state.selectedCategory) {
       // Set the range type and offset from the navigation state if available
@@ -216,7 +266,8 @@ const Cashflow = () => {
         activeRange,
         offset,
         flowTab === "all" ? null : flowTab,
-        categoryFilter
+        categoryFilter,
+        friendId
       )
     ).finally(() => {
       // Reset filtering flag when API call completes
@@ -491,10 +542,12 @@ const Cashflow = () => {
 
   const handleConfirmDelete = () => {
     if (expenseToDelete) {
-      dispatch(deleteExpenseAction(expenseToDelete))
+      dispatch(deleteExpenseAction(expenseToDelete, friendId))
         .then(() => {
           // Refresh cashflow data after delete
-          dispatch(fetchCashflowExpenses(activeRange, offset, flowTab));
+          dispatch(
+            fetchCashflowExpenses(activeRange, offset, flowTab, "", friendId)
+          );
           setToastMessage("Expense deleted successfully.");
           setToastOpen(true);
         })
@@ -644,7 +697,16 @@ const Cashflow = () => {
 
   return (
     <>
-      <div className="h-[50px]"></div>
+      <FriendInfoBar
+        friendship={friendship}
+        friendId={friendId}
+        friends={friends || []}
+        loading={loading}
+        onFriendChange={(newFriendId) => {
+          navigate(`/friends/expenses/${newFriendId}`);
+        }}
+      />
+
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{
@@ -662,6 +724,72 @@ const Cashflow = () => {
           minWidth: 0,
         }}
       >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 2,
+          }}
+        >
+          <div className="flex  flex-start gap-4">
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "#1b1b1b",
+                borderRadius: "8px",
+                color: "#00DAC6",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px", // Adds spacing between the icon and text
+                padding: "8px 8px", // Adjusts padding for better appearance
+                "&:hover": {
+                  backgroundColor: "#28282a",
+                },
+              }}
+              onClick={() =>
+                friendId && friendId !== "undefined"
+                  ? navigate(`/friends`)
+                  : navigate("/expenses")
+              }
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 18L9 12L15 6"
+                  stroke="#00DAC6"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Back
+            </Button>
+            {rangeTypes.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => {
+                  if (activeRange === tab.value) {
+                    setSelectedBar(null); // Reset bar selection if clicking the same tab
+                  }
+                  setActiveRange(tab.value);
+                }}
+                className={`px-4 py-2 rounded font-semibold flex items-center gap-2 ${
+                  activeRange === tab.value
+                    ? "bg-[#00DAC6] text-black"
+                    : "bg-[#29282b] text-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </Box>
         <ToastNotification
           open={toastOpen}
           message={toastMessage}
@@ -807,27 +935,6 @@ const Cashflow = () => {
           }
         `}</style>
         </div>
-
-        <div className="flex gap-4 mb-4">
-          {rangeTypes.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => {
-                if (activeRange === tab.value) {
-                  setSelectedBar(null); // Reset bar selection if clicking the same tab
-                }
-                setActiveRange(tab.value);
-              }}
-              className={`px-4 py-2 rounded font-semibold flex items-center gap-2 ${
-                activeRange === tab.value
-                  ? "bg-[#00DAC6] text-black"
-                  : "bg-[#29282b] text-white"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
         <div className="flex justify-between items-center mb-2">
           <button
             onClick={handleBack}
@@ -941,7 +1048,7 @@ const Cashflow = () => {
             {/* Categories Icon Button */}
             <IconButton
               sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/category-flow")}
+              onClick={() => navigate(`/category-flow/${friendId}`)}
               aria-label="Categories"
             >
               <img
@@ -959,7 +1066,7 @@ const Cashflow = () => {
 
             <IconButton
               sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/transactions")}
+              onClick={() => navigate(`/transactions/${friendId}`)}
               aria-label="Transactions"
             >
               <img
@@ -977,7 +1084,7 @@ const Cashflow = () => {
 
             <IconButton
               sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/insights")}
+              onClick={() => navigate(`/insights/${friendId}`)}
               aria-label="Insights"
             >
               <img
@@ -995,7 +1102,7 @@ const Cashflow = () => {
 
             <IconButton
               sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/reports")}
+              onClick={() => navigate(`/reports/${friendId}`)}
               aria-label="Reports"
             >
               <img
@@ -1013,7 +1120,7 @@ const Cashflow = () => {
 
             <IconButton
               sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/cashflow")}
+              onClick={() => navigate(`/cashflow/${friendId}`)}
               aria-label="All Expenses"
             >
               <img
@@ -1031,7 +1138,7 @@ const Cashflow = () => {
 
             <IconButton
               sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/budget")}
+              onClick={() => navigate(`/budget/${friendId}`)}
               aria-label="All Budgets"
             >
               <img
@@ -1048,7 +1155,7 @@ const Cashflow = () => {
             </IconButton>
             <IconButton
               sx={{ p: 0.5 }}
-              onClick={() => navigate("/calendar-view")}
+              onClick={() => navigate(`/calendar-view/${friendId}`)}
               aria-label="Calendar View"
             >
               <img
@@ -1065,7 +1172,7 @@ const Cashflow = () => {
             </IconButton>
             <IconButton
               sx={{ color: "#5b7fff", ml: 1 }}
-              onClick={() => navigate("/expenses/create")}
+              onClick={() => navigate(`/expenses/create/${friendId}`)}
               aria-label="New Expense"
             >
               <svg
@@ -1509,7 +1616,11 @@ const Cashflow = () => {
                               date: dayjs().format("YYYY-MM-DD"),
                             })
                           );
-                          navigate(`/expenses/edit/${row.id || row.expenseId}`);
+                          navigate(
+                            `/expenses/edit/${
+                              row.id || row.expenseId
+                            }/friend/${friendId} `
+                          );
                         }}
                         aria-label="Edit Expense"
                       >
@@ -1566,10 +1677,22 @@ const Cashflow = () => {
     min-height: 0;
     max-height: 60px;
   }
+  
+  /* Friend dropdown animation */
+  @keyframes dropdownFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 `}</style>
       </div>
     </>
   );
 };
 
-export default Cashflow;
+export default FriendsExpenses;

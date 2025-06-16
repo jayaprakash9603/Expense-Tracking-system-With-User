@@ -4,7 +4,7 @@ import NewExpense from "./NewExpense";
 import { Snackbar, Alert } from "@mui/material";
 import ExpensesView from "./ExpensesView";
 
-const ExpensesContent = () => {
+const ExpensesContent = ({ friendId }) => {
   const location = useLocation();
   const [showExpenseForm, setShowExpenseForm] = useState(true);
   const [open, setOpen] = useState(false);

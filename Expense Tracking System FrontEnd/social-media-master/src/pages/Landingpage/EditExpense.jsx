@@ -40,7 +40,7 @@ const inputWrapper = { width: "150px" };
 const EditExpense = ({}) => {
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
-  const { id } = useParams();
+  const { id, friendId } = useParams();
   const { expense } = useSelector((state) => state.expenses || {});
   const { budgets, error: budgetError } = useSelector(
     (state) => state.budgets || {}
@@ -51,8 +51,6 @@ const EditExpense = ({}) => {
     error: categoriesError,
   } = useSelector((state) => state.categories || {});
   const dispatch = useDispatch();
-
-  console.log("budgets data now ", budgets);
 
   const [expenseData, setExpenseData] = useState({
     expenseName: "",
@@ -88,13 +86,19 @@ const EditExpense = ({}) => {
       "date:",
       fetchDate
     );
-    dispatch(getListOfBudgetsByExpenseId({ id, date: fetchDate }));
-    dispatch(getExpenseAction(id));
+    dispatch(
+      getListOfBudgetsByExpenseId({
+        id,
+        date: fetchDate,
+        targetId: friendId || "",
+      })
+    );
+    dispatch(getExpenseAction(id || "", friendId || ""));
   }, [dispatch]);
 
   // Fetch expense name suggestions (same as NewExpense)
   useEffect(() => {
-    dispatch(getExpensesSuggestions());
+    dispatch(getExpensesSuggestions(friendId || ""));
   }, [dispatch]);
 
   // Update checkbox states when budgets change
@@ -166,7 +170,9 @@ const EditExpense = ({}) => {
     }));
 
     console.log("Fetching budgets for expenseId:", id, "date:", value);
-    dispatch(getListOfBudgetsByExpenseId({ id, date: value }));
+    dispatch(
+      getListOfBudgetsByExpenseId({ id, date: value, targetId: friendId || "" })
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -184,24 +190,25 @@ const EditExpense = ({}) => {
       .filter((_, index) => checkboxStates[index])
       .map((budget) => budget.id);
 
-    console.log("Submitting expense with budgetIds:", budgetIds);
-    console.log("Expense data:", expenseData);
-
     try {
       await dispatch(
-        editExpenseAction(id, {
-          date: expenseData.date,
-          budgetIds: budgetIds,
-          expense: {
-            expenseName: expenseData.expenseName,
-            amount: expenseData.amount,
-            netAmount: expenseData.amount,
-            paymentMethod: expenseData.paymentMethod,
-            type: expenseData.transactionType,
-            comments: expenseData.comments,
-            category: expenseData.category || "",
+        editExpenseAction(
+          id,
+          {
+            date: expenseData.date,
+            budgetIds: budgetIds,
+            expense: {
+              expenseName: expenseData.expenseName,
+              amount: expenseData.amount,
+              netAmount: expenseData.amount,
+              paymentMethod: expenseData.paymentMethod,
+              type: expenseData.transactionType,
+              comments: expenseData.comments,
+              category: expenseData.category || "",
+            },
           },
-        })
+          friendId || ""
+        )
       );
       setToastMessage("Expense updated successfully!");
       setOpenToast(true);

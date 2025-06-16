@@ -13,7 +13,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -67,11 +67,14 @@ const CalendarView = () => {
   const [monthOffset, setMonthOffset] = useState(0);
   const navigate = useNavigate();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const { friendId } = useParams();
 
   // Fetch cashflow expenses for the selected month
   React.useEffect(() => {
-    dispatch(fetchCashflowExpenses("month", monthOffset, ""));
-  }, [dispatch, monthOffset]);
+    dispatch(
+      fetchCashflowExpenses("month", monthOffset, "", "", friendId || "")
+    );
+  }, [dispatch, monthOffset, friendId]);
 
   // Group expenses by day and calculate profit/gain
   const daysData = useMemo(() => {
@@ -110,8 +113,14 @@ const CalendarView = () => {
   // Open detail dialog for a day
   const handleDayClick = (day) => {
     const dateStr = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
-    dispatch(fetchCashflowExpenses("month", monthOffset, "")); // Ensure fresh data
-    navigate(`/day-view/${dateStr}`);
+    dispatch(
+      fetchCashflowExpenses("month", monthOffset, "", "", friendId || "")
+    );
+    if (friendId && friendId !== "undefined") {
+      navigate(`/day-view/${dateStr}/friend/${friendId}`);
+    } else {
+      navigate(`/day-view/${dateStr}`);
+    }
   };
 
   // Month navigation handlers
@@ -163,7 +172,11 @@ const CalendarView = () => {
             },
             zIndex: 10,
           }}
-          onClick={() => navigate("/expenses")}
+          onClick={() =>
+            friendId && friendId !== "undefined"
+              ? navigate(`/friends/expenses/${friendId}`)
+              : navigate("/expenses")
+          }
           aria-label="Back"
         >
           <svg

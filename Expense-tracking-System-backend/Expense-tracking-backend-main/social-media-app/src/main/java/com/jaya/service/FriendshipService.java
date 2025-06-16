@@ -76,6 +76,9 @@ public interface FriendshipService {
 
     List<Map<String, Object>> getSharedWithMe(Integer userId);
     List<Map<String, Object>> getISharedWith(Integer userId);
-
+    Friendship getFriendshipById(Integer friendshipId, Integer userId);
     Map<String, Object> getExpenseAccessInfo(Integer ownerId, Integer viewerId);
+
+    // FriendshipService.java
+    List<Map<String, Object>> getDetailedFriends(Integer userId);
 }

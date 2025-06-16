@@ -94,8 +94,8 @@ public interface ExpenseService {
     
     List<Expense> getExpensesByMonth(int year, int month);
     
-    List<Expense> getExpensesByCurrentWeek();
-    List<Expense> getExpensesByLastWeek();
+    List<Expense> getExpensesByCurrentWeek(User user);
+    List<Expense> getExpensesByLastWeek(User user);
     String getCommentsForExpense(Integer expenseId,User user);
     
     
@@ -117,32 +117,32 @@ public interface ExpenseService {
     
     List<Map<String, Object>> getTotalByCategory(User user);
     
-    Map<String, Double> getTotalByDate();
+    Map<String, Double> getTotalByDate(User user);
     
-    Double getTotalForToday();
+    Double getTotalForToday(User user);
     
-    Double getTotalForCurrentMonth();
+    Double getTotalForCurrentMonth(User user);
     
-    Double getTotalForMonthAndYear(int month, int year);
+    Double getTotalForMonthAndYear(int month, int year,User user);
     
-    Double getTotalByDateRange(LocalDate startDate, LocalDate endDate);
+    Double getTotalByDateRange(LocalDate startDate, LocalDate endDate,User user);
     
-    Map<String, Double> getPaymentWiseTotalForCurrentMonth();
+    Map<String, Double> getPaymentWiseTotalForCurrentMonth(User user);
     
-    Map<String, Double> getPaymentWiseTotalForLastMonth();
+    Map<String, Double> getPaymentWiseTotalForLastMonth(User user);
     
-    Map<String, Double> getPaymentWiseTotalForDateRange(LocalDate startDate, LocalDate endDate);
-    
-    
-    Map<String, Double> getPaymentWiseTotalForMonth(int month, int year);
+    Map<String, Double> getPaymentWiseTotalForDateRange(LocalDate startDate, LocalDate endDate,User user);
     
     
-    Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethod(int month, int year);
-    
-    Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate);
+    Map<String, Double> getPaymentWiseTotalForMonth(int month, int year,User user);
     
     
-    Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod();
+    Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethod(int month, int year,User user);
+    
+    Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate,User user);
+    
+    
+    Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod(User user);
     
     
     String generateExcelReport(User user) throws IOException;

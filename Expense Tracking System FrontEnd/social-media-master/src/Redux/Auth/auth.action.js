@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { api, API_BASE_URL } from "../../config/api";
+import { api, API_BASE_URL, updateAuthHeader } from "../../config/api";
 import {
   GET_PROFILE_FAILURE,
   GET_PROFILE_REQUEST,
@@ -32,17 +32,18 @@ export const loginUserAction = (loginData) => async (dispatch) => {
       loginData.data
     );
 
+    console.log("Login response data:", data.token);
+
+    dispatch({ type: LOGIN_SUCCESS, payload: data.token });
     if (data.token) {
       localStorage.setItem("jwt", data.token);
     }
 
-    // Dispatch LOGIN_SUCCESS with the token
-    dispatch({ type: LOGIN_SUCCESS, payload: data.token });
-
     // Immediately fetch the user profile after login
     dispatch(getProfileAction(data.token));
+    updateAuthHeader();
 
-    return { success: true }; // Return success to trigger navigation in component
+    return { success: true };
   } catch (error) {
     const errorMessage =
       error.response?.data?.message || "Login failed. Please try again.";
@@ -166,12 +167,8 @@ export const updateProfileAction = (reqData) => async (dispatch) => {
 
 // Logout Action
 export const logoutAction = () => (dispatch) => {
-  // Remove JWT from localStorage
   localStorage.removeItem("jwt");
 
-  // Dispatch the logout action to reset user state
   dispatch({ type: "LOGOUT" });
-
-  // Optionally, redirect user to login page
-  // navigate("/login");
+  updateAuthHeader();
 };

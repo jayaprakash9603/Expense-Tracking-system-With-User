@@ -18,12 +18,15 @@ import {
 } from "./categoryTypes";
 import { api, API_BASE_URL } from "../../config/api"; // Import the api instance
 
-const token = localStorage.getItem("jwt");
-export const fetchCategories = () => {
+export const fetchCategories = (targetId) => {
   return async (dispatch) => {
     dispatch({ type: FETCH_CATEGORIES_REQUEST });
     try {
-      const response = await api.get("/api/categories"); // Use the api instance for dynamic URL handling
+      const response = await api.get("/api/categories", {
+        params: {
+          targetId: targetId || "",
+        },
+      });
       dispatch({ type: FETCH_CATEGORIES_SUCCESS, payload: response.data });
     } catch (error) {
       dispatch({ type: FETCH_CATEGORIES_FAILURE, payload: error.message });
@@ -31,76 +34,82 @@ export const fetchCategories = () => {
   };
 };
 
-export const fetchUncategorizedExpenses = () => async (dispatch, getState) => {
-  dispatch({ type: "FETCH_UNCATEGORIZED_EXPENSES_REQUEST" });
-  try {
-    const token = getState().auth?.token;
-    const response = await api.get("/api/categories/uncategorized", {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    dispatch({
-      type: "FETCH_UNCATEGORIZED_EXPENSES_SUCCESS",
-      payload: response.data,
-    });
-  } catch (error) {
-    dispatch({
-      type: "FETCH_UNCATEGORIZED_EXPENSES_FAILURE",
-      payload: error.message,
-    });
-  }
-};
-
-export const createCategory = (formData) => async (dispatch, getState) => {
-  dispatch({ type: "CREATE_CATEGORY_REQUEST" });
-  try {
-    const token = getState().auth?.token;
-    const response = await api.post("/api/categories", formData, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    dispatch({
-      type: "CREATE_CATEGORY_SUCCESS",
-      payload: response.data,
-    });
-  } catch (error) {
-    dispatch({
-      type: "CREATE_CATEGORY_FAILURE",
-      payload: error.message,
-    });
-  }
-};
-
-export const fetchCategoryById = (categoryId) => async (dispatch, getState) => {
-  try {
-    dispatch({ type: FETCH_CATEGORY_REQUEST });
-
-    console.log("token: ", token);
-    const response = await axios.get(
-      `${API_BASE_URL}/api/categories/${categoryId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+export const fetchUncategorizedExpenses =
+  (targetId) => async (dispatch, getState) => {
+    dispatch({ type: "FETCH_UNCATEGORIZED_EXPENSES_REQUEST" });
+    try {
+      const token = getState().auth?.token;
+      const response = await api.get("/api/categories/uncategorized", {
+        params: {
+          targetId: targetId || "",
         },
-      }
-    );
+      });
+      dispatch({
+        type: "FETCH_UNCATEGORIZED_EXPENSES_SUCCESS",
+        payload: response.data,
+      });
+    } catch (error) {
+      dispatch({
+        type: "FETCH_UNCATEGORIZED_EXPENSES_FAILURE",
+        payload: error.message,
+      });
+    }
+  };
 
-    dispatch({
-      type: FETCH_CATEGORY_SUCCESS,
-      payload: response.data,
-    });
+export const createCategory =
+  (formData, targetId) => async (dispatch, getState) => {
+    dispatch({ type: "CREATE_CATEGORY_REQUEST" });
+    try {
+      const token = getState().auth?.token;
+      const response = await api.post("/api/categories", formData, {
+        params: {
+          targetId: targetId || "",
+        },
+      });
+      dispatch({
+        type: "CREATE_CATEGORY_SUCCESS",
+        payload: response.data,
+      });
+    } catch (error) {
+      dispatch({
+        type: "CREATE_CATEGORY_FAILURE",
+        payload: error.message,
+      });
+    }
+  };
 
-    return response.data;
-  } catch (error) {
-    dispatch({
-      type: FETCH_CATEGORY_FAILURE,
-      payload: error.response?.data?.message || "Failed to fetch category",
-    });
-    throw error;
-  }
-};
+export const fetchCategoryById =
+  (categoryId, targetId) => async (dispatch, getState) => {
+    try {
+      dispatch({ type: FETCH_CATEGORY_REQUEST });
+
+      const response = await axios.get(
+        `${API_BASE_URL}/api/categories/${categoryId}`,
+        {
+          params: {
+            targetId: targetId || "",
+          },
+        }
+      );
+
+      dispatch({
+        type: FETCH_CATEGORY_SUCCESS,
+        payload: response.data,
+      });
+
+      return response.data;
+    } catch (error) {
+      dispatch({
+        type: FETCH_CATEGORY_FAILURE,
+        payload: error.response?.data?.message || "Failed to fetch category",
+      });
+      throw error;
+    }
+  };
 
 // Action to update an existing category
 export const updateCategory =
-  (categoryId, categoryData) => async (dispatch, getState) => {
+  (categoryId, categoryData, targetId) => async (dispatch, getState) => {
     try {
       dispatch({ type: UPDATE_CATEGORY_REQUEST });
 
@@ -108,9 +117,8 @@ export const updateCategory =
         `${API_BASE_URL}/api/categories/${categoryId}`,
         categoryData,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+          params: {
+            targetId: targetId || "",
           },
         }
       );
@@ -138,16 +146,18 @@ export const updateCategory =
 
 // Action to fetch expenses for a specific category
 export const fetchCategoryExpenses =
-  (categoryId, page = 1, size = 1000) =>
+  (categoryId, page = 1, size = 1000, targetId) =>
   async (dispatch, getState) => {
     try {
       dispatch({ type: FETCH_CATEGORY_EXPENSES_REQUEST });
 
       const response = await axios.get(
-        `${API_BASE_URL}/api/categories/${categoryId}/expenses`,
+        `${API_BASE_URL}/api/categories/${categoryId}/filtered-expenses`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
+          params: {
+            targetId: targetId || "",
+            page,
+            size,
           },
         }
       );
@@ -168,19 +178,14 @@ export const fetchCategoryExpenses =
     }
   };
 
-export const deleteCategory = (categoryId) => async (dispatch) => {
+export const deleteCategory = (categoryId, targetId) => async (dispatch) => {
+  console.log("testing friend id", targetId);
   try {
-    const token = localStorage.getItem("jwt");
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    await api.delete(`/api/categories/${categoryId}`, {
+      params: {
+        targetId: targetId || "", // Send targetId or default to an empty string
       },
-    };
-
-    await axios.delete(
-      `http://localhost:8080/api/categories/${categoryId}`,
-      config
-    );
+    });
 
     dispatch({
       type: DELETE_CATEGORY_SUCCESS,

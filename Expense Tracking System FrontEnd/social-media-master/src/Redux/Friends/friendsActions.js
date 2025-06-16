@@ -1,4 +1,5 @@
 import { api } from "../../config/api";
+import axios from "axios";
 import {
   FETCH_FRIEND_SUGGESTIONS_REQUEST,
   FETCH_FRIEND_SUGGESTIONS_SUCCESS,
@@ -26,6 +27,10 @@ import {
   FETCH_SHARED_WITH_ME_REQUEST,
   FETCH_SHARED_WITH_ME_SUCCESS,
   FETCH_SHARED_WITH_ME_FAILURE,
+  FETCH_FRIENDS_EXPENSES_SUCCESS,
+  FETCH_FRIENDS_EXPENSES_FAILURE,
+  FETCH_FRIENDSHIP_SUCCESS,
+  FETCH_FRIENDSHIP_FAILURE,
 } from "./friendsActionTypes";
 
 // Fetch friend suggestions
@@ -307,5 +312,53 @@ export const fetchSharedWithMe = () => async (dispatch) => {
     });
 
     return { success: false, error: errorMessage };
+  }
+};
+
+// Fetch friends' expenses
+export const fetchFriendsExpenses = (userId) => async (dispatch) => {
+  try {
+    const response = await api.get(`api/expenses/user/${userId}`);
+
+    dispatch({
+      type: FETCH_FRIENDS_EXPENSES_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_FRIENDS_EXPENSES_FAILURE,
+      payload: error.message,
+    });
+  }
+};
+
+export const fetchFriendship = (friendshipId) => async (dispatch) => {
+  try {
+    const response = await api.get(`/api/friendships/${friendshipId}`);
+
+    dispatch({
+      type: FETCH_FRIENDSHIP_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_FRIENDSHIP_FAILURE,
+      payload: error.message,
+    });
+  }
+};
+
+export const fetchFriendsDetailed = () => async (dispatch) => {
+  try {
+    const response = await api.get("/api/friendships/friends/detailed");
+    dispatch({
+      type: FETCH_FRIENDS_SUCCESS, // Ensure this matches the constant
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_FRIENDS_FAILURE, // Ensure this matches the constant
+      payload: error.response?.data?.message || error.message,
+    });
   }
 };

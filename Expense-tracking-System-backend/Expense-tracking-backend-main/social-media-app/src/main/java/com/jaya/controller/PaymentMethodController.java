@@ -5,11 +5,12 @@ import com.jaya.models.PaymentMethod;
 import com.jaya.models.User;
 import com.jaya.service.PaymentMethodService;
 import com.jaya.service.UserService;
+import com.jaya.service.FriendshipService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+
 @RestController
 @RequestMapping("/api/payment-methods")
 public class PaymentMethodController {
@@ -18,53 +19,155 @@ public class PaymentMethodController {
     private PaymentMethodService paymentMethodService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private FriendshipService friendshipService;
+
+    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) throws UserException {
+        if (targetId == null) return reqUser;
+        User targetUser = userService.findUserById(targetId);
+        if (targetUser == null) throw new RuntimeException("Target user not found");
+        boolean hasAccess = needWriteAccess ?
+                friendshipService.canUserModifyExpenses(targetId, reqUser.getId()) :
+                friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
+        if (!hasAccess) {
+            String action = needWriteAccess ? "modify" : "access";
+            throw new RuntimeException("You don't have permission to " + action + " this user's payment methods");
+        }
+        return targetUser;
+    }
+
+    private ResponseEntity<?> handleTargetUserException(RuntimeException e) {
+        if (e.getMessage().contains("not found")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
+        } else if (e.getMessage().contains("permission")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentMethod> getPaymentMethodById(@PathVariable Integer id, @RequestHeader("Authorization") String jwt) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        PaymentMethod pm = paymentMethodService.getById(reqUser.getId(), id);
-        return ResponseEntity.ok(pm);
+    public ResponseEntity<?> getPaymentMethodById(
+            @PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            PaymentMethod pm = paymentMethodService.getById(targetUser.getId(), id);
+            return ResponseEntity.ok(pm);
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching payment method: " + e.getMessage());
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<PaymentMethod>> getAllPaymentMethods(@RequestHeader("Authorization") String jwt) {
-        User reqUser = userService.findUserByJwt(jwt);
-        List<PaymentMethod> list = paymentMethodService.getAllPaymentMethods(reqUser.getId());
-        return ResponseEntity.ok(list);
+    public ResponseEntity<?> getAllPaymentMethods(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            List<PaymentMethod> list = paymentMethodService.getAllPaymentMethods(targetUser.getId());
+            return ResponseEntity.ok(list);
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching payment methods: " + e.getMessage());
+        }
     }
 
     @GetMapping("/name")
-    public ResponseEntity<PaymentMethod> getByName(@RequestHeader("Authorization") String jwt,@RequestParam String name) {
-        User reqUser = userService.findUserByJwt(jwt);
-        PaymentMethod paymentMethod = paymentMethodService.getByName(reqUser.getId(),name);
-        return ResponseEntity.ok(paymentMethod);
+    public ResponseEntity<?> getByName(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam String name,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            PaymentMethod paymentMethod = paymentMethodService.getByName(targetUser.getId(), name);
+            return ResponseEntity.ok(paymentMethod);
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching payment method: " + e.getMessage());
+        }
     }
 
     @PostMapping()
-    public ResponseEntity<PaymentMethod> createPaymentMethod(@RequestHeader("Authorization") String jwt, @RequestBody PaymentMethod paymentMethod) throws UserException {
-        User reqUser = userService.findUserByJwt(jwt);
-        PaymentMethod created = paymentMethodService.createPaymentMethod(reqUser.getId(), paymentMethod);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public ResponseEntity<?> createPaymentMethod(
+            @RequestHeader("Authorization") String jwt,
+            @RequestBody PaymentMethod paymentMethod,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            PaymentMethod created = paymentMethodService.createPaymentMethod(targetUser.getId(), paymentMethod);
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating payment method: " + e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PaymentMethod> updatePaymentMethod(@PathVariable Integer id, @RequestHeader("Authorization") String jwt, @RequestBody PaymentMethod paymentMethod) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        PaymentMethod updated = paymentMethodService.updatePaymentMethod(reqUser.getId(), id, paymentMethod);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<?> updatePaymentMethod(
+            @PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestBody PaymentMethod paymentMethod,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            PaymentMethod updated = paymentMethodService.updatePaymentMethod(targetUser.getId(), id, paymentMethod);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating payment method: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePaymentMethod(@PathVariable Integer id, @RequestHeader("Authorization") String jwt) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        paymentMethodService.deletePaymentMethod(reqUser.getId(), id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deletePaymentMethod(
+            @PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            paymentMethodService.deletePaymentMethod(targetUser.getId(), id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting payment method: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/all")
-    public ResponseEntity<Void> deleteAllUserPaymentMethods( @RequestHeader("Authorization") String jwt) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        paymentMethodService.deleteAllUserPaymentMethods(reqUser.getId());
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteAllUserPaymentMethods(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            paymentMethodService.deleteAllUserPaymentMethods(targetUser.getId());
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting payment methods: " + e.getMessage());
+        }
     }
 }

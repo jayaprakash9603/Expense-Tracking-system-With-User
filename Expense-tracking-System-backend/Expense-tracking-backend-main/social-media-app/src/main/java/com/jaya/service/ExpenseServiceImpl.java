@@ -1639,11 +1639,11 @@ public class ExpenseServiceImpl implements ExpenseService {
     
     
     @Override
-    public Map<String, Double> getTotalByDate() {
-        // Fetching total expenses grouped by date from the repository
-        List<Object[]> result = expenseRepository.findTotalExpensesGroupedByDate();
+    public Map<String, Double> getTotalByDate(User user) {
 
-        // Map to store the final response: {date: totalAmount}
+        List<Object[]> result = expenseRepository.findTotalExpensesGroupedByDate(user.getId());
+
+
         Map<String, Double> totalExpensesByDate = new HashMap<>();
 
         // Iterating through the result and filling the map
@@ -1660,44 +1660,44 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
     
     @Override
-    public Double getTotalForToday() {
+    public Double getTotalForToday(User user) {
         // Fetching the total expenses for today from the repository
         LocalDate today = LocalDate.now(); // Get today's date
-        return expenseRepository.findTotalExpensesForToday(today);
+        return expenseRepository.findTotalExpensesForToday(today,user.getId());
     }
     
     
     @Override
-    public Double getTotalForCurrentMonth() {
+    public Double getTotalForCurrentMonth(User user) {
         // Fetching the current month and year
         LocalDate today = LocalDate.now();
         int month = today.getMonthValue(); // Get current month (1-12)
         int year = today.getYear(); // Get current year
         
         // Fetch total expenses for the current month and year
-        return expenseRepository.findTotalExpensesForCurrentMonth(month, year);
+        return expenseRepository.findTotalExpensesForCurrentMonth(month, year,user.getId());
     }
 
     @Override
-    public Double getTotalForMonthAndYear(int month, int year) {
-        return expenseRepository.getTotalByMonthAndYear(month, year);
+    public Double getTotalForMonthAndYear(int month, int year,User user) {
+        return expenseRepository.getTotalByMonthAndYear(month, year,user.getId());
     }
     
     @Override
-    public Double getTotalByDateRange(LocalDate startDate, LocalDate endDate) {
-        return expenseRepository.getTotalByDateRange(startDate, endDate);
+    public Double getTotalByDateRange(LocalDate startDate, LocalDate endDate,User user) {
+        return expenseRepository.getTotalByDateRange(startDate, endDate,user.getId());
     }
     
     
     @Override
-    public Map<String, Double> getPaymentWiseTotalForCurrentMonth() {
+    public Map<String, Double> getPaymentWiseTotalForCurrentMonth(User user) {
         // Get the current month and year
         LocalDate now = LocalDate.now();
         int currentMonth = now.getMonthValue();
         int currentYear = now.getYear();
 
         // Call the repository to fetch the totals
-        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForCurrentMonth(currentMonth, currentYear);
+        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForCurrentMonth(currentMonth, currentYear,user.getId());
 
         // Prepare the result map
         Map<String, Double> result = new HashMap<>();
@@ -1709,7 +1709,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
     
     @Override
-    public Map<String, Double> getPaymentWiseTotalForLastMonth() {
+    public Map<String, Double> getPaymentWiseTotalForLastMonth(User user) {
         // Get the current date and calculate the last month
         LocalDate now = LocalDate.now();
         int currentMonth = now.getMonthValue();
@@ -1724,7 +1724,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
 
         // Call the repository to fetch the totals
-        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForLastMonth(lastMonth, lastYear);
+        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForLastMonth(lastMonth, lastYear,user.getId());
 
         // Prepare the result map
         Map<String, Double> result = new HashMap<>();
@@ -1736,9 +1736,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
     
     @Override
-    public Map<String, Double> getPaymentWiseTotalForDateRange(LocalDate startDate, LocalDate endDate) {
+    public Map<String, Double> getPaymentWiseTotalForDateRange(LocalDate startDate, LocalDate endDate,User user) {
         // Call the repository to get payment-wise totals for the specific date range
-        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodBetweenDates(startDate, endDate);
+        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodBetweenDates(startDate, endDate,user.getId());
 
         // Prepare the result map
         Map<String, Double> result = new HashMap<>();
@@ -1750,9 +1750,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
     
     @Override
-    public Map<String, Double> getPaymentWiseTotalForMonth(int month, int year) {
+    public Map<String, Double> getPaymentWiseTotalForMonth(int month, int year,User user) {
         // Call the repository to get payment-wise totals for the specified month and year
-        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForMonth(month, year);
+        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForMonth(month, year,user.getId());
 
         // Prepare the result map
         Map<String, Double> result = new HashMap<>();
@@ -1764,9 +1764,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
     
     @Override
-    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethod(int month, int year) {
+    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethod(int month, int year,User user) {
         // Call the repository to get totals grouped by expenseName and paymentMethod
-        List<Object[]> totals = expenseRepository.findTotalByExpenseNameAndPaymentMethodForMonth(month, year);
+        List<Object[]> totals = expenseRepository.findTotalByExpenseNameAndPaymentMethodForMonth(month, year,user.getId());
 
         // Prepare the result map
         Map<String, Map<String, Double>> result = new HashMap<>();
@@ -1785,9 +1785,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
     
     @Override
-    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate) {
+    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate,User user) {
         // Call the repository to get totals grouped by expenseName and paymentMethod
-        List<Object[]> totals = expenseRepository.findTotalByExpenseNameAndPaymentMethodForDateRange(startDate, endDate);
+        List<Object[]> totals = expenseRepository.findTotalByExpenseNameAndPaymentMethodForDateRange(startDate, endDate,user.getId());
 
         // Prepare the result map
         Map<String, Map<String, Double>> result = new HashMap<>();
@@ -1806,8 +1806,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
     
     @Override
-    public Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod() {
-        List<Object[]> results = expenseRepository.findTotalExpensesGroupedByCategoryAndPaymentMethod();
+    public Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod(User user) {
+        List<Object[]> results = expenseRepository.findTotalExpensesGroupedByCategoryAndPaymentMethod(user.getId());
         Map<String, Map<String, Double>> groupedExpenses = new HashMap<>();
 
         for (Object[] result : results) {
@@ -2170,17 +2170,17 @@ public class ExpenseServiceImpl implements ExpenseService {
    
 
     @Override
-    public List<Expense> getExpensesByCurrentWeek() {
+    public List<Expense> getExpensesByCurrentWeek(User user) {
         LocalDate startDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endDate = startDate.plusDays(6);
-        return expenseRepository.findByDateBetween(startDate, endDate);
+        return expenseRepository.findByUserIdAndDateBetween(user.getId(),startDate, endDate);
     }
 
     @Override
-    public List<Expense> getExpensesByLastWeek() {
+    public List<Expense> getExpensesByLastWeek(User user) {
         LocalDate endDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minusDays(1);
         LocalDate startDate = endDate.minusDays(6);
-        return expenseRepository.findByDateBetween(startDate, endDate);
+        return expenseRepository.findByUserIdAndDateBetween(user.getId(),startDate, endDate);
     }
     
     @Override

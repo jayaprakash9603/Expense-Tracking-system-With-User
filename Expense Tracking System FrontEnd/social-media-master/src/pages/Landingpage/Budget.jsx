@@ -6,7 +6,7 @@ import {
   getBudgetById,
   getBudgetReportById,
 } from "../../Redux/Budget/budget.action";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   getExpensesAction,
   getExpensesByBudgetId,
@@ -49,18 +49,24 @@ const Budget = () => {
   const [budgetToDelete, setBudgetToDelete] = useState(null);
   const [toast, setToast] = useState({ open: false, message: "" });
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const { friendId } = useParams(); // Assuming you might have a friendId in params for filtering expenses
+  const isFriendView = Boolean(friendId);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { budgets, loading, error } = useSelector((state) => state.budgets);
 
   useEffect(() => {
-    dispatch(getBudgetData());
-    dispatch(getExpensesAction());
-  }, [dispatch]);
+    dispatch(getBudgetData(friendId));
+    dispatch(getExpensesAction("desc", friendId));
+  }, [dispatch, friendId]);
 
   const handleNewBudgetClick = () => {
-    navigate("/budget/create");
+    if (friendId && friendId !== "undefined") {
+      navigate(`/budget/create/${friendId}`);
+    } else {
+      navigate("/budget/create");
+    }
   };
 
   const handleMenuClick = (event, budgetId) => {
@@ -74,16 +80,24 @@ const Budget = () => {
   };
 
   const handleEdit = () => {
-    dispatch(getBudgetById(menuBudgetId));
-    navigate(`/budget/edit/${menuBudgetId}`);
+    dispatch(getBudgetById(menuBudgetId, friendId || ""));
+    if (friendId == "" || friendId == undefined) {
+      navigate(`/budget/edit/${menuBudgetId}`);
+    } else {
+      navigate(`/budget/edit/${menuBudgetId}/friend/${friendId}`);
+    }
     handleMenuClose();
   };
 
   const handleReport = async () => {
-    await dispatch(getExpensesByBudgetId(menuBudgetId));
-    await dispatch(getBudgetReportById(menuBudgetId));
+    await dispatch(getExpensesByBudgetId(menuBudgetId, friendId || ""));
+    await dispatch(getBudgetReportById(menuBudgetId, friendId || ""));
     handleMenuClose();
-    navigate(`/budget/report/${menuBudgetId}`);
+    if (friendId && friendId !== "undefined") {
+      navigate(`/budget/report/${menuBudgetId}/friend/${friendId}`);
+    } else {
+      navigate(`/budget/report/${menuBudgetId}`);
+    }
   };
 
   const handleDelete = () => {
@@ -97,9 +111,9 @@ const Budget = () => {
 
   const handleConfirmDelete = () => {
     if (budgetToDelete) {
-      dispatch(deleteBudgetData(budgetToDelete.id))
+      dispatch(deleteBudgetData(budgetToDelete.id, friendId || ""))
         .then(() => {
-          dispatch(getBudgetData());
+          dispatch(getBudgetData(friendId || ""));
           setToast({ open: true, message: "Budget deleted successfully." });
         })
         .catch((error) => {
@@ -316,6 +330,38 @@ const Budget = () => {
             mb: 1,
           }}
         >
+          <IconButton
+            sx={{
+              color: "#00DAC6",
+              backgroundColor: "#1b1b1b",
+              "&:hover": {
+                backgroundColor: "#28282a",
+              },
+              zIndex: 10,
+            }}
+            onClick={() =>
+              friendId && friendId !== "undefined"
+                ? navigate(`/friends/expenses/${friendId}`)
+                : navigate("/expenses")
+            }
+            aria-label="Back"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="#00DAC6"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </IconButton>
           <Typography
             variant="h3"
             sx={{

@@ -12,13 +12,12 @@ import {
   getPaginationRowModel,
 } from "@tanstack/react-table";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-
 const fieldStyles =
   "px-3 py-2 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[300px] max-w-[200px]";
 const labelStyle = "text-white text-sm sm:text-base font-semibold mr-4";
@@ -64,10 +63,13 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [checkboxStates, setCheckboxStates] = useState([]);
+  const { friendId } = useParams();
+
+  console.log("FriendId ", friendId);
 
   // Fetch budgets on component mount
   useEffect(() => {
-    dispatch(getListOfBudgetsById(today));
+    dispatch(getListOfBudgetsById(today, friendId || ""));
   }, [dispatch, today]);
 
   // Update checkbox states when budgets change
@@ -77,12 +79,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   // Fetch expenses suggestions
   useEffect(() => {
-    dispatch(getExpensesSuggestions());
+    dispatch(getExpensesSuggestions(friendId || ""));
   }, [dispatch]);
 
   // Fetch categories on component mount
   useEffect(() => {
-    dispatch(fetchCategories());
+    dispatch(fetchCategories(friendId || ""));
   }, [dispatch]);
 
   // Set initial type based on salary date logic if dateFromQuery is present
@@ -160,7 +162,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     }
 
     // Dispatch getListOfBudgetsById with the selected date
-    dispatch(getListOfBudgetsById(newValue));
+    dispatch(getListOfBudgetsById(newValue, friendId));
   };
 
   const handleSubmit = (e) => {
@@ -178,20 +180,23 @@ const NewExpense = ({ onClose, onSuccess }) => {
       .map((budget) => budget.id);
 
     dispatch(
-      createExpenseAction({
-        date: expenseData.date,
-        budgetIds: budgetIds,
-        categoryId: expenseData.category,
-        expense: {
-          expenseName: expenseData.expenseName,
-          amount: expenseData.amount,
-          netAmount: expenseData.amount,
-          paymentMethod: expenseData.paymentMethod,
-          type: expenseData.transactionType.toLowerCase(),
-          comments: expenseData.comments,
-          creditDue: expenseData.creditDue || 0,
+      createExpenseAction(
+        {
+          date: expenseData.date,
+          budgetIds: budgetIds,
+          categoryId: expenseData.category,
+          expense: {
+            expenseName: expenseData.expenseName,
+            amount: expenseData.amount,
+            netAmount: expenseData.amount,
+            paymentMethod: expenseData.paymentMethod,
+            type: expenseData.transactionType.toLowerCase(),
+            comments: expenseData.comments,
+            creditDue: expenseData.creditDue || 0,
+          },
         },
-      })
+        friendId || ""
+      )
     );
 
     if (typeof onClose === "function") {
@@ -511,15 +516,20 @@ const NewExpense = ({ onClose, onSuccess }) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={categories}
+          options={Array.isArray(categories) ? categories : []}
           getOptionLabel={(option) => option.name || ""}
           value={
-            categories.find((cat) => cat.id === expenseData.category) || null
+            Array.isArray(categories)
+              ? categories.find((cat) => cat.id === expenseData.category) ||
+                null
+              : null
           }
           onInputChange={(event, newValue) => {
-            const matchedCategory = categories.find(
-              (cat) => cat.name.toLowerCase() === newValue.toLowerCase()
-            );
+            const matchedCategory = Array.isArray(categories)
+              ? categories.find(
+                  (cat) => cat.name.toLowerCase() === newValue.toLowerCase()
+                )
+              : null;
             setExpenseData((prev) => ({
               ...prev,
               category: matchedCategory ? matchedCategory.id : "",
@@ -543,38 +553,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
               }}
             />
           )}
-          renderOption={(props, option, { inputValue }) => {
-            const { key, ...optionProps } = props;
-            return (
-              <li
-                key={key}
-                {...optionProps}
-                className="flex items-center mb-2 ml-3"
-              >
-                <img
-                  src={require("../../assests/save-money.png")}
-                  alt="category-icon"
-                  className="w-5 h-5 mr-2"
-                  style={{
-                    filter:
-                      "invert(50%) sepia(100%) saturate(500%) hue-rotate(150deg) brightness(1) contrast(1)",
-                  }}
-                />
-                <div>{highlightText(option.name, inputValue)}</div>
-              </li>
-            );
-          }}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-          }}
         />
       </div>
-      {errors.category && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors.category}
-        </span>
-      )}
     </div>
   );
 

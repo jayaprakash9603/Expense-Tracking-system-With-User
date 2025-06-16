@@ -11,10 +11,13 @@ import {
   MoreVert as MoreVertIcon,
 } from "@mui/icons-material";
 import HistoryTable from "./HistoryTable";
+import { useNavigate, useParams } from "react-router";
 
 const TransactionsContent = () => {
   // Check if the screen size is small
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const { friendId } = useParams();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -43,6 +46,38 @@ const TransactionsContent = () => {
             gap: isSmallScreen ? 2 : 0, // Add space between elements on small screens
           }}
         >
+          <IconButton
+            sx={{
+              color: "#00DAC6",
+              backgroundColor: "#1b1b1b",
+              "&:hover": {
+                backgroundColor: "#28282a",
+              },
+              zIndex: 10,
+            }}
+            onClick={() =>
+              friendId && friendId !== "undefined"
+                ? navigate(`/friends/expenses/${friendId}`)
+                : navigate("/expenses")
+            }
+            aria-label="Back"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="#00DAC6"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </IconButton>
           <Typography
             variant={isSmallScreen ? "h5" : "h3"} // Reduce font size on small screens
             sx={{ color: "#ffffff", fontWeight: "bold" }}
@@ -65,7 +100,7 @@ const TransactionsContent = () => {
         </Box>
         <Divider sx={{ borderColor: "#28282a", my: 1 }} />
         <Box sx={{ flex: 1, bgcolor: "#0b0b0b" }}>
-          <HistoryTable />
+          <HistoryTable friendId={friendId} />
         </Box>
       </Box>
     </>
