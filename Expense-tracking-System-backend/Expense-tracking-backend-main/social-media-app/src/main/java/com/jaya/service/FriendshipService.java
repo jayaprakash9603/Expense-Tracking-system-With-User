@@ -81,4 +81,7 @@ public interface FriendshipService {
 
     // FriendshipService.java
     List<Map<String, Object>> getDetailedFriends(Integer userId);
+
+    // In FriendshipService.java
+    Map<String, Object> getFriendshipDetails(Integer userId1, Integer userId2);
 }

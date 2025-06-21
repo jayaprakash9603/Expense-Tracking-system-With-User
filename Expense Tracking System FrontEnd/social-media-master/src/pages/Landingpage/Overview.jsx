@@ -12,9 +12,9 @@ const Overview = () => {
   const creditDue = -summary?.totalCreditDue || 0;
   const remainingBudget = summary?.remainingBudget || 0;
 
-  useEffect(() => {
-    dispatch(getExpensesSummaryAction());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(getExpensesSummaryAction());
+  // }, [dispatch]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));

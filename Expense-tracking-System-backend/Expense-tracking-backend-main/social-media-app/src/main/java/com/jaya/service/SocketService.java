@@ -24,17 +24,17 @@ public class SocketService {
     // Notify user about a new friend request
     public void notifyNewFriendRequest(Friendship friendship) {
         Integer recipientId = friendship.getRecipient().getId();
-
-        // Check if recipient is connected
+        Integer senderId=friendship.getRequester().getId();
         if (SocketIOConfig.isUserConnected(recipientId)) {
             // Get socket client for recipient
             com.corundumstudio.socketio.SocketIOClient recipientClient =
                     SocketIOConfig.getClientForUser(socketIOServer, recipientId);
 
             if (recipientClient != null) {
-                // Send notification to recipient
-                recipientClient.sendEvent("newFriendRequest", friendship);
+                recipientClient.sendEvent("newFriendRequest", recipientId,senderId);
             }
+
+            System.out.println("Friends request send to user id"+recipientId);
         }
     }
 
@@ -47,7 +47,6 @@ public class SocketService {
             // Get socket client for requester
             com.corundumstudio.socketio.SocketIOClient requesterClient =
                     SocketIOConfig.getClientForUser(socketIOServer, requesterId);
-
             if (requesterClient != null) {
                 // Send notification to requester
                 requesterClient.sendEvent("friendRequestResponse", friendship);

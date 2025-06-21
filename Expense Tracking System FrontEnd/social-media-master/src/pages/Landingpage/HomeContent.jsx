@@ -13,8 +13,7 @@ const HomeContent = () => {
 
   useEffect(() => {
     dispatch(getExpensesSummaryAction());
-  }, [dispatch]);
-
+  }, []);
   return (
     <div className="bg-[#1b1b1b]">
       <div className="h-[50px] bg-[#1b1b1b]"></div>

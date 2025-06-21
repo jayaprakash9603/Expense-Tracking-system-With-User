@@ -140,71 +140,73 @@ const Friends = () => {
       // Initialize socket with user ID
       const socket = initializeSocket(user.id);
 
-      if (socket) {
-        // Track connection status
-        socket.on("connect", () => {
-          console.log("Socket connected");
-          setSocketConnected(true);
-        });
+      // if (socket) {
+      //   // Track connection status
+      //   socket.on("connect", () => {
+      //     console.log("Socket connected");
+      //     setSocketConnected(true);
+      //   });
 
-        socket.on("disconnect", () => {
-          console.log("Socket disconnected");
-          setSocketConnected(false);
-        });
+      //   socket.on("disconnect", () => {
+      //     console.log("Socket disconnected");
+      //     setSocketConnected(false);
+      //   });
 
-        socket.on("connect_error", (error) => {
-          console.error("Socket connection error:", error);
-          setSocketConnected(false);
-        });
+      //   socket.on("connect_error", (error) => {
+      //     console.error("Socket connection error:", error);
+      //     setSocketConnected(false);
+      //   });
 
-        // Listen for new friend requests
-        socket.on("newFriendRequest", (data) => {
-          console.log("New friend request received:", data);
+      //   // Listen for new friend requests
+      //   socket.on("newFriendRequest", (data) => {
+      //     console.log(
+      //       "New friend request received test on frindds component:",
+      //       data
+      //     );
 
-          // Show notification
-          setSnackbar({
-            open: true,
-            message: `New friend request from ${data.requester.firstName} ${data.requester.lastName}`,
-            severity: "info",
-          });
+      //     // Show notification
+      //     setSnackbar({
+      //       open: true,
+      //       message: `New friend request from ${data}`,
+      //       severity: "info",
+      //     });
 
-          // Add the new request to Redux store
-          dispatch(addNewFriendRequest(data));
+      //     // // Add the new request to Redux store
+      //     // dispatch(addNewFriendRequest(data));
 
-          // Refresh friend requests list
-          dispatch(fetchFriendRequests());
-          setLastUpdate(Date.now());
-        });
+      //     // Refresh friend requests list
+      //     dispatch(fetchFriendRequests());
+      //     setLastUpdate(Date.now());
+      //   });
 
-        // ... rest of your socket event listeners ...
+      //   // ... rest of your socket event listeners ...
 
-        // Clean up socket connection when component unmounts
-        return () => {
-          socket.off("connect");
-          socket.off("disconnect");
-          socket.off("connect_error");
-          socket.off("newFriendRequest");
-          socket.off("friendRequestResponse");
-          socket.off("accessLevelChanged");
-          socket.off("expenseUpdated");
-          disconnectSocket();
-        };
-      }
+      //   // Clean up socket connection when component unmounts
+      //   return () => {
+      //     socket.off("connect");
+      //     socket.off("disconnect");
+      //     socket.off("connect_error");
+      //     socket.off("newFriendRequest");
+      //     socket.off("friendRequestResponse");
+      //     socket.off("accessLevelChanged");
+      //     socket.off("expenseUpdated");
+      //     disconnectSocket();
+      //   };
+      // }
     }
   }, [user, token, dispatch, selectedFriend, friends]);
 
   // Add this useEffect for polling as a fallback mechanism
   useEffect(() => {
-    // Start polling for updates every 15 seconds as a fallback
     if (user && token && activeTab === 2) {
       const interval = setInterval(() => {
-        // Only refresh if it's been more than 10 seconds since the last update
-        if (Date.now() - lastUpdate > 10000) {
+        // Only refresh if it's been more than 2 seconds since the last update
+        if (Date.now() - lastUpdate > 15000) {
           console.log("Polling for updates...");
           dispatch(fetchFriends());
           setLastUpdate(Date.now());
         }
-      }, 15000);
+      }, 1500);
 
       setPollingInterval(interval);
 
@@ -284,7 +286,7 @@ const Friends = () => {
       // Emit socket event to notify the recipient
       const socket = getSocket();
       if (socket) {
-        socket.emit("friendRequestSent", {
+        socket.emit("newFriendRequest", {
           recipientId: userId,
           senderId: user.id,
         });
@@ -586,7 +588,7 @@ const Friends = () => {
       message: "Loading shared expenses...",
       severity: "info",
     });
-    dispatch(fetchFriendship(selectedFriendship.id || ""));
+    dispatch(fetchFriendship(friendId || ""));
     dispatch(fetchCashflowExpenses("month", 0, "all", "", friendId));
 
     if (socket) {
@@ -758,12 +760,6 @@ const Friends = () => {
   const getUserImage = (user) => {
     return user?.image || "default-avatar.png"; // Fallback to default image
   };
-
-  console.log("User:", user);
-  console.log("Token:", token);
-  console.log("Friends:", friends);
-  console.log("I Shared With:", iSharedWith);
-  console.log("Shared With Me:", sharedWithMe);
 
   // If user is not logged in, show login message
   if (!user || !token) {
@@ -1245,7 +1241,7 @@ const Friends = () => {
                 </div>
 
                 <div className="mb-6">
-                  <div className="flex items-center mb-2">
+                  <div className="flex items-center mb-3">
                     <Typography variant="subtitle1" sx={{ color: "#3eb489" }}>
                       Friends Sharing With Me
                     </Typography>
@@ -1262,39 +1258,55 @@ const Friends = () => {
                       {sharedWithMeError}
                     </div>
                   ) : sharedWithMe.length === 0 ? (
-                    <div className="text-gray-400 text-sm mb-2 p-3 bg-[#2a2a2a] rounded-lg">
+                    <div className="text-gray-400 text-sm mb-2 p-4 bg-[#2a2a2a] rounded-lg">
                       No one has shared their expense data with you yet.
                     </div>
                   ) : (
                     <div
-                      className="space-y-2 overflow-y-auto pr-2 custom-scrollbar"
-                      style={{ maxHeight: "calc(100vh - 500px)" }}
+                      className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
+                      style={{
+                        maxHeight: sharedWithMe.length > 2 ? "220px" : "auto",
+                        minHeight: "80px",
+                      }}
                     >
                       {sharedWithMe.map((item) => (
                         <div
                           key={item.userId}
-                          className={`bg-[#2a2a2a] p-3 rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
+                          className={`bg-[#2a2a2a] p-4 rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
                             selectedFriend?.userId === item.userId
                               ? "border-2 border-green-500"
                               : ""
                           }`}
                           onClick={() => handleFriendSelect(item)}
+                          style={{ minHeight: "90px" }}
                         >
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between h-full">
                             <div className="flex items-center flex-grow">
                               <div className="mr-4">
-                                <UserAvatar user={item} />
+                                <div
+                                  className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                                  style={{
+                                    backgroundColor: getAvatarColor(
+                                      item.userId
+                                    ),
+                                  }}
+                                >
+                                  {getInitials(
+                                    item.name.split(" ")[0],
+                                    item.name.split(" ")[1] || ""
+                                  )}
+                                </div>
                               </div>
                               <div className="min-w-0 flex-grow">
-                                <p className="text-white text-sm font-medium truncate">
+                                <p className="text-white text-sm font-medium truncate mb-1">
                                   {item.name}
                                 </p>
-                                <p className="text-xs text-gray-400 truncate">
+                                <p className="text-sm text-gray-400 truncate mb-2">
                                   {item.email}
                                 </p>
-                                <div className="flex items-center text-xs mt-1">
+                                <div className="flex items-center text-sm">
                                   {getAccessLevelIcon(item.accessLevel)}
-                                  <span className="ml-1 text-[#3eb489]">
+                                  <span className="ml-2 text-[#3eb489] text-sm">
                                     {getAccessLevelDescription(
                                       item.accessLevel,
                                       "theySharing"
@@ -1314,7 +1326,9 @@ const Friends = () => {
                                 color: "#3eb489",
                                 borderColor: "#3eb489",
                                 minWidth: "40px",
-                                padding: "4px 8px",
+                                width: "40px",
+                                height: "40px",
+                                padding: "8px",
                                 "&:hover": {
                                   borderColor: "#3eb489",
                                   backgroundColor: "rgba(62, 180, 137, 0.1)",
@@ -1332,7 +1346,7 @@ const Friends = () => {
 
                 {/* I Shared With Section */}
                 <div>
-                  <div className="flex items-center mb-2">
+                  <div className="flex items-center mb-3">
                     <Typography variant="subtitle1" sx={{ color: "#3eb489" }}>
                       I'm Sharing With
                     </Typography>
@@ -1349,39 +1363,55 @@ const Friends = () => {
                       {iSharedWithError}
                     </div>
                   ) : iSharedWith.length === 0 ? (
-                    <div className="text-gray-400 text-sm mb-2 p-3 bg-[#2a2a2a] rounded-lg">
+                    <div className="text-gray-400 text-sm mb-2 p-4 bg-[#2a2a2a] rounded-lg">
                       You haven't shared your expense data with anyone yet.
                     </div>
                   ) : (
                     <div
-                      className="space-y-2 overflow-y-auto pr-2 custom-scrollbar"
-                      style={{ maxHeight: "calc(100vh - 500px)" }}
+                      className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
+                      style={{
+                        maxHeight: iSharedWith.length > 2 ? "220px" : "auto",
+                        minHeight: "80px",
+                      }}
                     >
                       {iSharedWith.map((item) => (
                         <div
                           key={item.userId}
-                          className={`bg-[#2a2a2a] p-3 rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
+                          className={`bg-[#2a2a2a] p-4 rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
                             selectedFriend?.userId === item.userId
                               ? "border-2 border-green-500"
                               : ""
                           }`}
                           onClick={() => handleFriendSelect(item)}
+                          style={{ minHeight: "90px" }}
                         >
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between h-full">
                             <div className="flex items-center flex-grow">
                               <div className="mr-4">
-                                <UserAvatar user={item} />
+                                <div
+                                  className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                                  style={{
+                                    backgroundColor: getAvatarColor(
+                                      item.userId
+                                    ),
+                                  }}
+                                >
+                                  {getInitials(
+                                    item.name.split(" ")[0],
+                                    item.name.split(" ")[1] || ""
+                                  )}
+                                </div>
                               </div>
                               <div className="min-w-0 flex-grow">
-                                <p className="text-white text-sm font-medium truncate">
+                                <p className="text-white text-sm font-medium truncate mb-1">
                                   {item.name}
                                 </p>
-                                <p className="text-xs text-gray-400 truncate">
+                                <p className="text-sm text-gray-400 truncate mb-2">
                                   {item.email}
                                 </p>
-                                <div className="flex items-center text-xs mt-1">
+                                <div className="flex items-center text-sm">
                                   {getAccessLevelIcon(item.accessLevel)}
-                                  <span className="ml-1 text-[#3eb489]">
+                                  <span className="ml-2 text-[#3eb489] text-sm">
                                     {getAccessLevelDescription(
                                       item.accessLevel,
                                       "youSharing"
@@ -1406,6 +1436,9 @@ const Friends = () => {
                               sx={{
                                 color: "#3eb489",
                                 minWidth: "40px",
+                                width: "40px",
+                                height: "40px",
+                                padding: "8px",
                                 "&:hover": {
                                   backgroundColor: "rgba(62, 180, 137, 0.1)",
                                 },
@@ -1434,7 +1467,6 @@ const Friends = () => {
                       backgroundColor: getAvatarColor(selectedFriend.id),
                     }}
                   >
-                    {console.log("selected image", selectedFriend.image)}
                     {getInitials(
                       selectedFriend.firstName,
                       selectedFriend.lastName

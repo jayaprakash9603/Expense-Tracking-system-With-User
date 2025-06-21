@@ -30,7 +30,7 @@ import dayjs from "dayjs";
 
 // Use the same fieldStyles, labelStyle, formRow, firstFormRow, inputWrapper as NewExpense
 const fieldStyles =
-  "px-3 py-2 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[300px] max-w-[200px]";
+  "px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[300px] max-w-[200px] border-0";
 const labelStyle = "text-white text-sm sm:text-base font-semibold mr-4";
 const formRow = "mt-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
 const firstFormRow =

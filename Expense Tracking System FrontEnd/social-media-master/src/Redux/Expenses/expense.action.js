@@ -280,8 +280,8 @@ export const fetchPreviousExpenses =
     dispatch({ type: FETCH_PREVIOUS_EXPENSES_REQUEST });
 
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/expenses/before/${expenseName}/${date}`,
+      const response = await api.get(
+        `/api/expenses/before/${expenseName}/${date}`,
         {
           params: {
             targetId: targetId || "", // Include targetId if provided
@@ -312,28 +312,25 @@ export const uploadFile = (file, targetId) => async (dispatch) => {
   formData.append("file", file);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/expenses/upload`, {
-      method: "POST",
-
-      body: formData,
+    const response = await api.post(`/api/expenses/upload`, formData, {
       params: {
-        targetId: targetId || "", // Include targetId if provided
+        targetId: targetId || "",
+      },
+      headers: {
+        "Content-Type": "multipart/form-data",
       },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Upload failed");
-    }
-
-    const result = await response.json();
-    console.log(result);
-    dispatch({ type: UPLOAD_FILE_SUCCESS, payload: result });
+    console.log("File upload response:", response.data);
+    dispatch({ type: UPLOAD_FILE_SUCCESS, payload: response.data });
   } catch (error) {
-    dispatch({ type: UPLOAD_FILE_FAILURE, payload: error.message });
+    console.error("Error uploading file:", error);
+    dispatch({
+      type: UPLOAD_FILE_FAILURE,
+      payload: error.response?.data?.message || error.message,
+    });
   }
 };
-
 export const resetUploadState = () => ({
   type: RESET_UPLOAD_STATE,
 });
@@ -351,28 +348,25 @@ export const saveExpensesFailure = (error) => ({
   type: SAVE_EXPENSES_FAILURE,
   payload: error,
 });
-
 export const saveExpenses = (expenses, targetId) => {
-  console.log("saved exepsens", expenses);
+  console.log("saved expenses", expenses);
   return async (dispatch) => {
     dispatch(saveExpensesRequest());
     try {
-      const response = await fetch(`${API_BASE_URL}/api/expenses/save`, {
-        method: "POST",
+      const response = await api.post(`/api/expenses/add-multiple`, expenses, {
         params: {
-          targetId: targetId || "", // Include targetId if provided
+          targetId: targetId || "",
         },
-        body: JSON.stringify(expenses),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to save expenses");
-      }
-
-      const data = await response.json();
-      dispatch(saveExpensesSuccess(data));
+      console.log("Save expenses response:", response.data);
+      dispatch(saveExpensesSuccess(response.data));
     } catch (error) {
-      dispatch(saveExpensesFailure(error.message));
+      console.error("Error saving expenses:", error);
+      dispatch({
+        type: SAVE_EXPENSES_FAILURE,
+        payload: error.response?.data?.message || error.message,
+      });
     }
   };
 };
@@ -453,8 +447,8 @@ export const getExpensesByParticularDate =
     dispatch({ type: GET_PARTICULAR_DATE_EXPENSES_REQUEST });
 
     try {
-      const { data } = await axios.get(
-        `${API_BASE_URL}/api/expenses/particular-date?date=${date}`,
+      const { data } = await api.get(
+        `/api/expenses/particular-date?date=${date}`,
         {
           params: {
             targetId: targetId || "", // Include targetId if provided
@@ -507,3 +501,4 @@ export const fetchCategoriesWithExpenses =
       throw error;
     }
   };
+

@@ -107,7 +107,7 @@ export const registerUserAction = (loginData) => async (dispatch) => {
 
     // Fetch the user profile after registration
     dispatch(getProfileAction(data.token));
-
+    updateAuthHeader();
     return { success: true };
   } catch (error) {
     console.log("Register error:", error);

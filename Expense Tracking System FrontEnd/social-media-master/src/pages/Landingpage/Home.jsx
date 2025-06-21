@@ -1,6 +1,7 @@
 import React from "react";
 import Left from "./Left.jsx";
 import { Outlet } from "react-router";
+import ConnectionStatus from "./ConnectionStatus.jsx";
 
 const Home = () => {
   return (
@@ -9,6 +10,7 @@ const Home = () => {
         <Left />
       </div>
       <div className="flex-1">
+        <ConnectionStatus />
         <Outlet /> {/* Renders HomeContent or other route components */}
       </div>
     </div>

@@ -174,10 +174,13 @@ const friendsReducer = (state = initialState, action) => {
       return {
         ...state,
         respondingToRequest: false,
-        // Remove the request from the list
         friendRequests: state.friendRequests.filter(
           (request) => request.id !== action.payload.friendshipId
         ),
+        // Add the new friend to the friends list if accepted
+        friends: action.payload.accept
+          ? [...state.friends, action.payload.response]
+          : state.friends,
       };
 
     case RESPOND_TO_FRIEND_REQUEST_FAILURE:

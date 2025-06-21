@@ -768,32 +768,68 @@ public class FriendshipServiceImpl implements FriendshipService {
         List<Friendship> friendships = getUserFriendships(userId);
         List<Map<String, Object>> result = new ArrayList<>();
         for (Friendship f : friendships) {
+            // Only include if requesterAccess is not NONE
+            if (f.getRequesterAccess() == AccessLevel.NONE) {
+                continue;
+            }
             User friend = f.getRequester().getId().equals(userId) ? f.getRecipient() : f.getRequester();
             Map<String, Object> map = new HashMap<>();
             map.put("id", friend.getId());
             map.put("name", friend.getFirstName() + " " + friend.getLastName());
+            map.put("email", friend.getEmail());
             map.put("status", f.getStatus().name());
-            // Example color logic, adjust as needed
             String color = "#00DAC6";
             if (f.getStatus() == FriendshipStatus.PENDING) color = "#FFC107";
             else if (f.getStatus() == FriendshipStatus.REJECTED) color = "#ff4d4f";
             else if (f.getStatus() == FriendshipStatus.ACCEPTED) color = "#5b7fff";
             map.put("color", color);
             map.put("image", friend.getImage() != null ? friend.getImage() : "");
-
-            // Access level from the perspective of the current user
             AccessLevel accessLevel = f.getRequester().getId().equals(userId) ? f.getRecipientAccess() : f.getRequesterAccess();
             map.put("accessLevel", accessLevel.name());
-
-            // Add friendship details
             map.put("friendshipId", f.getId());
             map.put("requesterAccess", f.getRequesterAccess().name());
             map.put("recipientAccess", f.getRecipientAccess().name());
             map.put("requesterUserId", f.getRequester().getId());
             map.put("recipientUserId", f.getRecipient().getId());
-
             result.add(map);
         }
         return result;
+    }
+
+
+    @Override
+    public Map<String, Object> getFriendshipDetails(Integer userId1, Integer userId2) {
+        Friendship friendship = getFriendship(userId1, userId2);
+        if (friendship == null) {
+            return null; // Or throw an exception if you prefer
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", friendship.getId());
+        map.put("status", friendship.getStatus().name());
+        map.put("requesterAccess", friendship.getRequesterAccess().name());
+        map.put("recipientAccess", friendship.getRecipientAccess().name());
+        boolean isRequester = friendship.getRequester().getId().equals(userId1);
+        map.put("directionSwapped", isRequester );
+
+        Map<String, Object> requester = new HashMap<>();
+        requester.put("id", friendship.getRequester().getId());
+        requester.put("username", friendship.getRequester().getUsername());
+        requester.put("email", friendship.getRequester().getEmail());
+        requester.put("firstName", friendship.getRequester().getFirstName());
+        requester.put("lastName", friendship.getRequester().getLastName());
+        requester.put("image", friendship.getRequester().getImage());
+
+        Map<String, Object> recipient = new HashMap<>();
+        recipient.put("id", friendship.getRecipient().getId());
+        recipient.put("username", friendship.getRecipient().getUsername());
+        recipient.put("email", friendship.getRecipient().getEmail());
+        recipient.put("firstName", friendship.getRecipient().getFirstName());
+        recipient.put("lastName", friendship.getRecipient().getLastName());
+        recipient.put("image", friendship.getRecipient().getImage());
+
+        map.put("requester", requester);
+        map.put("recipient", recipient);
+
+        return map;
     }
 }

@@ -337,4 +337,18 @@ public class FriendshipController {
         List<Map<String, Object>> friends = friendshipService.getDetailedFriends(user.getId());
         return ResponseEntity.ok(friends);
     }
+
+
+    // In FriendshipController.java
+    @GetMapping("/details")
+    public ResponseEntity<?> getFriendshipDetails(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam Integer friendId) {
+        User user = userService.findUserByJwt(jwt);
+        Map<String, Object> details = friendshipService.getFriendshipDetails(user.getId(), friendId);
+        if (details == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(details);
+    }
 }

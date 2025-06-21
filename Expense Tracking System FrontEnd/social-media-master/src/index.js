@@ -9,6 +9,7 @@ import { store } from "./Redux/store";
 import { ThemeProvider } from "@emotion/react";
 import theme from "./pages/Landingpage/theme";
 import { getStore, setStore } from "./utils/store";
+import SocketProvider from "./utils/SocketProvider";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -18,9 +19,11 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <Provider store={store}>
-        <ThemeProvider theme={theme}>
-          <App />
-        </ThemeProvider>
+        <SocketProvider>
+          <ThemeProvider theme={theme}>
+            <App />
+          </ThemeProvider>
+        </SocketProvider>
       </Provider>
     </BrowserRouter>
   </React.StrictMode>

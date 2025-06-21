@@ -1,4 +1,6 @@
 import io from "socket.io-client";
+import { getStore } from "../utils/store";
+import { fetchFriendRequests } from "../Redux/Friends/friendsActions";
 
 let socket;
 
@@ -32,14 +34,17 @@ export const initializeSocket = (userId) => {
       console.error("Socket connection error:", error);
     });
 
-    socket.on("newFriendRequest", (friendship) => {
-      console.log("New friend request received:", friendship);
-      // Dispatch Redux action to update the store
-      // Example: store.dispatch(addNewFriendRequest(friendship));
+    socket.on("newFriendRequest", (recipientId) => {
+      console.log("New friend request for recipientId:", recipientId);
+      // if (typeof recipientId !== "string" && typeof recipientId !== "number") {
+      //   console.error("Invalid recipientId:", recipientId);
+      //   return;
+      // }
+      getStore().dispatch(fetchFriendRequests());
     });
 
     socket.on("friendRequestResponse", (response) => {
-      console.log("Friend request response received:", response);
+      console.log("Friend request response received test :", response);
       // Dispatch Redux action to update the store
       // Example: store.dispatch(removeFriendRequest(response.friendshipId));
     });

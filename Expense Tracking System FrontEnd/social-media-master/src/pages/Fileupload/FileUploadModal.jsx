@@ -17,6 +17,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../../components/Loaders/Loader";
 import Modal from "../../pages/Landingpage/Modal"; // Updated import path for Modal component
+import { useParams } from "react-router";
 
 const FileUploadModal = ({ isOpen, onClose }) => {
   const [files, setFiles] = useState([]);
@@ -26,6 +27,8 @@ const FileUploadModal = ({ isOpen, onClose }) => {
   const [popupMessage, setPopupMessage] = useState("");
   const uploadState = useSelector((state) => state.fileUpload);
   const dispatch = useDispatch();
+
+  const { friendId } = useParams();
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -77,7 +80,7 @@ const FileUploadModal = ({ isOpen, onClose }) => {
       return;
     }
     setLoading(true);
-    dispatch(uploadFile(files[0]));
+    dispatch(uploadFile(files[0], friendId));
   };
 
   useEffect(() => {

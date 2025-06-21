@@ -7,7 +7,7 @@ import {
   saveExpenses,
 } from "../../Redux/Expenses/expense.action";
 import ExpensesTable from "../Landingpage/ExpensesTable";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 const Upload = () => {
   const dispatch = useDispatch();
@@ -17,6 +17,8 @@ const Upload = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
+
+  const { friendId } = useParams(); // Assuming you are using react-router to get friendId from URL
 
   const {
     success = false,
@@ -42,7 +44,7 @@ const Upload = () => {
 
   const handleSave = () => {
     console.log("handling the save");
-    dispatch(saveExpenses(uploadedData));
+    dispatch(saveExpenses(uploadedData, friendId));
     navigate("/");
   };
 
@@ -52,7 +54,7 @@ const Upload = () => {
       setUploadedData(data);
       setIsTableVisible(true);
       setIsLoading(false);
-      dispatch(getExpensesAction());
+      dispatch(getExpensesAction(friendId));
     }
     if (error) {
       setIsLoading(false);

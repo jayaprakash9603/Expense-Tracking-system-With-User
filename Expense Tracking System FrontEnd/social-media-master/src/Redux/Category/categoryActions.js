@@ -83,14 +83,11 @@ export const fetchCategoryById =
     try {
       dispatch({ type: FETCH_CATEGORY_REQUEST });
 
-      const response = await axios.get(
-        `${API_BASE_URL}/api/categories/${categoryId}`,
-        {
-          params: {
-            targetId: targetId || "",
-          },
-        }
-      );
+      const response = await api.get(`/api/categories/${categoryId}`, {
+        params: {
+          targetId: targetId || "",
+        },
+      });
 
       dispatch({
         type: FETCH_CATEGORY_SUCCESS,
@@ -113,8 +110,8 @@ export const updateCategory =
     try {
       dispatch({ type: UPDATE_CATEGORY_REQUEST });
 
-      const response = await axios.put(
-        `${API_BASE_URL}/api/categories/${categoryId}`,
+      const response = await api.put(
+        `/api/categories/${categoryId}`,
         categoryData,
         {
           params: {
@@ -151,8 +148,8 @@ export const fetchCategoryExpenses =
     try {
       dispatch({ type: FETCH_CATEGORY_EXPENSES_REQUEST });
 
-      const response = await axios.get(
-        `${API_BASE_URL}/api/categories/${categoryId}/filtered-expenses`,
+      const response = await api.get(
+        `/api/categories/${categoryId}/filtered-expenses`,
         {
           params: {
             targetId: targetId || "",

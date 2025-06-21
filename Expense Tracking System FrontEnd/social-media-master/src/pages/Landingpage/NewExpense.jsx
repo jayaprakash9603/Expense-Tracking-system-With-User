@@ -19,12 +19,17 @@ import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 const fieldStyles =
-  "px-3 py-2 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[300px] max-w-[200px]";
+  "px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[300px] max-w-[200px] border-0";
 const labelStyle = "text-white text-sm sm:text-base font-semibold mr-4";
 const formRow = "mt-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
 const firstFormRow =
   "mt-2 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
-const inputWrapper = { width: "150px" };
+const inputWrapper = {
+  width: "150px",
+  minWidth: "150px",
+  display: "flex",
+  alignItems: "center",
+};
 
 const NewExpense = ({ onClose, onSuccess }) => {
   const location = useLocation();
@@ -1006,9 +1011,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             background-size: 18px;
             filter: invert(1) brightness(100) contrast(100);
           }
-          input[type="date"], input[type="number"] {
-            color: white;
-          }
+        
           input[type="number"]::-webkit-outer-spin-button,
           input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;

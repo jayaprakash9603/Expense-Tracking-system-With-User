@@ -18,10 +18,6 @@ const RecentExpenses = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  useEffect(() => {
-    dispatch(getExpensesSummaryAction());
-  }, [dispatch]);
-
   const mapPaymentMethod = (method) => {
     switch (method) {
       case "cash":

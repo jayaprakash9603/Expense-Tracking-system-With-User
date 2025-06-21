@@ -51,8 +51,10 @@ import moneyWithdrawalImg from "../../assests/money-withdrawal.png";
 import saveMoneyImg from "../../assests/save-money.png";
 import moneyInAndOutImg from "../../assests/money-in-and-out.png";
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
-import { fetchFriendsDetailed } from "../../Redux/Friends/friendsActions";
-import { fetchFriendship } from "../../Redux/Friends/friends.action";
+import {
+  fetchFriendsDetailed,
+  fetchFriendship,
+} from "../../Redux/Friends/friendsActions";
 import FriendInfoBar from "./FriendInfoBar";
 
 const rangeTypes = [
@@ -695,6 +697,53 @@ const FriendsExpenses = () => {
     </ResponsiveContainer>
   );
 
+  useEffect(() => {
+    if (friendId && friendId !== "undefined") {
+      dispatch(fetchFriendship(friendId));
+    }
+  }, [dispatch, friendId]);
+
+  // Replace the existing FriendInfoBar usage with this enhanced version
+  const handleRouteChange = async (newFriendId) => {
+    try {
+      // Navigate to the new friend's expenses
+      navigate(`/friends/expenses/${newFriendId}`);
+    } catch (error) {
+      console.error("Error changing route:", error);
+    }
+  };
+
+  const refreshData = async (newFriendId) => {
+    try {
+      // Set loading state if needed
+      setIsFiltering(true);
+
+      // Fetch all necessary data for the new friend
+      await Promise.all([
+        dispatch(fetchFriendship(newFriendId)),
+        dispatch(fetchFriendsDetailed()),
+        dispatch(
+          fetchCashflowExpenses(
+            activeRange,
+            offset,
+            flowTab === "all" ? null : flowTab,
+            search.trim() || null,
+            newFriendId
+          )
+        ),
+      ]);
+
+      // Reset any selected states
+      setSelectedBar(null);
+      setSelectedCardIdx(null);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      setToastMessage("Error loading friend data. Please try again.");
+      setToastOpen(true);
+    } finally {
+      setIsFiltering(false);
+    }
+  };
   return (
     <>
       <FriendInfoBar
@@ -702,9 +751,9 @@ const FriendsExpenses = () => {
         friendId={friendId}
         friends={friends || []}
         loading={loading}
-        onFriendChange={(newFriendId) => {
-          navigate(`/friends/expenses/${newFriendId}`);
-        }}
+        onRouteChange={handleRouteChange}
+        refreshData={refreshData}
+        showInfoBar={showFriendInfo}
       />
 
       <div
@@ -1203,6 +1252,24 @@ const FriendsExpenses = () => {
                   strokeLinecap="round"
                 />
               </svg>
+            </IconButton>
+
+            <IconButton
+              sx={{ p: 0.5, color: "#00DAC6" }}
+              onClick={() => navigate(`/upload/${friendId}`)}
+              aria-label="Upload File"
+            >
+              <img
+                src={require("../../assests/upload.png")}
+                alt="Upload File"
+                style={{
+                  width: 24,
+                  height: 24,
+                  display: "block",
+                  filter:
+                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                }}
+              />
             </IconButton>
           </div>
         </div>

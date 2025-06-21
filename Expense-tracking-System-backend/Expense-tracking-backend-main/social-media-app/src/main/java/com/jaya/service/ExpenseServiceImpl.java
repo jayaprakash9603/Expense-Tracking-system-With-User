@@ -1878,12 +1878,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         headerRow.createCell(5).setCellValue("Type");
         headerRow.createCell(6).setCellValue("Date");
         headerRow.createCell(7).setCellValue("Category ID");
-        headerRow.createCell(8).setCellValue("Category Name");
-        headerRow.createCell(9).setCellValue("Category Color");
-        headerRow.createCell(10).setCellValue("Category Icon");
-        headerRow.createCell(11).setCellValue("Category Description");
-        headerRow.createCell(12).setCellValue("Is Global Category");
-        headerRow.createCell(13).setCellValue("Comments");
+        headerRow.createCell(8).setCellValue("Comments");
 
         // Create a map to cache category information to avoid repeated database lookups
         Map<Integer, Category> categoryCache = new HashMap<>();
@@ -1894,55 +1889,18 @@ public class ExpenseServiceImpl implements ExpenseService {
             if (details == null) continue;
 
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(details.getExpenseName());
-            row.createCell(1).setCellValue(details.getPaymentMethod());
-            row.createCell(2).setCellValue(details.getAmount());
-            row.createCell(3).setCellValue(details.getNetAmount());
-            row.createCell(4).setCellValue(details.getCreditDue());
-            row.createCell(5).setCellValue(details.getType());
-            row.createCell(6).setCellValue(expense.getDate().toString());
-
-            // Add category information
-            Integer categoryId = expense.getCategoryId();
-            row.createCell(7).setCellValue(categoryId != null ? categoryId : 0);
-
-            // Get category details
-            String categoryName = "Uncategorized";
-            String categoryColor = "";
-            String categoryIcon = "";
-            String categoryDescription = "";
-            boolean isGlobal = false;
-
-            if (categoryId != null && categoryId > 0) {
-                // Check cache first
-                Category category = categoryCache.get(categoryId);
-                if (category == null) {
-                    try {
-                        category = categoryService.getById(categoryId, user);
-                        categoryCache.put(categoryId, category);
-                    } catch (Exception e) {
-                        // Category not found, use default values
-                    }
-                }
-
-                if (category != null) {
-                    categoryName = category.getName();
-                    categoryColor = category.getColor();
-                    categoryIcon = category.getIcon();
-                    categoryDescription = category.getDescription();
-                    isGlobal = category.isGlobal();
-                }
-            }
-
-            row.createCell(8).setCellValue(categoryName);
-            row.createCell(9).setCellValue(categoryColor);
-            row.createCell(10).setCellValue(categoryIcon);
-            row.createCell(11).setCellValue(categoryDescription);
-            row.createCell(12).setCellValue(isGlobal);
-
-            // Add comments
-            row.createCell(13).setCellValue(details.getComments() != null ? details.getComments() : "");
+            row.createCell(0).setCellValue(expense.getId());
+            row.createCell(1).setCellValue(details.getExpenseName());
+            row.createCell(2).setCellValue(details.getPaymentMethod());
+            row.createCell(3).setCellValue(details.getAmount());
+            row.createCell(4).setCellValue(details.getNetAmount());
+            row.createCell(5).setCellValue(details.getCreditDue());
+            row.createCell(6).setCellValue(details.getType());
+            row.createCell(7).setCellValue(expense.getDate().toString());
+            row.createCell(8).setCellValue(expense.getCategoryId() != null ? expense.getCategoryId() : 0);
+            row.createCell(9).setCellValue(details.getComments() != null ? details.getComments() : "");
         }
+
 
         // Auto-size columns for better readability
         for (int i = 0; i < 14; i++) {
@@ -1960,6 +1918,8 @@ public class ExpenseServiceImpl implements ExpenseService {
         summaryHeader.createCell(5).setCellValue("Is Global");
         summaryHeader.createCell(6).setCellValue("Total Amount");
         summaryHeader.createCell(7).setCellValue("Number of Expenses");
+        summaryHeader.createCell(8).setCellValue("User Ids");
+        summaryHeader.createCell(9).setCellValue("Edited UserIds");
 
         // Calculate totals by category
         Map<Integer, Double> categoryTotals = new HashMap<>();
@@ -1976,6 +1936,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         // Write summary data
         int summaryRowNum = 1;
+
+        List<Category> categories = categoryService.getAllForUser(user);
         for (Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
             Integer categoryId = entry.getKey();
             Double totalAmount = entry.getValue();
@@ -1989,8 +1951,10 @@ public class ExpenseServiceImpl implements ExpenseService {
             String categoryColor = "";
             String categoryIcon = "";
             String categoryDescription = "";
+            Set<Integer>expenseIds = new HashSet<>();
             boolean isGlobal = false;
-
+Set<Integer> editedUserIds = new HashSet<>();
+Set<Integer> userIds = new HashSet<>();
             if (categoryId > 0) {
                 Category category = categoryCache.get(categoryId);
                 if (category != null) {
@@ -1999,6 +1963,8 @@ public class ExpenseServiceImpl implements ExpenseService {
                     categoryIcon = category.getIcon();
                     categoryDescription = category.getDescription();
                     isGlobal = category.isGlobal();
+                    userIds=category.getUserIds();
+                    editedUserIds=category.getEditUserIds();
                 }
             }
 
@@ -2009,10 +1975,16 @@ public class ExpenseServiceImpl implements ExpenseService {
             row.createCell(5).setCellValue(isGlobal);
             row.createCell(6).setCellValue(totalAmount);
             row.createCell(7).setCellValue(expenseCount);
+            row.createCell(8).setCellValue(
+                    userIds!=null ? userIds.toString() : "[]"
+            );
+            row.createCell(9).setCellValue(
+                    editedUserIds!=null ? editedUserIds.toString() : "[]"
+            );
         }
 
         // Auto-size summary columns
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 10; i++) {
             summarySheet.autoSizeColumn(i);
         }
 
@@ -2056,6 +2028,38 @@ public class ExpenseServiceImpl implements ExpenseService {
             paymentMethodSheet.autoSizeColumn(i);
         }
 
+
+        List<Budget> budgets = budgetService.getAllBudgetForUser(user.getId());
+        Sheet budgetSheet = workbook.createSheet("Budgets");
+        Row budgetHeader = budgetSheet.createRow(0);
+        budgetHeader.createCell(0).setCellValue("Budget ID");
+        budgetHeader.createCell(1).setCellValue("Name");
+        budgetHeader.createCell(2).setCellValue("Description");
+        budgetHeader.createCell(3).setCellValue("Amount");
+        budgetHeader.createCell(4).setCellValue("Remaining Amount");
+        budgetHeader.createCell(5).setCellValue("Start Date");
+        budgetHeader.createCell(6).setCellValue("End Date");
+        budgetHeader.createCell(7).setCellValue("Has Expenses");
+        budgetHeader.createCell(8).setCellValue("Expenses Ids");
+
+        int budgetRowNum = 1;
+        for (Budget budget : budgets) {
+            Row row = budgetSheet.createRow(budgetRowNum++);
+            row.createCell(0).setCellValue(budget.getId());
+            row.createCell(1).setCellValue(budget.getName());
+            row.createCell(2).setCellValue(budget.getDescription());
+            row.createCell(3).setCellValue(budget.getAmount());
+            row.createCell(4).setCellValue(budget.getRemainingAmount());
+            row.createCell(5).setCellValue(budget.getStartDate() != null ? budget.getStartDate().toString() : "");
+            row.createCell(6).setCellValue(budget.getEndDate() != null ? budget.getEndDate().toString() : "");
+            row.createCell(7).setCellValue(budget.isBudgetHasExpenses());
+            row.createCell(8).setCellValue(
+                    budget.getExpenseIds() != null ? budget.getExpenseIds().toString() : ""
+            );
+        }
+        for (int i = 0; i < 9; i++) {
+            budgetSheet.autoSizeColumn(i);
+        }
         // Create the file
         String emailPrefix = user.getEmail().split("@")[0];  // Get the part before '@' in the email address
         String userFolderName = emailPrefix + "_" + user.getId();
@@ -2073,6 +2077,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
             workbook.write(fileOut);
         }
+
+
+
 
         workbook.close();
 

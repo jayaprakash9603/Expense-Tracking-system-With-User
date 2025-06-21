@@ -39,7 +39,7 @@ export const fetchFriendSuggestions = () => async (dispatch) => {
 
   try {
     const response = await api.get("/api/friendships/suggestions");
-    console.log("Friend suggestions response:", response.data);
+    // console.log("Friend suggestions response:", response.data);
 
     dispatch({
       type: FETCH_FRIEND_SUGGESTIONS_SUCCESS,
@@ -104,7 +104,7 @@ export const fetchFriendRequests = () => async (dispatch) => {
 
   try {
     const response = await api.get("/api/friendships/pending/incoming");
-    console.log("Friend requests response:", response.data);
+    // console.log("Friend requests response:", response.data);
 
     dispatch({
       type: FETCH_FRIEND_REQUESTS_SUCCESS,
@@ -134,7 +134,7 @@ export const fetchFriends = () => async (dispatch) => {
 
   try {
     const response = await api.get("/api/friendships/friends");
-    console.log("Friends response:", response.data);
+    // console.log("Friends response:", response.data);
 
     dispatch({
       type: FETCH_FRIENDS_SUCCESS,
@@ -168,10 +168,10 @@ export const respondToFriendRequest =
       const response = await api.put(
         `/api/friendships/${friendshipId}/respond?accept=${accept}`
       );
-      console.log(
-        `${accept ? "Accept" : "Reject"} friend request response:`,
-        response.data
-      );
+      // console.log(
+      //   `${accept ? "Accept" : "Reject"} friend request response:`,
+      //   response.data
+      // );
 
       dispatch({
         type: RESPOND_TO_FRIEND_REQUEST_SUCCESS,
@@ -227,7 +227,7 @@ export const setAccessLevel =
       const response = await api.put(
         `/api/friendships/${friendshipId}/access?accessLevel=${accessLevel}`
       );
-      console.log("Set access level response:", response.data);
+      // console.log("Set access level response:", response.data);
 
       dispatch({
         type: SET_ACCESS_LEVEL_SUCCESS,
@@ -261,7 +261,7 @@ export const fetchISharedWith = () => async (dispatch) => {
 
   try {
     const response = await api.get("/api/friendships/i-shared-with");
-    console.log("I shared with response:", response.data);
+    // console.log("I shared with response:", response.data);
 
     dispatch({
       type: FETCH_I_SHARED_WITH_SUCCESS,
@@ -291,7 +291,7 @@ export const fetchSharedWithMe = () => async (dispatch) => {
 
   try {
     const response = await api.get("/api/friendships/shared-with-me");
-    console.log("Shared with me response:", response.data);
+    // console.log("Shared with me response:", response.data);
 
     dispatch({
       type: FETCH_SHARED_WITH_ME_SUCCESS,
@@ -332,9 +332,13 @@ export const fetchFriendsExpenses = (userId) => async (dispatch) => {
   }
 };
 
-export const fetchFriendship = (friendshipId) => async (dispatch) => {
+export const fetchFriendship = (friendId) => async (dispatch) => {
   try {
-    const response = await api.get(`/api/friendships/${friendshipId}`);
+    const response = await api.get(`/api/friendships/details`, {
+      params: {
+        friendId: friendId,
+      },
+    });
 
     dispatch({
       type: FETCH_FRIENDSHIP_SUCCESS,
