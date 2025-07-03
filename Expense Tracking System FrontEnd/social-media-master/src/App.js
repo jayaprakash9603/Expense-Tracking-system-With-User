@@ -35,7 +35,11 @@ import FriendExpenses from "./pages/Landingpage/FriendsExpenses";
 import ExpensesView from "./pages/Landingpage/ExpensesView";
 import SocketProvider from "./utils/SocketProvider";
 import { initializeSocket } from "./services/socketService";
-
+import PaymentMethodFlow from "./pages/Landingpage/PaymentMethodFlow";
+import CreatePaymentMethod from "./pages/Landingpage/CreatePaymentMethod";
+import EditPaymentMethod from "./pages/Landingpage/EditPaymentMethod";
+import Bill from "./pages/Landingpage/Bill";
+import CreateBill from "./pages/Landingpage/CreateBill";
 function App() {
   const { auth } = useSelector((store) => store);
   const dispatch = useDispatch();
@@ -77,6 +81,16 @@ function App() {
             <Route path="home" element={<HomeContent />} />
             <Route path="profile" element={<Profile />} />
             <Route path="friends" element={<Friends />} />
+            <Route path="payment-method">
+              <Route index element={<PaymentMethodFlow />} />
+              <Route path="create" element={<CreatePaymentMethod />} />
+              <Route path="edit/:id" element={<EditPaymentMethod />} />
+            </Route>
+
+            <Route path="bill">
+              <Route index element={<Bill />} />
+              <Route path="create" element={<CreateBill />} />
+            </Route>
 
             <Route path="friends">
               <Route index element={<Friends />} />

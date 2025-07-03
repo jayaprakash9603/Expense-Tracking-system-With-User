@@ -174,6 +174,8 @@ const Cashflow = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [isFiltering, setIsFiltering] = useState(false);
+  const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
+  const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   useEffect(() => {
     if (location.state && location.state.selectedCategory) {
       // Set the range type and offset from the navigation state if available
@@ -447,6 +449,27 @@ const Cashflow = () => {
   };
 
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        addNewPopoverOpen &&
+        addNewBtnRef &&
+        !addNewBtnRef.contains(event.target)
+      ) {
+        // Check if click is outside both the button and the popover
+        const popover = document.querySelector('[data-popover="add-new"]');
+        if (!popover || !popover.contains(event.target)) {
+          setAddNewPopoverOpen(false);
+        }
+      }
+    };
+
+    if (addNewPopoverOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [addNewPopoverOpen, addNewBtnRef]);
+  useEffect(() => {
     // Show toast if redirected with toastMessage in location.state
     if (location.state && location.state.toastMessage) {
       setToastMessage(location.state.toastMessage);
@@ -494,7 +517,9 @@ const Cashflow = () => {
       dispatch(deleteExpenseAction(expenseToDelete))
         .then(() => {
           // Refresh cashflow data after delete
-          dispatch(fetchCashflowExpenses(activeRange, offset, flowTab));
+          const result = dispatch(
+            fetchCashflowExpenses(activeRange, offset, flowTab)
+          );
           setToastMessage("Expense deleted successfully.");
           setToastOpen(true);
         })
@@ -930,174 +955,214 @@ const Cashflow = () => {
           />
 
           {/* Fixed position for these buttons */}
+
+          {/* Navigation Section with Names and Icons */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               marginLeft: "8px",
-              flexShrink: 0, // Prevent shrinking
+              flexShrink: 0,
+              gap: isMobile ? "4px" : "8px",
+              flexWrap: isMobile ? "wrap" : "nowrap",
             }}
           >
-            {/* Categories Icon Button */}
-            <IconButton
-              sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/category-flow")}
-              aria-label="Categories"
-            >
-              <img
-                src={require("../../assests/category.png")}
-                alt="Categories"
+            {[
+              {
+                path: "/category-flow",
+                icon: "category.png",
+                label: "Categories",
+              },
+              { path: "/transactions", icon: "history.png", label: "History" },
+              { path: "/insights", icon: "insight.png", label: "Insights" },
+              { path: "/reports", icon: "report.png", label: "Reports" },
+              { path: "/cashflow", icon: "list.png", label: "Expenses" },
+              { path: "/budget", icon: "budget.png", label: "Budget" },
+              {
+                path: "/payment-method",
+                icon: "payment-method.png",
+                label: "Payment Method",
+              },
+              {
+                path: "/bill",
+                icon: "bill.png",
+                label: "Bill",
+              },
+              {
+                path: "/calendar-view",
+                icon: "calendar.png",
+                label: "Calendar",
+              },
+            ].map(({ path, icon, label }) => (
+              <button
+                key={path}
+                onClick={() => navigate(path)}
+                className="nav-button"
                 style={{
-                  width: 24,
-                  height: 24,
-                  display: "block",
-                  filter:
-                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: isMobile ? "6px 8px" : "8px 12px",
+                  backgroundColor: "#1b1b1b",
+                  border: "1px solid #333",
+                  borderRadius: "8px",
+                  color: "#00DAC6",
+                  fontSize: isMobile ? "12px" : "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  minWidth: "fit-content",
                 }}
-              />
-            </IconButton>
-
-            <IconButton
-              sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/transactions")}
-              aria-label="Transactions"
-            >
-              <img
-                src={require("../../assests/history.png")}
-                alt="Transactions"
-                style={{
-                  width: 24,
-                  height: 24,
-                  display: "block",
-                  filter:
-                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                }}
-              />
-            </IconButton>
-
-            <IconButton
-              sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/insights")}
-              aria-label="Insights"
-            >
-              <img
-                src={require("../../assests/insight.png")}
-                alt="Insights"
-                style={{
-                  width: 24,
-                  height: 24,
-                  display: "block",
-                  filter:
-                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                }}
-              />
-            </IconButton>
-
-            <IconButton
-              sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/reports")}
-              aria-label="Reports"
-            >
-              <img
-                src={require("../../assests/report.png")}
-                alt="Reports"
-                style={{
-                  width: 24,
-                  height: 24,
-                  display: "block",
-                  filter:
-                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                }}
-              />
-            </IconButton>
-
-            <IconButton
-              sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/cashflow")}
-              aria-label="All Expenses"
-            >
-              <img
-                src={require("../../assests/list.png")}
-                alt="All Expenses"
-                style={{
-                  width: 24,
-                  height: 24,
-                  display: "block",
-                  filter:
-                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                }}
-              />
-            </IconButton>
-
-            <IconButton
-              sx={{ p: 0.5, color: "#00DAC6" }}
-              onClick={() => navigate("/budget")}
-              aria-label="All Budgets"
-            >
-              <img
-                src={require("../../assests/budget.png")}
-                alt="All Budgets"
-                style={{
-                  width: 24,
-                  height: 24,
-                  display: "block",
-                  filter:
-                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                }}
-              />
-            </IconButton>
-            <IconButton
-              sx={{ p: 0.5 }}
-              onClick={() => navigate("/calendar-view")}
-              aria-label="Calendar View"
-            >
-              <img
-                src={require("../../assests/calendar.png")}
-                alt="Calendar View"
-                style={{
-                  width: 24,
-                  height: 24,
-                  display: "block",
-                  filter:
-                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                }}
-              />
-            </IconButton>
-            <IconButton
-              sx={{ color: "#5b7fff", ml: 1 }}
-              onClick={() => navigate("/expenses/create")}
-              aria-label="New Expense"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
               >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="#5b7fff"
-                  strokeWidth="2"
-                  fill="#23243a"
+                <img
+                  src={require(`../../assests/${icon}`)}
+                  alt={label}
+                  style={{
+                    width: isMobile ? 16 : 18,
+                    height: isMobile ? 16 : 18,
+                    filter:
+                      "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                    transition: "filter 0.2s ease",
+                  }}
                 />
-                <path
-                  d="M12 8V16"
-                  stroke="#5b7fff"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M8 12H16"
-                  stroke="#5b7fff"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </IconButton>
+                {!isMobile && <span>{label}</span>}
+              </button>
+            ))}
+            {/* Add New - Simplified button */}
+            <button
+              ref={setAddNewBtnRef}
+              onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: isMobile ? "4px 6px" : "6px 8px",
+                backgroundColor: "#1b1b1b",
+                border: "1px solid #333",
+                borderRadius: "6px",
+                color: "#00DAC6",
+                fontSize: isMobile ? "11px" : "12px",
+                fontWeight: "500",
+                cursor: "pointer",
+                minWidth: "fit-content",
+              }}
+            >
+              <img
+                src={require("../../assests/add.png")}
+                alt="Add"
+                style={{
+                  width: isMobile ? 14 : 16,
+                  height: isMobile ? 14 : 16,
+                  filter:
+                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                  transition: "filter 0.2s ease",
+                }}
+              />
+              {!isMobile && <span>Add New</span>}
+            </button>
+
+            {/* Simplified Add New Popover */}
+            {addNewPopoverOpen &&
+              addNewBtnRef &&
+              createPortal(
+                <div
+                  data-popover="add-new"
+                  style={{
+                    position: "fixed",
+                    top:
+                      addNewBtnRef.getBoundingClientRect().bottom +
+                      4 +
+                      window.scrollY,
+                    left:
+                      addNewBtnRef.getBoundingClientRect().left +
+                      window.scrollX,
+                    zIndex: 1000,
+                    background: "#0b0b0b",
+                    border: "1px solid #333",
+                    borderRadius: 6,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                    minWidth: 140,
+                    padding: 4,
+                  }}
+                >
+                  {[
+                    {
+                      label: "Add Expense",
+                      route: "/expenses/create",
+                      color: "#00DAC6",
+                    },
+                    {
+                      label: "Upload File",
+                      route: "/upload",
+                      color: "#5b7fff",
+                    },
+                    {
+                      label: "Add Budget",
+                      route: "/budget/create",
+                      color: "#FFC107",
+                    },
+                    {
+                      label: "Add Category",
+                      route: "/category-flow/create",
+                      color: "#ff6b6b",
+                    },
+                  ].map((item, idx) => (
+                    <button
+                      key={idx}
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        background: "transparent",
+                        color: item.color,
+                        border: "none",
+                        textAlign: "left",
+                        padding: "8px 10px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        borderRadius: 4,
+                      }}
+                      onClick={() => {
+                        navigate(item.route);
+                        setAddNewPopoverOpen(false);
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = item.color;
+                        e.target.style.color =
+                          item.color === "#FFC107" ? "#000" : "#fff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = "transparent";
+                        e.target.style.color = item.color;
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>,
+                document.body
+              )}
           </div>
+
+          <style jsx>{`
+            .nav-button:hover {
+              background-color: #00dac6 !important;
+              color: #000 !important;
+              border-color: #00dac6 !important;
+            }
+            .nav-button:hover img {
+              filter: brightness(0) saturate(100%) invert(0%) !important;
+            }
+            .nav-button:hover svg circle,
+            .nav-button:hover svg path {
+              stroke: #000 !important;
+            }
+            .nav-button:hover span {
+              color: #000 !important;
+            }
+            .nav-button:active {
+              transform: scale(0.98);
+            }
+          `}</style>
         </div>
         {/* Sort Popover */}
         {popoverOpen &&
@@ -1493,15 +1558,6 @@ const Cashflow = () => {
                             color: "#fff",
                           },
                         }}
-                        // onClick={async () => {
-                        //   const result = await navigate(
-                        //     `/expenses/edit/${row.id || row.expenseId}`
-                        //   );
-                        //   if (result && result.success) {
-                        //     setToastMessage("Expense edited successfully");
-                        //     setToastOpen(true);
-                        //   }
-                        // }}
                         onClick={() => {
                           dispatch(
                             getListOfBudgetsByExpenseId({

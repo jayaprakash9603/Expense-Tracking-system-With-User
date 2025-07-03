@@ -39,7 +39,6 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import { CreateCategory } from "../../components/Category";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { createPortal } from "react-dom";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
@@ -53,12 +52,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import SortIcon from "@mui/icons-material/Sort";
 import AddIcon from "@mui/icons-material/Add";
 import { DataGrid } from "@mui/x-data-grid";
-import {
-  fetchCategoryById,
-  deleteCategory,
-} from "../../Redux/Category/categoryActions";
 import Modal from "./Modal";
-import useFriendshipData from "../../hooks/useFriendshipData";
+import {
+  deletePaymentMethod,
+  fetchPaymentMethodsWithExpenses,
+} from "../../Redux/Payment Method/paymentMethod.action";
+import CreatePaymentMethod from "./CreatePaymentMethod";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -79,33 +78,31 @@ const getRangeLabel = (range, offset, flowType) => {
     start = now.startOf("week").add(offset, "week");
     end = now.endOf("week").add(offset, "week");
     if (offset === 0) {
-      label = `Categories this week`;
+      label = `Payment Methods this week`;
     } else {
-      label = `Categories ${start.format("D MMM")} - ${end.format(
-        "D MMM, YYYY"
-      )}`;
+      label = `${start.format("D MMM")} - ${end.format("D MMM, YYYY")}`;
     }
   } else if (range === "month") {
     start = now.startOf("month").add(offset, "month");
     end = now.endOf("month").add(offset, "month");
     if (offset === 0) {
-      label = `Categories this month`;
+      label = `Payment Methods this month`;
     } else {
-      label = `Categories ${start.format("MMM YYYY")}`;
+      label = `${start.format("MMM YYYY")}`;
     }
   } else if (range === "year") {
     start = now.startOf("year").add(offset, "year");
     end = now.endOf("year").add(offset, "year");
     if (offset === 0) {
-      label = `Categories this year`;
+      label = `Payment Methods this year`;
     } else {
-      label = `Categories ${start.format("YYYY")}`;
+      label = `${start.format("YYYY")}`;
     }
   }
   return label;
 };
 
-const CategorySearchToolbar = ({
+const PaymentMethodSearchToolbar = ({
   search,
   setSearch,
   onFilterClick,
@@ -114,7 +111,7 @@ const CategorySearchToolbar = ({
   <div style={{ display: "flex", gap: 8, padding: 8 }}>
     <input
       type="text"
-      placeholder="Search categories..."
+      placeholder="Search Payment Method..."
       value={search}
       onChange={(e) => setSearch(e.target.value)}
       style={{
@@ -224,15 +221,16 @@ const renderActiveShape = (props) => {
   );
 };
 
-const CategoryFlow = () => {
+const PaymentMethodFlow = () => {
   const [activeRange, setActiveRange] = useState("month"); // Default to month on mount
   const [offset, setOffset] = useState(0);
   const [flowTab, setFlowTab] = useState("all"); // Start with 'all'
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(null); // For pie chart selection
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sortType, setSortType] = useState("high"); // Default to high-to-low for categories
-  const [createCategoryModalOpen, setCreateCategoryModalOpen] = useState(false); // State for create category modal
+  const [createPaymentMethodModalOpen, setCreatePaymentMethodModalOpen] =
+    useState(false);
   const [activeIndex, setActiveIndex] = useState(0); // For pie chart active segment
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -241,15 +239,19 @@ const CategoryFlow = () => {
     direction: "desc",
   });
   const [showExpenseTable, setShowExpenseTable] = useState(false);
-  const [selectedCategoryExpenses, setSelectedCategoryExpenses] = useState([]);
+  const [selectedPaymentMethodExpenses, setSelectedPaymentMethodExpenses] =
+    useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [paymentMethodToDelete, setPaymentMethodToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   // Add these state variables with your other state declarations
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
-  const [selectedMenuCategory, setSelectedMenuCategory] = useState(null);
+  const [selectedMenuPaymentMethod, setSelectedMenuPaymentMethod] =
+    useState(null);
   const dispatch = useDispatch();
-  const { categoryExpenses, loading } = useSelector((state) => state.expenses);
+  const { paymentMethodExpenses, loading } = useSelector(
+    (state) => state.paymentMethod
+  );
   const filterBtnRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -263,7 +265,7 @@ const CategoryFlow = () => {
   // Fetch data from API with correct flowType
   useEffect(() => {
     dispatch(
-      fetchCategoriesWithExpenses(activeRange, offset, flowTab, friendId)
+      fetchPaymentMethodsWithExpenses(activeRange, offset, flowTab, friendId)
     );
   }, [activeRange, offset, flowTab, dispatch, friendId]);
 
@@ -275,7 +277,7 @@ const CategoryFlow = () => {
 
   // Reset selected items when main view changes
   useEffect(() => {
-    setSelectedCategory(null);
+    setSelectedPaymentMethod(null);
     setActiveIndex(0);
     setShowExpenseTable(false);
   }, [activeRange, offset, flowTab]);
@@ -284,7 +286,7 @@ const CategoryFlow = () => {
   const handleMenuOpen = (event, category) => {
     event.stopPropagation(); // Prevent card click
     setMenuAnchorEl(event.currentTarget);
-    setSelectedMenuCategory(category);
+    setSelectedMenuPaymentMethod(category);
   };
 
   const handleMenuClose = (event) => {
@@ -292,22 +294,25 @@ const CategoryFlow = () => {
     setMenuAnchorEl(null);
   };
 
-  const handleEditCategory = (event) => {
+  const handleEditPaymentMethod = (event) => {
     event.stopPropagation(); // Prevent card click
-    if (selectedMenuCategory) {
+
+    if (selectedMenuPaymentMethod) {
       friendId && friendId !== undefined
         ? navigate(
-            `/category-flow/edit/${selectedMenuCategory.categoryId}/friend/${friendId}`
+            `/payment-method/edit/${selectedMenuPaymentMethod.categoryId}/friend/${friendId}`
           )
-        : navigate(`/category-flow/edit/${selectedMenuCategory.categoryId}`);
+        : navigate(
+            `/payment-method/edit/${selectedMenuPaymentMethod.categoryId}`
+          );
     }
     handleMenuClose(event);
   };
 
-  const handleDeleteCategoryFromMenu = (event) => {
+  const handleDeletePaymentMethodFromMenu = (event) => {
     event.stopPropagation(); // Prevent card click
-    if (selectedMenuCategory) {
-      setCategoryToDelete(selectedMenuCategory);
+    if (selectedMenuPaymentMethod) {
+      setPaymentMethodToDelete(selectedMenuPaymentMethod);
       setDeleteDialogOpen(true);
     }
     handleMenuClose(event);
@@ -337,7 +342,6 @@ const CategoryFlow = () => {
 
   const rangeLabel = getRangeLabel(activeRange, offset, flowTab);
 
-  // Generate a consistent color based on category name
   function getRandomColor(str) {
     // Predefined colors that work well with dark theme
     const themeColors = [
@@ -376,20 +380,20 @@ const CategoryFlow = () => {
 
   // Process data for pie chart and cards
   const { pieData, categoryCards } = useMemo(() => {
-    if (!categoryExpenses || !categoryExpenses.summary) {
+    if (!paymentMethodExpenses || !paymentMethodExpenses.summary) {
       return { pieData: [], categoryCards: [] };
     }
 
-    // Extract category data from the response
-    const categories = Object.keys(categoryExpenses)
+    // Extract Payment method data from the response
+    const categories = Object.keys(paymentMethodExpenses)
       .filter((key) => key !== "summary")
       .map((key) => ({
         name: key,
-        ...categoryExpenses[key],
-        value: categoryExpenses[key].totalAmount, // For pie chart
+        ...paymentMethodExpenses[key],
+        value: paymentMethodExpenses[key].totalAmount, // For pie chart
       }));
 
-    // Create category cards
+    // Create Payment method cards
     const cards = categories.map((category) => ({
       categoryName: category.name,
       categoryId: category.id,
@@ -407,7 +411,7 @@ const CategoryFlow = () => {
       })),
       categoryCards: cards,
     };
-  }, [categoryExpenses]);
+  }, [paymentMethodExpenses]);
 
   // Filter category cards by search
   const filteredCategoryCards = useMemo(() => {
@@ -421,8 +425,8 @@ const CategoryFlow = () => {
     );
   }, [categoryCards, search]);
 
-  // Sort filtered category cards based on sortType
-  const sortedCategoryCards = useMemo(() => {
+  // Sort filtered PaymentMethod cards based on sortType
+  const sortedPaymentMethodCards = useMemo(() => {
     let cards = [...filteredCategoryCards];
 
     if (sortType === "high") {
@@ -448,16 +452,16 @@ const CategoryFlow = () => {
 
     if (selectedCat) {
       // Set the selected category and show expenses, just like handleCategoryClick
-      setSelectedCategory(selectedCat);
+      setSelectedPaymentMethod(selectedCat);
 
       // Get expenses for this category
       let expenses = [];
       if (
-        categoryExpenses &&
-        categoryExpenses[selectedCat.categoryName] &&
-        Array.isArray(categoryExpenses[selectedCat.categoryName].expenses)
+        paymentMethodExpenses &&
+        paymentMethodExpenses[selectedCat.categoryName] &&
+        Array.isArray(paymentMethodExpenses[selectedCat.categoryName].expenses)
       ) {
-        expenses = categoryExpenses[selectedCat.categoryName].expenses;
+        expenses = paymentMethodExpenses[selectedCat.categoryName].expenses;
       } else if (Array.isArray(selectedCat.expenses)) {
         expenses = selectedCat.expenses;
       }
@@ -467,27 +471,24 @@ const CategoryFlow = () => {
         (expense) => expense !== null && expense !== undefined
       );
 
-      setSelectedCategoryExpenses(expenses);
+      setSelectedPaymentMethodExpenses(expenses);
       setShowExpenseTable(true);
       setPage(0); // Reset pagination
     }
   };
 
-  // Handler for category card click
-  // Handler for category card click
-  // Handler for category card click
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category);
+  const handlePaymentMethodClick = (category) => {
+    setSelectedPaymentMethod(category);
 
     // Check if the category has expenses data
     let expenses = [];
     if (
-      categoryExpenses &&
-      categoryExpenses[category.categoryName] &&
-      Array.isArray(categoryExpenses[category.categoryName].expenses)
+      paymentMethodExpenses &&
+      paymentMethodExpenses[category.categoryName] &&
+      Array.isArray(paymentMethodExpenses[category.categoryName].expenses)
     ) {
-      // Use the expenses directly from the categoryExpenses data
-      expenses = categoryExpenses[category.categoryName].expenses;
+      // Use the expenses directly from the paymentMethodExpenses data
+      expenses = paymentMethodExpenses[category.categoryName].expenses;
     } else if (Array.isArray(category.expenses)) {
       // Fallback to the expenses in the category object
       expenses = category.expenses;
@@ -498,21 +499,21 @@ const CategoryFlow = () => {
       (expense) => expense !== null && expense !== undefined
     );
 
-    setSelectedCategoryExpenses(expenses);
+    setSelectedPaymentMethodExpenses(expenses);
     setShowExpenseTable(true);
     setPage(0); // Reset pagination when changing category
   };
-  // Handler for category card double click
-  const handleCategoryDoubleClick = (e, category) => {
+  // Handler for payment method card double click
+  const handlePaymentMethodDoubleClick = (e, category) => {
     e.stopPropagation();
-    navigate(`/categories/edit/${category.categoryId}`);
+    navigate(`/payment-method/edit/${category.categoryId}`);
   };
 
   // Navigate to CashFlow with category filter
   const navigateToCashFlow = (category) => {
     navigate("/expenses", {
       state: {
-        selectedCategory: category.name,
+        selectedPaymentMethod: category.name,
         rangeType: activeRange,
         offset: offset,
         flowType: flowTab,
@@ -525,7 +526,7 @@ const CategoryFlow = () => {
     const idx = flowTypeCycle.findIndex((t) => t.value === flowTab);
     const next = flowTypeCycle[(idx + 1) % flowTypeCycle.length];
     setFlowTab(next.value);
-    setSelectedCategory(null);
+    setSelectedPaymentMethod(null);
     setShowExpenseTable(false);
   };
 
@@ -541,10 +542,13 @@ const CategoryFlow = () => {
   // Sort expenses based on current sort settings
   // Sort expenses based on current sort settings
   const sortedExpenses = useMemo(() => {
-    if (!selectedCategoryExpenses || !Array.isArray(selectedCategoryExpenses))
+    if (
+      !selectedPaymentMethodExpenses ||
+      !Array.isArray(selectedPaymentMethodExpenses)
+    )
       return [];
 
-    return [...selectedCategoryExpenses]
+    return [...selectedPaymentMethodExpenses]
       .filter((expense) => expense !== null && expense !== undefined) // Filter out null/undefined expenses
       .sort((a, b) => {
         const { field, direction } = expenseSort;
@@ -569,7 +573,7 @@ const CategoryFlow = () => {
         }
         return 0;
       });
-  }, [selectedCategoryExpenses, expenseSort]);
+  }, [selectedPaymentMethodExpenses, expenseSort]);
 
   // Pagination handlers
   const handleChangePage = (event, newPage) => {
@@ -584,31 +588,31 @@ const CategoryFlow = () => {
   // Close expense table
   const handleCloseExpenseTable = () => {
     setShowExpenseTable(false);
-    setSelectedCategory(null);
+    setSelectedPaymentMethod(null);
   };
 
   // Delete category handlers
   const handleDeleteClick = (e, category) => {
     e.stopPropagation();
-    setCategoryToDelete(category);
+    setPaymentMethodToDelete(category);
     setDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (categoryToDelete) {
+    if (paymentMethodToDelete) {
       setIsDeleting(true);
       try {
         await dispatch(
-          deleteCategory(categoryToDelete.categoryId, friendId || "")
+          deletePaymentMethod(paymentMethodToDelete.categoryId, friendId || "")
         );
         setToastMessage(
-          `Category "${categoryToDelete.categoryName}" deleted successfully.`
+          `Payment method "${paymentMethodToDelete.categoryName}" deleted successfully.`
         );
         setToastOpen(true);
         setDeleteDialogOpen(false);
-        // Refresh categories after deletion
+        // Refresh payment methods after deletion
         dispatch(
-          fetchCategoriesWithExpenses(
+          fetchPaymentMethodsWithExpenses(
             activeRange,
             offset,
             flowTab,
@@ -616,7 +620,7 @@ const CategoryFlow = () => {
           )
         );
       } catch (error) {
-        setToastMessage("Failed to delete category. Please try again.");
+        setToastMessage("Failed to delete Payment Method. Please try again.");
         setToastOpen(true);
       } finally {
         setIsDeleting(false);
@@ -629,13 +633,14 @@ const CategoryFlow = () => {
     setDeleteDialogOpen(false);
   };
 
-  // Handlers for create category modal
-  const handleOpenCreateCategoryModal = () => {
-    setCreateCategoryModalOpen(true);
+  // Handlers for create payment method
+  //  modal
+  const handleOpenCreatePaymentMethodModal = () => {
+    setCreatePaymentMethodModalOpen(true);
   };
 
-  const handleCloseCreateCategoryModal = () => {
-    setCreateCategoryModalOpen(false);
+  const handleCloseCreatePaymentMethodModal = () => {
+    setCreatePaymentMethodModalOpen(false);
     // Refresh categories after a new one is created
     dispatch(
       fetchCategoriesWithExpenses(activeRange, offset, flowTab, friendId)
@@ -708,11 +713,11 @@ const CategoryFlow = () => {
   // Render expense table
   // Render expense table
   const renderExpenseTable = () => {
-    if (!showExpenseTable || !selectedCategory) return null;
+    if (!showExpenseTable || !selectedPaymentMethod) return null;
 
     // Format data for DataGrid
-    const rows = Array.isArray(selectedCategoryExpenses)
-      ? selectedCategoryExpenses
+    const rows = Array.isArray(selectedPaymentMethodExpenses)
+      ? selectedPaymentMethodExpenses
           .filter((expense) => expense !== null && expense !== undefined)
           .map((expense, index) => {
             // Handle the nested structure of expense data
@@ -810,7 +815,7 @@ const CategoryFlow = () => {
       >
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-white font-bold">
-            {selectedCategory.categoryName} Expenses
+            {selectedPaymentMethod?.categoryName} Expenses
           </h3>
           <IconButton
             onClick={handleCloseExpenseTable}
@@ -896,38 +901,6 @@ const CategoryFlow = () => {
           minWidth: 0,
         }}
       >
-        {/* <IconButton
-        sx={{
-          position: "absolute",
-          top: 16,
-          left: 16,
-          color: "#00DAC6",
-          backgroundColor: "#1b1b1b",
-          "&:hover": {
-            backgroundColor: "#28282a",
-          },
-          zIndex: 10,
-        }}
-        onClick={() => navigate(-1)}
-        aria-label="Back"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M15 18L9 12L15 6"
-            stroke="#00DAC6"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </IconButton> */}
-
         <Box
           sx={{
             display: "flex",
@@ -1003,18 +976,18 @@ const CategoryFlow = () => {
         <Modal
           isOpen={deleteDialogOpen}
           onClose={handleDeleteCancelModal}
-          title="Delete Category"
-          confirmationText="Are you sure you want to delete this category?"
+          title="Delete Payment Method"
+          confirmationText="Are you sure you want to delete this payment method?"
           onApprove={handleDeleteConfirm}
           onDecline={handleDeleteCancelModal}
           approveText="Delete"
           declineText="Cancel"
         />
 
-        {/* Create Category Dialog */}
+        {/* Create Payment Method Dialog */}
         <Dialog
-          open={createCategoryModalOpen}
-          onClose={() => setCreateCategoryModalOpen(false)}
+          open={createPaymentMethodModalOpen}
+          onClose={() => setCreatePaymentMethodModalOpen(false)}
           PaperProps={{
             style: {
               backgroundColor: "#1b1b1b",
@@ -1023,13 +996,13 @@ const CategoryFlow = () => {
             },
           }}
         >
-          <DialogTitle>Create Category</DialogTitle>
+          <DialogTitle>Create Payment Method</DialogTitle>
           <DialogContent>
-            <CreateCategory
-              onClose={() => setCreateCategoryModalOpen(false)}
-              onCategoryCreated={(newCategory) => {
+            <CreatePaymentMethod
+              onClose={() => setCreatePaymentMethodModalOpen(false)}
+              onPaymentMethodCreated={(newPaymentMethod) => {
                 setToastMessage(
-                  `Category "${newCategory.categoryName}" created successfully`
+                  `Payment Method "${newPaymentMethod.name}" created successfully`
                 );
                 setToastOpen(true);
                 // Refresh categories after creation
@@ -1190,7 +1163,7 @@ const CategoryFlow = () => {
                   pointerEvents: "none",
                 }}
               >
-                No category data to display
+                No Payment Data to Display
               </span>
             </div>
           ) : (
@@ -1243,10 +1216,10 @@ const CategoryFlow = () => {
           )}
         </div>
 
-        {/* Expense Table - Show when a category is selected */}
+        {/* Expense Table - Show when a payment method is selected */}
         {showExpenseTable && renderExpenseTable()}
 
-        {/* Only show search bar and category cards when not showing expense table */}
+        {/* Only show search bar and payment method cards when not showing expense table */}
         {!showExpenseTable && (
           <>
             {/* Search Bar */}
@@ -1258,7 +1231,7 @@ const CategoryFlow = () => {
                 flexWrap: "wrap",
               }}
             >
-              <CategorySearchToolbar
+              <PaymentMethodSearchToolbar
                 search={search}
                 setSearch={setSearch}
                 onFilterClick={() => setPopoverOpen((v) => !v)}
@@ -1268,10 +1241,10 @@ const CategoryFlow = () => {
                 sx={{ color: "#5b7fff", ml: 1 }}
                 onClick={() =>
                   friendId && friendId !== "undefined"
-                    ? navigate(`/category-flow/create/${friendId}`)
-                    : navigate("/category-flow/create")
+                    ? navigate(`/payment-method/create/${friendId}`)
+                    : navigate("/payment-method/create")
                 }
-                aria-label="New Category"
+                aria-label="New Payment Method"
               >
                 <svg
                   width="24"
@@ -1442,9 +1415,7 @@ const CategoryFlow = () => {
                 </div>,
                 document.body
               )}
-            {/* Category Cards */}
-
-            {/* Category Cards */}
+            {/* {Payment Method} Cards */}
             <div
               className="flex flex-wrap justify-start custom-scrollbar"
               style={{
@@ -1471,7 +1442,7 @@ const CategoryFlow = () => {
                     }}
                   />
                 ))
-              ) : sortedCategoryCards.length === 0 ? (
+              ) : sortedPaymentMethodCards.length === 0 ? (
                 <div
                   style={{
                     width: "100%",
@@ -1481,18 +1452,14 @@ const CategoryFlow = () => {
                   }}
                 >
                   <div className="text-center text-gray-400 py-4">
-                    No categories found
+                    No payment methods found
                   </div>
                 </div>
               ) : (
-                sortedCategoryCards.map((category, idx) => (
+                sortedPaymentMethodCards.map((category, idx) => (
                   <div
                     key={idx}
-                    className={`bg-[#1b1b1b] rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200 ${
-                      selectedCategory?.categoryId === category.categoryId
-                        ? "ring-2 ring-[#5b7fff]"
-                        : ""
-                    }`}
+                    className={`bg-[#1b1b1b] rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200 `}
                     style={{
                       minHeight: "130px",
                       maxHeight: "130px",
@@ -1509,9 +1476,9 @@ const CategoryFlow = () => {
                       borderLeft: `6px solid ${category.color}`,
                       margin: "4px",
                     }}
-                    onClick={() => handleCategoryClick(category)}
+                    onClick={() => handlePaymentMethodClick(category)}
                     onDoubleClick={(e) =>
-                      handleCategoryDoubleClick(e, category)
+                      handlePaymentMethodDoubleClick(e, category)
                     }
                   >
                     {/* Three-dot menu in the top right corner - Always visible with white color */}
@@ -1615,16 +1582,18 @@ const CategoryFlow = () => {
               transformOrigin={{ horizontal: "right", vertical: "top" }}
               anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
             >
-              <MenuItem onClick={handleEditCategory}>
+              <MenuItem onClick={handleEditPaymentMethod}>
                 <ListItemIcon>
                   <EditIcon
                     fontSize="small"
-                    sx={{ color: selectedMenuCategory?.color || "#00dac6" }}
+                    sx={{
+                      color: selectedMenuPaymentMethod?.color || "#00dac6",
+                    }}
                   />
                 </ListItemIcon>
                 <ListItemText primary="Edit" />
               </MenuItem>
-              <MenuItem onClick={handleDeleteCategoryFromMenu}>
+              <MenuItem onClick={handleDeletePaymentMethodFromMenu}>
                 <ListItemIcon>
                   <DeleteIcon fontSize="small" sx={{ color: "#ff5252" }} />
                 </ListItemIcon>
@@ -1723,4 +1692,4 @@ const CategoryFlow = () => {
   );
 };
 
-export default CategoryFlow;
+export default PaymentMethodFlow;

@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   FormControl,
+  IconButton,
   MenuItem,
   Select,
   Typography,
@@ -15,6 +16,7 @@ import ExpenseTableParent from "../ExpenseTableParent";
 import ReportsGeneration from "../ReportsGeneration";
 import SearchExpenses from "../SearchExpenses/SearchExpenses";
 import SearchAudits from "../SearchAudits/SearchAudits";
+import { useNavigate, useParams } from "react-router";
 
 const expenseReportData = [
   { id: 1, reportName: "Expense Report Q1 2025", date: "2025-03-15" },
@@ -45,6 +47,8 @@ const Reports = () => {
   const [Url, setUrl] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const navigate = useNavigate();
+  const { friendId } = useParams();
 
   const handleDropdownChange = (event) => {
     setSelectedReport(event.target.value);
@@ -85,6 +89,7 @@ const Reports = () => {
           bgcolor: "#1b1b1b",
         }}
       />
+
       <Box
         sx={{
           width: isMobile ? "100%" : "calc(100vw - 370px)",
@@ -99,9 +104,41 @@ const Reports = () => {
         }}
       >
         <Box sx={{ width: isMobile ? "100%" : "50%", pr: isMobile ? 0 : 2 }}>
+          <IconButton
+            sx={{
+              color: "#00DAC6",
+              backgroundColor: "#1b1b1b",
+              "&:hover": {
+                backgroundColor: "#28282a",
+              },
+              zIndex: 10,
+            }}
+            onClick={() =>
+              friendId && friendId !== "undefined"
+                ? navigate(`/friends/expenses/${friendId}`)
+                : navigate("/expenses")
+            }
+            aria-label="Back"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 18L9 12L15 6"
+                stroke="#00DAC6"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </IconButton>
           <FormControl
             fullWidth
-            sx={{ mb: 4, maxWidth: isMobile ? "100%" : 300 }}
+            sx={{ mb: 6, ml: 10, maxWidth: isMobile ? "100%" : 300 }} // Moved dropdown slightly down
           >
             <Select
               value={selectedReport}

@@ -1,6 +1,12 @@
 import { Snackbar, Alert } from "@mui/material";
 
-const ToastNotification = ({ open, message, onClose, anchorOrigin }) => {
+const ToastNotification = ({
+  open,
+  message,
+  onClose,
+  anchorOrigin,
+  severity = "success",
+}) => {
   return (
     <Snackbar
       open={open}
@@ -8,7 +14,7 @@ const ToastNotification = ({ open, message, onClose, anchorOrigin }) => {
       onClose={onClose}
       anchorOrigin={anchorOrigin}
     >
-      <Alert onClose={onClose} severity="success" sx={{ width: "100%" }}>
+      <Alert onClose={onClose} severity={severity} sx={{ width: "100%" }}>
         {message}
       </Alert>
     </Snackbar>

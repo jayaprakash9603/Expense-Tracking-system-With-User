@@ -9,7 +9,8 @@ import { createBudgetAction } from "../../Redux/Budget/budget.action";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
-import { Box, useMediaQuery } from "@mui/material";
+import { Box, TextField, useMediaQuery } from "@mui/material";
+import ToastNotification from "./ToastNotification";
 
 const NewBudget = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const NewBudget = () => {
   const { friendId } = useParams();
 
   const fieldStyles =
-    "px-3 py-2 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[350px] max-w-[250px]";
+    "px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[350px] max-w-[250px]";
   const labelStyle =
     "text-white text-base sm:text-base text-sm font-semibold mr-3";
   const formRow = "mt-6 flex flex-col sm:flex-row sm:items-center gap-4 w-full";
@@ -63,6 +64,9 @@ const NewBudget = () => {
       }
       return updatedFormData;
     });
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: false });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -145,7 +149,7 @@ const NewBudget = () => {
 
   const handleCloseBudget = () => {
     console.log("Close Budget clicked");
-    navigate("/budget");
+    navigate(-1);
   };
 
   const handleCheckboxChange = (index) => {
@@ -162,25 +166,29 @@ const NewBudget = () => {
             .replace(/([A-Z])/g, " $1")
             .replace(/^./, (str) => str.toUpperCase())}
         </label>
-        <input
+        <TextField
           id={id}
           name={id}
           type={type}
           value={formData[id]}
           onChange={handleInputChange}
           placeholder={`Enter ${id}`}
-          className={
-            fieldStyles +
-            (errors[id] ? " border-red-500 focus:ring-red-500" : "")
-          }
-          style={
-            errors[id]
-              ? { borderColor: "#ef4444", boxShadow: "0 0 0 2px #ef4444" }
-              : {}
-          }
+          error={!!errors[id]}
+          variant="outlined"
+          size="small"
+          InputLabelProps={type === "date" ? { shrink: true } : {}}
+          sx={{
+            width: "100%",
+            maxWidth: { xs: "250px", sm: "350px" },
+            "& .MuiOutlinedInput-root": {
+              ...(errors[id] && {
+                borderColor: "#ef4444",
+                boxShadow: "0 0 0 0px #ef4444",
+              }),
+            },
+          }}
         />
       </div>
-      {/* No error message below the field */}
     </div>
   );
 
@@ -321,7 +329,8 @@ const NewBudget = () => {
             </p>
             <button
               onClick={handleCloseBudget}
-              className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a]"
+              className="flex items-center justify-center w-12 h-12 text-[25px] font-bold bg-[#29282b] rounded mt-[-10px]"
+              style={{ color: "#00dac6" }}
             >
               X
             </button>

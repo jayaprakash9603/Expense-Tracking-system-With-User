@@ -61,6 +61,7 @@ const EditExpense = ({}) => {
     comments: "",
     date: today,
     category: "",
+    categoryName: "",
   });
   const [errors, setErrors] = useState({});
   const [openToast, setOpenToast] = useState(false);
@@ -119,7 +120,8 @@ const EditExpense = ({}) => {
         transactionType: expense.expense.type || "loss",
         comments: expense.expense.comments || "",
         date: expense.date || today,
-        category: expense.expense.category || "",
+        category: expense.categoryId || "",
+        categoryName: expense.categoryName || "",
       });
     }
   }, [expense, today]);
@@ -197,6 +199,7 @@ const EditExpense = ({}) => {
           {
             date: expenseData.date,
             budgetIds: budgetIds,
+            categoryId: expenseData.category || "",
             expense: {
               expenseName: expenseData.expenseName,
               amount: expenseData.amount,
@@ -204,7 +207,6 @@ const EditExpense = ({}) => {
               paymentMethod: expenseData.paymentMethod,
               type: expenseData.transactionType,
               comments: expenseData.comments,
-              category: expenseData.category || "",
             },
           },
           friendId || ""
@@ -428,7 +430,8 @@ const EditExpense = ({}) => {
           options={categories}
           getOptionLabel={(option) => option.name || ""}
           value={
-            categories.find((cat) => cat.id === expenseData.category) || null
+            categories.find((cat) => cat.name === expenseData.categoryName) ||
+            null
           }
           onInputChange={(event, newValue) => {
             const matchedCategory = categories.find(
@@ -437,6 +440,7 @@ const EditExpense = ({}) => {
             setExpenseData((prev) => ({
               ...prev,
               category: matchedCategory ? matchedCategory.id : "",
+              categoryName: matchedCategory ? matchedCategory.name : "",
             }));
           }}
           onChange={(event, newValue) => {
