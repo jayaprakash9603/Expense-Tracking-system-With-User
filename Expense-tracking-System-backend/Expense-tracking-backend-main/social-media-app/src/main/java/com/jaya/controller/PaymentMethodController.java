@@ -1,5 +1,6 @@
 package com.jaya.controller;
 
+import com.jaya.dto.ErrorDetails;
 import com.jaya.exceptions.UserException;
 import com.jaya.models.PaymentMethod;
 import com.jaya.models.User;
@@ -112,8 +113,10 @@ public class PaymentMethodController {
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating payment method: " + e.getMessage());
+        } catch (UserException e) {
+            ErrorDetails errorDetails=new ErrorDetails();
+            errorDetails.setMessage(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorDetails);
         }
     }
 
@@ -168,6 +171,27 @@ public class PaymentMethodController {
             return handleTargetUserException(e);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting payment methods: " + e.getMessage());
+        }
+    }
+
+    // Java
+    @GetMapping("/unused")
+    public ResponseEntity<?> getUnusedPaymentMethods(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            }
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            List<PaymentMethod> unusedMethods = paymentMethodService.getOthersAndUnusedPaymentMethods(targetUser.getId() );
+            return ResponseEntity.ok(unusedMethods);
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching unused payment methods: " + e.getMessage());
         }
     }
 }

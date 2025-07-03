@@ -25,11 +25,13 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
     @Override
     public PaymentMethod getById(Integer userId, Integer id) throws Exception {
-        PaymentMethod paymentMethod = paymentMethodRepository.findByUserIdAndId(userId, id);
-        if (paymentMethod == null) {
+        List<PaymentMethod> paymentMethods = getAllPaymentMethods(userId);
+        if (paymentMethods == null) {
             throw new Exception("Payment method not found " + id);
         }
-        return paymentMethod;
+        return paymentMethods.stream().filter(paymentMethod -> paymentMethod.getId()==id)
+                .findFirst()
+                .orElseThrow(() -> new Exception("Payment method not found with ID: " + id));
     }
 
     @Override
@@ -74,7 +76,9 @@ public class PaymentMethodImpl implements PaymentMethodService {
         createdPaymentMethod.setAmount(paymentMethod.getAmount());
         createdPaymentMethod.setName(trimmedName);
         createdPaymentMethod.setGlobal(paymentMethod.isGlobal());
-
+        createdPaymentMethod.setColor(paymentMethod.getColor());
+        createdPaymentMethod.setIcon(paymentMethod.getIcon());
+        createdPaymentMethod.setDescription(paymentMethod.getDescription());
         return paymentMethodRepository.save(createdPaymentMethod);
     }
 
@@ -123,32 +127,30 @@ public class PaymentMethodImpl implements PaymentMethodService {
                 existingPaymentMethod.setEditUserIds(new java.util.HashSet<>());
             }
             if (existingPaymentMethod.getEditUserIds().contains(userId)) {
-                throw new Exception("you already edited this payment method ");
+                throw new Exception("You already edited this payment method");
             }
-
             existingPaymentMethod.getEditUserIds().add(userId);
             paymentMethodRepository.save(existingPaymentMethod);
 
-            // Create a new user-specific payment method with the updated values
+            // Create a new user-specific payment method with all updatable fields
             PaymentMethod createdPaymentMethod = new PaymentMethod();
-            createdPaymentMethod.setType(paymentMethod.getType());
-            createdPaymentMethod.setName(paymentMethod.getName());
-            createdPaymentMethod.setAmount(paymentMethod.getAmount());
+            copyUpdatableFields(paymentMethod, createdPaymentMethod);
             createdPaymentMethod.setGlobal(false);
             createdPaymentMethod.setUser(userOpt);
             return paymentMethodRepository.save(createdPaymentMethod);
         } else {
-            if (paymentMethod.getName() != null) {
-                existingPaymentMethod.setName(paymentMethod.getName().trim());
-            }
-            if (paymentMethod.getAmount() != null) {
-                existingPaymentMethod.setAmount(paymentMethod.getAmount());
-            }
-            if (paymentMethod.getType() != null) {
-                existingPaymentMethod.setType(paymentMethod.getType());
-            }
+            copyUpdatableFields(paymentMethod, existingPaymentMethod);
             return paymentMethodRepository.save(existingPaymentMethod);
         }
+    }
+
+    private void copyUpdatableFields(PaymentMethod source, PaymentMethod target) {
+        if (source.getName() != null) target.setName(source.getName().trim());
+        if (source.getAmount() != null) target.setAmount(source.getAmount());
+        if (source.getType() != null) target.setType(source.getType());
+        if (source.getColor() != null) target.setColor(source.getColor());
+        if (source.getIcon() != null) target.setIcon(source.getIcon());
+        if (source.getDescription() != null) target.setDescription(source.getDescription());
     }
 
     @Override
@@ -207,6 +209,79 @@ public class PaymentMethodImpl implements PaymentMethodService {
     }
 
     @Override
+    public PaymentMethod getByName(Integer userId, String name, String type) {
+        String trimmedName = name.trim();
+        String trimmedType = type.trim();
+
+        // Search user methods by name and type (case-insensitive)
+        List<PaymentMethod> userMethods = paymentMethodRepository.findByName(name);
+        for (PaymentMethod method : userMethods) {
+            if (method.getName() != null && method.getType() != null &&
+                    method.getName().equalsIgnoreCase(trimmedName) &&
+                    method.getType().equalsIgnoreCase(trimmedType)) {
+                return method;
+            }
+        }
+
+        // Search global methods by name and type (case-insensitive)
+        List<PaymentMethod> globalMethods = paymentMethodRepository.findByIsGlobalTrue();
+        for (PaymentMethod method : globalMethods) {
+            if (method.getName() != null && method.getType() != null &&
+                    method.getName().equalsIgnoreCase(trimmedName) &&
+                    method.getType().equalsIgnoreCase(trimmedType)) {
+                return method;
+            }
+        }
+
+        // Not found, return a new PaymentMethod (not saved)
+        PaymentMethod newMethod = new PaymentMethod();
+        newMethod.setName(trimmedName);
+        newMethod.setType(trimmedType);
+        // Set other default fields if needed
+        return newMethod;
+    }
+
+
+    @Override
+    public PaymentMethod getByNameAndTypeOrCreate(String name, String type) {
+        String trimmedName = name.trim();
+        String trimmedType = type.trim();
+
+        // Try to find by name and type (case-insensitive)
+        List<PaymentMethod> allMethods = paymentMethodRepository.findAll();
+        for (PaymentMethod method : allMethods) {
+            if (method.getName() != null && method.getType() != null &&
+                    method.getName().equalsIgnoreCase(trimmedName) &&
+                    method.getType().equalsIgnoreCase(trimmedType)) {
+                return method;
+            }
+        }
+
+        throw new EntityNotFoundException("Payment method not found with name: " + name);
+
+
+    }
+    @Override
+    public PaymentMethod getByName(String name) {
+        // Try exact match (case-sensitive)
+        List<PaymentMethod> paymentMethods = paymentMethodRepository.findByName(name);
+
+        if (paymentMethods != null && !paymentMethods.isEmpty()) {
+            return paymentMethods.get(0);
+        }
+
+        // Try case-insensitive search among all payment methods
+        List<PaymentMethod> allMethods = paymentMethodRepository.findAll();
+        for (PaymentMethod method : allMethods) {
+            if (method.getName() != null && method.getName().equalsIgnoreCase(name.trim())) {
+                return method;
+            }
+        }
+
+        throw new EntityNotFoundException("Payment method not found with name: " + name);
+    }
+
+    @Override
     public void deleteAllUserPaymentMethods(Integer userId) {
         // Delete all user-specific (non-global) payment methods
         List<PaymentMethod> userPaymentMethods = paymentMethodRepository.findByUserId(userId);
@@ -227,4 +302,30 @@ public class PaymentMethodImpl implements PaymentMethodService {
             }
         }
     }
+
+    // Java
+    @Override
+    public List<PaymentMethod> getOthersAndUnusedPaymentMethods(Integer userId) {
+        // Get all user-specific and allowed global payment methods
+        List<PaymentMethod> userMethods = paymentMethodRepository.findByUserId(userId);
+        List<PaymentMethod> globalMethods = paymentMethodRepository.findByIsGlobalTrue();
+        List<PaymentMethod> allMethods = new ArrayList<>();
+        allMethods.addAll(userMethods);
+
+        // Find the "Others" payment method (if it exists)
+        PaymentMethod othersMethod = allMethods.stream()
+                .filter(pm -> "Others".equalsIgnoreCase(pm.getName()))
+                .findFirst()
+                .orElse(null);
+
+        // Return payment methods that are either the "Others" method or have no linked expense IDs
+        return allMethods.stream().filter(pm -> {
+            if (othersMethod != null && pm.getId().equals(othersMethod.getId())) {
+                return true;
+            }
+            return pm.getExpenseIds() == null || pm.getExpenseIds().isEmpty();
+        }).collect(Collectors.toList());
+    }
+
+
 }

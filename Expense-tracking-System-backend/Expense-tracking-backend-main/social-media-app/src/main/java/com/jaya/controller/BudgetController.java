@@ -183,7 +183,7 @@ public class BudgetController {
         }
     }
 
-    @DeleteMapping("/delete-all")
+    @DeleteMapping("")
     public ResponseEntity<?> deleteAllBudget(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {

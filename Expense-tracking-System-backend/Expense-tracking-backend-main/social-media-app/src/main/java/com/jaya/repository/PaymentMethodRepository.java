@@ -16,9 +16,10 @@ public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, In
 
     List<PaymentMethod> findByUserId(Integer userId);
 
+    List<PaymentMethod> findByName(String name);
+
     List<PaymentMethod> findByUserIdAndName(Integer userId, String name);
 
-    PaymentMethod findByName(String name);
 
 
     @Query("SELECT pm FROM PaymentMethod pm WHERE pm.name = :name AND pm.user.id = :userId")

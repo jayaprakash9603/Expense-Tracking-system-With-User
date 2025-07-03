@@ -30,4 +30,6 @@ public class GlobalExceptions {
 		
 		return new ResponseEntity<ErrorDetails>(error,HttpStatus.BAD_REQUEST);
 	}
+
+
 }

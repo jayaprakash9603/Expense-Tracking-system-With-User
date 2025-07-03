@@ -50,6 +50,8 @@ public class User  {
 
 
 	@OneToMany
+	private List<Bill>bills=new ArrayList<>();
+	@OneToMany
 	private List<Category>categoryies=new ArrayList<>();
 
 }

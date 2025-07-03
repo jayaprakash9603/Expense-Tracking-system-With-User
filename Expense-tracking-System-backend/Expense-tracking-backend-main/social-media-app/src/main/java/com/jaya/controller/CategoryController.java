@@ -238,7 +238,7 @@ public class CategoryController {
         }
     }
 
-    @DeleteMapping("/all")
+    @DeleteMapping("")
     public ResponseEntity<?> deleteAllCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {

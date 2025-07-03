@@ -7,7 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Entity
@@ -28,10 +30,14 @@ public class PaymentMethod {
     private String name = "";
 
     private Integer amount = 0;
+    private String description;
 
     private String type = "";
 
     private boolean isGlobal = false;
+
+    private String icon = "";
+    private String color = "";
 
     @ElementCollection
     @CollectionTable(name = "payment_method_user_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
@@ -47,6 +53,8 @@ public class PaymentMethod {
 
     @ElementCollection
     @CollectionTable(name = "payment_method_expense_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
-    @Column(name = "expense_id", columnDefinition = "LONGBLOB")
-    private Set<Integer> expenseIds = new HashSet<>();
+    @MapKeyColumn(name = "expense_key")
+    @Lob
+    @Column(name = "expense_value", columnDefinition = "LONGBLOB")
+    private Map<Integer, Set<Integer>> expenseIds = new HashMap<>();
 }

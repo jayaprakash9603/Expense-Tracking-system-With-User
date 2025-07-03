@@ -19,7 +19,6 @@ public interface ExpenseService {
     Expense addExpense(Expense expense, User user) throws Exception;
 
     List<Expense> addMultipleExpenses(List<Expense> expenses, User user) throws Exception;
-//    List<Expense> addMultipleExpenses(User user, List<Expense> expenses) throws Exception;
 
     List<Expense> getExpensesByCategoryId(Integer categoryId, User user);
     // Add this method to the ExpenseService interface
@@ -31,6 +30,13 @@ public interface ExpenseService {
     );
 
     Map<String, Object> getFilteredExpensesByDateRange(User user, LocalDate fromDate, LocalDate toDate, String flowType);
+    public Map<String, Object> getFilteredExpensesByPaymentMethod(
+            User user,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String flowType);
+
+    Map<String, Object> getFilteredExpensesByPaymentMethod(User user, String rangeType, int offset, String flowType);
     Map<Category, List<Expense>> getAllExpensesByCategories(User user);
     Expense getExpenseById(Integer id,User user);
     List<Expense> getTopNExpenses(int n,User user);
@@ -46,6 +52,7 @@ public interface ExpenseService {
 
 
     Expense updateExpense(Integer id, Expense expense,User user)  throws  Exception;
+    Expense updateExpenseWithBillService(Integer id, Expense updatedExpense, User user) throws Exception;
     List<Expense> updateMultipleExpenses(User user,List<Expense> expenses) throws Exception;
     MonthlySummary getMonthlySummary(Integer year, Integer month,User user);
     Map<String, MonthlySummary> getYearlySummary(Integer year,User user);
@@ -53,6 +60,7 @@ public interface ExpenseService {
     public List<Expense> saveMultipleExpenses(List<Expense> expenses, User user);
     void deleteAllExpenses(User user, List<Expense> expenses);
     void deleteExpensesByIds(List<Integer> ids, User user) throws Exception;
+    void deleteExpensesByIdsWithBillService(List<Integer> ids, User user) throws Exception;
     List<Expense> getExpensesByDate(LocalDate date,User user);
     void deleteExpense(Integer id,User user);
     List<String> getTopExpenseNames(int topN,User user);

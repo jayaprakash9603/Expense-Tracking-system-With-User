@@ -25,28 +25,26 @@ public class JwtProvider {
         String jwt = Jwts.builder()
                 .setIssuer("Jayaprakash")
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + 86400000))  // 1 day expiration
+                .setExpiration(new Date(new Date().getTime() + 86400000L * 365))  // 1 day expiration
                 .claim("email", auth.getName())
                 .signWith(key)
                 .compact();
         return jwt;
     }
-    
-    public static String getEmailFromJwtToken(String jwt)
-    {
+
+    public static String getEmailFromJwtToken(String jwt) {
+        if (jwt == null || jwt.isEmpty()) {
+            throw new RuntimeException("Token is null or empty");
+        }
+
+        System.out.println("Parsing token: " + jwt);
+
+        // Remove 'Bearer ' prefix if present
+        if (jwt.startsWith("Bearer ")) {
+            jwt = jwt.substring(7);
+        }
+
         try {
-            if (jwt == null || jwt.isEmpty()) {
-                System.out.println("Token is null or empty");
-                return null;
-            }
-
-            System.out.println("Parsing token: " + jwt);
-
-            // Remove 'Bearer ' prefix if present
-            if (jwt.startsWith("Bearer ")) {
-                jwt = jwt.substring(7);
-            }
-
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
@@ -57,10 +55,12 @@ public class JwtProvider {
             System.out.println("Extracted email: " + email);
 
             return email;
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            System.out.println("Token expired: " + e.getMessage());
+            throw new RuntimeException("JWT token has expired");
         } catch (Exception e) {
             System.out.println("Error parsing token: " + e.getMessage());
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException("Invalid JWT token");
         }
     }
 

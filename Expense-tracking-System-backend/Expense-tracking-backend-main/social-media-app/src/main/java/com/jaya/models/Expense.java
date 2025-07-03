@@ -33,10 +33,15 @@ public class Expense {
 
     private Integer categoryId = 0;
 
+
+    private String categoryName = "";
+
     @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL)
     @JsonManagedReference
     @ToString.Exclude
     private ExpenseDetails expense;
+
+    private boolean isBill=false;
 
     @JsonIgnore
     @ManyToOne

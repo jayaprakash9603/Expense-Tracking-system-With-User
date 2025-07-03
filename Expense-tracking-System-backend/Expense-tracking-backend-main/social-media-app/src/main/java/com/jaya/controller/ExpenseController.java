@@ -35,6 +35,7 @@ import java.time.Year;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -49,6 +50,9 @@ public class ExpenseController {
 
     @Autowired
     private BudgetRepository budgetRepository;
+
+    @Autowired
+    private ExpenseServiceHelper helper;
 
     @Autowired
     private UserService userService;
@@ -97,31 +101,105 @@ public class ExpenseController {
         return targetUser;
     }
 
+
+    private <T> ResponseEntity<?> executeWithPermissionCheck(String jwt, Integer targetId, boolean needWriteAccess,
+                                                             Function<User, T> operation) {
+        try {
+            User reqUser = helper.authenticateUser(jwt);
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, needWriteAccess);
+            T result = operation.apply(targetUser);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return handleRuntimeException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Generic method to handle API responses with permission checking and audit logging
+     */
+    private <T> ResponseEntity<?> executeWithPermissionCheckAndAudit(String jwt, Integer targetId, boolean needWriteAccess,
+                                                                     Function<User, T> operation, String action, Integer expenseId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, needWriteAccess);
+            T result = operation.apply(targetUser);
+
+            // Log audit
+            String auditMessage = createAuditMessage(targetId, reqUser.getId(), action, expenseId);
+            auditExpenseService.logAudit(reqUser, expenseId, action.toLowerCase(), auditMessage);
+
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return handleRuntimeException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Handle runtime exceptions consistently
+     */
+    private ResponseEntity<?> handleRuntimeException(RuntimeException e) {
+        if (e.getMessage().contains("not found")) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } else if (e.getMessage().contains("permission")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Create audit message based on target user
+     */
+    private String createAuditMessage(Integer targetId, Integer reqUserId, String action, Integer expenseId) {
+        if (targetId != null && !targetId.equals(reqUserId)) {
+            return String.format("%s expense%s for user ID: %d",
+                    action, expenseId != null ? " ID: " + expenseId : "", targetId);
+        }
+        return String.format("%s expense%s", action, expenseId != null ? " ID: " + expenseId : "");
+    }
+
+    /**
+     * Create detailed expense audit message
+     */
+    private String createDetailedExpenseAuditMessage(Expense expense, String action, Integer targetId, Integer reqUserId) {
+        String expenseDetails = String.format(
+                "Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
+                expense.getExpense().getExpenseName(),
+                expense.getExpense().getAmount(),
+                expense.getExpense().getType(),
+                expense.getExpense().getPaymentMethod()
+        );
+
+        if (targetId != null && !targetId.equals(reqUserId)) {
+            return String.format("%s expense ID: %d for user ID: %d. %s",
+                    action, expense.getId(), targetId, expenseDetails);
+        }
+        return String.format("%s expense ID: %d. %s", action, expense.getId(), expenseDetails);
+    }
+
     @PostMapping("/add-expense")
     public ResponseEntity<?> addExpense(@Validated @RequestBody Expense expense,
                                         @RequestHeader("Authorization") String jwt,
-                                        @RequestParam(required = false) Integer targetId) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        Expense createExpense;
-
+                                        @RequestParam(required = false) Integer targetId) {
         try {
+            User reqUser = userService.findUserByJwt(jwt);
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            createExpense = expenseService.addExpense(expense, targetUser);
 
-            if (createExpense != null) {
-                auditExpenseService.logAudit(reqUser, expense.getId(), "create",
-                        "Expense created with ID: " + expense.getId());
+            Expense createdExpense = expenseService.addExpense(expense, targetUser);
+
+            if (createdExpense != null) {
+                String auditMessage = createDetailedExpenseAuditMessage(createdExpense, "Created", targetId, reqUser.getId());
+                auditExpenseService.logAudit(reqUser, createdExpense.getId(), "create", auditMessage);
             }
-
-            return ResponseEntity.ok(createExpense);
+            return ResponseEntity.ok(createdExpense);
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            } else if (e.getMessage().contains("permission")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-            } else {
-                throw e;
-            }
+            return handleRuntimeException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
@@ -129,104 +207,95 @@ public class ExpenseController {
 
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getUserExpenses(
-            @PathVariable Integer userId,
-            @RequestHeader("Authorization") String jwt) throws UserException {
-
-        User viewer = userService.findUserByJwt(jwt);
+    public ResponseEntity<?> getUserExpenses(@PathVariable Integer userId,
+                                             @RequestHeader("Authorization") String jwt) throws UserException {
+        User viewer = helper.authenticateUser(jwt);
 
         if (viewer.getId().equals(userId)) {
             List<Expense> expenses = expenseService.getAllExpenses(viewer);
             return ResponseEntity.ok(expenses);
         }
+        return handleFriendExpenseAccess(userId, viewer);
+    }
 
-        boolean hasAccess = friendshipService.canUserAccessExpenses(userId, viewer.getId());
-
-
-        if (!hasAccess) {
+    private ResponseEntity<?> handleFriendExpenseAccess(Integer userId, User viewer) throws UserException {
+        if (!friendshipService.canUserAccessExpenses(userId, viewer.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("You don't have permission to view this user's expenses");
         }
 
         AccessLevel accessLevel = friendshipService.getUserAccessLevel(userId, viewer.getId());
-
         User targetUser = userService.findUserById(userId);
+
         if (targetUser == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
 
-        System.out.println("Access level "+accessLevel);
-        if (accessLevel == AccessLevel.READ || accessLevel == AccessLevel.WRITE || accessLevel == AccessLevel.FULL)  {
-            List<Expense> expenses = expenseService.getAllExpenses(targetUser);
-            return ResponseEntity.ok(expenses);
-        } else if (accessLevel == AccessLevel.SUMMARY) {
-            Map<String, MonthlySummary> yearlySummary = expenseService.getYearlySummary(
-                    LocalDate.now().getYear(), targetUser);
-            return ResponseEntity.ok(yearlySummary);
-        } else if (accessLevel == AccessLevel.LIMITED) {
-            Map<String, Object> limitedData = new HashMap<>();
+        switch (accessLevel) {
+            case READ:
+            case WRITE:
+            case FULL:
+                return ResponseEntity.ok(expenseService.getAllExpenses(targetUser));
 
-            MonthlySummary currentMonthSummary = expenseService.getMonthlySummary(
-                    LocalDate.now().getYear(),
-                    LocalDate.now().getMonthValue(),
-                    targetUser);
+            case SUMMARY:
+                Map<String, MonthlySummary> yearlySummary = expenseService.getYearlySummary(
+                        LocalDate.now().getYear(), targetUser);
+                return ResponseEntity.ok(yearlySummary);
 
-            Map<String, Double> simplifiedSummary = new HashMap<>();
-            simplifiedSummary.put("totalIncome", currentMonthSummary.getTotalAmount().doubleValue());
-            simplifiedSummary.put("totalExpense", currentMonthSummary.getCash().getDifference().doubleValue());
-            simplifiedSummary.put("balance", currentMonthSummary.getBalanceRemaining().doubleValue());
+            case LIMITED:
+                return ResponseEntity.ok(createLimitedExpenseData(targetUser));
 
-            limitedData.put("currentMonth", simplifiedSummary);
-            return ResponseEntity.ok(limitedData);
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You don't have permission to view this user's expenses");
+            default:
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You don't have permission to view this user's expenses");
         }
+    }
+
+    private Map<String, Object> createLimitedExpenseData(User targetUser) {
+        MonthlySummary currentMonthSummary = expenseService.getMonthlySummary(
+                LocalDate.now().getYear(),
+                LocalDate.now().getMonthValue(),
+                targetUser);
+
+        Map<String, Double> simplifiedSummary = new HashMap<>();
+        simplifiedSummary.put("totalIncome", currentMonthSummary.getTotalAmount().doubleValue());
+        simplifiedSummary.put("totalExpense", currentMonthSummary.getCash().getDifference().doubleValue());
+        simplifiedSummary.put("balance", currentMonthSummary.getBalanceRemaining().doubleValue());
+
+        Map<String, Object> limitedData = new HashMap<>();
+        limitedData.put("currentMonth", simplifiedSummary);
+        return limitedData;
     }
 
     @PostMapping("/add-multiple")
-    public ResponseEntity<?> addMultipleExpenses(
-            @RequestHeader("Authorization") String jwt,
-            @RequestBody List<Expense> expenses,
-            @RequestParam(required = false) Integer targetId) throws Exception {
-
-        User reqUser = userService.findUserByJwt(jwt);
-        List<Expense> savedExpenses;
-
+    public ResponseEntity<?> addMultipleExpenses(@RequestHeader("Authorization") String jwt,
+                                                 @RequestBody List<Expense> expenses,
+                                                 @RequestParam(required = false) Integer targetId) {
         try {
+            User reqUser = helper.authenticateUser(jwt);
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            savedExpenses = expenseService.addMultipleExpenses(expenses, targetUser);
 
-            // Log audit information for each created expense
-            for (Expense expense : savedExpenses) {
-                String expenseDetails = String.format(
-                        "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                        expense.getId(),
-                        expense.getExpense().getExpenseName(),
-                        expense.getExpense().getAmount(),
-                        expense.getExpense().getType(),
-                        expense.getExpense().getPaymentMethod()
-                );
+            List<Expense> savedExpenses = expenseService.addMultipleExpenses(expenses, targetUser);
 
-                auditExpenseService.logAudit(reqUser, expense.getId(), "create", expenseDetails);
-            }
+            // Log audit for each created expense
+            savedExpenses.forEach(expense -> {
+                String auditMessage = createDetailedExpenseAuditMessage(expense, "Created", targetId, reqUser.getId());
+                auditExpenseService.logAudit(reqUser, expense.getId(), "create", auditMessage);
+            });
 
-            return ResponseEntity.status(201).body(savedExpenses);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedExpenses);
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            } else if (e.getMessage().contains("permission")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-            } else {
-                throw e;
-            }
+            return handleRuntimeException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+
 
 
 
     @DeleteMapping("/delete-all")
-    public ResponseEntity<String> deleteAllExpenses(
+    public ResponseEntity<?> deleteAllExpenses(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
@@ -236,13 +305,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> allExpenses = expenseService.getAllExpenses(targetUser);
@@ -278,67 +341,23 @@ public class ExpenseController {
     }
 
     @GetMapping("/expense/{id}")
-    public ResponseEntity<?> getExpenseById(
-            @PathVariable Integer id,
-            @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) Integer targetId) {
-
-        try {
-            User reqUser = userService.findUserByJwt(jwt);
-            User targetUser;
-
-            try {
-                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
-            }
-
-            Expense expense = expenseService.getExpenseById(id, targetUser);
-
-            if (expense == null) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
-            }
-
-            return ResponseEntity.ok(expense);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+    public ResponseEntity<?> getExpenseById(@PathVariable Integer id,
+                                            @RequestHeader("Authorization") String jwt,
+                                            @RequestParam(required = false) Integer targetId) {
+        return executeWithPermissionCheck(jwt, targetId, false,
+                targetUser -> {
+                    Expense expense = expenseService.getExpenseById(id, targetUser);
+                    return expense != null ? expense : ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+                });
     }
 
     @GetMapping("/fetch-expenses-by-date")
-    public ResponseEntity<?> getExpensesByDateRange(
-            @RequestParam LocalDate from,
-            @RequestParam LocalDate to,
-            @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) Integer targetId) {
-
-        try {
-            User reqUser = userService.findUserByJwt(jwt);
-            User targetUser;
-
-            try {
-                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
-            }
-
-            List<Expense> expenses = expenseService.getExpensesByDateRange(from, to, targetUser);
-            return ResponseEntity.ok(expenses);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+    public ResponseEntity<?> getExpensesByDateRange(@RequestParam LocalDate from,
+                                                    @RequestParam LocalDate to,
+                                                    @RequestHeader("Authorization") String jwt,
+                                                    @RequestParam(required = false) Integer targetId) {
+        return executeWithPermissionCheck(jwt, targetId, false,
+                targetUser -> expenseService.getExpensesByDateRange(from, to, targetUser));
     }
 
 
@@ -355,13 +374,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = sort.equalsIgnoreCase("asc")
@@ -386,13 +399,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getAllExpenses(targetUser);
@@ -515,13 +522,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Expense existingExpense = expenseService.getExpenseById(id, targetUser);
@@ -581,13 +582,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Get existing expenses before update for audit logging
@@ -648,7 +643,7 @@ public class ExpenseController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteExpense(
+    public ResponseEntity<?> deleteExpense(
             @PathVariable Integer id,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
@@ -659,13 +654,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Expense expense = expenseService.getExpenseById(id, targetUser);
@@ -700,7 +689,7 @@ public class ExpenseController {
 
 
     @DeleteMapping("/delete-multiple")
-    public ResponseEntity<String> deleteMultipleExpenses(
+    public ResponseEntity<?> deleteMultipleExpenses(
             @RequestBody List<Integer> ids,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
@@ -711,13 +700,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             for (Integer id : ids) {
@@ -768,13 +751,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+               return handleRuntimeException(e);
             }
 
             MonthlySummary summary = expenseService.getMonthlySummary(year, month, targetUser);
@@ -796,13 +773,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, MonthlySummary> yearlySummary = expenseService.getYearlySummary(year, targetUser);
@@ -827,13 +798,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<MonthlySummary> summaries = expenseService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth, targetUser);
@@ -858,13 +823,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+               return handleRuntimeException(e);
             }
 
             List<Expense> topExpenses = expenseService.getTopNExpenses(n, targetUser);
@@ -890,13 +849,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.searchExpensesByName(expenseName, targetUser);
@@ -925,13 +878,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> filteredExpenses = expenseService.filterExpenses(expenseName, startDate, endDate, type, paymentMethod, minAmount, maxAmount, targetUser);
@@ -953,13 +900,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<String> topExpenseNames = expenseService.getTopExpenseNames(topN, targetUser);
@@ -983,13 +924,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, Object> insights = expenseService.getMonthlySpendingInsights(year, month, targetUser);
@@ -1010,13 +945,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<String> paymentMethods = expenseService.getPaymentMethods(targetUser);
@@ -1037,13 +966,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, Map<String, Double>> paymentMethodSummary = expenseService.getPaymentMethodSummary(targetUser);
@@ -1064,13 +987,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByType("gain", targetUser);
@@ -1091,13 +1008,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> lossExpenses = expenseService.getLossExpenses(targetUser);
@@ -1122,13 +1033,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByPaymentMethod(paymentMethod, targetUser);
@@ -1155,13 +1060,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByTypeAndPaymentMethod(type, paymentMethod, targetUser);
@@ -1188,13 +1087,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<String> topPaymentMethods = expenseService.getTopPaymentMethods(targetUser);
@@ -1215,13 +1108,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> topGains = expenseService.getTopGains(targetUser);
@@ -1242,13 +1129,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> topLosses = expenseService.getTopLosses(targetUser);
@@ -1272,13 +1153,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByMonthAndYear(month, year, targetUser);
@@ -1301,13 +1176,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Fetch the unique top 'gain' expenses
@@ -1336,13 +1205,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Fetch the unique top 'loss' expenses
@@ -1370,13 +1233,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesForToday(targetUser);
@@ -1397,13 +1254,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesForLastMonth(targetUser);
@@ -1424,13 +1275,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesForCurrentMonth(targetUser);
@@ -1452,13 +1297,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             String comments = expenseService.getCommentsForExpense(id, targetUser);
@@ -1480,13 +1319,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             String result = expenseService.removeCommentFromExpense(id, targetUser);
@@ -1516,13 +1349,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Generate the report using the service layer
@@ -1557,13 +1384,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Expense originalExpense = expenseService.getExpenseById(id, targetUser);
@@ -1612,13 +1433,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<ExpenseDetails> expenseDetails = expenseService.getExpenseDetailsByAmount(amount, targetUser);
@@ -1655,13 +1470,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenseDetails = expenseService.getExpenseDetailsByAmountRange(minAmount, maxAmount, targetUser);
@@ -1696,13 +1505,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<ExpenseDetails> expenses = expenseService.getExpensesByName(expenseName, targetUser);
@@ -1749,13 +1552,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Map<String, Object>> categoryTotals = expenseService.getTotalByCategory(targetUser);
@@ -1784,13 +1581,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, Double> totalByDate = expenseService.getTotalByDate(targetUser);
@@ -1819,13 +1610,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Double totalToday = expenseService.getTotalForToday(targetUser);
@@ -1854,13 +1639,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Double totalCurrentMonth = expenseService.getTotalForCurrentMonth(targetUser);
@@ -1891,13 +1670,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Double total = expenseService.getTotalForMonthAndYear(month, year, targetUser);
@@ -1933,13 +1706,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Double total = expenseService.getTotalByDateRange(startDate, endDate, targetUser);
@@ -1972,13 +1739,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForCurrentMonth(targetUser);
@@ -2007,13 +1768,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForLastMonth(targetUser);
@@ -2044,13 +1799,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Parse the string date into LocalDate
@@ -2086,13 +1835,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForMonth(month, year, targetUser);
@@ -2124,13 +1867,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Call the service method to fetch the data for the specified month and year
@@ -2162,13 +1899,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Parse the date strings into LocalDate objects
@@ -2203,13 +1934,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, Map<String, Double>> result = expenseService.getTotalExpensesGroupedByPaymentMethod(targetUser);
@@ -2240,13 +1965,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             String reportPath = expenseService.generateExcelReport(targetUser);
@@ -2279,13 +1998,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             String filePath = expenseService.generateExcelReport(targetUser);
@@ -2329,13 +2042,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesForCurrentMonth(targetUser);
@@ -2375,13 +2082,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesForCurrentMonth(targetUser);
@@ -2426,13 +2127,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesForLastMonth(targetUser);
@@ -2479,13 +2174,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByMonthAndYear(month, year, targetUser);
@@ -2530,13 +2219,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getAllExpenses(targetUser);
@@ -2584,13 +2267,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByTypeAndPaymentMethod(type, paymentMethod, targetUser);
@@ -2642,13 +2319,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByDateRange(from, to, targetUser);
@@ -2696,13 +2367,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByType("gain", targetUser);
@@ -2751,13 +2416,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getLossExpenses(targetUser);
@@ -2806,13 +2465,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesForToday(targetUser);
@@ -2864,13 +2517,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByPaymentMethod(paymentMethod, targetUser);
@@ -2923,13 +2570,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenseDetails = expenseService.getExpenseDetailsByAmountRange(minAmount, maxAmount, targetUser);
@@ -2980,13 +2621,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.searchExpensesByName(expenseName, targetUser);
@@ -3039,13 +2674,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             MonthlySummary summary = expenseService.getMonthlySummary(year, month, targetUser);
@@ -3092,13 +2721,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, Map<String, Double>> summary = expenseService.getPaymentMethodSummary(targetUser);
@@ -3147,13 +2770,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             Map<String, MonthlySummary> summary = expenseService.getYearlySummary(year, targetUser);
@@ -3202,13 +2819,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<MonthlySummary> summaries = expenseService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth, targetUser);
@@ -3282,13 +2893,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByDate(LocalDate.now().minusDays(1), targetUser);
@@ -3318,13 +2923,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             LocalDate specificDate;
@@ -3393,13 +2992,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByDate(LocalDate.now().minusDays(1), targetUser);
@@ -3451,13 +3044,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             LocalDate specificDate;
@@ -3508,57 +3095,37 @@ public class ExpenseController {
             @RequestParam String email,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.findUserByJwt(jwt);
-            User targetUser;
 
-            try {
-                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
-            }
+        return helper.executeEmailReport(jwt, targetId, email, "current week expenses",
+                expenseService::getExpensesByCurrentWeek,
+                (context, expenses) -> {
+                    ByteArrayInputStream in = expenses.isEmpty()
+                            ? excelService.generateEmptyExcelWithColumns()
+                            : excelService.generateExcel(expenses);
 
-            List<Expense> expenses = expenseService.getExpensesByCurrentWeek(targetUser);
+                    byte[] bytes = in.readAllBytes();
 
-            ByteArrayInputStream in;
-            if (expenses.isEmpty()) {
-                in = excelService.generateEmptyExcelWithColumns();
-            } else {
-                in = excelService.generateExcel(expenses);
-            }
-            byte[] bytes = in.readAllBytes();
+                    emailService.sendEmailWithAttachment(
+                            context.getEmail(),
+                            "Current Week Expenses Report",
+                            "Please find attached the list of expenses for the current week.",
+                            new ByteArrayResource(bytes),
+                            "current_week_expenses.xlsx"
+                    );
 
-            String subject = "Current Week Expenses Report";
-            emailService.sendEmailWithAttachment(
-                    email,
-                    subject,
-                    "Please find attached the list of expenses for the current week.",
-                    new ByteArrayResource(bytes),
-                    "current_week_expenses.xlsx"
-            );
+                    String auditMessage = helper.createAuditMessage(
+                            "Sent current week expenses report via email to %s",
+                            context.getTargetUser().getId(),
+                            context.getReqUser().getId(),
+                            context.getEmail()
+                    );
 
-            // Log the action
-            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
-                    ? "Sent current week expenses report via email to " + email + " for user ID: " + targetId
-                    : "Sent current week expenses report via email to " + email;
+                    helper.logAudit(context.getReqUser(), null, "report", auditMessage);
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
-
-            return ResponseEntity.ok("Current week expenses report sent successfully");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
-        } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending email: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
-        }
+                    return "Current week expenses report sent successfully";
+                });
     }
+
 
     @GetMapping("/expenses/last-week/email")
     public ResponseEntity<?> sendLastWeekExpensesEmail(
@@ -3572,13 +3139,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesByLastWeek(targetUser);
@@ -3943,15 +3504,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Get grouped expenses
@@ -3990,98 +3543,35 @@ public class ExpenseController {
             @RequestParam(defaultValue = "date") String sortBy,
             @RequestParam(defaultValue = "asc") String sortOrder,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            // Validate pagination parameters
-            if (page < 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Page number cannot be negative");
-            }
-            if (size <= 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Page size must be greater than zero");
-            }
 
-            // Validate sort order parameter
-            if (!sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Invalid sortOrder parameter. Must be 'asc' or 'desc'");
-            }
-
-            // Validate sort by parameter (add more valid fields as needed)
+        return helper.executeWithErrorHandling(() -> {
             List<String> validSortFields = Arrays.asList("date", "amount", "expenseName", "paymentMethod");
-            if (!validSortFields.contains(sortBy.toLowerCase())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Invalid sortBy parameter. Valid values are: " + String.join(", ", validSortFields));
+            ResponseEntity<Map<String, Object>> validation = helper.validatePaginationAndSort(page, size, sortBy, sortOrder, validSortFields);
+            if (validation != null) {
+                return validation.getBody();
             }
 
-            // Get authenticated user
-            User reqUser = userService.findUserByJwt(jwt);
-            if (reqUser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Invalid or expired token");
+            ResponseEntity<?> contextResponse = helper.setupRequestContext(jwt, targetId,
+                    "Retrieved paginated expenses (page %d, size %d, sorted by %s %s)", page, size, sortBy, sortOrder);
+
+            if (!(contextResponse.getBody() instanceof ExpenseServiceHelper.RequestContext)) {
+                return contextResponse.getBody();
             }
 
-            // Determine target user (if admin is viewing another user's expenses)
-            User targetUser;
-            try {
-                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
-            }
+            ExpenseServiceHelper.RequestContext context = (ExpenseServiceHelper.RequestContext) contextResponse.getBody();
+            Map<String, List<Map<String, Object>>> groupedExpenses = expenseService.getExpensesGroupedByDateWithPagination(
+                    context.getTargetUser(), sortOrder, page, size, sortBy);
 
-            // Get paginated and sorted expenses
-            Map<String, List<Map<String, Object>>> groupedExpenses =
-                    expenseService.getExpensesGroupedByDateWithPagination(
-                            targetUser,
-                            sortOrder,
-                            page,
-                            size,
-                            sortBy);
+            helper.logAudit(context.getReqUser(), null, "read", context.getAuditMessage());
 
-            // Log the action
-            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
-                    ? String.format("Retrieved paginated expenses (page %d, size %d, sorted by %s %s) for user ID: %d",
-                    page, size, sortBy, sortOrder, targetId)
-                    : String.format("Retrieved paginated expenses (page %d, size %d, sorted by %s %s)",
-                    page, size, sortBy, sortOrder);
-
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
-
-            // Return empty result if no expenses found
             if (groupedExpenses.isEmpty()) {
-                return ResponseEntity.ok(Collections.emptyMap());
+                return Collections.emptyMap();
             }
 
-            // Add pagination metadata to the response
-            Map<String, Object> response = new HashMap<>();
-            response.put("data", groupedExpenses);
-            response.put("pagination", Map.of(
-                    "page", page,
-                    "size", size,
-                    "sortBy", sortBy,
-                    "sortOrder", sortOrder
-            ));
-
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid request parameters: " + e.getMessage());
-        } catch (Exception e) {
-            // Log the error
-            System.out.println("Error retrieving paginated expenses: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error retrieving paginated expenses: " + e.getMessage());
-        }
+            return helper.buildPaginatedResponse(groupedExpenses, page, size, sortBy, sortOrder);
+        }, "retrieving paginated expenses");
     }
+
 
 
 
@@ -4120,15 +3610,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Get expense before date
@@ -4185,15 +3667,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             LocalDate now = LocalDate.now();
@@ -4296,15 +3770,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Use current year if not specified
@@ -4363,15 +3829,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             if (year == 0) {
@@ -4425,15 +3883,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             if (year == 0) {
@@ -4491,15 +3941,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
             Map<String, Object> result = expenseService.getPaymentMethodDistribution(targetUser, year);
 
@@ -4543,15 +3985,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
             Map<String, Object> result = expenseService.getCumulativeExpenses(targetUser, year);
 
@@ -4600,15 +4034,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
             Map<String, Object> result = expenseService.getExpenseNameOverTime(targetUser, year, limit);
 
@@ -4648,15 +4074,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Map<String, Object>> result = expenseService.getDailySpendingCurrentMonth(targetUser.getId());
@@ -4691,15 +4109,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Map<String, Object>> result = expenseService.getMonthlySpendingAndIncomeCurrentMonth(targetUser.getId());
@@ -4734,15 +4144,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Map<String, Object>> result = expenseService.getExpenseDistributionCurrentMonth(targetUser.getId());
@@ -4789,15 +4191,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
@@ -4853,15 +4247,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             List<Expense> expenses = expenseService.getExpensesInBudgetRangeWithIncludeFlag(
@@ -4894,15 +4280,7 @@ public class ExpenseController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Invalid date format. Please use yyyy-MM-dd format");
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found") || e.getMessage().contains("Budget")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(e.getMessage());
-            } else {
-                System.out.println("Error retrieving expenses for budget: " + e.getMessage());
-                e.printStackTrace();
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Error retrieving expenses for budget: " + e.getMessage());
-            }
+            return helper.handleRuntimeException(e);
         } catch (Exception e) {
             System.out.println("Unexpected error retrieving expenses for budget: " + e.getMessage());
             e.printStackTrace();
@@ -4944,15 +4322,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             LocalDate startDate;
@@ -5015,87 +4385,38 @@ public class ExpenseController {
             @RequestParam String rangeType,
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(required = false) String flowType,
-            @RequestParam(required = false) Integer targetId
-    ) {
-        try {
-            if (rangeType == null || rangeType.trim().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Range type parameter is required");
-            }
-            if (!Arrays.asList("week", "month", "year").contains(rangeType.toLowerCase())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Invalid rangeType parameter. Valid values are: week, month, year");
+            @RequestParam(required = false) Integer targetId) {
+
+        return helper.executeWithErrorHandling(() -> {
+            ResponseEntity<Map<String, Object>> rangeValidation = helper.validateRangeType(rangeType);
+            if (rangeValidation != null) {
+                return rangeValidation.getBody();
             }
 
-            User reqUser = userService.findUserByJwt(jwt);
-            if (reqUser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Invalid or expired token");
+            ResponseEntity<?> contextResponse = helper.setupRequestContext(jwt, targetId,
+                    "Retrieved expenses for %s (offset: %d)%s", rangeType, offset,
+                    flowType != null ? " with flow type: " + flowType : "");
+
+            if (!(contextResponse.getBody() instanceof ExpenseServiceHelper.RequestContext)) {
+                return contextResponse.getBody();
             }
 
-            User targetUser;
-            try {
-                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
-            }
-
-            LocalDate now = LocalDate.now();
-            LocalDate startDate;
-            LocalDate endDate;
-
-            switch (rangeType.toLowerCase()) {
-                case "week":
-                    startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
-                    endDate = now.with(DayOfWeek.SUNDAY).plusWeeks(offset);
-                    break;
-                case "month":
-                    startDate = now.withDayOfMonth(1).plusMonths(offset);
-                    endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-                    break;
-                case "year":
-                    startDate = LocalDate.of(now.getYear(), 1, 1).plusYears(offset);
-                    endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
-                    break;
-                default:
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Invalid range type parameter");
-            }
+            ExpenseServiceHelper.RequestContext context = (ExpenseServiceHelper.RequestContext) contextResponse.getBody();
+            Map<String, LocalDate> dateRange = helper.calculateDateRange(rangeType, offset);
 
             List<Expense> expenses = expenseService.getExpensesWithinRange(
-                    targetUser.getId(),
-                    startDate,
-                    endDate,
+                    context.getTargetUser().getId(),
+                    dateRange.get("startDate"),
+                    dateRange.get("endDate"),
                     flowType
             );
 
-            auditExpenseService.logAudit(reqUser, null, "report",
-                    String.format("Retrieved expenses for %s (offset: %d) from %s to %s%s%s",
-                            rangeType, offset, startDate, endDate,
-                            flowType != null ? " with flow type: " + flowType : "",
-                            targetId != null && !targetId.equals(reqUser.getId()) ? " for user ID: " + targetId : ""
-                    )
-            );
+            helper.logAudit(context.getReqUser(), null, "report", context.getAuditMessage());
 
-            return ResponseEntity.ok(expenses);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid request parameters: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("Error retrieving expenses by range offset: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error retrieving expenses by range offset: " + e.getMessage());
-        }
+            return expenses;
+        }, "retrieving expenses by range offset");
     }
+
 
 
 
@@ -5117,15 +4438,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body("You don't have permission to view this user's expenses");
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Get expenses by category ID
@@ -5172,15 +4485,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body("Target user not found");
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(e.getMessage());
-                } else {
-                    throw e;
-                }
+                return handleRuntimeException(e);
             }
 
             // Get all expenses by categories
@@ -5322,16 +4627,7 @@ public class ExpenseController {
             try {
                 targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             } catch (RuntimeException e) {
-                if (e.getMessage().contains("not found")) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body(Map.of("error", e.getMessage()));
-                } else if (e.getMessage().contains("permission")) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(Map.of("error", e.getMessage()));
-                } else {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Map.of("error", e.getMessage()));
-                }
+                return helper.handleRuntimeException(e);
             }
 
             Map<String, Object> response;
@@ -5355,6 +4651,49 @@ public class ExpenseController {
 
 
 
+
+    @GetMapping("/all-by-payment-method/detailed/filtered")
+    public ResponseEntity<Map<String, Object>> getAllExpensesByPaymentMethodDetailedFiltered(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String rangeType,
+            @RequestParam(required = false, defaultValue = "0") int offset,
+            @RequestParam(required = false) String flowType,
+            @RequestParam(required = false) Integer targetId) {
+
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or expired token"));
+            }
+
+            User targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                return helper.handleRuntimeException(e);
+            }
+
+            Map<String, Object> response;
+            if (fromDate != null && toDate != null) {
+                response = expenseService.getFilteredExpensesByPaymentMethod(targetUser, fromDate, toDate, flowType);
+            } else if (rangeType != null) {
+                response = expenseService.getFilteredExpensesByPaymentMethod(targetUser, rangeType, offset, flowType);
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("error",
+                        "Either provide fromDate and toDate, or provide rangeType"));
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 
 
 }
