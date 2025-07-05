@@ -214,7 +214,7 @@ public class PaymentMethodImpl implements PaymentMethodService {
         String trimmedType = type.trim();
 
         // Search user methods by name and type (case-insensitive)
-        List<PaymentMethod> userMethods = paymentMethodRepository.findByName(name);
+        List<PaymentMethod> userMethods = paymentMethodRepository.findByUserIdAndNameAndType(userId,name,type);
         for (PaymentMethod method : userMethods) {
             if (method.getName() != null && method.getType() != null &&
                     method.getName().equalsIgnoreCase(trimmedName) &&
@@ -228,16 +228,14 @@ public class PaymentMethodImpl implements PaymentMethodService {
         for (PaymentMethod method : globalMethods) {
             if (method.getName() != null && method.getType() != null &&
                     method.getName().equalsIgnoreCase(trimmedName) &&
-                    method.getType().equalsIgnoreCase(trimmedType)) {
+                    method.getType().equalsIgnoreCase(trimmedType) && !method.getEditUserIds().contains(userId) && !method.getUserIds().contains(userId)) {
                 return method;
             }
         }
 
         // Not found, return a new PaymentMethod (not saved)
         PaymentMethod newMethod = new PaymentMethod();
-        newMethod.setName(trimmedName);
-        newMethod.setType(trimmedType);
-        // Set other default fields if needed
+
         return newMethod;
     }
 

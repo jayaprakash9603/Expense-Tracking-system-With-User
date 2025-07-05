@@ -1,13 +1,20 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import FileUploadModal from "../Fileupload/FileUploadModal";
-import { TextField, Box, Alert, CircularProgress } from "@mui/material";
+import {
+  TextField,
+  Box,
+  Alert,
+  CircularProgress,
+  Backdrop,
+} from "@mui/material";
 import {
   getExpensesAction,
   saveExpenses,
 } from "../../Redux/Expenses/expense.action";
 import ExpensesTable from "../Landingpage/ExpensesTable";
 import { useNavigate, useParams } from "react-router";
+import PercentageLoader from "../../components/Loaders/PercentageLoader";
 
 const Upload = () => {
   const dispatch = useDispatch();
@@ -16,9 +23,12 @@ const Upload = () => {
   const [isTableVisible, setIsTableVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [saveProgress, setSaveProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const navigate = useNavigate();
 
-  const { friendId } = useParams(); // Assuming you are using react-router to get friendId from URL
+  const { friendId } = useParams();
 
   const {
     success = false,
@@ -29,11 +39,15 @@ const Upload = () => {
   const openModal = () => {
     setModalOpen(true);
     setIsLoading(false);
+    setUploadProgress(0);
+    setLoadingMessage("");
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setIsLoading(false);
+    setUploadProgress(0);
+    setLoadingMessage("");
   };
 
   const hideTable = () => {
@@ -42,10 +56,47 @@ const Upload = () => {
     setSearchText("");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     console.log("handling the save");
-    dispatch(saveExpenses(uploadedData, friendId));
-    navigate("/");
+    setSaveProgress(0);
+    setIsLoading(true);
+    setLoadingMessage("Saving expenses...");
+
+    // Simulate progress update during save
+    const interval = setInterval(() => {
+      setSaveProgress((prev) => {
+        console.log("Progress updated to:", prev + 10);
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 500);
+
+    await dispatch(saveExpenses(uploadedData, friendId));
+    setIsLoading(false);
+    setLoadingMessage("");
+    setSaveProgress(100);
+    console.log("Save operation completed, isLoading set to false");
+    navigate(-1);
+  };
+
+  const handleUploadStart = () => {
+    setIsLoading(true);
+    setUploadProgress(0);
+    setLoadingMessage("Processing file...");
+
+    // Simulate upload progress
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(interval);
+          return 90; // Stop at 90% until actual upload completes
+        }
+        return prev + 5;
+      });
+    }, 1000);
   };
 
   useEffect(() => {
@@ -54,10 +105,14 @@ const Upload = () => {
       setUploadedData(data);
       setIsTableVisible(true);
       setIsLoading(false);
+      setUploadProgress(100);
+      setLoadingMessage("");
       dispatch(getExpensesAction(friendId));
     }
     if (error) {
       setIsLoading(false);
+      setUploadProgress(0);
+      setLoadingMessage("");
     }
   }, [success, data, error, dispatch]);
 
@@ -75,81 +130,80 @@ const Upload = () => {
   }, [uploadedData, searchText]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#1b1b1b]  sm:px-0">
-      <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b] mx-auto"></div>
+    <>
+      <div className="min-h-screen flex flex-col bg-[#1b1b1b] sm:px-0">
+        <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b] mx-auto"></div>
 
-      <div
-        className="flex flex-col flex-grow   sm:p-6 w-full sm:w-[calc(100vw-400px)] "
-        style={{
-          backgroundColor: "rgb(11, 11, 11)",
-          borderRadius: "8px",
-          boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-          border: "1px solid rgb(0, 0, 0)",
-          opacity: 1,
-        }}
-      >
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error || "Failed to upload file. Please try again."}
-          </Alert>
-        )}
+        <div
+          className="flex flex-col flex-grow sm:p-6 w-full sm:w-[calc(100vw-400px)]"
+          style={{
+            backgroundColor: "rgb(11, 11, 11)",
+            borderRadius: "8px",
+            boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
+            border: "1px solid rgb(0, 0, 0)",
+            opacity: 1,
+          }}
+        >
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error || "Failed to upload file. Please try again."}
+            </Alert>
+          )}
 
-        {isTableVisible && uploadedData.length > 0 ? (
-          <div className="relative">
-            <Box sx={{ mb: 2 }}>
-              <TextField
-                label="Search by Expense Name"
-                variant="outlined"
-                size="small"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                sx={{
-                  bgcolor: "#2a2a2a",
-                  input: { color: "#fff" },
-                  label: { color: "#fff" },
-                  width: {
-                    xs: "100%", // full width on small screens
-                    sm: "60%", // original 60% width on larger
-                  },
-                  height: "45px",
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "#14b8a6",
+          {isTableVisible && uploadedData.length > 0 ? (
+            <div className="relative">
+              <Box sx={{ mb: 2 }}>
+                <TextField
+                  label="Search by Expense Name"
+                  variant="outlined"
+                  size="small"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  sx={{
+                    bgcolor: "#2a2a2a",
+                    input: { color: "#fff" },
+                    label: { color: "#fff" },
+                    width: {
+                      xs: "100%",
+                      sm: "60%",
                     },
-                    "&:hover fieldset": {
-                      borderColor: "#14b8a6",
+                    height: "45px",
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "#14b8a6",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "#14b8a6",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#14b8a6",
+                      },
                     },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#14b8a6",
-                    },
-                  },
-                }}
-              />
-            </Box>
+                  }}
+                />
+              </Box>
 
-            <ExpensesTable expenses={filteredExpenses} />
+              <ExpensesTable expenses={filteredExpenses} />
 
-            <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">
-              <button
-                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 z-10"
-                onClick={hideTable}
-                title="Close Table"
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 z-10"
-                onClick={handleSave}
-              >
-                Save
-              </button>
+              <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">
+                <button
+                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 z-10"
+                  onClick={hideTable}
+                  title="Close Table"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 z-10"
+                  onClick={handleSave}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Saving..." : "Save"}
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex justify-center items-center h-full">
-            {isLoading ? (
-              <CircularProgress color="primary" />
-            ) : (
+          ) : (
+            <div className="flex justify-center items-center h-full">
               <div className="relative w-full h-[60vh] sm:h-[80vh]">
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <button
@@ -160,19 +214,73 @@ const Upload = () => {
                   </button>
                 </div>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        <FileUploadModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          onUploadStart={() => setIsLoading(true)}
-        />
+          <FileUploadModal
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            onUploadStart={handleUploadStart}
+          />
+        </div>
+
+        <div className="w-full sm:w-[calc(100vw-400px)] h-[50px] bg-[#1b1b1b] mx-auto"></div>
       </div>
 
-      <div className="w-full sm:w-[calc(100vw-400px)] h-[50px] bg-[#1b1b1b] mx-auto"></div>
-    </div>
+      {/* Full Screen Loading Overlay */}
+      <Backdrop
+        sx={{
+          color: "#fff",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          backdropFilter: "blur(4px)",
+        }}
+        open={isLoading}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 3,
+            textAlign: "center",
+          }}
+        >
+          <PercentageLoader
+            percentage={isTableVisible ? saveProgress : uploadProgress}
+            size="xl"
+            trackColor="#2a2a2a"
+            progressColor="#14b8a6"
+            textColor="#fff"
+            showPercentage={true}
+          />
+
+          {loadingMessage && (
+            <Box
+              sx={{
+                color: "#fff",
+                fontSize: "1.2rem",
+                fontWeight: "500",
+                textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              {loadingMessage}
+            </Box>
+          )}
+
+          <Box
+            sx={{
+              color: "#a0a0a0",
+              fontSize: "0.9rem",
+              maxWidth: "300px",
+              lineHeight: 1.5,
+            }}
+          >
+            Please wait while we process your request...
+          </Box>
+        </Box>
+      </Backdrop>
+    </>
   );
 };
 

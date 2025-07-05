@@ -6,6 +6,7 @@ import {
   Radio,
   RadioGroup,
   TextField,
+  Alert,
 } from "@mui/material";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
@@ -42,24 +43,6 @@ const Register = () => {
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
 
-  const initialValues = {
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    gender: "",
-  };
-
-  const validationSchema = Yup.object({
-    firstName: Yup.string().required("First name is required"),
-    lastName: Yup.string().required("Last name is required"),
-    email: Yup.string().email("Invalid email").required("Email is required"),
-    password: Yup.string()
-      .min(6, "Password must be at least 6 characters")
-      .required("Password is required"),
-    gender: Yup.string().required("Gender is required"),
-  });
-
   const checkEmailAvailability = async (email) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/check-email`, {
@@ -86,188 +69,264 @@ const Register = () => {
     setSubmitting(false);
   };
 
+  // Function to get the first error message in priority order
+  const getFirstError = (errors, touched) => {
+    // Priority order: firstName, lastName, email, password, gender, emailError
+    if (touched.firstName && errors.firstName) {
+      return errors.firstName;
+    }
+    if (touched.lastName && errors.lastName) {
+      return errors.lastName;
+    }
+    if (touched.email && errors.email) {
+      return errors.email;
+    }
+    if (emailError) {
+      return emailError;
+    }
+    if (touched.password && errors.password) {
+      return errors.password;
+    }
+    if (touched.gender && errors.gender) {
+      return errors.gender;
+    }
+
+    return null;
+  };
+
   return (
     <Formik
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
       initialValues={initialValues}
     >
-      {({ values, setFieldValue }) => (
-        <Form className="space-y-4 p-4">
-          <div className="min-h-[80px]">
-            <Field
-              as={TextField}
-              name="firstName"
-              placeholder="First Name"
-              type="text"
-              variant="outlined"
-              fullWidth
-              InputProps={{
-                style: {
-                  backgroundColor: "rgb(56, 56, 56)",
-                  color: "#d8fffb",
-                  borderRadius: "8px",
-                },
-              }}
-              InputLabelProps={{ style: { color: "#d8fffb" } }}
-            />
-            <ErrorMessage
-              name="firstName"
-              component="div"
-              className="text-red-500 text-sm mt-1 min-h-[20px]"
-            />
-          </div>
-          <div className="min-h-[80px]">
-            <Field
-              as={TextField}
-              name="lastName"
-              placeholder="Last Name"
-              type="text"
-              variant="outlined"
-              fullWidth
-              InputProps={{
-                style: {
-                  backgroundColor: "rgb(56, 56, 56)",
-                  color: "#d8fffb",
-                  borderRadius: "8px",
-                },
-              }}
-              InputLabelProps={{ style: { color: "#d8fffb" } }}
-            />
-            <ErrorMessage
-              name="lastName"
-              component="div"
-              className="text-red-500 text-sm mt-1 min-h-[20px]"
-            />
-          </div>
-          <div className="min-h-[80px]">
-            <Field
-              as={TextField}
-              name="email"
-              placeholder="Email"
-              type="email"
-              variant="outlined"
-              fullWidth
-              onBlur={() => checkEmailAvailability(values.email)}
-              InputProps={{
-                style: {
-                  backgroundColor: "rgb(56, 56, 56)",
-                  color: "#d8fffb",
-                  borderRadius: "8px",
-                },
-              }}
-              InputLabelProps={{ style: { color: "#d8fffb" } }}
-            />
-            <ErrorMessage
-              name="email"
-              component="div"
-              className="text-red-500 text-sm mt-1 min-h-[20px]"
-            />
-            {emailError && (
-              <div className="text-red-500 text-sm mt-1 min-h-[20px]">
-                {emailError}
+      {({ values, setFieldValue, errors, touched }) => {
+        const currentError = getFirstError(errors, touched);
+
+        return (
+          <Form className="space-y-4 p-4">
+            {/* Single Error Message Display */}
+            {currentError && (
+              <div className="mb-4">
+                <Alert
+                  severity="error"
+                  sx={{
+                    backgroundColor: "rgba(244, 67, 54, 0.1)",
+                    color: "#f44336",
+                    "& .MuiAlert-icon": {
+                      color: "#f44336",
+                    },
+                  }}
+                >
+                  {currentError}
+                </Alert>
               </div>
             )}
-          </div>
-          <div className="min-h-[110px]">
-            <Field name="password">
-              {({ field }) => (
-                <TextField
-                  {...field}
-                  placeholder="Password"
-                  type={showPassword ? "text" : "password"}
-                  variant="outlined"
-                  fullWidth
-                  InputProps={{
-                    style: {
-                      backgroundColor: "rgb(56, 56, 56)",
-                      color: "#d8fffb",
-                      borderRadius: "8px",
+
+            <div>
+              <Field
+                as={TextField}
+                name="firstName"
+                placeholder="First Name"
+                type="text"
+                variant="outlined"
+                fullWidth
+                error={
+                  touched.firstName && !!errors.firstName && !values.firstName
+                }
+                InputProps={{
+                  style: {
+                    backgroundColor: "rgb(56, 56, 56)",
+                    color: "#d8fffb",
+                    borderRadius: "8px",
+                  },
+                }}
+                InputLabelProps={{ style: { color: "#d8fffb" } }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#f44336",
                     },
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                          style={{ color: "#14b8a6" }}
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  InputLabelProps={{ style: { color: "#d8fffb" } }}
+                  },
+                }}
+              />
+            </div>
+            <div>
+              <Field
+                as={TextField}
+                name="lastName"
+                placeholder="Last Name"
+                type="text"
+                variant="outlined"
+                fullWidth
+                error={
+                  touched.lastName && !!errors.lastName && !values.lastName
+                }
+                InputProps={{
+                  style: {
+                    backgroundColor: "rgb(56, 56, 56)",
+                    color: "#d8fffb",
+                    borderRadius: "8px",
+                  },
+                }}
+                InputLabelProps={{ style: { color: "#d8fffb" } }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#f44336",
+                    },
+                  },
+                }}
+              />
+            </div>
+            <div>
+              <Field
+                as={TextField}
+                name="email"
+                placeholder="Email"
+                type="email"
+                variant="outlined"
+                fullWidth
+                error={
+                  ((touched.email && !!errors.email) || !!emailError) &&
+                  !values.email
+                }
+                onBlur={() => checkEmailAvailability(values.email)}
+                InputProps={{
+                  style: {
+                    backgroundColor: "rgb(56, 56, 56)",
+                    color: "#d8fffb",
+                    borderRadius: "8px",
+                  },
+                }}
+                InputLabelProps={{ style: { color: "#d8fffb" } }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#f44336",
+                    },
+                  },
+                }}
+              />
+            </div>
+            <div>
+              <Field name="password">
+                {({ field }) => (
+                  <TextField
+                    {...field}
+                    placeholder="Password"
+                    type={showPassword ? "text" : "password"}
+                    variant="outlined"
+                    fullWidth
+                    error={
+                      touched.password && !!errors.password && !values.password
+                    }
+                    InputProps={{
+                      style: {
+                        backgroundColor: "rgb(56, 56, 56)",
+                        color: "#d8fffb",
+                        borderRadius: "8px",
+                      },
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                            style={{ color: "#14b8a6" }}
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    InputLabelProps={{ style: { color: "#d8fffb" } }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#f44336",
+                        },
+                      },
+                    }}
+                  />
+                )}
+              </Field>
+              <PasswordStrengthMeter password={values.password} />
+            </div>
+
+            <div>
+              <RadioGroup
+                onChange={(e) => {
+                  setGender(e.target.value);
+                  setFieldValue("gender", e.target.value);
+                }}
+                aria-label="gender"
+                name="gender"
+                row
+                className="justify-center"
+              >
+                <FormControlLabel
+                  value="female"
+                  control={
+                    <Radio
+                      style={{
+                        color:
+                          touched.gender && errors.gender && !values.gender
+                            ? "#f44336"
+                            : "#14b8a6",
+                      }}
+                    />
+                  }
+                  label="Female"
+                  className="text-gray-400"
                 />
-              )}
-            </Field>
-            <ErrorMessage
-              name="password"
-              component="div"
-              className="text-red-500 text-sm mt-2 min-h-[20px]"
-            />
-            <PasswordStrengthMeter password={values.password} />
-          </div>
+                <FormControlLabel
+                  value="male"
+                  control={
+                    <Radio
+                      style={{
+                        color:
+                          touched.gender && errors.gender && !values.gender
+                            ? "#f44336"
+                            : "#14b8a6",
+                      }}
+                    />
+                  }
+                  label="Male"
+                  className="text-gray-400"
+                />
+              </RadioGroup>
+            </div>
 
-          <div className="min-h-[40px]">
-            <RadioGroup
-              onChange={(e) => {
-                setGender(e.target.value);
-                setFieldValue("gender", e.target.value);
-              }}
-              aria-label="gender"
-              name="gender"
-              row
-              className="justify-center"
-            >
-              <FormControlLabel
-                value="female"
-                control={<Radio style={{ color: "#14b8a6" }} />}
-                label="Female"
-                className="text-gray-400"
-              />
-              <FormControlLabel
-                value="male"
-                control={<Radio style={{ color: "#14b8a6" }} />}
-                label="Male"
-                className="text-gray-400"
-              />
-            </RadioGroup>
-            <ErrorMessage
-              name="gender"
-              component="div"
-              className="text-red-500 text-sm text-center min-h-[20px]"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            style={{
-              backgroundColor: "#14b8a6",
-              color: "#d8fffb",
-              padding: "12px 0",
-              borderRadius: "8px",
-              textTransform: "none",
-              fontWeight: "bold",
-            }}
-          >
-            Register
-          </Button>
-
-          <div className="flex items-center justify-center gap-2 pt-1">
-            <p className="text-gray-400 text-sm m-0">
-              Already have an account?
-            </p>
             <Button
-              onClick={() => navigate("/login")}
-              style={{ color: "#14b8a6", textTransform: "none" }}
+              type="submit"
+              variant="contained"
+              fullWidth
+              style={{
+                backgroundColor: "#14b8a6",
+                color: "#d8fffb",
+                padding: "12px 0",
+                borderRadius: "8px",
+                textTransform: "none",
+                fontWeight: "bold",
+              }}
             >
-              Login
+              Register
             </Button>
-          </div>
-        </Form>
-      )}
+
+            <div className="flex items-center justify-center gap-2 pt-1">
+              <p className="text-gray-400 text-sm m-0">
+                Already have an account?
+              </p>
+              <Button
+                onClick={() => navigate("/login")}
+                style={{ color: "#14b8a6", textTransform: "none" }}
+              >
+                Login
+              </Button>
+            </div>
+          </Form>
+        );
+      }}
     </Formik>
   );
 };

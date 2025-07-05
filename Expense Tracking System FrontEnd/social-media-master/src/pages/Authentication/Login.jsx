@@ -6,6 +6,7 @@ import {
   IconButton,
   InputAdornment,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
@@ -41,6 +42,34 @@ const Login = () => {
     setSubmitting(false);
   };
 
+  // Function to handle forgot password click
+  const handleForgotPasswordClick = () => {
+    setError(""); // Clear any existing errors
+    setShowForgotPassword(true);
+  };
+
+  // Function to handle back from forgot password
+  const handleBackFromForgotPassword = () => {
+    setError(""); // Clear any existing errors
+    setShowForgotPassword(false);
+  };
+
+  // Function to get the first error message in priority order
+  const getFirstError = (errors, touched) => {
+    // Priority order: email, password, then login error
+    if (touched.email && errors.email) {
+      return errors.email;
+    }
+    if (touched.password && errors.password) {
+      return errors.password;
+    }
+    if (error) {
+      return error;
+    }
+
+    return null;
+  };
+
   return (
     <div className="p-3">
       {!showForgotPassword ? (
@@ -49,137 +78,159 @@ const Login = () => {
           validationSchema={validationSchema}
           initialValues={initialValues}
         >
-          {({ isSubmitting }) => (
-            <Form className="space-y-4">
-              {/* Email Field */}
-              <div className="min-h-[80px]">
-                <Field
-                  as={TextField}
-                  name="email"
-                  placeholder="Email"
-                  type="email"
-                  variant="outlined"
-                  fullWidth
-                  InputProps={{
-                    style: {
-                      backgroundColor: "rgb(56, 56, 56)",
-                      color: "#d8fffb",
-                      borderRadius: "8px",
-                    },
-                  }}
-                  InputLabelProps={{ style: { color: "#d8fffb" } }}
-                />
-                <ErrorMessage
-                  name="email"
-                  component="div"
-                  className="text-red-500 text-sm mt-1 min-h-[20px]"
-                />
-                {error?.toLowerCase().includes("email") && (
-                  <div className="text-red-500 text-sm mt-1 min-h-[20px]">
-                    {error}
-                  </div>
-                )}
-              </div>
+          {({ isSubmitting, values, errors, touched }) => {
+            const currentError = getFirstError(errors, touched);
 
-              {/* Password Field */}
-              <div className="min-h-[80px]">
-                <Field name="password">
-                  {({ field }) => (
-                    <TextField
-                      {...field}
-                      placeholder="Password"
-                      type={showPassword ? "text" : "password"}
-                      variant="outlined"
-                      fullWidth
-                      InputProps={{
-                        style: {
-                          backgroundColor: "rgb(56, 56, 56)",
-                          color: "#d8fffb",
-                          borderRadius: "8px",
+            return (
+              <Form className="space-y-4">
+                {/* Further Reduced Height Error Message Container */}
+                <div className="min-h-[10px] mb-1">
+                  {currentError && (
+                    <Alert
+                      severity="error"
+                      sx={{
+                        backgroundColor: "rgba(244, 67, 54, 0.1)",
+                        color: "#f44336",
+                        "& .MuiAlert-icon": {
+                          color: "#f44336",
                         },
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <IconButton
-                              onClick={() => setShowPassword(!showPassword)}
-                              edge="end"
-                              style={{ color: "#14b8a6" }}
-                            >
-                              {showPassword ? (
-                                <VisibilityOff />
-                              ) : (
-                                <Visibility />
-                              )}
-                            </IconButton>
-                          </InputAdornment>
-                        ),
                       }}
-                      InputLabelProps={{ style: { color: "#d8fffb" } }}
-                    />
+                    >
+                      {currentError}
+                    </Alert>
                   )}
-                </Field>
-                <ErrorMessage
-                  name="password"
-                  component="div"
-                  className="text-red-500 text-sm mt-1 min-h-[20px]"
-                />
-                {!error?.toLowerCase().includes("email") && error && (
-                  <div className="text-red-500 text-sm mt-1 min-h-[20px]">
-                    {error}
-                  </div>
-                )}
-              </div>
+                </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                disabled={isSubmitting}
-                style={{
-                  backgroundColor: "#14b8a6",
-                  color: "#d8fffb",
-                  padding: "12px 0",
-                  borderRadius: "8px",
-                  textTransform: "none",
-                  fontWeight: "bold",
-                }}
-              >
-                {isSubmitting ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "Login"
-                )}
-              </Button>
+                {/* Email Field */}
+                <div>
+                  <Field
+                    as={TextField}
+                    name="email"
+                    placeholder="Email"
+                    type="email"
+                    variant="outlined"
+                    fullWidth
+                    error={touched.email && !!errors.email && !values.email}
+                    InputProps={{
+                      style: {
+                        backgroundColor: "rgb(56, 56, 56)",
+                        color: "#d8fffb",
+                        borderRadius: "8px",
+                      },
+                    }}
+                    InputLabelProps={{ style: { color: "#d8fffb" } }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#f44336",
+                        },
+                      },
+                    }}
+                  />
+                </div>
 
-              {/* Links */}
-              <div className="flex flex-col items-center gap-2 pt-1">
-                <p
-                  className="cursor-pointer"
-                  onClick={() => setShowForgotPassword(true)}
-                  style={{ color: "#14b8a6", textTransform: "none" }}
-                >
-                  Forgot Password?
-                </p>
+                {/* Password Field */}
+                <div>
+                  <Field name="password">
+                    {({ field }) => (
+                      <TextField
+                        {...field}
+                        placeholder="Password"
+                        type={showPassword ? "text" : "password"}
+                        variant="outlined"
+                        fullWidth
+                        error={
+                          touched.password &&
+                          !!errors.password &&
+                          !values.password
+                        }
+                        InputProps={{
+                          style: {
+                            backgroundColor: "rgb(56, 56, 56)",
+                            color: "#d8fffb",
+                            borderRadius: "8px",
+                          },
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge="end"
+                                style={{ color: "#14b8a6" }}
+                              >
+                                {showPassword ? (
+                                  <VisibilityOff />
+                                ) : (
+                                  <Visibility />
+                                )}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                        InputLabelProps={{ style: { color: "#d8fffb" } }}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "#f44336",
+                            },
+                          },
+                        }}
+                      />
+                    )}
+                  </Field>
+                </div>
+
+                {/* Submit Button */}
                 <Button
-                  onClick={() => navigate("/register")}
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={isSubmitting}
                   style={{
                     backgroundColor: "#14b8a6",
-                    color: "#ffffff",
-                    padding: "10px 50px",
-                    border: "none",
-                    borderRadius: "4px",
+                    color: "#d8fffb",
+                    padding: "12px 0",
+                    borderRadius: "8px",
                     textTransform: "none",
-                    cursor: "pointer",
+                    fontWeight: "bold",
                   }}
                 >
-                  Register
+                  {isSubmitting ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
-              </div>
-            </Form>
-          )}
+
+                {/* Links */}
+                <div className="flex flex-col items-center gap-2 pt-1">
+                  <p
+                    className="cursor-pointer"
+                    onClick={handleForgotPasswordClick}
+                    style={{ color: "#14b8a6", textTransform: "none" }}
+                  >
+                    Forgot Password?
+                  </p>
+                  <Button
+                    onClick={() => navigate("/register")}
+                    style={{
+                      backgroundColor: "#14b8a6",
+                      color: "#ffffff",
+                      padding: "10px 50px",
+                      border: "none",
+                      borderRadius: "4px",
+                      textTransform: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Register
+                  </Button>
+                </div>
+              </Form>
+            );
+          }}
         </Formik>
       ) : (
-        <ForgotPassword onBack={() => setShowForgotPassword(false)} />
+        <ForgotPassword onBack={handleBackFromForgotPassword} />
       )}
     </div>
   );

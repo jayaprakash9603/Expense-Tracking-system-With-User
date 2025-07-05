@@ -1,93 +1,108 @@
-import React from 'react';
-import clsx from 'clsx';
+import React from "react";
+import { Box, Typography, CircularProgress } from "@mui/material";
 
-/**
- * PercentageLoader Component
- * A customizable circular percentage loader with animated progress
- *
- * @param {Object} props
- * @param {number} props.percentage - The percentage value (0-100)
- * @param {string} props.size - Size of the loader ('sm', 'md', 'lg', or specific pixel value)
- * @param {string} props.trackColor - Color of the background track
- * @param {string} props.progressColor - Color of the progress bar
- * @param {string} props.textColor - Color of the percentage text
- * @param {boolean} props.showPercentage - Whether to show percentage text in center
- * @param {string} props.className - Additional CSS classes
- * @returns {JSX.Element}
- */
 const PercentageLoader = ({
   percentage = 0,
-  size = 'md',
-  trackColor = '#f3f4f6',
-  progressColor = '#4f46e5',
-  textColor = '#111827',
+  size = "md",
+  trackColor = "#e0e0e0",
+  progressColor = "#1976d2",
+  textColor = "#000",
   showPercentage = true,
-  className,
+  label = "",
 }) => {
-  // Ensure percentage is between 0 and 100
-  const normalizedPercentage = Math.min(100, Math.max(0, percentage));
-
-  // Calculate the circumference of the circle
-  const radius = 42; // SVG coordinate system
-  const circumference = 2 * Math.PI * radius;
-
-  // Calculate the dash offset based on percentage
-  const dashOffset = circumference - (circumference * normalizedPercentage) / 100;
-
-  // Determine size dimensions
-  const sizeMap = {
-    sm: '60px',
-    md: '80px',
-    lg: '120px'
+  // Size configurations
+  const sizeConfig = {
+    sm: { width: 60, height: 60, thickness: 3, fontSize: "0.75rem" },
+    md: { width: 80, height: 80, thickness: 4, fontSize: "0.875rem" },
+    lg: { width: 120, height: 120, thickness: 5, fontSize: "1rem" },
+    xl: { width: 150, height: 150, thickness: 6, fontSize: "1.25rem" },
   };
 
-  const sizeValue = sizeMap[size] || size;
+  const config = sizeConfig[size] || sizeConfig.md;
 
   return (
-    <div
-      className={clsx('relative inline-flex justify-center items-center', className)}
-      style={{ width: sizeValue, height: sizeValue }}
+    <Box
+      sx={{
+        position: "relative",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        gap: 1,
+      }}
     >
-      <svg
-        className="transform -rotate-90 w-full h-full"
-        viewBox="0 0 100 100"
-      >
-        {/* Background track */}
-        <circle
-          cx="50"
-          cy="50"
-          r={radius}
-          stroke={trackColor}
-          strokeWidth="8"
-          fill="none"
-          strokeLinecap="round"
+      {/* Background Circle */}
+      <Box sx={{ position: "relative" }}>
+        <CircularProgress
+          variant="determinate"
+          value={100}
+          size={config.width}
+          thickness={config.thickness}
+          sx={{
+            color: trackColor,
+            position: "absolute",
+          }}
         />
 
-        {/* Progress circle */}
-        <circle
-          cx="50"
-          cy="50"
-          r={radius}
-          stroke={progressColor}
-          strokeWidth="8"
-          fill="none"
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 0.5s ease-in-out' }}
+        {/* Progress Circle */}
+        <CircularProgress
+          variant="determinate"
+          value={Math.min(Math.max(percentage, 0), 100)}
+          size={config.width}
+          thickness={config.thickness}
+          sx={{
+            color: progressColor,
+            animationDuration: "550ms",
+            position: "relative",
+            "& .MuiCircularProgress-circle": {
+              strokeLinecap: "round",
+            },
+          }}
         />
-      </svg>
 
-      {/* Percentage text */}
-      {showPercentage && (
-        <div
-          className="absolute inset-0 flex items-center justify-center font-semibold"
-          style={{ color: textColor }}
+        {/* Percentage Text */}
+        {showPercentage && (
+          <Box
+            sx={{
+              top: 0,
+              left: 0,
+              bottom: 0,
+              right: 0,
+              position: "absolute",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Typography
+              variant="caption"
+              component="div"
+              sx={{
+                color: textColor,
+                fontSize: config.fontSize,
+                fontWeight: "bold",
+              }}
+            >
+              {`${Math.round(percentage)}%`}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      {/* Optional Label */}
+      {label && (
+        <Typography
+          variant="body2"
+          sx={{
+            color: textColor,
+            textAlign: "center",
+            fontSize: config.fontSize,
+          }}
         >
-          <span>{Math.round(normalizedPercentage)}%</span>
-        </div>
+          {label}
+        </Typography>
       )}
-    </div>
+    </Box>
   );
 };
 

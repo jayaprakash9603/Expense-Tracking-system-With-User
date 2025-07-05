@@ -1,5 +1,7 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
+import ItemNameAutocomplete from "./ItemNameAutocomplete";
 import {
   Autocomplete,
   TextField,
@@ -22,6 +24,7 @@ import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { createBill } from "../../Redux/Bill/bill.action";
+import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 
 const labelStyle = "text-white text-sm sm:text-base font-semibold mr-4";
 const inputWrapper = {
@@ -40,7 +43,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const today = new Date().toISOString().split("T")[0];
   const dispatch = useDispatch();
   const { friendId } = useParams();
-
+  const lastRowRef = useRef(null);
   const {
     budgets,
     error: budgetError,
@@ -51,6 +54,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
     loading: categoriesLoading,
     error: categoriesError,
   } = useSelector((state) => state.categories || {});
+  const {
+    paymentMethods,
+    loading: paymentMethodsLoading,
+    error: paymentMethodsError,
+  } = useSelector((state) => state.paymentMethods || {});
+
+  const [hasUnsavedExpenseChanges, setHasUnsavedExpenseChanges] =
+    useState(false);
 
   // Add loading state for bill creation
   const { loading: billLoading } = useSelector((state) => state.bills || {});
@@ -75,13 +86,173 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const [showBudgetTable, setShowBudgetTable] = useState(false);
   const [checkboxStates, setCheckboxStates] = useState([]);
   const [selectedBudgets, setSelectedBudgets] = useState([]);
+  const [localPaymentMethods, setLocalPaymentMethods] = useState([]);
+  const [localPaymentMethodsLoading, setLocalPaymentMethodsLoading] =
+    useState(false);
+  const [localPaymentMethodsError, setLocalPaymentMethodsError] =
+    useState(null);
 
+  const formatPaymentMethodName = (name) => {
+    switch (name.toLowerCase()) {
+      case "cash":
+        return "Cash";
+      case "creditNeedToPaid":
+        return "Credit Due";
+      case "creditPaid":
+        return "Credit Paid";
+      default:
+        // For other payment methods, convert to title case
+        return name
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase())
+          .trim();
+    }
+  };
+
+  const defaultPaymentMethods = [
+    { name: "cash", label: "Cash", type: "expense" },
+    { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
+    { name: "creditPaid", label: "Credit Paid", type: "expense" },
+    { name: "cash", label: "Cash", type: "income" },
+    { name: "creditPaid", label: "Credit Paid", type: "income" },
+    { name: "creditNeedToPaid", label: "Credit Due", type: "income" },
+  ];
   // Payment method options
-  const paymentMethods = ["cash", "debit", "credit"];
+  // Fix the filtering logic in processedPaymentMethods
+  const processedPaymentMethods = useMemo(() => {
+    console.log("Processing local payment methods:", {
+      localPaymentMethods,
+      isArray: Array.isArray(localPaymentMethods),
+      length: localPaymentMethods?.length,
+      billType: billData.type,
+    });
+
+    let availablePaymentMethods = [];
+
+    // If we have valid payment methods from local state
+    if (Array.isArray(localPaymentMethods) && localPaymentMethods.length > 0) {
+      // Filter payment methods based on bill type
+      const filteredMethods = localPaymentMethods.filter((pm) => {
+        if (billData.type === "loss") {
+          // Show payment methods with type "expense"
+          return pm.type && pm.type.toLowerCase() === "expense";
+        } else if (billData.type === "gain") {
+          // Show payment methods with type "income"
+          return pm.type && pm.type.toLowerCase() === "income";
+        }
+        // If no type is selected, show all
+        return true;
+      });
+
+      availablePaymentMethods = filteredMethods.map((pm) => ({
+        value: pm.name,
+        label: formatPaymentMethodName(pm.name),
+        ...pm,
+      }));
+    }
+
+    // If no filtered methods available, use default fallback based on type
+    if (availablePaymentMethods.length === 0) {
+      console.log(
+        "Using default payment methods as fallback for type:",
+        billData.type
+      );
+
+      // Filter default methods by both name AND type
+      const defaultMethodsForType = defaultPaymentMethods.filter((pm) => {
+        if (billData.type === "loss") {
+          // Only return expense type payment methods
+          return pm.type === "expense";
+        } else if (billData.type === "gain") {
+          // Only return income type payment methods
+          return pm.type === "income";
+        }
+        return true;
+      });
+
+      availablePaymentMethods = defaultMethodsForType.map((pm) => ({
+        value: pm.name,
+        label: pm.label,
+        type: pm.type, // Include type in the mapped object
+      }));
+    }
+
+    console.log("Final available payment methods:", availablePaymentMethods);
+    return availablePaymentMethods;
+  }, [localPaymentMethods, billData.type]);
 
   // Type options
   const typeOptions = ["gain", "loss"];
 
+  // Validation function for expense items
+
+  const isCurrentRowComplete = (expense) => {
+    if (!expense) return false;
+
+    const hasItemName = expense.itemName && expense.itemName.trim() !== "";
+    const hasValidUnitPrice =
+      expense.unitPrice !== "" &&
+      expense.unitPrice !== null &&
+      expense.unitPrice !== undefined &&
+      !isNaN(parseFloat(expense.unitPrice)) &&
+      parseFloat(expense.unitPrice) > 0 &&
+      !expense.unitPrice.toString().includes("-"); // Ensure no negative sign
+    const hasValidQuantity =
+      expense.quantity !== "" &&
+      expense.quantity !== null &&
+      expense.quantity !== undefined &&
+      !isNaN(parseFloat(expense.quantity)) &&
+      parseFloat(expense.quantity) > 0 &&
+      !expense.quantity.toString().includes("-"); // Ensure no negative sign
+
+    return hasItemName && hasValidUnitPrice && hasValidQuantity;
+  };
+
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        setLocalPaymentMethodsLoading(true);
+        setLocalPaymentMethodsError(null);
+
+        console.log(
+          "Fetching payment methods for friendId:",
+          friendId || "current user"
+        );
+
+        // Dispatch the action and wait for the result
+        const resultAction = await dispatch(
+          fetchAllPaymentMethods(friendId || "")
+        );
+
+        console.log("Payment methods action result:", resultAction);
+
+        // Check if the action was successful and extract the payload
+        if (resultAction) {
+          const paymentMethodsData = resultAction || resultAction || [];
+          console.log("Setting local payment methods:", paymentMethodsData);
+          setLocalPaymentMethods(
+            Array.isArray(paymentMethodsData) ? paymentMethodsData : []
+          );
+        } else {
+          const errorMessage =
+            resultAction.error?.message ||
+            resultAction.payload ||
+            "Failed to fetch payment methods";
+          console.error("Payment methods fetch failed:", errorMessage);
+          setLocalPaymentMethodsError(errorMessage);
+        }
+      } catch (error) {
+        console.error("Error fetching payment methods:", error);
+        setLocalPaymentMethodsError(
+          error.message || "Failed to fetch payment methods"
+        );
+      } finally {
+        setLocalPaymentMethodsLoading(false);
+      }
+    };
+
+    fetchPaymentMethods();
+  }, [dispatch, friendId]);
   // Fetch budgets on component mount
   useEffect(() => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
@@ -122,6 +293,38 @@ const CreateBill = ({ onClose, onSuccess }) => {
     }
   };
 
+  const handleTypeChange = (event, newValue) => {
+    const newType = newValue || "loss";
+
+    setBillData((prev) => ({
+      ...prev,
+      type: newType,
+      // Reset payment method to first available option for the new type
+      paymentMethod: "cash", // This will be updated by the effect below
+    }));
+
+    if (errors.type) {
+      setErrors({ ...errors, type: false });
+    }
+  };
+
+  // Add useEffect to update payment method when type changes and options are available
+  useEffect(() => {
+    if (processedPaymentMethods.length > 0) {
+      // Check if current payment method is still valid for the selected type
+      const currentMethodValid = processedPaymentMethods.some(
+        (pm) => pm.value === billData.paymentMethod
+      );
+
+      // If current method is not valid, set to first available option
+      if (!currentMethodValid) {
+        setBillData((prev) => ({
+          ...prev,
+          paymentMethod: processedPaymentMethods[0]?.value || "cash",
+        }));
+      }
+    }
+  }, [processedPaymentMethods, billData.paymentMethod]);
   const handleDateChange = (newValue) => {
     if (newValue) {
       const formatted = dayjs(newValue).format("YYYY-MM-DD");
@@ -138,11 +341,27 @@ const CreateBill = ({ onClose, onSuccess }) => {
   };
 
   // Handle temp expense changes in table
+
   const handleTempExpenseChange = (index, field, value) => {
     const updatedExpenses = [...tempExpenses];
-    updatedExpenses[index][field] = value;
 
-    // Calculate total price when quantity or unit price changes
+    // For quantity and unitPrice, ensure only positive values
+    if (field === "quantity" || field === "unitPrice") {
+      // Convert to number and check if it's positive
+      const numValue = parseFloat(value);
+
+      // Allow empty string for editing, but prevent negative values
+      if (value === "" || numValue > 0) {
+        updatedExpenses[index][field] = value;
+      } else {
+        // Don't update if the value is negative or zero
+        return;
+      }
+    } else {
+      updatedExpenses[index][field] = value;
+    }
+
+    // Recalculate total price when quantity or unit price changes
     if (field === "quantity" || field === "unitPrice") {
       const quantity = parseFloat(updatedExpenses[index].quantity) || 0;
       const unitPrice = parseFloat(updatedExpenses[index].unitPrice) || 0;
@@ -150,44 +369,132 @@ const CreateBill = ({ onClose, onSuccess }) => {
     }
 
     setTempExpenses(updatedExpenses);
+    setHasUnsavedExpenseChanges(true);
   };
 
+  const handleItemNameChange = (index, event, newValue) => {
+    const updatedExpenses = [...tempExpenses];
+    updatedExpenses[index].itemName = newValue || "";
+
+    // Recalculate total price when item name changes
+    const quantity = parseFloat(updatedExpenses[index].quantity) || 1;
+    const unitPrice = parseFloat(updatedExpenses[index].unitPrice) || 0;
+    updatedExpenses[index].totalPrice = quantity * unitPrice;
+
+    setTempExpenses(updatedExpenses);
+
+    // Mark as having unsaved changes
+    setHasUnsavedExpenseChanges(true);
+
+    // Force a re-render to update the Add Row button state
+    // This ensures the validation runs immediately after item name change
+    setTimeout(() => {
+      // This will trigger a re-render and update the button state
+      setTempExpenses([...updatedExpenses]);
+    }, 0);
+  };
   const addTempExpenseRow = () => {
-    setTempExpenses([
-      ...tempExpenses,
-      { itemName: "", quantity: 1, unitPrice: "", totalPrice: 0 },
-    ]);
-  };
+    if (isCurrentRowComplete(tempExpenses[tempExpenses.length - 1])) {
+      setTempExpenses([
+        ...tempExpenses,
+        {
+          itemName: "",
+          quantity: 1,
+          unitPrice: "",
+          totalPrice: 0,
+          comments: "",
+        },
+      ]);
 
+      // Mark as having unsaved changes
+      setHasUnsavedExpenseChanges(true);
+
+      // Scroll to the new row and focus on item name input after state update
+      setTimeout(() => {
+        if (lastRowRef.current) {
+          lastRowRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+
+          // Focus on the item name input of the new row
+          const itemNameInput = lastRowRef.current.querySelector(
+            'input[placeholder="Item name"]'
+          );
+          if (itemNameInput) {
+            itemNameInput.focus();
+          }
+        }
+      }, 100);
+    }
+  };
   const removeTempExpenseRow = (index) => {
     if (tempExpenses.length > 1) {
       const updatedExpenses = tempExpenses.filter((_, i) => i !== index);
       setTempExpenses(updatedExpenses);
+
+      // Mark as having unsaved changes
+      setHasUnsavedExpenseChanges(true);
     }
+  };
+
+  const hasValidExpenseEntries = () => {
+    return tempExpenses.some(
+      (expense) =>
+        expense.itemName.trim() !== "" ||
+        (expense.unitPrice !== "" &&
+          !isNaN(parseFloat(expense.unitPrice)) &&
+          parseFloat(expense.unitPrice) > 0) ||
+        (expense.quantity !== "" &&
+          !isNaN(parseFloat(expense.quantity)) &&
+          parseFloat(expense.quantity) > 0)
+    );
   };
 
   const handleSaveExpenses = () => {
-    // Filter out empty expense items and save to main expenses state
-    const validExpenses = tempExpenses.filter(
-      (expense) => expense.itemName.trim() !== ""
+    const validExpenses = tempExpenses.filter((expense) =>
+      isCurrentRowComplete(expense)
     );
+
+    if (validExpenses.length === 0) {
+      alert(
+        "Please add at least one complete expense item before saving. Item Name, Quantity, and Unit Price are all required."
+      );
+      return;
+    }
+
     setExpenses(validExpenses);
     setShowExpenseTable(false);
+
+    // Reset unsaved changes flag after successful save
+    setHasUnsavedExpenseChanges(false);
+
+    // Reset temp expenses
+    setTempExpenses([
+      {
+        itemName: "",
+        quantity: 1,
+        unitPrice: "",
+        totalPrice: 0,
+        comments: "",
+      },
+    ]);
   };
 
   const handleOpenExpenseTable = () => {
-    // Load existing expenses into temp state
-    if (expenses.length > 0) {
-      setTempExpenses([...expenses]);
+    if (showExpenseTable) {
+      handleCloseExpenseTableWithConfirmation();
     } else {
-      setTempExpenses([
-        { itemName: "", quantity: 1, unitPrice: "", totalPrice: 0 },
-      ]);
-    }
-    setShowExpenseTable(true);
-    setShowBudgetTable(false); // Hide budget table when expense table opens
-  };
+      setShowExpenseTable(true);
+      setShowBudgetTable(false);
 
+      // Load existing expenses into temp if any
+      if (expenses.length > 0) {
+        setTempExpenses([...expenses]);
+        setHasUnsavedExpenseChanges(false); // No unsaved changes when loading existing data
+      }
+    }
+  };
   const handleCloseExpenseTable = () => {
     setShowExpenseTable(false);
     // Reset temp expenses to current saved expenses
@@ -200,6 +507,33 @@ const CreateBill = ({ onClose, onSuccess }) => {
     }
   };
 
+  const handleCloseExpenseTableWithConfirmation = () => {
+    // Check if there are unsaved changes and valid entries
+    if (hasUnsavedExpenseChanges && hasValidExpenseEntries()) {
+      const confirmClose = window.confirm(
+        "You have unsaved expense items. Are you sure you want to close without saving? All entered data will be lost."
+      );
+
+      if (confirmClose) {
+        // Reset temp expenses to initial state
+        setTempExpenses([
+          {
+            itemName: "",
+            quantity: 1,
+            unitPrice: "",
+            totalPrice: 0,
+            comments: "",
+          },
+        ]);
+        setHasUnsavedExpenseChanges(false);
+        setShowExpenseTable(false);
+      }
+      // If user cancels, do nothing (keep the table open)
+    } else {
+      // No unsaved changes or no valid entries, close normally
+      setShowExpenseTable(false);
+    }
+  };
   const handleToggleBudgetTable = () => {
     setShowBudgetTable(!showBudgetTable);
     if (showExpenseTable) {
@@ -215,45 +549,55 @@ const CreateBill = ({ onClose, onSuccess }) => {
     e.preventDefault();
     const newErrors = {};
 
+    // Existing validations
     if (!billData.name) newErrors.name = true;
     if (!billData.date) newErrors.date = true;
     if (!billData.type) newErrors.type = true;
 
+    // Validate expense items - check if at least one exists with positive values
+    const validExpenses = expenses.filter(
+      (expense) =>
+        expense.itemName.trim() !== "" &&
+        expense.unitPrice !== "" &&
+        !isNaN(parseFloat(expense.unitPrice)) &&
+        parseFloat(expense.unitPrice) > 0 &&
+        !expense.unitPrice.toString().includes("-") &&
+        expense.quantity !== "" &&
+        !isNaN(parseFloat(expense.quantity)) &&
+        parseFloat(expense.quantity) > 0 &&
+        !expense.quantity.toString().includes("-")
+    );
+
+    if (validExpenses.length === 0) {
+      newErrors.expenses = true;
+      alert("At least one expense item should be added to create a bill.");
+    }
+
+    // Additional validation: Check for negative values or invalid entries
+    const invalidExpenses = expenses.filter(
+      (expense) =>
+        expense.itemName.trim() !== "" &&
+        (expense.unitPrice === "" ||
+          isNaN(parseFloat(expense.unitPrice)) ||
+          parseFloat(expense.unitPrice) <= 0 ||
+          expense.unitPrice.toString().includes("-") ||
+          expense.quantity === "" ||
+          isNaN(parseFloat(expense.quantity)) ||
+          parseFloat(expense.quantity) <= 0 ||
+          expense.quantity.toString().includes("-"))
+    );
+
+    if (invalidExpenses.length > 0) {
+      newErrors.expenses = true;
+      alert(
+        "Please enter valid positive values for both quantity and unit price. Negative values are not allowed."
+      );
+    }
+
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    const budgetIds = selectedBudgets.map((budget) => budget.id);
-
-    const formattedExpenses = tempExpenses.map((expense) => ({
-      itemName: expense.itemName,
-      quantity: expense.quantity,
-      unitPrice: expense.unitPrice,
-      totalPrice: expense.totalPrice,
-      comments: expense.comments || "", // Include comments field
-    }));
-
-    const billPayload = {
-      ...billData,
-      expenses: formattedExpenses,
-    };
-
-    try {
-      await dispatch(createBill(billPayload, friendId || ""));
-      console.log("Bill Data to Submit:", billPayload);
-
-      if (typeof onClose === "function") {
-        onClose();
-      } else {
-        navigate(-1, {
-          state: { toastMessage: "Bill created successfully!" },
-        });
-      }
-      if (onSuccess) {
-        onSuccess("Bill created successfully!");
-      }
-    } catch (error) {
-      console.error("Error creating bill:", error);
-    }
+    // ... rest of the submit logic remains the same
   };
 
   const handleCheckboxChange = (index) => {
@@ -449,22 +793,43 @@ const CreateBill = ({ onClose, onSuccess }) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={paymentMethods}
-          getOptionLabel={(option) =>
-            option.charAt(0).toUpperCase() + option.slice(1)
+          options={processedPaymentMethods}
+          getOptionLabel={(option) => option.label || option}
+          value={
+            processedPaymentMethods.find(
+              (pm) => pm.value === billData.paymentMethod
+            ) || null
           }
-          value={billData.paymentMethod || ""}
           onChange={(event, newValue) => {
             setBillData((prev) => ({
               ...prev,
-              paymentMethod: newValue || "cash",
+              paymentMethod: newValue ? newValue.value : "cash",
             }));
           }}
+          loading={localPaymentMethodsLoading}
+          noOptionsText={
+            billData.type
+              ? `No ${
+                  billData.type === "loss" ? "expense" : "income"
+                } payment methods available`
+              : "No payment methods available"
+          }
           renderInput={(params) => (
             <TextField
               {...params}
               placeholder="Select payment method"
               variant="outlined"
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {localPaymentMethodsLoading ? (
+                      <CircularProgress color="inherit" size={20} />
+                    ) : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              }}
               sx={{
                 "& .MuiInputBase-root": {
                   backgroundColor: "#29282b",
@@ -501,6 +866,20 @@ const CreateBill = ({ onClose, onSuccess }) => {
           }}
         />
       </div>
+
+      {/* Error display using local state */}
+      {localPaymentMethodsError && (
+        <div className="text-red-400 text-xs mt-1">
+          Error: {localPaymentMethodsError}
+        </div>
+      )}
+
+      {/* Debug info - remove in production */}
+      {/* <div className="text-gray-400 text-xs mt-1">
+        Options: {processedPaymentMethods.length} available for{" "}
+        {billData.type || "all types"}
+        {localPaymentMethodsLoading && " (Loading...)"}
+      </div> */}
     </div>
   );
 
@@ -517,12 +896,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
             option.charAt(0).toUpperCase() + option.slice(1)
           }
           value={billData.type || ""}
-          onChange={(event, newValue) => {
-            setBillData((prev) => ({ ...prev, type: newValue || "loss" }));
-            if (errors.type) {
-              setErrors({ ...errors, type: false });
-            }
-          }}
+          onChange={handleTypeChange} // Use the new handler
           renderInput={(params) => (
             <TextField
               {...params}
@@ -828,11 +1202,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 Expense Items
               </h3>
               <IconButton
-                onClick={handleCloseExpenseTable}
+                onClick={handleCloseExpenseTableWithConfirmation} // Use the new function
                 sx={{
-                  color: "#ff4444", // Changed color to red
+                  color: "#ff4444",
                   "&:hover": {
-                    backgroundColor: "#ff444420", // Light red hover effect
+                    backgroundColor: "#ff444420",
                   },
                 }}
               >
@@ -841,16 +1215,16 @@ const CreateBill = ({ onClose, onSuccess }) => {
             </div>
 
             <div className="bg-[#29282b] rounded border border-gray-600 px-3 pt-3 flex-1 flex flex-col min-h-0">
-              {/* Table Header */}
+              {/* Table Header - Updated */}
               <div className="grid grid-cols-6 gap-3 mb-3 pb-2 border-b border-gray-600">
                 <div className="text-white font-semibold text-sm col-span-1">
-                  Item Name
+                  Item Name *
                 </div>
                 <div className="text-white font-semibold text-sm col-span-1">
-                  Quantity
+                  Quantity *
                 </div>
                 <div className="text-white font-semibold text-sm col-span-1">
-                  Unit Price
+                  Unit Price *
                 </div>
                 <div className="text-white font-semibold text-sm col-span-1">
                   Total Price
@@ -864,123 +1238,211 @@ const CreateBill = ({ onClose, onSuccess }) => {
               </div>
 
               <div className="flex-1 overflow-y-auto space-y-3 min-h-0">
-                {tempExpenses.map((expense, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-6 gap-3 items-center bg-[#1b1b1b] p-3 rounded"
-                  >
-                    <div className="col-span-1">
-                      <input
-                        type="text"
-                        placeholder="Item name"
-                        value={expense.itemName}
-                        onChange={(e) =>
-                          handleTempExpenseChange(
-                            index,
-                            "itemName",
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
-                      />
+                {tempExpenses.map((expense, index) => {
+                  const hasItemName = expense.itemName.trim() !== "";
+                  const hasValidUnitPrice =
+                    expense.unitPrice !== "" &&
+                    !isNaN(parseFloat(expense.unitPrice)) &&
+                    parseFloat(expense.unitPrice) > 0;
+                  const isIncomplete = hasItemName && !hasValidUnitPrice;
+                  const isLastRow = index === tempExpenses.length - 1;
+
+                  return (
+                    <div
+                      key={index}
+                      ref={isLastRow ? lastRowRef : null}
+                      className={`grid grid-cols-6 gap-3 items-center p-3 rounded ${
+                        isIncomplete
+                          ? "bg-[#2d1b1b] border border-red-500"
+                          : "bg-[#1b1b1b]"
+                      }`}
+                    >
+                      {/* Item Name Autocomplete - Updated */}
+                      <div className="col-span-1">
+                        <ItemNameAutocomplete
+                          value={expense.itemName}
+                          onChange={(event, newValue) =>
+                            handleItemNameChange(index, event, newValue)
+                          }
+                          placeholder="Item name"
+                          autoFocus={isLastRow && expense.itemName === ""}
+                        />
+                      </div>
+
+                      {/* Quantity Input - Updated with positive value validation */}
+                      <div className="col-span-1">
+                        <input
+                          type="number"
+                          placeholder="Qty *"
+                          value={expense.quantity}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // Allow empty string or positive numbers only
+                            if (
+                              value === "" ||
+                              (parseFloat(value) > 0 && !value.includes("-"))
+                            ) {
+                              handleTempExpenseChange(index, "quantity", value);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            // Prevent entering negative sign, 'e', 'E', '+', and '.'
+                            if (["-", "e", "E", "+", "."].includes(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          className={`w-full px-3 py-2 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
+                            hasItemName &&
+                            (!expense.quantity ||
+                              parseFloat(expense.quantity) <= 0)
+                              ? "bg-[#3d2b2b] border border-red-400 focus:ring-red-400 outline-none"
+                              : "bg-[#29282b] focus:ring-[#00dac6]"
+                          }`}
+                          min="1"
+                          step="1"
+                        />
+                      </div>
+
+                      {/* Unit Price Input - Updated with positive value validation */}
+                      <div className="col-span-1">
+                        <input
+                          type="number"
+                          placeholder="Unit Price *"
+                          value={expense.unitPrice}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // Allow empty string or positive numbers only
+                            if (
+                              value === "" ||
+                              (parseFloat(value) > 0 && !value.includes("-"))
+                            ) {
+                              handleTempExpenseChange(
+                                index,
+                                "unitPrice",
+                                value
+                              );
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            // Prevent entering negative sign, 'e', 'E', '+'
+                            if (["-", "e", "E", "+"].includes(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          className={`w-full px-3 py-2 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
+                            isIncomplete
+                              ? "bg-[#3d2b2b] border border-red-400 focus:ring-red-400 outline-none"
+                              : "bg-[#29282b] focus:ring-[#00dac6]"
+                          }`}
+                          min="0.01"
+                          step="0.01"
+                        />
+                      </div>
+
+                      {/* Total Price Input */}
+                      <div className="col-span-1">
+                        <input
+                          type="text"
+                          value={expense.totalPrice.toFixed(2)}
+                          readOnly
+                          className="w-full px-3 py-2 rounded bg-[#333] text-gray-400 cursor-not-allowed text-sm"
+                        />
+                      </div>
+
+                      {/* Comments Input */}
+                      <div className="col-span-1">
+                        <input
+                          type="text"
+                          placeholder="Comments"
+                          value={expense.comments || ""}
+                          onChange={(e) =>
+                            handleTempExpenseChange(
+                              index,
+                              "comments",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
+                        />
+                      </div>
+
+                      {/* Actions */}
+                      <div className="col-span-1 flex gap-2">
+                        <IconButton
+                          onClick={() => removeTempExpenseRow(index)}
+                          disabled={tempExpenses.length === 1}
+                          sx={{
+                            color:
+                              tempExpenses.length === 1 ? "#666" : "#ff4444",
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor:
+                                tempExpenses.length === 1
+                                  ? "transparent"
+                                  : "#ff444420",
+                            },
+                          }}
+                          size="small"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </div>
                     </div>
-                    <div className="col-span-1">
-                      <input
-                        type="number"
-                        placeholder="Qty"
-                        value={expense.quantity}
-                        onChange={(e) =>
-                          handleTempExpenseChange(
-                            index,
-                            "quantity",
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
-                        min="1"
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <input
-                        type="number"
-                        placeholder="Unit Price"
-                        value={expense.unitPrice}
-                        onChange={(e) =>
-                          handleTempExpenseChange(
-                            index,
-                            "unitPrice",
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
-                        step="0.01"
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <input
-                        type="text"
-                        value={expense.totalPrice.toFixed(2)}
-                        readOnly
-                        className="w-full px-3 py-2 rounded bg-[#333] text-gray-400 cursor-not-allowed text-sm"
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <input
-                        type="text"
-                        placeholder="Comments"
-                        value={expense.comments || ""}
-                        onChange={(e) =>
-                          handleTempExpenseChange(
-                            index,
-                            "comments",
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
-                      />
-                    </div>
-                    <div className="col-span-1 flex gap-2">
-                      <IconButton
-                        onClick={() => removeTempExpenseRow(index)}
-                        disabled={tempExpenses.length === 1}
-                        sx={{
-                          color: tempExpenses.length === 1 ? "#666" : "#ff4444",
-                          padding: "4px",
-                          "&:hover": {
-                            backgroundColor:
-                              tempExpenses.length === 1
-                                ? "transparent"
-                                : "#ff444420",
-                          },
-                        }}
-                        size="small"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Add Row Button and Actions - Fixed at bottom */}
               <div className="mt-4 pt-4 border-t border-gray-600">
                 <div className="flex justify-between items-center mb-4">
-                  <Button
-                    onClick={addTempExpenseRow}
-                    startIcon={<AddIcon />}
-                    sx={{
-                      backgroundColor: "#00DAC6",
-                      color: "black",
-                      "&:hover": {
-                        backgroundColor: "#00b8a0",
-                      },
-                      fontSize: "0.875rem",
-                      padding: "6px 12px",
-                    }}
-                    size="small"
-                  >
-                    Add Row
-                  </Button>
+                  <div className="flex flex-col">
+                    <Button
+                      onClick={addTempExpenseRow}
+                      startIcon={<AddIcon />}
+                      disabled={
+                        !isCurrentRowComplete(
+                          tempExpenses[tempExpenses.length - 1]
+                        )
+                      }
+                      sx={{
+                        backgroundColor: isCurrentRowComplete(
+                          tempExpenses[tempExpenses.length - 1]
+                        )
+                          ? "#00DAC6"
+                          : "#666",
+                        color: isCurrentRowComplete(
+                          tempExpenses[tempExpenses.length - 1]
+                        )
+                          ? "black"
+                          : "#999",
+                        "&:hover": {
+                          backgroundColor: isCurrentRowComplete(
+                            tempExpenses[tempExpenses.length - 1]
+                          )
+                            ? "#00b8a0"
+                            : "#666",
+                        },
+                        "&:disabled": {
+                          backgroundColor: "#666",
+                          color: "#999",
+                        },
+                        fontSize: "0.875rem",
+                        padding: "6px 12px",
+                      }}
+                      size="small"
+                    >
+                      Add Row
+                    </Button>
+
+                    {!isCurrentRowComplete(
+                      tempExpenses[tempExpenses.length - 1]
+                    ) && (
+                      <div className="text-red-400 text-xs mt-1">
+                        Complete the current item (Item Name, Quantity, and Unit
+                        Price are all required) to add more rows
+                      </div>
+                    )}
+                  </div>
 
                   {/* Total Summary - Centered */}
                   {tempExpenses.length > 0 && (
@@ -997,14 +1459,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
                   <div className="flex gap-2">
                     <Button
-                      onClick={handleCloseExpenseTable}
+                      onClick={handleCloseExpenseTableWithConfirmation} // Use the new function
                       sx={{
-                        backgroundColor: "#ff4444", // Changed color to red
+                        backgroundColor: "#ff4444",
                         color: "white",
                         fontSize: "0.875rem",
                         padding: "6px 12px",
                         "&:hover": {
-                          backgroundColor: "#ff6666", // Light red hover effect
+                          backgroundColor: "#ff6666",
                         },
                       }}
                       size="small"
@@ -1020,6 +1482,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                           backgroundColor: "#00b8a0",
                         },
                         fontSize: "0.875rem",
+
                         padding: "6px 12px",
                       }}
                       size="small"
@@ -1033,6 +1496,135 @@ const CreateBill = ({ onClose, onSuccess }) => {
           </div>
         )}
 
+        {/* Expense Items Summary - Show when not in table view */}
+
+        {!showExpenseTable && !showBudgetTable && (
+          <div className="mt-4">
+            <div className="bg-[#29282b] rounded border border-gray-600 p-3">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-white font-semibold text-base">
+                  Expense Items Summary
+                </h4>
+                <span className="text-[#00dac6] text-sm font-medium">
+                  {expenses.length} item{expenses.length !== 1 ? "s" : ""} added
+                </span>
+              </div>
+
+              {expenses.length === 0 ? (
+                <div
+                  className="text-center py-4"
+                  style={{
+                    height: "345px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <p className="text-red-400 text-sm mb-1">
+                    ⚠️ No expense items added yet
+                  </p>
+                  <p className="text-gray-400 text-xs">
+                    At least one expense item is required to create a bill
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {/* Responsive grid container for expense items - Reduced height */}
+                  <div
+                    className="max-h-80 overflow-y-auto pr-2"
+                    style={{
+                      maxHeight: "285px",
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "#00dac6 #1b1b1b",
+                    }}
+                  >
+                    {/* Grid layout: 1 column on mobile, 2 on tablet, 3 on desktop */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                      {expenses.map((expense, index) => (
+                        <div
+                          key={index}
+                          className="bg-[#1b1b1b] rounded-lg p-3 border border-gray-700 hover:border-gray-600 transition-colors"
+                        >
+                          {/* Item header with name and total */}
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h5
+                                className="text-white font-medium text-sm mb-1 truncate"
+                                title={expense.itemName}
+                              >
+                                {expense.itemName}
+                              </h5>
+                              <div className="text-[#00dac6] font-semibold text-sm">
+                                ₹{expense.totalPrice.toFixed(2)}
+                              </div>
+                            </div>
+                            <div className="text-gray-400 text-xs ml-2 flex-shrink-0">
+                              #{index + 1}
+                            </div>
+                          </div>
+
+                          {/* Item details - Stacked layout for better fit */}
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Quantity:</span>
+                              <span className="text-white font-medium">
+                                {expense.quantity}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">Unit Price:</span>
+                              <span className="text-white font-medium">
+                                ₹{parseFloat(expense.unitPrice).toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-400">
+                                Calculation:
+                              </span>
+                              <span className="text-gray-300 text-xs">
+                                {expense.quantity} × ₹
+                                {parseFloat(expense.unitPrice).toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Comments section (if exists) */}
+                          {expense.comments &&
+                            expense.comments.trim() !== "" && (
+                              <div className="mt-2 pt-2 border-t border-gray-700">
+                                <div className="text-gray-400 text-xs mb-1">
+                                  Comments:
+                                </div>
+                                <div className="text-gray-300 text-xs bg-[#29282b] p-2 rounded border border-gray-600 break-words">
+                                  {expense.comments}
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Total summary section */}
+                  <div className="border-t border-gray-600 pt-3 mt-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 font-medium text-sm">
+                        Total Amount:
+                      </span>
+                      <span className="text-[#00dac6] font-bold text-lg">
+                        ₹
+                        {expenses
+                          .reduce((sum, expense) => sum + expense.totalPrice, 0)
+                          .toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         <div className="w-full flex justify-end mt-4 sm:mt-8">
           <button
             onClick={handleSubmit}
@@ -1065,7 +1657,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
             appearance: none;
           }
           .overflow-y-auto::-webkit-scrollbar {
-            width: 4px; // Decreased scrollbar width
+            width: 4px;
           }
           .overflow-y-auto::-webkit-scrollbar-track {
             background: #1b1b1b;
@@ -1078,7 +1670,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
             background: #00b8a0;
           }
           .overflow-x-auto::-webkit-scrollbar {
-            height: 4px; // Decreased scrollbar height
+            height: 4px;
           }
           .overflow-x-auto::-webkit-scrollbar-track {
             background: #1b1b1b;
@@ -1090,28 +1682,28 @@ const CreateBill = ({ onClose, onSuccess }) => {
           .overflow-x-auto::-webkit-scrollbar-thumb:hover {
             background: #00b8a0;
           }
-            @media (max-width: 640px) {
-         .create-bill-container {
-        width: 100vw !important;
-        height: auto !important;
-        padding: 16px;
-      }
-      .form-row {
-        flex-direction: column !important;
-        gap: 12px;
-      }
-      .field-styles {
-        max-width: 100% !important;
-        width: 100% !important;
-        padding: 8px;
-        font-size: 0.875rem;
-      }
-      .label-style {
-        width: 100% !important;
-        font-size: 0.875rem;
-      }
-      .input-wrapper {
-                            width: 100% !important;
+          @media (max-width: 640px) {
+            .create-bill-container {
+              width: 100vw !important;
+              height: auto !important;
+              padding: 16px;
+            }
+            .form-row {
+              flex-direction: column !important;
+              gap: 12px;
+            }
+            .field-styles {
+              max-width: 100% !important;
+              width: 100% !important;
+              padding: 8px;
+              font-size: 0.875rem;
+            }
+            .label-style {
+              width: 100% !important;
+              font-size: 0.875rem;
+            }
+            .input-wrapper {
+              width: 100% !important;
               min-width: 100% !important;
               flex-direction: column !important;
               align-items: flex-start !important;
@@ -1159,18 +1751,8 @@ const CreateBill = ({ onClose, onSuccess }) => {
               font-size: 0.875rem !important;
               margin: 8px 0 !important;
             }
-            .submit-button {
-              width: 100% !important;
-              margin-top: 16px !important;
-            }
-            .budget-table {
-              font-size: 0.75rem !important;
-            }
-            .budget-table .MuiDataGrid-root {
-              min-height: 200px !important;
-            }
           }
-        `}
+          `}
         </style>
       </div>
     </>

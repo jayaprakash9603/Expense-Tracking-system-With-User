@@ -17,11 +17,15 @@ import {
   FETCH_PAYMENT_METHOD_BY_TARGET_ID_REQUEST,
   FETCH_PAYMENT_METHOD_BY_TARGET_ID_SUCCESS,
   FETCH_PAYMENT_METHOD_BY_TARGET_ID_FAILURE,
+  GET_ALL_PAYMENT_METHOD_REQUEST,
+  GET_ALL_PAYMENT_METHOD_SUCCESS,
+  GET_ALL_PAYMENT_METHOD_FAILURE,
 } from "./paymentMethod.actionType";
 
 const initialState = {
   paymentMethodExpenses: null,
   paymentMethod: {},
+  paymentMethods: [],
   loading: false,
   error: null,
 };
@@ -34,6 +38,7 @@ export const paymentMethodReducer = (state = initialState, action) => {
     case FETCH_PAYMENT_METHOD_BY_ID_REQUEST:
     case UPDATE_PAYMENT_METHOD_REQUEST:
     case FETCH_PAYMENT_METHOD_BY_TARGET_ID_REQUEST:
+    case GET_ALL_PAYMENT_METHOD_REQUEST:
       return {
         ...state,
         loading: true,
@@ -45,6 +50,14 @@ export const paymentMethodReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         paymentMethodExpenses: action.payload,
+        error: null,
+      };
+
+    case GET_ALL_PAYMENT_METHOD_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        paymentMethods: action.payload,
         error: null,
       };
 
@@ -85,6 +98,7 @@ export const paymentMethodReducer = (state = initialState, action) => {
     case FETCH_PAYMENT_METHOD_BY_ID_FAILURE:
     case UPDATE_PAYMENT_METHOD_FAILURE:
     case FETCH_PAYMENT_METHOD_BY_TARGET_ID_FAILURE:
+    case GET_ALL_PAYMENT_METHOD_FAILURE:
       return {
         ...state,
         loading: false,

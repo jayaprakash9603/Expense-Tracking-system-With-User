@@ -105,6 +105,19 @@ public class ExpenseServiceImpl implements ExpenseService {
         if (expense.getBudgetIds() == null) expense.setBudgetIds(new HashSet<>());
 
         ExpenseDetails details = expense.getExpense();
+        if (details == null) {
+            throw new IllegalArgumentException("Expense details must not be null.");
+        }
+        details.setId(null);
+        details.setExpenseName(details.getExpenseName() != null ? details.getExpenseName() : "");
+        details.setAmount(details.getAmount());
+        details.setType(details.getType() != null ? details.getType() : "");
+        details.setPaymentMethod(details.getPaymentMethod() != null ? details.getPaymentMethod() : "");
+        details.setNetAmount(details.getType().equals("loss") ? -details.getAmount() : details.getAmount());
+        details.setComments(details.getComments() != null ? details.getComments() : "");
+        details.setCreditDue(details.getPaymentMethod().equals("creditNeedToPaid")? details.getAmount():0);
+
+        // Set bi-directional relationship
         details.setExpense(expense);
         expense.setExpense(details);
 
@@ -796,7 +809,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
 
             if (existing.isBill()) {
-
                 continue;
             }
 
@@ -818,7 +830,6 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
-
                 Integer categoryId = existing.getCategoryId();
                 if (categoryId != null) {
                     try {
@@ -838,22 +849,29 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
-
                 ExpenseDetails details = existing.getExpense();
                 if (details != null && details.getPaymentMethod() != null && !details.getPaymentMethod().trim().isEmpty()) {
                     String paymentMethodName = details.getPaymentMethod().trim();
                     String paymentType = (details.getType() != null && details.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
                     List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
-                    PaymentMethod paymentMethod = allMethods.stream().filter(pm -> pm.getName().equalsIgnoreCase(paymentMethodName) && pm.getType().equalsIgnoreCase(paymentType)).findFirst().orElse(null);
+                    PaymentMethod paymentMethod = allMethods.stream()
+                            .filter(pm -> pm.getName().equalsIgnoreCase(paymentMethodName) && pm.getType().equalsIgnoreCase(paymentType))
+                            .findFirst()
+                            .orElse(null);
                     if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
-                        paymentMethod.getExpenseIds().remove(existing.getId());
+                        Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
+                        Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(user.getId(), new HashSet<>());
+                        userExpenseSet.remove(existing.getId());
+                        if (userExpenseSet.isEmpty()) {
+                            expenseIdsMap.remove(user.getId());
+                        } else {
+                            expenseIdsMap.put(user.getId(), userExpenseSet);
+                        }
                         paymentMethodRepository.save(paymentMethod);
                     }
                 }
 
-
                 auditExpenseService.logAudit(user, existing.getId(), "Expense Deleted", existing.getExpense().getExpenseName());
-
                 expensesToDelete.add(existing);
             } catch (Exception e) {
                 errorMessages.add("Failed to process deletion for Expense ID: " + expense.getId() + " - " + e.getMessage());
@@ -947,9 +965,16 @@ public class ExpenseServiceImpl implements ExpenseService {
                 ExpenseDetails details = expense.getExpense();
                 if (details != null && details.getPaymentMethod() != null && !details.getPaymentMethod().isEmpty()) {
                     try {
-                        PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), details.getPaymentMethod());
+                        PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), details.getPaymentMethod(),details.getType().equals("loss") ? "expense" : "income");
                         if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
-                            paymentMethod.getExpenseIds().remove(expense.getId());
+                            Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
+                            Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(user.getId(), new HashSet<>());
+                            userExpenseSet.remove(expense.getId());
+                            if (userExpenseSet.isEmpty()) {
+                                expenseIdsMap.remove(user.getId());
+                            } else {
+                                expenseIdsMap.put(user.getId(), userExpenseSet);
+                            }
                             paymentMethodRepository.save(paymentMethod);
                         }
                     } catch (Exception e) {
@@ -995,7 +1020,6 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
         }
 
-
         Integer categoryId = expense.getCategoryId();
         if (categoryId != null) {
             try {
@@ -1003,28 +1027,33 @@ public class ExpenseServiceImpl implements ExpenseService {
                 if (category != null && category.getExpenseIds() != null) {
                     Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
                     expenseSet.remove(expense.getId());
-
                     if (expenseSet.isEmpty()) {
                         category.getExpenseIds().remove(user.getId());
                     } else {
                         category.getExpenseIds().put(user.getId(), expenseSet);
                     }
-
                     categoryRepository.save(category);
                 }
             } catch (Exception e) {
-
                 System.out.println("Error removing expense from category: " + e.getMessage());
             }
         }
 
-
         if (expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null) {
             String paymentMethodName = expense.getExpense().getPaymentMethod();
+            String type=expense.getExpense().getType();
             try {
-                PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), paymentMethodName);
+                PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), paymentMethodName,type.equals("loss") ? "expense" : "income");
                 if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
-                    paymentMethod.getExpenseIds().remove(expense.getId());
+                    Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
+                    Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(user.getId(), new HashSet<>());
+                    userExpenseSet.remove(expense.getId());
+                    System.out.println("Removing expense ID " + expense.getId() + " from payment method " + userExpenseSet);
+                    if (userExpenseSet.isEmpty()) {
+                        expenseIdsMap.remove(user.getId());
+                    } else {
+                        expenseIdsMap.put(user.getId(), userExpenseSet);
+                    }
                     paymentMethodRepository.save(paymentMethod);
                 }
             } catch (Exception e) {
@@ -1033,7 +1062,6 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
 
         auditExpenseService.logAudit(user, expense.getId(), "Expense Deleted", expense.getExpense().getExpenseName());
-
         expenseRepository.deleteById(id);
     }
 
