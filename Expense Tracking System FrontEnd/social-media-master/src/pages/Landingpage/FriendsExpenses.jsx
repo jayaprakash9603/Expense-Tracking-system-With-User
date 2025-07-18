@@ -575,8 +575,8 @@ const FriendsExpenses = () => {
           dispatch(
             fetchCashflowExpenses(activeRange, offset, flowTab, "", friendId)
           );
-          setToastMessage("Expense deleted successfully.");
-          setToastOpen(true);
+          // setToastMessage("Expense deleted successfully.");
+          // setToastOpen(true);
         })
         .catch(() => {
           setToastMessage("Error deleting expense. Please try again.");
@@ -1151,6 +1151,16 @@ const FriendsExpenses = () => {
                 path: `/budget/${friendId}`,
                 icon: "budget.png",
                 label: "Budget",
+              },
+              {
+                path: `/payment-method/${friendId}`,
+                icon: "payment-method.png",
+                label: "Payment Method",
+              },
+              {
+                path: `/bill/${friendId}`,
+                icon: "bill.png",
+                label: "Bill",
               },
               {
                 path: `/calendar-view/${friendId}`,

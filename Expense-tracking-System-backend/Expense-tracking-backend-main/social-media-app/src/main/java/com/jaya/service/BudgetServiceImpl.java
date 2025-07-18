@@ -2,6 +2,7 @@ package com.jaya.service;
 
 import com.jaya.dto.BudgetReport;
 import com.jaya.exceptions.UserException;
+import com.jaya.models.AuditEvent;
 import com.jaya.models.Budget;
 import com.jaya.models.Expense;
 import com.jaya.models.User;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +26,8 @@ public class BudgetServiceImpl implements BudgetService {
     @Autowired
     private BudgetRepository budgetRepository;
 
-    @Autowired
-    private AuditExpenseService auditExpenseService;
+//    @Autowired
+//    private AuditExpenseService auditExpenseService;
 
     @Autowired
     private UserRepository userRepository;
@@ -102,12 +104,22 @@ public class BudgetServiceImpl implements BudgetService {
             }
         }
 
-        auditExpenseService.logAudit(user, savedBudget.getId(), "Budget Created", budget.getName());
+        // auditExpenseService.logAudit(convertToAuditEvent(user, savedBudget.getId(), "Budget Created", budget.getName()));
         return savedBudget;
     }
 
 
 
+    private AuditEvent convertToAuditEvent(User user, Integer budgetId, String actionType, String details) {
+        AuditEvent auditEvent = new AuditEvent();
+        auditEvent.setUserId(user.getId());
+        auditEvent.setUsername(user.getUsername());
+        auditEvent.setExpenseId(budgetId);
+        auditEvent.setActionType(actionType);
+        auditEvent.setDetails(details);
+        auditEvent.setTimestamp(LocalDateTime.now());
+        return auditEvent;
+    }
 
 
 
@@ -182,12 +194,12 @@ public class BudgetServiceImpl implements BudgetService {
         BudgetReport budgetReport = calculateBudgetReport(userId, budgetId);
         existingBudget.setRemainingAmount(budgetReport.getRemainingAmount());
 
-        auditExpenseService.logAudit(
-                userService.findUserById(userId),
-                existingBudget.getId(),
-                "Budget Edited",
-                existingBudget.getName()
-        );
+        // auditExpenseService.logAudit(convertToAuditEvent(
+//                userService.findUserById(userId),
+//                existingBudget.getId(),
+//                "Budget Edited",
+//                existingBudget.getName()
+//        ));
 
         return budgetRepository.save(existingBudget);
     }
@@ -220,12 +232,12 @@ public class BudgetServiceImpl implements BudgetService {
 
         budgetRepository.delete(budget);
 
-        auditExpenseService.logAudit(
-                userService.findUserById(userId),
-                budgetId,
-                "Budget Deleted",
-                budget.getName()
-        );
+        // auditExpenseService.logAudit(convertToAuditEvent(
+//                userService.findUserById(userId),
+//                budgetId,
+//                "Budget Deleted",
+//                budget.getName()
+//        ));
     }
 
 
@@ -253,12 +265,12 @@ public class BudgetServiceImpl implements BudgetService {
 
         budgetRepository.deleteAll(budgets);
 
-        auditExpenseService.logAudit(
-                userService.findUserById(userId),
-                null,
-                "Budget Deleted",
-                "All budgets were deleted for the user"
-        );
+        // auditExpenseService.logAudit(convertToAuditEvent(
+//                userService.findUserById(userId),
+//                null,
+//                "Budget Deleted",
+//                "All budgets were deleted for the user"
+//        ));
     }
 
 

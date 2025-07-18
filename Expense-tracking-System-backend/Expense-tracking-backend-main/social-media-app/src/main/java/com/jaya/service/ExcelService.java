@@ -366,35 +366,35 @@ public class ExcelService {
     
 
 
-    public ByteArrayInputStream generateAuditLogsExcel(List<AuditExpense> logs) {
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Sheet sheet = workbook.createSheet("Audit Logs");
-
-            // Header
-            Row headerRow = sheet.createRow(0);
-            String[] headers = {"ID", "Expense ID", "Action Type", "Details", "Timestamp"};
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-            }
-
-            // Data
-            int rowIdx = 1;
-            for (AuditExpense log : logs) {
-                Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(log.getId());
-                row.createCell(1).setCellValue(log.getExpenseId() != null ? log.getExpenseId() : 0); // Handle null expenseId
-                row.createCell(2).setCellValue(log.getActionType());
-                row.createCell(3).setCellValue(log.getDetails());
-                row.createCell(4).setCellValue(log.getTimestamp().toString());
-            }
-
-            workbook.write(out);
-            return new ByteArrayInputStream(out.toByteArray());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to generate Excel file", e);
-        }
-    }
+//    public ByteArrayInputStream generateAuditLogsExcel(List<AuditExpense> logs) {
+//        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+//            Sheet sheet = workbook.createSheet("Audit Logs");
+//
+//            // Header
+//            Row headerRow = sheet.createRow(0);
+//            String[] headers = {"ID", "Expense ID", "Action Type", "Details", "Timestamp"};
+//            for (int i = 0; i < headers.length; i++) {
+//                Cell cell = headerRow.createCell(i);
+//                cell.setCellValue(headers[i]);
+//            }
+//
+//            // Data
+//            int rowIdx = 1;
+//            for (AuditExpense log : logs) {
+//                Row row = sheet.createRow(rowIdx++);
+//                row.createCell(0).setCellValue(log.getId());
+//                row.createCell(1).setCellValue(log.getExpenseId() != null ? log.getExpenseId() : 0); // Handle null expenseId
+//                row.createCell(2).setCellValue(log.getActionType());
+//                row.createCell(3).setCellValue(log.getDetails());
+//                row.createCell(4).setCellValue(log.getTimestamp().toString());
+//            }
+//
+//            workbook.write(out);
+//            return new ByteArrayInputStream(out.toByteArray());
+//        } catch (IOException e) {
+//            throw new RuntimeException("Failed to generate Excel file", e);
+//        }
+//    }
     
    
 
@@ -404,15 +404,15 @@ public class ExcelService {
 
     @Autowired
     private ExpenseService expenseService;
-    @Autowired
-    private AuditExpenseService auditExpenseService;
+//    @Autowired
+//    private AuditExpenseService auditExpenseService;
     public List<Integer> saveAndReturnIds(MultipartFile file, User user) throws Exception {
         List<Expense> expenses = parseExcelFile(file);
         List<Integer> addedIds = new ArrayList<>();
         for (Expense expense : expenses) {
             Expense savedExpense = expenseService.addExpense(expense,user);
             addedIds.add(savedExpense.getId());
-            auditExpenseService.logAudit(user,savedExpense.getId(), "create", "Expense created with ID: " + savedExpense.getId());
+            // auditExpenseService.logAudit(user,savedExpense.getId(), "create", "Expense created with ID: " + savedExpense.getId());
         }
         return addedIds;
     }

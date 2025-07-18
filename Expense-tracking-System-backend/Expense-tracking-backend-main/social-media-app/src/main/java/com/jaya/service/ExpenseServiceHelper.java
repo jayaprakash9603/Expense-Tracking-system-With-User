@@ -1,13 +1,10 @@
 package com.jaya.service;
 
 import com.jaya.models.User;
-import com.jaya.service.AuditExpenseService;
-import com.jaya.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.core.io.ByteArrayResource;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -26,8 +23,8 @@ public class ExpenseServiceHelper {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private AuditExpenseService auditExpenseService;
+//    @Autowired
+//    private AuditExpenseService auditExpenseService;
 
     // Inner class to hold request context
     public static class RequestContext {
@@ -258,7 +255,7 @@ public class ExpenseServiceHelper {
 
     // Audit logging
     public void logAudit(User user, Integer expenseId, String action, String message) {
-        auditExpenseService.logAudit(user, expenseId, action, message);
+        // auditExpenseService.logAudit(user, expenseId, action, message);
     }
 
     public String createAuditMessage(String baseMessage, Integer targetId, Integer reqUserId, Object... params) {

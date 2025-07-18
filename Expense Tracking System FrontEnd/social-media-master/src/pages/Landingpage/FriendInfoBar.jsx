@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
+import { useSelector } from "react-redux";
 
 const FriendInfoBar = ({
   friendship,
@@ -30,7 +31,7 @@ const FriendInfoBar = ({
   onRouteChange, // New prop to handle route changes
   refreshData, // New prop to trigger data refresh
   additionalRefreshFn = null,
-  customErrorRedirectPath = "/expenses",
+  customErrorRedirectPath = "/friends",
   ...otherProps
 }) => {
   const [showFriendDropdown, setShowFriendDropdown] = useState(false);
@@ -39,6 +40,7 @@ const FriendInfoBar = ({
   const friendDropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
 
   // Filter friends based on search term
   useEffect(() => {
@@ -463,22 +465,30 @@ const FriendInfoBar = ({
           className="scrolling-text-container absolute left-0 right-0 mx-auto"
           style={{ width: "35%", zIndex: 1 }}
         >
-          <div className="scrolling-text">
-            {friendship.requesterAccess === "ADMIN" ||
-            friendship.requesterAccess === "FULL"
-              ? "You have full access to this user's expenses. Any changes you make will be reflected in their account."
-              : friendship.requesterAccess === "EDITOR" ||
-                friendship.requesterAccess === "WRITE" ||
-                friendship.requesterAccess === "READ_WRITE"
-              ? "You have write access to this user's expenses. Any changes you make will be reflected in their account."
-              : friendship.requesterAccess === "READ"
-              ? "You have read-only access to this user's expenses. You can view all details but cannot make changes."
-              : friendship.requesterAccess === "SUMMARY"
-              ? "You have summary access to this user's expenses. You can view monthly summaries but not individual expenses."
-              : friendship.requesterAccess === "LIMITED"
-              ? "You have limited access to this user's expenses. You can only view basic totals and summaries."
-              : "You don't have access to this user's expenses."}
-          </div>
+          {(() => {
+            const access =
+              friendship.requester.id == user.id
+                ? friendship.requesterAccess
+                : friendship.recipientAccess;
+
+            return (
+              <div className="scrolling-text">
+                {access === "ADMIN" || access === "FULL"
+                  ? "You have full access to this user's expenses. Any changes you make will be reflected in their account."
+                  : access === "EDITOR" ||
+                    access === "WRITE" ||
+                    access === "READ_WRITE"
+                  ? "You have write access to this user's expenses. Any changes you make will be reflected in their account."
+                  : access === "READ"
+                  ? "You have read-only access to this user's expenses. You can view all details but cannot make changes."
+                  : access === "SUMMARY"
+                  ? "You have summary access to this user's expenses. You can view monthly summaries but not individual expenses."
+                  : access === "LIMITED"
+                  ? "You have limited access to this user's expenses. You can only view basic totals and summaries."
+                  : "You don't have access to this user's expenses."}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Right section - Status, Access Level and Friend Switcher */}
@@ -500,21 +510,33 @@ const FriendInfoBar = ({
           </div>
 
           {/* Access Level badge */}
+
+          {/* Access Level badge */}
           <div className="bg-[#23243a] px-2 py-1 rounded-full text-xs">
             <span className="text-white">Access: </span>
             <span
-              className={`font-medium ${
-                friendship.requesterAccess === "ADMIN" ||
-                friendship.requesterAccess === "FULL"
+              className={`font-medium ${(() => {
+                const access =
+                  friendship.requester.id == user.id
+                    ? friendship.requesterAccess
+                    : friendship.recipientAccess;
+
+                return access === "ADMIN" || access === "FULL"
                   ? "text-[#00DAC6]"
-                  : friendship.requesterAccess === "EDITOR" ||
-                    friendship.requesterAccess === "WRITE" ||
-                    friendship.requesterAccess === "READ_WRITE"
+                  : access === "EDITOR" ||
+                    access === "WRITE" ||
+                    access === "READ_WRITE"
                   ? "text-[#5b7fff]"
-                  : "text-[#FFC107]"
-              }`}
+                  : "text-[#FFC107]";
+              })()}`}
             >
-              {friendship.requesterAccess || "VIEWER"}
+              {(() => {
+                const access =
+                  friendship.requester.id == user.id
+                    ? friendship.requesterAccess
+                    : friendship.recipientAccess;
+                return access || "VIEWER";
+              })()}
             </span>
           </div>
 
@@ -799,21 +821,26 @@ const FriendInfoBar = ({
                                     >
                                       {friend.status || "ACCEPTED"}
                                     </Typography>
+
                                     <Typography
                                       variant="caption"
                                       sx={{
-                                        color:
-                                          friend.recipientAccess === "ADMIN" ||
-                                          friend.recipientAccess === "FULL"
+                                        color: (() => {
+                                          // Determine the current user's access level to this friend's data
+                                          const access =
+                                            friend.requesterUserId === user.id
+                                              ? friend.requesterAccess
+                                              : friend.recipientAccess;
+
+                                          return access === "ADMIN" ||
+                                            access === "FULL"
                                             ? "#00DAC6"
-                                            : friend.recipientAccess ===
-                                                "EDITOR" ||
-                                              friend.recipientAccess ===
-                                                "WRITE" ||
-                                              friend.recipientAccess ===
-                                                "READ_WRITE"
+                                            : access === "EDITOR" ||
+                                              access === "WRITE" ||
+                                              access === "READ_WRITE"
                                             ? "#5b7fff"
-                                            : "#FFC107",
+                                            : "#FFC107";
+                                        })(),
                                         fontSize: "0.625rem",
                                         backgroundColor:
                                           "rgba(35, 36, 58, 0.8)",
@@ -821,7 +848,14 @@ const FriendInfoBar = ({
                                         borderRadius: "4px",
                                       }}
                                     >
-                                      {friend.recipientAccess || "VIEWER"}
+                                      {(() => {
+                                        // Determine the current user's access level to this friend's data
+                                        const access =
+                                          friend.requesterUserId === user.id
+                                            ? friend.requesterAccess
+                                            : friend.recipientAccess;
+                                        return access || "VIEWER";
+                                      })()}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -915,14 +949,26 @@ const FriendInfoBar = ({
           animation: scrollText 15s linear infinite;
           display: inline-block;
           padding-right: 50px;
-          color: ${friendship?.recipientAccess === "ADMIN" ||
-          friendship?.recipientAccess === "FULL"
-            ? "#06D6A0"
-            : friendship?.recipientAccess === "EDITOR" ||
-              friendship?.recipientAccess === "WRITE" ||
-              friendship?.recipientAccess === "READ_WRITE"
-            ? "#5b7fff"
-            : "#FFC107"};
+          color: ${(() => {
+            const access =
+              friendship?.requester?.id == user?.id
+                ? friendship?.requesterAccess
+                : friendship?.recipientAccess;
+
+            return access === "ADMIN" || access === "FULL"
+              ? "#06D6A0"
+              : access === "EDITOR" ||
+                access === "WRITE" ||
+                access === "READ_WRITE"
+              ? "#5b7fff"
+              : access === "READ"
+              ? "#00DAC6"
+              : access === "SUMMARY"
+              ? "#FFC107"
+              : access === "LIMITED"
+              ? "#ff9800"
+              : "#999";
+          })()};
           font-size: 12px;
           font-weight: 500;
           text-align: center;

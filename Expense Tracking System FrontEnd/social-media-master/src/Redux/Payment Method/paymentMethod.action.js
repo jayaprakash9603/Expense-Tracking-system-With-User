@@ -26,11 +26,11 @@ export const fetchPaymentMethodsWithExpenses =
     try {
       const endpoint =
         friendId && friendId !== "undefined"
-          ? `/api/expenses/all-by-payment-method/detailed/filtered/friend/${friendId}`
+          ? `/api/expenses/all-by-payment-method/detailed/filtered`
           : "/api/expenses/all-by-payment-method/detailed/filtered";
 
       const { data } = await api.get(endpoint, {
-        params: { rangeType, offset, flowType },
+        params: { rangeType, offset, flowType, targetId: friendId },
       });
 
       dispatch({
@@ -154,7 +154,9 @@ export const fetchAllPaymentMethods = (targetId) => async (dispatch) => {
   dispatch({ type: GET_ALL_PAYMENT_METHOD_REQUEST });
 
   try {
-    const response = await api.get(`api/payment-methods`);
+    const response = await api.get(`api/payment-methods`, {
+      params: { targetId },
+    });
 
     console.log("Payment Method By Target ID Response:", response.data);
     dispatch({

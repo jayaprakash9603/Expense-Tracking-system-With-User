@@ -16,6 +16,7 @@ import {
 import {
   fetchCashflowExpenses,
   deleteExpenseAction,
+  getExpenseAction,
 } from "../../Redux/Expenses/expense.action";
 import dayjs from "dayjs";
 import { IconButton, Skeleton, useTheme, useMediaQuery } from "@mui/material";
@@ -35,6 +36,7 @@ import moneyWithdrawalImg from "../../assests/money-withdrawal.png";
 import saveMoneyImg from "../../assests/save-money.png";
 import moneyInAndOutImg from "../../assests/money-in-and-out.png";
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
+import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -512,15 +514,24 @@ const Cashflow = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (expenseToDelete) {
-      dispatch(deleteExpenseAction(expenseToDelete))
+      const expensedata = await dispatch(getExpenseAction(expenseToDelete));
+      const bill = expensedata.bill
+        ? await dispatch(getBillByExpenseId(expenseToDelete))
+        : false;
+
+      dispatch(
+        bill ? deleteBill(bill.id) : deleteExpenseAction(expenseToDelete)
+      )
         .then(() => {
           // Refresh cashflow data after delete
           const result = dispatch(
             fetchCashflowExpenses(activeRange, offset, flowTab)
           );
-          setToastMessage("Expense deleted successfully.");
+          setToastMessage(
+            bill ? "Bill deleted successfully" : "Expense deleted successfully."
+          );
           setToastOpen(true);
         })
         .catch(() => {
@@ -1558,14 +1569,23 @@ const Cashflow = () => {
                             color: "#fff",
                           },
                         }}
-                        onClick={() => {
+                        onClick={async () => {
                           dispatch(
                             getListOfBudgetsByExpenseId({
                               id: row.id || row.expenseId,
                               date: dayjs().format("YYYY-MM-DD"),
                             })
                           );
-                          navigate(`/expenses/edit/${row.id || row.expenseId}`);
+
+                          const expensedata = await dispatch(
+                            getExpenseAction(row.id)
+                          );
+                          const bill = expensedata.bill
+                            ? await dispatch(getBillByExpenseId(row.id))
+                            : false;
+                          expensedata.bill
+                            ? navigate(`/bill/edit/${bill.id}`)
+                            : navigate(`/expenses/edit/${row.id}`);
                         }}
                         aria-label="Edit Expense"
                       >

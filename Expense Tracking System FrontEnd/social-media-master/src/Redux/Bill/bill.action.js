@@ -19,6 +19,15 @@ import {
   SET_BILLS_PAGINATION,
   CLEAR_BILLS_ERROR,
   RESET_BILLS_STATE,
+  FETCH_BILLS_CALENDAR_REQUEST,
+  FETCH_BILLS_CALENDAR_SUCCESS,
+  FETCH_BILLS_CALENDAR_FAILURE,
+  GET_BILLS_BY_DATE_REQUEST,
+  GET_BILLS_BY_DATE_SUCCESS,
+  GET_BILLS_BY_DATE_FAILURE,
+  GET_BILL_BY_EXPENSE_ID_REQUEST,
+  GET_BILL_BY_EXPENSE_ID_SUCCESS,
+  GET_BILL_BY_EXPENSE_ID_FAILURE,
 } from "./bill.actionType";
 import { api } from "../../config/api";
 
@@ -48,16 +57,22 @@ export const fetchBills =
   };
 
 // Create a new bill
-export const createBill = (billData, friendId) => async (dispatch) => {
+export const createBill = (billData, targetId) => async (dispatch) => {
   dispatch({ type: CREATE_BILL_REQUEST });
   try {
-    const config = {};
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: targetId ? { targetId } : {},
+    };
 
     const response = await api.post(`api/bills`, billData, config);
     dispatch({
       type: CREATE_BILL_SUCCESS,
       payload: response.data,
     });
+    return response.data;
   } catch (error) {
     dispatch({
       type: CREATE_BILL_FAILURE,
@@ -67,16 +82,22 @@ export const createBill = (billData, friendId) => async (dispatch) => {
 };
 
 // Update an existing bill
-export const updateBill = (jwt, billId, billData) => async (dispatch) => {
+export const updateBill = (billId, billData, targetId) => async (dispatch) => {
   dispatch({ type: UPDATE_BILL_REQUEST });
   try {
-    const config = {};
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: targetId ? { targetId } : {},
+    };
 
     const response = await api.put(`api/bills/${billId}`, billData, config);
     dispatch({
       type: UPDATE_BILL_SUCCESS,
       payload: response.data,
     });
+    return response.data;
   } catch (error) {
     dispatch({
       type: UPDATE_BILL_FAILURE,
@@ -86,13 +107,14 @@ export const updateBill = (jwt, billId, billData) => async (dispatch) => {
 };
 
 // Delete a bill
-export const deleteBill = (jwt, billId) => async (dispatch) => {
+export const deleteBill = (billId, targetId) => async (dispatch) => {
   dispatch({ type: DELETE_BILL_REQUEST });
   try {
     const config = {
       headers: {
         "Content-Type": "application/json",
       },
+      params: targetId ? { targetId } : {},
     };
 
     await api.delete(`api/bills/${billId}`, config);
@@ -109,13 +131,14 @@ export const deleteBill = (jwt, billId) => async (dispatch) => {
 };
 
 // Get bill by ID
-export const getBillById = (jwt, billId) => async (dispatch) => {
+export const getBillById = (billId, targetId) => async (dispatch) => {
   dispatch({ type: GET_BILL_BY_ID_REQUEST });
   try {
     const config = {
       headers: {
         "Content-Type": "application/json",
       },
+      params: targetId ? { targetId } : {},
     };
 
     const response = await api.get(`api/bills/${billId}`, config);
@@ -123,6 +146,7 @@ export const getBillById = (jwt, billId) => async (dispatch) => {
       type: GET_BILL_BY_ID_SUCCESS,
       payload: response.data,
     });
+    return response.data;
   } catch (error) {
     dispatch({
       type: GET_BILL_BY_ID_FAILURE,
@@ -130,6 +154,84 @@ export const getBillById = (jwt, billId) => async (dispatch) => {
     });
   }
 };
+
+export const fetchBillsForCalendar =
+  (range, offset, friendId) => async (dispatch) => {
+    dispatch({ type: FETCH_BILLS_CALENDAR_REQUEST });
+    try {
+      const params = new URLSearchParams({
+        range,
+        offset: offset.toString(),
+      });
+
+      if (friendId) {
+        params.append("targetId", friendId);
+      }
+
+      const { data } = await api.get(`/api/bills?${params.toString()}`);
+
+      dispatch({
+        type: FETCH_BILLS_CALENDAR_SUCCESS,
+        payload: data,
+      });
+    } catch (error) {
+      console.error("Error fetching bills calendar data:", error);
+      dispatch({
+        type: FETCH_BILLS_CALENDAR_FAILURE,
+
+        payload: error.response?.data?.message || error.message,
+      });
+    }
+  };
+
+export const getBillByExpenseId = (expenseId) => async (dispatch) => {
+  {
+    dispatch({ type: GET_BILL_BY_EXPENSE_ID_REQUEST });
+    try {
+      const { data } = await api.get(`/api/bills/expenses/${expenseId}`);
+
+      dispatch({
+        type: GET_BILL_BY_EXPENSE_ID_SUCCESS,
+        payload: data,
+      });
+      return data;
+    } catch (error) {
+      dispatch({
+        type: GET_BILL_BY_EXPENSE_ID_FAILURE,
+        payload: error.response?.data?.message || error.message,
+      });
+    }
+  }
+};
+
+export const getBillsByParticularDate =
+  (expenseDate, friendId = "") =>
+  async (dispatch) => {
+    dispatch({ type: GET_BILLS_BY_DATE_REQUEST });
+    try {
+      const config = {
+        params: {
+          expenseDate,
+        },
+      };
+
+      const { data } = await api.get("/api/bills", config);
+
+      // Filter bills for the specific date
+      const filteredBills = data.filter((bill) => bill.date === expenseDate);
+
+      dispatch({
+        type: GET_BILLS_BY_DATE_SUCCESS,
+        payload: filteredBills,
+      });
+      return filteredBills;
+    } catch (error) {
+      dispatch({
+        type: GET_BILLS_BY_DATE_FAILURE,
+        payload: error.response?.data?.message || error.message,
+      });
+    }
+  };
 
 // Filter bills by type (gain/loss/all)
 export const filterBillsByType = (filterType) => ({

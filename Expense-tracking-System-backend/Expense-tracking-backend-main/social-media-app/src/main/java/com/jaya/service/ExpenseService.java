@@ -18,6 +18,10 @@ public interface ExpenseService {
     
     Expense addExpense(Expense expense, User user) throws Exception;
 
+    Expense copyExpense(Integer userId,Integer expenseId) throws  Exception;
+
+
+    List<Expense>getExpensesByUserAndSort(User targetUser, String sortOrder) throws UserException;
     List<Expense> addMultipleExpenses(List<Expense> expenses, User user) throws Exception;
 
     List<Expense> getExpensesByCategoryId(Integer categoryId, User user);
@@ -111,7 +115,7 @@ public interface ExpenseService {
     
     ExpenseReport generateExpenseReport(Integer expenseId,User user);
     
-    Expense copyExpense(Integer expenseId,User user);
+
     
     List<ExpenseDetails> getExpenseDetailsByAmount(double amount,User user);
     

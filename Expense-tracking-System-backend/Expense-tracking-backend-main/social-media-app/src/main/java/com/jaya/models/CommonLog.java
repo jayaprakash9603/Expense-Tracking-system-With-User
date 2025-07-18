@@ -25,9 +25,9 @@ public class CommonLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "audit_expense_id")
-    private AuditExpense auditExpense;
+//    @OneToOne
+//    @JoinColumn(name = "audit_expense_id")
+//    private AuditExpense auditExpense;
 
     @OneToOne
     @JoinColumn(name = "email_log_id")

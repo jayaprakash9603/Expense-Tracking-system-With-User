@@ -44,8 +44,8 @@ public class ExpenseController {
 
     private final ExpenseService expenseService;
    
-    @Autowired
-    private AuditExpenseService auditExpenseService;
+//    @Autowired
+//    private AuditExpenseService auditExpenseService;
 
 
     @Autowired
@@ -69,7 +69,9 @@ public class ExpenseController {
 
     @Autowired
     private EmailService emailService;
-    
+
+
+
 
     @Autowired
     public ExpenseController(ExpenseService expenseService) {
@@ -77,6 +79,18 @@ public class ExpenseController {
        
 		
     }
+
+    private AuditEvent convertToAuditEvent(User user, Integer budgetId, String actionType, String details) {
+        AuditEvent auditEvent = new AuditEvent();
+        auditEvent.setUserId(user.getId());
+        auditEvent.setUsername(user.getUsername());
+        auditEvent.setExpenseId(budgetId);
+        auditEvent.setActionType(actionType);
+        auditEvent.setDetails(details);
+        auditEvent.setTimestamp(LocalDateTime.now());
+        return auditEvent;
+    }
+
 
 
     private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) throws UserException {
@@ -128,7 +142,7 @@ public class ExpenseController {
 
             // Log audit
             String auditMessage = createAuditMessage(targetId, reqUser.getId(), action, expenseId);
-            auditExpenseService.logAudit(reqUser, expenseId, action.toLowerCase(), auditMessage);
+//            auditExpenseService.logAudit(convertToAuditEvent(reqUser, expenseId, action.toLowerCase(), auditMessage));
 
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
@@ -191,10 +205,25 @@ public class ExpenseController {
 
             Expense createdExpense = expenseService.addExpense(expense, targetUser);
 
-            if (createdExpense != null) {
-                String auditMessage = createDetailedExpenseAuditMessage(createdExpense, "Created", targetId, reqUser.getId());
-                auditExpenseService.logAudit(reqUser, createdExpense.getId(), "create", auditMessage);
-            }
+            return ResponseEntity.ok(createdExpense);
+        } catch (RuntimeException e) {
+            return handleRuntimeException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{expenseId}/copy")
+    public ResponseEntity<?> copyExpense(
+            @PathVariable Integer expenseId,
+                                        @RequestHeader("Authorization") String jwt,
+                                        @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.findUserByJwt(jwt);
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+
+            Expense createdExpense = expenseService.copyExpense(reqUser.getId(),expenseId);
+
             return ResponseEntity.ok(createdExpense);
         } catch (RuntimeException e) {
             return handleRuntimeException(e);
@@ -274,15 +303,7 @@ public class ExpenseController {
         try {
             User reqUser = helper.authenticateUser(jwt);
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-
             List<Expense> savedExpenses = expenseService.addMultipleExpenses(expenses, targetUser);
-
-            // Log audit for each created expense
-            savedExpenses.forEach(expense -> {
-                String auditMessage = createDetailedExpenseAuditMessage(expense, "Created", targetId, reqUser.getId());
-                auditExpenseService.logAudit(reqUser, expense.getId(), "create", auditMessage);
-            });
-
             return ResponseEntity.status(HttpStatus.CREATED).body(savedExpenses);
         } catch (RuntimeException e) {
             return handleRuntimeException(e);
@@ -310,31 +331,11 @@ public class ExpenseController {
 
             List<Expense> allExpenses = expenseService.getAllExpenses(targetUser);
 
-            if (!allExpenses.isEmpty()) {
-                for (Expense expense : allExpenses) {
-                    String expenseDetails = String.format(
-                            "Deleting Expense with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                            expense.getId(), expense.getExpense().getExpenseName(), expense.getExpense().getAmount(),
-                            expense.getExpense().getType(), expense.getExpense().getPaymentMethod()
-                    );
-                    auditExpenseService.logAudit(reqUser, expense.getId(), "delete", expenseDetails);
-                }
+
                 expenseService.deleteAllExpenses(targetUser, allExpenses);
 
-                String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
-                        ? "All expenses deleted successfully for user ID: " + targetId
-                        : "All expenses deleted successfully.";
 
-                auditExpenseService.logAudit(reqUser, null, "delete", auditMessage);
-            } else {
-                String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
-                        ? "Attempted to delete expenses for user ID: " + targetId + ", but no expenses were found."
-                        : "Attempted to delete expenses, but no expenses were found.";
-
-                auditExpenseService.logAudit(reqUser, null, "delete", auditMessage);
-            }
-
-            return ResponseEntity.ok("All expenses have been deleted successfully.");
+            return new ResponseEntity<>("all expense are deleted", HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
@@ -378,8 +379,8 @@ public class ExpenseController {
             }
 
             List<Expense> expenses = sort.equalsIgnoreCase("asc")
-                    ? expenseRepository.findByUserOrderByDateAsc(targetUser)
-                    : expenseRepository.findByUserOrderByDateDesc(targetUser);
+                    ? expenseService.getExpensesByUserAndSort(targetUser,"asc")
+                    : expenseService.getExpensesByUserAndSort(targetUser,"desc");
 
             return ResponseEntity.ok(expenses);
         } catch (Exception e) {
@@ -552,7 +553,7 @@ public class ExpenseController {
                         ? "Updated expense ID: " + id + " for user ID: " + targetId
                         : logDetails;
 
-                auditExpenseService.logAudit(reqUser, id, "update", auditMessage);
+//                auditExpenseService.logAudit(convertToAuditEvent(reqUser, id, "update", auditMessage));
 
                 // Return the updated expense object
                 return ResponseEntity.ok(updatedExpense);
@@ -561,7 +562,7 @@ public class ExpenseController {
                         ? "Attempted to update non-existent expense with ID " + id + " for user ID: " + targetId
                         : "Attempted to update non-existent expense with ID " + id;
 
-                auditExpenseService.logAudit(reqUser, id, "update", auditMessage);
+//                auditExpenseService.logAudit(convertToAuditEvent(reqUser, id, "update", auditMessage));
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Expense not found");
             }
         } catch (Exception e) {
@@ -632,7 +633,7 @@ public class ExpenseController {
                         );
                     }
 
-                    auditExpenseService.logAudit(reqUser, updatedExpense.getId(), "update", logDetails);
+//                    auditExpenseService.logAudit(convertToAuditEvent(reqUser, updatedExpense.getId(), "update", logDetails));
                 }
             }
 
@@ -670,13 +671,13 @@ public class ExpenseController {
                         ? "Deleted expense ID: " + id + " for user ID: " + targetId + ". " + expenseDetails
                         : expenseDetails;
 
-                auditExpenseService.logAudit(reqUser, id, "delete", auditMessage);
+//                auditExpenseService.logAudit(convertToAuditEvent(reqUser, id, "delete", auditMessage));
             } else {
                 String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
                         ? "Attempted to delete non-existent expense with ID " + id + " for user ID: " + targetId
                         : "Attempted to delete non-existent expense with ID " + id;
 
-                auditExpenseService.logAudit(reqUser, id, "delete", auditMessage);
+//                auditExpenseService.logAudit(convertToAuditEvent(reqUser, id, "delete", auditMessage));
             }
 
             expenseService.deleteExpense(id, targetUser);
@@ -718,14 +719,14 @@ public class ExpenseController {
                             : expenseDetails;
 
                     // Log the deletion action with detailed info
-                    auditExpenseService.logAudit(reqUser, id, "delete", auditMessage);
+//                    auditExpenseService.logAudit(convertToAuditEvent(reqUser, id, "delete", auditMessage));
                 } else {
                     String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
                             ? "Attempted to delete non-existent expense with ID " + id + " for user ID: " + targetId
                             : "Attempted to delete non-existent expense with ID " + id;
 
                     // Log an attempt to delete a non-existent expense
-                    auditExpenseService.logAudit(reqUser, id, "delete", auditMessage);
+//                    auditExpenseService.logAudit(convertToAuditEvent(reqUser, id, "delete", auditMessage));
                 }
             }
 
@@ -1329,7 +1330,7 @@ public class ExpenseController {
                     ? "Removed comment from expense ID: " + id + " for user ID: " + targetId
                     : "Removed comment from expense ID: " + id;
 
-            auditExpenseService.logAudit(reqUser, id, "update", auditMessage);
+//            auditExpenseService.logAudit(convertToAuditEvent(reqUser, id, "update", auditMessage));
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -1360,7 +1361,7 @@ public class ExpenseController {
                     ? "Generated report for expense ID: " + id + " for user ID: " + targetId
                     : "Generated report for expense ID: " + id;
 
-            auditExpenseService.logAudit(reqUser, id, "report", auditMessage);
+//            auditExpenseService.logAudit(convertToAuditEvent(reqUser, id, "report", auditMessage));
 
             // Return the generated report with a success status
             return new ResponseEntity<>(report, HttpStatus.CREATED);
@@ -1372,51 +1373,7 @@ public class ExpenseController {
         }
     }
 
-    @PostMapping("/{id}/copy")
-    public ResponseEntity<?> copyExpense(
-            @PathVariable Integer id,
-            @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.findUserByJwt(jwt);
-            User targetUser;
 
-            try {
-                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            } catch (RuntimeException e) {
-                return handleRuntimeException(e);
-            }
-
-            Expense originalExpense = expenseService.getExpenseById(id, targetUser);
-            if (originalExpense == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Original expense not found");
-            }
-
-            Expense copiedExpense = expenseService.copyExpense(id, reqUser);
-
-            // Log the copy action
-            String expenseDetails = String.format(
-                    "Copied expense ID: %d to new expense ID: %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                    id, copiedExpense.getId(),
-                    copiedExpense.getExpense().getExpenseName(),
-                    copiedExpense.getExpense().getAmount(),
-                    copiedExpense.getExpense().getType(),
-                    copiedExpense.getExpense().getPaymentMethod()
-            );
-
-            String auditMessage = targetId != null && !targetId.equals(reqUser.getId())
-                    ? "Copied expense ID: " + id + " from user ID: " + targetId + ". " + expenseDetails
-                    : expenseDetails;
-
-            auditExpenseService.logAudit(reqUser, copiedExpense.getId(), "create", auditMessage);
-
-            return ResponseEntity.ok(copiedExpense);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Failed to copy expense: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error copying expense: " + e.getMessage());
-        }
-    }
 
 
 
@@ -1447,7 +1404,7 @@ public class ExpenseController {
                     ? "Retrieved expenses with amount " + amount + " for user ID: " + targetId
                     : "Retrieved expenses with amount " + amount;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+//            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(expenseDetails);
         } catch (Exception e) {
@@ -1484,7 +1441,7 @@ public class ExpenseController {
                     ? "Retrieved expenses with amount between " + minAmount + " and " + maxAmount + " for user ID: " + targetId
                     : "Retrieved expenses with amount between " + minAmount + " and " + maxAmount;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+//            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(expenseDetails);
         } catch (Exception e) {
@@ -1531,7 +1488,7 @@ public class ExpenseController {
                     ? "Retrieved expense details and total for expense name: " + expenseName + " for user ID: " + targetId
                     : "Retrieved expense details and total for expense name: " + expenseName;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+//            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(response.toString());
         } catch (Exception e) {
@@ -1562,7 +1519,7 @@ public class ExpenseController {
                     ? "Retrieved expense totals by category for user ID: " + targetId
                     : "Retrieved expense totals by category";
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+//            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(categoryTotals);
         } catch (Exception e) {
@@ -1591,7 +1548,7 @@ public class ExpenseController {
                     ? "Retrieved expense totals by date for user ID: " + targetId
                     : "Retrieved expense totals by date";
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+//            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(totalByDate);
         } catch (Exception e) {
@@ -1620,7 +1577,7 @@ public class ExpenseController {
                     ? "Retrieved total expenses for today for user ID: " + targetId
                     : "Retrieved total expenses for today";
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(totalToday);
         } catch (Exception e) {
@@ -1649,7 +1606,7 @@ public class ExpenseController {
                     ? "Retrieved total expenses for current month for user ID: " + targetId
                     : "Retrieved total expenses for current month";
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(totalCurrentMonth);
         } catch (Exception e) {
@@ -1680,7 +1637,7 @@ public class ExpenseController {
                     ? "Retrieved total expenses for month " + month + "/" + year + " for user ID: " + targetId
                     : "Retrieved total expenses for month " + month + "/" + year;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             if (total != null) {
                 return ResponseEntity.ok(total);
@@ -1716,7 +1673,7 @@ public class ExpenseController {
                     ? "Retrieved total expenses between " + startDate + " and " + endDate + " for user ID: " + targetId
                     : "Retrieved total expenses between " + startDate + " and " + endDate;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             if (total != null) {
                 return ResponseEntity.ok(total);
@@ -1749,7 +1706,7 @@ public class ExpenseController {
                     ? "Retrieved payment-wise total expenses for current month for user ID: " + targetId
                     : "Retrieved payment-wise total expenses for current month";
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(paymentWiseTotals);
         } catch (Exception e) {
@@ -1778,7 +1735,7 @@ public class ExpenseController {
                     ? "Retrieved payment-wise total expenses for last month for user ID: " + targetId
                     : "Retrieved payment-wise total expenses for last month";
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(paymentWiseTotals);
         } catch (Exception e) {
@@ -1814,7 +1771,7 @@ public class ExpenseController {
                     ? "Retrieved payment-wise total expenses between " + startDate + " and " + endDate + " for user ID: " + targetId
                     : "Retrieved payment-wise total expenses between " + startDate + " and " + endDate;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(paymentWiseTotals);
         } catch (Exception e) {
@@ -1845,7 +1802,7 @@ public class ExpenseController {
                     ? "Retrieved payment-wise total expenses for month " + month + "/" + year + " for user ID: " + targetId
                     : "Retrieved payment-wise total expenses for month " + month + "/" + year;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(paymentWiseTotals);
         } catch (Exception e) {
@@ -1878,7 +1835,7 @@ public class ExpenseController {
                     ? "Retrieved expense-payment method totals for month " + month + "/" + year + " for user ID: " + targetId
                     : "Retrieved expense-payment method totals for month " + month + "/" + year;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -1914,7 +1871,7 @@ public class ExpenseController {
                     ? "Retrieved expense-payment method totals between " + startDateStr + " and " + endDateStr + " for user ID: " + targetId
                     : "Retrieved expense-payment method totals between " + startDateStr + " and " + endDateStr;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -1944,7 +1901,7 @@ public class ExpenseController {
                     ? "Retrieved total expenses grouped by payment method for user ID: " + targetId
                     : "Retrieved total expenses grouped by payment method";
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -1975,7 +1932,7 @@ public class ExpenseController {
                     ? "Generated Excel report for user ID: " + targetId
                     : "Generated Excel report";
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(reportPath);
         } catch (IOException e) {
@@ -2009,7 +1966,7 @@ public class ExpenseController {
                     ? "Sent Excel report via email to " + toEmail + " for user ID: " + targetId
                     : "Sent Excel report via email to " + toEmail;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException | MessagingException e) {
@@ -2053,7 +2010,7 @@ public class ExpenseController {
                     ? "Downloaded current month expenses Excel for user ID: " + targetId
                     : "Downloaded current month expenses Excel";
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("Content-Disposition", "attachment; filename=expenses.xlsx");
@@ -2103,7 +2060,7 @@ public class ExpenseController {
                     ? "Sent current month expenses report via email to " + email + " for user ID: " + targetId
                     : "Sent current month expenses report via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2148,7 +2105,7 @@ public class ExpenseController {
                     ? "Sent last month expenses report via email to " + email + " for user ID: " + targetId
                     : "Sent last month expenses report via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2195,7 +2152,7 @@ public class ExpenseController {
                     ? "Sent expenses report for " + month + "/" + year + " via email to " + email + " for user ID: " + targetId
                     : "Sent expenses report for " + month + "/" + year + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2240,7 +2197,7 @@ public class ExpenseController {
                     ? "Sent all expenses report via email to " + email + " for user ID: " + targetId
                     : "Sent all expenses report via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2292,7 +2249,7 @@ public class ExpenseController {
                     ? "Sent expenses report for type: " + type + " and payment method: " + paymentMethod + " via email to " + email + " for user ID: " + targetId
                     : "Sent expenses report for type: " + type + " and payment method: " + paymentMethod + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2344,7 +2301,7 @@ public class ExpenseController {
                     ? "Sent expenses report from " + from + " to " + to + " via email to " + email + " for user ID: " + targetId
                     : "Sent expenses report from " + from + " to " + to + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2392,7 +2349,7 @@ public class ExpenseController {
                     ? "Sent gain expenses report via email to " + email + " for user ID: " + targetId
                     : "Sent gain expenses report via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2441,7 +2398,7 @@ public class ExpenseController {
                     ? "Sent loss expenses report via email to " + email + " for user ID: " + targetId
                     : "Sent loss expenses report via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2492,7 +2449,7 @@ public class ExpenseController {
                     ? "Sent today's expenses report via email to " + email + " for user ID: " + targetId
                     : "Sent today's expenses report via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2544,7 +2501,7 @@ public class ExpenseController {
                     ? "Sent expenses report for payment method: " + paymentMethod + " via email to " + email + " for user ID: " + targetId
                     : "Sent expenses report for payment method: " + paymentMethod + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2597,7 +2554,7 @@ public class ExpenseController {
                     ? "Sent expense details report for amount range " + minAmount + " - " + maxAmount + " via email to " + email + " for user ID: " + targetId
                     : "Sent expense details report for amount range " + minAmount + " - " + maxAmount + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
@@ -2648,7 +2605,7 @@ public class ExpenseController {
                     ? "Sent expense search results for: " + expenseName + " via email to " + email + " for user ID: " + targetId
                     : "Sent expense search results for: " + expenseName + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException e) {
@@ -2696,7 +2653,7 @@ public class ExpenseController {
                     ? "Sent monthly summary for " + year + "-" + month + " via email to " + email + " for user ID: " + targetId
                     : "Sent monthly summary for " + year + "-" + month + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
@@ -2743,7 +2700,7 @@ public class ExpenseController {
                     ? "Sent payment method summary via email to " + email + " for user ID: " + targetId
                     : "Sent payment method summary via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
@@ -2792,7 +2749,7 @@ public class ExpenseController {
                     ? "Sent yearly summary for " + year + " via email to " + email + " for user ID: " + targetId
                     : "Sent yearly summary for " + year + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
@@ -2841,7 +2798,7 @@ public class ExpenseController {
                     ? "Sent monthly summaries from " + startMonth + "/" + startYear + " to " + endMonth + "/" + endYear + " via email to " + email + " for user ID: " + targetId
                     : "Sent monthly summaries from " + startMonth + "/" + startYear + " to " + endMonth + "/" + endYear + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
@@ -2903,7 +2860,7 @@ public class ExpenseController {
                     ? "Retrieved yesterday's expenses for user ID: " + targetId
                     : "Retrieved yesterday's expenses";
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(expenses);
         } catch (Exception e) {
@@ -2940,7 +2897,7 @@ public class ExpenseController {
                     ? "Retrieved expenses for date " + specificDate + " for user ID: " + targetId
                     : "Retrieved expenses for date " + specificDate;
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             return ResponseEntity.ok(expenses);
         } catch (Exception e) {
@@ -3019,7 +2976,7 @@ public class ExpenseController {
                     ? "Sent yesterday's expenses report via email to " + email + " for user ID: " + targetId
                     : "Sent yesterday's expenses report via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Yesterday's expenses report sent successfully");
         } catch (IOException e) {
@@ -3078,7 +3035,7 @@ public class ExpenseController {
                     ? "Sent expenses report for date " + date + " via email to " + email + " for user ID: " + targetId
                     : "Sent expenses report for date " + date + " via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Expenses report for " + date + " sent successfully");
         } catch (IOException e) {
@@ -3166,7 +3123,7 @@ public class ExpenseController {
                     ? "Sent last week expenses report via email to " + email + " for user ID: " + targetId
                     : "Sent last week expenses report via email to " + email;
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok("Last week expenses report sent successfully");
         } catch (IOException e) {
@@ -3254,7 +3211,7 @@ public class ExpenseController {
                     }
 
                     // Log the creation with detailed information
-                    auditExpenseService.logAudit(reqUser, expense.getId(), "create", expenseDetails);
+                    // auditExpenseService.logAudit(reqUser, expense.getId(), "create", expenseDetails);
                 }
             }
 
@@ -3336,7 +3293,7 @@ public class ExpenseController {
                     expenses.size(),
                     fileName
             );
-            auditExpenseService.logAudit(reqUser, null, "upload", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "upload", auditMessage);
 
             return ResponseEntity.ok(expenses);
         } catch (IOException e) {
@@ -3410,7 +3367,7 @@ public class ExpenseController {
                     ids.size(),
                     ids.toString()
             );
-            auditExpenseService.logAudit(reqUser, null, "delete-request", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "delete-request", auditMessage);
 
             // Delete expenses by IDs
             try {
@@ -3434,7 +3391,7 @@ public class ExpenseController {
                     ids.size(),
                     filteredExpenses.size()
             );
-            auditExpenseService.logAudit(reqUser, null, "delete-success", successMessage);
+            // auditExpenseService.logAudit(reqUser, null, "delete-success", successMessage);
 
             return ResponseEntity.ok(filteredExpenses);
         } catch (ClassCastException e) {
@@ -3516,7 +3473,7 @@ public class ExpenseController {
                     ? "Retrieved grouped expenses (sorted " + sortOrder + ") for user ID: " + targetId
                     : "Retrieved grouped expenses (sorted " + sortOrder + ")";
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             // Return empty result if no expenses found
             if (groupedExpenses.isEmpty()) {
@@ -3629,7 +3586,7 @@ public class ExpenseController {
                     : String.format("Retrieved expense with name '%s' before date %s",
                     expenseName, date);
 
-            auditExpenseService.logAudit(reqUser, expense.getId(), "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, expense.getId(), "read", auditMessage);
 
             return ResponseEntity.ok(expense);
         } catch (IllegalArgumentException e) {
@@ -3735,7 +3692,7 @@ public class ExpenseController {
                     : String.format("Retrieved top %d expenses for custom month (%s to %s)",
                     topCount, startDate, endDate);
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
@@ -3797,7 +3754,7 @@ public class ExpenseController {
                     year,
                     flowType != null ? " (filtered by " + flowType + ")" : "");
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
@@ -3852,7 +3809,7 @@ public class ExpenseController {
                     year,
                     flowType != null ? " (filtered by " + flowType + ")" : "");
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
@@ -3905,7 +3862,7 @@ public class ExpenseController {
                     year,
                     flowType != null ? " (filtered by " + flowType + ")" : "");
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
@@ -3949,7 +3906,7 @@ public class ExpenseController {
                     ? String.format("Retrieved payment method distribution for year %d for user ID: %d", year, targetId)
                     : String.format("Retrieved payment method distribution for year %d", year);
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
@@ -3993,7 +3950,7 @@ public class ExpenseController {
                     ? String.format("Retrieved cumulative expenses for year %d for user ID: %d", year, targetId)
                     : String.format("Retrieved cumulative expenses for year %d", year);
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
@@ -4044,7 +4001,7 @@ public class ExpenseController {
                     : String.format("Retrieved top %d expense names over time for year %d",
                     limit, year);
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
@@ -4083,7 +4040,7 @@ public class ExpenseController {
                     ? String.format("Retrieved daily spending for current month for user ID: %d", targetId)
                     : "Retrieved daily spending for current month";
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -4118,7 +4075,7 @@ public class ExpenseController {
                     ? String.format("Retrieved monthly spending and income for current month for user ID: %d", targetId)
                     : "Retrieved monthly spending and income for current month";
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -4153,7 +4110,7 @@ public class ExpenseController {
                     ? String.format("Retrieved expense distribution for current month for user ID: %d", targetId)
                     : "Retrieved expense distribution for current month";
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -4204,7 +4161,7 @@ public class ExpenseController {
                     : String.format("Retrieved budget-included expenses from %s to %s",
                     startDate, endDate);
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(expenses);
         } catch (DateTimeParseException e) {
@@ -4273,7 +4230,7 @@ public class ExpenseController {
                     : String.format("Retrieved expenses for budget ID %d%s",
                     budgetId, dateRangeInfo);
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(expenses);
         } catch (DateTimeParseException e) {
@@ -4449,7 +4406,7 @@ public class ExpenseController {
                     ? String.format("Retrieved expenses for category ID %d for user ID: %d", categoryId, targetId)
                     : String.format("Retrieved expenses for category ID %d", categoryId);
 
-            auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "read", auditMessage);
 
             // Return empty result if no expenses found
             if (expenses.isEmpty()) {
@@ -4594,7 +4551,7 @@ public class ExpenseController {
                     ? String.format("Retrieved detailed expenses by categories for user ID: %d", targetId)
                     : "Retrieved detailed expenses by categories";
 
-            auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
+            // auditExpenseService.logAudit(reqUser, null, "report", auditMessage);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {

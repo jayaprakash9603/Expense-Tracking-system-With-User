@@ -54,6 +54,9 @@ import {
   FETCH_CATEGORIES_WITH_EXPENSES_REQUEST,
   FETCH_CATEGORIES_WITH_EXPENSES_SUCCESS,
   FETCH_CATEGORIES_WITH_EXPENSES_FAILURE,
+  COPY_EXPENSE_REQUEST,
+  COPY_EXPENSE_SUCCESS,
+  COPY_EXPENSE_FAILURE,
 } from "./expense.actionType";
 
 const initialState = {
@@ -92,6 +95,7 @@ export const expenseReducer = (state = initialState, action) => {
     case FETCH_CASHFLOW_EXPENSES_REQUEST:
     case GET_PARTICULAR_DATE_EXPENSES_REQUEST:
     case FETCH_CATEGORIES_WITH_EXPENSES_REQUEST:
+    case COPY_EXPENSE_REQUEST:
       return { ...state, error: null, loading: true };
 
     // Success actions
@@ -163,6 +167,7 @@ export const expenseReducer = (state = initialState, action) => {
         error: null,
       };
     case CREATE_EXPENSE_SUCCESS:
+    case COPY_EXPENSE_SUCCESS:
       return {
         ...state,
         expenses: [...state.expenses, action.payload], // Assuming payload contains the new expense
@@ -217,6 +222,7 @@ export const expenseReducer = (state = initialState, action) => {
     case FETCH_CASHFLOW_EXPENSES_FAILURE:
     case GET_PARTICULAR_DATE_EXPENSES_FAILURE:
     case FETCH_CATEGORIES_WITH_EXPENSES_FAILURE:
+    case COPY_EXPENSE_FAILURE:
       return {
         ...state,
         error: action.payload,

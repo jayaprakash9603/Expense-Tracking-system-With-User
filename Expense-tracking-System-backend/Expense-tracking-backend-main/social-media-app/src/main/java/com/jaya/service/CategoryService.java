@@ -118,17 +118,37 @@ public class CategoryService {
     }
 
     public Category getById(Integer id, User user) throws Exception {
-
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new Exception("Category not found"));
+                .orElseThrow(() -> new Exception("Category not found with ID: " + id));
 
-//        System.out.println("category id is present in user id or not"+!category.getUserIds().contains(user.getId()));
+        logger.debug("Checking access for user {} to category {}", user.getId(), id);
+        logger.debug("Category user: {}, isGlobal: {}",
+                category.getUser() != null ? category.getUser().getId() : "null",
+                category.isGlobal());
 
-        if ((category.getUser() != null && category.getUser().equals(user)) || category.isGlobal() && (!category.getUserIds().contains(user.getId()) && !category.getEditUserIds().contains(user.getId()))) {
+
+        // Check if user owns the category (for user-specific categories)
+        if (category.getUser() != null && category.getUser().getId().equals(user.getId())) {
+            logger.debug("User {} owns category {}", user.getId(), id);
             return category;
         }
 
-        throw new Exception("Category not Found");
+        // Check if it's a global category that the user can access
+        if (category.isGlobal()) {
+            boolean inUserIds = category.getUserIds() != null && category.getUserIds().contains(user.getId());
+            boolean inEditUserIds = category.getEditUserIds() != null && category.getEditUserIds().contains(user.getId());
+
+            logger.debug("Global category - inUserIds: {}, inEditUserIds: {}", inUserIds, inEditUserIds);
+
+            // User can access global category if they haven't "deleted" it and haven't edited it
+            if (!inUserIds && !inEditUserIds) {
+                logger.debug("User {} can access global category {}", user.getId(), id);
+                return category;
+            }
+        }
+
+        logger.warn("Access denied for user {} to category {}", user.getId(), id);
+        throw new Exception("Category not found or access denied");
     }
 
     public List<Category> getAll(User user) {

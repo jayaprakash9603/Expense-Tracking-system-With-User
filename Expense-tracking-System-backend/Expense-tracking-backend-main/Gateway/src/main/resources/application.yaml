@@ -1,0 +1,68 @@
+server:
+  port: 6000
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG         # For Gateway specific logs
+    org.springframework.cloud.openfeign: DEBUG       # For Feign client logs
+
+spring:
+  application:
+    name: GATEWAY-SERVICE
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    gateway:
+      routes:
+        - id: AUDIT-SERVICE
+          uri: http://localhost:6004  # Replace with your actual service port
+          predicates:
+            - Path=/api/audit-logs/**, /audit-logs/**
+        - id: EXPENSE-TRACKING-SYSTEM
+          uri: http://localhost:8080  # Replace with your actual service port
+          predicates:
+            - Path=/auth/**, /users/**, /api/users/**, /api/expenses/**
+        - id: NOTIFICATION-SERVICE
+          uri: http://localhost:6003  # Replace with actual port
+          predicates:
+            - Path=/api/notifications/**, /notifications/**
+      default-filters:
+        - name: DedupeResponseHeader
+          args:
+            name: "Access-Control-Allow-Origin"
+            strategy: "RETAIN_FIRST"  # Choose "RETAIN_FIRST", "RETAIN_LAST", or "RETAIN_UNIQUE"
+        - name: DedupeResponseHeader
+          args:
+            name: "Access-Control-Allow-Credentials"
+            strategy: "RETAIN_FIRST"
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+  datasource:
+    url: jdbc:mysql://localhost:5000/gateway_service
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval: 5s
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka

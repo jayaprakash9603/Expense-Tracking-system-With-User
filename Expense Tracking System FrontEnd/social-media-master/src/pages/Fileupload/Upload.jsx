@@ -79,7 +79,9 @@ const Upload = () => {
     setLoadingMessage("");
     setSaveProgress(100);
     console.log("Save operation completed, isLoading set to false");
-    navigate(-1);
+    friendId
+      ? navigate(`/friends/expenses/${friendId}`)
+      : navigate("/expenses");
   };
 
   const handleUploadStart = () => {

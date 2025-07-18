@@ -62,6 +62,9 @@ import {
   FETCH_CATEGORIES_WITH_EXPENSES_REQUEST,
   FETCH_CATEGORIES_WITH_EXPENSES_SUCCESS,
   FETCH_CATEGORIES_WITH_EXPENSES_FAILURE,
+  COPY_EXPENSE_REQUEST,
+  COPY_EXPENSE_SUCCESS,
+  COPY_EXPENSE_FAILURE,
 } from "./expense.actionType";
 
 export const getExpensesAction =
@@ -147,6 +150,7 @@ export const getExpenseAction = (id, targetId) => async (dispatch) => {
       },
     });
     dispatch({ type: GET_EXPENSE_SUCCESS, payload: data });
+    return data;
     console.log("get users expense", data);
   } catch (error) {
     console.log("error user expense error ", error);
@@ -208,6 +212,25 @@ export const createExpenseAction =
       console.error("Error creating expense:", error);
     }
   };
+
+export const copyExpenseAction = (expenseId, targetId) => async (dispatch) => {
+  dispatch({ type: COPY_EXPENSE_REQUEST });
+
+  try {
+    // Add targetId to the URL if it's provided
+    const endpoint = targetId
+      ? `/api/expenses/${expenseId}/copy?targetId=${targetId}`
+      : `/api/expenses/${expenseId}/copy`;
+
+    const { data } = await api.post(endpoint);
+
+    dispatch({ type: COPY_EXPENSE_SUCCESS, payload: data });
+    console.log("Expense copied successfully:", data);
+  } catch (error) {
+    dispatch({ type: COPY_EXPENSE_FAILURE, payload: error.message });
+    console.error("Error copying expense:", error);
+  }
+};
 
 export const editExpenseAction =
   (expenseId, updatedData, targetId) => async (dispatch) => {
@@ -501,4 +524,3 @@ export const fetchCategoriesWithExpenses =
       throw error;
     }
   };
-

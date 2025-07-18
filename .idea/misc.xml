@@ -5,6 +5,12 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/social-media-app/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/eureka-server/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Gateway/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Submission-service/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Notification-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Audit-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/AnalyticsService/pom.xml" />
       </list>
     </option>
   </component>

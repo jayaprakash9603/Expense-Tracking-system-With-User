@@ -43,7 +43,7 @@ public class User  {
 	private List<EmailLog>emailLogs=new ArrayList<>();
 
 	@OneToMany(mappedBy = "user", cascade =CascadeType.ALL)
-	private List<AuditExpense>audits=new ArrayList<>();
+	private List<Integer>audits=new ArrayList<>();
 
 	@OneToMany
 	private List<PaymentMethod> paymentMethod = new ArrayList<>();

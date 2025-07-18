@@ -242,15 +242,15 @@ const Friends = () => {
   }, [sendRequestError]);
 
   // Show error snackbar if respond to request fails
-  useEffect(() => {
-    if (respondToRequestError) {
-      setSnackbar({
-        open: true,
-        message: `Failed to respond to friend request: ${respondToRequestError}`,
-        severity: "error",
-      });
-    }
-  }, [respondToRequestError]);
+  // useEffect(() => {
+  //   if (respondToRequestError) {
+  //     setSnackbar({
+  //       open: true,
+  //       message: `Failed to respond to friend request: ${respondToRequestError}`,
+  //       severity: "error",
+  //     });
+  //   }
+  // }, [respondToRequestError]);
 
   // Handle tab change
   const handleTabChange = (event, newValue) => {
@@ -417,8 +417,6 @@ const Friends = () => {
       // Optimistically update the UI immediately
       const updatedFriendship = {
         ...selectedFriendship,
-        // If current user is the requester, update recipientAccess
-        // If current user is the recipient, update requesterAccess
         recipientAccess:
           selectedFriendship.requester.id === user.id
             ? accessLevel
@@ -598,7 +596,7 @@ const Friends = () => {
           console.log("Real-time expense update received:", data);
           setSnackbar({
             open: true,
-            message: `${data.updatedBy.firstName} ${data.updatedBy.lastName} updated an expense`,
+            message: `${data} ${data} updated an expense`,
             severity: "info",
           });
 

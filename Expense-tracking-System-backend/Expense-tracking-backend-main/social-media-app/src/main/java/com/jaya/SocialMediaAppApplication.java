@@ -6,8 +6,11 @@ import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
+@EnableCaching
 public class SocialMediaAppApplication {
 
 	@Autowired
@@ -26,6 +29,6 @@ public class SocialMediaAppApplication {
 	@PreDestroy
 	public void stopSocketServer() {
 		socketIOServer.stop();
-		System.out.println("Socket server stopped");
+
 	}
 }

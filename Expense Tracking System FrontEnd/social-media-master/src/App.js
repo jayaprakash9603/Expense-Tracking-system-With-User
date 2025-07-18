@@ -40,6 +40,11 @@ import CreatePaymentMethod from "./pages/Landingpage/CreatePaymentMethod";
 import EditPaymentMethod from "./pages/Landingpage/EditPaymentMethod";
 import Bill from "./pages/Landingpage/Bill";
 import CreateBill from "./pages/Landingpage/CreateBill";
+import EditBill from "./pages/Landingpage/EditBill";
+import BillCalendarView from "./pages/Landingpage/BillCalendarView";
+import DayBillsView from "./pages/Landingpage/DayBillsView";
+import AuditLogs from "./pages/Landingpage/AuditLogs";
+import GlobalErrorHandler from "./pages/Landingpage/Errors/GlobalErrorHandler";
 
 function App() {
   const { auth } = useSelector((store) => store);
@@ -84,13 +89,28 @@ function App() {
             <Route path="friends" element={<Friends />} />
             <Route path="payment-method">
               <Route index element={<PaymentMethodFlow />} />
+              <Route path=":friendId" element={<PaymentMethodFlow />} />
               <Route path="create" element={<CreatePaymentMethod />} />
+              <Route
+                path="create/:friendId"
+                element={<CreatePaymentMethod />}
+              />
               <Route path="edit/:id" element={<EditPaymentMethod />} />
+              <Route
+                path="edit/:id/friend/:friendId"
+                element={<EditPaymentMethod />}
+              />
             </Route>
 
             <Route path="bill">
               <Route index element={<Bill />} />
+              <Route path=":friendId" element={<Bill />} />
               <Route path="create" element={<CreateBill />} />
+              <Route path="create/:friendId" element={<CreateBill />} />
+              <Route path="edit/:id" element={<EditBill />} />
+              <Route path="edit/:id/friend/:friendId" element={<EditBill />} />
+              <Route path="calendar" element={<BillCalendarView />} />
+              <Route path="calendar/:friendId" element={<BillCalendarView />} />
             </Route>
 
             <Route path="friends">
@@ -173,11 +193,15 @@ function App() {
                 element={<DayTransactionsView />}
               />
             </Route>
+            <Route path="/bill-day-view">
+              <Route path=":date" element={<DayBillsView />} />
+            </Route>
           </Route>
 
           {/* Other Routes */}
         </Routes>
       </div>
+      <GlobalErrorHandler />
     </SocketProvider>
   );
 }

@@ -18,17 +18,29 @@ import {
   SET_BILLS_PAGINATION,
   CLEAR_BILLS_ERROR,
   RESET_BILLS_STATE,
+  FETCH_BILLS_CALENDAR_REQUEST,
+  FETCH_BILLS_CALENDAR_SUCCESS,
+  FETCH_BILLS_CALENDAR_FAILURE,
+  GET_BILLS_BY_DATE_REQUEST,
+  GET_BILLS_BY_DATE_SUCCESS,
+  GET_BILLS_BY_DATE_FAILURE,
+  GET_BILL_BY_EXPENSE_ID_REQUEST,
+  GET_BILL_BY_EXPENSE_ID_SUCCESS,
+  GET_BILL_BY_EXPENSE_ID_FAILURE,
 } from "./bill.actionType";
 
 const initialState = {
   bills: [],
   currentBill: null,
+  billsCalendarData: [],
+  particularDateBills: [],
   filteredBills: [],
   loading: false,
   error: null,
   filter: {
     type: "all", // 'all', 'gain', 'loss'
   },
+  bill: {},
   pagination: {
     currentPage: 1,
     itemsPerPage: 4,
@@ -51,12 +63,21 @@ const billReducer = (state = initialState, action) => {
     case UPDATE_BILL_REQUEST:
     case DELETE_BILL_REQUEST:
     case GET_BILL_BY_ID_REQUEST:
+    case FETCH_BILLS_CALENDAR_REQUEST:
+    case GET_BILLS_BY_DATE_REQUEST:
+    case GET_BILL_BY_EXPENSE_ID_REQUEST:
       return {
         ...state,
         loading: true,
         error: null,
       };
-
+    case FETCH_BILLS_CALENDAR_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        billsCalendarData: action.payload,
+        error: null,
+      };
     case FETCH_BILLS_SUCCESS:
       const bills = action.payload;
       const filteredBills = filterBillsByType(bills, state.filter.type);
@@ -98,7 +119,20 @@ const billReducer = (state = initialState, action) => {
         },
         error: null,
       };
-
+    case GET_BILLS_BY_DATE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        particularDateBills: action.payload,
+        error: null,
+      };
+    case GET_BILL_BY_EXPENSE_ID_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        bill: action.payload,
+        error: null,
+      };
     case UPDATE_BILL_SUCCESS:
       const updatedBills = state.bills.map((bill) =>
         bill.id === action.payload.id ? action.payload : bill
@@ -187,6 +221,9 @@ const billReducer = (state = initialState, action) => {
     case UPDATE_BILL_FAILURE:
     case DELETE_BILL_FAILURE:
     case GET_BILL_BY_ID_FAILURE:
+    case FETCH_BILLS_CALENDAR_FAILURE:
+    case GET_BILLS_BY_DATE_FAILURE:
+    case GET_BILL_BY_EXPENSE_ID_FAILURE:
       return {
         ...state,
         loading: false,

@@ -148,7 +148,14 @@ const EditBudget = () => {
 
   const handleLinkExpenses = () => {
     setShowTable(true);
-    dispatch(getExpensesByBudget(id, "", "", friendId || ""));
+    dispatch(
+      getExpensesByBudget(
+        id,
+        formData.startDate,
+        formData.endDate,
+        friendId || ""
+      )
+    );
   };
 
   const handleCloseTable = () => {

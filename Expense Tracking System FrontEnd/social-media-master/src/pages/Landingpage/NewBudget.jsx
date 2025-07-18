@@ -114,11 +114,13 @@ const NewBudget = () => {
       //   await dispatch(editMultipleExpenseAction(updatedExpenses));
       // }
 
-      navigate(
-        `/budget?message=${encodeURIComponent(
-          "Budget created successfully!"
-        )}&type=success`
-      );
+      friendId
+        ? navigate(`/budget/${friendId}`)
+        : navigate(
+            `/budget?message=${encodeURIComponent(
+              "Budget created successfully!"
+            )}&type=success`
+          );
     } catch (error) {
       console.error("Submission error:", error);
       navigate(

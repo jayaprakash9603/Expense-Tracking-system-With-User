@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.4</version>
+		<version>3.4.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.jaya</groupId>
@@ -46,19 +46,19 @@
   </dependency>
 
   <!-- Google HTTP Client Library -->
-  <dependency>
-    <groupId>com.google.http-client</groupId>
-    <artifactId>google-http-client-gson</artifactId>
-    <version>1.40.0</version>
-  </dependency>
+<!--  <dependency>-->
+<!--    <groupId>com.google.http-client</groupId>-->
+<!--    <artifactId>google-http-client-gson</artifactId>-->
+<!--    <version>1.40.0</version>-->
+<!--  </dependency>-->
 
 		
 		<!-- Google Gson library -->
-  <dependency>
-    <groupId>com.google.code.gson</groupId>
-    <artifactId>gson</artifactId>
-    <version>2.8.9</version>
-  </dependency>
+<!--  <dependency>-->
+<!--    <groupId>com.google.code.gson</groupId>-->
+<!--    <artifactId>gson</artifactId>-->
+<!--    <version>2.10.1</version>-->
+<!--  </dependency>-->
 <dependency>
     <groupId>org.apache.poi</groupId>
     <artifactId>poi</artifactId>
@@ -69,6 +69,12 @@
     <artifactId>poi-ooxml</artifactId>
     <version>5.2.3</version>
 </dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<version>4.2.0</version>
+		</dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-mail</artifactId>
@@ -131,6 +137,12 @@
 			<version>1.7.19</version>
 		</dependency>
 
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+			<version>4.2.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -168,6 +180,11 @@
     <version>0.11.2</version>
 </dependency>
 
+
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
     
     
     

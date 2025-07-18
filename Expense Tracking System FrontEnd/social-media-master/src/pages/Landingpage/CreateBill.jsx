@@ -252,7 +252,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
     };
 
     fetchPaymentMethods();
-  }, [dispatch, friendId]);
+  }, [dispatch]);
   // Fetch budgets on component mount
   useEffect(() => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
@@ -308,7 +308,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
     }
   };
 
-  // Add useEffect to update payment method when type changes and options are available
+  //Add useEffect to update payment method when type changes and options are available
   useEffect(() => {
     if (processedPaymentMethods.length > 0) {
       // Check if current payment method is still valid for the selected type
@@ -549,12 +549,12 @@ const CreateBill = ({ onClose, onSuccess }) => {
     e.preventDefault();
     const newErrors = {};
 
-    // Existing validations
+    // Existing validations...
     if (!billData.name) newErrors.name = true;
     if (!billData.date) newErrors.date = true;
     if (!billData.type) newErrors.type = true;
 
-    // Validate expense items - check if at least one exists with positive values
+    // Validate expense items
     const validExpenses = expenses.filter(
       (expense) =>
         expense.itemName.trim() !== "" &&
@@ -573,31 +573,125 @@ const CreateBill = ({ onClose, onSuccess }) => {
       alert("At least one expense item should be added to create a bill.");
     }
 
-    // Additional validation: Check for negative values or invalid entries
-    const invalidExpenses = expenses.filter(
-      (expense) =>
-        expense.itemName.trim() !== "" &&
-        (expense.unitPrice === "" ||
-          isNaN(parseFloat(expense.unitPrice)) ||
-          parseFloat(expense.unitPrice) <= 0 ||
-          expense.unitPrice.toString().includes("-") ||
-          expense.quantity === "" ||
-          isNaN(parseFloat(expense.quantity)) ||
-          parseFloat(expense.quantity) <= 0 ||
-          expense.quantity.toString().includes("-"))
-    );
-
-    if (invalidExpenses.length > 0) {
-      newErrors.expenses = true;
-      alert(
-        "Please enter valid positive values for both quantity and unit price. Negative values are not allowed."
-      );
-    }
-
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    // ... rest of the submit logic remains the same
+    try {
+      // Calculate total amount from valid expenses
+      const totalAmount = validExpenses.reduce(
+        (sum, expense) => sum + expense.totalPrice,
+        0
+      );
+
+      // Validate total amount
+      if (totalAmount <= 0) {
+        alert("Total amount must be greater than zero.");
+        return;
+      }
+
+      // Calculate net amount
+      const netAmount = totalAmount;
+
+      // Prepare bill data for submission
+      const billPayload = {
+        name: billData.name.trim(),
+        description: billData.description?.trim() || "",
+        amount: totalAmount,
+        netAmount: netAmount,
+        paymentMethod: billData.paymentMethod,
+        type: billData.type,
+        date: billData.date,
+        categoryId: billData.categoryId || 0, // Use 0 instead of null
+        expenses: validExpenses.map((expense) => ({
+          itemName: expense.itemName.trim(),
+          quantity: parseFloat(expense.quantity),
+          unitPrice: parseFloat(expense.unitPrice),
+          totalPrice: expense.totalPrice,
+          comments: expense.comments?.trim() || "",
+        })),
+        budgetIds: selectedBudgets.map((budget) => budget.id) || [],
+        creditDue:
+          billData.type === "loss" &&
+          billData.paymentMethod === "creditNeedToPaid"
+            ? totalAmount
+            : 0,
+        includeInBudget: selectedBudgets.length > 0, // Add this field
+      };
+
+      console.log("Submitting bill with payload:", billPayload);
+
+      // Dispatch the create bill action
+      const resultAction = await dispatch(
+        createBill(billPayload, friendId || "")
+      );
+
+      console.log("Bill creation result:", resultAction);
+
+      // Check if the action was successful
+      if (resultAction && !resultAction.error) {
+        // Success case
+        console.log("Bill created successfully:", resultAction);
+        alert("Bill created successfully!");
+
+        // Reset form data
+        setBillData({
+          name: "",
+          description: "",
+          amount: "",
+          paymentMethod: "cash",
+          type: "loss",
+          date: dateFromQuery || today,
+          categoryId: "",
+        });
+
+        // Reset expenses
+        setExpenses([]);
+        setTempExpenses([
+          { itemName: "", quantity: 1, unitPrice: "", totalPrice: 0 },
+        ]);
+
+        // Reset selected budgets
+        setSelectedBudgets([]);
+        setCheckboxStates([]);
+
+        // Reset errors
+        setErrors({});
+
+        // Reset table states
+        setShowExpenseTable(false);
+        setShowBudgetTable(false);
+        setHasUnsavedExpenseChanges(false);
+
+        // Call success callback if provided
+        if (onSuccess) {
+          onSuccess(resultAction.payload || resultAction);
+        }
+
+        // Navigate back or close modal
+        if (onClose) {
+          onClose();
+        } else {
+          navigate(-1);
+        }
+      } else {
+        // Error case - handle both rejected actions and error responses
+        const errorMessage =
+          resultAction?.error?.message ||
+          resultAction?.payload?.message ||
+          resultAction?.message ||
+          "Failed to create bill. Please try again.";
+
+        console.error("Bill creation failed:", errorMessage);
+        alert(`Error creating bill: ${errorMessage}`);
+      }
+    } catch (error) {
+      console.error("Error during bill submission:", error);
+      alert(
+        `Error creating bill: ${
+          error.message || "An unexpected error occurred. Please try again."
+        }`
+      );
+    }
   };
 
   const handleCheckboxChange = (index) => {
@@ -1009,6 +1103,41 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
   // DataGrid columns for budgets
   const dataGridColumns = [
+    {
+      field: "includeInBudget",
+      headerName: (
+        <input
+          type="checkbox"
+          checked={checkboxStates.length > 0 && checkboxStates.every(Boolean)}
+          ref={(el) => {
+            if (el) {
+              el.indeterminate =
+                checkboxStates.some(Boolean) && !checkboxStates.every(Boolean);
+            }
+          }}
+          onChange={(e) => {
+            const checked = e.target.checked;
+            setCheckboxStates(Array(budgets.length).fill(checked));
+          }}
+          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+          style={{ accentColor: "#00b8a0", marginLeft: 2, marginRight: 2 }}
+        />
+      ),
+      flex: 0.25,
+      minWidth: 40,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      renderCell: (params) => (
+        <input
+          type="checkbox"
+          checked={checkboxStates[params.row.index]}
+          onChange={() => handleCheckboxChange(params.row.index)}
+          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+          style={{ accentColor: "#00b8a0" }}
+        />
+      ),
+    },
     { field: "name", headerName: "Name", flex: 1, minWidth: 120 },
     { field: "description", headerName: "Description", flex: 1, minWidth: 120 },
     { field: "startDate", headerName: "Start Date", flex: 1, minWidth: 100 },
@@ -1026,7 +1155,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const dataGridRows = Array.isArray(budgets)
     ? budgets.map((item, index) => ({
         ...item,
+        index,
         id: item.id ?? `temp-${index}-${Date.now()}`,
+        includeInBudget: checkboxStates[index],
       }))
     : [];
 
@@ -1168,7 +1299,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   rows={dataGridRows}
                   columns={dataGridColumns}
                   getRowId={(row) => row.id}
-                  checkboxSelection
                   disableRowSelectionOnClick
                   selectionModel={selectedIds}
                   onRowSelectionModelChange={handleDataGridSelection}
@@ -1229,6 +1359,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 <div className="text-white font-semibold text-sm col-span-1">
                   Total Price
                 </div>
+
                 <div className="text-white font-semibold text-sm col-span-1">
                   Comments
                 </div>

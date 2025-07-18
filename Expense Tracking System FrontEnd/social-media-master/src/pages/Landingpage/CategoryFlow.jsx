@@ -56,9 +56,15 @@ import { DataGrid } from "@mui/x-data-grid";
 import {
   fetchCategoryById,
   deleteCategory,
+  fetchCategories,
 } from "../../Redux/Category/categoryActions";
 import Modal from "./Modal";
 import useFriendshipData from "../../hooks/useFriendshipData";
+import FriendInfoBar from "./FriendInfoBar";
+import {
+  fetchFriendsDetailed,
+  fetchFriendship,
+} from "../../Redux/Friends/friendsActions";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -259,7 +265,8 @@ const CategoryFlow = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const { friendId } = useParams();
-
+  const { friendship, friends } = useSelector((state) => state.friends);
+  const [showFriendInfo, setShowFriendInfo] = useState(true);
   // Fetch data from API with correct flowType
   useEffect(() => {
     dispatch(
@@ -267,6 +274,46 @@ const CategoryFlow = () => {
     );
   }, [activeRange, offset, flowTab, dispatch, friendId]);
 
+  const handleRouteChange = async (newFriendId) => {
+    try {
+      // Navigate to the new friend's expenses
+      navigate(`/category-flow/${newFriendId}`);
+    } catch (error) {
+      console.error("Error changing route:", error);
+    }
+  };
+
+  const refreshData = async (newFriendId) => {
+    try {
+      // Set loading state if needed
+      // setIsFiltering(true);
+
+      // Fetch all necessary data for the new friend
+      await Promise.all([
+        dispatch(fetchFriendship(newFriendId)),
+        dispatch(fetchFriendsDetailed()),
+        dispatch(
+          fetchCategories(
+            activeRange,
+            offset,
+            flowTab === "all" ? null : flowTab,
+            search.trim() || null,
+            newFriendId
+          )
+        ),
+      ]);
+
+      // Reset any selected states
+      // setSelectedBar(null);
+      // setSelectedCardIdx(null);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      // setToastMessage("Error loading friend data. Please try again.");
+      // setToastOpen(true);
+    } finally {
+      // setIsFiltering(false);
+    }
+  };
   useEffect(() => {
     setOffset(0);
   }, [activeRange]);
@@ -878,7 +925,19 @@ const CategoryFlow = () => {
 
   return (
     <>
-      <div className="h-[50px]"></div>
+      {friendId && friendId !== "undefined" ? (
+        <FriendInfoBar
+          friendship={friendship}
+          friendId={friendId}
+          friends={friends || []}
+          loading={loading}
+          onRouteChange={handleRouteChange}
+          refreshData={refreshData}
+          showInfoBar={showFriendInfo}
+        />
+      ) : (
+        <div className="h-[50px]"></div>
+      )}
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{

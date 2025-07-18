@@ -48,6 +48,18 @@ public class UserController {
 		User user=userService.findUserById(id);
 		return user;
 	}
+
+	@GetMapping("/{userId}")
+	public User getUserProfileById(@PathVariable("userId") Integer id) throws UserException
+	{
+		User reqUser=userRepository.findById(id).get();
+		if(reqUser.getId()!=id)
+		{
+			throw new UserException("user not exist with id"+id);
+		}
+		User user=userService.findUserById(id);
+		return user;
+	}
 	
 	
 	@PutMapping("/api/users")

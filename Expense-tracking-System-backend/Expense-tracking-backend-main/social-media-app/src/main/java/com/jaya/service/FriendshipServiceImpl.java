@@ -769,7 +769,10 @@ public class FriendshipServiceImpl implements FriendshipService {
         List<Map<String, Object>> result = new ArrayList<>();
         for (Friendship f : friendships) {
             // Only include if requesterAccess is not NONE
-            if (f.getRequesterAccess() == AccessLevel.NONE) {
+            if (f.getRequester().getId().equals(userId) && f.getRequesterAccess() == AccessLevel.NONE) {
+                continue;
+            }
+            if (f.getRecipient().getId().equals(userId) && f.getRecipientAccess() == AccessLevel.NONE) {
                 continue;
             }
             User friend = f.getRequester().getId().equals(userId) ? f.getRecipient() : f.getRequester();
@@ -802,6 +805,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         Friendship friendship = getFriendship(userId1, userId2);
         if (friendship == null) {
             return null; // Or throw an exception if you prefer
+
         }
         Map<String, Object> map = new HashMap<>();
         map.put("id", friendship.getId());
@@ -809,7 +813,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         map.put("requesterAccess", friendship.getRequesterAccess().name());
         map.put("recipientAccess", friendship.getRecipientAccess().name());
         boolean isRequester = friendship.getRequester().getId().equals(userId1);
-        map.put("directionSwapped", isRequester );
+        map.put("directionSwapped", !isRequester );
 
         Map<String, Object> requester = new HashMap<>();
         requester.put("id", friendship.getRequester().getId());

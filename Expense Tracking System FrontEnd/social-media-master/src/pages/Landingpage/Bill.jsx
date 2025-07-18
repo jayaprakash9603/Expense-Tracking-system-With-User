@@ -25,6 +25,13 @@ import {
   MenuList,
   useMediaQuery,
   useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import {
@@ -41,13 +48,17 @@ import {
   Upload as UploadIcon,
   Assessment as AssessmentIcon,
   ArrowBack as ArrowBackIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { fetchBills } from "../../Redux/Bill/bill.action";
+import { fetchBills, deleteBill } from "../../Redux/Bill/bill.action";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router";
+import EditBill from "./EditBill";
+import Modal from "./Modal";
 
 const Bill = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -64,13 +75,30 @@ const Bill = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
+  // New states for edit and delete functionality
+  const [billActionAnchorEl, setBillActionAnchorEl] = useState(null);
+  const [selectedBillForAction, setSelectedBillForAction] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const [billToDelete, setBillToDelete] = useState(null);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // State to manage expanded accordion
+  const [expandedAccordion, setExpandedAccordion] = useState(null);
+
   // Function to fetch bills for specific month and year
   const fetchBillsData = async (month, year) => {
     try {
       console.log(`Fetching bills for month: ${month}, year: ${year}`);
 
       // Pass month and year parameters to the fetchBills action
-      const responseData = await dispatch(fetchBills(month, year));
+      const responseData = await dispatch(fetchBills(month, year, friendId));
       setbillsData(responseData || []);
       console.log("Bills fetched for", `${month}/${year}:`, responseData);
     } catch (error) {
@@ -82,7 +110,7 @@ const Bill = () => {
   useEffect(() => {
     const month = selectedDate.month() + 1; // dayjs months are 0-indexed, so add 1
     const year = selectedDate.year();
-    fetchBillsData(month, year);
+    fetchBillsData(month, year, friendId);
   }, [dispatch, selectedDate]); // Changed dependency from monthOffset to selectedDate
 
   const handleMenuClick = (event) => {
@@ -97,16 +125,84 @@ const Bill = () => {
     handleMenuClose();
     switch (action) {
       case "new":
-        navigate("/bill/create");
+        friendId
+          ? navigate(`/bill/create/${friendId}`)
+          : navigate("/bill/create");
         break;
       case "upload":
-        navigate("/bill/upload");
+        friendId
+          ? navigate(`/bill/upload/${friendId}`)
+          : navigate("/bill/upload");
         break;
       case "report":
-        navigate("/bill/report");
+        friendId
+          ? navigate(`/bill/report/${friendId}`)
+          : navigate("/bill/report");
+        break;
+      case "calendar":
+        friendId
+          ? navigate(`/bill/calendar/${friendId}`)
+          : navigate("/bill/calendar");
         break;
       default:
         break;
+    }
+  };
+
+  // Bill action handlers
+  const handleBillActionClick = (event, bill) => {
+    event.stopPropagation(); // Prevent accordion from expanding
+    setBillActionAnchorEl(event.currentTarget);
+    setSelectedBillForAction(bill);
+  };
+
+  const handleBillActionClose = () => {
+    setBillActionAnchorEl(null);
+    setSelectedBillForAction(null);
+  };
+
+  const handleEditBill = (bill) => {
+    handleBillActionClose();
+    friendId
+      ? navigate(`/bill/edit/${bill.id}/friend/${friendId}`)
+      : navigate(`/bill/edit/${bill.id}`);
+  };
+
+  const handleDeleteBill = (bill) => {
+    setBillToDelete(bill);
+    setDeleteDialogOpen(true);
+    handleBillActionClose();
+  };
+
+  const confirmDeleteBill = async () => {
+    if (!billToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      await dispatch(deleteBill(billToDelete.id, friendId || ""));
+
+      // Refresh bills data
+      const month = selectedDate.month() + 1;
+      const year = selectedDate.year();
+      await fetchBillsData(month, year);
+
+      setSnackbar({
+        open: true,
+        message: "Bill deleted successfully!",
+        severity: "success",
+      });
+
+      setDeleteDialogOpen(false);
+      setBillToDelete(null);
+    } catch (error) {
+      console.error("Error deleting bill:", error);
+      setSnackbar({
+        open: true,
+        message: error.message || "Failed to delete bill",
+        severity: "error",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -206,9 +302,15 @@ const Bill = () => {
     }).format(amount);
   };
 
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    setExpandedAccordion(isExpanded ? panel : null);
+  };
+
   const BillAccordion = ({ bill }) => (
     <Accordion
       key={bill.id}
+      expanded={expandedAccordion === bill.id}
+      onChange={handleAccordionChange(bill.id)}
       sx={{
         mb: 2,
         boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
@@ -291,6 +393,109 @@ const Bill = () => {
                 fontSize: "0.8rem",
               }}
             />
+            {/* Bill Action Menu Button */}
+            <Box sx={{ position: "relative" }}>
+              <IconButton
+                onClick={(event) => handleBillActionClick(event, bill)}
+                sx={{
+                  color: "#14b8a6",
+                  "&:hover": {
+                    backgroundColor: "#14b8a620",
+                  },
+                  ml: 1,
+                }}
+                size="small"
+              >
+                <MoreVertIcon />
+              </IconButton>
+              {Boolean(billActionAnchorEl) &&
+                selectedBillForAction?.id === bill.id && (
+                  <>
+                    {/* Backdrop to close menu when clicking outside */}
+                    <div
+                      style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 999,
+                      }}
+                      onClick={handleBillActionClose}
+                    />
+                    {/* Menu */}
+                    <div
+                      style={{
+                        position: "fixed",
+                        top:
+                          billActionAnchorEl?.getBoundingClientRect().bottom +
+                            5 || 0,
+                        left:
+                          billActionAnchorEl?.getBoundingClientRect().left -
+                            100 || 0,
+                        backgroundColor: "#1b1b1b",
+                        border: "1px solid #14b8a6",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                        zIndex: 1000,
+                        minWidth: "150px",
+                      }}
+                    >
+                      <div style={{ padding: "8px 0" }}>
+                        <div
+                          onClick={() => handleEditBill(selectedBillForAction)}
+                          style={{
+                            color: "#fff",
+                            padding: "12px 24px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            transition: "background-color 0.2s",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#28282a")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "transparent")
+                          }
+                        >
+                          <EditIcon
+                            sx={{ mr: 2, color: "#14b8a6", fontSize: "20px" }}
+                          />
+                          <span style={{ fontSize: "14px" }}>Edit Bill</span>
+                        </div>
+
+                        <div
+                          onClick={() =>
+                            handleDeleteBill(selectedBillForAction)
+                          }
+                          style={{
+                            color: "#fff",
+                            padding: "12px 24px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            transition: "background-color 0.2s",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#28282a")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "transparent")
+                          }
+                        >
+                          <DeleteIcon
+                            sx={{ mr: 2, color: "#f44336", fontSize: "20px" }}
+                          />
+                          <span style={{ fontSize: "14px" }}>Delete Bill</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+            </Box>
           </Box>
         </Box>
       </AccordionSummary>
@@ -488,7 +693,7 @@ const Bill = () => {
         height: "calc(100vh - 100px)",
         top: "50px",
         width: "calc(100vw - 370px)",
-        backgroundColor: "#121212",
+        backgroundColor: "#0b0b0b",
         position: "relative",
         overflow: "hidden",
         borderRadius: "16px",
@@ -622,9 +827,55 @@ const Bill = () => {
                 <AssessmentIcon sx={{ mr: 2, color: "#14b8a6" }} />
                 <Typography variant="body2">Bill Report</Typography>
               </MenuItem>
+              <MenuItem
+                onClick={() => handleMenuItemClick("calendar")}
+                sx={{
+                  color: "#fff",
+                  px: 3,
+                  py: 1.5,
+                  "&:hover": {
+                    backgroundColor: "#28282a",
+                  },
+                }}
+              >
+                <CalendarIcon sx={{ mr: 2, color: "#14b8a6" }} />
+                <Typography variant="body2">Bill Calendar</Typography>
+              </MenuItem>
             </MenuList>
           </Popover>
         </Box>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          title="Confirm Delete"
+          confirmationText={`Are you sure you want to delete the bill "${billToDelete?.name}"? This action cannot be undone.`}
+          onApprove={confirmDeleteBill}
+          onDecline={() => setDeleteDialogOpen(false)}
+          approveText={isDeleting ? "Deleting..." : "Delete"}
+          declineText="Cancel"
+        />
+
+        {/* Snackbar for notifications */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            severity={snackbar.severity}
+            sx={{
+              backgroundColor:
+                snackbar.severity === "success" ? "#14b8a6" : "#f44336",
+              color: "#fff",
+            }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
 
         {/* Month Selection Header */}
         <Box
@@ -970,65 +1221,6 @@ const Bill = () => {
                         margin: "0 auto 8px",
                       }}
                     >
-                      <MoneyIcon sx={{ color: "#0b0b0b", fontSize: 20 }} />
-                    </Box>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: "#b0b0b0",
-                        fontWeight: 600,
-                        display: "block",
-                        mb: 0.5,
-                      }}
-                    >
-                      Total Amount
-                    </Typography>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: "#14b8a6",
-                        fontWeight: 700,
-                        fontSize: "1rem",
-                      }}
-                    >
-                      {formatCurrency(
-                        filteredBills.reduce(
-                          (sum, bill) => sum + bill.amount,
-                          0
-                        )
-                      )}
-                    </Typography>
-                  </Card>
-                </Grid>
-
-                <Grid item xs={6} sm={3}>
-                  <Card
-                    sx={{
-                      background: "#1b1b1b",
-                      border: "1px solid #14b8a6",
-                      borderRadius: "8px",
-                      textAlign: "center",
-                      p: 1.5,
-                      transition: "all 0.2s ease",
-                      "&:hover": {
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 4px 12px rgba(20, 184, 166, 0.2)",
-                        backgroundColor: "#0b0b0b",
-                      },
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: "50%",
-                        backgroundColor: "#14b8a6",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "0 auto 8px",
-                      }}
-                    >
                       <TrendingUpIcon sx={{ color: "#0b0b0b", fontSize: 20 }} />
                     </Box>
                     <Typography
@@ -1040,21 +1232,19 @@ const Bill = () => {
                         mb: 0.5,
                       }}
                     >
-                      Net Amount
+                      Total Income
                     </Typography>
                     <Typography
-                      variant="h6"
+                      variant="h5"
                       sx={{
                         color: "#14b8a6",
                         fontWeight: 700,
-                        fontSize: "1rem",
                       }}
                     >
                       {formatCurrency(
-                        filteredBills.reduce(
-                          (sum, bill) => sum + bill.netAmount,
-                          0
-                        )
+                        filteredBills
+                          .filter((bill) => bill.type === "gain")
+                          .reduce((sum, bill) => sum + bill.amount, 0)
                       )}
                     </Typography>
                   </Card>
@@ -1064,14 +1254,14 @@ const Bill = () => {
                   <Card
                     sx={{
                       background: "#1b1b1b",
-                      border: "1px solid #14b8a6",
+                      border: "1px solid #f44336",
                       borderRadius: "8px",
                       textAlign: "center",
                       p: 1.5,
                       transition: "all 0.2s ease",
                       "&:hover": {
                         transform: "translateY(-2px)",
-                        boxShadow: "0 4px 12px rgba(20, 184, 166, 0.2)",
+                        boxShadow: "0 4px 12px rgba(244, 67, 54, 0.2)",
                         backgroundColor: "#0b0b0b",
                       },
                     }}
@@ -1081,7 +1271,7 @@ const Bill = () => {
                         width: 40,
                         height: 40,
                         borderRadius: "50%",
-                        backgroundColor: "#14b8a6",
+                        backgroundColor: "#f44336",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1101,22 +1291,90 @@ const Bill = () => {
                         mb: 0.5,
                       }}
                     >
-                      Credit Due
+                      Total Expenses
                     </Typography>
                     <Typography
-                      variant="h6"
+                      variant="h5"
                       sx={{
-                        color: "#14b8a6",
+                        color: "#f44336",
                         fontWeight: 700,
-                        fontSize: "1rem",
                       }}
                     >
                       {formatCurrency(
-                        filteredBills.reduce(
-                          (sum, bill) => sum + bill.creditDue,
-                          0
-                        )
+                        filteredBills
+                          .filter((bill) => bill.type === "loss")
+                          .reduce((sum, bill) => sum + bill.amount, 0)
                       )}
+                    </Typography>
+                  </Card>
+                </Grid>
+
+                <Grid item xs={6} sm={3}>
+                  <Card
+                    sx={{
+                      background: "#1b1b1b",
+                      border: "1px solid #FF9800",
+                      borderRadius: "8px",
+                      textAlign: "center",
+                      p: 1.5,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 4px 12px rgba(255, 152, 0, 0.2)",
+                        backgroundColor: "#0b0b0b",
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        backgroundColor: "#FF9800",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        margin: "0 auto 8px",
+                      }}
+                    >
+                      <MoneyIcon sx={{ color: "#0b0b0b", fontSize: 20 }} />
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#b0b0b0",
+                        fontWeight: 600,
+                        display: "block",
+                        mb: 0.5,
+                      }}
+                    >
+                      Net Balance
+                    </Typography>
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        color: (() => {
+                          const income = filteredBills
+                            .filter((bill) => bill.type === "gain")
+                            .reduce((sum, bill) => sum + bill.amount, 0);
+                          const expenses = filteredBills
+                            .filter((bill) => bill.type === "loss")
+                            .reduce((sum, bill) => sum + bill.amount, 0);
+                          const netBalance = income - expenses;
+                          return netBalance >= 0 ? "#14b8a6" : "#f44336";
+                        })(),
+                        fontWeight: 700,
+                      }}
+                    >
+                      {(() => {
+                        const income = filteredBills
+                          .filter((bill) => bill.type === "gain")
+                          .reduce((sum, bill) => sum + bill.amount, 0);
+                        const expenses = filteredBills
+                          .filter((bill) => bill.type === "loss")
+                          .reduce((sum, bill) => sum + bill.amount, 0);
+                        return formatCurrency(income - expenses);
+                      })()}
                     </Typography>
                   </Card>
                 </Grid>

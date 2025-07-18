@@ -86,23 +86,18 @@ const ItemNameAutocomplete = ({
   const fetchItemNames = async (searchTerm = "") => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.getItemNames(searchTerm);
-      // setOptions(response.data);
-
-      // For now, filter dummy data based on search term
-      if (searchTerm) {
+      // Only fetch or filter options if at least one character is entered
+      if (searchTerm.length > 0) {
         const filtered = dummyItemNames.filter((item) =>
           item.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setOptions(filtered);
       } else {
-        setOptions(dummyItemNames);
+        setOptions([]); // Clear options if no input
       }
     } catch (error) {
       console.error("Error fetching item names:", error);
-      // Fallback to dummy data on error
-      setOptions(dummyItemNames);
+      setOptions([]); // Clear options on error
     } finally {
       setLoading(false);
     }
@@ -214,7 +209,7 @@ const ItemNameAutocomplete = ({
       onInputChange={handleInputChange}
       onChange={handleChange}
       disabled={disabled}
-      openOnFocus
+      open={inputValue.length > 0} // Only open dropdown if inputValue has at least one character
       size="small"
       sx={{
         width: "100%",

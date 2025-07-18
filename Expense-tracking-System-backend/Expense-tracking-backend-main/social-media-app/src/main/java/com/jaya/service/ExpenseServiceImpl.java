@@ -8,6 +8,12 @@ import jakarta.persistence.PersistenceContext;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +37,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,17 +53,26 @@ import java.time.Month;
 
 
 @Service
-public class ExpenseServiceImpl implements ExpenseService {
+public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseReportRepository expenseReportRepository;
 
     public static final String OTHERS = "Others";
+    private static final String CREDIT_NEED_TO_PAID="creditNeedToPaid";
+    private static final String CREDIT_PAID="creditPaid";
+    private static final String CASH="cash";
+    private static final String MONTH="month";
+    private static final String YEAR="year";
+    private static final String WEEK="week";
 
+    private static final Logger logger= (Logger) LoggerFactory.getLogger(ExpenseServiceImpl.class);
 
-    private static final Logger logger = (Logger) LoggerFactory.getLogger(ExpenseService.class);
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -72,8 +88,11 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Autowired
     private CategoryService categoryService;
+
     @Autowired
-    private AuditExpenseService auditExpenseService;
+    private UserService userService;
+//    @Autowired
+//    private AuditExpenseService auditExpenseService;
 
 
     @Autowired
@@ -115,7 +134,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         details.setPaymentMethod(details.getPaymentMethod() != null ? details.getPaymentMethod() : "");
         details.setNetAmount(details.getType().equals("loss") ? -details.getAmount() : details.getAmount());
         details.setComments(details.getComments() != null ? details.getComments() : "");
-        details.setCreditDue(details.getPaymentMethod().equals("creditNeedToPaid")? details.getAmount():0);
+        details.setCreditDue(details.getPaymentMethod().equals(CREDIT_NEED_TO_PAID)? details.getAmount():0);
 
         // Set bi-directional relationship
         details.setExpense(expense);
@@ -134,10 +153,105 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         updateBudgetExpenseLinks(savedExpense, validBudgetIds, user);
 
-        auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Created", "Expense: " + details.getExpenseName() + ", Amount: " + details.getAmount());
+        // auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Created", "Expense: " + details.getExpenseName() + ", Amount: " + details.getAmount());
 
+
+        Cache cache = cacheManager.getCache("expenses");
+        List<Expense> cachedExpenses = cache.get(user.getId(), List.class);
+        if (cachedExpenses == null) {
+            cachedExpenses = new ArrayList<>();
+        }
+        cachedExpenses.addAll(Arrays.asList(savedExpense));
+        cache.put(user.getId(), cachedExpenses);
         return savedExpense;
     }
+
+
+    @Override
+    public Expense copyExpense(Integer userId, Integer expenseId) throws Exception {
+        User user = userService.findUserById(userId);
+        Expense original = getExpenseById(expenseId, user);
+        if (original == null) {
+            throw new RuntimeException("Expense not found with ID: " + expenseId);
+        }
+
+        // Deep copy the expense
+        Expense copy = new Expense();
+        copy.setDate(original.getDate());
+        copy.setUser(user);
+        copy.setBudgetIds(original.getBudgetIds() != null ? new HashSet<>(original.getBudgetIds()) : new HashSet<>());
+        copy.setCategoryId(original.getCategoryId());
+
+        if (original.getExpense() != null) {
+            ExpenseDetails details = new ExpenseDetails();
+            details.setExpenseName(original.getExpense().getExpenseName());
+            details.setAmount(original.getExpense().getAmount());
+            details.setType(original.getExpense().getType());
+            details.setPaymentMethod(original.getExpense().getPaymentMethod());
+            details.setNetAmount(original.getExpense().getNetAmount());
+            details.setComments(original.getExpense().getComments());
+            details.setCreditDue(original.getExpense().getCreditDue());
+            details.setExpense(copy); // set bi-directional link
+            copy.setExpense(details);
+        }
+
+        // Save the copied expense only once
+        return   addExpense(copy, user);
+
+
+
+    }
+
+    // Add this helper method to your class
+    private List<Expense> getCachedExpenses(Integer userId) {
+        Cache cache = cacheManager.getCache("expenses");
+        if (cache != null) {
+            List<Expense> cachedExpenses = cache.get(userId, List.class);
+            if (cachedExpenses != null) {
+                logger.info("Retrieved {} expenses from cache for user: {}", cachedExpenses.size(), userId);
+                return new ArrayList<>(cachedExpenses);
+            }
+        }
+        logger.info("No cached expenses found for user: {}", userId);
+        return null;
+    }
+
+    private void cacheExpenses(Integer userId, List<Expense> expenses) {
+        Cache cache = cacheManager.getCache("expenses");
+        if (cache != null && expenses != null) {
+            cache.put(userId, new ArrayList<>(expenses));
+            logger.info("Cached {} expenses for user: {}", expenses.size(), userId);
+        }
+    }
+
+    @Override
+    public List<Expense> getExpensesByUserAndSort(User targetUser, String sort) throws UserException {
+        System.out.println("Fetching expenses for user: " + targetUser.getId() + " with sort order: " + sort);
+
+        // Try to get from cache first
+        List<Expense> expenses = getCachedExpenses(targetUser.getId());
+
+        if (expenses == null) {
+            // If not in cache, fetch from database
+            logger.info("Cache miss - fetching from database for user: {}", targetUser.getId());
+            expenses = expenseRepository.findByUserId(targetUser.getId());
+
+            // Cache the expenses
+            cacheExpenses(targetUser.getId(), expenses);
+        }
+
+        // Sort based on the requested order
+        if (expenses != null) {
+            if (sort.equalsIgnoreCase("asc")) {
+                expenses.sort(Comparator.comparing(Expense::getDate));
+            } else {
+                expenses.sort(Comparator.comparing(Expense::getDate).reversed());
+            }
+        }
+
+        return expenses;
+    }
+
 
     private void validateExpenseData(Expense expense, User user) throws IllegalArgumentException, UserException {
         if (expense.getDate() == null) throw new IllegalArgumentException("Expense date must not be null.");
@@ -169,6 +283,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     private void handleCategory(Expense expense, User user) {
+
+
         try {
             Category category = categoryService.getById(expense.getCategoryId(), user);
             if (category != null) {
@@ -176,6 +292,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 expense.setCategoryName(category.getName());
             }
         } catch (Exception e) {
+
             try {
                 Category category = categoryService.getByName(OTHERS, user).get(0);
                 expense.setCategoryId(category.getId());
@@ -209,7 +326,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             paymentMethod.setAmount(0);
             paymentMethod.setGlobal(false);
             paymentMethod.setDescription("Automatically created for expense: " + details.getPaymentMethod());
-            paymentMethod.setIcon("cash");
+            paymentMethod.setIcon(CASH);
             paymentMethod.setColor(getThemeAppropriateColor("salary"));
         }
         if (paymentMethod.getExpenseIds() == null) paymentMethod.setExpenseIds(new HashMap<>());
@@ -257,14 +374,20 @@ public class ExpenseServiceImpl implements ExpenseService {
         updateCategoryExpenseIds(savedExpense, user);
         updateBudgetLinks(savedExpense, validBudgetIds, user);
 
-        auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Updated", "Expense: " + existingDetails.getExpenseName() + ", Amount: " + existingDetails.getAmount());
+
         return savedExpense;
     }
 
 
+
     @Override
+    @Transactional
     public List<Expense> addMultipleExpenses(List<Expense> expenses, User user) throws Exception {
         if (user == null) throw new UserException("User not found.");
+
+        int batchSize = 100000;
+        int count = 0;
+        List<Expense> savedExpenses = new ArrayList<>();
 
         for (Expense expense : expenses) {
             expense.setId(null);
@@ -276,30 +399,41 @@ public class ExpenseServiceImpl implements ExpenseService {
             if (expense.getBudgetIds() == null) expense.setBudgetIds(new HashSet<>());
             Set<Integer> validBudgetIds = validateAndExtractBudgetIds(expense, user);
             expense.setBudgetIds(validBudgetIds);
-            handleCategory(expense, user);
+            handleCategory(expense, user); // Only sets categoryId and categoryName
+
+            entityManager.persist(expense);
+            savedExpenses.add(expense);
+
+            if (++count % batchSize == 0) {
+                entityManager.flush();
+                entityManager.clear();
+            }
         }
+        entityManager.flush();
+        entityManager.clear();
 
-        List<Expense> savedExpenses = saveExpenses(expenses);
-
+        // Now update category, payment method, and budget links with correct expense IDs
         for (Expense savedExpense : savedExpenses) {
             handlePaymentMethod(savedExpense, user);
-            updateCategoryExpenseIds(savedExpense, user);
+            updateCategoryExpenseIds(savedExpense, user); // This will now use the correct ID
             updateBudgetExpenseLinks(savedExpense, savedExpense.getBudgetIds(), user);
-
-            ExpenseDetails details = savedExpense.getExpense();
-            String logMessage = String.format(
-                    "Expense created with ID %d. Details: Name - %s, Amount - %.2f, Type - %s, Payment Method - %s",
-                    savedExpense.getId(),
-                    details != null ? details.getExpenseName() : "",
-                    details != null ? details.getAmount() : 0.0,
-                    details != null ? details.getType() : "",
-                    details != null ? details.getPaymentMethod() : ""
-            );
-            auditExpenseService.logAudit(user, savedExpense.getId(), "create", logMessage);
         }
+
+
+        Cache cache = cacheManager.getCache("expenses");
+        List<Expense> cachedExpenses = cache.get(user.getId(), List.class);
+        if (cachedExpenses == null) {
+            cachedExpenses = new ArrayList<>();
+        }
+        cachedExpenses.addAll(savedExpenses);
+        cache.put(user.getId(), cachedExpenses);
 
         return savedExpenses;
     }
+
+
+
+
     @Override
     public Expense getExpenseById(Integer id, User user) {
         return expenseRepository.findByUserIdAndId(user.getId(), id);
@@ -331,6 +465,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
 
     // Java
+
+
     @Override
     @Transactional
     public Expense updateExpense(Integer id, Expense updatedExpense, User user) {
@@ -341,9 +477,38 @@ public class ExpenseServiceImpl implements ExpenseService {
         if (existingExpense.isBill()) {
             throw new RuntimeException("Cannot update a bill expense. Please use the Bill Id for updates.");
         }
-        return updateExpenseInternal(existingExpense, updatedExpense, user);
-    }
+        Expense savedExpense = updateExpenseInternal(existingExpense, updatedExpense, user);
 
+        // Update cache - first remove old expense, then add updated one
+        Cache cache = cacheManager.getCache("expenses");
+        if (cache != null) {
+            // Remove old expense from individual cache
+            cache.evict(id);
+
+            // Update user's expense list cache
+            List<Expense> cachedExpenses = cache.get(user.getId(), List.class);
+            if (cachedExpenses != null) {
+                // First, remove the old expense from the cached list
+                cachedExpenses.removeIf(expense -> expense.getId().equals(id));
+
+                // Then, add the updated expense to the cached list
+                cachedExpenses.add(savedExpense);
+
+                // Update the cache with the modified list
+                cache.put(user.getId(), cachedExpenses);
+                logger.info("Removed old expense ID {} and added updated expense to cache for user: {}", id, user.getId());
+            } else {
+                // If no cached list exists, evict to force fresh fetch next time
+                cache.evict(user.getId());
+                logger.info("Evicted cache for user: {} due to missing cached list", user.getId());
+            }
+
+            // Add updated expense to individual cache
+            cache.put(savedExpense.getId(), savedExpense);
+        }
+
+        return savedExpense;
+    }
     @Override
     @Transactional
     public Expense updateExpenseWithBillService(Integer id, Expense updatedExpense, User user) {
@@ -505,13 +670,18 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
     }
 
+
+    @Transactional
     private void updateCategoryExpenseIds(Expense savedExpense, User user) {
+        logger.info("updatting categoryid : {}", savedExpense.getCategoryId());
         if (savedExpense.getCategoryId() != null) {
 
 
-
+            logger.info("Entered inside if statement"+savedExpense.getCategoryId());
+            logger.info("user details"+user.getEmail());
             try {
                 Category category = categoryService.getById(savedExpense.getCategoryId(), user);
+                logger.info("category details"+category.getId());
                 if (category != null) {
                     if (category.getExpenseIds() == null) {
                         category.setExpenseIds(new HashMap<>());
@@ -519,7 +689,8 @@ public class ExpenseServiceImpl implements ExpenseService {
                     Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
                     expenseSet.add(savedExpense.getId());
                     category.getExpenseIds().put(user.getId(), expenseSet);
-                    categoryRepository.save(category);
+                    Category savedcategory=categoryRepository.save(category);
+                    System.out.println("Saved categoy expense id's"+savedcategory.getExpenseIds());
                 }
             } catch (Exception e) {
                 System.out.println("Error updating category with expense ID: " + e.getMessage());
@@ -544,6 +715,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"expenses", "categories"}, allEntries = true)
     public List<Expense> updateMultipleExpenses(User user, List<Expense> expenses) {
         if (expenses == null || expenses.isEmpty()) {
             throw new IllegalArgumentException("Expense list cannot be null or empty.");
@@ -744,7 +916,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
-                auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Updated", "Expense: " + savedExpense.getExpense().getExpenseName() + ", Amount: " + savedExpense.getExpense().getAmount());
+                // auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Updated", "Expense: " + savedExpense.getExpense().getExpenseName() + ", Amount: " + savedExpense.getExpense().getAmount());
 
                 updatedExpenses.add(savedExpense);
 
@@ -756,6 +928,8 @@ public class ExpenseServiceImpl implements ExpenseService {
         if (!errorMessages.isEmpty()) {
             System.err.println("Errors occurred while updating expenses: " + String.join("; ", errorMessages));
         }
+
+
 
         return updatedExpenses;
     }
@@ -788,6 +962,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "expenses", allEntries = true)
     public void deleteAllExpenses(User user, List<Expense> expenses) {
         if (expenses == null || expenses.isEmpty()) {
             throw new IllegalArgumentException("Expenses list cannot be null or empty.");
@@ -871,7 +1046,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
-                auditExpenseService.logAudit(user, existing.getId(), "Expense Deleted", existing.getExpense().getExpenseName());
+                // auditExpenseService.logAudit(user, existing.getId(), "Expense Deleted", existing.getExpense().getExpenseName());
                 expensesToDelete.add(existing);
             } catch (Exception e) {
                 errorMessages.add("Failed to process deletion for Expense ID: " + expense.getId() + " - " + e.getMessage());
@@ -891,17 +1066,20 @@ public class ExpenseServiceImpl implements ExpenseService {
     // Java
     @Override
     @Transactional
+    @CacheEvict(value = "expenses", allEntries = true)
     public void deleteExpensesByIdsWithBillService(List<Integer> ids, User user) throws Exception {
         deleteExpensesInternal(ids, user, true);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "expenses", allEntries = true)
     public void deleteExpensesByIds(List<Integer> ids, User user) throws Exception {
         deleteExpensesInternal(ids, user, false);
     }
 
     @Transactional
+    @CacheEvict(value = "expenses", allEntries = true)
     private void deleteExpensesInternal(List<Integer> ids, User user, boolean skipBillCheck) throws Exception {
         if (ids == null || ids.isEmpty()) {
             throw new IllegalArgumentException("Expense ID list cannot be null or empty.");
@@ -982,7 +1160,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                     }
                 }
 
-                auditExpenseService.logAudit(user, expense.getId(), "Expense Deleted", expense.getExpense().getExpenseName());
+                // auditExpenseService.logAudit(user, expense.getId(), "Expense Deleted", expense.getExpense().getExpenseName());
                 expensesToDelete.add(expense);
             } catch (Exception e) {
                 errorMessages.add("Failed to process deletion for Expense ID: " + expense.getId() + " - " + e.getMessage());
@@ -997,6 +1175,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
     }
 
+
     @Override
     @Transactional
     public void deleteExpense(Integer id, User user) {
@@ -1008,6 +1187,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         if (expense.isBill()) {
             throw new RuntimeException("Cannot delete a bill expense. Please use the Bill Id for deletion.");
         }
+
         Set<Integer> budgetIds = expense.getBudgetIds();
         if (budgetIds != null) {
             for (Integer budgetId : budgetIds) {
@@ -1041,9 +1221,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         if (expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null) {
             String paymentMethodName = expense.getExpense().getPaymentMethod();
-            String type=expense.getExpense().getType();
+            String type = expense.getExpense().getType();
             try {
-                PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), paymentMethodName,type.equals("loss") ? "expense" : "income");
+                PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), paymentMethodName, type.equals("loss") ? "expense" : "income");
                 if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
                     Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
                     Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(user.getId(), new HashSet<>());
@@ -1061,11 +1241,48 @@ public class ExpenseServiceImpl implements ExpenseService {
             }
         }
 
-        auditExpenseService.logAudit(user, expense.getId(), "Expense Deleted", expense.getExpense().getExpenseName());
+        // auditExpenseService.logAudit(user, expense.getId(), "Expense Deleted", expense.getExpense().getExpenseName());
+
+        // Remove from cache before deleting from database
+        Cache cache = cacheManager.getCache("expenses");
+        if (cache != null) {
+            // Remove individual expense from cache
+            cache.evict(id);
+
+            // Update user's expense list cache
+            List<Expense> cachedExpenses = cache.get(user.getId(), List.class);
+            if (cachedExpenses != null) {
+                // Remove the deleted expense from the cached list
+                cachedExpenses.removeIf(exp -> exp.getId().equals(id));
+
+                // Update the cache with the modified list
+                cache.put(user.getId(), cachedExpenses);
+                logger.info("Removed deleted expense ID {} from cache for user: {}", id, user.getId());
+            } else {
+                // If no cached list exists, evict to force fresh fetch next time
+                cache.evict(user.getId());
+                logger.info("Evicted cache for user: {} due to missing cached list", user.getId());
+            }
+        }
+
+        // Also evict related caches that might be affected
+        Cache budgetCache = cacheManager.getCache("budgets");
+        if (budgetCache != null) {
+            budgetCache.evict(user.getId());
+        }
+
+        Cache categoryCache = cacheManager.getCache("categories");
+        if (categoryCache != null) {
+            categoryCache.evict(user.getId());
+        }
+
+        Cache paymentMethodCache = cacheManager.getCache("paymentMethods");
+        if (paymentMethodCache != null) {
+            paymentMethodCache.evict(user.getId());
+        }
+
         expenseRepository.deleteById(id);
     }
-
-
     @Override
     public MonthlySummary getMonthlySummary(Integer year, Integer month, User user) {
         LocalDate creditDueStartDate = LocalDate.of(year, month, 1).minusMonths(1).withDayOfMonth(17);
@@ -1091,10 +1308,10 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         // Process credit due expenses for credit due calculations
         for (Expense expense : creditDueExpenses) {
-            if ("creditNeedToPaid".equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
+            if (CREDIT_NEED_TO_PAID.equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
                 creditDue = creditDue.add(BigDecimal.valueOf(expense.getExpense().getAmount()));
                 currentMonthCreditDue = currentMonthCreditDue.add(BigDecimal.valueOf(expense.getExpense().getAmount()));
-            } else if ("creditPaid".equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
+            } else if (CREDIT_PAID.equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
                 currentMonthCreditDue = currentMonthCreditDue.subtract(BigDecimal.valueOf(expense.getExpense().getAmount()));
             }
         }
@@ -1106,7 +1323,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
             if (category.equalsIgnoreCase("gain") || category.equalsIgnoreCase("income")) {
                 totalGain = totalGain.add(amount);
-                if ("cash".equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
+                if (CASH.equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
                     cashSummary.setGain(cashSummary.getGain().add(amount));
                 }
 
@@ -1115,10 +1332,10 @@ public class ExpenseServiceImpl implements ExpenseService {
                 BigDecimal negativeAmount = amount.negate();
                 totalLoss = totalLoss.add(negativeAmount);
 
-                if ("cash".equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
+                if (CASH.equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
                     cashSummary.setLoss(cashSummary.getLoss().add(negativeAmount));
                 }
-                if ("creditPaid".equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
+                if (CREDIT_PAID.equalsIgnoreCase(expense.getExpense().getPaymentMethod())) {
                     totalCreditPaid = totalCreditPaid.add(amount);
                 }
 
@@ -1317,7 +1534,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public List<String> getPaymentMethods(User user) {
-        List<String> paymentMethodsList = new ArrayList<>(Arrays.asList("cash", "creditPaid", "creditNeedToPaid"));
+        List<String> paymentMethodsList = new ArrayList<>(Arrays.asList(CASH, CREDIT_PAID, CREDIT_NEED_TO_PAID));
         return paymentMethodsList;
     }
 
@@ -1518,38 +1735,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
 
-    @Override
-    public Expense copyExpense(Integer expenseId, User user) {
-        Expense originalExpense = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
 
-
-        Expense newExpense = new Expense();
-        newExpense.setDate(LocalDate.now());  // Set today's date for the new expense
-
-        Expense savedExpense = expenseRepository.save(newExpense);
-
-        ExpenseDetails originalDetails = originalExpense.getExpense();
-        ExpenseDetails newDetails = new ExpenseDetails();
-
-        newDetails.setExpenseName(originalDetails.getExpenseName());
-        newDetails.setAmount(originalDetails.getAmount());
-        newDetails.setType(originalDetails.getType());
-        newDetails.setPaymentMethod(originalDetails.getPaymentMethod());
-        newDetails.setNetAmount(originalDetails.getNetAmount());
-        newDetails.setComments(originalDetails.getComments());
-        newDetails.setCreditDue(originalDetails.getCreditDue());
-
-
-        newDetails.setExpense(savedExpense);
-
-
-        savedExpense.setExpense(newDetails);
-
-        expenseRepository.save(savedExpense);
-
-
-        return savedExpense;
-    }
 
     @Override
     public List<ExpenseDetails> getExpenseDetailsByAmount(double amount, User user) {
@@ -2221,7 +2407,23 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public List<Expense> saveExpenses(List<Expense> expenses) {
-        return expenseRepository.saveAll(expenses);
+        int batchsize=100;
+        int i=0;
+        List<Expense>saved=new ArrayList<>();
+        for(Expense e:expenses)
+        {
+            entityManager.persist(e);
+            saved.add(e);
+            if(++i%batchsize==0)
+            {
+                entityManager.flush();
+                entityManager.clear();
+            }
+        }
+
+        entityManager.flush();
+        entityManager.clear();
+        return  saved;
     }
 
 
@@ -2339,14 +2541,14 @@ public class ExpenseServiceImpl implements ExpenseService {
 
             if (othersCategories != null && !othersCategories.isEmpty()) {
                 othersCategory = othersCategories.get(0);
-                System.out.println("Found existing 'Others' category with ID: " + othersCategory.getId());
+                logger.info("Found existing 'Others' category with ID: " + othersCategory.getId());
             } else {
 
                 othersCategory = createOthersCategory(user);
-                System.out.println("Created new 'Others' category with ID: " + othersCategory.getId());
+                logger.info("Created new 'Others' category with ID: " + othersCategory.getId());
             }
         } catch (Exception e) {
-            System.err.println("Error preparing 'Others' category: " + e.getMessage());
+            logger.info("Error preparing 'Others' category: " + e.getMessage());
             e.printStackTrace();
 
         }
@@ -2462,7 +2664,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 }
 
 
-                auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Created", "Expense: " + savedExpense.getExpense().getExpenseName() + ", Amount: " + savedExpense.getExpense().getAmount());
+                // auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Created", "Expense: " + savedExpense.getExpense().getExpenseName() + ", Amount: " + savedExpense.getExpense().getAmount());
 
             } catch (Exception e) {
                 errorMessages.add("Failed to save expense for date " + dto.getDate() + ": " + e.getMessage());
@@ -2734,7 +2936,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         for (Expense e : expenses) {
             if (e.getExpense() != null) {
                 ExpenseDetails details = e.getExpense();
-                if ("loss".equalsIgnoreCase(details.getType()) && !"creditPaid".equalsIgnoreCase(details.getPaymentMethod())) {
+                if ("loss".equalsIgnoreCase(details.getType()) && !CREDIT_PAID.equalsIgnoreCase(details.getPaymentMethod())) {
                     LocalDate date = e.getDate();
                     double amount = details.getAmount();
                     dailySpending.merge(date, amount, Double::sum);
@@ -2764,9 +2966,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, startOfMonth, endOfMonth);
 
-        double totalSpending = expenses.stream().filter(e -> e.getExpense() != null).filter(e -> "loss".equalsIgnoreCase(e.getExpense().getType())).filter(e -> !"creditPaid".equalsIgnoreCase(e.getExpense().getPaymentMethod())).mapToDouble(e -> e.getExpense().getAmount()).sum();
+        double totalSpending = expenses.stream().filter(e -> e.getExpense() != null).filter(e -> "loss".equalsIgnoreCase(e.getExpense().getType())).filter(e -> !CREDIT_PAID.equalsIgnoreCase(e.getExpense().getPaymentMethod())).mapToDouble(e -> e.getExpense().getAmount()).sum();
 
-        double totalIncome = expenses.stream().filter(e -> e.getExpense() != null).filter(e -> "gain".equalsIgnoreCase(e.getExpense().getType())).filter(e -> "cash".equalsIgnoreCase(e.getExpense().getPaymentMethod())).mapToDouble(e -> e.getExpense().getAmount()).sum();
+        double totalIncome = expenses.stream().filter(e -> e.getExpense() != null).filter(e -> "gain".equalsIgnoreCase(e.getExpense().getType())).filter(e -> CASH.equalsIgnoreCase(e.getExpense().getPaymentMethod())).mapToDouble(e -> e.getExpense().getAmount()).sum();
 
         List<Map<String, Object>> response = new ArrayList<>();
 
@@ -2809,15 +3011,15 @@ public class ExpenseServiceImpl implements ExpenseService {
         LocalDate endDate;
 
         switch (rangeType.toLowerCase()) {
-            case "week":
+            case WEEK:
                 startDate = now.minusWeeks(offset).with(DayOfWeek.MONDAY);
                 endDate = startDate.plusDays(6);
                 break;
-            case "month":
+            case MONTH:
                 startDate = now.minusMonths(offset).withDayOfMonth(1);
                 endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
                 break;
-            case "year":
+            case YEAR:
 
                 startDate = now.minusYears(offset).withDayOfYear(1);
                 endDate = startDate.withDayOfYear(startDate.lengthOfYear());
@@ -2926,15 +3128,15 @@ public class ExpenseServiceImpl implements ExpenseService {
         LocalDate endDate;
 
         switch (rangeType.toLowerCase()) {
-            case "week":
+            case WEEK:
                 startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
                 endDate = now.with(DayOfWeek.SUNDAY).plusWeeks(offset);
                 break;
-            case "month":
+            case MONTH:
                 startDate = now.withDayOfMonth(1).plusMonths(offset);
                 endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
                 break;
-            case "year":
+            case YEAR:
                 startDate = LocalDate.of(now.getYear(), 1, 1).plusYears(offset);
                 endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
                 break;
@@ -3324,15 +3526,15 @@ public class ExpenseServiceImpl implements ExpenseService {
         LocalDate endDate;
 
         switch (rangeType.toLowerCase()) {
-            case "week":
+            case WEEK:
                 startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
                 endDate = now.with(DayOfWeek.SUNDAY).plusWeeks(offset);
                 break;
-            case "month":
+            case MONTH:
                 startDate = now.withDayOfMonth(1).plusMonths(offset);
                 endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
                 break;
-            case "year":
+            case YEAR:
                 startDate = LocalDate.of(now.getYear(), 1, 1).plusYears(offset);
                 endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
                 break;

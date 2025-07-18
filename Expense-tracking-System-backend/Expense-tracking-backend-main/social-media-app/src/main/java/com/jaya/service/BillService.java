@@ -2,14 +2,25 @@ package com.jaya.service;
 
 import com.jaya.exceptions.UserException;
 import com.jaya.models.Bill;
+import com.jaya.models.Expense;
+
+import java.time.LocalDate;
 import java.util.List;
 
 public interface BillService {
-    Bill createBill(Bill bill, Integer userId);
-    Bill updateBill(Bill bill, Integer userId);
-    Bill getByBillId(Integer id, Integer userId);
-    void deleteBill(Integer id, Integer userId);
-    List<Bill> getAllBillsForUser(Integer userId);
+    Bill createBill(Bill bill, Integer userId) throws UserException;
+    Bill updateBill(Bill bill, Integer userId) throws UserException;
+    Bill getByBillId(Integer id, Integer userId) throws UserException;
+    void deleteBill(Integer id, Integer userId) throws UserException;
+    List<Bill> getAllBillsForUser(Integer userId) throws UserException;
     String deleteAllBillsForUser(Integer userId) throws Exception;
     List<Bill> getAllBillsForUser(Integer userId, int month, int year) throws UserException;
+    List<Bill> getAllBillsForUser(Integer userId, int month, int year, int offset) throws UserException;
+
+    List<Expense>getAllExpensesForBill( Integer userId,LocalDate startDate,LocalDate endDate) throws UserException;
+    List<Bill> getBillsWithinRange(Integer userId, LocalDate startDate, LocalDate endDate) throws UserException;
+
+    List<Bill> getAllBillsForUser(Integer userId, String range, int offset) throws UserException;
+
+    Bill getBillIdByExpenseId(Integer userId,Integer billId) throws UserException;
 }

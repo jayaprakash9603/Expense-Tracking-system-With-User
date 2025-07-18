@@ -7,6 +7,7 @@ import {
 } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  copyExpenseAction,
   deleteExpenseAction,
   getExpenseAction,
   getExpensesAction,
@@ -14,6 +15,7 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CopyIcon from "@mui/icons-material/FileCopy";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -29,6 +31,7 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
   const { expenses: reduxExpenses, loading } = useSelector(
     (state) => state.expenses || {}
   );
+
   const [selectedIds, setSelectedIds] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -115,6 +118,23 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
       handleClose();
     };
 
+    const handleCopy = async () => {
+      try {
+        // Dispatch the copy action
+        await dispatch(copyExpenseAction(expenseId, friendId || ""));
+
+        // Show a success toast notification
+        setToastMessage("Expense copied successfully.");
+        setToastOpen(true);
+
+        // Optionally, refresh the expenses list if needed
+        dispatch(getExpensesAction("desc", friendId || ""));
+      } catch (error) {
+        // Show an error toast notification
+        setToastMessage("Error copying expense. Please try again.");
+        setToastOpen(true);
+      }
+    };
     return (
       <>
         <IconButton onClick={handleClick} size="small">
@@ -130,6 +150,9 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
           </MenuItem>
           <MenuItem onClick={handleDelete} sx={{ color: "red" }}>
             <DeleteIcon sx={{ color: "red", mr: 1 }} /> Delete
+          </MenuItem>
+          <MenuItem onClick={handleCopy} sx={{ color: "blue" }}>
+            <CopyIcon sx={{ color: "blue", mr: 1 }} /> Copy
           </MenuItem>
         </Menu>
       </>

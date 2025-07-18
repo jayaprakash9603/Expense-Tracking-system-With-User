@@ -14,5 +14,5 @@ public class DetailedExpenses {
     private Integer quantity;
     private Double unitPrice;
     private Double totalPrice;
-    private String comments;
+    private String comments = "";
 }

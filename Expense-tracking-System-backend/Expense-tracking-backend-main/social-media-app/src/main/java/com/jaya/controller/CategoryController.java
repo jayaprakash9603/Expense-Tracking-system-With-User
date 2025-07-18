@@ -4,10 +4,7 @@ import com.jaya.exceptions.UserException;
 import com.jaya.models.Category;
 import com.jaya.models.Expense;
 import com.jaya.models.User;
-import com.jaya.service.CategoryService;
-import com.jaya.service.ExpenseService;
-import com.jaya.service.UserService;
-import com.jaya.service.FriendshipService;
+import com.jaya.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +25,9 @@ public class CategoryController {
 
     @Autowired
     private FriendshipService friendshipService;
+
+    @Autowired
+    private CategoryEventProducer categoryEventProducer;
 
     private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) throws UserException {
         if (targetId == null) return reqUser;

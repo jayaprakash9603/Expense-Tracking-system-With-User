@@ -55,7 +55,7 @@ public class Bill {
 
     private Integer categoryId = 0;
 
-    private Integer ExpenseId = 0;
+    private Integer expenseId = 0;
 
 }
 

@@ -199,7 +199,6 @@ const HistoryTable = ({ friendId }) => {
             }}
             rowHeight={isSmallScreen ? 53 : 53}
             headerHeight={isSmallScreen ? 45 : 40}
-            checkboxSelection
             disableRowSelectionOnClick
             rowSelectionModel={selectedIds}
             onRowSelectionModelChange={handleSelectionChange}
