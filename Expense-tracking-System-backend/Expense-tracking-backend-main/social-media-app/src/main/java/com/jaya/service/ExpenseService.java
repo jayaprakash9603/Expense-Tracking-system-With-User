@@ -16,88 +16,93 @@ import jakarta.mail.MessagingException;
 
 public interface ExpenseService {
     
-    Expense addExpense(Expense expense, User user) throws Exception;
+    Expense addExpense(Expense expense, Integer userId) throws Exception;
 
     Expense copyExpense(Integer userId,Integer expenseId) throws  Exception;
 
 
-    List<Expense>getExpensesByUserAndSort(User targetUser, String sortOrder) throws UserException;
-    List<Expense> addMultipleExpenses(List<Expense> expenses, User user) throws Exception;
+    Expense save(Expense expense);
 
-    List<Expense> getExpensesByCategoryId(Integer categoryId, User user);
+    List<Expense> getExpensesByIds(Integer userId, Set<Integer> expenseIds) throws UserException;
+    List<Expense>getExpensesByUserAndSort(Integer userId, String sortOrder) throws UserException;
+    List<Expense> addMultipleExpenses(List<Expense> expenses, Integer userId) throws Exception;
+
+    List<Expense> getExpensesByCategoryId(Integer categoryId,Integer userId);
     // Add this method to the ExpenseService interface
     Map<String, Object> getFilteredExpensesByCategories(
-            User user,
+           Integer userId,
             String rangeType,
             int offset,
             String flowType
     );
 
-    Map<String, Object> getFilteredExpensesByDateRange(User user, LocalDate fromDate, LocalDate toDate, String flowType);
+    Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType);
     public Map<String, Object> getFilteredExpensesByPaymentMethod(
-            User user,
+            Integer userId,
             LocalDate fromDate,
             LocalDate toDate,
             String flowType);
 
-    Map<String, Object> getFilteredExpensesByPaymentMethod(User user, String rangeType, int offset, String flowType);
-    Map<Category, List<Expense>> getAllExpensesByCategories(User user);
-    Expense getExpenseById(Integer id,User user);
-    List<Expense> getTopNExpenses(int n,User user);
+    Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset, String flowType);
+    Map<Category, List<Expense>> getAllExpensesByCategories(Integer userId);
+    Expense getExpenseById(Integer id,Integer userId);
+    List<Expense> getTopNExpenses(int n,Integer userId);
 
-    List<Expense> getExpensesByDateRange(LocalDate from, LocalDate to,User user);
+    List<Expense> getExpensesByDateRange(LocalDate from, LocalDate to,Integer userId);
     List<Expense>findByUserIdAndDateBetweenAndIncludeInBudgetTrue(LocalDate from, LocalDate to,Integer userId);
 
-    List<Expense> getAllExpenses(User user,String sortOrder);
-    List<Expense> getAllExpenses(User user);
-    List<Expense> searchExpensesByName(String expenseName,User user);
+    List<Expense> getAllExpenses(Integer userId,String sortOrder);
+    List<Expense> getAllExpenses(Integer userId);
+    List<Expense> searchExpensesByName(String expenseName,Integer userId);
     
-    List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount,User user);
+    List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount,Integer userId);
 
 
-    Expense updateExpense(Integer id, Expense expense,User user)  throws  Exception;
-    Expense updateExpenseWithBillService(Integer id, Expense updatedExpense, User user) throws Exception;
-    List<Expense> updateMultipleExpenses(User user,List<Expense> expenses) throws Exception;
-    MonthlySummary getMonthlySummary(Integer year, Integer month,User user);
-    Map<String, MonthlySummary> getYearlySummary(Integer year,User user);
-    List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth, Integer endYear, Integer endMonth,User user);
-    public List<Expense> saveMultipleExpenses(List<Expense> expenses, User user);
-    void deleteAllExpenses(User user, List<Expense> expenses);
-    void deleteExpensesByIds(List<Integer> ids, User user) throws Exception;
-    void deleteExpensesByIdsWithBillService(List<Integer> ids, User user) throws Exception;
-    List<Expense> getExpensesByDate(LocalDate date,User user);
-    void deleteExpense(Integer id,User user);
-    List<String> getTopExpenseNames(int topN,User user);
-    Map<String, Object> getMonthlySpendingInsights(int year, int month,User user);
-    List<String> getPaymentMethods(User user);
-    Map<String, Map<String, Double>> getPaymentMethodSummary(User user);
+    Expense updateExpense(Integer id, Expense expense,Integer userId)  throws  Exception;
+    Expense updateExpenseWithBillService(Integer id, Expense updatedExpense,Integer userId) throws Exception;
+    List<Expense> updateMultipleExpenses(Integer userId,List<Expense> expenses) throws Exception;
+    MonthlySummary getMonthlySummary(Integer year, Integer month,Integer userId);
+
+
+
+    Map<String, MonthlySummary> getYearlySummary(Integer year,Integer userId);
+    List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth, Integer endYear, Integer endMonth,Integer userId);
+    void deleteAllExpenses(Integer userId, List<Expense> expenses);
+    void deleteExpensesByIds(List<Integer> ids, Integer userId) throws Exception;
+    void deleteExpensesByIdsWithBillService(List<Integer> ids, Integer userId) throws Exception;
+    List<Expense> getExpensesByDate(LocalDate date,Integer userId);
+    void deleteExpense(Integer id,Integer userId) throws Exception;
+    List<String> getTopExpenseNames(int topN,Integer userId);
+    Map<String, Object> getMonthlySpendingInsights(int year, int month,Integer userId);
+    List<String> getPaymentMethods(Integer userId);
+    Map<String, Map<String, Double>> getPaymentMethodSummary(Integer userId);
     
-    List<Expense> getExpensesByType(String type,User user);
-    List<Expense> getLossExpenses(User user);
+    List<Expense> getExpensesByType(String type,Integer userId);
+    List<Expense> getLossExpenses(Integer userId);
     
-    List<Expense> getExpensesByPaymentMethod(String paymentMethod,User user);
-    List<Expense> getExpensesByTypeAndPaymentMethod(String type, String paymentMethod,User user);
+    List<Expense> getExpensesByPaymentMethod(String paymentMethod,Integer userId);
+    List<Expense> getExpensesByTypeAndPaymentMethod(String type, String paymentMethod,Integer userId);
     
-    List<String> getTopPaymentMethods(User user);
+    List<String> getTopPaymentMethods(Integer userId);
     
-    List<Expense> getTopGains(User user);
+    List<Expense> getTopGains(Integer userId);
     
-    List<Expense> getTopLosses(User user);
-    
-    
-    
-    List<Expense> getExpensesByMonthAndYear(int month, int year,User user);
+    List<Expense> getTopLosses(Integer userId);
     
     
-    List<String> getUniqueTopExpensesByGain(User user,int limit);
     
-    List<String> getUniqueTopExpensesByLoss(User user,int limit);
+    List<Expense> getExpensesByMonthAndYear(int month, int year,Integer userId);
     
     
-    List<Expense> getExpensesForToday(User user);
+    List<String> getUniqueTopExpensesByGain(Integer userId,int limit);
     
-    List<Expense> getExpensesForLastMonth(User user);
-    List<Expense> getExpensesForCurrentMonth(User user);
+    List<String> getUniqueTopExpensesByLoss(Integer userId,int limit);
+    
+    
+    List<Expense> getExpensesForToday(Integer userId);
+    
+    List<Expense> getExpensesForLastMonth(Integer userId);
+    List<Expense> getExpensesForCurrentMonth(Integer userId);
     
     List<String> getDropdownValues();
     List<String> getSummaryTypes();
@@ -106,58 +111,58 @@ public interface ExpenseService {
     
     List<Expense> getExpensesByMonth(int year, int month);
     
-    List<Expense> getExpensesByCurrentWeek(User user);
-    List<Expense> getExpensesByLastWeek(User user);
-    String getCommentsForExpense(Integer expenseId,User user);
+    List<Expense> getExpensesByCurrentWeek(Integer userId);
+    List<Expense> getExpensesByLastWeek(Integer userId);
+    String getCommentsForExpense(Integer expenseId,Integer userId);
     
     
-    String removeCommentFromExpense(Integer expenseId,User user);
+    String removeCommentFromExpense(Integer expenseId,Integer userId);
     
-    ExpenseReport generateExpenseReport(Integer expenseId,User user);
+    ExpenseReport generateExpenseReport(Integer expenseId,Integer userId);
     
 
     
-    List<ExpenseDetails> getExpenseDetailsByAmount(double amount,User user);
+    List<ExpenseDetails> getExpenseDetailsByAmount(double amount,Integer userId);
     
     
-    List<Expense> getExpenseDetailsByAmountRange(double minAmount, double maxAmount,User user);
+    List<Expense> getExpenseDetailsByAmountRange(double minAmount, double maxAmount,Integer userId);
     
     Double getTotalExpenseByName(String expenseName);
     
-    List<ExpenseDetails> getExpensesByName(String expenseName,User user);
+    List<ExpenseDetails> getExpensesByName(String expenseName,Integer userId);
     
     
-    List<Map<String, Object>> getTotalByCategory(User user);
+    List<Map<String, Object>> getTotalByCategory(Integer userId);
     
-    Map<String, Double> getTotalByDate(User user);
+    Map<String, Double> getTotalByDate(Integer userId);
     
-    Double getTotalForToday(User user);
+    Double getTotalForToday(Integer userId);
     
-    Double getTotalForCurrentMonth(User user);
+    Double getTotalForCurrentMonth(Integer userId);
     
-    Double getTotalForMonthAndYear(int month, int year,User user);
+    Double getTotalForMonthAndYear(int month, int year,Integer userId);
     
-    Double getTotalByDateRange(LocalDate startDate, LocalDate endDate,User user);
+    Double getTotalByDateRange(LocalDate startDate, LocalDate endDate,Integer userId);
     
-    Map<String, Double> getPaymentWiseTotalForCurrentMonth(User user);
+    Map<String, Double> getPaymentWiseTotalForCurrentMonth(Integer userId);
     
-    Map<String, Double> getPaymentWiseTotalForLastMonth(User user);
+    Map<String, Double> getPaymentWiseTotalForLastMonth(Integer userId);
     
-    Map<String, Double> getPaymentWiseTotalForDateRange(LocalDate startDate, LocalDate endDate,User user);
-    
-    
-    Map<String, Double> getPaymentWiseTotalForMonth(int month, int year,User user);
+    Map<String, Double> getPaymentWiseTotalForDateRange(LocalDate startDate, LocalDate endDate,Integer userId);
     
     
-    Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethod(int month, int year,User user);
-    
-    Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate,User user);
+    Map<String, Double> getPaymentWiseTotalForMonth(int month, int year,Integer userId);
     
     
-    Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod(User user);
+    Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethod(int month, int year,Integer userId);
+    
+    Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate,Integer userId);
     
     
-    String generateExcelReport(User user) throws IOException;
+    Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod(Integer userId);
+    
+    
+    String generateExcelReport(Integer userId) throws Exception;
 
 
     Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date);
@@ -183,20 +188,20 @@ public interface ExpenseService {
     List<Expense> saveExpenses(List<Expense> expenses);
 
 
-    Map<String, List<Map<String, Object>>> getExpensesGroupedByDate(User user, String sortOrder);
+    Map<String, List<Map<String, Object>>> getExpensesGroupedByDate(Integer userId, String sortOrder);
 
-    Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(User user, String sortOrder, int page, int size, String sortBy);
+    Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId, String sortOrder, int page, int size, String sortBy) throws Exception;
 
 
 
-    List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, User user);
+    List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, Integer userId) throws Exception;
 
-    Map<String, Object> getExpenseNameOverTime(User user,int year, int limit);
-    Map<String, Object> getPaymentMethodDistribution(User user,int year);
-    Map<String, Object> getMonthlyExpenses(User user,int year);
-    Map<String, Object> getExpenseByName(User user,int year);
-    Map<String, Object> getExpenseTrend(User user,int year);
-    Map<String, Object> getCumulativeExpenses(User user,int year);
+    Map<String, Object> getExpenseNameOverTime(Integer userId,int year, int limit);
+    Map<String, Object> getPaymentMethodDistribution(Integer userId,int year);
+    Map<String, Object> getMonthlyExpenses(Integer userId,int year);
+    Map<String, Object> getExpenseByName(Integer userId,int year);
+    Map<String, Object> getExpenseTrend(Integer userId,int year);
+    Map<String, Object> getCumulativeExpenses(Integer userId,int year);
 
 
 
@@ -209,7 +214,7 @@ public interface ExpenseService {
             LocalDate startDate,
             LocalDate endDate,
             Integer budgetId,
-            Integer userId);
+            Integer userId) throws Exception;
 
 
     List<Expense> getExpensesWithinRange(

@@ -1,8 +1,21 @@
 server:
-  port: 8080
+  port: 6000
   address: 0.0.0.0
-
-
+  compression:
+    enabled: true
+    mime-types:
+      - application/json
+      - application/xml
+      - text/html
+      - text/xml
+      - text/plain
+      - text/css
+      - text/javascript
+      - application/javascript
+      - application/x-javascript
+      - application/json
+      - application/xml
+    min-response-size: 1024
 
 spring:
   application:
@@ -12,6 +25,26 @@ spring:
       enabled: false
   main:
     allow-bean-definition-overriding: true
+
+  # Jackson configuration to fix date format
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      write-date-timestamps-as-nanoseconds: false
+    deserialization:
+      read-date-timestamps-as-nanoseconds: false
+    date-format: yyyy-MM-dd
+    time-zone: UTC
+    default-property-inclusion: non_null
+
+  # Task execution configuration to prevent bean creation issues
+  task:
+    execution:
+      pool:
+        core-size: 2
+        max-size: 4
+        queue-capacity: 100
+      thread-name-prefix: expense-task-
 
   logging:
     level:
@@ -58,6 +91,12 @@ spring:
   redis:
     host: localhost
     port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
 
   mail:
     host: smtp.gmail.com
@@ -77,6 +116,25 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  # Kafka configuration moved under spring
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries: 3
+      batch-size: 16384
+      linger-ms: 1
+      buffer-memory: 33554432
+      acks: all
+      enable-idempotence: true
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: expense-tracking-group
+      auto-offset-reset: earliest
+      enable-auto-commit: true
+      auto-commit-interval: 1000ms
 
 eureka:
   instance:
@@ -88,19 +146,12 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka
 
-#  kafka:
-#    bootstrap-servers: localhost:9092
-#    producer:
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      retries: 3
-#      batch-size: 16384
-#      linger-ms: 1
-#      buffer-memory: 33554432
-#    consumer:
-#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      group-id: expense-tracking-group
-#      auto-offset-reset: earliest
-#      enable-auto-commit: true
-#      auto-commit-interval: 1000
+# Management endpoints for better monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.jaya.dto.User;
 import com.jaya.models.*;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class DailySummaryService {
 
         // Loop through each day of the month
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            List<Expense> dailyExpenses = expenseService.getExpensesByDate(date,user);
+            List<Expense> dailyExpenses = expenseService.getExpensesByDate(date,user.getId());
 
             // If no expenses are found for the current date, skip this day
             if (dailyExpenses.isEmpty()) {
@@ -42,8 +43,8 @@ public class DailySummaryService {
         return dailySummaries;
     }
 
-    public DailySummary getDailySummaryForDate(LocalDate date,User user) {
-        List<Expense> dailyExpenses = expenseService.getExpensesByDate(date,user);
+    public DailySummary getDailySummaryForDate(LocalDate date, User user) {
+        List<Expense> dailyExpenses = expenseService.getExpensesByDate(date,user.getId());
 
         // If there are no expenses for the date, return null or an empty summary, based on your preference
         if (dailyExpenses.isEmpty()) return null;
@@ -131,7 +132,7 @@ public class DailySummaryService {
             LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
             for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-                List<Expense> dailyExpenses = expenseService.getExpensesByDate(date,user);
+                List<Expense> dailyExpenses = expenseService.getExpensesByDate(date,user.getId());
                 if (dailyExpenses.isEmpty()) continue;
 
                 DailySummary dailySummary = calculateDailySummary(dailyExpenses, date);

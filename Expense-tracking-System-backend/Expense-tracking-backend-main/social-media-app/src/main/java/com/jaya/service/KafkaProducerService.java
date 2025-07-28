@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jaya.models.AuditEvent;
+import com.jaya.models.User;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class KafkaProducerService {
@@ -34,5 +37,22 @@ public class KafkaProducerService {
             // Fallback to synchronous logging if Kafka fails
             System.err.println("Fallback audit log: " + auditEvent.toString());
         }
+    }
+
+
+    public void sendAuditEvent(User user,Integer expenseId,String actionType,String message) {
+        AuditEvent auditEvent=convertToAuditEvent(user,expenseId,actionType,message);
+        sendAuditEvent(auditEvent);
+    }
+
+    private AuditEvent convertToAuditEvent(User user, Integer budgetId, String actionType, String details) {
+        AuditEvent auditEvent = new AuditEvent();
+        auditEvent.setUserId(user.getId());
+        auditEvent.setUsername(user.getUsername());
+        auditEvent.setEntityId(budgetId.toString());
+        auditEvent.setActionType(actionType);
+        auditEvent.setDetails(details);
+        auditEvent.setTimestamp(LocalDateTime.now());
+        return auditEvent;
     }
 }

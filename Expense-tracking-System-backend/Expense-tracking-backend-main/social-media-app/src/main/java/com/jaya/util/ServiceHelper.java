@@ -1,11 +1,12 @@
 package com.jaya.util;
 
+import com.jaya.dto.User;
 import com.jaya.exceptions.UserException;
 import com.jaya.models.Bill;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
-import com.jaya.models.User;
 import com.jaya.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+@Slf4j
 @Component
 public class ServiceHelper {
 
@@ -26,18 +28,14 @@ public class ServiceHelper {
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
     public static final String DEFAULT_COMMENT = "";
 
+    public User validateUser(Integer userId) throws Exception {
 
-    public   User validateUser(Integer userId) throws UserException {
-
-        User reqUser=userService.findUserById(userId);
+        User reqUser = userService.findUserById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
         return reqUser;
     }
-
-
-
 
 
     // Bill validation methods
@@ -231,25 +229,10 @@ public class ServiceHelper {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public Expense createExpenseFromBill(Bill bill, User user) {
         Expense expense = new Expense();
         expense.setDate(bill.getDate());
-        expense.setUser(user);
+        expense.setUserId(user.getId());
         expense.setCategoryId(bill.getCategoryId() != null ? bill.getCategoryId() : 0);
         expense.setBudgetIds(bill.getBudgetIds() != null ? bill.getBudgetIds() : new HashSet<>());
         expense.setBill(true);
@@ -270,13 +253,12 @@ public class ServiceHelper {
         expenseDetails.setNetAmount(bill.getNetAmount());
         expenseDetails.setCreditDue(bill.getCreditDue());
         expenseDetails.setExpense(expense);
-
         return expenseDetails;
     }
 
     public Bill mapExpenseToBill(Bill originalBill, Expense savedExpense) {
         Bill newBill = new Bill();
-        newBill.setUser(savedExpense.getUser());
+        newBill.setUserId(savedExpense.getUserId());
         newBill.setDate(savedExpense.getDate());
         newBill.setExpenses(originalBill.getExpenses() != null ? originalBill.getExpenses() : new ArrayList<>());
         newBill.setCategoryId(savedExpense.getCategoryId());
@@ -290,7 +272,6 @@ public class ServiceHelper {
         newBill.setBudgetIds(savedExpense.getBudgetIds());
         newBill.setExpenseId(savedExpense.getExpense().getId());
         newBill.setIncludeInBudget(originalBill.isIncludeInBudget());
-
         return newBill;
     }
 

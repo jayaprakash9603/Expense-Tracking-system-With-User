@@ -1,11 +1,9 @@
 package com.jaya.repository;
 
+import com.jaya.dto.User;
 import com.jaya.models.EmailLog;
-import com.jaya.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 

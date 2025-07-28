@@ -1,9 +1,22 @@
 server:
   port: 8761
 
+#eureka:
+#  instance:
+#    hostname: localhost
+#  client:
+#    register-with-eureka: false   # Eureka Server doesn't register itself
+#    fetch-registry: false         # Eureka Server doesn't fetch registry from another Eureka
+#    serviceUrl:
+#      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka  # URL for client to access Eureka
+#  dashboard:
+#    enabled: true  # Exposes the Eureka Dashboard (UI)
+
+
+
 eureka:
   instance:
-    hostname: localhost
+    hostname: eureka-server
   client:
     register-with-eureka: false   # Eureka Server doesn't register itself
     fetch-registry: false         # Eureka Server doesn't fetch registry from another Eureka

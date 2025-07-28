@@ -32,15 +32,15 @@ export const loginUserAction = (loginData) => async (dispatch) => {
       loginData.data
     );
 
-    console.log("Login response data:", data.token);
+    console.log("Login response data:", data.jwt);
 
-    dispatch({ type: LOGIN_SUCCESS, payload: data.token });
-    if (data.token) {
-      localStorage.setItem("jwt", data.token);
+    dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
+    if (data.jwt) {
+      localStorage.setItem("jwt", data.jwt);
     }
 
     // Immediately fetch the user profile after login
-    dispatch(getProfileAction(data.token));
+    dispatch(getProfileAction(data.jwt));
     updateAuthHeader();
 
     return { success: true };
@@ -98,15 +98,15 @@ export const registerUserAction = (loginData) => async (dispatch) => {
       `${API_BASE_URL}/auth/signup`,
       loginData.data
     );
-
-    if (data.token) {
-      localStorage.setItem("jwt", data.token);
+    console.log("Register response data:", data);
+    if (data.jwt) {
+      localStorage.setItem("jwt", data.jwt);
     }
 
-    dispatch({ type: LOGIN_SUCCESS, payload: data.token });
+    dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
 
     // Fetch the user profile after registration
-    dispatch(getProfileAction(data.token));
+    dispatch(getProfileAction(data.jwt));
     updateAuthHeader();
     return { success: true };
   } catch (error) {
@@ -125,7 +125,7 @@ export const getProfileAction = (jwt) => async (dispatch) => {
   dispatch({ type: GET_PROFILE_REQUEST });
 
   try {
-    const { data } = await axios.get(`${API_BASE_URL}/api/users/profile`, {
+    const { data } = await axios.get(`${API_BASE_URL}/api/user/profile`, {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -150,7 +150,7 @@ export const updateProfileAction = (reqData) => async (dispatch) => {
       throw new Error("Authorization token is missing");
     }
 
-    const { data } = await axios.put(`${API_BASE_URL}/api/users`, reqData, {
+    const { data } = await axios.put(`${API_BASE_URL}/api/user`, reqData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

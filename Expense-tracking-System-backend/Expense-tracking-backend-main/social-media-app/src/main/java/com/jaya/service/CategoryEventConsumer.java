@@ -1,12 +1,13 @@
 package com.jaya.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jaya.dto.User;
 import com.jaya.events.CategoryDeletionEvent;
 import com.jaya.models.Category;
 import com.jaya.models.Expense;
-import com.jaya.models.User;
 import com.jaya.repository.CategoryRepository;
 import com.jaya.repository.ExpenseRepository;
+import com.jaya.util.ServiceHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +28,11 @@ public class CategoryEventConsumer {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @Autowired
-    private UserService userService;
 
-//    @Autowired
-//    private  AuditExpenseService auditExpenseService;
+
+    @Autowired
+    private ServiceHelper helper;
+
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -54,7 +55,7 @@ public class CategoryEventConsumer {
 
     private void updateExpensesAsync(CategoryDeletionEvent event) {
         try {
-            User user = userService.findUserById(event.getUserId());
+            User user = helper.validateUser(event.getUserId());
 
             // Get or create target category (Others)
             Category targetCategory = getOrCreateTargetCategory(event, user);
@@ -104,7 +105,7 @@ public class CategoryEventConsumer {
         }
 
         // Otherwise, find or create "Others" category
-        List<Category> othersCategories = categoryRepository.findByNameAndUser("Others", user);
+        List<Category> othersCategories = categoryRepository.findByNameAndUserId("Others", user.getId());
 
         if (!othersCategories.isEmpty()) {
             return othersCategories.get(0);
@@ -114,7 +115,7 @@ public class CategoryEventConsumer {
         Category othersCategory = new Category();
         othersCategory.setName("Others");
         othersCategory.setDescription("Default category for uncategorized expenses");
-        othersCategory.setUser(user);
+        othersCategory.setUserId(user.getId());
         othersCategory.setGlobal(false);
         othersCategory.setExpenseIds(new HashMap<>());
         othersCategory.setUserIds(new HashSet<>());

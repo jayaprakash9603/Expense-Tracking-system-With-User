@@ -1,24 +1,20 @@
 package com.jaya.service;
 
-import java.util.List;
 
-import com.jaya.exceptions.UserException;
-import com.jaya.models.User;
 
+import com.jaya.dto.User;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+
+@FeignClient(name = "USER-SERVICE", url = "http://localhost:6001")
 public interface UserService {
-public User registerUser(User user);
-public User findUserById(Integer userId) throws UserException;
-public User findUserByEmail(String email);
+
+    @GetMapping("/api/user/profile")
+    public User findUserByJwt(@RequestHeader("Authorization") String jwt);
 
 
-
-public User updatedUser(User user,Integer userId) throws UserException;
-
-public List<User>searchUser(String query);
-
-
-public User findUserByJwt(String jwt);
-    public boolean checkEmailAvailability(String email);
-    public User findByEmail(String email);
-    public void updatePassword(User user, String newPassword);
+    @GetMapping("/auth/{userId}")
+    public User findUserById(@PathVariable("userId") Integer id) throws Exception;
 }

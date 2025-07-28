@@ -1,7 +1,7 @@
 package com.jaya.controller;
 
+import com.jaya.dto.User;
 import com.jaya.models.EmailLog;
-import com.jaya.models.User;
 import com.jaya.service.EmailLogService;
 import com.jaya.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

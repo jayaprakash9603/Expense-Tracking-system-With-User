@@ -1,7 +1,10 @@
 package com.jaya.models;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,14 +33,16 @@ public class Bill {
     private String paymentMethod;
     private String type;
     private double creditDue;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate date;
     private double netAmount;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    @JsonIgnore
-    private User user;
+
+
+    @Column(name = "bill_userid")
+    private Integer userId = 0;
 
 
 

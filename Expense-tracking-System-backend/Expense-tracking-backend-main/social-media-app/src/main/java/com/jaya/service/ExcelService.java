@@ -406,11 +406,11 @@ public class ExcelService {
     private ExpenseService expenseService;
 //    @Autowired
 //    private AuditExpenseService auditExpenseService;
-    public List<Integer> saveAndReturnIds(MultipartFile file, User user) throws Exception {
+    public List<Integer> saveAndReturnIds(MultipartFile file, Integer userId) throws Exception {
         List<Expense> expenses = parseExcelFile(file);
         List<Integer> addedIds = new ArrayList<>();
         for (Expense expense : expenses) {
-            Expense savedExpense = expenseService.addExpense(expense,user);
+            Expense savedExpense = expenseService.addExpense(expense,userId);
             addedIds.add(savedExpense.getId());
             // auditExpenseService.logAudit(user,savedExpense.getId(), "create", "Expense created with ID: " + savedExpense.getId());
         }

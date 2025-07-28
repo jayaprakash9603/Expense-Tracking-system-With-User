@@ -58,6 +58,13 @@ const EditBudget = () => {
         amount: budget.amount ? budget.amount.toString() : "",
       });
       setShowTable(!budget.budgetHasExpenses); // Show table if no expenses are linked
+
+      console.log(
+        "start date: ",
+        budget.startDate,
+        "end date: ",
+        budget.endDate
+      );
       dispatch(
         getExpensesByBudget(
           id,

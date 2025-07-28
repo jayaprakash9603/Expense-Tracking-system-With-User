@@ -1,87 +1,50 @@
 package com.jaya.kafka;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jaya.models.AuditEvent;
 import com.jaya.models.AuditExpense;
-import com.jaya.models.UserDto;
 import com.jaya.repository.AuditExpenseRepository;
-import com.jaya.service.UserService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-
 @Service
+@RequiredArgsConstructor
 public class KafkaConsumerService {
 
+    private static final Logger logger = LoggerFactory.getLogger(KafkaConsumerService.class);
+    private final AuditExpenseRepository auditExpenseRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    Logger logger= LoggerFactory.getLogger(KafkaConsumerService.class);
-    @Autowired
-    private  AuditExpenseRepository auditExpenseRepository;
-
-
-    @Autowired
-    private UserService userService;
-
-    
-
-    private final ObjectMapper objectMapper;
-
-    public KafkaConsumerService() {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-    }
-
-    @KafkaListener(topics = "audit-events", groupId = "audit-group")
+    @KafkaListener(topics = "audit-topic", groupId = "audit-group")
     public void consumeAuditEvent(String auditEventJson) {
         try {
+            // Deserialize the JSON message to AuditEvent
             AuditEvent auditEvent = objectMapper.readValue(auditEventJson, AuditEvent.class);
-            processAuditEvent(auditEvent);
-            logger.info("Processed audit event: {}" , auditEvent);
-        } catch (JsonProcessingException e) {
-            logger.error("Error deserializing audit event: {}" ,e.getMessage());
-           logger.error("Raw message: {}" , auditEventJson);
-        } catch (Exception e) {
-           logger.error("Error processing audit event: {}" , e.getMessage());
-        }
-    }
 
-    private void processAuditEvent(AuditEvent auditEvent) {
-        try {
-            // Find the user by ID
-            UserDto user = userService.getUserProfileById(auditEvent.getUserId());
-            if (user==null) {
-                logger.error("User not found with ID: {}" , auditEvent.getUserId());
-                return;
-            }
-
-           
-
-            // Create and save audit expense record
+            // Map AuditEvent to AuditExpense and save to the database
             AuditExpense auditExpense = new AuditExpense();
-            auditExpense.setUserId(user.getId());
-            auditExpense.setExpenseId(auditEvent.getExpenseId());
+            auditExpense.setUserId(auditEvent.getUserId());
+            auditExpense.setUsername(auditEvent.getUsername());
+            auditExpense.setEntityId(auditEvent.getEntityId());
+            auditExpense.setEntityType(auditEvent.getEntityType());
             auditExpense.setActionType(auditEvent.getActionType());
             auditExpense.setDetails(auditEvent.getDetails());
             auditExpense.setTimestamp(auditEvent.getTimestamp());
+            auditExpense.setIpAddress(auditEvent.getIpAddress());
 
             auditExpenseRepository.save(auditExpense);
 
-            logger.info("Audit record saved successfully for user: {}" , user.getFirstName() + " " + user.getLastName());
+            logger.info("Successfully saved audit event: {}", auditExpense);
+        } catch (JsonProcessingException e) {
+            logger.error("Error deserializing audit event: {}", e.getMessage());
+            logger.error("Raw message: {}", auditEventJson);
         } catch (Exception e) {
-            logger.error("Error saving audit record: {}" , e.getMessage());
-            e.printStackTrace();
+            logger.error("Error processing audit event: {}", e.getMessage());
         }
-    }
-
-    @KafkaListener(topics = "test-topic", groupId = "test-group")
-    public void consumeTestMessage(String message) {
-        logger.info("Consumed test message: {}" , message);
     }
 }

@@ -1,5 +1,8 @@
 package com.jaya.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +26,9 @@ public class Expense {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate date;
 
     @Column(nullable = false)
@@ -41,9 +47,10 @@ public class Expense {
     @ToString.Exclude
     private ExpenseDetails expense;
 
-    private boolean isBill=false;
+    private boolean isBill = false;
 
-    @JsonIgnore
-    @ManyToOne
-    private User user;
+
+    @Column(name = "expense_user_id")
+    private Integer userId;
+
 }

@@ -3,7 +3,6 @@ package com.jaya.models;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,22 +35,12 @@ public class User  {
 	private String image="";
 
 
-	@OneToMany(mappedBy = "user", cascade =CascadeType.ALL)
-	private List<Expense> expenses = new ArrayList<>();
 
 	@OneToMany(mappedBy = "user", cascade =CascadeType.ALL)
 	private List<EmailLog>emailLogs=new ArrayList<>();
 
-	@OneToMany(mappedBy = "user", cascade =CascadeType.ALL)
-	private List<Integer>audits=new ArrayList<>();
-
-	@OneToMany
-	private List<PaymentMethod> paymentMethod = new ArrayList<>();
 
 
-	@OneToMany
-	private List<Bill>bills=new ArrayList<>();
-	@OneToMany
-	private List<Category>categoryies=new ArrayList<>();
+
 
 }

@@ -63,28 +63,28 @@ public class AuditExpenseController {
 
 
 
-    @PostMapping("/audit-logs/expense")
-    public ResponseEntity<String> createAuditLogForExpense(@RequestHeader("Authorization")String jwt,@RequestBody AuditEvent auditExpense) {
-        
-        UserDto user=userservice.getuserProfile(jwt);
-        try {
-            auditExpenseService.logAudit(user.getId(), auditExpense.getExpenseId(), auditExpense.getActionType(), auditExpense.getDetails());
-            return ResponseEntity.ok("Audit log created successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error creating audit log: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/audit-logs/expenses/{expenseId}")
-    public ResponseEntity<List<AuditExpense>> getAuditLogsForExpense(@PathVariable Integer expenseId) {
-        List<AuditExpense> auditLogs = auditExpenseService.getAuditLogsForExpense(expenseId);
-
-        if (auditLogs.isEmpty()) {
-            return ResponseEntity.status(404).body(null);  // Return 404 if no logs found
-        }
-
-        return ResponseEntity.ok(auditLogs);
-    }
+//    @PostMapping("/audit-logs/expense")
+//    public ResponseEntity<String> createAuditLogForExpense(@RequestHeader("Authorization")String jwt,@RequestBody AuditEvent auditExpense) {
+//
+//        UserDto user=userservice.getuserProfile(jwt);
+//        try {
+//            auditExpenseService.logAudit(user.getId(), auditExpense.getExpenseId(), auditExpense.getActionType(), auditExpense.getDetails());
+//            return ResponseEntity.ok("Audit log created successfully");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(500).body("Error creating audit log: " + e.getMessage());
+//        }
+//    }
+//
+//    @GetMapping("/audit-logs/expenses/{expenseId}")
+//    public ResponseEntity<List<AuditExpense>> getAuditLogsForExpense(@PathVariable Integer expenseId) {
+//        List<AuditExpense> auditLogs = auditExpenseService.getAuditLogsForExpense(expenseId);
+//
+//        if (auditLogs.isEmpty()) {
+//            return ResponseEntity.status(404).body(null);  // Return 404 if no logs found
+//        }
+//
+//        return ResponseEntity.ok(auditLogs);
+//    }
     @GetMapping("/audit-logs/all")
     public ResponseEntity<?> getAllAuditLogs(
             @RequestHeader("Authorization") String jwt,
@@ -118,7 +118,7 @@ public class AuditExpenseController {
             }
 
             // Get audit logs for the target user
-            List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs(targetUser);
+            List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs(targetUser.getId());
 
             if (auditLogs.isEmpty()) {
                 return ResponseEntity.status(204).build(); // No content
@@ -130,106 +130,106 @@ public class AuditExpenseController {
                     .body("Error retrieving audit logs: " + e.getMessage());
         }
     }
-
-    @GetMapping("/audit-logs/last-5-minutes")
-    public ResponseEntity<List<AuditExpense>> getLastFiveMinutesLogs() {
-        List<AuditExpense> logs = auditExpenseService.getLogsFromLastFiveMinutes();
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/last-n-minutes")
-    public ResponseEntity<List<AuditExpense>> getLastNMinutesLogs(@RequestParam int minutes) {
-        if (minutes <= 0) {
-            return ResponseEntity.badRequest().body(null); // Ensure minutes is positive
-        }
-        List<AuditExpense> logs = auditExpenseService.getLogsFromLastNMinutes(minutes);
-        return ResponseEntity.ok(logs);
-    }
-
-
-    @GetMapping("/audit-logs/last-n-hours")
-    public ResponseEntity<List<AuditExpense>> getLastNHoursLogs(@RequestParam int hours) {
-        if (hours <= 0) {
-            return ResponseEntity.badRequest().body(null); // Ensure hours is positive
-        }
-        List<AuditExpense> logs = auditExpenseService.getLogsFromLastNHours(hours);
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/last-n-days")
-    public ResponseEntity<List<AuditExpense>> getLastNDaysLogs(@RequestParam int days) {
-        if (days <= 0) {
-            return ResponseEntity.badRequest().body(null); // Ensure days is positive
-        }
-        List<AuditExpense> logs = auditExpenseService.getLogsFromLastNDays(days);
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/last-n-seconds")
-    public ResponseEntity<List<AuditExpense>> getLastNSecondsLogs(@RequestParam int seconds) {
-        if (seconds <= 0) {
-            return ResponseEntity.badRequest().body(null); // Ensure seconds is positive
-        }
-        List<AuditExpense> logs = auditExpenseService.getLogsFromLastNSeconds(seconds);
-        return ResponseEntity.ok(logs);
-    }
-    @GetMapping("/audit-logs/day")
-    public List<AuditExpense> getLogsForDate(@RequestParam String date) {
-        LocalDate localDate = LocalDate.parse(date);  // Parse the date (format yyyy-MM-dd)
-        return auditExpenseService.getLogsForSpecificDay(localDate);
-    }
-    @GetMapping("/audit-logs/action/{actionType}")
-    public List<AuditExpense> getLogsByActionType(@PathVariable String actionType) {
-        return auditExpenseService.getLogsByActionType(actionType);
-    }
-    @GetMapping("/audit-logs/expense/{expenseId}/action/{actionType}")
-    public List<AuditExpense> getLogsByExpenseIdAndAction(@PathVariable Integer expenseId, @PathVariable String actionType) {
-        return auditExpenseService.getLogsByExpenseIdAndActionType(expenseId, actionType);
-    }
-
-//    @Autowired
-//    private ExcelService excelService;
-
-
-//    @GetMapping("/audit-logs/last-5-minutes/email")
-//    public ResponseEntity<String> sendLastFiveMinutesLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+//
+//    @GetMapping("/audit-logs/last-5-minutes")
+//    public ResponseEntity<List<AuditExpense>> getLastFiveMinutesLogs() {
 //        List<AuditExpense> logs = auditExpenseService.getLogsFromLastFiveMinutes();
-//
-//        ByteArrayInputStream in = excelService.generateAuditLogsExcel(logs);
-//        byte[] bytes = in.readAllBytes();
-//
-//        String subject = "Audit Logs from Last 5 Minutes";
-//        emailService.sendEmailWithAttachment(email, subject, "Please find attached the audit logs from the last 5 minutes.", new ByteArrayResource(bytes), "audit_logs_last_5_minutes.xlsx");
-//
-//        return ResponseEntity.ok("Email sent successfully");
+//        return ResponseEntity.ok(logs);
 //    }
-
-//    @GetMapping("/audit-logs/expenses/{expenseId}/email")
-//    public ResponseEntity<String> sendAuditLogsForExpenseByEmail(
-//            @PathVariable Integer expenseId,
-//            @RequestParam String email) throws IOException, MessagingException {
 //
-//        List<AuditExpense> auditLogs = auditExpenseService.getAuditLogsForExpense(expenseId);
-//
-//        if (auditLogs.isEmpty()) {
-//            return ResponseEntity.status(404).body("No audit logs found for the specified expense ID");
+//    @GetMapping("/audit-logs/last-n-minutes")
+//    public ResponseEntity<List<AuditExpense>> getLastNMinutesLogs(@RequestParam int minutes) {
+//        if (minutes <= 0) {
+//            return ResponseEntity.badRequest().body(null); // Ensure minutes is positive
 //        }
-//
-//        ByteArrayInputStream in = excelService.generateAuditLogsExcel(auditLogs);
-//        byte[] bytes = in.readAllBytes();
-//
-//        String subject = "Audit Logs for Expense ID " + expenseId;
-//        emailService.sendEmailWithAttachment(email, subject, "Please find attached the audit logs for the specified expense.", new ByteArrayResource(bytes), "audit_logs_expense_" + expenseId + ".xlsx");
-//
-//        return ResponseEntity.ok("Email sent successfully");
+//        List<AuditExpense> logs = auditExpenseService.getLogsFromLastNMinutes(minutes);
+//        return ResponseEntity.ok(logs);
 //    }
-
-
-//    @GetMapping("/audit-logs/all/email")
-//    public ResponseEntity<String> sendAllAuditLogsByEmail(@RequestParam String email,@RequestParam("Authorization")String jwt) throws IOException, MessagingException {
-//        User reqUser=userservice.findUserByJwt(jwt);
-//        List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs(reqUser);
 //
+//
+//    @GetMapping("/audit-logs/last-n-hours")
+//    public ResponseEntity<List<AuditExpense>> getLastNHoursLogs(@RequestParam int hours) {
+//        if (hours <= 0) {
+//            return ResponseEntity.badRequest().body(null); // Ensure hours is positive
+//        }
+//        List<AuditExpense> logs = auditExpenseService.getLogsFromLastNHours(hours);
+//        return ResponseEntity.ok(logs);
+//    }
+//
+//    @GetMapping("/audit-logs/last-n-days")
+//    public ResponseEntity<List<AuditExpense>> getLastNDaysLogs(@RequestParam int days) {
+//        if (days <= 0) {
+//            return ResponseEntity.badRequest().body(null); // Ensure days is positive
+//        }
+//        List<AuditExpense> logs = auditExpenseService.getLogsFromLastNDays(days);
+//        return ResponseEntity.ok(logs);
+//    }
+//
+//    @GetMapping("/audit-logs/last-n-seconds")
+//    public ResponseEntity<List<AuditExpense>> getLastNSecondsLogs(@RequestParam int seconds) {
+//        if (seconds <= 0) {
+//            return ResponseEntity.badRequest().body(null); // Ensure seconds is positive
+//        }
+//        List<AuditExpense> logs = auditExpenseService.getLogsFromLastNSeconds(seconds);
+//        return ResponseEntity.ok(logs);
+//    }
+//    @GetMapping("/audit-logs/day")
+//    public List<AuditExpense> getLogsForDate(@RequestParam String date) {
+//        LocalDate localDate = LocalDate.parse(date);  // Parse the date (format yyyy-MM-dd)
+//        return auditExpenseService.getLogsForSpecificDay(localDate);
+//    }
+//    @GetMapping("/audit-logs/action/{actionType}")
+//    public List<AuditExpense> getLogsByActionType(@PathVariable String actionType) {
+//        return auditExpenseService.getLogsByActionType(actionType);
+//    }
+//    @GetMapping("/audit-logs/expense/{expenseId}/action/{actionType}")
+//    public List<AuditExpense> getLogsByExpenseIdAndAction(@PathVariable Integer expenseId, @PathVariable String actionType) {
+//        return auditExpenseService.getLogsByExpenseIdAndActionType(expenseId, actionType);
+//    }
+//
+////    @Autowired
+////    private ExcelService excelService;
+//
+//
+////    @GetMapping("/audit-logs/last-5-minutes/email")
+////    public ResponseEntity<String> sendLastFiveMinutesLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+////        List<AuditExpense> logs = auditExpenseService.getLogsFromLastFiveMinutes();
+////
+////        ByteArrayInputStream in = excelService.generateAuditLogsExcel(logs);
+////        byte[] bytes = in.readAllBytes();
+////
+////        String subject = "Audit Logs from Last 5 Minutes";
+////        emailService.sendEmailWithAttachment(email, subject, "Please find attached the audit logs from the last 5 minutes.", new ByteArrayResource(bytes), "audit_logs_last_5_minutes.xlsx");
+////
+////        return ResponseEntity.ok("Email sent successfully");
+////    }
+//
+////    @GetMapping("/audit-logs/expenses/{expenseId}/email")
+////    public ResponseEntity<String> sendAuditLogsForExpenseByEmail(
+////            @PathVariable Integer expenseId,
+////            @RequestParam String email) throws IOException, MessagingException {
+////
+////        List<AuditExpense> auditLogs = auditExpenseService.getAuditLogsForExpense(expenseId);
+////
+////        if (auditLogs.isEmpty()) {
+////            return ResponseEntity.status(404).body("No audit logs found for the specified expense ID");
+////        }
+////
+////        ByteArrayInputStream in = excelService.generateAuditLogsExcel(auditLogs);
+////        byte[] bytes = in.readAllBytes();
+////
+////        String subject = "Audit Logs for Expense ID " + expenseId;
+////        emailService.sendEmailWithAttachment(email, subject, "Please find attached the audit logs for the specified expense.", new ByteArrayResource(bytes), "audit_logs_expense_" + expenseId + ".xlsx");
+////
+////        return ResponseEntity.ok("Email sent successfully");
+////    }
+//
+//
+////    @GetMapping("/audit-logs/all/email")
+////    public ResponseEntity<String> sendAllAuditLogsByEmail(@RequestParam String email,@RequestParam("Authorization")String jwt) throws IOException, MessagingException {
+////        User reqUser=userservice.findUserByJwt(jwt);
+////        List<AuditExpense> auditLogs = auditExpenseService.getAllAuditLogs(reqUser);
+////
 //        ByteArrayInputStream in = excelService.generateAuditLogsExcel(auditLogs);
 //        byte[] bytes = in.readAllBytes();
 //
@@ -372,125 +372,125 @@ public class AuditExpenseController {
 //        return ResponseEntity.ok("Email sent successfully");
 //    }
 
-    @GetMapping("/audit-logs/yesterday")
-    public ResponseEntity<List<AuditExpense>> getLogsForYesterday() {
-        List<AuditExpense> logs = auditExpenseService.getLogsForYesterday();
-        if (logs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/current-month")
-    public ResponseEntity<List<AuditExpense>> getLogsForCurrentMonth() {
-        List<AuditExpense> logs = auditExpenseService.getLogsForCurrentMonth();
-        if (logs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/last-month")
-    public ResponseEntity<List<AuditExpense>> getLogsForLastMonth() {
-        List<AuditExpense> logs = auditExpenseService.getLogsForLastMonth();
-        if (logs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/current-week")
-    public ResponseEntity<List<AuditExpense>> getLogsForCurrentWeek() {
-        List<AuditExpense> logs = auditExpenseService.getLogsForCurrentWeek();
-        if (logs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/last-week")
-    public ResponseEntity<List<AuditExpense>> getLogsForLastWeek() {
-        List<AuditExpense> logs = auditExpenseService.getLogsForLastWeek();
-        if (logs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/current-year")
-    public ResponseEntity<List<AuditExpense>> getLogsForCurrentYear() {
-        List<AuditExpense> logs = auditExpenseService.getLogsForCurrentYear();
-        if (logs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/last-year")
-    public ResponseEntity<List<AuditExpense>> getLogsForLastYear() {
-        List<AuditExpense> logs = auditExpenseService.getLogsForLastYear();
-        if (logs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/year/{year}")
-    public ResponseEntity<List<AuditExpense>> getLogsForYear(@PathVariable int year) {
-        List<AuditExpense> logs = auditExpenseService.getLogsForYear(year);
-        if (logs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(logs);
-    }
-
-    @GetMapping("/audit-logs/month")
-    public ResponseEntity<List<AuditExpense>> getLogsForMonth(@RequestParam int year, @RequestParam int month) {
-        List<AuditExpense> logs = auditExpenseService.getLogsForMonth(year, month);
-        if (logs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(logs);
-    }
-
-
-//    @GetMapping("/audit-logs/yesterday/email")
-//    public ResponseEntity<String> sendYesterdayLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+//    @GetMapping("/audit-logs/yesterday")
+//    public ResponseEntity<List<AuditExpense>> getLogsForYesterday() {
 //        List<AuditExpense> logs = auditExpenseService.getLogsForYesterday();
-//        return sendLogsByEmail(email, logs, "Audit Logs for Yesterday");
+//        if (logs.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(logs);
 //    }
 //
-//    @GetMapping("/audit-logs/current-month/email")
-//    public ResponseEntity<String> sendCurrentMonthLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+//    @GetMapping("/audit-logs/current-month")
+//    public ResponseEntity<List<AuditExpense>> getLogsForCurrentMonth() {
 //        List<AuditExpense> logs = auditExpenseService.getLogsForCurrentMonth();
-//        return sendLogsByEmail(email, logs, "Audit Logs for Current Month");
+//        if (logs.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(logs);
 //    }
 //
-//    @GetMapping("/audit-logs/last-month/email")
-//    public ResponseEntity<String> sendLastMonthLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+//    @GetMapping("/audit-logs/last-month")
+//    public ResponseEntity<List<AuditExpense>> getLogsForLastMonth() {
 //        List<AuditExpense> logs = auditExpenseService.getLogsForLastMonth();
-//        return sendLogsByEmail(email, logs, "Audit Logs for Last Month");
+//        if (logs.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(logs);
 //    }
 //
-//    @GetMapping("/audit-logs/current-week/email")
-//    public ResponseEntity<String> sendCurrentWeekLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+//    @GetMapping("/audit-logs/current-week")
+//    public ResponseEntity<List<AuditExpense>> getLogsForCurrentWeek() {
 //        List<AuditExpense> logs = auditExpenseService.getLogsForCurrentWeek();
-//        return sendLogsByEmail(email, logs, "Audit Logs for Current Week");
+//        if (logs.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(logs);
 //    }
 //
-//    @GetMapping("/audit-logs/last-week/email")
-//    public ResponseEntity<String> sendLastWeekLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+//    @GetMapping("/audit-logs/last-week")
+//    public ResponseEntity<List<AuditExpense>> getLogsForLastWeek() {
 //        List<AuditExpense> logs = auditExpenseService.getLogsForLastWeek();
-//        return sendLogsByEmail(email, logs, "Audit Logs for Last Week");
+//        if (logs.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(logs);
 //    }
 //
-//    @GetMapping("/audit-logs/current-year/email")
-//    public ResponseEntity<String> sendCurrentYearLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+//    @GetMapping("/audit-logs/current-year")
+//    public ResponseEntity<List<AuditExpense>> getLogsForCurrentYear() {
 //        List<AuditExpense> logs = auditExpenseService.getLogsForCurrentYear();
-//        return sendLogsByEmail(email, logs, "Audit Logs for Current Year");
+//        if (logs.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(logs);
+//    }
+//
+//    @GetMapping("/audit-logs/last-year")
+//    public ResponseEntity<List<AuditExpense>> getLogsForLastYear() {
+//        List<AuditExpense> logs = auditExpenseService.getLogsForLastYear();
+//        if (logs.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(logs);
+//    }
+//
+//    @GetMapping("/audit-logs/year/{year}")
+//    public ResponseEntity<List<AuditExpense>> getLogsForYear(@PathVariable int year) {
+//        List<AuditExpense> logs = auditExpenseService.getLogsForYear(year);
+//        if (logs.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(logs);
+//    }
+//
+//    @GetMapping("/audit-logs/month")
+//    public ResponseEntity<List<AuditExpense>> getLogsForMonth(@RequestParam int year, @RequestParam int month) {
+//        List<AuditExpense> logs = auditExpenseService.getLogsForMonth(year, month);
+//        if (logs.isEmpty()) {
+//            return ResponseEntity.noContent().build();
+//        }
+//        return ResponseEntity.ok(logs);
 //    }
 //
 //
+////    @GetMapping("/audit-logs/yesterday/email")
+////    public ResponseEntity<String> sendYesterdayLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+////        List<AuditExpense> logs = auditExpenseService.getLogsForYesterday();
+////        return sendLogsByEmail(email, logs, "Audit Logs for Yesterday");
+////    }
+////
+////    @GetMapping("/audit-logs/current-month/email")
+////    public ResponseEntity<String> sendCurrentMonthLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+////        List<AuditExpense> logs = auditExpenseService.getLogsForCurrentMonth();
+////        return sendLogsByEmail(email, logs, "Audit Logs for Current Month");
+////    }
+////
+////    @GetMapping("/audit-logs/last-month/email")
+////    public ResponseEntity<String> sendLastMonthLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+////        List<AuditExpense> logs = auditExpenseService.getLogsForLastMonth();
+////        return sendLogsByEmail(email, logs, "Audit Logs for Last Month");
+////    }
+////
+////    @GetMapping("/audit-logs/current-week/email")
+////    public ResponseEntity<String> sendCurrentWeekLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+////        List<AuditExpense> logs = auditExpenseService.getLogsForCurrentWeek();
+////        return sendLogsByEmail(email, logs, "Audit Logs for Current Week");
+////    }
+////
+////    @GetMapping("/audit-logs/last-week/email")
+////    public ResponseEntity<String> sendLastWeekLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+////        List<AuditExpense> logs = auditExpenseService.getLogsForLastWeek();
+////        return sendLogsByEmail(email, logs, "Audit Logs for Last Week");
+////    }
+////
+////    @GetMapping("/audit-logs/current-year/email")
+////    public ResponseEntity<String> sendCurrentYearLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
+////        List<AuditExpense> logs = auditExpenseService.getLogsForCurrentYear();
+////        return sendLogsByEmail(email, logs, "Audit Logs for Current Year");
+////    }
+////
+////
 //    @GetMapping("/audit-logs/last-year/email")
 //    public ResponseEntity<String> sendLastYearLogsByEmail(@RequestParam String email) throws IOException, MessagingException {
 //        List<AuditExpense> logs = auditExpenseService.getLogsForLastYear();

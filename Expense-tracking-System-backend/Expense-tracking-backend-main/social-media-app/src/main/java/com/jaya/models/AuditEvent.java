@@ -1,91 +1,84 @@
 package com.jaya.models;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.time.LocalDateTime;
+import java.util.Map;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AuditEvent {
+    // User Information
     private Integer userId;
     private String username;
-    private Integer expenseId;
-    private String actionType;
-    private String details;
+    private String userRole;
 
+    // Entity Information
+    private String entityId;
+    private String entityType; // EXPENSE, BUDGET, USER, etc.
+    private String actionType; // CREATE, UPDATE, DELETE, VIEW, LOGIN, LOGOUT
+
+    // Audit Details
+    private String details;
+    private String description;
+    private Map<String, Object> oldValues; // Previous state for updates
+    private Map<String, Object> newValues; // New state for updates
+
+    // Timing Information
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 
-    // Default constructor
-    public AuditEvent() {
-        this.timestamp = LocalDateTime.now();
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updatedAt;
+
+    // Audit Trail
+    private String createdBy;
+    private String lastUpdatedBy;
+
+    // Request Information
+    private String ipAddress;
+    private String userAgent;
+    private String sessionId;
+    private String correlationId; // For tracing requests across services
+    private String requestId;
+
+    // Service Information
+    private String serviceName;
+    private String serviceVersion;
+    private String environment; // DEV, STAGING, PROD
+
+    // Status and Result
+    private String status; // SUCCESS, FAILURE, PENDING
+    private String errorMessage;
+    private Integer responseCode;
+
+    // Additional Metadata
+    private String source; // WEB, MOBILE, API
+    private String method; // HTTP method for API calls
+    private String endpoint; // API endpoint
+    private Long executionTimeMs; // Time taken for operation
+
+    // Custom method to set creation audit fields
+    public void setCreationAudit(String createdBy) {
+        this.createdAt = LocalDateTime.now();
+        this.createdBy = createdBy;
+        this.timestamp = this.createdAt;
     }
 
-    // Constructor with parameters
-    public AuditEvent(Integer userId, String username, Integer expenseId, String actionType, String details) {
-        this.userId = userId;
-        this.username = username;
-        this.expenseId = expenseId;
-        this.actionType = actionType;
-        this.details = details;
-        this.timestamp = LocalDateTime.now();
-    }
-
-    // Getters and Setters
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public Integer getExpenseId() {
-        return expenseId;
-    }
-
-    public void setExpenseId(Integer expenseId) {
-        this.expenseId = expenseId;
-    }
-
-    public String getActionType() {
-        return actionType;
-    }
-
-    public void setActionType(String actionType) {
-        this.actionType = actionType;
-    }
-
-    public String getDetails() {
-        return details;
-    }
-
-    public void setDetails(String details) {
-        this.details = details;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    @Override
-    public String toString() {
-        return "AuditEvent{" +
-                "userId=" + userId +
-                ", username='" + username + '\'' +
-                ", expenseId=" + expenseId +
-                ", actionType='" + actionType + '\'' +
-                ", details='" + details + '\'' +
-                ", timestamp=" + timestamp +
-                '}';
+    // Custom method to set update audit fields
+    public void setUpdateAudit(String updatedBy) {
+        this.updatedAt = LocalDateTime.now();
+        this.lastUpdatedBy = updatedBy;
     }
 }

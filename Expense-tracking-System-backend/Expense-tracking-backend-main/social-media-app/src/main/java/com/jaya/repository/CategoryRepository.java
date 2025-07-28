@@ -22,5 +22,6 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
 
     List<Category> findAllByIsGlobalTrue(); // Fetch all global categories
 
-    List<Category> findByNameAndUser(String others, User user);
+
+    List<Category> findByNameAndUserId(String others, Integer userId);
 }

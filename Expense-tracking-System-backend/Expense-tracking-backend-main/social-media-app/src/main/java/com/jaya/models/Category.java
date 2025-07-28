@@ -29,9 +29,9 @@ public class Category {
     private String icon = "";
     private String color = "";
 
-    @ManyToOne
-    @JsonIgnore
-    private User user;
+
+    @Column(name = "category_user_id")
+    private Integer userId = 0;
 
     @ElementCollection
     @CollectionTable(name = "category_expense_ids", joinColumns = @JoinColumn(name = "category_id"))

@@ -23,9 +23,10 @@ public class PaymentMethod {
     @Id
     private Integer id;
 
-    @ManyToOne
-    @JsonIgnore
-    private User user;
+
+
+    @Column(name= "payment_method_user_id")
+    private Integer userId;
 
     private String name = "";
 

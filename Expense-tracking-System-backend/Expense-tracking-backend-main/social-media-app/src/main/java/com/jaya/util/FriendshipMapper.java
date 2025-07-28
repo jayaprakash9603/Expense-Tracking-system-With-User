@@ -1,12 +1,12 @@
-// File: com.jaya.util.FriendshipMapper.java
 package com.jaya.util;
 
 import com.jaya.dto.FriendshipResponseDTO;
+import com.jaya.dto.User;
 import com.jaya.dto.UserSummaryDTO;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
-import com.jaya.models.User;
+import com.jaya.service.UserService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,17 +15,29 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FriendshipMapper {
+
+    private static UserService userService;
+
+    public static void setUserService(UserService service) {
+        userService = service;
+    }
+
     /**
      * Convert a Friendship entity to a FriendshipResponseDTO
      */
-    public static FriendshipResponseDTO toDTO(Friendship friendship) {
+    public static FriendshipResponseDTO toDTO(Friendship friendship) throws Exception {
         if (friendship == null) return null;
-        UserSummaryDTO requester = UserSummaryDTO.fromUser(friendship.getRequester());
-        UserSummaryDTO recipient = UserSummaryDTO.fromUser(friendship.getRecipient());
+
+        User requester = userService.findUserById(friendship.getRequesterId());
+        User recipient = userService.findUserById(friendship.getRecipientId());
+
+        UserSummaryDTO requesterDTO = UserSummaryDTO.fromUser(requester);
+        UserSummaryDTO recipientDTO = UserSummaryDTO.fromUser(recipient);
+
         return new FriendshipResponseDTO(
                 friendship.getId(),
-                requester,
-                recipient,
+                requesterDTO,
+                recipientDTO,
                 friendship.getStatus(),
                 friendship.getRequesterAccess(),
                 friendship.getRecipientAccess()
@@ -38,31 +50,34 @@ public class FriendshipMapper {
     public static List<FriendshipResponseDTO> toDTOList(List<Friendship> friendships) {
         if (friendships == null) return new ArrayList<>();
         return friendships.stream()
-                .map(FriendshipMapper::toDTO)
+                .map(f -> {
+                    try {
+                        return FriendshipMapper.toDTO(f);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error converting friendship to DTO: " + e.getMessage());
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
     /**
      * Create a DTO with the perspective of the current user (showing the other user as the "friend")
      */
-    public static FriendshipResponseDTO toDTOWithPerspective(Friendship friendship, Integer currentUserId) {
+    public static FriendshipResponseDTO toDTOWithPerspective(Friendship friendship, Integer currentUserId) throws Exception {
         if (friendship == null) return null;
 
         FriendshipResponseDTO dto = toDTO(friendship);
 
         // If the current user is the recipient, swap the requester and recipient in the DTO
-        // This makes the UI simpler by always showing the other user as the "friend"
-        if (friendship.getRecipient().getId().equals(currentUserId)) {
+        if (friendship.getRecipientId().equals(currentUserId)) {
             UserSummaryDTO temp = dto.getRequester();
             dto.setRequester(dto.getRecipient());
             dto.setRecipient(temp);
 
-            // Also swap the access levels to maintain consistency
             AccessLevel tempAccess = dto.getRequesterAccess();
             dto.setRequesterAccess(dto.getRecipientAccess());
             dto.setRecipientAccess(tempAccess);
 
-            // Add a flag to indicate the direction was swapped
             dto.setDirectionSwapped(true);
         } else {
             dto.setDirectionSwapped(false);
@@ -77,7 +92,13 @@ public class FriendshipMapper {
     public static List<FriendshipResponseDTO> toDTOListWithPerspective(List<Friendship> friendships, Integer currentUserId) {
         if (friendships == null) return new ArrayList<>();
         return friendships.stream()
-                .map(f -> toDTOWithPerspective(f, currentUserId))
+                .map(f -> {
+                    try {
+                        return toDTOWithPerspective(f, currentUserId);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error converting friendship to DTO with perspective: " + e.getMessage());
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
@@ -87,19 +108,18 @@ public class FriendshipMapper {
     public static Map<String, Object> createFriendshipSummary(List<Friendship> friendships, Integer userId) {
         Map<String, Object> summary = new HashMap<>();
 
-        // Count friendships by status
         long acceptedCount = friendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
                 .count();
 
         long pendingIncomingCount = friendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.PENDING &&
-                        f.getRecipient().getId().equals(userId))
+                        f.getRecipientId().equals(userId))
                 .count();
 
         long pendingOutgoingCount = friendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.PENDING &&
-                        f.getRequester().getId().equals(userId))
+                        f.getRequesterId().equals(userId))
                 .count();
 
         long blockedCount = friendships.stream()
@@ -134,19 +154,16 @@ public class FriendshipMapper {
         result.put("isPending", status == FriendshipStatus.PENDING);
         result.put("isBlocked", status == FriendshipStatus.BLOCKED);
 
-        // Add friendship ID for reference
         result.put("friendshipId", friendship.getId());
 
-        // Determine if the current user sent the request
         if (status == FriendshipStatus.PENDING) {
-            boolean sentByMe = friendship.getRequester().getId().equals(currentUserId);
+            boolean sentByMe = friendship.getRequesterId().equals(currentUserId);
             result.put("sentByMe", sentByMe);
             result.put("canRespond", !sentByMe);
         }
 
-        // Add access level information if they are friends
         if (status == FriendshipStatus.ACCEPTED) {
-            if (friendship.getRequester().getId().equals(currentUserId)) {
+            if (friendship.getRequesterId().equals(currentUserId)) {
                 result.put("myAccessToTheirData", friendship.getRecipientAccess());
                 result.put("theirAccessToMyData", friendship.getRequesterAccess());
             } else {
@@ -155,9 +172,8 @@ public class FriendshipMapper {
             }
         }
 
-        // Add who blocked whom in case of blocked status
         if (status == FriendshipStatus.BLOCKED) {
-            boolean blockedByMe = friendship.getRequester().getId().equals(currentUserId);
+            boolean blockedByMe = friendship.getRequesterId().equals(currentUserId);
             result.put("blockedByMe", blockedByMe);
             result.put("canUnblock", blockedByMe);
         }
@@ -174,10 +190,10 @@ public class FriendshipMapper {
         return friendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
                 .map(f -> {
-                    if (f.getRequester().getId().equals(currentUserId)) {
-                        return f.getRecipient().getId();
+                    if (f.getRequesterId().equals(currentUserId)) {
+                        return f.getRecipientId();
                     } else {
-                        return f.getRequester().getId();
+                        return f.getRequesterId();
                     }
                 })
                 .collect(Collectors.toList());
@@ -192,10 +208,10 @@ public class FriendshipMapper {
         if (friendships != null) {
             for (Friendship f : friendships) {
                 Integer otherUserId;
-                if (f.getRequester().getId().equals(currentUserId)) {
-                    otherUserId = f.getRecipient().getId();
+                if (f.getRequesterId().equals(currentUserId)) {
+                    otherUserId = f.getRecipientId();
                 } else {
-                    otherUserId = f.getRequester().getId();
+                    otherUserId = f.getRequesterId();
                 }
 
                 statusMap.put(otherUserId, f.getStatus());
@@ -214,10 +230,10 @@ public class FriendshipMapper {
         if (friendships != null) {
             for (Friendship f : friendships) {
                 if (f.getStatus() == FriendshipStatus.ACCEPTED) {
-                    if (f.getRequester().getId().equals(currentUserId)) {
-                        accessMap.put(f.getRecipient().getId(), f.getRequesterAccess());
+                    if (f.getRequesterId().equals(currentUserId)) {
+                        accessMap.put(f.getRecipientId(), f.getRequesterAccess());
                     } else {
-                        accessMap.put(f.getRequester().getId(), f.getRecipientAccess());
+                        accessMap.put(f.getRequesterId(), f.getRecipientAccess());
                     }
                 }
             }

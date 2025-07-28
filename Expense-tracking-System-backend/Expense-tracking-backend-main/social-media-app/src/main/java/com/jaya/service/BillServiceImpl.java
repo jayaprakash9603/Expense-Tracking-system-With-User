@@ -1,14 +1,13 @@
 package com.jaya.service;
 
+import com.jaya.dto.User;
 import com.jaya.exceptions.UserException;
 import com.jaya.models.Bill;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
-import com.jaya.models.User;
 import com.jaya.repository.BillRepository;
 import com.jaya.util.ServiceHelper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +26,6 @@ public class BillServiceImpl implements BillService {
 
     private final ExpenseService expenseService;
 
-    private final UserService userService;
 
     private final ServiceHelper helper;
 
@@ -41,7 +39,7 @@ public class BillServiceImpl implements BillService {
             helper.validateBillData(bill);
 
             Expense expense = helper.createExpenseFromBill(bill, user);
-            Expense savedExpense = expenseService.addExpense(expense, user);
+            Expense savedExpense = expenseService.addExpense(expense, userId);
 
             if (savedExpense == null || savedExpense.getId() == null) {
                 throw new UserException("Failed to create associated expense");
@@ -53,6 +51,8 @@ public class BillServiceImpl implements BillService {
             if (savedBill.getId() == null) {
                 throw new UserException("Failed to save bill");
             }
+
+
 
             return savedBill;
 
@@ -73,14 +73,14 @@ public class BillServiceImpl implements BillService {
             Bill existingBill = getByBillId(bill.getId(), userId);
 
             // Get the existing expense
-            Expense expense = expenseService.getExpenseById(existingBill.getExpenseId(), user);
+            Expense expense = expenseService.getExpenseById(existingBill.getExpenseId(), userId);
             if (expense == null) {
                 throw new UserException("Associated expense not found for bill ID: " + bill.getId());
             }
 
             // Update expense properties
             expense.setDate(bill.getDate());
-            expense.setUser(user);
+            expense.setUserId(userId);
             expense.setCategoryId(existingBill.getCategoryId());
             expense.setBill(true);
             expense.setIncludeInBudget(bill.isIncludeInBudget());
@@ -108,10 +108,10 @@ public class BillServiceImpl implements BillService {
             expenseDetails.setCreditDue(bill.getCreditDue());
 
             // Update the expense using the bill service method
-            Expense savedExpense = expenseService.updateExpenseWithBillService(existingBill.getExpenseId(), expense, user);
+            Expense savedExpense = expenseService.updateExpenseWithBillService(existingBill.getExpenseId(), expense, user.getId());
 
             // Update the bill with the saved expense data
-            existingBill.setUser(savedExpense.getUser());
+            existingBill.setUserId(userId);
             existingBill.setDate(savedExpense.getDate());
             existingBill.setCategoryId(savedExpense.getCategoryId());
             existingBill.setDescription(savedExpense.getExpense().getComments());
@@ -166,7 +166,7 @@ public class BillServiceImpl implements BillService {
             helper.validateBillId(id);
             User user = helper.validateUser(userId);
             Bill bill =getByBillId(id,userId);
-            expenseService.deleteExpensesByIdsWithBillService(Arrays.asList(bill.getExpenseId()), user);
+            expenseService.deleteExpensesByIdsWithBillService(Arrays.asList(bill.getExpenseId()), user.getId());
             if (bill==null) {
                 throw new UserException("Bill not found with ID: " + id);
             }
@@ -182,7 +182,11 @@ public class BillServiceImpl implements BillService {
     public List<Bill> getAllBillsForUser(Integer userId) throws UserException {
         try {
            helper.validateUser(userId);
-            return billRepository.findByUserIdWithUser(userId);
+
+           List<Bill>bills=     billRepository.findByUserId(userId);
+
+           System.out.print("bills size"+bills.size());
+           return bills;
         } catch (Exception e) {
             throw new UserException("Error retrieving bills: " + e.getMessage());
         }
@@ -190,10 +194,10 @@ public class BillServiceImpl implements BillService {
 
 
     @Override
-    public List<Bill> getAllBillsForUser(Integer userId, int month, int year) throws UserException {
+    public List<Bill> getAllBillsForUser(Integer userId, int month, int year) throws Exception {
         helper.validateUser(userId);
         helper.validateMonthAndYear(month, year);
-        return billRepository.findByUserIdWithUser(userId).stream()
+        return billRepository.findByUserId(userId).stream()
                 .filter(bill -> bill.getDate() != null &&
                         bill.getDate().getMonthValue() == month &&
                         bill.getDate().getYear() == year)
@@ -201,10 +205,10 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<Bill> getAllBillsForUser(Integer userId, int month, int year, int offset) throws UserException {
+    public List<Bill> getAllBillsForUser(Integer userId, int month, int year, int offset) throws Exception {
         helper.validateUser(userId);
         helper.validateMonthAndYear(month, year);
-        return billRepository.findByUserIdWithUser(userId).stream()
+        return billRepository.findByUserId(userId).stream()
                 .filter(bill -> bill.getDate() != null &&
                         bill.getDate().getMonthValue() == month &&
                         bill.getDate().getYear() == year)
@@ -216,7 +220,7 @@ public class BillServiceImpl implements BillService {
 
 
     @Override
-    public List<Bill> getAllBillsForUser(Integer userId, String range, int offset) throws UserException {
+    public List<Bill> getAllBillsForUser(Integer userId, String range, int offset) throws Exception {
         helper.validateUser(userId);
         LocalDate now = LocalDate.now();
         LocalDate startDate, endDate;
@@ -238,7 +242,7 @@ public class BillServiceImpl implements BillService {
                 throw new IllegalArgumentException("Invalid range: " + range);
         }
 
-        return billRepository.findByUserIdWithUser(userId).stream()
+        return billRepository.findByUserId(userId).stream()
                 .filter(bill -> bill.getDate() != null &&
                         (bill.getDate().isEqual(startDate) || bill.getDate().isAfter(startDate)) &&
                         (bill.getDate().isEqual(endDate) || bill.getDate().isBefore(endDate)))
@@ -259,18 +263,18 @@ public class BillServiceImpl implements BillService {
     @Override
     public String deleteAllBillsForUser(Integer userId) throws Exception {
         helper.validateUser(userId);
-        List<Bill>getAllUserBills=billRepository.findByUserIdWithUser(userId);
+        List<Bill>getAllUserBills=billRepository.findByUserId(userId);
         getAllUserBills.forEach(bill -> billRepository.deleteById(bill.getId()));
         List<Integer>expenseIds=getAllUserBills.stream().map(Bill::getExpenseId).collect(Collectors.toList());
-        expenseService.deleteExpensesByIdsWithBillService(expenseIds, userService.findUserById(userId));
+        expenseService.deleteExpensesByIdsWithBillService(expenseIds, userId);
         return "All bills are deleted successfully";
     }
 
 
     @Override
-    public List<Bill> getBillsWithinRange(Integer userId, LocalDate startDate, LocalDate endDate) throws UserException {
+    public List<Bill> getBillsWithinRange(Integer userId, LocalDate startDate, LocalDate endDate) throws Exception {
         helper.validateUser(userId);
-        return billRepository.findByUserIdWithUser(userId).stream()
+        return billRepository.findByUserId(userId).stream()
                 .filter(bill -> bill.getDate() != null &&
                         (startDate.equals(endDate)
                                 ? bill.getDate().isEqual(startDate)
@@ -280,11 +284,10 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<Expense> getAllExpensesForBill(Integer userId, LocalDate startDate, LocalDate endDate) throws UserException {
+    public List<Expense> getAllExpensesForBill(Integer userId, LocalDate startDate, LocalDate endDate) throws Exception {
 
         List<Bill> bills = getBillsWithinRange(userId, startDate, endDate);
-        User reqUser=userService.findUserById(userId);
-        return bills.stream().map(bill->expenseService.getExpenseById(bill.getExpenseId(),reqUser)).collect(Collectors.toList());
+        return bills.stream().map(bill->expenseService.getExpenseById(bill.getExpenseId(),userId)).collect(Collectors.toList());
 
     }
 }

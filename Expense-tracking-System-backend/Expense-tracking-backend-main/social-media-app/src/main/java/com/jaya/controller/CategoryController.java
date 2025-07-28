@@ -1,9 +1,8 @@
 package com.jaya.controller;
 
-import com.jaya.exceptions.UserException;
+import com.jaya.dto.User;
 import com.jaya.models.Category;
 import com.jaya.models.Expense;
-import com.jaya.models.User;
 import com.jaya.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -29,7 +28,7 @@ public class CategoryController {
     @Autowired
     private CategoryEventProducer categoryEventProducer;
 
-    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) throws UserException {
+    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) throws Exception {
         if (targetId == null) return reqUser;
         User targetUser = userService.findUserById(targetId);
         System.out.println("DEBUG: targetId=" + targetId + ", targetUser=" + targetUser);
@@ -64,7 +63,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            Category created = categoryService.create(category, targetUser);
+            Category created = categoryService.create(category, targetUser.getId());
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -82,7 +81,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            Category category = categoryService.getById(id, targetUser);
+            Category category = categoryService.getById(id, targetUser.getId());
             if (category == null) return ResponseEntity.notFound().build();
             return ResponseEntity.ok(category);
         } catch (RuntimeException e) {
@@ -101,7 +100,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            List<Category> categories = categoryService.getByName(name, targetUser);
+            List<Category> categories = categoryService.getByName(name, targetUser.getId());
             if (categories == null) return ResponseEntity.notFound().build();
             return ResponseEntity.ok(categories);
         } catch (RuntimeException e) {
@@ -119,7 +118,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            List<Category> categories = categoryService.getAll(targetUser);
+            List<Category> categories = categoryService.getAll(targetUser.getId());
             if (categories.isEmpty()) return ResponseEntity.noContent().build();
             return ResponseEntity.ok(categories);
         } catch (RuntimeException e) {
@@ -139,7 +138,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            Category updated = categoryService.update(id, category, targetUser);
+            Category updated = categoryService.update(id, category, targetUser.getId());
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -157,7 +156,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            categoryService.delete(id, targetUser);
+            categoryService.delete(id, targetUser.getId());
             return new ResponseEntity<>("Category is deleted", HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -175,7 +174,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            List<Category> createdCategories = categoryService.createMultiple(categories, targetUser);
+            List<Category> createdCategories = categoryService.createMultiple(categories, targetUser.getId());
             return new ResponseEntity<>(createdCategories, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -193,7 +192,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            List<Category> updatedCategories = categoryService.updateMultiple(categories, targetUser);
+            List<Category> updatedCategories = categoryService.updateMultiple(categories, targetUser.getId());
             return ResponseEntity.ok(updatedCategories);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -211,7 +210,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            categoryService.deleteMultiple(categoryIds, targetUser);
+            categoryService.deleteMultiple(categoryIds, targetUser.getId());
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -229,7 +228,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            categoryService.deleteAllGlobal(targetUser, global);
+            categoryService.deleteAllGlobal(targetUser.getId(), global);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -246,7 +245,7 @@ public class CategoryController {
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            categoryService.deleteAllUserCategories(targetUser);
+            categoryService.deleteAllUserCategories(targetUser.getId());
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return handleTargetUserException(e);

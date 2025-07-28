@@ -76,6 +76,7 @@ const ItemNameAutocomplete = ({
   const [options, setOptions] = useState(dummyItemNames);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState(value);
+  const [isOpen, setIsOpen] = useState(false); // Add this state
 
   // Update input value when value prop changes
   useEffect(() => {
@@ -92,18 +93,19 @@ const ItemNameAutocomplete = ({
           item.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setOptions(filtered);
+        setIsOpen(true); // Open dropdown when there are results
       } else {
         setOptions([]); // Clear options if no input
+        setIsOpen(false); // Close dropdown when no input
       }
     } catch (error) {
       console.error("Error fetching item names:", error);
       setOptions([]); // Clear options on error
+      setIsOpen(false); // Close dropdown on error
     } finally {
       setLoading(false);
     }
   };
-
-  // Handle input change with debouncing for future API calls
 
   // Handle input change with debouncing for future API calls
   const handleInputChange = (event, newInputValue, reason) => {
@@ -121,11 +123,10 @@ const ItemNameAutocomplete = ({
   };
 
   // Handle selection change
-
-  // Handle selection change
   const handleChange = (event, newValue, reason) => {
     // Update local state immediately
     setInputValue(newValue || "");
+    setIsOpen(false); // Close dropdown when selection is made
 
     if (onChange) {
       // Call the parent's onChange handler
@@ -158,7 +159,6 @@ const ItemNameAutocomplete = ({
   };
 
   // Handle keyboard events for Enter key selection
-
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       // Prevent default behavior to stop dropdown from opening
@@ -183,6 +183,9 @@ const ItemNameAutocomplete = ({
         // If no options but there's input value, use the input value directly
         handleChange(event, inputValue, "selectOption");
       }
+
+      // Close the dropdown explicitly
+      setIsOpen(false);
 
       // Close the dropdown and blur the input
       setTimeout(() => {
@@ -209,7 +212,9 @@ const ItemNameAutocomplete = ({
       onInputChange={handleInputChange}
       onChange={handleChange}
       disabled={disabled}
-      open={inputValue.length > 0} // Only open dropdown if inputValue has at least one character
+      open={isOpen && inputValue.length > 0} // Use isOpen state instead
+      onOpen={() => setIsOpen(true)} // Handle open event
+      onClose={() => setIsOpen(false)} // Handle close event
       size="small"
       sx={{
         width: "100%",

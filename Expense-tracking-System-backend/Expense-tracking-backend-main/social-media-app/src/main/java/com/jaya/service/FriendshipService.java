@@ -1,64 +1,65 @@
 package com.jaya.service;
 import com.jaya.dto.BatchShareRequestItem;
+import com.jaya.dto.User;
+import com.jaya.exceptions.UserException;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
-import com.jaya.models.User;
 
 import java.util.List;
 import java.util.Map;
 
 public interface FriendshipService {
-    Friendship sendFriendRequest(Integer requesterId, Integer recipientId);
+    Friendship sendFriendRequest(Integer requesterId, Integer recipientId) throws Exception;
 
     Friendship respondToRequest(Integer friendshipId, Integer responderId, boolean accept);
 
     Friendship setAccessLevel(Integer friendshipId, Integer userId, AccessLevel accessLevel);
 
-    List<Friendship> getUserFriendships(Integer userId);
+    List<Friendship> getUserFriendships(Integer userId) throws Exception;
 
-    List<Friendship> getPendingRequests(Integer userId);
+    List<Friendship> getPendingRequests(Integer userId) throws Exception;
 
-    List<Friendship> getIncomingRequests(Integer userId);
+    List<Friendship> getIncomingRequests(Integer userId) throws Exception;
 
-    List<Friendship> getOutgoingRequests(Integer userId);
+    List<Friendship> getOutgoingRequests(Integer userId) throws Exception;
 
     void cancelFriendRequest(Integer friendshipId, Integer userId);
 
     void removeFriendship(Integer friendshipId, Integer userId);
 
-    void blockUser(Integer blockerId, Integer blockedId);
+    void blockUser(Integer blockerId, Integer blockedId) throws Exception;
 
-    void unblockUser(Integer unblockerId, Integer unblockedId);
+    void unblockUser(Integer unblockerId, Integer unblockedId) throws Exception;
 
-    List<User> getBlockedUsers(Integer userId);
+    List<User> getBlockedUsers(Integer userId) throws Exception;
 
-    int getTotalFriendsCount(Integer userId);
+    int getTotalFriendsCount(Integer userId) throws Exception;
 
-    int getIncomingRequestsCount(Integer userId);
+    int getIncomingRequestsCount(Integer userId) throws Exception;
 
-    int getOutgoingRequestsCount(Integer userId);
+    int getOutgoingRequestsCount(Integer userId) throws Exception;
 
-    int getBlockedUsersCount(Integer userId);
+    int getBlockedUsersCount(Integer userId) throws Exception;
 
-    FriendshipStatus getFriendshipStatus(Integer userId1, Integer userId2);
+    FriendshipStatus getFriendshipStatus(Integer userId1, Integer userId2) throws Exception;
 
-    boolean isRequestSentByUser(Integer userId, Integer otherUserId);
+    boolean isRequestSentByUser(Integer userId, Integer otherUserId) throws Exception;
 
-    AccessLevel getUserAccessLevel(Integer ownerId, Integer viewerId);
+    AccessLevel getUserAccessLevel(Integer ownerId, Integer viewerId) throws Exception;
 
-    List<User> getFriendSuggestions(Integer userId, int limit);
+    List<User> getFriendSuggestions(Integer userId, int limit) throws Exception;
 
-    List<User> getMutualFriends(Integer userId1, Integer userId2);
+    List<User> getMutualFriends(Integer userId1, Integer userId2) throws Exception;
 
-    List<User> searchFriends(Integer userId, String query);
+    List<User> searchFriends(Integer userId, String query) throws Exception;
 
-    boolean canUserAccessExpenses(Integer ownerId, Integer viewerId);
+    boolean canUserAccessExpenses(Integer ownerId, Integer viewerId) throws Exception;
 
-    boolean canUserModifyExpenses(Integer ownerId, Integer viewerId);
+    boolean canUserModifyExpenses(Integer ownerId, Integer viewerId) throws Exception;
 
-    List<Friendship> getAllUserFriendships(Integer userId);
-    Friendship getFriendship(Integer userId1, Integer userId2);
+    List<Friendship> getAllUserFriendships(Integer userId) throws Exception;
+    Friendship getFriendship(Integer userId1, Integer userId2) throws Exception;
 
     void updateFriendship(Friendship friendship);
 
@@ -66,22 +67,22 @@ public interface FriendshipService {
     List<String> batchShareExpenses(Integer userId, List<BatchShareRequestItem> requests);
 
 
-    List<Map<String, Object>> getRecommendedToShare(Integer userId);
+    List<Map<String, Object>> getRecommendedToShare(Integer userId) throws Exception;
 
-    Map<String, Object> getExpenseSharingSummary(Integer userId);
-
-
-    Map<String, Object> quickShareExpenses(Integer currentUserId, Integer targetUserId, AccessLevel accessLevel);
+    Map<String, Object> getExpenseSharingSummary(Integer userId) throws Exception;
 
 
-    List<Map<String, Object>> getSharedWithMe(Integer userId);
-    List<Map<String, Object>> getISharedWith(Integer userId);
+    Map<String, Object> quickShareExpenses(Integer currentUserId, Integer targetUserId, AccessLevel accessLevel) throws Exception;
+
+
+    List<Map<String, Object>> getSharedWithMe(Integer userId) throws Exception;
+    List<Map<String, Object>> getISharedWith(Integer userId) throws Exception;
     Friendship getFriendshipById(Integer friendshipId, Integer userId);
-    Map<String, Object> getExpenseAccessInfo(Integer ownerId, Integer viewerId);
+    Map<String, Object> getExpenseAccessInfo(Integer ownerId, Integer viewerId) throws Exception;
 
     // FriendshipService.java
-    List<Map<String, Object>> getDetailedFriends(Integer userId);
+    List<Map<String, Object>> getDetailedFriends(Integer userId) throws Exception;
 
     // In FriendshipService.java
-    Map<String, Object> getFriendshipDetails(Integer userId1, Integer userId2);
+    Map<String, Object> getFriendshipDetails(Integer userId1, Integer userId2) throws Exception;
 }

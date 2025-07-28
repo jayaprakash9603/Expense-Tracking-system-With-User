@@ -1,6 +1,7 @@
 package com.jaya.service;
 
-import com.jaya.models.User;
+import com.jaya.dto.User;
+import com.jaya.util.ServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +24,10 @@ public class ExpenseServiceHelper {
     @Autowired
     private UserService userService;
 
-//    @Autowired
-//    private AuditExpenseService auditExpenseService;
+
+    @Autowired
+    private ServiceHelper helper;
+
 
     // Inner class to hold request context
     public static class RequestContext {
@@ -145,6 +148,7 @@ public class ExpenseServiceHelper {
     }
 
     // Authentication and authorization
+
     public User authenticateUser(String jwt) {
         return userService.findUserByJwt(jwt);
     }

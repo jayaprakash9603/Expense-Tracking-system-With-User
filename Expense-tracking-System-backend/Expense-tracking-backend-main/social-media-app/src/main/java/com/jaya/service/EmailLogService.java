@@ -1,14 +1,13 @@
 package com.jaya.service;
 
+import com.jaya.dto.User;
 import com.jaya.models.EmailLog;
-import com.jaya.models.User;
 import com.jaya.repository.EmailLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 @Service

@@ -1,8 +1,18 @@
 package com.jaya.service;
 
+import com.jaya.dto.PaymentMethodEvent;
+import com.jaya.dto.User;
+import com.jaya.events.BudgetExpenseEvent;
+import com.jaya.events.CategoryExpenseEvent;
 import com.jaya.exceptions.UserException;
+import com.jaya.kafka.BudgetExpenseKafkaProducerService;
+import com.jaya.kafka.CategoryExpenseKafkaProducerService;
+import com.jaya.kafka.PaymentMethodKafkaProducerService;
 import com.jaya.models.*;
 import com.jaya.repository.*;
+import com.jaya.util.AuditHelper;
+import com.jaya.util.JsonConverter;
+import com.jaya.util.ServiceHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -11,9 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,10 +41,7 @@ import ch.qos.logback.classic.Logger;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,23 +57,22 @@ import java.time.Month;
 
 
 @Service
-public class ExpenseServiceImpl implements ExpenseService , Serializable {
+public class ExpenseServiceImpl implements Serializable, ExpenseService {
+
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseReportRepository expenseReportRepository;
 
     public static final String OTHERS = "Others";
-    private static final String CREDIT_NEED_TO_PAID="creditNeedToPaid";
-    private static final String CREDIT_PAID="creditPaid";
-    private static final String CASH="cash";
-    private static final String MONTH="month";
-    private static final String YEAR="year";
-    private static final String WEEK="week";
+    private static final String CREDIT_NEED_TO_PAID = "creditNeedToPaid";
+    private static final String CREDIT_PAID = "creditPaid";
+    private static final String CASH = "cash";
+    private static final String MONTH = "month";
+    private static final String YEAR = "year";
+    private static final String WEEK = "week";
 
-    private static final Logger logger= (Logger) LoggerFactory.getLogger(ExpenseServiceImpl.class);
+    private static final Logger logger = (Logger) LoggerFactory.getLogger(ExpenseServiceImpl.class);
 
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private CacheManager cacheManager;
@@ -78,28 +81,39 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     private EntityManager entityManager;
 
     @Autowired
-    private BudgetService budgetService;
+    private BudgetServices budgetService;
 
     @Autowired
-    private BudgetRepository budgetRepository;
+    private CategoryExpenseKafkaProducerService categoryExpenseKafkaProducer;
 
     @Autowired
-    private CategoryRepository categoryRepository;
+    private PaymentMethodKafkaProducerService paymentMethodKafkaProducer;
 
     @Autowired
     private CategoryService categoryService;
 
+
     @Autowired
-    private UserService userService;
-//    @Autowired
-//    private AuditExpenseService auditExpenseService;
+    private ServiceHelper helper;
+
+    @Autowired
+    private KafkaProducerService producer;
 
 
     @Autowired
-    private PaymentMethodService paymentMethodService;
+    private PaymentMethodServices paymentMethodService;
+
+
 
     @Autowired
-    private PaymentMethodRepository paymentMethodRepository;
+    private BudgetExpenseKafkaProducerService budgetExpenseKafkaProducerService;
+
+
+    @Autowired
+    private AuditHelper auditHelper;
+
+    @Autowired
+    private JsonConverter jsonConverter;
 
     public ExpenseServiceImpl(ExpenseRepository expenseRepository, ExpenseReportRepository expenseReportRepository) {
         this.expenseRepository = expenseRepository;
@@ -107,12 +121,10 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
 
-
-
-
-
     @Override
-    public Expense addExpense(Expense expense, User user) throws Exception {
+    public Expense addExpense(Expense expense, Integer userId) throws Exception {
+
+        User user = helper.validateUser(userId);
         expense.setId(null);
         if (expense.getExpense() != null) {
             expense.getExpense().setId(null);
@@ -120,12 +132,12 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         validateExpenseData(expense, user);
 
-        expense.setUser(user);
+        expense.setUserId(userId);
         if (expense.getBudgetIds() == null) expense.setBudgetIds(new HashSet<>());
 
         ExpenseDetails details = expense.getExpense();
         if (details == null) {
-            throw new IllegalArgumentException("Expense details must not be null.");
+            throw new UserException("Expense details must not be null.");
         }
         details.setId(null);
         details.setExpenseName(details.getExpenseName() != null ? details.getExpenseName() : "");
@@ -134,7 +146,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         details.setPaymentMethod(details.getPaymentMethod() != null ? details.getPaymentMethod() : "");
         details.setNetAmount(details.getType().equals("loss") ? -details.getAmount() : details.getAmount());
         details.setComments(details.getComments() != null ? details.getComments() : "");
-        details.setCreditDue(details.getPaymentMethod().equals(CREDIT_NEED_TO_PAID)? details.getAmount():0);
+        details.setCreditDue(details.getPaymentMethod().equals(CREDIT_NEED_TO_PAID) ? details.getAmount() : 0);
 
         // Set bi-directional relationship
         details.setExpense(expense);
@@ -149,28 +161,90 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         handlePaymentMethod(savedExpense, user);
 
-        updateCategoryExpenseIds(savedExpense, user);
+        updateCategoryExpenseIds(savedExpense, userId);
+
 
         updateBudgetExpenseLinks(savedExpense, validBudgetIds, user);
-
-        // auditExpenseService.logAudit(user, savedExpense.getId(), "Expense Created", "Expense: " + details.getExpenseName() + ", Amount: " + details.getAmount());
-
-
-        Cache cache = cacheManager.getCache("expenses");
-        List<Expense> cachedExpenses = cache.get(user.getId(), List.class);
-        if (cachedExpenses == null) {
-            cachedExpenses = new ArrayList<>();
-        }
-        cachedExpenses.addAll(Arrays.asList(savedExpense));
-        cache.put(user.getId(), cachedExpenses);
+        auditHelper.auditAction(user.getId(), expense.getId().toString(), "EXPENSE", "CREATE", savedExpense);
+        updateExpenseCache(savedExpense, user.getId());
         return savedExpense;
     }
 
 
+    private void updateExpenseCache(Expense savedExpense, Integer userId) {
+        updateExpenseCache(Collections.singletonList(savedExpense), userId);
+    }
+
+    private void updateExpenseCache(List<Expense> savedExpenses, Integer userId) {
+        Cache cache = cacheManager.getCache("expenses");
+        if (cache == null) {
+            logger.warn("Cache 'expenses' not found");
+            return;
+        }
+
+        if (savedExpenses == null || savedExpenses.isEmpty()) {
+            logger.warn("No expenses provided to update cache for user: {}", userId);
+            return;
+        }
+
+        List<Expense> cachedExpenses = cache.get(userId, List.class);
+        if (cachedExpenses == null) {
+            cachedExpenses = new ArrayList<>();
+        }
+
+        // Add all new expenses to the cached list
+        cachedExpenses.addAll(savedExpenses);
+        cache.put(userId, cachedExpenses);
+
+        if (savedExpenses.size() == 1) {
+            logger.info("Added expense ID {} to cache for user: {}", savedExpenses.get(0).getId(), userId);
+        } else {
+            List<Integer> expenseIds = savedExpenses.stream().map(Expense::getId).collect(Collectors.toList());
+            logger.info("Added {} expenses with IDs {} to cache for user: {}", savedExpenses.size(), expenseIds, userId);
+        }
+    }
+
+
+
+    @Override
+    public List<Expense> getExpensesByIds(Integer userId, Set<Integer> expenseIds) throws UserException {
+
+        // Validate expense IDs
+        if (expenseIds == null || expenseIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Remove any null values from the set
+        Set<Integer> validExpenseIds = expenseIds.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (validExpenseIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            // Validate user exists (assuming you have a helper method)
+            helper.validateUser(userId);
+
+            // Fetch expenses from repository
+            List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(userId, validExpenseIds);
+
+            // Log the operation for audit purposes
+            if (!expenses.isEmpty()) {
+                System.out.println("Retrieved " + expenses.size() + " expenses for user " + userId);
+            }
+
+            return expenses;
+
+        } catch (Exception e) {
+            throw new UserException("Error retrieving expenses for user " + userId + ": " + e.getMessage());
+        }
+    }
     @Override
     public Expense copyExpense(Integer userId, Integer expenseId) throws Exception {
-        User user = userService.findUserById(userId);
-        Expense original = getExpenseById(expenseId, user);
+        User user = helper.validateUser(userId);
+        Expense original = getExpenseById(expenseId, user.getId());
         if (original == null) {
             throw new RuntimeException("Expense not found with ID: " + expenseId);
         }
@@ -178,7 +252,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         // Deep copy the expense
         Expense copy = new Expense();
         copy.setDate(original.getDate());
-        copy.setUser(user);
+        copy.setUserId(userId);
         copy.setBudgetIds(original.getBudgetIds() != null ? new HashSet<>(original.getBudgetIds()) : new HashSet<>());
         copy.setCategoryId(original.getCategoryId());
 
@@ -196,10 +270,14 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         }
 
         // Save the copied expense only once
-        return   addExpense(copy, user);
+        return addExpense(copy, userId);
 
 
+    }
 
+    @Override
+    public Expense save(Expense expense) {
+        return expenseRepository.save(expense);
     }
 
     // Add this helper method to your class
@@ -225,19 +303,19 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public List<Expense> getExpensesByUserAndSort(User targetUser, String sort) throws UserException {
-        System.out.println("Fetching expenses for user: " + targetUser.getId() + " with sort order: " + sort);
+    public List<Expense> getExpensesByUserAndSort(Integer userId, String sort) throws UserException {
+        System.out.println("Fetching expenses for user: " + userId + " with sort order: " + sort);
 
         // Try to get from cache first
-        List<Expense> expenses = getCachedExpenses(targetUser.getId());
+        List<Expense> expenses = getCachedExpenses(userId);
 
         if (expenses == null) {
             // If not in cache, fetch from database
-            logger.info("Cache miss - fetching from database for user: {}", targetUser.getId());
-            expenses = expenseRepository.findByUserId(targetUser.getId());
+            logger.info("Cache miss - fetching from database for user: {}", userId);
+            expenses = expenseRepository.findByUserId(userId);
 
             // Cache the expenses
-            cacheExpenses(targetUser.getId(), expenses);
+            cacheExpenses(userId, expenses);
         }
 
         // Sort based on the requested order
@@ -267,12 +345,20 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         if (user == null) throw new UserException("User not found.");
     }
 
-    private Set<Integer> validateAndExtractBudgetIds(Expense expense, User user) {
+    private Set<Integer> validateAndExtractBudgetIds(Expense expense, User user) throws Exception {
         Set<Integer> validBudgetIds = new HashSet<>();
         for (Integer budgetId : expense.getBudgetIds()) {
-            Optional<Budget> budgetOpt = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
-            if (budgetOpt.isPresent()) {
-                Budget budget = budgetOpt.get();
+
+            Budget budgetOpt;
+            try {
+                budgetOpt = budgetService.getBudgetById(budgetId, user.getId());
+            } catch (Exception e) {
+                continue;
+            }
+
+            System.out.println("testing after catch");
+            if (budgetOpt != null) {
+                Budget budget = budgetOpt;
                 LocalDate expenseDate = expense.getDate();
                 if (!expenseDate.isBefore(budget.getStartDate()) && !expenseDate.isAfter(budget.getEndDate())) {
                     validBudgetIds.add(budgetId);
@@ -282,11 +368,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         return validBudgetIds;
     }
 
-    private void handleCategory(Expense expense, User user) {
+    private void handleCategory(Expense expense, User user) throws Exception {
 
 
         try {
-            Category category = categoryService.getById(expense.getCategoryId(), user);
+            Category category = categoryService.getById(expense.getCategoryId(), user.getId());
             if (category != null) {
                 expense.setCategoryId(category.getId());
                 expense.setCategoryName(category.getName());
@@ -294,14 +380,14 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         } catch (Exception e) {
 
             try {
-                Category category = categoryService.getByName(OTHERS, user).get(0);
+                Category category = categoryService.getByName(OTHERS, user.getId()).get(0);
                 expense.setCategoryId(category.getId());
                 expense.setCategoryName(category.getName());
             } catch (Exception notFound) {
                 Category createdCategory = new Category();
                 createdCategory.setDescription("Others Description");
                 createdCategory.setName(OTHERS);
-                Category newCategory = categoryService.create(createdCategory, user);
+                Category newCategory = categoryService.create(createdCategory, user.getId());
                 expense.setCategoryId(newCategory.getId());
                 expense.setCategoryName(newCategory.getName());
             }
@@ -312,48 +398,48 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         ExpenseDetails details = savedExpense.getExpense();
         String paymentMethodName = details.getPaymentMethod().trim();
         String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
-        PaymentMethod paymentMethod = paymentMethodService.getAllPaymentMethods(user.getId())
-                .stream()
-                .filter(pm -> pm.getName().equalsIgnoreCase(paymentMethodName) && pm.getType().equalsIgnoreCase(paymentType))
-                .findFirst()
-                .orElse(null);
 
-        if (paymentMethod == null) {
-            paymentMethod = new PaymentMethod();
-            paymentMethod.setUser(user);
-            paymentMethod.setName(paymentMethodName);
-            paymentMethod.setType(paymentType);
-            paymentMethod.setAmount(0);
-            paymentMethod.setGlobal(false);
-            paymentMethod.setDescription("Automatically created for expense: " + details.getPaymentMethod());
-            paymentMethod.setIcon(CASH);
-            paymentMethod.setColor(getThemeAppropriateColor("salary"));
+        // Create and send Kafka event instead of direct processing
+        PaymentMethodEvent event = new PaymentMethodEvent(user.getId(), savedExpense.getId(), paymentMethodName, paymentType, "Automatically created for expense: " + details.getPaymentMethod(), CASH, getThemeAppropriateColor("salary"), "CREATE");
+
+        paymentMethodKafkaProducer.sendPaymentMethodEvent(event);
+        logger.info("Payment method event sent for expense ID: {} and user: {}", savedExpense.getId(), user.getId());
+    }
+
+    // Add this method for handling payment method updates
+    private void handlePaymentMethodUpdate(Expense existingExpense, ExpenseDetails newDetails, Integer userId) {
+        ExpenseDetails existingDetails = existingExpense.getExpense();
+        String oldPaymentMethodName = existingDetails.getPaymentMethod();
+        String oldPaymentType = (existingDetails.getType() != null && existingDetails.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
+        String newPaymentMethodName = newDetails.getPaymentMethod().trim();
+        String newPaymentType = (newDetails.getType() != null && newDetails.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
+
+        // Send delete event for old payment method
+        if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty()) {
+            PaymentMethodEvent deleteEvent = new PaymentMethodEvent(userId, existingExpense.getId(), oldPaymentMethodName.trim(), oldPaymentType, "", "", "", "DELETE");
+            paymentMethodKafkaProducer.sendPaymentMethodEvent(deleteEvent);
         }
-        if (paymentMethod.getExpenseIds() == null) paymentMethod.setExpenseIds(new HashMap<>());
-        Set<Integer> userExpenseSet = paymentMethod.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
-        userExpenseSet.add(savedExpense.getId());
-        paymentMethod.getExpenseIds().put(user.getId(), userExpenseSet);
-        paymentMethodRepository.save(paymentMethod);
+
+        // Send create event for new payment method
+        PaymentMethodEvent createEvent = new PaymentMethodEvent(userId, existingExpense.getId(), newPaymentMethodName, newPaymentType, "Automatically created for expense: " + newDetails.getPaymentMethod(), CASH, getThemeAppropriateColor("salary"), "CREATE");
+        paymentMethodKafkaProducer.sendPaymentMethodEvent(createEvent);
     }
 
 
-    private void updateBudgetExpenseLinks(Expense savedExpense, Set<Integer> validBudgetIds, User user) {
-        for (Integer validBudgetId : validBudgetIds) {
-            Budget budget = budgetRepository.findByUserIdAndId(user.getId(), validBudgetId)
-                    .orElseThrow(() -> new RuntimeException("Budget not found"));
-            if (budget.getExpenseIds() == null) budget.setExpenseIds(new HashSet<>());
-            if (!budget.getExpenseIds().contains(savedExpense.getId())) {
-                budget.getExpenseIds().add(savedExpense.getId());
-                budgetRepository.save(budget);
-            }
+    private void updateBudgetExpenseLinks(Expense savedExpense, Set<Integer> validBudgetIds, User user) throws Exception {
+        if (!validBudgetIds.isEmpty()) {
+            BudgetExpenseEvent budgetEvent = new BudgetExpenseEvent(user.getId(), savedExpense.getId(), validBudgetIds, "ADD");
+            budgetExpenseKafkaProducerService.sendBudgetExpenseEvent(budgetEvent);
+            logger.info("Budget expense event sent for expense ID: {} with budget IDs: {}", savedExpense.getId(), validBudgetIds);
         }
     }
-    private Expense updateExpenseInternal(Expense existingExpense, Expense updatedExpense, User user) {
+
+    private Expense updateExpenseInternal(Expense existingExpense, Expense updatedExpense, Integer userId) throws Exception {
         validateExpenseData(updatedExpense);
         ExpenseDetails newDetails = updatedExpense.getExpense();
 
-        updateCategory(existingExpense, updatedExpense, user);
-        updatePaymentMethod(existingExpense, newDetails, user);
+        updateCategory(existingExpense, updatedExpense, userId);
+        updatePaymentMethod(existingExpense, newDetails, userId);
 
         ExpenseDetails existingDetails = existingExpense.getExpense();
         existingDetails.setExpenseName(newDetails.getExpenseName());
@@ -367,31 +453,31 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         existingExpense.setDate(updatedExpense.getDate());
         existingExpense.setIncludeInBudget(updatedExpense.isIncludeInBudget());
 
-        Set<Integer> validBudgetIds = extractValidBudgetIds(updatedExpense, user);
-        removeOldBudgetLinks(existingExpense, validBudgetIds, user);
+        Set<Integer> validBudgetIds = extractValidBudgetIds(updatedExpense, userId);
+        removeOldBudgetLinks(existingExpense, validBudgetIds, userId);
         existingExpense.setBudgetIds(validBudgetIds);
         Expense savedExpense = expenseRepository.save(existingExpense);
-        updateCategoryExpenseIds(savedExpense, user);
-        updateBudgetLinks(savedExpense, validBudgetIds, user);
+        updateCategoryExpenseIds(savedExpense, userId);
+        updateBudgetLinks(savedExpense, validBudgetIds, userId);
 
 
         return savedExpense;
     }
 
 
-
     @Override
     @Transactional
-    public List<Expense> addMultipleExpenses(List<Expense> expenses, User user) throws Exception {
-        if (user == null) throw new UserException("User not found.");
+    public List<Expense> addMultipleExpenses(List<Expense> expenses, Integer userId) throws Exception {
+        User user = helper.validateUser(userId);
+        if (userId == null) throw new UserException("User not found.");
 
-        int batchSize = 100000;
+        int batchSize = 500;
         int count = 0;
         List<Expense> savedExpenses = new ArrayList<>();
 
         for (Expense expense : expenses) {
             expense.setId(null);
-            expense.setUser(user);
+            expense.setUserId(userId);
             if (expense.getExpense() != null) {
                 expense.getExpense().setId(null);
                 expense.getExpense().setExpense(expense);
@@ -399,7 +485,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
             if (expense.getBudgetIds() == null) expense.setBudgetIds(new HashSet<>());
             Set<Integer> validBudgetIds = validateAndExtractBudgetIds(expense, user);
             expense.setBudgetIds(validBudgetIds);
-            handleCategory(expense, user); // Only sets categoryId and categoryName
+            handleCategory(expense, user);
 
             entityManager.persist(expense);
             savedExpenses.add(expense);
@@ -415,34 +501,29 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         // Now update category, payment method, and budget links with correct expense IDs
         for (Expense savedExpense : savedExpenses) {
             handlePaymentMethod(savedExpense, user);
-            updateCategoryExpenseIds(savedExpense, user); // This will now use the correct ID
+            updateCategoryExpenseIds(savedExpense, userId); // This will now use the correct ID
             updateBudgetExpenseLinks(savedExpense, savedExpense.getBudgetIds(), user);
+
+
+            auditHelper.auditAction(user.getId(), savedExpense.getId().toString(), "EXPENSE", "CREATE", savedExpense);
         }
 
 
-        Cache cache = cacheManager.getCache("expenses");
-        List<Expense> cachedExpenses = cache.get(user.getId(), List.class);
-        if (cachedExpenses == null) {
-            cachedExpenses = new ArrayList<>();
-        }
-        cachedExpenses.addAll(savedExpenses);
-        cache.put(user.getId(), cachedExpenses);
+        updateExpenseCache(savedExpenses, userId);
 
         return savedExpenses;
     }
 
 
-
-
     @Override
-    public Expense getExpenseById(Integer id, User user) {
-        return expenseRepository.findByUserIdAndId(user.getId(), id);
+    public Expense getExpenseById(Integer id, Integer userId) {
+        return expenseRepository.findByUserIdAndId(userId, id);
 
     }
 
     @Override
-    public List<Expense> getExpensesByDateRange(LocalDate from, LocalDate to, User user) {
-        return expenseRepository.findByUserAndDateBetween(from, to, user);
+    public List<Expense> getExpensesByDateRange(LocalDate from, LocalDate to, Integer userId) {
+        return expenseRepository.findByUserIdAndDateBetween(userId, from, to);
     }
 
     @Override
@@ -451,16 +532,16 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public List<Expense> getAllExpenses(User user) {
-        logger.info("Fetching from DATABASE for user {}", user.getId());
-        return expenseRepository.findByUserId(user.getId());
+    public List<Expense> getAllExpenses(Integer userId) {
+        logger.info("Fetching from DATABASE for user {}", userId);
+        return expenseRepository.findByUserId(userId);
     }
 
     @Override
-    public List<Expense> getAllExpenses(User user, String sortOrder) {
+    public List<Expense> getAllExpenses(Integer userId, String sortOrder) {
         // Check for "asc" or "desc", default to "desc"
         Sort sort = "asc".equalsIgnoreCase(sortOrder) ? Sort.by(Sort.Order.asc("date")) : Sort.by(Sort.Order.desc("date"));
-        return expenseRepository.findByUserId(user.getId(), sort);
+        return expenseRepository.findByUserId(userId, sort);
     }
 
 
@@ -469,15 +550,15 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
     @Override
     @Transactional
-    public Expense updateExpense(Integer id, Expense updatedExpense, User user) {
-        Expense existingExpense = expenseRepository.findByUserIdAndId(user.getId(), id);
+    public Expense updateExpense(Integer id, Expense updatedExpense, Integer userId) throws Exception {
+        Expense existingExpense = expenseRepository.findByUserIdAndId(userId, id);
         if (existingExpense == null) {
             throw new RuntimeException("Expense not found with ID: " + id);
         }
         if (existingExpense.isBill()) {
             throw new RuntimeException("Cannot update a bill expense. Please use the Bill Id for updates.");
         }
-        Expense savedExpense = updateExpenseInternal(existingExpense, updatedExpense, user);
+        Expense savedExpense = updateExpenseInternal(existingExpense, updatedExpense, userId);
 
         // Update cache - first remove old expense, then add updated one
         Cache cache = cacheManager.getCache("expenses");
@@ -486,7 +567,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
             cache.evict(id);
 
             // Update user's expense list cache
-            List<Expense> cachedExpenses = cache.get(user.getId(), List.class);
+            List<Expense> cachedExpenses = cache.get(userId, List.class);
             if (cachedExpenses != null) {
                 // First, remove the old expense from the cached list
                 cachedExpenses.removeIf(expense -> expense.getId().equals(id));
@@ -495,12 +576,12 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 cachedExpenses.add(savedExpense);
 
                 // Update the cache with the modified list
-                cache.put(user.getId(), cachedExpenses);
-                logger.info("Removed old expense ID {} and added updated expense to cache for user: {}", id, user.getId());
+                cache.put(userId, cachedExpenses);
+                logger.info("Removed old expense ID {} and added updated expense to cache for user: {}", id, userId);
             } else {
                 // If no cached list exists, evict to force fresh fetch next time
-                cache.evict(user.getId());
-                logger.info("Evicted cache for user: {} due to missing cached list", user.getId());
+                cache.evict(userId);
+                logger.info("Evicted cache for user: {} due to missing cached list", userId);
             }
 
             // Add updated expense to individual cache
@@ -509,16 +590,16 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         return savedExpense;
     }
+
     @Override
     @Transactional
-    public Expense updateExpenseWithBillService(Integer id, Expense updatedExpense, User user) {
-        Expense existingExpense = expenseRepository.findByUserIdAndId(user.getId(), id);
+    public Expense updateExpenseWithBillService(Integer id, Expense updatedExpense, Integer userId) throws Exception {
+        Expense existingExpense = expenseRepository.findByUserIdAndId(userId, id);
         if (existingExpense == null) {
             throw new RuntimeException("Expense not found with ID: " + id);
         }
-        return updateExpenseInternal(existingExpense, updatedExpense, user);
+        return updateExpenseInternal(existingExpense, updatedExpense, userId);
     }
-
 
 
     private void validateExpenseData(Expense updatedExpense) {
@@ -543,36 +624,33 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         }
     }
 
-    private void updateCategory(Expense existingExpense, Expense updatedExpense, User user) {
+    private void updateCategory(Expense existingExpense, Expense updatedExpense, Integer userId) throws Exception {
         Integer oldCategoryId = existingExpense.getCategoryId();
         Integer newCategoryId = updatedExpense.getCategoryId();
+        User user = helper.validateUser(userId);
+
         if (!Objects.equals(oldCategoryId, newCategoryId)) {
+            // Send REMOVE event for old category
             if (oldCategoryId != null) {
-                try {
-                    Category oldCategory = categoryService.getById(oldCategoryId, user);
-                    if (oldCategory != null && oldCategory.getExpenseIds() != null) {
-                        Set<Integer> expenseSet = oldCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
-                        expenseSet.remove(existingExpense.getId());
-                        oldCategory.getExpenseIds().put(user.getId(), expenseSet);
-                        categoryRepository.save(oldCategory);
-                    }
-                } catch (Exception e) {
-                    System.out.println("Error removing expense from old category: " + e.getMessage());
-                }
+                CategoryExpenseEvent removeEvent = new CategoryExpenseEvent(userId, existingExpense.getId(), oldCategoryId, existingExpense.getCategoryName(), "REMOVE");
+                categoryExpenseKafkaProducer.sendCategoryExpenseEvent(removeEvent);
             }
-            // Add to new category
+
+            // Handle new category assignment
             try {
-                Category newCategory = categoryService.getById(newCategoryId, user);
+                Category newCategory = categoryService.getById(newCategoryId, userId);
                 if (newCategory != null) {
                     existingExpense.setCategoryId(newCategory.getId());
                     existingExpense.setCategoryName(newCategory.getName());
                     return;
                 }
             } catch (Exception e) {
-                // Do nothing here and try Others category below
+                // Fall back to Others category
             }
+
+            // Assign to Others category if new category not found
             try {
-                Category others = categoryService.getByName(OTHERS, user).get(0);
+                Category others = categoryService.getByName(OTHERS, user.getId()).get(0);
                 existingExpense.setCategoryId(others.getId());
                 existingExpense.setCategoryName(others.getName());
             } catch (Exception notFound) {
@@ -580,17 +658,18 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 createdCategory.setDescription("Others Description");
                 createdCategory.setName(OTHERS);
                 try {
-                    Category newCategory = categoryService.create(createdCategory, user);
+                    Category newCategory = categoryService.create(createdCategory, user.getId());
                     existingExpense.setCategoryId(newCategory.getId());
                     existingExpense.setCategoryName(newCategory.getName());
                 } catch (Exception createError) {
-                    System.out.println("Error creating Others category: " + createError.getMessage());
+                    logger.error("Error creating Others category: {}", createError.getMessage());
                 }
             }
         }
     }
 
-    private void updatePaymentMethod(Expense existingExpense, ExpenseDetails newDetails, User user) {
+    private void updatePaymentMethod(Expense existingExpense, ExpenseDetails newDetails, Integer userId) throws Exception {
+        User user = helper.validateUser(userId);
         ExpenseDetails existingDetails = existingExpense.getExpense();
         String oldPaymentMethodName = existingDetails.getPaymentMethod();
         String oldPaymentType = (existingDetails.getType() != null && existingDetails.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
@@ -599,29 +678,23 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         // Remove expense from old payment method
         if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty()) {
-            List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
-            PaymentMethod oldPaymentMethod = allMethods.stream()
-                    .filter(pm -> pm.getName().equalsIgnoreCase(oldPaymentMethodName.trim()) && pm.getType().equalsIgnoreCase(oldPaymentType))
-                    .findFirst()
-                    .orElse(null);
+            List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+            PaymentMethod oldPaymentMethod = allMethods.stream().filter(pm -> pm.getName().equalsIgnoreCase(oldPaymentMethodName.trim()) && pm.getType().equalsIgnoreCase(oldPaymentType)).findFirst().orElse(null);
             if (oldPaymentMethod != null && oldPaymentMethod.getExpenseIds() != null) {
                 Map<Integer, Set<Integer>> expenseIds = oldPaymentMethod.getExpenseIds();
-                Set<Integer> userExpenseSet = expenseIds.getOrDefault(user.getId(), new HashSet<>());
+                Set<Integer> userExpenseSet = expenseIds.getOrDefault(userId, new HashSet<>());
                 userExpenseSet.remove(existingExpense.getId());
-                expenseIds.put(user.getId(), userExpenseSet);
-                paymentMethodRepository.save(oldPaymentMethod);
+                expenseIds.put(userId, userExpenseSet);
+                paymentMethodService.save(oldPaymentMethod);
             }
         }
 
         // Add expense to new payment method
-        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
-        PaymentMethod newPaymentMethod = allMethods.stream()
-                .filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName) && pm.getType().equalsIgnoreCase(newPaymentType))
-                .findFirst()
-                .orElse(null);
+        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+        PaymentMethod newPaymentMethod = allMethods.stream().filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName) && pm.getType().equalsIgnoreCase(newPaymentType)).findFirst().orElse(null);
         if (newPaymentMethod == null) {
             newPaymentMethod = new PaymentMethod();
-            newPaymentMethod.setUser(user);
+            newPaymentMethod.setUserId(userId);
             newPaymentMethod.setName(newPaymentMethodName);
             newPaymentMethod.setType(newPaymentType);
             newPaymentMethod.setAmount(0);
@@ -635,16 +708,16 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         Set<Integer> userExpenseSet = expenseIds.getOrDefault(user.getId(), new HashSet<>());
         userExpenseSet.add(existingExpense.getId());
         expenseIds.put(user.getId(), userExpenseSet);
-        paymentMethodRepository.save(newPaymentMethod);
+        paymentMethodService.save(newPaymentMethod);
     }
 
-    private Set<Integer> extractValidBudgetIds(Expense updatedExpense, User user) {
+    private Set<Integer> extractValidBudgetIds(Expense updatedExpense, Integer userId) throws Exception {
         Set<Integer> validBudgetIds = new HashSet<>();
         if (updatedExpense.getBudgetIds() != null) {
             for (Integer budgetId : updatedExpense.getBudgetIds()) {
-                Optional<Budget> budgetOpt = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
-                if (budgetOpt.isPresent()) {
-                    Budget budget = budgetOpt.get();
+                Budget budgetOpt = budgetService.getBudgetById(budgetId, userId);
+                if (budgetOpt != null) {
+                    Budget budget = budgetOpt;
                     LocalDate expenseDate = updatedExpense.getDate();
                     if (!expenseDate.isBefore(budget.getStartDate()) && !expenseDate.isAfter(budget.getEndDate())) {
                         validBudgetIds.add(budgetId);
@@ -655,15 +728,15 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         return validBudgetIds;
     }
 
-    private void removeOldBudgetLinks(Expense existingExpense, Set<Integer> validBudgetIds, User user) {
+    private void removeOldBudgetLinks(Expense existingExpense, Set<Integer> validBudgetIds, Integer userId) throws Exception {
         if (existingExpense.getBudgetIds() != null) {
             for (Integer oldBudgetId : existingExpense.getBudgetIds()) {
                 if (!validBudgetIds.contains(oldBudgetId)) {
-                    Budget oldBudget = budgetRepository.findByUserIdAndId(user.getId(), oldBudgetId).orElse(null);
+                    Budget oldBudget = budgetService.getBudgetById(oldBudgetId, userId);
                     if (oldBudget != null && oldBudget.getExpenseIds() != null) {
                         oldBudget.getExpenseIds().remove(existingExpense.getId());
                         oldBudget.setBudgetHasExpenses(!oldBudget.getExpenseIds().isEmpty());
-                        budgetRepository.save(oldBudget);
+                        budgetService.save(oldBudget);
                     }
                 }
             }
@@ -672,42 +745,29 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Transactional
-    private void updateCategoryExpenseIds(Expense savedExpense, User user) {
-        logger.info("updatting categoryid : {}", savedExpense.getCategoryId());
+    private void updateCategoryExpenseIds(Expense savedExpense, Integer userId) {
+        logger.info("Updating categoryId: {}", savedExpense.getCategoryId());
         if (savedExpense.getCategoryId() != null) {
+            logger.info("Entered inside if statement: {}", savedExpense.getCategoryId());
 
+            // Send Kafka event instead of direct database update
+            CategoryExpenseEvent event = new CategoryExpenseEvent(userId, savedExpense.getId(), savedExpense.getCategoryId(), savedExpense.getCategoryName(), "ADD");
 
-            logger.info("Entered inside if statement"+savedExpense.getCategoryId());
-            logger.info("user details"+user.getEmail());
-            try {
-                Category category = categoryService.getById(savedExpense.getCategoryId(), user);
-                logger.info("category details"+category.getId());
-                if (category != null) {
-                    if (category.getExpenseIds() == null) {
-                        category.setExpenseIds(new HashMap<>());
-                    }
-                    Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
-                    expenseSet.add(savedExpense.getId());
-                    category.getExpenseIds().put(user.getId(), expenseSet);
-                    Category savedcategory=categoryRepository.save(category);
-                    System.out.println("Saved categoy expense id's"+savedcategory.getExpenseIds());
-                }
-            } catch (Exception e) {
-                System.out.println("Error updating category with expense ID: " + e.getMessage());
-            }
+            categoryExpenseKafkaProducer.sendCategoryExpenseEvent(event);
+            logger.info("Sent category expense event for expense {} to category {}", savedExpense.getId(), savedExpense.getCategoryId());
         }
     }
 
-    private void updateBudgetLinks(Expense savedExpense, Set<Integer> validBudgetIds, User user) {
+    private void updateBudgetLinks(Expense savedExpense, Set<Integer> validBudgetIds, Integer userId) throws Exception {
         for (Integer budgetId : validBudgetIds) {
-            Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+            Budget budget = budgetService.getBudgetById(budgetId, userId);
             if (budget != null) {
                 if (budget.getExpenseIds() == null) {
                     budget.setExpenseIds(new HashSet<>());
                 }
                 budget.getExpenseIds().add(savedExpense.getId());
                 budget.setBudgetHasExpenses(true);
-                budgetRepository.save(budget);
+                budgetService.save( budget);
             }
         }
     }
@@ -716,7 +776,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     @Override
     @Transactional
     @CacheEvict(value = {"expenses", "categories"}, allEntries = true)
-    public List<Expense> updateMultipleExpenses(User user, List<Expense> expenses) {
+    public List<Expense> updateMultipleExpenses(Integer userId, List<Expense> expenses) {
         if (expenses == null || expenses.isEmpty()) {
             throw new IllegalArgumentException("Expense list cannot be null or empty.");
         }
@@ -743,7 +803,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
             Expense existingExpense = existingOpt.get();
 
-            if (existingExpense.getUser() == null || !existingExpense.getUser().getId().equals(user.getId())) {
+            if (existingExpense.getUserId() == null || !existingExpense.getUserId().equals(userId)) {
                 errorMessages.add("User not authorized to update Expense ID: " + id);
                 continue;
             }
@@ -756,16 +816,16 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                     // Remove from old category
                     if (oldCategoryId != null) {
                         try {
-                            Category oldCategory = categoryService.getById(oldCategoryId, user);
+                            Category oldCategory = categoryService.getById(oldCategoryId, userId);
                             if (oldCategory != null && oldCategory.getExpenseIds() != null) {
-                                Set<Integer> expenseSet = oldCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                                Set<Integer> expenseSet = oldCategory.getExpenseIds().getOrDefault(userId, new HashSet<>());
                                 expenseSet.remove(existingExpense.getId());
                                 if (expenseSet.isEmpty()) {
-                                    oldCategory.getExpenseIds().remove(user.getId());
+                                    oldCategory.getExpenseIds().remove(userId);
                                 } else {
-                                    oldCategory.getExpenseIds().put(user.getId(), expenseSet);
+                                    oldCategory.getExpenseIds().put(userId, expenseSet);
                                 }
-                                categoryRepository.save(oldCategory);
+                                categoryService.save(oldCategory);
                             }
                         } catch (Exception e) {
                             System.out.println("Error removing expense from old category: " + e.getMessage());
@@ -774,36 +834,36 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                     // Add to new category
                     if (newCategoryId != null) {
                         try {
-                            Category newCategory = categoryService.getById(newCategoryId, user);
+                            Category newCategory = categoryService.getById(newCategoryId, userId);
                             if (newCategory != null) {
                                 existingExpense.setCategoryId(newCategory.getId());
                                 existingExpense.setCategoryName(newCategory.getName());
                                 if (newCategory.getExpenseIds() == null) {
                                     newCategory.setExpenseIds(new HashMap<>());
                                 }
-                                Set<Integer> expenseSet = newCategory.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                                Set<Integer> expenseSet = newCategory.getExpenseIds().getOrDefault(userId, new HashSet<>());
                                 expenseSet.add(existingExpense.getId());
-                                newCategory.getExpenseIds().put(user.getId(), expenseSet);
-                                categoryRepository.save(newCategory);
+                                newCategory.getExpenseIds().put(userId, expenseSet);
+                                categoryService.save( newCategory);
                             }
                         } catch (Exception e) {
                             try {
-                                Category category = categoryService.getByName(OTHERS, user).get(0);
+                                Category category = categoryService.getByName(OTHERS, userId).get(0);
                                 existingExpense.setCategoryId(category.getId());
                                 existingExpense.setCategoryName(category.getName());
                                 if (category.getExpenseIds() == null) {
                                     category.setExpenseIds(new HashMap<>());
                                 }
-                                Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                                Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(userId, new HashSet<>());
                                 expenseSet.add(existingExpense.getId());
-                                category.getExpenseIds().put(user.getId(), expenseSet);
-                                categoryRepository.save(category);
+                                category.getExpenseIds().put(userId, expenseSet);
+                                categoryService.save( category);
                             } catch (Exception notFound) {
                                 Category createdCategory = new Category();
                                 createdCategory.setDescription("Others Description");
                                 createdCategory.setName(OTHERS);
                                 try {
-                                    Category newCategory = categoryService.create(createdCategory, user);
+                                    Category newCategory = categoryService.create(createdCategory, userId);
                                     existingExpense.setCategoryId(newCategory.getId());
                                     existingExpense.setCategoryName(newCategory.getName());
                                     if (newCategory.getExpenseIds() == null) {
@@ -811,8 +871,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                                     }
                                     Set<Integer> expenseSet = new HashSet<>();
                                     expenseSet.add(existingExpense.getId());
-                                    newCategory.getExpenseIds().put(user.getId(), expenseSet);
-                                    categoryRepository.save(newCategory);
+                                    newCategory.getExpenseIds().put(userId, expenseSet);
+                                    categoryService.save( newCategory);
                                 } catch (Exception createError) {
                                     System.out.println("Error creating Others category: " + createError.getMessage());
                                 }
@@ -831,23 +891,20 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
                     // Remove from old payment method if changed
                     if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty() && (newPaymentMethodName == null || !oldPaymentMethodName.trim().equalsIgnoreCase(newPaymentMethodName) || !oldPaymentType.equalsIgnoreCase(newPaymentType))) {
-                        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
+                        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
                         PaymentMethod oldPaymentMethod = allMethods.stream().filter(pm -> pm.getName().equalsIgnoreCase(oldPaymentMethodName.trim()) && pm.getType().equalsIgnoreCase(oldPaymentType)).findFirst().orElse(null);
                         if (oldPaymentMethod != null && oldPaymentMethod.getExpenseIds() != null) {
                             oldPaymentMethod.getExpenseIds().remove(existingExpense.getId());
-                            paymentMethodRepository.save(oldPaymentMethod);
+                            paymentMethodService.save(oldPaymentMethod);
                         }
                     }
 
                     if (newPaymentMethodName != null && !newPaymentMethodName.isEmpty()) {
-                        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
-                        PaymentMethod newPaymentMethod = allMethods.stream()
-                                .filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName) && pm.getType().equalsIgnoreCase(newPaymentType))
-                                .findFirst()
-                                .orElse(null);
+                        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+                        PaymentMethod newPaymentMethod = allMethods.stream().filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName) && pm.getType().equalsIgnoreCase(newPaymentType)).findFirst().orElse(null);
                         if (newPaymentMethod == null) {
                             newPaymentMethod = new PaymentMethod();
-                            newPaymentMethod.setUser(user);
+                            newPaymentMethod.setUserId(userId);
                             newPaymentMethod.setName(newPaymentMethodName);
                             newPaymentMethod.setType(newPaymentType);
                             newPaymentMethod.setAmount(0);
@@ -858,10 +915,10 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                             newPaymentMethod.setExpenseIds(new HashMap<>());
                         }
                         Map<Integer, Set<Integer>> expenseIds = newPaymentMethod.getExpenseIds();
-                        Set<Integer> userExpenseSet = expenseIds.getOrDefault(user.getId(), new HashSet<>());
+                        Set<Integer> userExpenseSet = expenseIds.getOrDefault(userId, new HashSet<>());
                         userExpenseSet.add(existingExpense.getId());
-                        expenseIds.put(user.getId(), userExpenseSet);
-                        paymentMethodRepository.save(newPaymentMethod);
+                        expenseIds.put(userId, userExpenseSet);
+                        paymentMethodService.save(newPaymentMethod);
                     }
 
                     existingDetails.setAmount(newDetails.getAmount());
@@ -879,9 +936,9 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 Set<Integer> validBudgetIds = new HashSet<>();
                 if (expense.getBudgetIds() != null) {
                     for (Integer budgetId : expense.getBudgetIds()) {
-                        Optional<Budget> budgetOpt = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
-                        if (budgetOpt.isPresent()) {
-                            Budget budget = budgetOpt.get();
+                        Budget budgetOpt = budgetService.getBudgetById(budgetId, userId);
+                        if (budgetOpt != null) {
+                            Budget budget = budgetOpt;
                             if (!expense.getDate().isBefore(budget.getStartDate()) && !expense.getDate().isAfter(budget.getEndDate())) {
                                 validBudgetIds.add(budgetId);
                             }
@@ -892,11 +949,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 if (existingExpense.getBudgetIds() != null) {
                     for (Integer oldBudgetId : existingExpense.getBudgetIds()) {
                         if (!validBudgetIds.contains(oldBudgetId)) {
-                            Budget oldBudget = budgetRepository.findByUserIdAndId(user.getId(), oldBudgetId).orElse(null);
+                            Budget oldBudget = budgetService.getBudgetById(oldBudgetId, userId);
                             if (oldBudget != null && oldBudget.getExpenseIds() != null) {
                                 oldBudget.getExpenseIds().remove(existingExpense.getId());
                                 oldBudget.setBudgetHasExpenses(!oldBudget.getExpenseIds().isEmpty());
-                                budgetRepository.save(oldBudget);
+                                budgetService.save( oldBudget);
                             }
                         }
                     }
@@ -907,12 +964,12 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
                 // Add new budget links
                 for (Integer budgetId : validBudgetIds) {
-                    Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+                    Budget budget = budgetService.getBudgetById(budgetId, userId);
                     if (budget != null) {
                         if (budget.getExpenseIds() == null) budget.setExpenseIds(new HashSet<>());
                         budget.getExpenseIds().add(savedExpense.getId());
                         budget.setBudgetHasExpenses(true);
-                        budgetRepository.save(budget);
+                        budgetService.save(budget);
                     }
                 }
 
@@ -930,20 +987,19 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         }
 
 
-
         return updatedExpenses;
     }
 
 
     @Override
-    public List<Expense> getExpensesInBudgetRangeWithIncludeFlag(LocalDate startDate, LocalDate endDate, Integer budgetId, Integer userId) {
+    public List<Expense> getExpensesInBudgetRangeWithIncludeFlag(LocalDate startDate, LocalDate endDate, Integer budgetId, Integer userId) throws Exception {
 
-        Optional<Budget> optionalBudget = budgetRepository.findByUserIdAndId(userId, budgetId);
-        if (optionalBudget.isEmpty()) {
+        Budget optionalBudget = budgetService.getBudgetById(budgetId, userId);
+        if (optionalBudget == null) {
             throw new RuntimeException("Budget not found for user with ID: " + budgetId);
         }
 
-        Budget budget = optionalBudget.get();
+        Budget budget = optionalBudget;
 
 
         LocalDate effectiveStartDate = (startDate != null) ? startDate : budget.getStartDate();
@@ -963,7 +1019,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     @Override
     @Transactional
     @CacheEvict(value = "expenses", allEntries = true)
-    public void deleteAllExpenses(User user, List<Expense> expenses) {
+    public void deleteAllExpenses(Integer userId, List<Expense> expenses) {
         if (expenses == null || expenses.isEmpty()) {
             throw new IllegalArgumentException("Expenses list cannot be null or empty.");
         }
@@ -987,8 +1043,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 continue;
             }
 
-            if (existing.getUser() == null || !existing.getUser().getId().equals(user.getId())) {
-                errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() + " (Expense belongs to user " + (existing.getUser() != null ? existing.getUser().getId() : "unknown") + ", current user is " + user.getId() + ")");
+            if (existing.getUserId() == null || !existing.getUserId().equals(userId)) {
+                errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() + " (Expense belongs to user " + (existing.getUserId() != null ? existing.getUserId() : "unknown") + ", current user is " + userId + ")");
                 continue;
             }
 
@@ -996,11 +1052,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 Set<Integer> budgetIds = existing.getBudgetIds();
                 if (budgetIds != null) {
                     for (Integer budgetId : budgetIds) {
-                        Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+                        Budget budget = budgetService.getBudgetById(budgetId, userId);
                         if (budget != null && budget.getExpenseIds() != null) {
                             budget.getExpenseIds().remove(existing.getId());
                             budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
-                            budgetRepository.save(budget);
+                            budgetService.save( budget);
                         }
                     }
                 }
@@ -1008,16 +1064,16 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 Integer categoryId = existing.getCategoryId();
                 if (categoryId != null) {
                     try {
-                        Category category = categoryService.getById(categoryId, user);
+                        Category category = categoryService.getById(categoryId, userId);
                         if (category != null && category.getExpenseIds() != null) {
-                            Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                            Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(userId, new HashSet<>());
                             expenseSet.remove(existing.getId());
                             if (expenseSet.isEmpty()) {
-                                category.getExpenseIds().remove(user.getId());
+                                category.getExpenseIds().remove(userId);
                             } else {
-                                category.getExpenseIds().put(user.getId(), expenseSet);
+                                category.getExpenseIds().put(userId, expenseSet);
                             }
-                            categoryRepository.save(category);
+                            categoryService.save( category);
                         }
                     } catch (Exception e) {
                         System.out.println("Error removing expense from category: " + e.getMessage());
@@ -1028,24 +1084,23 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 if (details != null && details.getPaymentMethod() != null && !details.getPaymentMethod().trim().isEmpty()) {
                     String paymentMethodName = details.getPaymentMethod().trim();
                     String paymentType = (details.getType() != null && details.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
-                    List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(user.getId());
-                    PaymentMethod paymentMethod = allMethods.stream()
-                            .filter(pm -> pm.getName().equalsIgnoreCase(paymentMethodName) && pm.getType().equalsIgnoreCase(paymentType))
-                            .findFirst()
-                            .orElse(null);
+                    List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+                    PaymentMethod paymentMethod = allMethods.stream().filter(pm -> pm.getName().equalsIgnoreCase(paymentMethodName) && pm.getType().equalsIgnoreCase(paymentType)).findFirst().orElse(null);
                     if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
                         Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
-                        Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(user.getId(), new HashSet<>());
+                        Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(userId, new HashSet<>());
                         userExpenseSet.remove(existing.getId());
                         if (userExpenseSet.isEmpty()) {
-                            expenseIdsMap.remove(user.getId());
+                            expenseIdsMap.remove(userId);
                         } else {
-                            expenseIdsMap.put(user.getId(), userExpenseSet);
+                            expenseIdsMap.put(userId, userExpenseSet);
                         }
-                        paymentMethodRepository.save(paymentMethod);
+                        paymentMethodService.save(paymentMethod);
                     }
                 }
 
+
+                auditHelper.auditAction(userId, expense.getId().toString(), "EXPENSE", "DELETE", expense);
                 // auditExpenseService.logAudit(user, existing.getId(), "Expense Deleted", existing.getExpense().getExpenseName());
                 expensesToDelete.add(existing);
             } catch (Exception e) {
@@ -1067,20 +1122,20 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     @Override
     @Transactional
     @CacheEvict(value = "expenses", allEntries = true)
-    public void deleteExpensesByIdsWithBillService(List<Integer> ids, User user) throws Exception {
-        deleteExpensesInternal(ids, user, true);
+    public void deleteExpensesByIdsWithBillService(List<Integer> ids, Integer userId) throws Exception {
+        deleteExpensesInternal(ids, userId, true);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = "expenses", allEntries = true)
-    public void deleteExpensesByIds(List<Integer> ids, User user) throws Exception {
-        deleteExpensesInternal(ids, user, false);
+    public void deleteExpensesByIds(List<Integer> ids, Integer userId) throws Exception {
+        deleteExpensesInternal(ids, userId, false);
     }
 
     @Transactional
     @CacheEvict(value = "expenses", allEntries = true)
-    private void deleteExpensesInternal(List<Integer> ids, User user, boolean skipBillCheck) throws Exception {
+    private void deleteExpensesInternal(List<Integer> ids, Integer userId, boolean skipBillCheck) throws Exception {
         if (ids == null || ids.isEmpty()) {
             throw new IllegalArgumentException("Expense ID list cannot be null or empty.");
         }
@@ -1095,10 +1150,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         for (Expense expense : expenses) {
             try {
-                if (expense.getUser() == null || !expense.getUser().getId().equals(user.getId())) {
-                    errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() +
-                            " (Expense belongs to user " + (expense.getUser() != null ? expense.getUser().getId() : "unknown") +
-                            ", current user is " + user.getId() + ")");
+                if (expense.getUserId() == null || !expense.getUserId().equals(userId)) {
+                    errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() + " (Expense belongs to user " + (expense.getUserId() != null ? expense.getUserId() : "unknown") + ", current user is " + userId + ")");
                     continue;
                 }
 
@@ -1110,11 +1163,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 Set<Integer> budgetIds = expense.getBudgetIds();
                 if (budgetIds != null) {
                     for (Integer budgetId : budgetIds) {
-                        Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+                        Budget budget = budgetService.getBudgetById(budgetId, userId);
                         if (budget != null && budget.getExpenseIds() != null) {
                             budget.getExpenseIds().remove(expense.getId());
                             budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
-                            budgetRepository.save(budget);
+                            budgetService.save( budget);
                         }
                     }
                 }
@@ -1123,16 +1176,16 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 Integer categoryId = expense.getCategoryId();
                 if (categoryId != null) {
                     try {
-                        Category category = categoryService.getById(categoryId, user);
+                        Category category = categoryService.getById(categoryId, userId);
                         if (category != null && category.getExpenseIds() != null) {
-                            Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                            Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(userId, new HashSet<>());
                             expenseSet.remove(expense.getId());
                             if (expenseSet.isEmpty()) {
-                                category.getExpenseIds().remove(user.getId());
+                                category.getExpenseIds().remove(userId);
                             } else {
-                                category.getExpenseIds().put(user.getId(), expenseSet);
+                                category.getExpenseIds().put(userId, expenseSet);
                             }
-                            categoryRepository.save(category);
+                            categoryService.save( category);
                         }
                     } catch (Exception e) {
                         System.out.println("Error removing expense from category: " + e.getMessage());
@@ -1143,17 +1196,17 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 ExpenseDetails details = expense.getExpense();
                 if (details != null && details.getPaymentMethod() != null && !details.getPaymentMethod().isEmpty()) {
                     try {
-                        PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), details.getPaymentMethod(),details.getType().equals("loss") ? "expense" : "income");
+                        PaymentMethod paymentMethod = paymentMethodService.getByNameAndType(userId, details.getPaymentMethod(), details.getType().equals("loss") ? "expense" : "income");
                         if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
                             Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
-                            Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(user.getId(), new HashSet<>());
+                            Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(userId, new HashSet<>());
                             userExpenseSet.remove(expense.getId());
                             if (userExpenseSet.isEmpty()) {
-                                expenseIdsMap.remove(user.getId());
+                                expenseIdsMap.remove(userId);
                             } else {
-                                expenseIdsMap.put(user.getId(), userExpenseSet);
+                                expenseIdsMap.put(userId, userExpenseSet);
                             }
-                            paymentMethodRepository.save(paymentMethod);
+                            paymentMethodService.save(paymentMethod);
                         }
                     } catch (Exception e) {
                         System.out.println("Error removing expense from payment method: " + e.getMessage());
@@ -1178,8 +1231,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
     @Override
     @Transactional
-    public void deleteExpense(Integer id, User user) {
-        Expense expense = expenseRepository.findByUserIdAndId(user.getId(), id);
+    public void deleteExpense(Integer id, Integer userId) throws Exception {
+        Expense expense = expenseRepository.findByUserIdAndId(userId, id);
         if (expense == null) {
             throw new RuntimeException("Expense not found with ID: " + id);
         }
@@ -1191,11 +1244,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         Set<Integer> budgetIds = expense.getBudgetIds();
         if (budgetIds != null) {
             for (Integer budgetId : budgetIds) {
-                Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+                Budget budget = budgetService.getBudgetById(budgetId, userId);
                 if (budget != null && budget.getExpenseIds() != null) {
                     budget.getExpenseIds().remove(expense.getId());
                     budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
-                    budgetRepository.save(budget);
+                    budgetService.save( budget);
                 }
             }
         }
@@ -1203,16 +1256,16 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         Integer categoryId = expense.getCategoryId();
         if (categoryId != null) {
             try {
-                Category category = categoryService.getById(categoryId, user);
+                Category category = categoryService.getById(categoryId, userId);
                 if (category != null && category.getExpenseIds() != null) {
-                    Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                    Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(userId, new HashSet<>());
                     expenseSet.remove(expense.getId());
                     if (expenseSet.isEmpty()) {
-                        category.getExpenseIds().remove(user.getId());
+                        category.getExpenseIds().remove(userId);
                     } else {
-                        category.getExpenseIds().put(user.getId(), expenseSet);
+                        category.getExpenseIds().put(userId, expenseSet);
                     }
-                    categoryRepository.save(category);
+                    categoryService.save( category);
                 }
             } catch (Exception e) {
                 System.out.println("Error removing expense from category: " + e.getMessage());
@@ -1223,18 +1276,18 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
             String paymentMethodName = expense.getExpense().getPaymentMethod();
             String type = expense.getExpense().getType();
             try {
-                PaymentMethod paymentMethod = paymentMethodService.getByName(user.getId(), paymentMethodName, type.equals("loss") ? "expense" : "income");
+                PaymentMethod paymentMethod = paymentMethodService.getByNameAndType(userId, paymentMethodName, type.equals("loss") ? "expense" : "income");
                 if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
                     Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
-                    Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(user.getId(), new HashSet<>());
+                    Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(userId, new HashSet<>());
                     userExpenseSet.remove(expense.getId());
                     System.out.println("Removing expense ID " + expense.getId() + " from payment method " + userExpenseSet);
                     if (userExpenseSet.isEmpty()) {
-                        expenseIdsMap.remove(user.getId());
+                        expenseIdsMap.remove(userId);
                     } else {
-                        expenseIdsMap.put(user.getId(), userExpenseSet);
+                        expenseIdsMap.put(userId, userExpenseSet);
                     }
-                    paymentMethodRepository.save(paymentMethod);
+                    paymentMethodService.save(paymentMethod);
                 }
             } catch (Exception e) {
                 System.out.println("Error removing expense from payment method: " + e.getMessage());
@@ -1250,41 +1303,45 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
             cache.evict(id);
 
             // Update user's expense list cache
-            List<Expense> cachedExpenses = cache.get(user.getId(), List.class);
+            List<Expense> cachedExpenses = cache.get(userId, List.class);
             if (cachedExpenses != null) {
                 // Remove the deleted expense from the cached list
                 cachedExpenses.removeIf(exp -> exp.getId().equals(id));
 
                 // Update the cache with the modified list
-                cache.put(user.getId(), cachedExpenses);
-                logger.info("Removed deleted expense ID {} from cache for user: {}", id, user.getId());
+                cache.put(userId, cachedExpenses);
+                logger.info("Removed deleted expense ID {} from cache for user: {}", id, userId);
             } else {
                 // If no cached list exists, evict to force fresh fetch next time
-                cache.evict(user.getId());
-                logger.info("Evicted cache for user: {} due to missing cached list", user.getId());
+                cache.evict(userId);
+                logger.info("Evicted cache for user: {} due to missing cached list", userId);
             }
         }
 
         // Also evict related caches that might be affected
         Cache budgetCache = cacheManager.getCache("budgets");
         if (budgetCache != null) {
-            budgetCache.evict(user.getId());
+            budgetCache.evict(userId);
         }
 
         Cache categoryCache = cacheManager.getCache("categories");
         if (categoryCache != null) {
-            categoryCache.evict(user.getId());
+            categoryCache.evict(userId);
         }
 
         Cache paymentMethodCache = cacheManager.getCache("paymentMethods");
         if (paymentMethodCache != null) {
-            paymentMethodCache.evict(user.getId());
+            paymentMethodCache.evict(userId);
         }
+
+        String expenseJson = jsonConverter.toJson(getExpenseById(id, userId));
+        auditHelper.auditAction(userId, id.toString(), "EXPENSE", "DELETE", expenseJson);
 
         expenseRepository.deleteById(id);
     }
+
     @Override
-    public MonthlySummary getMonthlySummary(Integer year, Integer month, User user) {
+    public MonthlySummary getMonthlySummary(Integer year, Integer month, Integer userId) {
         LocalDate creditDueStartDate = LocalDate.of(year, month, 1).minusMonths(1).withDayOfMonth(17);
         LocalDate creditDueEndDate = LocalDate.of(year, month, 1).withDayOfMonth(16);
 
@@ -1294,8 +1351,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-        List<Expense> creditDueExpenses = expenseRepository.findByUserAndDateBetween(creditDueStartDate, creditDueEndDate, user);
-        List<Expense> generalExpenses = expenseRepository.findByUserAndDateBetween(generalStartDate, generalEndDate, user);
+        List<Expense> creditDueExpenses = expenseRepository.findByUserIdAndDateBetween(userId, creditDueStartDate, creditDueEndDate);
+        List<Expense> generalExpenses = expenseRepository.findByUserIdAndDateBetween(userId, generalStartDate, generalEndDate);
 
         BigDecimal totalGain = BigDecimal.ZERO;
         BigDecimal totalLoss = BigDecimal.ZERO;
@@ -1368,13 +1425,13 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, MonthlySummary> getYearlySummary(Integer year, User user) {
+    public Map<String, MonthlySummary> getYearlySummary(Integer year, Integer userId) {
         Map<String, MonthlySummary> yearlySummary = new LinkedHashMap<>();
 
         String[] monthNames = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
 
         for (int month = 1; month <= 12; month++) {
-            MonthlySummary monthlySummary = getMonthlySummary(year, month, user);
+            MonthlySummary monthlySummary = getMonthlySummary(year, month, userId);
 
 
             if (hasRelevantData(monthlySummary)) {
@@ -1391,7 +1448,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth, Integer endYear, Integer endMonth, User user) {
+    public List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth, Integer endYear, Integer endMonth, Integer userId) {
         List<MonthlySummary> summaries = new ArrayList<>();
 
 
@@ -1403,7 +1460,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         while (!startDate.isAfter(endDate)) {
 
-            MonthlySummary summary = getMonthlySummary(startDate.getYear(), startDate.getMonthValue(), user);
+            MonthlySummary summary = getMonthlySummary(startDate.getYear(), startDate.getMonthValue(), userId);
             summaries.add(summary);
 
 
@@ -1413,66 +1470,33 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         return summaries;
     }
 
+
     @Override
-    @Transactional
-    public List<Expense> saveMultipleExpenses(List<Expense> expenses, User user1) {
-        User user = userRepository.findById(user1.getId()).orElseThrow(() -> new RuntimeException("User not found"));
-        List<Expense> newExpenses = new ArrayList<>();
-        for (Expense expense : expenses) {
-            Expense createExpense = new Expense();
-            ExpenseDetails expenseDetails = new ExpenseDetails();
-
-
-            createExpense.setUser(user);
-            createExpense.setDate(expense.getDate());
-            createExpense.setExpense(expenseDetails);
-
-
-            expenseDetails.setExpenseName(expense.getExpense().getExpenseName());
-            expenseDetails.setType(expense.getExpense().getType());
-            expenseDetails.setCreditDue(expense.getExpense().getCreditDue());
-            expenseDetails.setComments(expense.getExpense().getComments());
-            expenseDetails.setNetAmount(expense.getExpense().getNetAmount());
-            expenseDetails.setPaymentMethod(expense.getExpense().getPaymentMethod());
-            expenseDetails.setAmount(expense.getExpense().getAmount());
-            expenseDetails.setExpense(expense);
-
-
-            newExpenses.add(createExpense);
-
-        }
-
-
-        return expenseRepository.saveAll(newExpenses);
+    public List<Expense> getExpensesByDate(LocalDate date, Integer userId) {
+        return expenseRepository.findByUserIdAndDate(userId, date);
     }
 
 
     @Override
-    public List<Expense> getExpensesByDate(LocalDate date, User user) {
-        return expenseRepository.findByUserAndDate(user, date);
-    }
-
-
-    @Override
-    public List<Expense> getTopNExpenses(int n, User user) {
+    public List<Expense> getTopNExpenses(int n, Integer userId) {
         Pageable pageable = PageRequest.of(0, n);
-        Page<Expense> topExpensesPage = expenseRepository.findTopNExpensesByUserAndAmount(user.getId(), pageable);
+        Page<Expense> topExpensesPage = expenseRepository.findTopNExpensesByUserAndAmount(userId, pageable);
         return topExpensesPage.getContent();
     }
 
     @Override
-    public List<Expense> searchExpensesByName(String expenseName, User user) {
-        return expenseRepository.searchExpensesByUserAndName(user.getId(), expenseName);
+    public List<Expense> searchExpensesByName(String expenseName, Integer userId) {
+        return expenseRepository.searchExpensesByUserAndName(userId, expenseName);
     }
 
     @Override
-    public List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount, User user) {
-        return expenseRepository.filterExpensesByUser(user.getId(), expenseName, startDate, endDate, type, paymentMethod, minAmount, maxAmount);
+    public List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount, Integer userId) {
+        return expenseRepository.filterExpensesByUser(userId, expenseName, startDate, endDate, type, paymentMethod, minAmount, maxAmount);
     }
 
     @Override
-    public List<String> getTopExpenseNames(int topN, User user) {
-        Page<Object[]> results = expenseRepository.findTopExpenseNamesByUser(user.getId(), PageRequest.of(0, topN));
+    public List<String> getTopExpenseNames(int topN, Integer userId) {
+        Page<Object[]> results = expenseRepository.findTopExpenseNamesByUser(userId, PageRequest.of(0, topN));
         Set<String> topExpenseNamesSet = new HashSet<>();
 
         for (Object[] result : results) {
@@ -1499,11 +1523,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, Object> getMonthlySpendingInsights(int year, int month, User user) {
+    public Map<String, Object> getMonthlySpendingInsights(int year, int month, Integer userId) {
         LocalDate startDate = LocalDate.of(year, Month.of(month), 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
-        List<Expense> expenses = expenseRepository.findByUserAndDateBetween(startDate, endDate, user);
+        List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
 
         double totalExpenses = 0;
         double averageDailyExpenses = 0;
@@ -1533,15 +1557,15 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public List<String> getPaymentMethods(User user) {
+    public List<String> getPaymentMethods(Integer userId) {
         List<String> paymentMethodsList = new ArrayList<>(Arrays.asList(CASH, CREDIT_PAID, CREDIT_NEED_TO_PAID));
         return paymentMethodsList;
     }
 
 
     @Override
-    public Map<String, Map<String, Double>> getPaymentMethodSummary(User user) {
-        List<Expense> expenses = expenseRepository.findByUser(user);
+    public Map<String, Map<String, Double>> getPaymentMethodSummary(Integer userId) {
+        List<Expense> expenses = expenseRepository.findByUserId(userId);
         Map<String, Map<String, Double>> paymentMethodSummary = new HashMap<>();
 
         for (Expense expense : expenses) {
@@ -1562,29 +1586,29 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public List<Expense> getExpensesByType(String type, User user) {
-        return expenseRepository.findExpensesWithGainTypeByUser(user.getId());
+    public List<Expense> getExpensesByType(String type, Integer userId) {
+        return expenseRepository.findExpensesWithGainTypeByUser(userId);
     }
 
     @Override
-    public List<Expense> getLossExpenses(User user) {
-        return expenseRepository.findByLossTypeAndUser(user.getId());
-    }
-
-
-    @Override
-    public List<Expense> getExpensesByPaymentMethod(String paymentMethod, User user) {
-        return expenseRepository.findByUserAndPaymentMethod(user.getId(), paymentMethod);
+    public List<Expense> getLossExpenses(Integer userId) {
+        return expenseRepository.findByLossTypeAndUser(userId);
     }
 
 
     @Override
-    public List<Expense> getExpensesByTypeAndPaymentMethod(String type, String paymentMethod, User user) {
-        return expenseRepository.findByUserAndTypeAndPaymentMethod(user.getId(), type, paymentMethod);
+    public List<Expense> getExpensesByPaymentMethod(String paymentMethod, Integer userId) {
+        return expenseRepository.findByUserAndPaymentMethod(userId, paymentMethod);
     }
 
-    public List<String> getTopPaymentMethods(User user) {
-        List<Object[]> results = expenseRepository.findTopPaymentMethodsByUser(user.getId());
+
+    @Override
+    public List<Expense> getExpensesByTypeAndPaymentMethod(String type, String paymentMethod, Integer userId) {
+        return expenseRepository.findByUserAndTypeAndPaymentMethod(userId, type, paymentMethod);
+    }
+
+    public List<String> getTopPaymentMethods(Integer userId) {
+        List<Object[]> results = expenseRepository.findTopPaymentMethodsByUser(userId);
         List<String> topPaymentMethods = new ArrayList<>();
 
         for (Object[] result : results) {
@@ -1596,32 +1620,32 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public List<Expense> getTopGains(User user) {
+    public List<Expense> getTopGains(Integer userId) {
         Pageable pageable = PageRequest.of(0, 10);
-        return expenseRepository.findTop10GainsByUser(user.getId(), pageable);
+        return expenseRepository.findTop10GainsByUser(userId, pageable);
     }
 
     @Override
-    public List<Expense> getTopLosses(User user) {
+    public List<Expense> getTopLosses(Integer userId) {
         Pageable pageable = PageRequest.of(0, 10);
-        return expenseRepository.findTop10LossesByUser(user.getId(), pageable);
+        return expenseRepository.findTop10LossesByUser(userId, pageable);
     }
 
     @Override
-    public List<Expense> getExpensesByMonthAndYear(int month, int year, User user) {
-        return expenseRepository.findByUserAndMonthAndYear(user.getId(), month, year);
+    public List<Expense> getExpensesByMonthAndYear(int month, int year, Integer userId) {
+        return expenseRepository.findByUserAndMonthAndYear(userId, month, year);
     }
 
     @Override
-    public List<String> getUniqueTopExpensesByGain(User user, int limit) {
+    public List<String> getUniqueTopExpensesByGain(Integer userId, int limit) {
         Pageable pageable = PageRequest.of(0, limit);  // Limit the results to the 'limit' number
-        return expenseRepository.findTopExpensesByGainForUser(user.getId(), pageable);
+        return expenseRepository.findTopExpensesByGainForUser(userId, pageable);
     }
 
     @Override
-    public List<String> getUniqueTopExpensesByLoss(User user, int limit) {
+    public List<String> getUniqueTopExpensesByLoss(Integer userId, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
-        List<String> expenseNames = expenseRepository.findTopExpensesByLoss(user.getId(), pageable);
+        List<String> expenseNames = expenseRepository.findTopExpensesByLoss(userId, pageable);
         return getUniqueExpenseNames(expenseNames);
     }
 
@@ -1631,14 +1655,14 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public List<Expense> getExpensesForToday(User user) {
+    public List<Expense> getExpensesForToday(Integer userId) {
         LocalDate today = LocalDate.now();
-        return expenseRepository.findByUserAndDate(user, today);
+        return expenseRepository.findByUserIdAndDate(userId, today);
     }
 
 
     @Override
-    public List<Expense> getExpensesForLastMonth(User user) {
+    public List<Expense> getExpensesForLastMonth(Integer userId) {
 
         LocalDate today = LocalDate.now();
 
@@ -1648,11 +1672,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         LocalDate lastDayOfLastMonth = firstDayOfLastMonth.withDayOfMonth(firstDayOfLastMonth.lengthOfMonth());
 
 
-        return expenseRepository.findByUserAndDateBetween(firstDayOfLastMonth, lastDayOfLastMonth, user);
+        return expenseRepository.findByUserIdAndDateBetween(userId, firstDayOfLastMonth, lastDayOfLastMonth);
     }
 
     @Override
-    public List<Expense> getExpensesForCurrentMonth(User user) {
+    public List<Expense> getExpensesForCurrentMonth(Integer userId) {
         LocalDate today = LocalDate.now();
 
 
@@ -1661,14 +1685,14 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         LocalDate lastDayOfCurrentMonth = today.withDayOfMonth(today.lengthOfMonth());
 
 
-        return expenseRepository.findByUserAndDateBetween(firstDayOfCurrentMonth, lastDayOfCurrentMonth, user);
+        return expenseRepository.findByUserIdAndDateBetween(userId, firstDayOfCurrentMonth, lastDayOfCurrentMonth);
     }
 
 
     @Override
-    public String getCommentsForExpense(Integer expenseId, User user) {
+    public String getCommentsForExpense(Integer expenseId, Integer userId) {
 
-        Expense expense = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
+        Expense expense = expenseRepository.findByUserIdAndId(userId, expenseId);
 
         if (expense != null) {
 
@@ -1681,9 +1705,9 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public String removeCommentFromExpense(Integer expenseId, User user) {
+    public String removeCommentFromExpense(Integer expenseId, Integer userId) {
 
-        Expense expense = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
+        Expense expense = expenseRepository.findByUserIdAndId(userId, expenseId);
 
 
         if (expense != null && expense.getExpense() != null) {
@@ -1700,9 +1724,9 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public ExpenseReport generateExpenseReport(Integer expenseId, User user) {
+    public ExpenseReport generateExpenseReport(Integer expenseId, Integer userId) {
 
-        Expense expenseOptional = expenseRepository.findByUserIdAndId(user.getId(), expenseId);
+        Expense expenseOptional = expenseRepository.findByUserIdAndId(userId, expenseId);
 
         if (expenseOptional != null) {
             Expense expense = expenseOptional;
@@ -1735,17 +1759,15 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
 
-
-
     @Override
-    public List<ExpenseDetails> getExpenseDetailsByAmount(double amount, User user) {
-        return expenseRepository.findByUserAndAmount(user.getId(), amount);
+    public List<ExpenseDetails> getExpenseDetailsByAmount(double amount, Integer userId) {
+        return expenseRepository.findByUserAndAmount(userId, amount);
     }
 
 
     @Override
-    public List<Expense> getExpenseDetailsByAmountRange(double minAmount, double maxAmount, User user) {
-        return expenseRepository.findExpensesByUserAndAmountRange(user.getId(), minAmount, maxAmount);
+    public List<Expense> getExpenseDetailsByAmountRange(double minAmount, double maxAmount, Integer userId) {
+        return expenseRepository.findExpensesByUserAndAmountRange(userId, minAmount, maxAmount);
     }
 
     @Override
@@ -1754,13 +1776,13 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public List<ExpenseDetails> getExpensesByName(String expenseName, User user) {
-        return expenseRepository.findExpensesByUserAndName(user.getId(), expenseName.trim());
+    public List<ExpenseDetails> getExpensesByName(String expenseName, Integer userId) {
+        return expenseRepository.findExpensesByUserAndName(userId, expenseName.trim());
     }
 
     @Override
-    public List<Map<String, Object>> getTotalByCategory(User user) {
-        List<Object[]> result = expenseRepository.findTotalExpensesGroupedByCategory(user.getId());
+    public List<Map<String, Object>> getTotalByCategory(Integer userId) {
+        List<Object[]> result = expenseRepository.findTotalExpensesGroupedByCategory(userId);
         System.out.println("Result size: " + result.size());
         List<Map<String, Object>> response = new ArrayList<>();
 
@@ -1769,7 +1791,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
             Double totalAmount = (Double) row[1];
 
             List<Integer> expenseIds = new ArrayList<>();
-            List<ExpenseDetails> expenseDetailsList = expenseRepository.findExpensesByUserAndName(user.getId(), expenseName);
+            List<ExpenseDetails> expenseDetailsList = expenseRepository.findExpensesByUserAndName(userId, expenseName);
 
             List<String> expenseDates = new ArrayList<>();
             for (ExpenseDetails expenseDetails : expenseDetailsList) {
@@ -1790,9 +1812,9 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, Double> getTotalByDate(User user) {
+    public Map<String, Double> getTotalByDate(Integer userId) {
 
-        List<Object[]> result = expenseRepository.findTotalExpensesGroupedByDate(user.getId());
+        List<Object[]> result = expenseRepository.findTotalExpensesGroupedByDate(userId);
 
 
         Map<String, Double> totalExpensesByDate = new HashMap<>();
@@ -1811,43 +1833,43 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public Double getTotalForToday(User user) {
+    public Double getTotalForToday(Integer userId) {
         LocalDate today = LocalDate.now(); // Get today's date
-        return expenseRepository.findTotalExpensesForToday(today, user.getId());
+        return expenseRepository.findTotalExpensesForToday(today, userId);
     }
 
 
     @Override
-    public Double getTotalForCurrentMonth(User user) {
+    public Double getTotalForCurrentMonth(Integer userId) {
 
         LocalDate today = LocalDate.now();
         int month = today.getMonthValue();
         int year = today.getYear();
 
 
-        return expenseRepository.findTotalExpensesForCurrentMonth(month, year, user.getId());
+        return expenseRepository.findTotalExpensesForCurrentMonth(month, year, userId);
     }
 
     @Override
-    public Double getTotalForMonthAndYear(int month, int year, User user) {
-        return expenseRepository.getTotalByMonthAndYear(month, year, user.getId());
+    public Double getTotalForMonthAndYear(int month, int year, Integer userId) {
+        return expenseRepository.getTotalByMonthAndYear(month, year, userId);
     }
 
     @Override
-    public Double getTotalByDateRange(LocalDate startDate, LocalDate endDate, User user) {
-        return expenseRepository.getTotalByDateRange(startDate, endDate, user.getId());
+    public Double getTotalByDateRange(LocalDate startDate, LocalDate endDate, Integer userId) {
+        return expenseRepository.getTotalByDateRange(startDate, endDate, userId);
     }
 
 
     @Override
-    public Map<String, Double> getPaymentWiseTotalForCurrentMonth(User user) {
+    public Map<String, Double> getPaymentWiseTotalForCurrentMonth(Integer userId) {
 
         LocalDate now = LocalDate.now();
         int currentMonth = now.getMonthValue();
         int currentYear = now.getYear();
 
 
-        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForCurrentMonth(currentMonth, currentYear, user.getId());
+        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForCurrentMonth(currentMonth, currentYear, userId);
 
 
         Map<String, Double> result = new HashMap<>();
@@ -1859,7 +1881,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public Map<String, Double> getPaymentWiseTotalForLastMonth(User user) {
+    public Map<String, Double> getPaymentWiseTotalForLastMonth(Integer userId) {
         LocalDate now = LocalDate.now();
         int currentMonth = now.getMonthValue();
         int currentYear = now.getYear();
@@ -1872,7 +1894,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         }
 
 
-        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForLastMonth(lastMonth, lastYear, user.getId());
+        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForLastMonth(lastMonth, lastYear, userId);
 
         Map<String, Double> result = new HashMap<>();
         for (Object[] obj : paymentWiseTotals) {
@@ -1883,23 +1905,9 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public Map<String, Double> getPaymentWiseTotalForDateRange(LocalDate startDate, LocalDate endDate, User user) {
+    public Map<String, Double> getPaymentWiseTotalForDateRange(LocalDate startDate, LocalDate endDate, Integer userId) {
 
-        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodBetweenDates(startDate, endDate, user.getId());
-
-
-        Map<String, Double> result = new HashMap<>();
-        for (Object[] obj : paymentWiseTotals) {
-            result.put((String) obj[0], (Double) obj[1]);
-        }
-
-        return result;
-    }
-
-    @Override
-    public Map<String, Double> getPaymentWiseTotalForMonth(int month, int year, User user) {
-
-        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForMonth(month, year, user.getId());
+        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodBetweenDates(startDate, endDate, userId);
 
 
         Map<String, Double> result = new HashMap<>();
@@ -1911,9 +1919,23 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethod(int month, int year, User user) {
+    public Map<String, Double> getPaymentWiseTotalForMonth(int month, int year, Integer userId) {
 
-        List<Object[]> totals = expenseRepository.findTotalByExpenseNameAndPaymentMethodForMonth(month, year, user.getId());
+        List<Object[]> paymentWiseTotals = expenseRepository.findTotalByPaymentMethodForMonth(month, year, userId);
+
+
+        Map<String, Double> result = new HashMap<>();
+        for (Object[] obj : paymentWiseTotals) {
+            result.put((String) obj[0], (Double) obj[1]);
+        }
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethod(int month, int year, Integer userId) {
+
+        List<Object[]> totals = expenseRepository.findTotalByExpenseNameAndPaymentMethodForMonth(month, year, userId);
 
 
         Map<String, Map<String, Double>> result = new HashMap<>();
@@ -1932,9 +1954,9 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate, User user) {
+    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate, Integer userId) {
 
-        List<Object[]> totals = expenseRepository.findTotalByExpenseNameAndPaymentMethodForDateRange(startDate, endDate, user.getId());
+        List<Object[]> totals = expenseRepository.findTotalByExpenseNameAndPaymentMethodForDateRange(startDate, endDate, userId);
 
 
         Map<String, Map<String, Double>> result = new HashMap<>();
@@ -1953,8 +1975,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod(User user) {
-        List<Object[]> results = expenseRepository.findTotalExpensesGroupedByCategoryAndPaymentMethod(user.getId());
+    public Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod(Integer userId) {
+        List<Object[]> results = expenseRepository.findTotalExpensesGroupedByCategoryAndPaymentMethod(userId);
         Map<String, Map<String, Double>> groupedExpenses = new HashMap<>();
 
         for (Object[] result : results) {
@@ -1972,9 +1994,10 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     @Autowired
     private JavaMailSender mailSender;
 
-    public String generateExcelReport(User user) throws IOException {
-        List<Expense> expenses = expenseRepository.findByUser(user);
+    public String generateExcelReport(Integer userId) throws Exception {
+        List<Expense> expenses = expenseRepository.findByUserId(userId);
 
+        User user = helper.validateUser(userId);
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Expenses");
 
@@ -2047,7 +2070,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         // Write summary data
         int summaryRowNum = 1;
 
-        List<Category> categories = categoryService.getAllForUser(user);
+        List<Category> categories = categoryService.getAllForUser(userId);
         for (Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
             Integer categoryId = entry.getKey();
             Double totalAmount = entry.getValue();
@@ -2135,7 +2158,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         }
 
 
-        List<Budget> budgets = budgetService.getAllBudgetForUser(user.getId());
+        List<Budget> budgets = budgetService.getAllBudgetForUser(userId);
         Sheet budgetSheet = workbook.createSheet("Budgets");
         Row budgetHeader = budgetSheet.createRow(0);
         budgetHeader.createCell(0).setCellValue("Budget ID");
@@ -2166,7 +2189,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         }
         // Create the file
         String emailPrefix = user.getEmail().split("@")[0];  // Get the part before '@' in the email address
-        String userFolderName = emailPrefix + "_" + user.getId();
+        String userFolderName = emailPrefix + "_" + userId;
         String userFolderPath = Paths.get(System.getProperty("user.home"), "reports", userFolderName).toString();
 
         File userFolder = new File(userFolderPath);
@@ -2180,6 +2203,10 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
             workbook.write(fileOut);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
 
@@ -2275,17 +2302,17 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public List<Expense> getExpensesByCurrentWeek(User user) {
+    public List<Expense> getExpensesByCurrentWeek(Integer userId) {
         LocalDate startDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endDate = startDate.plusDays(6);
-        return expenseRepository.findByUserIdAndDateBetween(user.getId(), startDate, endDate);
+        return expenseRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
     }
 
     @Override
-    public List<Expense> getExpensesByLastWeek(User user) {
+    public List<Expense> getExpensesByLastWeek(Integer userId) {
         LocalDate endDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minusDays(1);
         LocalDate startDate = endDate.minusDays(6);
-        return expenseRepository.findByUserIdAndDateBetween(user.getId(), startDate, endDate);
+        return expenseRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
     }
 
     @Override
@@ -2407,15 +2434,13 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
     @Override
     public List<Expense> saveExpenses(List<Expense> expenses) {
-        int batchsize=100;
-        int i=0;
-        List<Expense>saved=new ArrayList<>();
-        for(Expense e:expenses)
-        {
+        int batchsize = 100;
+        int i = 0;
+        List<Expense> saved = new ArrayList<>();
+        for (Expense e : expenses) {
             entityManager.persist(e);
             saved.add(e);
-            if(++i%batchsize==0)
-            {
+            if (++i % batchsize == 0) {
                 entityManager.flush();
                 entityManager.clear();
             }
@@ -2423,13 +2448,13 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         entityManager.flush();
         entityManager.clear();
-        return  saved;
+        return saved;
     }
 
 
     @Override
-    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDate(User user, String sortOrder) {
-        List<Expense> expenses = expenseRepository.findByUser(user);
+    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDate(Integer userId, String sortOrder) {
+        List<Expense> expenses = expenseRepository.findByUserId(userId);
         Map<String, List<Map<String, Object>>> groupedExpenses = new LinkedHashMap<>();
         Map<String, Integer> dateIndexMap = new LinkedHashMap<>();
 
@@ -2471,10 +2496,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
 
-    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(User user, String sortOrder, int page, int size, String sortBy) {
+    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId, String sortOrder, int page, int size, String sortBy) throws Exception {
         Sort sort = Sort.by(Sort.Order.by(sortBy).with(Sort.Direction.fromString(sortOrder)));
+        User user = helper.validateUser(userId);
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Expense> expensesPage = expenseRepository.findByUser(user, pageable);
+        Page<Expense> expensesPage = expenseRepository.findByUserId(userId, pageable);
 
         Map<String, List<Map<String, Object>>> groupedExpenses = new LinkedHashMap<>();
         Map<String, Integer> dateIndexMap = new LinkedHashMap<>();
@@ -2525,7 +2551,9 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, User user) {
+    public List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, Integer userId) throws Exception {
+
+        User user = helper.validateUser(userId);
         if (expenseDTOs == null || expenseDTOs.isEmpty()) {
             throw new IllegalArgumentException("Expense DTO list cannot be null or empty.");
         }
@@ -2537,14 +2565,14 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         Category othersCategory = null;
         try {
 
-            List<Category> othersCategories = categoryService.getByName(OTHERS, user);
+            List<Category> othersCategories = categoryService.getByName(OTHERS, userId);
 
             if (othersCategories != null && !othersCategories.isEmpty()) {
                 othersCategory = othersCategories.get(0);
                 logger.info("Found existing 'Others' category with ID: " + othersCategory.getId());
             } else {
 
-                othersCategory = createOthersCategory(user);
+                othersCategory = createOthersCategory(userId);
                 logger.info("Created new 'Others' category with ID: " + othersCategory.getId());
             }
         } catch (Exception e) {
@@ -2556,7 +2584,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         for (ExpenseDTO dto : expenseDTOs) {
             try {
                 Expense expense = new Expense();
-                expense.setUser(user);
+                expense.setUserId(userId);
                 expense.setDate(LocalDate.parse(dto.getDate()));
 
 
@@ -2587,7 +2615,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
                 if (categoryId != null) {
                     try {
-                        category = categoryService.getById(categoryId, user);
+                        category = categoryService.getById(categoryId, userId);
                     } catch (Exception e) {
                         System.out.println("Specified category not found: " + e.getMessage());
 
@@ -2600,13 +2628,13 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                         category = othersCategory;
                     } else {
                         try {
-                            List<Category> existingOthers = categoryService.getByName(OTHERS, user);
+                            List<Category> existingOthers = categoryService.getByName(OTHERS, userId);
                             if (existingOthers != null && !existingOthers.isEmpty()) {
                                 category = existingOthers.get(0);
 
                                 othersCategory = category;
                             } else {
-                                category = createOthersCategory(user);
+                                category = createOthersCategory(userId);
                                 othersCategory = category;
                             }
                         } catch (Exception e) {
@@ -2626,20 +2654,20 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                     category.setExpenseIds(new HashMap<>());
                 }
 
-                Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(user.getId(), new HashSet<>());
+                Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(userId, new HashSet<>());
                 expenseSet.add(savedExpense.getId());
-                category.getExpenseIds().put(user.getId(), expenseSet);
+                category.getExpenseIds().put(userId, expenseSet);
 
 
-                categoryRepository.save(category);
+                categoryService.save(category);
 
 
                 Set<Integer> validBudgetIds = new HashSet<>();
                 if (dto.getBudgetIds() != null) {
                     for (Integer budgetId : dto.getBudgetIds()) {
-                        Optional<Budget> budgetOpt = budgetRepository.findByUserIdAndId(user.getId(), budgetId);
-                        if (budgetOpt.isPresent()) {
-                            Budget budget = budgetOpt.get();
+                        Budget budgetOpt = budgetService.getBudgetById(budgetId, userId);
+                        if (budgetOpt != null) {
+                            Budget budget = budgetOpt;
                             if (!savedExpense.getDate().isBefore(budget.getStartDate()) && !savedExpense.getDate().isAfter(budget.getEndDate())) {
                                 validBudgetIds.add(budgetId);
                             }
@@ -2654,12 +2682,12 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
                 for (Integer budgetId : validBudgetIds) {
-                    Budget budget = budgetRepository.findByUserIdAndId(user.getId(), budgetId).orElse(null);
+                    Budget budget = budgetService.getBudgetById(budgetId, userId);
                     if (budget != null) {
                         if (budget.getExpenseIds() == null) budget.setExpenseIds(new HashSet<>());
                         budget.getExpenseIds().add(savedExpense.getId());
                         budget.setBudgetHasExpenses(true);
-                        budgetRepository.save(budget);
+                        budgetService.save( budget);
                     }
                 }
 
@@ -2678,9 +2706,9 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         return savedExpenses;
     }
 
-    private Category createOthersCategory(User user) throws Exception {
+    private Category createOthersCategory(Integer userId) throws Exception {
         try {
-            List<Category> existingCategories = categoryService.getByName(OTHERS, user);
+            List<Category> existingCategories = categoryService.getByName(OTHERS, userId);
             if (existingCategories != null && !existingCategories.isEmpty()) {
                 Category existingCategory = existingCategories.get(0);
 
@@ -2688,14 +2716,14 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 if (existingCategory.getUserIds() == null) {
                     existingCategory.setUserIds(new HashSet<>());
                 }
-                existingCategory.getUserIds().add(user.getId());
+                existingCategory.getUserIds().add(userId);
 
                 if (existingCategory.getEditUserIds() == null) {
                     existingCategory.setEditUserIds(new HashSet<>());
                 }
-                existingCategory.getEditUserIds().add(user.getId());
+                existingCategory.getEditUserIds().add(userId);
 
-                return categoryRepository.save(existingCategory);
+                return categoryService.save( existingCategory);
             }
 
 
@@ -2708,15 +2736,13 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
             newCategory.setUserIds(new HashSet<>());
-            newCategory.getUserIds().add(user.getId());
+            newCategory.getUserIds().add(userId);
 
             newCategory.setEditUserIds(new HashSet<>());
-            newCategory.getEditUserIds().add(user.getId());
+            newCategory.getEditUserIds().add(userId);
 
             newCategory.setExpenseIds(new HashMap<>());
-
-
-            return categoryRepository.save(newCategory);
+            return categoryService.create(newCategory, userId);
         } catch (Exception e) {
             System.err.println("Error creating 'Others' category: " + e.getMessage());
             e.printStackTrace();
@@ -2726,8 +2752,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, Object> getExpenseByName(User user, int year) {
-        List<Object[]> results = expenseRepository.findExpenseByNameAndUserId(year, user.getId());
+    public Map<String, Object> getExpenseByName(Integer userId, int year) {
+        List<Object[]> results = expenseRepository.findExpenseByNameAndUserId(year, userId);
         Map<String, Object> response = new LinkedHashMap<>();
         String[] labels = new String[Math.min(results.size(), 5)];
         Double[] data = new Double[Math.min(results.size(), 5)];
@@ -2743,8 +2769,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public Map<String, Object> getMonthlyExpenses(User user, int year) {
-        List<Object[]> results = expenseRepository.findMonthlyLossExpensesByUserId(year, user.getId());
+    public Map<String, Object> getMonthlyExpenses(Integer userId, int year) {
+        List<Object[]> results = expenseRepository.findMonthlyLossExpensesByUserId(year, userId);
 
         String[] labels = new String[]{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
         Double[] data = new Double[12];
@@ -2765,8 +2791,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, Object> getExpenseTrend(User user, int year) {
-        List<Object[]> results = expenseRepository.findMonthlyLossExpensesByUserId(year, user.getId());
+    public Map<String, Object> getExpenseTrend(Integer userId, int year) {
+        List<Object[]> results = expenseRepository.findMonthlyLossExpensesByUserId(year, userId);
 
         String[] labels = new String[]{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
         Double[] data = new Double[12];
@@ -2789,8 +2815,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, Object> getPaymentMethodDistribution(User user, int year) {
-        List<Object[]> results = expenseRepository.findPaymentMethodDistributionByUserId(year, user.getId());
+    public Map<String, Object> getPaymentMethodDistribution(Integer userId, int year) {
+        List<Object[]> results = expenseRepository.findPaymentMethodDistributionByUserId(year, userId);
         Map<String, Object> response = new LinkedHashMap<>();
         String[] labels = new String[results.size()];
         Double[] data = new Double[results.size()];
@@ -2806,13 +2832,13 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public Map<String, Object> getCumulativeExpenses(User user, int year) {
+    public Map<String, Object> getCumulativeExpenses(Integer userId, int year) {
 
-        List<Object[]> results = expenseRepository.findExpensesWithDetailsByUserIdAndYear(year, user.getId());
+        List<Expense> results = expenseRepository.findExpensesWithDetailsByUserIdAndYear(year, userId);
         Map<Month, Double> monthlyTotals = new TreeMap<>();
-        for (Object[] result : results) {
-            Expense expense = (Expense) result[0];
-            ExpenseDetails details = (ExpenseDetails) result[1];
+        for (Expense expense : results) {
+
+            ExpenseDetails details = expense.getExpense();
 
             Month month = expense.getDate().getMonth();
             double amount = details.getAmount();
@@ -2878,8 +2904,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, Object> getExpenseNameOverTime(User user, int year, int limit) {
-        List<Expense> expenses = expenseRepository.findByYearAndUser(year, user.getId());
+    public Map<String, Object> getExpenseNameOverTime(Integer userId, int year, int limit) {
+        List<Expense> expenses = expenseRepository.findByYearAndUser(year, userId);
 
         Map<String, Map<Integer, Double>> monthlySums = new HashMap<>();
         Map<String, Double> totalPerExpense = new HashMap<>();
@@ -2966,6 +2992,8 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, startOfMonth, endOfMonth);
 
+        System.out.println("Expenses for current month: " + expenses.size());
+
         double totalSpending = expenses.stream().filter(e -> e.getExpense() != null).filter(e -> "loss".equalsIgnoreCase(e.getExpense().getType())).filter(e -> !CREDIT_PAID.equalsIgnoreCase(e.getExpense().getPaymentMethod())).mapToDouble(e -> e.getExpense().getAmount()).sum();
 
         double totalIncome = expenses.stream().filter(e -> e.getExpense() != null).filter(e -> "gain".equalsIgnoreCase(e.getExpense().getType())).filter(e -> CASH.equalsIgnoreCase(e.getExpense().getPaymentMethod())).mapToDouble(e -> e.getExpense().getAmount()).sum();
@@ -3005,7 +3033,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
 
-    private List<Expense> getExpensesWithinRange(User user, String rangeType, int offset, String flowType) {
+    private List<Expense> getExpensesWithinRange(Integer userId, String rangeType, int offset, String flowType) {
         LocalDate now = LocalDate.now();
         LocalDate startDate;
         LocalDate endDate;
@@ -3029,7 +3057,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 endDate = now.withDayOfMonth(now.lengthOfMonth());
         }
 
-        return getExpensesWithinRange(user.getId(), startDate, endDate, flowType);
+        return getExpensesWithinRange(userId, startDate, endDate, flowType);
     }
 
     @Override
@@ -3054,18 +3082,18 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public List<Expense> getExpensesByCategoryId(Integer categoryId, User user) {
+    public List<Expense> getExpensesByCategoryId(Integer categoryId, Integer userId) {
         try {
 
-            Category category = categoryService.getById(categoryId, user);
+            Category category = categoryService.getById(categoryId, userId);
             if (category == null) {
                 throw new RuntimeException("Category not found with ID: " + categoryId);
             }
 
 
             Set<Integer> expenseIds = new HashSet<>();
-            if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(user.getId())) {
-                expenseIds = category.getExpenseIds().get(user.getId());
+            if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(userId)) {
+                expenseIds = category.getExpenseIds().get(userId);
             }
 
             if (expenseIds.isEmpty()) {
@@ -3073,7 +3101,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
             }
 
 
-            List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(user.getId(), expenseIds);
+            List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(userId, expenseIds);
 
             return expenses;
         } catch (Exception e) {
@@ -3085,11 +3113,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
     @Override
     @Transactional
-    public Map<Category, List<Expense>> getAllExpensesByCategories(User user) {
+    public Map<Category, List<Expense>> getAllExpensesByCategories(Integer userId) {
 
-        List<Category> userCategories = categoryService.getAllForUser(user);
+        List<Category> userCategories = categoryService.getAllForUser(userId);
 
-        List<Expense> userExpenses = getAllExpenses(user);
+        List<Expense> userExpenses = getAllExpenses(userId);
 
 
         Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
@@ -3121,7 +3149,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, Object> getFilteredExpensesByCategories(User user, String rangeType, int offset, String flowType) {
+    public Map<String, Object> getFilteredExpensesByCategories(Integer userId, String rangeType, int offset, String flowType) {
 
         LocalDate now = LocalDate.now();
         LocalDate startDate;
@@ -3149,10 +3177,10 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
         }
 
 
-        List<Category> userCategories = categoryService.getAllForUser(user);
+        List<Category> userCategories = categoryService.getAllForUser(userId);
 
 
-        List<Expense> filteredExpenses = getExpensesWithinRange(user.getId(), startDate, endDate, flowType);
+        List<Expense> filteredExpenses = getExpensesWithinRange(userId, startDate, endDate, flowType);
 
 
         Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
@@ -3283,13 +3311,13 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByDateRange(User user, LocalDate fromDate, LocalDate toDate, String flowType) {
+    public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) {
 
 
-        List<Category> userCategories = categoryService.getAllForUser(user);
+        List<Category> userCategories = categoryService.getAllForUser(userId);
 
 
-        List<Expense> filteredExpenses = getExpensesWithinRange(user.getId(), fromDate, toDate, flowType);
+        List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
 
 
         Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
@@ -3426,10 +3454,10 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, Object> getFilteredExpensesByPaymentMethod(User user, LocalDate fromDate, LocalDate toDate, String flowType) {
+    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) {
 
         // Get filtered expenses for the user
-        List<Expense> filteredExpenses = getExpensesWithinRange(user.getId(), fromDate, toDate, flowType);
+        List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
 
         // Group expenses by payment method
         Map<String, List<Expense>> paymentMethodExpensesMap = new HashMap<>();
@@ -3520,7 +3548,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
 
     @Override
-    public Map<String, Object> getFilteredExpensesByPaymentMethod(User user, String rangeType, int offset, String flowType) {
+    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset, String flowType) {
         LocalDate now = LocalDate.now();
         LocalDate startDate;
         LocalDate endDate;
@@ -3546,13 +3574,11 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
                 throw new IllegalArgumentException("Invalid rangeType. Valid options are: week, month, year, custom");
         }
 
-        List<Expense> filteredExpenses = getExpensesWithinRange(user.getId(), startDate, endDate, flowType);
+        List<Expense> filteredExpenses = getExpensesWithinRange(userId, startDate, endDate, flowType);
         Map<String, List<Expense>> paymentMethodExpensesMap = new HashMap<>();
 
         for (Expense expense : filteredExpenses) {
-            String pmName = (expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null)
-                    ? expense.getExpense().getPaymentMethod()
-                    : "Unknown";
+            String pmName = (expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null) ? expense.getExpense().getPaymentMethod() : "Unknown";
             paymentMethodExpensesMap.computeIfAbsent(pmName, k -> new ArrayList<>()).add(expense);
         }
 
@@ -3578,7 +3604,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
             paymentMethodTotals.put(pmName, methodTotal);
 
             // Here, you would fetch the PaymentMethod entity & populate extra info:
-            PaymentMethod pmEntity = paymentMethodService.getByName(user.getId(), pmName);
+            PaymentMethod pmEntity = paymentMethodService.getByNameWithService(userId, pmName);
             Map<String, Object> methodDetails = new HashMap<>();
             methodDetails.put("id", pmEntity != null ? pmEntity.getId() : null);
             methodDetails.put("name", pmEntity != null ? pmEntity.getName() : pmName);
@@ -3605,6 +3631,7 @@ public class ExpenseServiceImpl implements ExpenseService , Serializable {
 
         return response;
     }
+
     private String getThemeAppropriateColor(String categoryName) {
         Map<String, String> colorMap = new HashMap<>();
         colorMap.put("food", "#5b7fff");       // Blue

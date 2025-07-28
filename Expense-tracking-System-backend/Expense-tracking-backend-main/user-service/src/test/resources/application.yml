@@ -1,0 +1,74 @@
+# Test JWT Tokens Configuration
+test:
+  jwt:
+    admin-token: eyJhbGciOiJIUzM4NCJ9.eyJpYXQiOjE3NTA1NzY0NTksImV4cCI6MTc1MDY2Mjg1OSwiZW1haWwiOiJqYXlhQGdtYWlsLmNvbSIsImF1dGhvcml0aWVzIjoiUk9MRV9BRE1JTiJ9.VCMJDo5sbrY7IliTu60AFGetgd5L6yPvIV-Tco8RIN9XLSz2pE0eBDAzwaIT6Y_O
+    user-token: eyJhbGciOiJIUzM4NCJ9.eyJpYXQiOjE3NTA1NzcyNTQsImV4cCI6MTc1MDY2MzY1NCwiZW1haWwiOiJwcmFrYXNoQGdtYWlsLmNvbSIsImF1dGhvcml0aWVzIjoiUk9MRV9VU0VSIn0.xI7LQ8wlWngxtwSKJKr9Fy4_wDVz7xaMk3CVOK98lFvvrw_0Mv8yA3wlB-QA1dV5
+  user:
+    admin:
+      email: jaya@gmail.com
+      name: Admin User
+    regular:
+      email: prakash@gmail.com
+      name: Regular User
+  endpoints:
+    auth:
+      signup: /auth/signup
+      signin: /auth/signin
+    user:
+      profile: /api/user/profile
+      email: /api/user/email
+      base: /api/user
+    admin:
+      users: /api/admin/users
+
+# Spring Configuration
+spring:
+  profiles:
+    active: test
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+  security:
+    debug: false
+
+# Logging Configuration
+logging:
+  level:
+    com.jaya.task.user.service: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# Test specific configurations
+test-config:
+  cleanup:
+    enabled: true
+  mock:
+    enabled: true
+  validation:
+    strict: true

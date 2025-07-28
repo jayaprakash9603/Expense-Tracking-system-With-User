@@ -7,9 +7,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Notification-Service" />
+        <module name="User-service" />
+        <module name="Audit-Service (2)" />
         <module name="Audit-Service (1)" />
+        <module name="Notification-Service" />
         <module name="social-media-app" />
+        <module name="Payment-method-Service" />
         <module name="eureka-server" />
         <module name="Audit-Service" />
         <module name="gateway" />
@@ -23,8 +26,11 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Audit-Service" options="-parameters" />
       <module name="Audit-Service (1)" options="-parameters" />
+      <module name="Audit-Service (2)" options="-parameters" />
       <module name="Notification-Service" options="-parameters" />
+      <module name="Payment-method-Service" options="-parameters" />
       <module name="Submission-service" options="-parameters" />
+      <module name="User-service" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="social-media-app" options="-parameters" />

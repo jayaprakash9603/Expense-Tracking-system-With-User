@@ -3,6 +3,7 @@ package com.jaya.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.jaya.dto.User;
 
 @Entity
 @Getter
@@ -14,11 +15,10 @@ public class Friendship {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @ManyToOne
-    private User requester; // User who sent the request
 
-    @ManyToOne
-    private User recipient; // User who receives the request
+    private Integer  requesterId; // User who sent the request
+
+    private Integer recipientId; // User who receives the request
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)

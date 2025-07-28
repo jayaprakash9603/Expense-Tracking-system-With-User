@@ -18,10 +18,10 @@ public class UserSummaryDTO {
 
     // Add this method to a utility class or inside UserSummaryDTO as a static method
 
-    public static UserSummaryDTO fromUser(com.jaya.models.User user) {
+    public static UserSummaryDTO fromUser(com.jaya.dto.User user) {
         if (user == null) return null;
         return new UserSummaryDTO(
-                user.getId(),
+                Math.toIntExact(user.getId()),
                 user.getUsername(),
                 user.getEmail(),
                 user.getFirstName(),

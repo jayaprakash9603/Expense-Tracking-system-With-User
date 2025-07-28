@@ -1,12 +1,13 @@
 package com.jaya.controller;
 
+import com.jaya.dto.User;
 import com.jaya.exceptions.UserException;
 import com.jaya.models.Bill;
-import com.jaya.models.User;
 import com.jaya.response.Error;
 import com.jaya.service.BillService;
 import com.jaya.service.FriendshipService;
 import com.jaya.service.UserService;
+import com.jaya.util.ServiceHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -23,15 +24,16 @@ public class BillController {
 
     private final BillService billService;
     private final UserService userService;
+    private final ServiceHelper helper;
     private final FriendshipService friendshipService;
 
 
-    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser) throws UserException {
+    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser) throws Exception {
         if (targetId == null) {
             return reqUser;
         }
 
-        User targetUser = userService.findUserById(targetId);
+        User targetUser = helper.validateUser(targetId);
         if (targetUser == null) {
             throw new UserException("Target user not found");
         }
@@ -47,14 +49,22 @@ public class BillController {
 
         return targetUser;
     }
-    @PostMapping
-    public ResponseEntity<Bill> createBill(@RequestBody Bill bill, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) throws UserException {
 
+    @PostMapping
+    public ResponseEntity<?> createBill(@RequestBody Bill bill, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) {
+        try {
+            System.out.println("token: " + jwt);
             User reqUser = userService.findUserByJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
             Bill createdBill = billService.createBill(bill, targetUser.getId());
             return ResponseEntity.ok(createdBill);
+        } catch (UserException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating bill: " + e.getMessage());
+        }
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Bill> getBillById(@PathVariable Integer id, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) {
@@ -69,7 +79,7 @@ public class BillController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Bill> updateBill(@PathVariable Integer id, @RequestBody Bill bill, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) throws UserException {
+    public ResponseEntity<Bill> updateBill(@PathVariable Integer id, @RequestBody Bill bill, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) throws Exception {
 
             User reqUser = userService.findUserByJwt(jwt);
         User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
@@ -152,6 +162,8 @@ public class BillController {
             }else if (startDate != null && endDate != null) {
                 bills = billService.getBillsWithinRange(targetUser.getId(), startDate, endDate);
             } else {
+
+                System.out.print("all bills called");
                 bills = billService.getAllBillsForUser(targetUser.getId());
             }
             return ResponseEntity.ok(bills);
