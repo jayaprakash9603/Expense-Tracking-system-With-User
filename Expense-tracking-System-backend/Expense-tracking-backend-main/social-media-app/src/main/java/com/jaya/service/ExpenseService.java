@@ -34,9 +34,9 @@ public interface ExpenseService {
             String rangeType,
             int offset,
             String flowType
-    );
+    ) throws Exception;
 
-    Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType);
+    Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) throws Exception;
     public Map<String, Object> getFilteredExpensesByPaymentMethod(
             Integer userId,
             LocalDate fromDate,
@@ -44,7 +44,7 @@ public interface ExpenseService {
             String flowType);
 
     Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset, String flowType);
-    Map<Category, List<Expense>> getAllExpensesByCategories(Integer userId);
+    Map<Category, List<Expense>> getAllExpensesByCategories(Integer userId) throws Exception;
     Expense getExpenseById(Integer id,Integer userId);
     List<Expense> getTopNExpenses(int n,Integer userId);
 

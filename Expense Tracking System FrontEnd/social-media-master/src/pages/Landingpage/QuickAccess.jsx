@@ -1,4 +1,8 @@
 import React from "react";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong"; // Expense
+import RequestQuoteIcon from "@mui/icons-material/RequestQuote"; // Bill
+import CloudUploadIcon from "@mui/icons-material/CloudUpload"; // Upload
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet"; // Budget
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 import { useTheme, useMediaQuery } from "@mui/material";
@@ -56,19 +60,23 @@ const QuickAccess = () => {
     borderRadius: "8px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     cursor: "pointer",
-    gap: "4px",
+    paddingLeft: 18,
+    paddingRight: 18,
+    gap: 0,
   };
 
   const iconContainerStyle = (bgColor) => ({
-    width: "48px",
-    height: "48px",
+    width: 48,
+    height: 48,
     backgroundColor: bgColor,
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
+    marginRight: 14,
   });
 
   const textStyle = { color: "white", fontWeight: "bold" };
@@ -97,23 +105,17 @@ const QuickAccess = () => {
       <div style={quickAccessBoxContainer}>
         <div style={boxStyle} onClick={() => handleClick("/expenses/create")}>
           <div style={iconContainerStyle("#f11f99")}>
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/5501/5501384.png"
-              alt="Expense Icon"
-              style={{ width: "24px", height: "24px" }}
-            />
+            <ReceiptLongIcon style={{ color: "#fff", width: 24, height: 24 }} />
           </div>
           <div style={textStyle}>+ New Expense</div>
         </div>
-        <div style={boxStyle} onClick={() => handleClick("/create")}>
+        <div style={boxStyle} onClick={() => handleClick("/bill/create")}>
           <div style={iconContainerStyle("#222255")}>
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/5501/5501384.png"
-              alt="Expense Icon"
-              style={{ width: "24px", height: "24px" }}
+            <RequestQuoteIcon
+              style={{ color: "#fff", width: 24, height: 24 }}
             />
           </div>
-          <div style={textStyle}>+ New Expense</div>
+          <div style={textStyle}>+ New Bill</div>
         </div>
         <div
           style={boxStyle}
@@ -123,20 +125,14 @@ const QuickAccess = () => {
           }}
         >
           <div style={iconContainerStyle("#124241")}>
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/5501/5501384.png"
-              alt="Expense Icon"
-              style={{ width: "24px", height: "24px" }}
-            />
+            <CloudUploadIcon style={{ color: "#fff", width: 24, height: 24 }} />
           </div>
           <div style={textStyle}>+ Upload File</div>
         </div>
         <div style={boxStyle} onClick={() => handleClick("/budget/create")}>
           <div style={iconContainerStyle("#682b3b")}>
-            <img
-              src="https://cdn-icons-png.flaticon.com/128/2488/2488980.png"
-              alt="Budget Icon"
-              style={{ width: "24px", height: "24px" }}
+            <AccountBalanceWalletIcon
+              style={{ color: "#fff", width: 24, height: 24 }}
             />
           </div>
           <div style={textStyle}>+ New Budget</div>

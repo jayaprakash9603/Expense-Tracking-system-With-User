@@ -138,6 +138,13 @@ const Left = () => {
             />
 
             <MenuItem
+              name="Gruoups"
+              path="/groups"
+              icon={require("../../assests/grid.png")}
+              setIsSidebarOpen={setIsSidebarOpen}
+            />
+
+            <MenuItem
               name="Logout"
               path="/login"
               icon="https://cdn-icons-png.flaticon.com/128/1828/1828471.png"

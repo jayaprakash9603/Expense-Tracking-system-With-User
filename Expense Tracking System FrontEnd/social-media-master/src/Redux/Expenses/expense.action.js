@@ -298,6 +298,28 @@ export const deleteExpenseAction = (id, targetId) => async (dispatch) => {
   }
 };
 
+export const deleteMultiExpenses = (ids, targetId) => async (dispatch) => {
+  dispatch({ type: DELETE_EXPENSE_REQUEST });
+
+  try {
+    await api.delete(
+      `/api/expenses/delete-multiple?targetId=${targetId || ""}`,
+      { data: ids }
+    );
+    dispatch({
+      type: DELETE_EXPENSE_SUCCESS,
+      payload: "Expense deleted successfully",
+    });
+    console.log("Expense deleted successfully");
+  } catch (error) {
+    dispatch({
+      type: DELETE_EXPENSE_FAILURE,
+      payload: error.message,
+    });
+    console.error("Error deleting expense:", error);
+  }
+};
+
 export const fetchPreviousExpenses =
   (expenseName, date, targetId) => async (dispatch) => {
     dispatch({ type: FETCH_PREVIOUS_EXPENSES_REQUEST });

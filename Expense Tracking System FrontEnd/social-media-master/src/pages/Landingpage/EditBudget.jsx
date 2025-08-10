@@ -101,6 +101,7 @@ const EditBudget = () => {
     });
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -114,6 +115,7 @@ const EditBudget = () => {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
+      setIsSubmitting(true);
       try {
         // Collect expense IDs where includeInBudget is checked
         const expenseIds = expenses
@@ -147,6 +149,8 @@ const EditBudget = () => {
       } catch (error) {
         console.error("Submission error:", error);
         navigate(-1, "Budget updated successfully.", "success");
+      } finally {
+        setIsSubmitting(false);
       }
     } else {
       navigate(-1, "Please fill out all required fields correctly.", "error");
@@ -524,11 +528,49 @@ const EditBudget = () => {
         <div className="w-full flex justify-end mt-4 sm:mt-8">
           <button
             onClick={handleSubmit}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px]"
+            className={`py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] transition-all duration-200 w-full sm:w-[120px] ${
+              isSubmitting ? "sm:w-[180px]" : ""
+            }`}
+            disabled={isSubmitting}
+            style={{
+              position: "relative",
+              opacity: isSubmitting ? 0.7 : 1,
+              minWidth: isSubmitting ? 180 : 120,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1rem",
+              gap: isSubmitting ? 10 : 0,
+            }}
           >
-            Submit
+            {isSubmitting ? (
+              <>
+                <span
+                  className="loader"
+                  style={{
+                    width: 20,
+                    height: 20,
+                    border: "3px solid #fff",
+                    borderTop: "3px solid #00DAC6",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                    display: "inline-block",
+                    marginRight: 10,
+                  }}
+                ></span>
+                <span>Submitting...</span>
+              </>
+            ) : (
+              "Submit"
+            )}
           </button>
         </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
       {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <style>

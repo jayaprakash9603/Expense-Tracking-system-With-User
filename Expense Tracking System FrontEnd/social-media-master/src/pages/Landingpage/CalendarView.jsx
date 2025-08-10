@@ -18,6 +18,22 @@ import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
+// Helper to get the salary date for a given year and month
+function getSalaryDate(year, month) {
+  // month: 0-based (0=Jan, 11=Dec)
+  let lastDay = dayjs(`${year}-${month + 1}-01`).endOf("month");
+  let dayOfWeek = lastDay.day(); // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+  if (dayOfWeek === 6) {
+    // Saturday
+    return lastDay.subtract(1, "day"); // Friday
+  } else if (dayOfWeek === 0) {
+    // Sunday
+    return lastDay.subtract(2, "day"); // Friday
+  } else {
+    return lastDay;
+  }
+}
+
 // Helper to get all days in a month
 function getDaysArray(year, month) {
   const numDays = dayjs(`${year}-${month + 1}-01`).daysInMonth();
@@ -522,95 +538,183 @@ const CalendarView = () => {
           {Array.from({ length: startDay }).map((_, i) => (
             <Grid item xs={1} key={`empty-${i}`}></Grid>
           ))}
-          {days.map((day) => {
-            const key = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
-            const profit = daysData[key]?.profit || 0;
-            const gain = daysData[key]?.gain || 0;
-            return (
-              <Grid
-                item
-                xs={1}
-                key={day}
-                sx={{
-                  borderRadius: 2,
-                  position: "relative",
-                  overflow: "visible",
-                }}
-              >
-                <Box
-                  onClick={() => handleDayClick(day)}
+          {(() => {
+            const salaryDate = getSalaryDate(
+              selectedDate.year(),
+              selectedDate.month()
+            );
+            const salaryDay = salaryDate.date();
+            const salaryMonth = salaryDate.month();
+            const salaryYear = salaryDate.year();
+            return days.map((day) => {
+              const key = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
+              const profit = daysData[key]?.profit || 0;
+              const gain = daysData[key]?.gain || 0;
+              const isToday = dayjs().isSame(
+                dayjs(selectedDate).date(day),
+                "day"
+              );
+              const isSalaryDay =
+                day === salaryDay &&
+                selectedDate.month() === salaryMonth &&
+                selectedDate.year() === salaryYear;
+              return (
+                <Grid
+                  item
+                  xs={1}
+                  key={day}
                   sx={{
                     borderRadius: 2,
-                    background: "#0b0b0b",
-                    cursor: "pointer",
-                    p: 1,
-                    minHeight: isSmallScreen ? 50 : 60,
-                    height: isSmallScreen ? 70 : 80,
-                    textAlign: "center",
-                    transition: "background 0.2s",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
                     position: "relative",
-                    zIndex: 3,
+                    overflow: "visible",
                   }}
                 >
-                  <Typography variant="body1" fontWeight={700} color="#fff">
-                    {day}
-                  </Typography>
-                  {(profit !== 0 || gain !== 0) && (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "flex-start",
-                        justifyContent: "center",
-                        gap: 1,
-                        width: "100%",
-                        mt: 2.2,
-                      }}
-                    >
-                      {profit !== 0 && (
-                        <Typography
-                          variant="caption"
+                  <Box
+                    onClick={() => handleDayClick(day)}
+                    sx={{
+                      borderRadius: 2,
+                      background: "#0b0b0b",
+                      border:
+                        isSalaryDay && isToday
+                          ? "none"
+                          : isToday
+                          ? "2.5px solid #00dac6"
+                          : "1.5px solid #444",
+                      cursor: "pointer",
+                      p: 1,
+                      minHeight: isSmallScreen ? 50 : 60,
+                      height: isSmallScreen ? 70 : 80,
+                      textAlign: "center",
+                      transition: "background 0.2s, border 0.2s",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      position: "relative",
+                      zIndex: 3,
+                    }}
+                  >
+                    {/* Show green corner borders only if today is salary day */}
+                    {isSalaryDay && isToday && (
+                      <>
+                        {/* Top Right */}
+                        <Box
                           sx={{
-                            color: "#fff",
-                            background: "rgba(255, 77, 79, 0.4)", // Lower transparency for losses
-                            display: "inline-block",
-                            fontWeight: 700,
-                            borderRadius: 1,
-                            px: 1.5,
-                            minWidth: 32,
-                            textAlign: "center",
+                            position: "absolute",
+                            top: 0,
+                            right: 0,
+                            width: 20,
+                            height: 20,
+                            pointerEvents: "none",
+                            zIndex: 10,
+                            borderTop: "2.5px solid #22c55e",
+                            borderRight: "2.5px solid #22c55e",
+                            borderTopRightRadius: 6,
                           }}
-                        >
-                          ₹{Math.abs(profit).toFixed(0)}
-                        </Typography>
-                      )}
-                      {gain !== 0 && (
-                        <Typography
-                          variant="caption"
+                        />
+                        {/* Top Left */}
+                        <Box
                           sx={{
-                            color: "#fff",
-                            background: "rgba(6, 214, 160, 0.4)", // Lower transparency for gains
-                            display: "inline-block",
-                            fontWeight: 700,
-                            borderRadius: 1,
-                            px: 1.5,
-                            minWidth: 32,
-                            textAlign: "center",
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: 20,
+                            height: 20,
+                            pointerEvents: "none",
+                            zIndex: 10,
+                            borderTop: "2.5px solid #22c55e",
+                            borderLeft: "2.5px solid #22c55e",
+                            borderTopLeftRadius: 6,
                           }}
-                        >
-                          ₹{gain.toFixed(0)}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-                </Box>
-              </Grid>
-            );
-          })}
+                        />
+                        {/* Bottom Right */}
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 0,
+                            right: 0,
+                            width: 20,
+                            height: 20,
+                            pointerEvents: "none",
+                            zIndex: 10,
+                            borderBottom: "2.5px solid #22c55e",
+                            borderRight: "2.5px solid #22c55e",
+                            borderBottomRightRadius: 6,
+                          }}
+                        />
+                        {/* Bottom Left */}
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 0,
+                            left: 0,
+                            width: 20,
+                            height: 20,
+                            pointerEvents: "none",
+                            zIndex: 10,
+                            borderBottom: "2.5px solid #22c55e",
+                            borderLeft: "2.5px solid #22c55e",
+                            borderBottomLeftRadius: 6,
+                          }}
+                        />
+                      </>
+                    )}
+                    <Typography variant="body1" fontWeight={700} color="#fff">
+                      {day}
+                    </Typography>
+                    {(profit !== 0 || gain !== 0) && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "flex-start",
+                          justifyContent: "center",
+                          gap: 1,
+                          width: "100%",
+                          mt: 2.2,
+                        }}
+                      >
+                        {profit !== 0 && (
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#fff",
+                              background: "rgba(255, 77, 79, 0.4)",
+                              display: "inline-block",
+                              fontWeight: 700,
+                              borderRadius: 1,
+                              px: 1.5,
+                              minWidth: 32,
+                              textAlign: "center",
+                            }}
+                          >
+                            ₹{Math.abs(profit).toFixed(0)}
+                          </Typography>
+                        )}
+                        {gain !== 0 && (
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#fff",
+                              background: "rgba(6, 214, 160, 0.4)",
+                              display: "inline-block",
+                              fontWeight: 700,
+                              borderRadius: 1,
+                              px: 1.5,
+                              minWidth: 32,
+                              textAlign: "center",
+                            }}
+                          >
+                            ₹{gain.toFixed(0)}
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                </Grid>
+              );
+            });
+          })()}
         </Grid>
       </Box>
     </div>

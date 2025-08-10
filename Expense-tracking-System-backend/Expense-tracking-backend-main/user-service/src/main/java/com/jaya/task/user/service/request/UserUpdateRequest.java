@@ -9,12 +9,10 @@ public class UserUpdateRequest {
 
     private Long id;
 
-    @NotBlank(message = "Full name is mandatory")
     @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
-    @Pattern(regexp = "^[a-zA-Z\\s]+$", message = "Full name should only contain letters and spaces")
+    @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Full name should only contain letters and spaces")
     private String fullName;
 
-    @NotBlank(message = "Email is mandatory")
     @Email(message = "Email should be valid")
     @Size(max = 255, message = "Email must not exceed 255 characters")
     private String email;
@@ -22,6 +20,30 @@ public class UserUpdateRequest {
     // Optional: Allow password update
     @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
     private String password;
+
+    @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Phone number should be valid")
+    private String phoneNumber;
+
+    @Size(max = 50, message = "Username must not exceed 50 characters")
+    private String username;
+
+    @Size(max = 255, message = "Website URL must not exceed 255 characters")
+    private String website;
+
+    @Size(max = 100, message = "Location must not exceed 100 characters")
+    private String location;
+
+    @Size(max = 500, message = "Bio must not exceed 500 characters")
+    private String bio;
+
+    @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
+    private String firstName;
+
+    @Size(min = 1, max = 50, message = "Last name must be between 1 and 50 characters")
+    private String lastName;
+
+    @Pattern(regexp = "^(MALE|FEMALE|OTHER)$", message = "Gender must be MALE, FEMALE, or OTHER")
+    private String gender;
 
     // Role names as strings
     @Size(max = 10, message = "User cannot have more than 10 roles")

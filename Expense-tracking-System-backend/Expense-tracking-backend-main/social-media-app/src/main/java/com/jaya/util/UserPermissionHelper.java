@@ -1,7 +1,7 @@
 package com.jaya.util;
 import com.jaya.dto.User;
 import com.jaya.exceptions.UserException;
-import com.jaya.service.FriendshipService;
+import com.jaya.service.FriendShipService;;
 import com.jaya.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +13,10 @@ import java.util.function.Function;
 public class UserPermissionHelper {
 
     private final UserService userService;
-    private final FriendshipService friendshipService;
+    private final FriendShipService friendshipService;
 
     @Autowired
-    public UserPermissionHelper(UserService userService, FriendshipService friendshipService) {
+    public UserPermissionHelper(UserService userService, FriendShipService friendshipService) {
         this.userService = userService;
         this.friendshipService = friendshipService;
     }

@@ -3,7 +3,8 @@ package com.jaya.aspects;
 import com.jaya.annotations.CheckPermission;
 import com.jaya.dto.User;
 import com.jaya.exceptions.UserException;
-import com.jaya.service.FriendshipService;
+
+import com.jaya.service.FriendShipService;
 import com.jaya.service.UserService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -23,7 +24,7 @@ public class PermissionAspect {
     private UserService userService;
 
     @Autowired
-    private FriendshipService friendshipService;
+    private FriendShipService friendshipService;
 
     // Cache for target users to avoid repeated database calls
     private final ConcurrentHashMap<Integer, User> targetUserCache = new ConcurrentHashMap<>();

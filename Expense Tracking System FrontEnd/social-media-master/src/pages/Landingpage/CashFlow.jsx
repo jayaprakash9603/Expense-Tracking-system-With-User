@@ -17,6 +17,7 @@ import {
   fetchCashflowExpenses,
   deleteExpenseAction,
   getExpenseAction,
+  deleteMultiExpenses,
 } from "../../Redux/Expenses/expense.action";
 import dayjs from "dayjs";
 import { IconButton, Skeleton, useTheme, useMediaQuery } from "@mui/material";
@@ -159,7 +160,8 @@ const Cashflow = () => {
   const [flowTab, setFlowTab] = useState("all"); // Start with 'all'
   const [search, setSearch] = useState("");
   const [selectedBar, setSelectedBar] = useState(null); // For bar chart filtering
-  const [selectedCardIdx, setSelectedCardIdx] = useState(null); // NEW: for card selection only
+  const [selectedCardIdx, setSelectedCardIdx] = useState([]); // Change from null to an array
+  const [lastSelectedIdx, setLastSelectedIdx] = useState(null); // For shift selection
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sortType, setSortType] = useState("recent");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -178,6 +180,7 @@ const Cashflow = () => {
   const [isFiltering, setIsFiltering] = useState(false);
   const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
   const [addNewBtnRef, setAddNewBtnRef] = useState(null);
+  const [confirmationText, setConfirmationText] = useState("");
   useEffect(() => {
     if (location.state && location.state.selectedCategory) {
       // Set the range type and offset from the navigation state if available
@@ -246,7 +249,7 @@ const Cashflow = () => {
   // Reset selectedBar when main view changes
   useEffect(() => {
     setSelectedBar(null);
-    setSelectedCardIdx(null); // Deselect card when range or offset changes
+    setSelectedCardIdx([]); // Deselect card when range or offset changes
   }, [activeRange, offset, flowTab]);
 
   // Popover close on outside click
@@ -433,12 +436,50 @@ const Cashflow = () => {
     } else {
       setSelectedBar({ data, idx });
     }
-    setSelectedCardIdx(null);
+    setSelectedCardIdx([]);
   };
 
-  // Handler for card click (just highlights, does not filter)
-  const handleCardClick = (idx) => {
-    setSelectedCardIdx(idx === selectedCardIdx ? null : idx);
+  // Modify the handleCardClick function to support Shift+Click and prevent text selection
+  const handleCardClick = (idx, event) => {
+    if (event) {
+      event.preventDefault(); // Prevent text selection
+    }
+    if (
+      event &&
+      event.shiftKey &&
+      lastSelectedIdx !== null &&
+      lastSelectedIdx !== undefined
+    ) {
+      // Range selection
+      const start = Math.min(lastSelectedIdx, idx);
+      const end = Math.max(lastSelectedIdx, idx);
+      const range = [];
+      for (let i = start; i <= end; i++) {
+        range.push(i);
+      }
+      setSelectedCardIdx(range);
+    } else if (event && event.ctrlKey) {
+      setSelectedCardIdx((prevSelected) => {
+        if (prevSelected.includes(idx)) {
+          // If already selected, deselect it
+          return prevSelected.filter((i) => i !== idx);
+        } else {
+          // Otherwise, add it to the selection
+          return [...prevSelected, idx];
+        }
+      });
+      setLastSelectedIdx(idx);
+    } else {
+      // Single select: if already selected, deselect
+      setSelectedCardIdx((prevSelected) => {
+        if (prevSelected.length === 1 && prevSelected[0] === idx) {
+          return [];
+        } else {
+          return [idx];
+        }
+      });
+      setLastSelectedIdx(idx);
+    }
   };
 
   // Cycle flowTab on button click
@@ -447,7 +488,7 @@ const Cashflow = () => {
     const next = flowTypeCycle[(idx + 1) % flowTypeCycle.length];
     setFlowTab(next.value);
     setSelectedBar(null);
-    setSelectedCardIdx(null);
+    setSelectedCardIdx([]);
   };
 
   useEffect(() => {
@@ -514,36 +555,54 @@ const Cashflow = () => {
     setIsDeleteModalOpen(true);
   };
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleConfirmDelete = async () => {
     if (expenseToDelete) {
-      const expensedata = await dispatch(getExpenseAction(expenseToDelete));
-      const bill = expensedata.bill
-        ? await dispatch(getBillByExpenseId(expenseToDelete))
-        : false;
-
-      dispatch(
-        bill ? deleteBill(bill.id) : deleteExpenseAction(expenseToDelete)
-      )
-        .then(() => {
-          // Refresh cashflow data after delete
-          const result = dispatch(
-            fetchCashflowExpenses(activeRange, offset, flowTab)
+      setIsDeleting(true);
+      if (Array.isArray(expenseToDelete)) {
+        try {
+          await dispatch(deleteMultiExpenses(expenseToDelete));
+          dispatch(fetchCashflowExpenses(activeRange, offset, flowTab));
+          setToastMessage("Selected expenses deleted successfully.");
+          setToastOpen(true);
+        } catch (err) {
+          setToastMessage(
+            "Error deleting selected expenses. Please try again."
           );
+          setToastOpen(true);
+        } finally {
+          setIsDeleting(false);
+          setIsDeleteModalOpen(false);
+          setExpenseToDelete(null);
+          setExpenseData({});
+          setSelectedCardIdx([]);
+        }
+      } else {
+        try {
+          const expensedata = await dispatch(getExpenseAction(expenseToDelete));
+          const bill = expensedata.bill
+            ? await dispatch(getBillByExpenseId(expenseToDelete))
+            : false;
+          await dispatch(
+            bill ? deleteBill(bill.id) : deleteExpenseAction(expenseToDelete)
+          );
+          dispatch(fetchCashflowExpenses(activeRange, offset, flowTab));
           setToastMessage(
             bill ? "Bill deleted successfully" : "Expense deleted successfully."
           );
           setToastOpen(true);
-        })
-        .catch(() => {
+        } catch {
           setToastMessage("Error deleting expense. Please try again.");
           setToastOpen(true);
-        })
-        .finally(() => {
+        } finally {
+          setIsDeleting(false);
           setIsDeleteModalOpen(false);
           setExpenseToDelete(null);
           setExpenseData({});
-          setSelectedCardIdx(null);
-        });
+          setSelectedCardIdx([]);
+        }
+      }
     }
   };
 
@@ -707,15 +766,43 @@ const Cashflow = () => {
         />
         <Modal
           isOpen={isDeleteModalOpen}
-          onClose={handleCancelDelete}
+          onClose={isDeleting ? undefined : handleCancelDelete}
           title="Deletion Confirmation"
           data={expenseData}
           headerNames={headerNames}
           onApprove={handleConfirmDelete}
-          onDecline={handleCancelDelete}
-          approveText="Yes, Delete"
+          onDecline={isDeleting ? undefined : handleCancelDelete}
+          approveText={
+            isDeleting ? (
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  className="loader"
+                  style={{
+                    width: 18,
+                    height: 18,
+                    border: "2px solid #fff",
+                    borderTop: "2px solid #00DAC6",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                    display: "inline-block",
+                  }}
+                ></span>
+                Deleting...
+              </span>
+            ) : (
+              "Yes, Delete"
+            )
+          }
           declineText="No, Cancel"
+          confirmationText={confirmationText}
+          disableActions={isDeleting}
         />
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
         {/* Single Flow Type Toggle Button at top right */}
         <div
           style={{
@@ -724,8 +811,66 @@ const Cashflow = () => {
             right: 16,
             display: "flex",
             gap: 8,
+            alignItems: "center",
           }}
         >
+          {/* Delete Selected Button (now left of flow toggle) - only visible if more than one selected */}
+          {selectedCardIdx.length > 1 && (
+            <button
+              onClick={async () => {
+                setIsDeleteModalOpen(true);
+                setExpenseData({}); // <-- Set to empty object
+                setExpenseToDelete(
+                  selectedCardIdx.map(
+                    (idx) =>
+                      sortedCardData[idx].id || sortedCardData[idx].expenseId
+                  )
+                );
+                setConfirmationText(
+                  `Are you sure you want to delete ${selectedCardIdx.length} selected expenses?`
+                );
+              }}
+              style={{
+                minWidth: isMobile ? 80 : 140,
+                minHeight: isMobile ? 32 : 38,
+                width: isMobile ? 100 : 160,
+                height: isMobile ? 32 : 38,
+                background: "#ff4d4f",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                boxShadow: "0 2px 8px #0002",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 600,
+                fontSize: isMobile ? 13 : 15,
+                cursor: "pointer",
+                transition: "background 0.2s",
+                gap: 6,
+              }}
+              title={`Delete ${selectedCardIdx.length} selected`}
+            >
+              <svg
+                width={isMobile ? 16 : 20}
+                height={isMobile ? 16 : 20}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
+              </svg>
+              {!isMobile && (
+                <span style={{ marginLeft: 4 }}>Delete Selected</span>
+              )}
+            </button>
+          )}
           <button
             onClick={handleFlowTabToggle}
             className={`rounded-lg flex items-center justify-center animate-morph-flow-toggle-rect ${
@@ -733,10 +878,10 @@ const Cashflow = () => {
               "bg-[#29282b] text-white"
             }`}
             style={{
-              minWidth: isMobile ? 40 : 70, // Decreased size for small screens
-              minHeight: isMobile ? 32 : 38, // Decreased size for small screens
-              width: isMobile ? 40 : 70, // Decreased size for small screens
-              height: isMobile ? 32 : 38, // Decreased size for small screens
+              minWidth: isMobile ? 40 : 70,
+              minHeight: isMobile ? 32 : 38,
+              width: isMobile ? 40 : 70,
+              height: isMobile ? 32 : 38,
               padding: 0,
               border: "none",
               outline: "none",
@@ -775,8 +920,8 @@ const Cashflow = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   alignItems: isMobile ? "center" : "flex-start",
-                  width: isMobile ? 24 : 36, // Decrease size for small screens
-                  height: isMobile ? 24 : 36, // Decrease size for small screens
+                  width: isMobile ? 24 : 36,
+                  height: isMobile ? 24 : 36,
                   transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
                 }}
               >
@@ -1369,7 +1514,7 @@ const Cashflow = () => {
             </div>
           ) : (
             sortedCardData.map((row, idx) => {
-              const isSelected = selectedCardIdx === idx;
+              const isSelected = selectedCardIdx.includes(idx);
               // Determine type for icon/color in 'all' mode
               let type;
               if (flowTab === "all") {
@@ -1469,8 +1614,10 @@ const Cashflow = () => {
                     border: isSelected
                       ? `2px solid ${isGain ? "#06d6a0" : "#ff4d4f"}`
                       : "2px solid transparent",
+                    userSelect: "none", // Prevent text selection
                   }}
-                  onClick={() => handleCardClick(idx)} // Only select card, do not filter
+                  onMouseDown={(event) => event.preventDefault()} // Prevent text selection on mouse down
+                  onClick={(event) => handleCardClick(idx, event)} // Pass event for ctrlKey/shiftKey support
                 >
                   <div
                     className="flex flex-col gap-2"
@@ -1543,7 +1690,7 @@ const Cashflow = () => {
                       {row.comments}
                     </div>
                   </div>
-                  {isSelected && (
+                  {isSelected && selectedCardIdx.length === 1 && (
                     <div
                       className="absolute bottom-2 right-2 flex gap-2 opacity-90"
                       style={{

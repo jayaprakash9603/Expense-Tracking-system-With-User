@@ -47,6 +47,7 @@ const Budget = () => {
   const [menuBudgetId, setMenuBudgetId] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [budgetToDelete, setBudgetToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState({ open: false, message: "" });
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const { friendId } = useParams(); // Assuming you might have a friendId in params for filtering expenses
@@ -111,6 +112,7 @@ const Budget = () => {
 
   const handleConfirmDelete = () => {
     if (budgetToDelete) {
+      setIsDeleting(true);
       dispatch(deleteBudgetData(budgetToDelete.id, friendId || ""))
         .then(() => {
           dispatch(getBudgetData(friendId || ""));
@@ -126,6 +128,7 @@ const Budget = () => {
         .finally(() => {
           setIsDeleteModalOpen(false);
           setBudgetToDelete(null);
+          setIsDeleting(false);
         });
     }
   };
@@ -539,7 +542,7 @@ const Budget = () => {
         />
         <Modal
           isOpen={isDeleteModalOpen}
-          onClose={handleCancelDelete}
+          onClose={isDeleting ? undefined : handleCancelDelete}
           title="Deletion Confirmation"
           data={modalData}
           headerNames={{
@@ -551,11 +554,39 @@ const Budget = () => {
             remainingAmount: "Remaining",
           }}
           onApprove={handleConfirmDelete}
-          onDecline={handleCancelDelete}
-          approveText="Yes, Delete"
+          onDecline={isDeleting ? undefined : handleCancelDelete}
+          approveText={
+            isDeleting ? (
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  className="loader"
+                  style={{
+                    width: 18,
+                    height: 18,
+                    border: "2px solid #fff",
+                    borderTop: "2px solid #00DAC6",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                    display: "inline-block",
+                  }}
+                ></span>
+                Deleting...
+              </span>
+            ) : (
+              "Yes, Delete"
+            )
+          }
           declineText="No, Cancel"
           confirmationText={`Are you sure you want to delete the budget "${budgetToDelete?.name}"?`}
+          approveDisabled={isDeleting}
+          declineDisabled={isDeleting}
         />
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </Box>
     </>
   );

@@ -8,8 +8,8 @@ services:
     networks:
       - springboot-net
 
-  user_serive:
-    image: user_serive:latest
+  user_service:
+    image: user_service:latest
     depends_on:
       mysql:
         condition: service_healthy

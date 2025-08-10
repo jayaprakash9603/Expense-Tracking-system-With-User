@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "http://localhost:6000")
+@FeignClient(name = "FRIENDSHIP-SERVICE", url = "http://localhost:6009")
 public interface FriendShipService {
 
 

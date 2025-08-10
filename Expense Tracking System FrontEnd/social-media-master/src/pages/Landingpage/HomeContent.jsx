@@ -24,13 +24,13 @@ const HomeContent = () => {
           height: isSmallScreen ? "auto" : "calc(100vh - 100px)",
         }}
       >
-        <ExpensesDashboard />
-        {/* <div className="flex flex-col md:flex-row justify-center items-start gap-4 mt-3 md:mt-10">
+        {/* <ExpensesDashboard /> */}
+        <div className="flex flex-col md:flex-row justify-center items-start gap-4 mt-3 md:mt-10">
           <Overview />
           <RecentExpenses />
         </div>
         <QuickAccess />
-        <MonthlyReport /> */}
+        <MonthlyReport />
       </div>
       <div className="w-full md:w-[calc(100vw-350px)] h-[25px] bg-[#1b1b1b]"></div>
     </div>

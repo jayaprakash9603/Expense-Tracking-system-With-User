@@ -3,7 +3,11 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/AnalyticsService/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Audit-Service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Bill-Service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Budget-Service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Category-Service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Chat-Service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/FriendShip-Service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Notification-Service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Payment-method-Service/src/main/java" charset="UTF-8" />

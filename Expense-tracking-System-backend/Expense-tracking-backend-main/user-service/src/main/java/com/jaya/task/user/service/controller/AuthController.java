@@ -10,7 +10,11 @@ import com.jaya.task.user.service.request.SignupRequest;
 import com.jaya.task.user.service.response.AuthResponse;
 import com.jaya.task.user.service.service.CustomUserServiceImplementation;
 import com.jaya.task.user.service.exceptions.UserAlreadyExistsException;
+import com.jaya.task.user.service.service.OtpService;
+import com.jaya.task.user.service.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,10 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -37,6 +38,13 @@ public class AuthController {
 
     @Autowired
     private RoleRepository roleRepository;
+
+
+    @Autowired
+    private OtpService otpService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -53,9 +61,14 @@ public class AuthController {
                         .body(Map.of("error", "Email is required"));
             }
 
-            if (signupRequest.getFullName() == null || signupRequest.getFullName().trim().isEmpty()) {
+            if (signupRequest.getFirstName() == null || signupRequest.getFirstName().trim().isEmpty()) {
                 return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Full name is required"));
+                        .body(Map.of("error", "First Name is required"));
+            }
+
+            if (signupRequest.getLastName() == null || signupRequest.getLastName().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Last Name is required"));
             }
 
             if (signupRequest.getPassword() == null || signupRequest.getPassword().trim().isEmpty()) {
@@ -71,7 +84,8 @@ public class AuthController {
 
             User newUser = new User();
             newUser.setEmail(signupRequest.getEmail().toLowerCase().trim());
-            newUser.setFullName(signupRequest.getFullName().trim());
+            newUser.setFirstName(signupRequest.getFirstName().trim());
+            newUser.setLastName(signupRequest.getLastName().trim());
             newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
 
             // ... rest of your existing code remains the same
@@ -228,4 +242,81 @@ public class AuthController {
             throw new Exception("User not found with id: " + id);
         }
     }
+
+    @GetMapping("/email")
+    public ResponseEntity<User> getUserByEmail(
+            @RequestParam @NotNull @Email(message = "Valid email is required") String email) {
+
+        User user = userRepository.findByEmail(email);
+        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/all-users")
+    public ResponseEntity<List<User>> getAllUsers() {
+
+        List<User> user = userRepository.findAll();
+        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        boolean isAvailable = userService.checkEmailAvailability(email);
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("isAvailable", isAvailable);
+        return ResponseEntity.ok(response);
+    }
+
+
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<Map<String, String>> sendOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (userService.findByEmail(email)==null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Email not found"));
+        }
+        try {
+            String otp = otpService.generateAndSendOtp(email);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "OTP sent successfully");
+            response.put("otp", otp); // Include OTP in response for testing
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to send OTP"));
+        }
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<Map<String, String>> verifyOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String otp = request.get("otp");
+        boolean isValid = otpService.verifyOtp(email, otp);
+        if (isValid) {
+            return ResponseEntity.ok(Map.of("message", "OTP verified successfully"));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Invalid or expired OTP"));
+        }
+    }
+
+    @PatchMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String newPassword = request.get("password");
+        User userOptional = userService.findByEmail(email);
+        if (userOptional==null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Email not found"));
+        }
+        try {
+            userService.updatePassword(userOptional, newPassword);
+            return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to reset password"));
+        }
+    }
+
 }

@@ -57,6 +57,8 @@ public class UserController {
         return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
+
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Long id,
@@ -91,49 +93,7 @@ public class UserController {
             @Valid @RequestBody UserUpdateRequest updateRequest) {
 
         try {
-            User reqUser = userService.getUserProfile(jwt);
-
-            // Validation: User can only update their own profile unless they're admin
-            if (!reqUser.getEmail().equals(updateRequest.getEmail()) && !reqUser.hasRole("ADMIN")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "You can only update your own profile"));
-            }
-
-            // Find the user to update
-            User userToUpdate = userRepository.findByEmail(updateRequest.getEmail());
-            if (userToUpdate == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "User not found"));
-            }
-
-            // Update basic fields
-            userToUpdate.setFullName(updateRequest.getFullName().trim());
-            userToUpdate.setEmail(updateRequest.getEmail().toLowerCase().trim());
-
-            // Update password if provided
-            if (updateRequest.getPassword() != null && !updateRequest.getPassword().trim().isEmpty()) {
-                userToUpdate.setPassword(passwordEncoder.encode(updateRequest.getPassword()));
-            }
-
-            // Update roles if provided and user is admin
-            if (updateRequest.getRoleNames() != null && reqUser.hasRole("ADMIN")) {
-                Set<String> newRoles = new HashSet<>();
-                for (String roleName : updateRequest.getRoleNames()) {
-                    String normalizedRoleName = roleName.toUpperCase().trim();
-                    if (roleRepository.findByName(normalizedRoleName).isPresent()) {
-                        newRoles.add(normalizedRoleName);
-                    } else {
-                        return ResponseEntity.badRequest()
-                                .body(Map.of("error", "Role not found: " + roleName));
-                    }
-                }
-                if (!newRoles.isEmpty()) {
-                    userToUpdate.setRoles(newRoles);
-                }
-            }
-
-            userToUpdate.setUpdatedAt(LocalDateTime.now());
-            User updatedUser = userRepository.save(userToUpdate);
+            User updatedUser = userService.updateUserProfile(jwt, updateRequest);
 
             return ResponseEntity.ok(Map.of(
                     "message", "User updated successfully",

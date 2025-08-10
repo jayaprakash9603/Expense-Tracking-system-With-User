@@ -42,7 +42,7 @@
 //            if (token != null && !token.isEmpty()) {
 //                try {
 //                    // Validate JWT token
-//                    String email = JwtProvider.getEmailFromJwtToken(token);
+//                    String email = JwtProvider.getEmailFromJwt(token);
 //                    if (email == null || email.isEmpty()) {
 //                        System.out.println("Invalid token: Email extraction failed");
 //                        return false;

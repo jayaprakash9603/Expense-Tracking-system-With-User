@@ -14,6 +14,10 @@
         <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/user-service/pom.xml" />
         <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Budget-Service/pom.xml" />
         <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Payment-method-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Bill-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Category-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/FriendShip-Service/pom.xml" />
+        <option value="$PROJECT_DIR$/Expense-tracking-System-backend/Expense-tracking-backend-main/Chat-Service/pom.xml" />
       </list>
     </option>
   </component>

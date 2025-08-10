@@ -90,7 +90,7 @@ public class ExpenseServiceImpl implements Serializable, ExpenseService {
     private PaymentMethodKafkaProducerService paymentMethodKafkaProducer;
 
     @Autowired
-    private CategoryService categoryService;
+    private CategoryServices categoryService;
 
 
     @Autowired
@@ -3113,7 +3113,7 @@ public class ExpenseServiceImpl implements Serializable, ExpenseService {
 
     @Override
     @Transactional
-    public Map<Category, List<Expense>> getAllExpensesByCategories(Integer userId) {
+    public Map<Category, List<Expense>> getAllExpensesByCategories(Integer userId) throws Exception {
 
         List<Category> userCategories = categoryService.getAllForUser(userId);
 
@@ -3149,7 +3149,7 @@ public class ExpenseServiceImpl implements Serializable, ExpenseService {
 
 
     @Override
-    public Map<String, Object> getFilteredExpensesByCategories(Integer userId, String rangeType, int offset, String flowType) {
+    public Map<String, Object> getFilteredExpensesByCategories(Integer userId, String rangeType, int offset, String flowType) throws Exception {
 
         LocalDate now = LocalDate.now();
         LocalDate startDate;
@@ -3311,7 +3311,7 @@ public class ExpenseServiceImpl implements Serializable, ExpenseService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) {
+    public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) throws Exception {
 
 
         List<Category> userCategories = categoryService.getAllForUser(userId);

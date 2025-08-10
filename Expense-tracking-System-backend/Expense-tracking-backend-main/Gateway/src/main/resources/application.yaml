@@ -24,10 +24,26 @@ spring:
           uri: http://localhost:6005  # Replace with your actual service port
           predicates:
             - Path= /api/budgets/**
+        - id: CHAT-SERVICE
+          uri: http://localhost:7001  # Replace with your actual service port
+          predicates:
+            - Path= /api/chats/**
+        - id: FRIENDSHIP-SERVICE
+          uri: http://localhost:6009  # Replace with your actual service port
+          predicates:
+            - Path= /api/friendships/**,/api/groups/**
         - id: PAYMENT-SERVICE
           uri: http://localhost:6006  # Replace with your actual service port
           predicates:
             - Path= /api/payment-methods/**
+        - id: CATEGORY-SERVICE
+          uri: http://localhost:6008  # Replace with your actual service port
+          predicates:
+            - Path= /api/categories/**
+        - id: BILL-SERVICE
+          uri: http://localhost:6007  # Replace with your actual service port
+          predicates:
+            - Path= /api/bills/**
         - id: AUDIT-SERVICE
           uri: http://localhost:6004  # Replace with your actual service port
           predicates:

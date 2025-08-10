@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   copyExpenseAction,
   deleteExpenseAction,
+  deleteMultiExpenses,
   getExpenseAction,
   getExpensesAction,
 } from "../../Redux/Expenses/expense.action";
@@ -25,6 +26,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
 import ToastNotification from "./ToastNotification";
 import Modal from "./Modal";
+import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
 
 const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
   const dispatch = useDispatch();
@@ -159,26 +161,73 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
     );
   };
 
-  const handleConfirmDelete = () => {
+  // const handleConfirmDelete = () => {
+  //   if (expenseToDelete) {
+  //     dispatch(deleteExpenseAction(expenseToDelete, friendId || ""))
+  //       .then(() => {
+  //         dispatch(getExpensesAction("desc", friendId || ""));
+  //         setToastMessage("Expense deleted successfully.");
+  //         setToastOpen(true);
+  //       })
+  //       .catch(() => {
+  //         setToastMessage("Error deleting expense. Please try again.");
+  //         setToastOpen(true);
+  //       })
+  //       .finally(() => {
+  //         setIsDeleteModalOpen(false);
+  //         setExpenseToDelete(null);
+  //         setExpenseData({});
+  //       });
+  //   }
+  // };
+
+  const [isDeleting, setIsDeleting] = useState(false);
+  const handleConfirmDelete = async () => {
     if (expenseToDelete) {
-      dispatch(deleteExpenseAction(expenseToDelete, friendId || ""))
-        .then(() => {
+      setIsDeleting(true);
+      if (Array.isArray(expenseToDelete)) {
+        try {
+          await dispatch(deleteMultiExpenses(expenseToDelete));
           dispatch(getExpensesAction("desc", friendId || ""));
-          setToastMessage("Expense deleted successfully.");
+          setToastMessage("Selected expenses deleted successfully.");
           setToastOpen(true);
-        })
-        .catch(() => {
-          setToastMessage("Error deleting expense. Please try again.");
+        } catch (err) {
+          setToastMessage(
+            "Error deleting selected expenses. Please try again."
+          );
           setToastOpen(true);
-        })
-        .finally(() => {
+        } finally {
+          setIsDeleting(false);
           setIsDeleteModalOpen(false);
           setExpenseToDelete(null);
           setExpenseData({});
-        });
+        }
+      } else {
+        try {
+          const expensedata = await dispatch(getExpenseAction(expenseToDelete));
+          const bill = expensedata.bill
+            ? await dispatch(getBillByExpenseId(expenseToDelete))
+            : false;
+          await dispatch(
+            bill ? deleteBill(bill.id) : deleteExpenseAction(expenseToDelete)
+          );
+          dispatch(getExpensesAction("desc", friendId || ""));
+          setToastMessage(
+            bill ? "Bill deleted successfully" : "Expense deleted successfully."
+          );
+          setToastOpen(true);
+        } catch {
+          setToastMessage("Error deleting expense. Please try again.");
+          setToastOpen(true);
+        } finally {
+          setIsDeleting(false);
+          setIsDeleteModalOpen(false);
+          setExpenseToDelete(null);
+          setExpenseData({});
+        }
+      }
     }
   };
-
   const handleCancelDelete = () => {
     setIsDeleteModalOpen(false);
     setExpenseToDelete(null);

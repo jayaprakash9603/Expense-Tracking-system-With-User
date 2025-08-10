@@ -45,7 +45,10 @@ import BillCalendarView from "./pages/Landingpage/BillCalendarView";
 import DayBillsView from "./pages/Landingpage/DayBillsView";
 import AuditLogs from "./pages/Landingpage/AuditLogs";
 import GlobalErrorHandler from "./pages/Landingpage/Errors/GlobalErrorHandler";
+import Groups from "./pages/Landingpage/Groups";
+import CreateGroup from "./pages/Landingpage/CreateGroup";
 
+import GroupDetail from "./pages/Landingpage/GroupDetail";
 function App() {
   const { auth } = useSelector((store) => store);
   const dispatch = useDispatch();
@@ -85,6 +88,11 @@ function App() {
           <Route path="/" element={<Home />}>
             <Route index element={<Navigate to="/home" />} />
             <Route path="home" element={<HomeContent />} />
+            <Route path="groups">
+              <Route index element={<Groups />} />
+              <Route path="create" element={<CreateGroup />} />
+              <Route path=":id" element={<GroupDetail />} />
+            </Route>
             <Route path="profile" element={<Profile />} />
             <Route path="friends" element={<Friends />} />
             <Route path="payment-method">

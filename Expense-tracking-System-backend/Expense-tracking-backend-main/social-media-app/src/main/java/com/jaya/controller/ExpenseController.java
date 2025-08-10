@@ -41,9 +41,9 @@ public class ExpenseController {
 
     private final ExpenseService expenseService;
 
-    public static String ERROR_SENDING_EMAIL="Error sending email: ";
+    public static String ERROR_SENDING_EMAIL = "Error sending email: ";
 
-    public Logger logger= LoggerFactory.getLogger(ExpenseController.class);
+    public Logger logger = LoggerFactory.getLogger(ExpenseController.class);
 
 
     @Autowired
@@ -53,7 +53,7 @@ public class ExpenseController {
     private UserService userService;
 
     @Autowired
-    private FriendshipService friendshipService;
+    private FriendShipService friendshipService;
 
     @Autowired
     ExpenseRepository expenseRepository;
@@ -68,8 +68,8 @@ public class ExpenseController {
 
     @Autowired
     private KafkaProducerService producer;
-    
-    
+
+
     @Autowired
     private UserPermissionHelper permissionHelper;
 
@@ -80,10 +80,6 @@ public class ExpenseController {
 
 
     }
-
-
-   
-
 
 
     /**
@@ -99,8 +95,6 @@ public class ExpenseController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
-
-
 
 
     @PostMapping("/add-expense")
@@ -255,14 +249,14 @@ public class ExpenseController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return new  ResponseEntity<>(expenseService.getExpenseById(id,targetUser.getId()),HttpStatus.OK);
+        return new ResponseEntity<>(expenseService.getExpenseById(id, targetUser.getId()), HttpStatus.OK);
     }
 
     @GetMapping("/fetch-expenses-by-date")
     public ResponseEntity<Object> getExpensesByDateRange(@RequestParam LocalDate from,
-                                                    @RequestParam LocalDate to,
-                                                    @RequestHeader("Authorization") String jwt,
-                                                    @RequestParam(required = false) Integer targetId) {
+                                                         @RequestParam LocalDate to,
+                                                         @RequestHeader("Authorization") String jwt,
+                                                         @RequestParam(required = false) Integer targetId) {
         User reqUser = userService.findUserByJwt(jwt);
         User targetUser;
 
@@ -271,7 +265,7 @@ public class ExpenseController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return new ResponseEntity<>(expenseService.getExpensesByDateRange(from, to, targetUser.getId()),HttpStatus.OK);
+        return new ResponseEntity<>(expenseService.getExpensesByDateRange(from, to, targetUser.getId()), HttpStatus.OK);
     }
 
 
@@ -644,7 +638,7 @@ public class ExpenseController {
             User targetUser;
 
 
-                targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
 
             List<MonthlySummary> summaries = expenseService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth, targetUser.getId());
@@ -1679,7 +1673,7 @@ public class ExpenseController {
             return ResponseEntity.ok("Email sent successfully");
         } catch (IOException | MessagingException e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -1758,7 +1752,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -1797,7 +1791,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -1838,7 +1832,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -1877,7 +1871,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -1923,7 +1917,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -1969,7 +1963,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2012,7 +2006,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2055,7 +2049,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2100,7 +2094,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2146,7 +2140,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2191,7 +2185,7 @@ public class ExpenseController {
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2238,7 +2232,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2278,7 +2272,7 @@ public class ExpenseController {
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2316,7 +2310,7 @@ public class ExpenseController {
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2356,7 +2350,7 @@ public class ExpenseController {
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2399,7 +2393,7 @@ public class ExpenseController {
 
             return ResponseEntity.ok("Email sent successfully");
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2557,7 +2551,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2609,7 +2603,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -2690,7 +2684,7 @@ public class ExpenseController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error generating Excel: " + e.getMessage());
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL+ e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
         }
@@ -3622,19 +3616,18 @@ public class ExpenseController {
             @PathVariable LocalDate endDate,
             @RequestParam Integer userId) {
 
-            List<Expense> expenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
-                    startDate, endDate, userId);
+        List<Expense> expenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
+                startDate, endDate, userId);
 
 
-            return new ResponseEntity<>(expenses,HttpStatus.OK);
+        return new ResponseEntity<>(expenses, HttpStatus.OK);
 
     }
 
-    @GetMapping("get-expenses-by-ids")
-    public ResponseEntity<List<Expense>>getExpensesByIds(@RequestParam Integer userId,@RequestBody Set<Integer>expenseIds) throws UserException {
-        List<Expense>expenses=expenseService.getExpensesByIds(userId,expenseIds);
-
-        return new ResponseEntity<>(expenses,HttpStatus.OK);
+    @PostMapping("get-expenses-by-ids")
+    public ResponseEntity<List<Expense>> getExpensesByIdstest(@RequestParam Integer userId, @RequestBody Set<Integer> expenseIds) throws UserException {
+        List<Expense> expenses = expenseService.getExpensesByIds(userId, expenseIds);
+        return new ResponseEntity<>(expenses, HttpStatus.OK);
     }
 
 
@@ -4090,9 +4083,9 @@ public class ExpenseController {
 
 
     @GetMapping("/get-by-id")
-    public ResponseEntity<Expense> findByUserIdandExpenseeID(@RequestParam Integer userId,@RequestParam Integer expenseId) {
+    public ResponseEntity<Expense> findByUserIdandExpenseeID(@RequestParam Integer userId, @RequestParam Integer expenseId) {
         try {
-            Expense expense = expenseService.getExpenseById(expenseId,userId);
+            Expense expense = expenseService.getExpenseById(expenseId, userId);
             return ResponseEntity.ok(expense);
         } catch (Exception e) {
             System.out.println("Error retrieving expenses by user ID and expense ID: " + e.getMessage());
@@ -4104,12 +4097,35 @@ public class ExpenseController {
 
 
     @PostMapping("/save-single")
-    public ResponseEntity<Expense>saveTheExpense(@RequestBody Expense expense)
-    {
-        Expense savedExpense=expenseService.save(expense);
+    public ResponseEntity<Expense> saveTheExpense(@RequestBody Expense expense) {
+        Expense savedExpense = expenseService.save(expense);
 
-        return new ResponseEntity<>(savedExpense,HttpStatus.OK);
+        return new ResponseEntity<>(savedExpense, HttpStatus.OK);
+    }
+
+    @PostMapping("/add-expense-with-bill-service")
+    public Expense addExpenseWithBillService(@RequestBody Expense expense,@RequestParam Integer userId) throws Exception {
+        return expenseService.addExpense(expense, userId);
+    }
+
+    @PostMapping("/update-expense-with-bill-service")
+    public Expense updateExpenseWithBillService(@RequestParam Integer expenseId,@RequestBody Expense expense,@RequestParam Integer userId) throws Exception {
+        return expenseService.updateExpenseWithBillService(expenseId,expense, userId);
+    }
+
+    @DeleteMapping("/delete-expenses-with-bill-service")
+    public void deleteExpenseWithBillService(@RequestParam List<Integer> expenseIds,@RequestParam Integer userId) throws Exception {
+       expenseService.deleteExpensesByIdsWithBillService(expenseIds, userId);
+    }
+
+    @GetMapping("/get-all-expenses-with-bill-service")
+    public List<Expense> getAllExpense(@RequestParam Integer userId) throws Exception {
+        return expenseService.getAllExpenses(userId);
+    }
+
+    @GetMapping("/get-all-expenses-sort-with-bill-service")
+    public List<Expense> getAllExpensesWithSort(@RequestParam Integer userId,@RequestParam String sort) throws Exception {
+        return expenseService.getAllExpenses(userId,sort);
     }
 }
-
 

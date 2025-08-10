@@ -34,6 +34,7 @@ public class PaymentMethodImpl implements PaymentMethodService {
                 .orElseThrow(() -> new Exception("Payment method not found with ID: " + id));
     }
 
+
     @Override
     public PaymentMethod save(PaymentMethod paymentMethod) {
         return paymentMethodRepository.save(paymentMethod);

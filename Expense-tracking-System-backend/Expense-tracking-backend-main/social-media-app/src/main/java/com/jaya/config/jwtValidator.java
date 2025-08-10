@@ -31,7 +31,7 @@
 //		if(jwt!=null)
 //		{
 //			try {
-//				String email=JwtProvider.getEmailFromJwtToken(jwt);
+//				String email=JwtProvider.getEmailFromJwt(jwt);
 //
 //				List<GrantedAuthority>authorities=new ArrayList<>();
 //

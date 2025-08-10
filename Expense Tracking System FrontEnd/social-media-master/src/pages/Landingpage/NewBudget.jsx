@@ -69,6 +69,8 @@ const NewBudget = () => {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -81,11 +83,11 @@ const NewBudget = () => {
       newErrors.amount = "Valid amount is required.";
     setErrors(newErrors);
 
-    // If there are errors, do not submit or navigate
     if (Object.keys(newErrors).length > 0) {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       // Collect expense IDs where includeInBudget is checked
       const expenseIds = expenses
@@ -109,7 +111,7 @@ const NewBudget = () => {
       console.log("Submitting budget:", budgetData);
       console.log("Saving all expenses:", updatedExpenses);
 
-      dispatch(createBudgetAction(budgetData, friendId || ""));
+      await dispatch(createBudgetAction(budgetData, friendId || ""));
       // if (updatedExpenses.length > 0) {
       //   await dispatch(editMultipleExpenseAction(updatedExpenses));
       // }
@@ -128,6 +130,8 @@ const NewBudget = () => {
           error.message || "Failed to create budget."
         )}&type=error`
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -483,11 +487,49 @@ const NewBudget = () => {
         <div className="w-full flex justify-end mt-4 sm:mt-8">
           <button
             onClick={handleSubmit}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px]"
+            className={`py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] transition-all duration-200 w-full sm:w-[120px] ${
+              isSubmitting ? "sm:w-[180px]" : ""
+            }`}
+            disabled={isSubmitting}
+            style={{
+              position: "relative",
+              opacity: isSubmitting ? 0.7 : 1,
+              minWidth: isSubmitting ? 180 : 120,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1rem",
+              gap: isSubmitting ? 10 : 0,
+            }}
           >
-            Submit
+            {isSubmitting ? (
+              <>
+                <span
+                  className="loader"
+                  style={{
+                    width: 20,
+                    height: 20,
+                    border: "3px solid #fff",
+                    borderTop: "3px solid #00DAC6",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                    display: "inline-block",
+                    marginRight: 10,
+                  }}
+                ></span>
+                <span>Submitting...</span>
+              </>
+            ) : (
+              "Submit"
+            )}
           </button>
         </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
       <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
       <style>

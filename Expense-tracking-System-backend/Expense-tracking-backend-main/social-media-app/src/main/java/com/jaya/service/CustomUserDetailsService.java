@@ -3,40 +3,40 @@
 //import java.util.ArrayList;
 //import java.util.List;
 //
+//import com.jaya.dto.User;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.security.core.GrantedAuthority;
+//import org.springframework.security.core.authority.SimpleGrantedAuthority;
 //import org.springframework.security.core.userdetails.UserDetails;
 //import org.springframework.security.core.userdetails.UserDetailsService;
 //import org.springframework.security.core.userdetails.UsernameNotFoundException;
 //import org.springframework.stereotype.Service;
 //
-//import com.jaya.models.User;
-//import com.jaya.repository.UserRepository;
-//
-//
-//
 //@Service
 //public class CustomUserDetailsService implements UserDetailsService {
 //
-//	@Autowired
-//	private UserRepository userRepository;
-//	@Override
-//	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+//    @Autowired
+//    private UserService userService;
 //
+//    @Override
+//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+//        User user = userService.findUserByEmail(username);
 //
-//		User user=userRepository.findByEmail(username);
+//        if (user == null) {
+//            throw new UsernameNotFoundException("User not found with email: " + username);
+//        }
 //
-//		if(user==null)
-//		{
-//			throw new UsernameNotFoundException("user not found");
+//        List<GrantedAuthority> authorities = new ArrayList<>();
 //
-//		}
-//
-//		List<GrantedAuthority> authorities=new ArrayList<>();
-//
-//		return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), authorities);
-//	}
+//        // Add default role if no specific roles are defined
+//        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
 //
 //
 //
+//        return new org.springframework.security.core.userdetails.User(
+//                user.getEmail(),
+//                user.getPassword() != null ? user.getPassword() : "", // Use actual password
+//                authorities
+//        );
+//    }
 //}

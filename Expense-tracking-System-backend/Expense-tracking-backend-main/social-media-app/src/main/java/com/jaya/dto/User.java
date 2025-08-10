@@ -24,7 +24,7 @@ public class User {
     private String email;
 
     // Password should not be included in DTOs for security
-    // private String password;
+     private String password;
 
     @JsonProperty("phone_number")
     private String phoneNumber;

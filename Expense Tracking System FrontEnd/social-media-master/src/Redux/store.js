@@ -14,6 +14,7 @@ import {
 import { budgetReducer } from "./Budget/budget.reducer";
 import categoryReducer from "./Category/categoryReducer";
 import friendsReducer from "./Friends/friendsReducer";
+import groupsReducer from "./Groups/groupsReducer";
 import { paymentMethodReducer } from "./Payment Method/paymentMethod.reducer"; // Add this import
 import billReducer from "./Bill/bill.reducer";
 
@@ -26,6 +27,7 @@ const rootreducers = combineReducers({
   budgets: budgetReducer,
   categories: categoryReducer,
   friends: friendsReducer,
+  groups: groupsReducer,
   paymentMethod: paymentMethodReducer,
   bill: billReducer,
 });

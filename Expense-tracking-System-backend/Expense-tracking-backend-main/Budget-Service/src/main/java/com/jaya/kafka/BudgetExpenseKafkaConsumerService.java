@@ -29,6 +29,12 @@ public class BudgetExpenseKafkaConsumerService {
             logger.info("Direct consumption - Expense ID: {}, Budget IDs: {}, Action: {}, User: {}",
                     event.getExpenseId(), event.getBudgetIds(), event.getAction(), event.getUserId());
 
+            // Validate event data
+            if (event.getBudgetIds() == null || event.getBudgetIds().isEmpty()) {
+                logger.warn("No budget IDs provided for expense ID: {}", event.getExpenseId());
+                return;
+            }
+
             switch (event.getAction()) {
                 case "ADD":
                     addExpenseToBudgets(event);
@@ -47,7 +53,6 @@ public class BudgetExpenseKafkaConsumerService {
 
         } catch (Exception e) {
             logger.error("Failed to process budget expense event for expense ID: {}", event.getExpenseId(), e);
-            throw new RuntimeException("Failed to process budget expense event", e);
         }
     }
 
@@ -65,13 +70,18 @@ public class BudgetExpenseKafkaConsumerService {
 
     private void removeExpenseFromBudgets(BudgetExpenseEvent event) throws Exception {
         for (Integer budgetId : event.getBudgetIds()) {
-            Budget budget = budgetService.getBudgetById(budgetId, event.getUserId());
-            if (budget != null && budget.getExpenseIds() != null) {
-                if (budget.getExpenseIds().remove(event.getExpenseId())) {
-                    budgetService.editBudget(budget.getId(), budget, event.getUserId());
-                    logger.info("Removed expense ID: {} from budget ID: {} for user: {}",
-                            event.getExpenseId(), budgetId, event.getUserId());
+            try {
+                Budget budget = budgetService.getBudgetById(budgetId, event.getUserId());
+                if (budget != null && budget.getExpenseIds() != null) {
+                    if (budget.getExpenseIds().remove(event.getExpenseId())) {
+                        budgetService.editBudget(budget.getId(), budget, event.getUserId());
+                        logger.info("Removed expense ID: {} from budget ID: {} for user: {}",
+                                event.getExpenseId(), budgetId, event.getUserId());
+                    }
                 }
+            } catch (Exception e) {
+                logger.warn("Budget with ID {} not found for user {}, skipping removal: {}",
+                        budgetId, event.getUserId(), e.getMessage());
             }
         }
     }

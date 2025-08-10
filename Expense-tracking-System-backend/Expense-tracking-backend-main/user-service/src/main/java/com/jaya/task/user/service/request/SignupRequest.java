@@ -7,10 +7,15 @@ import java.util.Set;
 @Data
 public class SignupRequest {
 
-    @NotBlank(message = "Full name is mandatory")
-    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
-    @Pattern(regexp = "^[a-zA-Z\\s]+$", message = "Full name should only contain letters and spaces")
-    private String fullName;
+    @NotBlank(message = "First name is mandatory")
+    @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z]+$", message = "First name should only contain letters")
+    private String firstName;
+
+    @NotBlank(message = "Last name is mandatory")
+    @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z]+$", message = "Last name should only contain letters")
+    private String lastName;
 
     @NotBlank(message = "Email is mandatory")
     @Email(message = "Email should be valid")
