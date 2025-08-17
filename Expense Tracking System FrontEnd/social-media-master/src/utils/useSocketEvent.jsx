@@ -1,59 +1,59 @@
-import { useEffect, useCallback } from "react";
-import { useSocket } from "./SocketProvider";
+// import { useEffect, useCallback } from "react";
+// import { useSocket } from "./SocketProvider";
 
-// Hook for single event
-export const useSocketEvent = (eventName, handler, dependencies = []) => {
-  const { addEventListener } = useSocket();
+// // Hook for single event
+// export const useSocketEvent = (eventName, handler, dependencies = []) => {
+//   const { addEventListener } = useSocket();
 
-  const memoizedHandler = useCallback(handler, dependencies);
+//   const memoizedHandler = useCallback(handler, dependencies);
 
-  useEffect(() => {
-    const cleanup = addEventListener(eventName, memoizedHandler);
-    return cleanup;
-  }, [eventName, memoizedHandler, addEventListener]);
-};
+//   useEffect(() => {
+//     const cleanup = addEventListener(eventName, memoizedHandler);
+//     return cleanup;
+//   }, [eventName, memoizedHandler, addEventListener]);
+// };
 
-// Hook for multiple events
-export const useSocketEvents = (eventHandlers, dependencies = []) => {
-  const { addEventListener } = useSocket();
+// // Hook for multiple events
+// export const useSocketEvents = (eventHandlers, dependencies = []) => {
+//   const { addEventListener } = useSocket();
 
-  const memoizedHandlers = useCallback(() => eventHandlers, dependencies);
+//   const memoizedHandlers = useCallback(() => eventHandlers, dependencies);
 
-  useEffect(() => {
-    const handlers = memoizedHandlers();
-    const cleanupFunctions = [];
+//   useEffect(() => {
+//     const handlers = memoizedHandlers();
+//     const cleanupFunctions = [];
 
-    // Add all event listeners
-    Object.entries(handlers).forEach(([eventName, handler]) => {
-      const cleanup = addEventListener(eventName, handler);
-      cleanupFunctions.push(cleanup);
-    });
+//     // Add all event listeners
+//     Object.entries(handlers).forEach(([eventName, handler]) => {
+//       const cleanup = addEventListener(eventName, handler);
+//       cleanupFunctions.push(cleanup);
+//     });
 
-    // Return cleanup function
-    return () => {
-      cleanupFunctions.forEach((cleanup) => cleanup());
-    };
-  }, [memoizedHandlers, addEventListener]);
-};
+//     // Return cleanup function
+//     return () => {
+//       cleanupFunctions.forEach((cleanup) => cleanup());
+//     };
+//   }, [memoizedHandlers, addEventListener]);
+// };
 
-// Hook for socket connection status
-export const useSocketConnection = () => {
-  const { isConnected, connectionError, getConnectionStatus } = useSocket();
+// // Hook for socket connection status
+// export const useSocketConnection = () => {
+//   const { isConnected, connectionError, getConnectionStatus } = useSocket();
 
-  return {
-    isConnected,
-    connectionError,
-    ...getConnectionStatus(),
-  };
-};
+//   return {
+//     isConnected,
+//     connectionError,
+//     ...getConnectionStatus(),
+//   };
+// };
 
-// Hook for online users
-export const useOnlineUsers = () => {
-  const { onlineUsers, isUserOnline } = useSocket();
+// // Hook for online users
+// export const useOnlineUsers = () => {
+//   const { onlineUsers, isUserOnline } = useSocket();
 
-  return {
-    onlineUsers,
-    isUserOnline,
-    onlineCount: onlineUsers.length,
-  };
-};
+//   return {
+//     onlineUsers,
+//     isUserOnline,
+//     onlineCount: onlineUsers.length,
+//   };
+// };

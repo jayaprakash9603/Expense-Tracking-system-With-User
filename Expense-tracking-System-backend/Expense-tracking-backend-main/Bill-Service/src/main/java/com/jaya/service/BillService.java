@@ -19,7 +19,10 @@ public interface BillService {
     List<ExpenseDTO>getAllExpensesForBill(Integer userId, LocalDate startDate, LocalDate endDate) throws Exception;
     List<Bill> getBillsWithinRange(Integer userId, LocalDate startDate, LocalDate endDate) throws Exception;
 
+    List<String> getAllUniqueItemNames(Integer userId) throws Exception;
+
     List<Bill> getAllBillsForUser(Integer userId, String range, int offset) throws Exception;
 
     Bill getBillIdByExpenseId(Integer userId,Integer billId) throws Exception;
+    List<String> getUserAndBackupItems(Integer userId) throws Exception;
 }

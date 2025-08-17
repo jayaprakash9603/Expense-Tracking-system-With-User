@@ -155,37 +155,6 @@ const Upload = () => {
 
           {isTableVisible && uploadedData.length > 0 ? (
             <div className="relative">
-              {/* <Box sx={{ mb: 2 }}>
-                <TextField
-                  label="Search by Expense Name"
-                  variant="outlined"
-                  size="small"
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  sx={{
-                    bgcolor: "#2a2a2a",
-                    input: { color: "#fff" },
-                    label: { color: "#fff" },
-                    width: {
-                      xs: "100%",
-                      sm: "60%",
-                    },
-                    height: "45px",
-                    "& .MuiOutlinedInput-root": {
-                      "& fieldset": {
-                        borderColor: "#14b8a6",
-                      },
-                      "&:hover fieldset": {
-                        borderColor: "#14b8a6",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#14b8a6",
-                      },
-                    },
-                  }}
-                />
-              </Box> */}
-
               <ExpensesTable expenses={filteredExpenses} />
 
               <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">

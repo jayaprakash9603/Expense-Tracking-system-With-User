@@ -1,3 +1,4 @@
+    
 package com.jaya.service;
 
 import com.jaya.dto.*;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class GroupServiceImpl implements GroupService {
+    
 
     @Autowired
     private GroupRepository groupRepository;
@@ -1219,4 +1221,83 @@ public class GroupServiceImpl implements GroupService {
             groupInvitationRepository.saveAll(expiredInvitations);
         }
     }
+
+
+@Override
+public List<UserDto> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception {
+    // Validate user
+    helper.validateUser(userId);
+
+    // Get all friends of the user
+    List<UserDto> friends = friendshipService.getFriendsOfUser(userId);
+
+    // Get group members
+    Group group = groupRepository.findById(groupId)
+        .orElseThrow(() -> new RuntimeException("Group not found"));
+    List<Integer> memberIds = group.getMemberIds() != null ? group.getMemberIds() : new ArrayList<>();
+
+    // Get all invitations for this group (pending or accepted)
+    List<GroupInvitation> invitations = groupInvitationRepository.findByGroupIdAndStatusIn(
+        groupId, Arrays.asList(InvitationStatus.PENDING, InvitationStatus.ACCEPTED)
+    );
+    Set<Integer> invitedUserIds = invitations.stream()
+        .map(GroupInvitation::getInviteeId)
+        .collect(Collectors.toSet());
+
+    // Filter friends: not in group and not already invited (pending/accepted)
+    List<UserDto> notInGroupOrInvited = friends.stream()
+        .filter(friend -> !memberIds.contains(friend.getId()))
+        .filter(friend -> !invitedUserIds.contains(friend.getId()))
+        .collect(Collectors.toList());
+
+    return notInGroupOrInvited;
+}
+
+
+
+    // Returns all invitations sent by a specific group (by groupId and userId)
+   @Override
+public List<Map<String, Object>> getSentInvitationsByGroupId(Integer groupId, Integer userId) throws Exception {
+    helper.validateUser(userId);
+    // Only allow if user is owner or admin of the group
+    Group group = groupRepository.findById(groupId)
+            .orElseThrow(() -> new RuntimeException("Group not found"));
+    GroupRole role = group.getUserRole(userId);
+    if (!(role == GroupRole.ADMIN || group.getCreatedBy().equals(userId))) {
+        throw new RuntimeException("Access denied: Only group owner or admin can view sent invitations");
+    }
+    List<GroupInvitation> invitations = groupInvitationRepository.findSentInvitationsByGroupId(groupId);
+    List<Map<String, Object>> result = new ArrayList<>();
+    for (GroupInvitation invitation : invitations) {
+        // Exclude invitations with CANCELLED status
+        if (invitation.getStatus() == InvitationStatus.CANCELLED) continue;
+        try {
+            UserDto invitee = helper.validateUser(invitation.getInviteeId());
+            Map<String, Object> invitationData = new HashMap<>();
+            invitationData.put("invitationId", invitation.getId());
+            invitationData.put("groupId", groupId);
+            invitationData.put("groupName", group.getName());
+            invitationData.put("role", invitation.getRole().getDisplayName());
+            invitationData.put("invitee", invitee.getFirstName() + " " + invitee.getLastName());
+            invitationData.put("inviteeEmail", invitee.getEmail());
+            invitationData.put("status", invitation.getStatus().getDisplayName());
+            invitationData.put("sentAt", invitation.getCreatedAt());
+            invitationData.put("expiresAt", invitation.getExpiresAt());
+            invitationData.put("respondedAt", invitation.getRespondedAt());
+            result.add(invitationData);
+        } catch (Exception e) {
+            // Skip if user not found
+        }
+    }
+    return result;
+}
+
+
+    @Override
+public void updateInvitationStatusToCancelled(Integer invitationId) throws Exception {
+    GroupInvitation invitation = groupInvitationRepository.findById(invitationId)
+        .orElseThrow(() -> new RuntimeException("Invitation not found"));
+    invitation.setStatus(InvitationStatus.CANCELLED);
+    groupInvitationRepository.save(invitation);
+}
 }

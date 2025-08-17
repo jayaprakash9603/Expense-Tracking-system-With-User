@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface FriendshipService {
+    // Returns all friends (UserDto) of the user whose friendship status is ACCEPTED
+    List<UserDto> getFriendsOfUser(Integer userId) throws Exception;
     Friendship sendFriendRequest(Integer requesterId, Integer recipientId) throws Exception;
 
     Friendship respondToRequest(Integer friendshipId, Integer responderId, boolean accept);

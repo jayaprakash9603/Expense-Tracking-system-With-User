@@ -31,6 +31,9 @@ public class BillServiceImpl implements BillService {
 
     private final ServiceHelper helper;
 
+    // lazy-loaded backup items
+    private static volatile List<String> cachedBackupItems = null;
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -80,10 +83,13 @@ public class BillServiceImpl implements BillService {
                 throw new Exception("Associated expense not found for bill ID: " + bill.getId());
             }
 
+
+            
             // Update expense properties
             expense.setDate(bill.getDate());
+
             expense.setUserId(userId);
-            expense.setCategoryId(existingBill.getCategoryId());
+            expense.setCategoryId(bill.getCategoryId());
             expense.setBill(true);
             expense.setIncludeInBudget(bill.isIncludeInBudget());
 
@@ -125,7 +131,7 @@ public class BillServiceImpl implements BillService {
             existingBill.setCreditDue(savedExpense.getExpense().getCreditDue());
             existingBill.setBudgetIds(savedExpense.getBudgetIds());
             existingBill.setIncludeInBudget(bill.isIncludeInBudget());
-
+            existingBill.setCategory(savedExpense.getCategoryName());
             // Keep the same expense ID - don't change it
             existingBill.setExpenseId(savedExpense.getId());
 
@@ -289,5 +295,67 @@ public class BillServiceImpl implements BillService {
         List<Bill> bills = getBillsWithinRange(userId, startDate, endDate);
         return bills.stream().map(bill->expenseService.getExpenseById(bill.getExpenseId(),userId)).collect(Collectors.toList());
 
+    }
+
+    @Override
+    public List<String> getAllUniqueItemNames(Integer userId) throws Exception {
+        try {
+            helper.validateUser(userId);
+            // Return only DB-derived unique item names (no fallback here)
+            return billRepository.findByUserId(userId).stream()
+                    .filter(bill -> bill.getExpenses() != null)
+                    .flatMap(bill -> bill.getExpenses().stream())
+                    .map(exp -> exp.getItemName() == null ? "" : exp.getItemName().trim())
+                    .filter(name -> name != null && !name.isEmpty())
+                    .map(String::trim)
+                    .distinct()
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new Exception("Error retrieving unique item names: " + e.getMessage());
+        }
+    }
+    @Override
+    public List<String> getUserAndBackupItems(Integer userId) throws Exception {
+        try {
+            helper.validateUser(userId);
+
+            List<String> userItems = getAllUniqueItemNames(userId);
+
+            // load backup items lazily and cache
+            if (cachedBackupItems == null) {
+                synchronized (BillServiceImpl.class) {
+                    if (cachedBackupItems == null) {
+                        java.util.List<String> backup = new java.util.ArrayList<>();
+                        try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("backup_item_names.txt")) {
+                            if (is != null) {
+                                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(is))) {
+                                    backup = reader.lines()
+                                            .map(String::trim)
+                                            .filter(s -> s != null && !s.isEmpty())
+                                            .distinct()
+                                            .collect(Collectors.toList());
+                                }
+                            }
+                        } catch (Exception ex) {
+                            // ignore, leave backup empty
+                        }
+                        cachedBackupItems = backup;
+                    }
+                }
+            }
+
+            // merge userItems (first) and backupItems, deduplicated while preserving order
+            java.util.LinkedHashSet<String> merged = new java.util.LinkedHashSet<>();
+            if (userItems != null) merged.addAll(userItems);
+            if (cachedBackupItems != null) {
+                for (String b : cachedBackupItems) {
+                    if (b != null && !b.trim().isEmpty()) merged.add(b.trim());
+                }
+            }
+
+            return new java.util.ArrayList<>(merged);
+        } catch (Exception e) {
+            throw new Exception("Error retrieving user and backup items: " + e.getMessage());
+        }
     }
 }

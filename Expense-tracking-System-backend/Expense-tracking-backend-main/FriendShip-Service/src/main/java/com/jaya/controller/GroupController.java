@@ -1,3 +1,4 @@
+   
 package com.jaya.controller;
 
 import com.jaya.dto.*;
@@ -648,6 +649,51 @@ public class GroupController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+
+
+
+    @GetMapping("/{groupId}/friends-not-in-group")
+public ResponseEntity<?> getFriendsNotInGroup(
+        @RequestHeader("Authorization") String jwt,
+        @PathVariable Integer groupId) {
+    try {
+        UserDto user = userService.getuserProfile(jwt);
+        List<UserDto> friendsNotInGroup = groupService.getFriendsNotInGroup(user.getId(), groupId);
+        return ResponseEntity.ok(friendsNotInGroup);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+}
+
+
+
+
+
+
+
+ @GetMapping("/{groupId}/invitations/sent")
+    public ResponseEntity<List<Map<String, Object>>> getSentInvitationsByGroupId(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Integer groupId) throws Exception {
+        UserDto user = userService.getuserProfile(jwt);
+        List<Map<String, Object>> invitations = groupService.getSentInvitationsByGroupId(groupId, user.getId());
+        return ResponseEntity.ok(invitations);
+    }
+
+
+
+
+
+    @PutMapping("/invitations/{invitationId}/cancel")
+public ResponseEntity<?> cancelInvitationStatusOnly(
+        @RequestHeader("Authorization") String jwt,
+        @PathVariable Integer invitationId) throws Exception {
+    UserDto user = userService.getuserProfile(jwt);
+    groupService.updateInvitationStatusToCancelled(invitationId);
+    return ResponseEntity.ok(Map.of("message", "Invitation status updated to CANCELLED"));
+}
+
 
 
 }

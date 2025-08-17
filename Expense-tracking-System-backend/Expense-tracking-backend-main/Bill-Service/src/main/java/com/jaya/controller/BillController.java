@@ -2,6 +2,8 @@ package com.jaya.controller;
 
 
 import com.jaya.models.Bill;
+import com.jaya.dto.BillRequestDTO;
+import com.jaya.dto.BillResponseDTO;
 import com.jaya.models.UserDto;
 import com.jaya.response.Error;
 import com.jaya.service.BillService;
@@ -37,12 +39,10 @@ public class BillController {
             throw new Exception("Target user not found");
         }
 
-        boolean hasAccess = true ?
-                friendshipService.canUserModifyExpenses(targetId, reqUser.getId()) :
-                friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
+        boolean hasAccess = friendshipService.canUserModifyExpenses(targetId, reqUser.getId());
 
         if (!hasAccess) {
-            String action = true ? "modify" : "access";
+            String action = "modify";
             throw new Exception("You don't have permission to " + action + " this user's expenses");
         }
 
@@ -50,16 +50,13 @@ public class BillController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createBill(@RequestBody Bill bill, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) {
-        try {
-            System.out.println("token: " + jwt);
-            UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
-            Bill createdBill = billService.createBill(bill, targetUser.getId());
-            return ResponseEntity.ok(createdBill);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-        }
+    public ResponseEntity<BillResponseDTO> createBill(@RequestBody BillRequestDTO billDto, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) throws Exception {
+        UserDto reqUser = userService.getuserProfile(jwt);
+        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+    Bill bill = com.jaya.mapper.BillMapper.toEntity(billDto, targetUser.getId());
+    Bill createdBill = billService.createBill(bill, targetUser.getId());
+    BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(createdBill);
+    return ResponseEntity.ok(resp);
     }
 
 
@@ -76,14 +73,15 @@ public class BillController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Bill> updateBill(@PathVariable Integer id, @RequestBody Bill bill, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) throws Exception {
+    public ResponseEntity<BillResponseDTO> updateBill(@PathVariable Integer id, @RequestBody BillRequestDTO billDto, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDto reqUser = userService.getuserProfile(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+        Bill bill = com.jaya.mapper.BillMapper.toEntity(billDto, targetUser.getId());
             bill.setId(id);
             Bill updatedBill = billService.updateBill(bill, targetUser.getId());
-            return ResponseEntity.ok(updatedBill);
-
+            BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(updatedBill);
+            return ResponseEntity.ok(resp);
     }
 
     @DeleteMapping("/{id}")
@@ -164,6 +162,20 @@ public class BillController {
                 bills = billService.getAllBillsForUser(targetUser.getId());
             }
             return ResponseEntity.ok(bills);
+        } catch (Exception e) {
+            Error error = new Error();
+            error.setMessage(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/items")
+    public ResponseEntity<?> getAllUniqueItemNames(@RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) {
+        try {
+            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+            java.util.List<String> resp = billService.getUserAndBackupItems(targetUser.getId());
+            return ResponseEntity.ok(resp);
         } catch (Exception e) {
             Error error = new Error();
             error.setMessage(e.getMessage());

@@ -271,6 +271,7 @@ public class ServiceHelper {
         newBill.setBudgetIds(savedExpense.getBudgetIds());
         newBill.setExpenseId(savedExpense.getExpense().getId());
         newBill.setIncludeInBudget(originalBill.isIncludeInBudget());
+        newBill.setCategory(savedExpense.getCategoryName());
         return newBill;
     }
 

@@ -16,6 +16,12 @@ public class ChatResponse {
     private Integer groupId;
     private String content;
 
+    // Sender details
+    private String email;
+    private String username;
+    private String firstName;
+    private String lastName;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 
@@ -80,6 +86,38 @@ public class ChatResponse {
     }
 
     // Getters and Setters
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
     public Integer getId() {
         return id;
     }

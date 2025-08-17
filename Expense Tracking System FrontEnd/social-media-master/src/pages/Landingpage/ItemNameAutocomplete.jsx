@@ -1,65 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Autocomplete, TextField, CircularProgress } from "@mui/material";
-
-// Dummy data - this will be replaced with API call in the future
-const dummyItemNames = [
-  "Groceries",
-  "Fuel",
-  "Electricity Bill",
-  "Water Bill",
-  "Internet Bill",
-  "Mobile Recharge",
-  "Restaurant",
-  "Coffee",
-  "Medicines",
-  "Stationery",
-  "Clothing",
-  "Books",
-  "Transportation",
-  "Parking",
-  "Gym Membership",
-  "Netflix Subscription",
-  "Amazon Prime",
-  "Office Supplies",
-  "Cleaning Supplies",
-  "Personal Care",
-  "Home Maintenance",
-  "Car Service",
-  "Insurance Premium",
-  "Bank Charges",
-  "ATM Charges",
-  "Food Delivery",
-  "Uber/Ola",
-  "Movie Tickets",
-  "Shopping",
-  "Hardware Store",
-  "Pharmacy",
-  "Vegetables",
-  "Fruits",
-  "Dairy Products",
-  "Snacks",
-  "Beverages",
-  "Fast Food",
-  "Pizza",
-  "Ice Cream",
-  "Bakery Items",
-  "Rent",
-  "Maintenance",
-  "Security Deposit",
-  "House Cleaning",
-  "Laundry",
-  "Dry Cleaning",
-  "Pet Food",
-  "Veterinary",
-  "School Fees",
-  "Tuition",
-  "Online Courses",
-  "Software Subscription",
-  "Cloud Storage",
-  "Domain Renewal",
-  "Hosting",
-  "VPN Subscription",
-];
+import itemService from "../../services/itemService";
 
 const ItemNameAutocomplete = ({
   value = "",
@@ -73,7 +14,7 @@ const ItemNameAutocomplete = ({
   sx = {},
   ...otherProps
 }) => {
-  const [options, setOptions] = useState(dummyItemNames);
+  const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState(value);
   const [isOpen, setIsOpen] = useState(false); // Add this state
@@ -83,25 +24,40 @@ const ItemNameAutocomplete = ({
     setInputValue(value);
   }, [value]);
 
+  // Load initial items from service (service may use local dummy list or API)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const items = await itemService.getAllItems();
+        if (!mounted) return;
+        setOptions(items || []);
+      } catch (err) {
+        console.error("Failed to load items from service", err);
+        setOptions([]);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Future API integration function
   const fetchItemNames = async (searchTerm = "") => {
     setLoading(true);
     try {
-      // Only fetch or filter options if at least one character is entered
-      if (searchTerm.length > 0) {
-        const filtered = dummyItemNames.filter((item) =>
-          item.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setOptions(filtered);
-        setIsOpen(true); // Open dropdown when there are results
-      } else {
-        setOptions([]); // Clear options if no input
-        setIsOpen(false); // Close dropdown when no input
+      if (!searchTerm) {
+        setOptions([]);
+        setIsOpen(false);
+        return;
       }
+      const filtered = await itemService.searchItems(searchTerm);
+      setOptions(filtered || []);
+      setIsOpen((filtered || []).length > 0);
     } catch (error) {
       console.error("Error fetching item names:", error);
-      setOptions([]); // Clear options on error
-      setIsOpen(false); // Close dropdown on error
+      setOptions([]);
+      setIsOpen(false);
     } finally {
       setLoading(false);
     }

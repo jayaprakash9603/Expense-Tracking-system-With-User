@@ -4110,8 +4110,11 @@ public class ExpenseController {
 
     @PostMapping("/update-expense-with-bill-service")
     public Expense updateExpenseWithBillService(@RequestParam Integer expenseId,@RequestBody Expense expense,@RequestParam Integer userId) throws Exception {
+        
+        
         return expenseService.updateExpenseWithBillService(expenseId,expense, userId);
     }
+
 
     @DeleteMapping("/delete-expenses-with-bill-service")
     public void deleteExpenseWithBillService(@RequestParam List<Integer> expenseIds,@RequestParam Integer userId) throws Exception {

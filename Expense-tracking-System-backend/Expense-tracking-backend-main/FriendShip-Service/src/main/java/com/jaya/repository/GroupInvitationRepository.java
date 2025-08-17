@@ -1,3 +1,4 @@
+   
 
 package com.jaya.repository;
 
@@ -31,4 +32,13 @@ public interface GroupInvitationRepository extends JpaRepository<GroupInvitation
 
     @Query("SELECT gi FROM GroupInvitation gi WHERE gi.status = 'PENDING' AND gi.expiresAt <= :now")
     List<GroupInvitation> findExpiredInvitations(@Param("now") LocalDateTime now);
+
+ @Query("SELECT gi FROM GroupInvitation gi WHERE gi.groupId = :groupId")
+    List<GroupInvitation> findSentInvitationsByGroupId(@Param("groupId") Integer groupId);
+
+
+
+
+
+List<GroupInvitation> findByGroupIdAndStatusIn(Integer groupId, List<InvitationStatus> statuses);
 }

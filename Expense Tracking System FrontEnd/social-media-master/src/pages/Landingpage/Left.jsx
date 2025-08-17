@@ -131,23 +131,28 @@ const Left = () => {
               setIsSidebarOpen={setIsSidebarOpen}
             />
             <MenuItem
-              name="More"
-              path="/all"
-              icon={require("../../assests/grid.png")}
+              name="Groups"
+              path="/groups"
+              icon={require("../../assests/group.png")}
               setIsSidebarOpen={setIsSidebarOpen}
             />
-
             <MenuItem
-              name="Gruoups"
-              path="/groups"
-              icon={require("../../assests/grid.png")}
+              name="Chats"
+              path="/chats"
+              icon={require("../../assests/chat.png")}
+              setIsSidebarOpen={setIsSidebarOpen}
+            />
+            <MenuItem
+              name="More"
+              path="/all"
+              icon={require("../../assests/more.png")}
               setIsSidebarOpen={setIsSidebarOpen}
             />
 
             <MenuItem
               name="Logout"
               path="/login"
-              icon="https://cdn-icons-png.flaticon.com/128/1828/1828471.png"
+              icon={require("../../assests/logout.png")}
               onClick={() => setIsConfirmModalOpen(true)}
               setIsSidebarOpen={setIsSidebarOpen}
             />

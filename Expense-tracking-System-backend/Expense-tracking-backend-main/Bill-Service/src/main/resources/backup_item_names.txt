@@ -1,0 +1,1881 @@
+Rice
+Milk
+Bread
+Electricity Bill
+Internet
+Rent
+Soap
+Toothpaste
+Medicine
+Vegetables
+Fruits
+Gasoline
+Transport Fare
+Coffee
+Tea
+Sugar
+Flour
+Eggs
+Bottled Water
+Stationery
+Cleaning Supplies
+Laundry Detergent
+Phone Recharge
+Movie Ticket
+Gym Membership
+Lunch
+Dinner
+Snacks
+Insurance
+Medical Checkup
+Apple
+Banana
+Orange
+Mango
+Grapes
+Pineapple
+Strawberry
+Blueberry
+Watermelon
+Papaya
+Pear
+Peach
+Kiwi
+Lemon
+Lime
+Cherry
+Guava
+Pomegranate
+Apricot
+Cantaloupe
+Potato
+Tomato
+Onion
+Garlic
+Carrot
+Spinach
+Lettuce
+Cucumber
+Bell Pepper
+Broccoli
+Cauliflower
+Cabbage
+Green Beans
+Peas
+Eggplant
+Zucchini
+Pumpkin
+Sweet Potato
+Radish
+Beetroot
+Milk Powder
+Butter
+Cheese
+Yogurt
+Cooking Oil
+Olive Oil
+Vinegar
+Salt
+Black Pepper
+Spices
+Noodles
+Pasta
+Cereal
+Breakfast Cereal
+Oats
+Honey
+Jam
+Peanut Butter
+Canned Beans
+Canned Tuna
+Frozen Vegetables
+Frozen Meat
+Chicken
+Beef
+Fish
+Tofu
+Baby Food
+Diapers
+Sanitary Pads
+Shampoo
+Conditioner
+Body Wash
+Hand Soap
+Face Wash
+Moisturizer
+Sunscreen
+Deodorant
+Shaving Cream
+Razors
+Perfume
+Hand Sanitizer
+First Aid Kit
+Vitamins
+Multivitamins
+Pain Reliever
+Bandages
+Thermometer
+Batteries
+Light Bulb
+Matches
+Lighter
+Trash Bags
+Storage Containers
+Aluminum Foil
+Cling Film
+Dishwasher Detergent
+Sponges
+Dish Soap
+Mop
+Broom
+Vacuum Cleaner
+Iron
+Clothes Detergent
+Fabric Softener
+Sewing Kit
+Umbrella
+Raincoat
+Shoes
+Socks
+T-Shirts
+Jeans
+Underwear
+Jacket
+Hat
+Gloves
+Backpack
+Wallet
+Keys
+ID Card
+Passport
+Credit Card
+Bank Fees
+Taxes
+Doctors Fee
+Dentist
+House Rent
+Mortgage
+Property Tax
+Home Repair
+Plumbing
+Electrical Repair
+Car Repair
+Taxi
+Bus Fare
+Train Ticket
+Flight Ticket
+Hotel
+Haircut
+Laundry Service
+Dry Cleaning
+Subscription
+Streaming Service
+Newspaper
+Magazine
+Books
+Printer Ink
+Pens
+Notebooks
+Calculator
+School Supplies
+Childcare
+Pet Food
+Vet
+Pet Supplies
+Gardening Supplies
+Plants
+Seeds
+Soil
+Fertilizer
+Tools
+Hardware
+Paint
+DIY Supplies
+Concert Ticket
+Gifts
+Flowers
+Party Supplies
+Cleaning Service
+Taxi Service
+Courier
+Legal Fees
+Consultation
+Training Course
+Workshop
+Conference
+Donation
+Charity
+Savings
+Investment
+Emergency Fund
+Electric Kettle
+Toaster
+Microwave
+Blender
+Coffee Maker
+Rice Cooker
+Slow Cooker
+Pressure Cooker
+Air Fryer
+Water Heater
+Heater
+Fan
+Air Conditioner
+Solar Lamp
+Flashlight
+Extension Cord
+Power Strip
+USB Cable
+Charger
+Earphones
+Headphones
+Mobile Phone
+Tablet
+Laptop
+Desktop PC
+Monitor
+Keyboard
+Mouse
+External Hard Drive
+USB Drive
+SD Card
+Camera
+TV
+Smart TV
+Remote Control
+Router
+Modem
+Printer
+Scanner
+Office Chair
+Desk
+Filing Cabinet
+Stapler
+Paper Clips
+Envelopes
+Mailing Tape
+Toolbox
+Wrench
+Screwdriver
+Hammer
+Drill
+Nails
+Screws
+Wheelbarrow
+Lawn Mower
+Car Battery
+Engine Oil
+Car Wash
+Car Insurance
+Vehicle Service
+Spare Tire
+Car Light Bulb
+Windshield Wiper
+Fuel Additive
+Parking Fee
+Road Toll
+Roadside Assistance
+Gym Equipment
+Yoga Mat
+Sports Shoes
+Bicycle
+Bicycle Repair
+Camping Gear
+Travel Adapter
+Luggage
+Travel Insurance
+Language Course
+Online Course
+E-book
+Gift Card
+Restaurant
+Catering
+Bakery
+Butcher
+Fishmonger
+Farmer Market
+Fruit Stall
+Vegetable Stall
+Butane Gas
+Propane
+Gas Cylinder
+Water Filter
+Water Bottle
+Reusable Bag
+Storage Rack
+Curtains
+Bedding
+Pillow
+Mattress
+Blanket
+Towel
+Shower Curtain
+Toilet Paper
+Sanitary Napkins
+Kitchen Knife
+Cutting Board
+Plates
+Bowls
+Glassware
+Mugs
+Cutlery
+Measuring Cup
+Kitchen Scale
+Thermos
+Ice Tray
+Coasters
+Serving Tray
+Birthday Cake
+Greeting Card
+Wrapping Paper
+Candles
+Fire Extinguisher
+Smoke Detector
+Security Camera
+Door Lock
+Keypad Lock
+Home Alarm
+Consultant Fee
+Brokerage Fee
+Agency Fee
+Membership Fee
+Subscription Fee
+Fruits: Cranberry
+Blackberry
+Tamarind
+Longan
+Lychee
+Salak (Snake Fruit)
+Soursop
+Custard Apple
+Star Fruit
+Mulberry
+Marionberry
+Boysenberry
+Cloudberry
+Ugli Fruit
+Yuzu
+Kaffir Lime
+Bergamot
+Breadfruit
+Santol
+Langsat
+Mirabelle Plum
+Redcurrant
+White Currant
+Bilberry
+Jujube
+Persian Lime
+Calamansi
+Sapodilla
+Quince
+Medlar
+Custard Apple (Sitaphal)
+Vegetables: Water Spinach
+Yardlong Bean
+Mizuna
+Napa Cabbage
+Kale
+Baby Carrot
+Baby Potato
+Purple Cabbage
+Romanesco
+Kabocha
+Daikon
+Taro
+Cassava
+Yam
+Celeriac
+Bamboo Shoot
+Lotus Root
+Sea Beet
+Fiddlehead
+Samphire
+Radicchio
+Jerusalem Artichoke
+Chayote
+Pomelo (vegetable-like use)
+Soybean Sprout
+Black Turtle Beans
+Cannellini Beans
+Adzuki Beans
+Mung Beans
+Lentils
+Chickpeas
+Groceries: Whole Wheat Flour
+Semolina
+Cornmeal
+Polenta
+Buckwheat
+Millet
+Quinoa
+Brown Rice
+Basmati Rice
+Jasmine Rice
+Sushi Rice
+Instant Noodles
+Ramen
+Miso Paste
+Soy Sauce
+Fish Sauce
+Oyster Sauce
+Ketchup
+Mayonnaise
+Mustard
+Pickles
+Salsa
+Pesto
+Tahini
+Maple Syrup
+Agave Nectar
+Condensed Milk
+Evaporated Milk
+Custard Powder
+Bread Crumbs
+Cornflakes
+Muesli
+Snack Bars
+Energy Bars
+Protein Powder
+Nuts: Almonds
+Walnuts
+Cashews
+Pistachios
+Hazelnuts
+Macadamia Nuts
+Peanuts
+Brazil Nuts
+Pumpkin Seeds
+Sunflower Seeds
+Chia Seeds
+Sesame Seeds
+Hemp Seeds
+Dried Fruit: Raisins
+Apricots Dried
+Prunes
+Dates
+Figs Dried
+Sultanas
+Cranberries Dried
+Succulents (plants)
+Household: Mop Bucket
+Bucket
+Squeegee
+Laundry Basket
+Clothes Hanger
+Drying Rack
+Ironing Board
+Stepladder
+Extension Ladder
+Garage Storage
+Shoe Rack
+Doormat
+Coat Hanger
+Door Mat
+Bathroom Mat
+Shower Caddy
+Toilet Brush
+Plunger
+Drain Cleaner
+Pest Spray
+Rodent Trap
+Window Cleaner
+Glass Cleaner
+Furniture Polish
+Wood Cleaner
+Air Freshener
+Essential Oils
+Diffuser
+Personal Care: Cotton Buds
+Cotton Pads
+Face Mask
+Facial Serum
+Eye Cream
+Lip Balm
+Hand Cream
+Foot Cream
+Nail Clippers
+Nail File
+Epilator
+Hair Brush
+Comb
+Hair Oil
+Hair Serum
+Hair Mask
+Hair Color
+Beard Oil
+Beard Trimmer
+Electric Toothbrush
+Mouthwash
+Dental Floss
+Whitening Strips
+Electronics & Accessories: Smartwatch
+Wireless Charger
+Car Charger
+Dash Cam
+GPS Device
+Smart Light Bulb
+LED Strip
+Smart Plug
+Smart Home Hub
+Home Assistant Device
+Bluetooth Earbuds
+Noise Cancelling Headphones
+Streaming Stick
+Media Player
+SSD
+NAS Drive
+Router Antenna
+HDMI Cable
+VGA Cable
+Ethernet Cable
+Phone Case
+Screen Protector
+SIM Ejector
+Clothing & Apparel: Blazer
+Cardigan
+Sweater
+Hoodie
+Polo Shirt
+Dress
+Skirt
+Blouse
+Formal Suit
+Tie
+Bow Tie
+Cufflinks
+Belt
+Briefcase
+Tights
+Leggings
+Sportswear
+Compression Wear
+Thermals
+Rain Boots
+Sneakers
+Loafers
+Sandals
+Slippers
+Shoe Insoles
+Sports & Outdoors: Golf Clubs
+Golf Balls
+Golf Tees
+Fishing Rod
+Fishing Lures
+Kayak
+Canoe
+Paddle
+Rock Climbing Gear
+Climbing Shoes
+Harness
+Carabiners
+Trail Running Shoes
+Hiking Backpack
+Hydration Pack
+Camping Tent
+Sleeping Bag
+Camping Lantern
+Portable Stove
+Fishing Net
+Scuba Gear
+Snorkel
+Sports Supplements
+Baby & Kids: Baby Lotion
+Baby Shampoo
+Baby Powder
+Baby Wipes
+Breast Pump
+Formula Milk
+Bottle Sterilizer
+Baby Bottle
+Pacifier
+Teether
+Play Mat
+Baby Monitor
+Stroller Cover
+Car Seat
+Kids Helmet
+Kids Bike
+Educational Toy
+Soft Toys
+Board Books
+Pet Supplies: Cat Litter
+Litter Scooper
+Dog Leash
+Dog Collar
+Pet Bed
+Pet Carrier
+Aquarium
+Fish Food
+Bird Seed
+Bird Cage
+Hamster Wheel
+Pet Brush
+Pet Shampoo
+Flea Treatment
+Pet Collar Tag
+Tools & Hardware: Paint Brush
+Paint Roller
+Sandpaper
+Caulking Gun
+Sealant
+Rope
+Chain
+Padlock
+Combination Lock
+Measuring Tape
+Level
+Stud Finder
+Angle Grinder
+Circular Saw
+Jigsaw
+Pipe Wrench
+Plumbing Tape
+Teflon Tape
+Garden Hose
+Hedge Trimmer
+Pruning Shears
+Leaf Blower
+Services & Fees: Visa Fee
+Renewal Fee
+Shipping Fee
+Installation Fee
+Delivery Charge
+Pickup Charge
+Handling Fee
+Inspection Fee
+Consulting Fee
+Agent Fee
+Stationery & Office: Sticky Notes
+Index Tabs
+Highlighter
+Marker Pen
+Whiteboard Marker
+Whiteboard Eraser
+Ledger Book
+Staples
+Label Maker
+Packing Tape
+Document Folder
+Miscellaneous: Karaoke Machine
+Photo Album
+Memory Foam Pillow
+Ergonomic Chair
+Standing Desk
+Foot Massager
+Massage Chair
+Scented Sachet
+Incense Sticks
+Charcoal Briquettes
+BBQ Grill
+Barbecue Tools
+Ice Maker
+Ice Cube Maker
+Water Dispenser
+Soda Maker
+Popcorn Maker
+Waffle Maker
+Crepe Maker
+Cotton Candy Machine
+Bread Maker
+Chocolate Fountain
+Hot Plate
+Deep Fryer
+Rice Mill
+Grain Mill
+Security Service
+Valet Parking
+Event Ticketing
+Membership Card
+Parking Permit
+Utility Connection Fee
+Home Inspection
+Interior Design Service
+Landscaping Service
+Pool Maintenance
+Car Rental
+Bike Rental
+Scooter Rental
+Laundry Detergent Pods
+Eco-friendly Products
+Reusable Straw
+Bento Box
+Lunch Box
+Avocado
+Plum
+Blackcurrant
+Mandarin
+Clementine
+Satsuma
+Olive
+Date Palm
+Keitt Mango
+Ataulfo Mango
+Honeydew
+Gala Apple
+Granny Smith Apple
+Red Delicious Apple
+Fuji Apple
+Bosc Pear
+Anjou Pear
+Satsuma Plum
+Blood Orange
+Yamanashi Pear
+Brussels Sprouts
+Kale (curly)
+Kale (lacinato)
+Mustard Greens
+Turnip Greens
+Baby Spinach
+Sugar Snap Peas
+Snow Peas
+Yellow Squash
+Pattypan Squash
+Butternut Squash
+Acorn Squash
+Bitter Gourd
+Okra (lady's finger)
+Nopal (cactus)
+Endive (Belgian)
+Mizuna Greens
+Kohlrabi
+Water Chestnut
+Bamboo Shoots (canned)
+Paneer
+Cottage Cheese
+Ricotta
+Mascarpone
+Sour Cream
+Cream Cheese
+Heavy Cream
+Whipping Cream
+Skim Milk
+2% Milk
+Whole Milk
+Goat Milk
+Sheep Milk
+Condensed Milk (sweetened)
+Evaporated Milk
+Eggs (large)
+Eggs (free-range)
+Quail Eggs
+Duck Eggs
+Pork
+Pork Chop
+Bacon
+Ham
+Sausage
+Turkey
+Duck
+Lamb Chops
+Ground Lamb
+Mutton
+Salmon Fillet
+Tuna Steak
+Prawns
+Shrimp (frozen)
+Crab
+Lobster
+Clams
+Mussels
+Squid
+Octopus
+Sourdough Bread
+Baguette
+Bagel
+@+Croissant
+Muffin
+Donut
+Pita Bread
+Tortilla
+Corn Tortilla
+Whole Wheat Bread
+Multigrain Bread
+Rye Bread
+Gluten Free Bread
+Brownie
+Cupcake
+Pancake Mix
+Waffle Mix
+Pizza Dough
+Focaccia
+Ciabatta
+Mineral Water
+Sparkling Water
+Green Tea
+Black Tea
+Herbal Tea
+Iced Tea
+Lemonade
+Sports Drink
+Energy Drink
+Cola
+Diet Cola
+Ginger Ale
+Tonic Water
+Apple Juice
+Orange Juice
+Grape Juice
+Tomato Juice
+Coconut Water
+Soy Milk Drink
+Almond Milk Drink
+Potato Chips
+Tortilla Chips
+Pretzels
+Popcorn (butter)
+Popcorn (kettle)
+Chocolate Bar
+Dark Chocolate
+Milk Chocolate
+Candy Bar
+Gummy Candy
+Marshmallows
+Nougat
+Trail Mix
+Granola Bar
+Protein Bar (chocolate)
+Protein Bar (peanut)
+Jerky
+Beef Jerky
+Turkey Jerky
+Rice Cakes
+Barbecue Sauce
+Hot Sauce
+Sriracha
+Mayonnaise Light
+Aioli
+Brown Sauce
+Salad Dressing (Caesar)
+Salad Dressing (Italian)
+Blue Cheese Dressing
+Tahini Sauce
+Hoisin Sauce
+Maldon Salt
+Soy Marinade
+Teriyaki Sauce
+Taco Seasoning
+Curry Paste
+Harissa
+Gochujang
+Ranch Dressing
+Frozen Pizza
+Frozen Dumplings
+Frozen Spring Rolls
+Frozen Fish Sticks
+Frozen Chicken Nuggets
+Frozen Lasagna
+Frozen Curry
+Frozen Biryani
+Frozen Vegetables Mix
+Instant Soup
+Instant Noodles Cup
+Ready Meal (pasta)
+Ready Meal (rice)
+Microwave Rice
+Frozen Dessert
+Ice Cream Tub
+Frozen Yogurt
+Popsicles
+Frozen Fruit Mix
+Training Pants
+Baby Formula Powder
+Baby Bottles (glass)
+Disposable Plates (kids)
+Kids Cutlery
+Sippy Cup
+Baby Blanket
+Crib Sheets
+Teething Gel
+Stroller Toys
+Baby Safety Gate
+Outlet Covers
+Baby Thermometer
+Nasal Aspirator
+Breastfeeding Pillow
+Toddler Sneakers
+Kids Socks
+Kids Hat
+Kids Raincoat
+Kids Lunch Box
+Body Lotion
+Hand Lotion
+Foot Soak
+Foot File
+Pedicure Kit
+Hair Dryer
+Curling Iron
+Flat Iron
+Hair Straightener
+Hair Spray
+Dry Shampoo
+Heat Protectant
+Conditioning Mask
+Face Toner
+Face Cleanser
+Makeup Remover
+Cotton Swabs (cotton buds)
+Ear Cleaner
+Nose Trimmer
+Electric Shaver
+Bleach
+Disinfectant Spray
+Antibacterial Wipes
+Laundry Stain Remover
+Fabric Refresher
+Mold Cleaner
+Grout Cleaner
+Oven Cleaner
+Dishwasher Rinse Aid
+Laundry Nets
+Lint Roller
+Garbage Disposal Cleaner
+Shoe Polish
+Leather Cleaner
+Carpet Cleaner
+Steam Cleaner
+Air Duster
+Keyboard Cleaner
+Glass Cloth
+Microfiber Cloths
+Non-stick Frying Pan
+Cast Iron Skillet
+Saucepan
+Stock Pot
+Dutch Oven
+Baking Sheet
+Cake Pan
+Muffin Tin
+Loaf Pan
+Colander
+Mixing Bowl Set
+Measuring Spoons
+Measuring Cups
+Whisk
+Spatula
+Tongs
+Peeler
+Grater
+Mandoline
+Can Opener
+Smart Home Camera
+Ring Doorbell
+Home NAS
+Bluetooth Keyboard
+Mechanical Keyboard
+Gaming Mouse
+Gaming Headset
+Controller
+Game Console
+VR Headset
+Streaming Webcam
+LED Monitor 27"
+4K Monitor
+Projector
+Portable Projector
+Smart Thermostat
+Smart Lock
+Electric Scooter
+Electric Bike
+Power Inverter
+Sports Bra
+Bra
+Padded Bra
+Lingerie Set
+Sleepwear
+Pyjamas
+Nightgown
+Kimono Robe
+Apron
+Chef Apron
+Work Gloves
+Wristband
+Headband
+Bandana
+Beanie
+Scarf
+Necktie
+Pocket Square
+Suspenders
+Cuff Bracelet
+Running Trainers
+Trail Shoes
+Court Shoes
+Minimalist Shoes
+Flip Flops
+Platform Shoes
+Heels
+Wedge Heels
+Ankle Boots
+Chelsea Boots
+Work Boots
+Safety Boots
+Clogs
+Espadrilles
+Boat Shoes
+Loafers Leather
+Derby Shoes
+Oxford Shoes
+Monk Strap
+Hiking Boots
+Camping Table
+Camping Chair
+Portable Grill
+Fishing Tackle Box
+Tackle Bag
+Bike Helmet
+Bike Light
+Bike Lock
+Ski Jacket
+Ski Goggles
+Snowboard
+Snow Boots
+Ice Skates
+Rollerblades
+Skateboard
+Skate Shoes
+Polo Shirt (golf)
+Rangefinder
+Golf Bag
+Jump Starter
+Tire Inflator
+Air Compressor
+Socket Set
+Torque Wrench
+Car Jack
+Car Ramp
+Oil Filter
+Air Filter
+Fuel Filter
+Brake Pads
+Brake Fluid
+Coolant
+Antifreeze
+Windshield Washer Fluid
+Car Polish
+Microfiber Towel (car)
+Funnel
+Oil Drain Pan
+Grease Gun
+Dog Treats
+Cat Treats
+Pet Vitamins
+Puppy Pads
+Kitten Milk
+Flea Collar
+Pet Nail Clippers
+Dog Brush Slicker
+Cat Litter Mat
+Automatic Feeder
+Pet Fountain
+Dog Leash Retractable
+Pet ID Tag
+Pet Travel Bag
+Pet Carrier Backpack
+Dog Life Jacket
+Reflective Collar
+Pet Cooling Mat
+Pet Heating Pad
+Pet First Aid Kit
+Tutoring Service
+Home Tuition
+Online Tutoring
+Career Coaching
+Resume Service
+Visa Consultant
+Travel Agent Fee
+Event Planner
+Wedding Planner
+Catering Service Premium
+Photographer Service
+Videographer
+DJ Service
+Party Entertainer
+Makeup Artist
+Florist Service
+Cake Designer
+Stage Rental
+Sound System Rental
+Lighting Rental
+Citrus Mix
+Dragon Fruit
+Durian
+Jackfruit
+Rambutan
+Persimmon
+Mulberry
+Elderberry
+Gooseberry
+Kumquat
+Nectarine
+Plantain
+Breadfruit
+Fruit Mix Pack
+Vegetables: Arugula
+Artichoke
+Asparagus
+Leek
+Okra
+Kohlrabi
+Turnip
+Collard Greens
+Swiss Chard
+Mustard Greens
+Watercress
+Celery
+Jalapeno
+Chili Pepper
+Shallot
+Scallion
+Horseradish
+Fennel
+Endive
+Bok Choy
+Seaweed
+Microgreens
+Sprouts
+
+Sports & Fitness:
+Football
+Basketball
+Cricket Bat
+Cricket Ball
+Tennis Racket
+Tennis Balls
+Badminton Racket
+Badminton Shuttlecock
+Table Tennis Paddle
+Table Tennis Balls
+Skipping Rope
+Resistance Bands
+Dumbbells
+Kettlebell
+Fitness Tracker
+Sports Bottle
+Sports Gloves
+Protective Gear
+Helmet
+Shin Guards
+Soccer Cleats
+Running Shoes
+Athletic Wear
+Swimwear
+Goggles
+Fitness Subscription
+Personal Trainer
+
+Mall / Supermarket Purchases:
+Brand Jeans
+Designer Shirt
+Formal Shoes
+Casual Shoes
+Handbag
+Wallet Leather
+Sunglasses
+Watch
+Jewelry
+Cosmetics
+Makeup Kit
+Nail Polish
+Perfume Premium
+Skin Care Set
+Hair Styling Tools
+Toy Car
+Doll
+Board Game
+Children Clothing
+Baby Stroller
+High Chair
+Kitchen Appliances
+Home Decor
+Cushions
+Wall Art
+Vase
+Photo Frame
+Area Rug
+Curtain Set
+Lamp
+Floor Lamp
+Decorative Mirror
+Candles Scented
+Bathrobe
+Slippers
+Gift Wrap
+Mall Food Court
+Fast Food
+Ice Cream
+Smoothie
+Juice
+Food Delivery
+Pharmacy Purchase
+Optical Frames
+Contact Lenses
+Hearing Aid
+Mobile Accessories
+SIM Card
+Service Center Repair
+Electronics Warranty
+Extended Warranty
+USB Charger
+Power Bank
+Bluetooth Speaker
+Home Theatre
+Air Purifier
+Dehumidifier
+Indoor Plant
+Pet Toy
+Pet Grooming
+Stationery Set
+Art Supplies
+Craft Supplies
+Photography Service
+Printing Service
+Custom Tailoring
+Shoe Repair
+Key Cutting
+Mobile Top-up
+Cash Withdrawal Fee
+ATM Fee
+toor dal (tuvar dal)
+chana dal (split chickpeas)
+moong dal (split green gram)
+masoor dal (red lentils)
+urad dal (black gram)
+whole toor dal
+whole moong
+split pigeon peas
+black gram whole
+kabuli chana (chickpeas)
+rajma (kidney beans)
+black chana (kala chana)
+sooji (rava)
+suji rava
+atta chakki fresh
+maida all purpose flour
+besan (gram flour)
+makki ka atta (corn flour)
+nutri mix
+broken wheat (dalia)
+barley (jau)
+bajra flour
+jowar flour
+ragi flour
+millet flour
+sooji upma rava
+idli rice
+sona masuri rice
+raw rice
+basmati white rice
+parboiled rice
+poha thin
+poha thick
+aval (beaten rice)
+flattened rice (baji)
+sattu flour
+pearl millet
+finger millet
+black rice
+red rice
+brown rice small
+rice flakes
+turmeric whole
+turmeric roots
+ginger fresh
+garlic fresh
+green chillies whole
+dried red chilli whole
+red chilli powder
+coriander seeds
+cumin seeds (jeera)
+mustard seeds (rai)
+fenugreek seeds (methi)
+fennel seeds (saunf)
+carom seeds (ajwain)
+kalonji (nigella seeds)
+sesame seeds (til)
+asafoetida (hing)
+ajwain seeds
+clove whole (laung)
+cardamom (elaichi)
+cinnamon sticks (dalchini)
+bay leaf (tej patta)
+black peppercorns
+white pepper powder
+nutmeg (jaiphal)
+mace (javitri)
+star anise whole
+anardana (dried pomegranate seeds)
+tamarind block
+amchur powder (dry mango)
+dry mango slices
+garam masala powder
+chaat masala
+sambar powder
+rasam powder
+dhaniya powder
+jeera powder
+kashmiri chilli powder
+curry powder
+hing powder
+kasoori methi (dried fenugreek)
+curry leaves fresh
+ginger garlic paste jar
+pickle mango (achar)
+lemon pickle jar
+mixed vegetable pickle
+garlic pickle jar
+instant sambar mix
+instant rasam mix
+instant dosa mix
+instant idli mix
+vada mix pack
+upma mix pack
+besan chilla mix
+dhokla mix
+instant gulab jamun mix
+jalebi mix
+mithai (traditional sweets)
+soan papdi
+besan ladoo
+gajar ka halwa mix
+oats packets
+instant oats
+muesli pack
+cornflakes pack
+granola pack
+energy bars
+protein bars
+nuts mix
+almonds raw
+almonds roasted
+cashews raw
+cashews roasted
+walnuts
+peanuts salted
+peanut chikki
+til chikki (sesame chikki)
+sunflower seeds pack
+pumpkin seeds pack
+chia seeds pack
+flax seeds pack
+sesame seeds pack
+dried mango (amchur)
+raisins (kishmish)
+dates packet
+prunes packet
+figs dry
+apricots dry
+cranberries dried
+banana chips
+murukku pack
+chakli pack
+mixture namkeen
+sev pack
+bhujia pack
+mathri pack
+khakhra pack
+soya sticks
+roasted makhana
+potato chips
+corn puffs
+popcorn microwave
+energy drink
+health drink (Horlicks/Bournvita)
+protein supplement
+chocolate bar
+dark chocolate pack
+milk chocolate
+toffee candy
+chewing gum pack
+biscuits (Marie)
+digestive biscuits
+cream biscuits
+butter cookies
+glucose biscuits
+cream crackers
+salted crackers
+oreo pack
+cookies assorted
+brownie mix
+cupcake mix
+cake mix
+pancake mix
+waffle mix
+jalebi syrup
+gulkand jar
+rose syrup
+fruit jam (strawberry)
+fruit jam (mango)
+peanut butter crunchy
+peanut butter smooth
+honey jar
+maple syrup
+condensed milk tin
+evaporated milk tin
+custard powder
+bread crumbs
+cornflakes
+instant noodles (Maggi)
+ramen noodles
+instant soup sachet
+canned beans
+canned corn
+canned pineapple
+canned peaches
+canned mango pulp
+canned tuna
+tinned fish
+ready-to-eat meals
+ready-to-eat biryani
+microwave rice packets
+microwave meals (veg)
+microwave meals (non-veg)
+frozen peas pack
+frozen corn pack
+frozen mixed veg
+frozen paratha pack
+frozen samosa pack
+frozen idli pack
+frozen momos (veg)
+frozen momos (chicken)
+frozen kebab pack
+frozen pizza
+frozen desserts
+ice cream tub
+ice lolly
+kulfi pack
+chocolate ice cream
+vanilla ice cream
+strawberry ice cream
+corn flour packet
+rice flour packet
+gram flour besan pack
+soy flour pack
+maize flour pack
+starch (cornflour)
+custard powder pack
+baking soda
+baking powder
+yeast sachet
+vanilla essence bottle
+cocoa powder tin
+chocolate chips pack
+icing sugar
+icing gel small
+baking mould
+baking tray
+aluminium foil roll
+parchment baking paper
+cling film roll
+zip lock bags
+storage containers set
+glass jars set
+plastic containers set
+steel tiffin box
+insulated tiffin
+thermos flask
+stainless water bottle
+plastic water bottle
+water jug with filter
+water purifier cartridge
+mineral water bottle
+mineral water pack
+water dispenser
+water cooler
+electric kettle
+coffee maker
+french press
+filter coffee maker
+espresso machine small
+tea kettle
+tea strainer
+tea pot
+tea cups set
+coffee mug set
+coffee filter powder
+instant coffee
+nescafe coffee
+coffee whitener
+coffee creamer
+chai masala
+green tea bags
+herbal tea boxes
+immunity tea pack
+sugar 1kg
+sugar 5kg
+powdered sugar
+brown sugar
+rock sugar gur
+jaggery block
+gur jaggery powder
+gur chikki
+gur laddoo
+salt iodized
+rock salt kala namak
+seasoning salt
+pepper powder
+peppercorns whole
+chilli flakes
+masala tea powder
+millet flakes
+gluten free flour
+soy milk pack
+almond milk pack
+oat milk pack
+coconut milk tin
+fruit juice carton
+fruit nectar
+apple juice bottle
+orange juice bottle
+grape juice
+mango nectar
+tomato juice
+potato
+onion
+garlic
+ginger
+green peas
+fresh spinach
+fenugreek leaves (methi)
+amaranth leaves
+malli cilantro bunch
+coriander leaves bunch
+mint leaves bunch
+green coriander
+spring onion bunch
+shallots
+leeks bunch
+broccoli head
+cauliflower head
+cabbage small
+french beans bunch
+okra (bhindi)
+bottle gourd (lauki)
+ridge gourd (tori)
+ash gourd
+bitter gourd (karela)
+snake gourd
+ash gourd
+brinjal (eggplant)
+turai (ridge gourd)
+parwal
+kundru
+pumpkin small
+sweet pumpkin
+squash local
+yam small
+taro (arbi)
+sweet potato local
+yam local
+radish long
+white radish
+beetroot red
+turnip small
+carrot long
+purple carrot
+baby carrot pack
+salad leaves mix
+lettuce romaine
+seaweed edible pack
+algae sheets
+sprouts fresh
+sprouted moong
+sprouted chana
+mixed sprouts pack
+paneer 200g
+paneer 500g
+tofu firm
+curd 500g
+buttermilk 1L
+milk 2L
+milk 500ml pack
+cheese spread
+processed cheese slices
+cream 200ml
+half and half pack
+lactose free milk
+ghee 1L tin
+ghee 200ml jar
+butter 250g
+butter 100g
+cream cheese 200g
+yoghurt flavored
+curd 1kg tub
+ice cream 1L tub
+kulfi 6pcs box
+bakery bread
+brown bread loaf
+whole wheat bread
+multigrain loaf
+croissant pack
+muffin pack
+bagel pack
+pav bread pack
+buns pack
+pizza base ready
+roti maker
+chappati maker
+paratha maker
+roti pack ready
+naan frozen
+kulcha frozen
+chapathi frozen
+attapack 5kg
+bread crumbs jar
+breadcrumbs pack
+meat fresh chicken
+chicken whole
+chicken pieces
+chicken breast boneless
+chicken skinless
+chicken wings
+chicken thighs
+chicken drumsticks
+mutton pieces
+mutton chops
+goat meat pack
+pork fresh pack
+pork belly
+beef fresh pack
+lamb cut pieces
+fish rohu
+fish katla
+fish pomfret
+fish tilapia
+salmon steaks
+tuna steaks
+prawns fresh
+crab fresh
+lobster fresh
+clams fresh
+mussels fresh
+fish fingers frozen
+fish masala powder
+seafood masala
+egg pack dozen
+egg pack half dozen
+eggless batter
+egg white carton
+egg yolk carton
+egg powder pack
+smoked fish tin
+canned mackerel
+canned sardines
+tuna flakes in oil
+chicken sausages
+hot dogs pack
+salami slices
+ham slices
+bacon pack
+beef jerky
+turkey slices
+meat marinade
+meat tenderizer powder
+kebab skewers pack
+yogurt dessert pack
+health drink malt
+herbal supplements
+glucomannan powder
+diet shakes
+protein mix chocolate
+sun protection lotion
+after sun gel
+ear cleaners
+eye wipes pack
+sanitizer spray pocket
+face shields
+disposable gloves box
+first aid kit small
+oxygen cylinder small
+inhaler pump
+peak flow meter
+nebulizer small
+peanut allergy kit
+epipen simulated
+thermometer ear digital
+thermometer forehead infrared
+handheld fan small
+cooling towel
+hot water bottle
+pressure bandage
+elastic bandage
+vapor rub jar
+heat pack disposable
+ice pack reusable
+hot and cold pack
+muscle pain spray
+electric massager
+foot massager small
+back support belt
+knee support
+ankle support
+elbow support
+sports tape
+sporting mouth guard
+protein snack bars
+electrolyte sachets
+hydration tablets
+rehydration salts
+energy gels
+sports drink powder
+herbal capsules
+ayurvedic tablets pack
+turmeric capsules
+triphala powder
+chyawanprash jar
+ayurvedic oil hair
+ayurvedic pain balm
+ayurvedic syrup cough
+herbal teas detox
+immunity booster capsules
+detox tea pack
+herbal shampoo
+herbal conditioner
+aloe vera gel
+cocoa butter cream
+argan oil small
+jojoba oil small
+rosewater small bottle
+distilled water bottle
+saline nasal spray
+antiseptic solution
+band aids assorted
+gauze pads sterile
+sterile dressing pack
+medical gloves latex
+plasters waterproof
+adhesive bandage
+eye wash bottle sterile
+cotton swabs 100
+cotton balls pack
+toothbrush kids
+toothbrush adult
+toothpaste herbal
+toothpaste whitening
+toothpaste sensitive
+mouthwash herbal
+gum care paste
+floss picks pack
+water flosser small
+oral irrigator
+dental mouth guard
+orthodontic wax
+denture adhesive
+teeth whitening kit
+electric toothbrush heads
+replacement brush heads
+shampoo anti dandruff
+shampoo color safe
+conditioner anti frizz
+hair mask repair
+leave in conditioner
+hair serum anti frizz
+hair oil coconut
+hair oil almond
+hair oil brahmi
+hair vitamins
+scalp scrub
+scalp oil
+dry shampoo pack
+hair dryer ionic
+hair straightener plate
+hair curler small
+beard oil small
+beard care kit
+men grooming kit
+women grooming kit
+manicure set
+pedicure kit
+compact mirror small
+nail polish remover
+nail polish colors pack
+nail stickers pack
+acrylic nail kit
+artificial nails pack
+false eyelashes pack
+lash glue small
+eyelash curler
+eye shadow palette
+lip gloss pack
+lip liner pencil
+makeup brush set
+cosmetic bag small
+travel makeup kit
+makeup remover foam
+foundation powder
+concealer liquid
+bb cream light
+cc cream medium
+face primer small
+setting spray makeup
+setting powder translucent
+bronzer compact
+contour kit small
+highlighter stick
+blush powder
+cheek tint
+lash serum small
+eyebrow gel
+eyebrow pencil double
+tattoo removal kit small
+perfume tester small
+solid perfume tin
+deodorant roll on pack
+deodorant spray men
+deodorant spray women
+body lotion vanilla
+body lotion cocoa
+hand cream vitamin e
+foot cream repair
+foot scrub salt
+foot soak salts
+hand sanitizer pump
+sanitizer gel refill
+sanitizer wipes pack
+antibacterial spray small
+surface disinfectant small
+home disinfectant pack
+air purifier small cartridge
+humidifier small water tank
+dehumidifier small pack
+mosquito trap electric
+insect zapper small
+fly swatter
+bug repellent coil
+mosquito repellent incense
+natural mosquito repellent spray
+citronella candle pack
+lemongrass oil small
+peppermint oil small
+eucalyptus oil small
+lavender oil small
+tea tree oil small
+clove oil small
+essential oil sampler
+diffuser electric small
+room spray organic
+linen spray bottle
+fabric refresher spray
+shoe deodorizer spray
+odor absorber bags
+activated charcoal bag
+air freshener stick
+car freshener hanging
+car perfume oil
+vehicle wash liquid
+car wax paste
+car polish liquid
+car tyre inflator
+tyre pressure gauge
+car battery charger
+jumper cables
+car bulb halogen
+car headlight cleaning kit
+steering wheel cover
+seat cover fabric
+car seat cover leather
+car umbrella holder
+boot organizer
+car trash bin small
+car vacuum cleaner small
+portable fridge 12V

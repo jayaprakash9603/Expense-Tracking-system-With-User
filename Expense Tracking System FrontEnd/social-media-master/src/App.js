@@ -33,8 +33,7 @@ import Utilities from "./pages/Landingpage/Utilities";
 import Friends from "./pages/Landingpage/Friends";
 import FriendExpenses from "./pages/Landingpage/FriendsExpenses";
 import ExpensesView from "./pages/Landingpage/ExpensesView";
-import SocketProvider from "./utils/SocketProvider";
-import { initializeSocket } from "./services/socketService";
+
 import PaymentMethodFlow from "./pages/Landingpage/PaymentMethodFlow";
 import CreatePaymentMethod from "./pages/Landingpage/CreatePaymentMethod";
 import EditPaymentMethod from "./pages/Landingpage/EditPaymentMethod";
@@ -49,6 +48,8 @@ import Groups from "./pages/Landingpage/Groups";
 import CreateGroup from "./pages/Landingpage/CreateGroup";
 
 import GroupDetail from "./pages/Landingpage/GroupDetail";
+import Chat from "./services/Chat";
+import ExpenseReport from "./pages/Landingpage/ExpenseReport";
 function App() {
   const { auth } = useSelector((store) => store);
   const dispatch = useDispatch();
@@ -80,13 +81,14 @@ function App() {
   }
 
   return (
-    <SocketProvider>
+    <>
       <div className="">
         <Routes>
           {/* Other Routes */}
 
           <Route path="/" element={<Home />}>
             <Route index element={<Navigate to="/home" />} />
+            <Route path="/chats" element={<Chat />} />
             <Route path="home" element={<HomeContent />} />
             <Route path="groups">
               <Route index element={<Groups />} />
@@ -113,6 +115,7 @@ function App() {
             <Route path="bill">
               <Route index element={<Bill />} />
               <Route path=":friendId" element={<Bill />} />
+              <Route path="report" element={<ExpenseReport />} />
               <Route path="create" element={<CreateBill />} />
               <Route path="create/:friendId" element={<CreateBill />} />
               <Route path="edit/:id" element={<EditBill />} />
@@ -210,7 +213,7 @@ function App() {
         </Routes>
       </div>
       <GlobalErrorHandler />
-    </SocketProvider>
+    </>
   );
 }
 

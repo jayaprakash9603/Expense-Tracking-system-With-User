@@ -17,6 +17,7 @@ import friendsReducer from "./Friends/friendsReducer";
 import groupsReducer from "./Groups/groupsReducer";
 import { paymentMethodReducer } from "./Payment Method/paymentMethod.reducer"; // Add this import
 import billReducer from "./Bill/bill.reducer";
+import chatReducer from "./chats/chatReducer";
 
 // Combine reducers
 const rootreducers = combineReducers({
@@ -30,6 +31,7 @@ const rootreducers = combineReducers({
   groups: groupsReducer,
   paymentMethod: paymentMethodReducer,
   bill: billReducer,
+  chats: chatReducer,
 });
 
 // Compose enhancer with DevTools support

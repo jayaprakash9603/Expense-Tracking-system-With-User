@@ -7,12 +7,17 @@ import com.jaya.models.Chat;
 import com.jaya.repository.ChatRepository;
 import com.jaya.util.ServiceHelper;
 import feign.FeignException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,7 +26,10 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@EnableAsync
 public class ChatServiceImpl implements ChatService {
+
+    public final Logger logger = LoggerFactory.getLogger(ChatServiceImpl.class);
     @Autowired
     private ChatRepository chatRepository;
 
@@ -37,6 +45,9 @@ public class ChatServiceImpl implements ChatService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
+    @Autowired
+    private AsyncChatSaver asyncChatSaver;
+
     @Override
     public ChatResponse sendOneToOneChat(ChatRequest request, Integer userId) {
         validateUsers(List.of(userId, request.getRecipientId()));
@@ -51,18 +62,25 @@ public class ChatServiceImpl implements ChatService {
         return response;
     }
 
-    @Override
-    public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
-        validateUsers(List.of(userId));
-        validateGroup(request.getGroupId(), userId);
 
-        Chat chat = toEntity(request, userId);
-        Chat savedChat = chatRepository.save(chat);
-        ChatResponse response = toResponse(savedChat, userId);
+    
+    
+   
+@Override
+public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
+     System.out.println("Main thread: " + Thread.currentThread().getName());
+    validateUsers(List.of(userId));
+    validateGroup(request.getGroupId(), userId);
 
-        messagingTemplate.convertAndSend("/topic/group/" + request.getGroupId(), response);
-        return response;
-    }
+    Chat chat = toEntity(request, userId);
+    asyncChatSaver.saveChatAsync(chat); // returns immediately
+
+    //  chatRepository.save(chat);
+    ChatResponse response = toResponse(chat, userId);
+    messagingTemplate.convertAndSend("/topic/group/" + request.getGroupId(), response);
+    logger.info("Message published to /topic/group/{}: {}", request.getGroupId(), response);
+    return response;
+}
 
     @Override
     public List<ChatResponse> getChatsForUser(Integer userId) {
@@ -1241,6 +1259,19 @@ public class ChatServiceImpl implements ChatService {
         response.setRecipientId(chat.getRecipientId());
         response.setGroupId(chat.getGroupId());
         response.setTimestamp(chat.getTimestamp());
+
+        // Set sender details using ServiceHelper
+        if (chat.getSenderId() != null) {
+            try {
+                var sender = helper.validateUser(chat.getSenderId());
+                response.setEmail(sender.getEmail());
+                response.setUsername(sender.getUsername());
+                response.setFirstName(sender.getFirstName());
+                response.setLastName(sender.getLastName());
+            } catch (Exception e) {
+                // If user details cannot be fetched, leave fields null or set default
+            }
+        }
 
         // Set content based on deletion status
         String displayContent;

@@ -12,12 +12,27 @@ import {
   FETCH_USER_GROUPS_FAILURE,
   FETCH_USER_GROUPS_REQUEST,
   FETCH_USER_GROUPS_SUCCESS,
+  GET_GROUP_BY_ID_FAILURE,
+  GET_GROUP_BY_ID_REQUEST,
+  GET_GROUP_BY_ID_SUCCESS,
   LEAVE_GROUP_FAILURE,
   LEAVE_GROUP_REQUEST,
   LEAVE_GROUP_SUCCESS,
   RESPOND_INVITATION_FAILURE,
   RESPOND_INVITATION_REQUEST,
   RESPOND_INVITATION_SUCCESS,
+  FETCH_FRIENDS_NOT_IN_GROUP_REQUEST,
+  FETCH_FRIENDS_NOT_IN_GROUP_SUCCESS,
+  FETCH_FRIENDS_NOT_IN_GROUP_FAILURE,
+  INVITE_FRIEND_TO_GROUP_REQUEST,
+  INVITE_FRIEND_TO_GROUP_SUCCESS,
+  INVITE_FRIEND_TO_GROUP_FAILURE,
+  FETCH_SENT_INVITATIONS_REQUEST,
+  FETCH_SENT_INVITATIONS_SUCCESS,
+  FETCH_SENT_INVITATIONS_FAILURE,
+  CANCEL_INVITATION_REQUEST,
+  CANCEL_INVITATION_SUCCESS,
+  CANCEL_INVITATION_FAILURE,
 } from "./groupsActionTypes";
 
 export const CREATE_GROUP_REQUEST = "CREATE_GROUP_REQUEST";
@@ -40,6 +55,26 @@ export const createGroup = (groupData) => async (dispatch) => {
       "Failed to create group";
     dispatch({
       type: CREATE_GROUP_FAILURE,
+      payload: errorMessage,
+    });
+    return { success: false, error: errorMessage };
+  }
+};
+
+export const getGroupById = (id) => async (dispatch) => {
+  dispatch({ type: GET_GROUP_BY_ID_REQUEST });
+  try {
+    const response = await api.get(`/api/groups/${id}`);
+    dispatch({
+      type: GET_GROUP_BY_ID_SUCCESS,
+      payload: response.data,
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message || error.message || "Failed to get group";
+    dispatch({
+      type: GET_GROUP_BY_ID_FAILURE,
       payload: errorMessage,
     });
     return { success: false, error: errorMessage };
@@ -178,5 +213,87 @@ export const leaveGroup = (groupId) => async (dispatch) => {
       payload: errorMessage,
     });
     return { success: false, error: errorMessage };
+  }
+};
+
+export const fetchFriendsNotInGroup = (groupId) => async (dispatch) => {
+  dispatch({ type: FETCH_FRIENDS_NOT_IN_GROUP_REQUEST });
+  try {
+    const response = await api.get(
+      `/api/groups/${groupId}/friends-not-in-group`
+    );
+    dispatch({
+      type: FETCH_FRIENDS_NOT_IN_GROUP_SUCCESS,
+      payload: response.data,
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch friends not in group";
+    dispatch({
+      type: FETCH_FRIENDS_NOT_IN_GROUP_FAILURE,
+      payload: errorMessage,
+    });
+    return { success: false, error: errorMessage };
+  }
+};
+export const inviteFriendToGroup =
+  (groupId, userId, role, message) => async (dispatch, getState) => {
+    dispatch({ type: INVITE_FRIEND_TO_GROUP_REQUEST });
+    try {
+      // Get token from state if needed, or rely on axios interceptor
+      const payload = { userId, role, message };
+      const response = await api.post(`/api/groups/${groupId}/invite`, payload);
+      dispatch({
+        type: INVITE_FRIEND_TO_GROUP_SUCCESS,
+        payload: response.data,
+      });
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to invite friend to group";
+      dispatch({
+        type: INVITE_FRIEND_TO_GROUP_FAILURE,
+        payload: errorMessage,
+      });
+      return { success: false, error: errorMessage };
+    }
+  };
+
+export const fetchSentInvitations = (groupId) => async (dispatch) => {
+  dispatch({ type: FETCH_SENT_INVITATIONS_REQUEST });
+  try {
+    const response = await api.get(`/api/groups/${groupId}/invitations/sent`);
+    dispatch({
+      type: FETCH_SENT_INVITATIONS_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_SENT_INVITATIONS_FAILURE,
+      payload: error.response?.data?.error || error.message,
+    });
+  }
+};
+
+export const cancelInvitation = (invitationId) => async (dispatch) => {
+  dispatch({ type: CANCEL_INVITATION_REQUEST });
+  try {
+    const response = await api.put(
+      `/api/groups/invitations/${invitationId}/cancel`
+    );
+    dispatch({
+      type: CANCEL_INVITATION_SUCCESS,
+      payload: { invitationId, ...response.data },
+    });
+  } catch (error) {
+    dispatch({
+      type: CANCEL_INVITATION_FAILURE,
+      payload: error.response?.data?.error || error.message,
+    });
   }
 };

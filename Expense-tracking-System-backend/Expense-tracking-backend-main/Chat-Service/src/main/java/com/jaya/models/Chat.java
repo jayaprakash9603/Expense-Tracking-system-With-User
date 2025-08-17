@@ -39,10 +39,10 @@ public class Chat {
     private Boolean isRead = false;
 
     @ElementCollection
-    @CollectionTable(name = "chat_read_by_users", joinColumns = @JoinColumn(name = "chat_id"))
-    @Column(name = "user_id")
-    private Set<Integer> readByUsers = new HashSet<>();
-
+@CollectionTable(name = "chat_read_by_users", joinColumns = @JoinColumn(name = "chat_id"))
+@Column(name = "user_id")
+@org.hibernate.annotations.BatchSize(size = 32)
+private Set<Integer> readByUsers = new HashSet<>();
     @Column(name = "read_count")
     private Integer readCount = 0;
 
@@ -54,10 +54,11 @@ public class Chat {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime deliveredAt;
 
-    @ElementCollection
-    @CollectionTable(name = "chat_delivered_to_users", joinColumns = @JoinColumn(name = "chat_id"))
-    @Column(name = "user_id")
-    private Set<Integer> deliveredToUsers = new HashSet<>();
+   @ElementCollection
+@CollectionTable(name = "chat_delivered_to_users", joinColumns = @JoinColumn(name = "chat_id"))
+@Column(name = "user_id")
+@org.hibernate.annotations.BatchSize(size = 32)
+private Set<Integer> deliveredToUsers = new HashSet<>();
 
     // Deletion status fields
     @Column(name = "deleted_by_sender")
@@ -67,9 +68,10 @@ public class Chat {
     private Boolean deletedByRecipient = false;
 
     @ElementCollection
-    @CollectionTable(name = "chat_deleted_by_users", joinColumns = @JoinColumn(name = "chat_id"))
-    @Column(name = "user_id")
-    private Set<Integer> deletedByUsers = new HashSet<>();
+@CollectionTable(name = "chat_deleted_by_users", joinColumns = @JoinColumn(name = "chat_id"))
+@Column(name = "user_id")
+@org.hibernate.annotations.BatchSize(size = 32)
+private Set<Integer> deletedByUsers = new HashSet<>();
 
     // Edit information
     @Column(name = "is_edited")

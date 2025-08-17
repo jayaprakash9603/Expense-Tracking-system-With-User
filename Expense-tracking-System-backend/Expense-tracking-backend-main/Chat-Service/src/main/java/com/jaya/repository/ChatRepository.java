@@ -50,10 +50,9 @@ public interface ChatRepository extends JpaRepository<Chat, Integer> {
                                                      @Param("userId2") Integer userId2,
                                                      Pageable pageable);
 
-    // For group chats - exclude messages deleted by the viewing user
-    @Query("SELECT c FROM Chat c WHERE c.groupId = :groupId AND " +
-            "(:userId NOT MEMBER OF c.deletedByUsers OR c.deletedByUsers IS EMPTY)")
-    List<Chat> findByGroupIdNotDeletedByUser(@Param("groupId") Integer groupId, @Param("userId") Integer userId);
+   @Query("SELECT DISTINCT c FROM Chat c LEFT JOIN FETCH c.deletedByUsers WHERE c.groupId = :groupId " +
+       "AND (:userId NOT MEMBER OF c.deletedByUsers OR c.deletedByUsers IS EMPTY)")
+List<Chat> findByGroupIdNotDeletedByUser(@Param("groupId") Integer groupId, @Param("userId") Integer userId);
 
 
     // Replace the problematic findByGroupIdPaginated method with this corrected version:

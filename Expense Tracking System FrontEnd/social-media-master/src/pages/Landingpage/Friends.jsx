@@ -44,11 +44,6 @@ import {
   fetchFriendsExpenses,
   fetchFriendship,
 } from "../../Redux/Friends/friendsActions";
-import {
-  initializeSocket,
-  getSocket,
-  disconnectSocket,
-} from "../../services/socketService";
 import UserAvatar from "./UserAvatar";
 import { useNavigate } from "react-router-dom";
 import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
@@ -132,69 +127,6 @@ const Friends = () => {
   const accessMenuOpen = Boolean(accessMenuAnchorEl);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
   const [pollingInterval, setPollingInterval] = useState(null);
-  const [socketConnected, setSocketConnected] = useState(false);
-
-  useEffect(() => {
-    // Only initialize socket if user is logged in
-    if (user && user.id && token) {
-      // Initialize socket with user ID
-      const socket = initializeSocket(user.id);
-
-      // if (socket) {
-      //   // Track connection status
-      //   socket.on("connect", () => {
-      //     console.log("Socket connected");
-      //     setSocketConnected(true);
-      //   });
-
-      //   socket.on("disconnect", () => {
-      //     console.log("Socket disconnected");
-      //     setSocketConnected(false);
-      //   });
-
-      //   socket.on("connect_error", (error) => {
-      //     console.error("Socket connection error:", error);
-      //     setSocketConnected(false);
-      //   });
-
-      //   // Listen for new friend requests
-      //   socket.on("newFriendRequest", (data) => {
-      //     console.log(
-      //       "New friend request received test on frindds component:",
-      //       data
-      //     );
-
-      //     // Show notification
-      //     setSnackbar({
-      //       open: true,
-      //       message: `New friend request from ${data}`,
-      //       severity: "info",
-      //     });
-
-      //     // // Add the new request to Redux store
-      //     // dispatch(addNewFriendRequest(data));
-
-      //     // Refresh friend requests list
-      //     dispatch(fetchFriendRequests());
-      //     setLastUpdate(Date.now());
-      //   });
-
-      //   // ... rest of your socket event listeners ...
-
-      //   // Clean up socket connection when component unmounts
-      //   return () => {
-      //     socket.off("connect");
-      //     socket.off("disconnect");
-      //     socket.off("connect_error");
-      //     socket.off("newFriendRequest");
-      //     socket.off("friendRequestResponse");
-      //     socket.off("accessLevelChanged");
-      //     socket.off("expenseUpdated");
-      //     disconnectSocket();
-      //   };
-      // }
-    }
-  }, [user, token, dispatch, selectedFriend, friends]);
 
   // Add this useEffect for polling as a fallback mechanism
   useEffect(() => {
@@ -282,15 +214,6 @@ const Friends = () => {
         message: "Friend request sent successfully!",
         severity: "success",
       });
-
-      // Emit socket event to notify the recipient
-      const socket = getSocket();
-      if (socket) {
-        socket.emit("newFriendRequest", {
-          recipientId: userId,
-          senderId: user.id,
-        });
-      }
     }
   };
 
@@ -341,16 +264,6 @@ const Friends = () => {
         } successfully!`,
         severity: "success",
       });
-
-      // Emit socket event to notify the requester
-      const socket = getSocket();
-      if (socket) {
-        socket.emit("friendRequestResponded", {
-          friendshipId: requestId,
-          accepted: accept,
-          responderId: user.id,
-        });
-      }
 
       // Refresh friends list if request was accepted
       if (accept) {
@@ -469,26 +382,6 @@ const Friends = () => {
             severity: "success",
           });
 
-          // Emit socket event to notify the other user about access level change
-          const socket = getSocket();
-          if (socket) {
-            const targetUserId =
-              selectedFriendship.requester.id === user.id
-                ? selectedFriendship.recipient.id
-                : selectedFriendship.requester.id;
-
-            socket.emit("accessLevelChanged", {
-              friendshipId: selectedFriendship.id,
-              targetUserId: targetUserId,
-              newAccessLevel: accessLevel,
-              changedBy: {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-              },
-            });
-          }
-
           // Refresh all relevant data to ensure Redux store is up to date
           // We do this in the background to keep the UI responsive
           Promise.all([
@@ -569,18 +462,6 @@ const Friends = () => {
   // Add this function to handle viewing shared expenses
   // Add this function to handle viewing shared expenses
   const handleViewSharedExpenses = (friendId) => {
-    const socket = getSocket();
-
-    console.log("socket ", socket);
-    if (socket) {
-      socket.emit("viewingSharedExpenses", {
-        viewerId: user.id,
-        ownerId: friendId,
-        viewerName: `${user.firstName} ${user.lastName}`,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
     setSnackbar({
       open: true,
       message: "Loading shared expenses...",
@@ -588,22 +469,6 @@ const Friends = () => {
     });
     dispatch(fetchFriendship(friendId || ""));
     dispatch(fetchCashflowExpenses("month", 0, "all", "", friendId));
-
-    if (socket) {
-      socket.off("expenseUpdated");
-      socket.on("expenseUpdated", (data) => {
-        if (data.userId === friendId) {
-          console.log("Real-time expense update received:", data);
-          setSnackbar({
-            open: true,
-            message: `${data} ${data} updated an expense`,
-            severity: "info",
-          });
-
-          setLastUpdate(Date.now());
-        }
-      });
-    }
 
     setTimeout(() => {
       setSnackbar({
@@ -1223,17 +1088,11 @@ const Friends = () => {
                   </Typography>
                   <div className="flex items-center">
                     <div
-                      className={`w-3 h-3 rounded-full mr-2 ${
-                        socketConnected ? "bg-green-500" : "bg-red-500"
-                      }`}
-                      title={
-                        socketConnected
-                          ? "Real-time updates active"
-                          : "Real-time updates inactive"
-                      }
+                      className={`w-3 h-3 rounded-full mr-2 ${"bg-green-500"}`}
+                      title={"Real-time updates active"}
                     ></div>
                     <span className="text-xs text-gray-400 mr-2">
-                      {socketConnected ? "Live Updates" : "Updates Paused"}
+                      {"Live Updates"}
                     </span>
                   </div>
                 </div>

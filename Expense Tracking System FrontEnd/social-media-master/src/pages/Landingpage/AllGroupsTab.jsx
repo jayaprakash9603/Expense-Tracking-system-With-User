@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { leaveGroup, fetchAllGroups } from "../../Redux/Groups/groupsActions";
 
 const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState(null);
 
   // Format amount to 1k, 1m, 1b, etc.
@@ -195,9 +197,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
                     onMouseLeave={(e) => {
                       e.target.style.backgroundColor = "#0f9488";
                     }}
-                    onClick={() =>
-                      (window.location.href = `/groups/${group.id}`)
-                    }
+                    onClick={() => navigate(`/groups/${group.id}`)}
                   >
                     View Details
                   </button>

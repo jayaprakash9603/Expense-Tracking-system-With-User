@@ -56,6 +56,30 @@ export const fetchBills =
     }
   };
 
+export const fetchAllBills =
+  (targetId = null) =>
+  async (dispatch) => {
+    dispatch({ type: FETCH_BILLS_REQUEST });
+    try {
+      const config = {
+        params: targetId,
+      };
+
+      const response = await api.get(`api/bills`, config);
+      console.log("Fetched Bills:", response.data); // Debugging log
+      dispatch({
+        type: FETCH_BILLS_SUCCESS,
+        payload: response.data,
+      });
+      return response.data;
+    } catch (error) {
+      dispatch({
+        type: FETCH_BILLS_FAILURE,
+        payload: error.response?.data?.message || error.message,
+      });
+    }
+  };
+
 // Create a new bill
 export const createBill = (billData, targetId) => async (dispatch) => {
   dispatch({ type: CREATE_BILL_REQUEST });

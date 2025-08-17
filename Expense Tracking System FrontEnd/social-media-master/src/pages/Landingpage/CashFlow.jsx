@@ -33,9 +33,7 @@ import ToastNotification from "./ToastNotification";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Modal from "./Modal";
-import moneyWithdrawalImg from "../../assests/money-withdrawal.png";
-import saveMoneyImg from "../../assests/save-money.png";
-import moneyInAndOutImg from "../../assests/money-in-and-out.png";
+// removed image imports for flow icons to use inline SVGs for cleaner, scalable UI
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
 
@@ -105,15 +103,17 @@ const CashflowSearchToolbar = ({
   onFilterClick,
   filterRef,
   setIsFiltering,
+  isMobile,
+  isTablet,
 }) => (
   <div
     style={{
       display: "flex",
       gap: 8,
-      padding: 8,
+      padding: isMobile ? 6 : 8,
       alignItems: "center",
       width: "100%",
-      maxWidth: "320px",
+      maxWidth: isMobile ? "220px" : isTablet ? "280px" : "320px",
     }}
   >
     <input
@@ -131,19 +131,19 @@ const CashflowSearchToolbar = ({
         backgroundColor: "#1b1b1b",
         color: "#ffffff",
         borderRadius: 8,
-        fontSize: "0.75rem",
+        fontSize: isMobile ? "0.7rem" : "0.75rem",
         border: "1px solid #00dac6",
-        padding: "8px 16px",
+        padding: isMobile ? "6px 10px" : "8px 16px",
         width: "100%",
         outline: "none",
       }}
     />
     <IconButton
-      sx={{ color: "#00dac6", flexShrink: 0 }}
+      sx={{ color: "#00dac6", flexShrink: 0, p: isMobile ? 0.5 : 1 }}
       onClick={onFilterClick}
       ref={filterRef}
     >
-      <FilterListIcon fontSize="small" />
+      <FilterListIcon fontSize={isMobile ? "small" : "small"} />
     </IconButton>
   </div>
 );
@@ -177,10 +177,49 @@ const Cashflow = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  // Compact number formatter: 1.2k, 3.4M, 1B
+  const formatCompactNumber = (value) => {
+    if (value === null || value === undefined || isNaN(value)) return "0";
+    const abs = Math.abs(value);
+    const sign = value < 0 ? "-" : "";
+    if (abs >= 1e9) {
+      const v = +(value / 1e9).toFixed(abs >= 1e10 ? 0 : 1);
+      return `${sign}${v.toString().replace(/\.0$/, "")}B`;
+    }
+    if (abs >= 1e6) {
+      const v = +(value / 1e6).toFixed(abs >= 1e7 ? 0 : 1);
+      return `${sign}${v.toString().replace(/\.0$/, "")}M`;
+    }
+    if (abs >= 1e3) {
+      const v = +(value / 1e3).toFixed(abs >= 1e4 ? 0 : 1);
+      return `${sign}${v.toString().replace(/\.0$/, "")}k`;
+    }
+    // Show two decimals for fractional amounts, otherwise integer
+    return value % 1 === 0
+      ? `${sign}${Math.round(abs)}`
+      : `${sign}${abs.toFixed(2)}`;
+  };
+
+  // Return compact formatted number without currency symbol
+  const formatCurrencyCompact = (value) => formatCompactNumber(value);
+
+  // Full numeric formatter for labels (e.g. 12,345 or 12.34)
+  const formatNumberFull = (value) => {
+    if (value === null || value === undefined || isNaN(value)) return "0";
+    // If integer, show with thousand separators
+    if (Number.isInteger(value)) return value.toLocaleString();
+    // Otherwise show up to 2 decimal places
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  };
   const [isFiltering, setIsFiltering] = useState(false);
   const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
   const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const [confirmationText, setConfirmationText] = useState("");
+  // Controls a brief shrink animation when the flow button is clicked
+  const [shrinkFlowBtn, setShrinkFlowBtn] = useState(false);
   useEffect(() => {
     if (location.state && location.state.selectedCategory) {
       // Set the range type and offset from the navigation state if available
@@ -491,6 +530,21 @@ const Cashflow = () => {
     setSelectedCardIdx([]);
   };
 
+  // Compute totals for display in summary pills
+  const totals = useMemo(() => {
+    let inflow = 0;
+    let outflow = 0;
+    if (Array.isArray(cashflowExpenses)) {
+      cashflowExpenses.forEach((item) => {
+        const amount = item.expense?.amount || 0;
+        const type = item.type || item.expense?.type || "outflow";
+        if (type === "inflow" || type === "gain") inflow += amount;
+        else outflow += amount;
+      });
+    }
+    return { inflow, outflow, total: inflow + outflow };
+  }, [cashflowExpenses]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -662,7 +716,7 @@ const Cashflow = () => {
             barChartStyles.hideAxisLabels
               ? null
               : {
-                  value: "Amount (₹)",
+                  value: "Amount",
                   angle: -90,
                   position: "insideLeft",
                   fill: "#b0b6c3",
@@ -671,6 +725,7 @@ const Cashflow = () => {
                   dy: 40, // Move the Y axis label further left to avoid overlap
                 }
           }
+          tickFormatter={(value) => formatCompactNumber(value)}
           width={80} // Increase Y axis width for more space
         />
         <Tooltip
@@ -684,8 +739,81 @@ const Cashflow = () => {
           }}
           labelStyle={{ color: "#00dac6", fontWeight: 700 }}
           itemStyle={{ color: "#b0b6c3" }}
-          formatter={(value) => [`₹${value.toFixed(2)}`, "Amount"]}
+          formatter={(value) => [formatCurrencyCompact(value), "Amount"]}
         />
+        {/* Average line */}
+        {Array.isArray(chartData) &&
+          chartData.length > 0 &&
+          (() => {
+            // Calculate average only over the portion of the range that has passed
+            // (for the current period when offset === 0). For past/future offsets
+            // use the full range length.
+            let visibleCount = chartData.length;
+            if (offset === 0) {
+              if (activeRange === "year") {
+                // include months up to current month (month() is 0-based)
+                visibleCount = Math.min(chartData.length, dayjs().month() + 1);
+              } else if (activeRange === "month") {
+                // include days up to today
+                visibleCount = Math.min(chartData.length, dayjs().date());
+              } else if (activeRange === "week") {
+                // include weekdays up to today in Mon..Sun order
+                const todayIdx = (dayjs().day() + 6) % 7; // 0=Mon
+                visibleCount = Math.min(chartData.length, todayIdx + 1);
+              }
+            }
+            const total = chartData
+              .slice(0, visibleCount)
+              .reduce((s, item) => s + (item.amount || 0), 0);
+            const avg = visibleCount ? total / visibleCount : 0;
+            const labelText = `Avg ${formatCurrencyCompact(avg)}`;
+            return (
+              <ReferenceLine
+                y={avg}
+                stroke="#FFD54A"
+                strokeDasharray="4 4"
+                label={({ viewBox, x, y }) => {
+                  // Position the label near the right end of the line; fallback to x/y
+                  // move 30px to the right as requested
+                  const tx =
+                    ((viewBox && viewBox.x + viewBox.width - 8) || x || 0) + 35;
+                  const baseY =
+                    typeof y === "number"
+                      ? y
+                      : (viewBox && viewBox.y + viewBox.height / 2) || 0;
+                  // Two-line label: 'Avg' above, amount on the next line
+                  const labelYTop = baseY - 8; // slightly above the line
+                  const labelYBottom = baseY + 10; // below the top line
+                  return (
+                    <g style={{ pointerEvents: "none" }}>
+                      <text
+                        x={tx}
+                        y={labelYTop}
+                        fill="#FFD54A"
+                        fontWeight={700}
+                        fontSize={12}
+                        textAnchor="end"
+                      >
+                        Avg
+                      </text>
+                      <text
+                        x={tx}
+                        y={labelYBottom}
+                        fill="#FFD54A"
+                        fontWeight={700}
+                        fontSize={12}
+                        textAnchor="end"
+                      >
+                        {formatNumberFull(
+                          Number.isFinite(avg) ? Math.trunc(avg) : 0
+                        )}
+                      </text>
+                    </g>
+                  );
+                }}
+              />
+            );
+          })()}
         <Bar
           dataKey="amount"
           fill="#5b7fff"
@@ -726,7 +854,7 @@ const Cashflow = () => {
                     fontSize={11}
                     textAnchor="middle"
                   >
-                    {value.toFixed(0)}
+                    {formatNumberFull(value)}
                   </text>
                 );
               }}
@@ -739,7 +867,7 @@ const Cashflow = () => {
 
   return (
     <>
-      <div className="h-[50px]"></div>
+      <div className={isMobile ? "h-[34px]" : "h-[50px]"}></div>
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{
@@ -753,7 +881,7 @@ const Cashflow = () => {
           borderRadius: isMobile ? 0 : isTablet ? "8px" : "8px",
           boxSizing: "border-box",
           position: "relative",
-          padding: isMobile ? 4 : isTablet ? 8 : 16,
+          padding: isMobile ? 8 : isTablet ? 12 : 16,
           minWidth: 0,
         }}
       >
@@ -803,18 +931,19 @@ const Cashflow = () => {
             100% { transform: rotate(360deg); }
           }
         `}</style>
-        {/* Single Flow Type Toggle Button at top right */}
+        {/* Flow Summary Pills (Money In / Money Out / In & Out) */}
         <div
           style={{
             position: "absolute",
             top: 16,
             right: 16,
             display: "flex",
-            gap: 8,
+            gap: 10,
             alignItems: "center",
+            zIndex: 5,
           }}
         >
-          {/* Delete Selected Button (now left of flow toggle) - only visible if more than one selected */}
+          {/* Delete Selected Button (left of flow pills) - only visible if more than one selected */}
           {selectedCardIdx.length > 1 && (
             <button
               onClick={async () => {
@@ -871,102 +1000,140 @@ const Cashflow = () => {
               )}
             </button>
           )}
-          <button
-            onClick={handleFlowTabToggle}
-            className={`rounded-lg flex items-center justify-center animate-morph-flow-toggle-rect ${
-              flowTypeCycle.find((t) => t.value === flowTab)?.color ||
-              "bg-[#29282b] text-white"
-            }`}
-            style={{
-              minWidth: isMobile ? 40 : 70,
-              minHeight: isMobile ? 32 : 38,
-              width: isMobile ? 40 : 70,
-              height: isMobile ? 32 : 38,
-              padding: 0,
-              border: "none",
-              outline: "none",
-              boxShadow: "0 2px 8px #0002",
-              position: "relative",
-              transition: "background 0.5s, color 0.5s, box-shadow 0.5s",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 12,
-            }}
-          >
-            {/* Unfold icon in front of the animated flow type icon */}
-            <span
+          {/* Single compact flow button that cycles flowTab and shrinks briefly on click */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              onClick={() => {
+                // trigger shrink animation
+                setShrinkFlowBtn(true);
+                setTimeout(() => setShrinkFlowBtn(false), 220);
+                // cycle flow type
+                const idx = flowTypeCycle.findIndex((t) => t.value === flowTab);
+                const next = flowTypeCycle[(idx + 1) % flowTypeCycle.length];
+                setFlowTab(next.value);
+                setSelectedBar(null);
+                setSelectedCardIdx([]);
+              }}
+              aria-pressed={false}
+              className={`rounded-lg flex items-center gap-3 justify-center`}
               style={{
+                minWidth: isMobile ? 48 : 110,
+                height: isMobile ? 36 : 40,
+                padding: "4px 8px",
+                border: "none",
+                outline: "none",
+                cursor: "pointer",
+                boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
+                transition:
+                  "transform 200ms ease, width 200ms ease, background 300ms",
+                transform: shrinkFlowBtn ? "scale(0.88)" : "scale(1)",
+                background:
+                  flowTab === "inflow"
+                    ? "linear-gradient(180deg,#06D6A0,#05b890)"
+                    : flowTab === "outflow"
+                    ? "linear-gradient(180deg,#ff6b6b,#ff4d4f)"
+                    : "linear-gradient(180deg,#5b7fff,#4563ff)",
+                color: "#fff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 10,
               }}
             >
-              <img
-                src={require("../../assests/unfold.png")}
-                alt="Unfold"
-                style={{
-                  width: isMobile ? 20 : 25,
-                  height: isMobile ? 25 : 25,
-                  marginRight: isMobile ? 4 : 8,
-                  verticalAlign: "middle",
-                }}
-              />
-              <span
-                className="flow-icon-wrapper"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  alignItems: isMobile ? "center" : "flex-start",
-                  width: isMobile ? 24 : 36,
-                  height: isMobile ? 24 : 36,
-                  transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
-                }}
-              >
-                {isMobile
-                  ? null
-                  : flowTab === "outflow" && (
-                      <img
-                        src={moneyWithdrawalImg}
-                        alt="Money Out"
-                        style={{
-                          width: isMobile ? 18 : 32,
-                          height: isMobile ? 18 : 32,
-                          transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
-                        }}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ display: "flex", alignItems: "center" }}>
+                  {flowTab === "inflow" && (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M12 19V5"
+                        stroke="#000"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
-                    )}
-                {isMobile
-                  ? null
-                  : flowTab === "inflow" && (
-                      <img
-                        src={saveMoneyImg}
-                        alt="Money In"
-                        style={{
-                          width: isMobile ? 18 : 32,
-                          height: isMobile ? 18 : 32,
-                          transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
-                        }}
+                      <path
+                        d="M5 12l7-7 7 7"
+                        stroke="#000"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
-                    )}
-                {isMobile
-                  ? null
-                  : flowTab === "all" && (
-                      <img
-                        src={moneyInAndOutImg}
-                        alt="Money In & Out"
-                        style={{
-                          width: isMobile ? 18 : 32,
-                          height: isMobile ? 18 : 32,
-                          transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)",
-                        }}
+                    </svg>
+                  )}
+                  {flowTab === "outflow" && (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M12 5v14"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
-                    )}
-              </span>
-            </span>
-          </button>
+                      <path
+                        d="M19 12l-7 7-7-7"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                  {flowTab === "all" && (
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      {/* Combined up + down arrows icon */}
+                      <path
+                        d="M12 3v6"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M9 6l3-3 3 3"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 21v-6"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M9 18l3 3 3-3"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </span>
+                {!isMobile && (
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: 13, fontWeight: 700 }}>
+                      {flowTypeCycle.find((t) => t.value === flowTab)?.label}
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.95 }}>
+                      {flowTab === "inflow"
+                        ? formatCurrencyCompact(totals.inflow)
+                        : flowTab === "outflow"
+                        ? formatCurrencyCompact(totals.outflow)
+                        : formatCurrencyCompact(totals.total)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </button>
+          </div>
           <style>{`
           .animate-morph-flow-toggle-rect {
             transition: background 0.5s, color 0.5s, box-shadow 0.5s, border-radius 0.5s, width 0.5s, height 0.5s;
@@ -1099,7 +1266,8 @@ const Cashflow = () => {
           style={{
             width: "100%",
             justifyContent: "flex-start",
-            flexWrap: "nowrap", // Prevent wrapping
+            flexWrap: isMobile ? "wrap" : "nowrap",
+            gap: isMobile ? 8 : 0,
           }}
         >
           <CashflowSearchToolbar
@@ -1108,6 +1276,8 @@ const Cashflow = () => {
             onFilterClick={() => setPopoverOpen((v) => !v)}
             filterRef={filterBtnRef}
             setIsFiltering={setIsFiltering}
+            isMobile={isMobile}
+            isTablet={isTablet}
           />
 
           {/* Fixed position for these buttons */}
@@ -1117,9 +1287,9 @@ const Cashflow = () => {
             style={{
               display: "flex",
               alignItems: "center",
-              marginLeft: "8px",
+              marginLeft: isMobile ? 0 : "8px",
               flexShrink: 0,
-              gap: isMobile ? "4px" : "8px",
+              gap: isMobile ? "6px" : "8px",
               flexWrap: isMobile ? "wrap" : "nowrap",
             }}
           >
@@ -1157,8 +1327,8 @@ const Cashflow = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
-                  padding: isMobile ? "6px 8px" : "8px 12px",
+                  gap: isMobile ? "6px" : "6px",
+                  padding: isMobile ? "6px 8px" : "8px 10px",
                   backgroundColor: "#1b1b1b",
                   border: "1px solid #333",
                   borderRadius: "8px",
@@ -1192,7 +1362,7 @@ const Cashflow = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
-                padding: isMobile ? "4px 6px" : "6px 8px",
+                padding: isMobile ? "6px 8px" : "6px 8px",
                 backgroundColor: "#1b1b1b",
                 border: "1px solid #333",
                 borderRadius: "6px",
@@ -1465,13 +1635,13 @@ const Cashflow = () => {
           style={
             sortedCardData.length <= 3
               ? {
-                  maxHeight: isMobile ? 220 : isTablet ? 280 : 360,
+                  maxHeight: isMobile ? 500 : isTablet ? 280 : 360,
                   overflowY: "auto",
                   overflowX: "hidden",
-                  paddingRight: isMobile ? 4 : isTablet ? 8 : 16,
+                  paddingRight: isMobile ? 6 : isTablet ? 8 : 16,
                   justifyContent: "flex-start",
                   flexDirection: isMobile ? "column" : "row",
-                  gap: isMobile ? 8 : 16,
+                  gap: isMobile ? 10 : 16,
                 }
               : {
                   gridTemplateColumns: isMobile
@@ -1479,11 +1649,11 @@ const Cashflow = () => {
                     : isTablet
                     ? "repeat(auto-fit, minmax(180px, 1fr))"
                     : "repeat(auto-fit, minmax(260px, 1fr))",
-                  maxHeight: isMobile ? 220 : isTablet ? 280 : 360,
+                  maxHeight: isMobile ? 420 : isTablet ? 280 : 360,
                   overflowY: "auto",
                   overflowX: "hidden",
-                  paddingRight: isMobile ? 4 : isTablet ? 8 : 16,
-                  gap: isMobile ? 8 : 16,
+                  paddingRight: isMobile ? 6 : isTablet ? 8 : 16,
+                  gap: isMobile ? 10 : 16,
                 }
           }
         >
@@ -1667,13 +1837,13 @@ const Cashflow = () => {
                           fontSize: "16px",
                           fontWeight: 700,
                         }}
-                        title={`Amount: ₹${row.amount.toFixed(2)}`}
+                        title={`Amount: ${formatNumberFull(row.amount)}`}
                         data-tooltip-id={`expense-amount-tooltip-${idx}`}
-                        data-tooltip-content={`Amount: ₹${row.amount.toFixed(
-                          2
+                        data-tooltip-content={`Amount: ${formatNumberFull(
+                          row.amount
                         )}`}
                       >
-                        ₹{row.amount.toFixed(2)}
+                        {formatNumberFull(row.amount)}
                       </span>
                     </div>
                     <div

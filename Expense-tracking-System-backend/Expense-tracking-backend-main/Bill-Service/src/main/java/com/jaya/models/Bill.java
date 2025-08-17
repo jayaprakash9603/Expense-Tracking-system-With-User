@@ -44,6 +44,8 @@ public class Bill {
     private Integer userId = 0;
 
 
+    private String category;
+
 
     @ElementCollection
     @CollectionTable(name = "bill_detailed_expenses", joinColumns = @JoinColumn(name = "bill_id"))

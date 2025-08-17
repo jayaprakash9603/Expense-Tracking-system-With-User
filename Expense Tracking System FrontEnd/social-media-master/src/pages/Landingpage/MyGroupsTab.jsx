@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
-import { leaveGroup } from "../../Redux/Groups/groupsActions";
+import { getGroupById, leaveGroup } from "../../Redux/Groups/groupsActions";
 import { fetchUserGroups } from "../../Redux/Groups/groupsActions";
 
 const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
@@ -199,7 +199,10 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
                     onMouseLeave={(e) => {
                       e.target.style.backgroundColor = "#0f9488";
                     }}
-                    onClick={() => navigate(`/groups/${group.id}`)}
+                    onClick={() => {
+                      navigate(`/groups/${group.id}`);
+                      dispatch(getGroupById(group.id));
+                    }}
                   >
                     View Details
                   </button>

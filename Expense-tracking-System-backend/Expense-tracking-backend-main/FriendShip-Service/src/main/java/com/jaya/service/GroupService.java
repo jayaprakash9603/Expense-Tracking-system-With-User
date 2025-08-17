@@ -1,14 +1,18 @@
+    
 package com.jaya.service;
 
 import com.jaya.dto.*;
 import com.jaya.models.Group;
 import com.jaya.models.GroupRole;
+import com.jaya.models.UserDto;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public interface GroupService {
+    // Returns all friends of the user who are not present in the group
+    List<UserDto> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception;
 
     // Existing methods
     GroupResponseDTO createGroup(GroupRequestDTO groupRequestDTO) throws Exception;
@@ -89,4 +93,9 @@ public interface GroupService {
     Map<String, Object> cancelInvitation(Integer invitationId, Integer userId) throws Exception;
 
     void cleanupExpiredInvitations();
+List<Map<String, Object>> getSentInvitationsByGroupId(Integer groupId, Integer userId) throws Exception;
+
+   
+// GroupService.java
+void updateInvitationStatusToCancelled(Integer invitationId) throws Exception;
 }

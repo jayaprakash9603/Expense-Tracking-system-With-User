@@ -973,4 +973,26 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         return map;
     }
+
+
+    @Override
+    public List<UserDto> getFriendsOfUser(Integer userId) throws Exception {
+        UserDto user = helper.validateUser(userId);
+        List<Friendship> friendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId(), user.getId());
+        List<UserDto> friends = new ArrayList<>();
+        for (Friendship friendship : friendships) {
+            if (friendship.getStatus() == FriendshipStatus.ACCEPTED) {
+                Integer friendId = friendship.getRequesterId().equals(userId)
+                        ? friendship.getRecipientId()
+                        : friendship.getRequesterId();
+                try {
+                    UserDto friend = helper.validateUser(friendId);
+                    friends.add(friend);
+                } catch (Exception e) {
+                    // Skip if user not found
+                }
+            }
+        }
+        return friends;
+    }
 }
