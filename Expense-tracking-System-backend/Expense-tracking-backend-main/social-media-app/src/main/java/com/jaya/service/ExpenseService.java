@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.jaya.exceptions.UserException;
 import com.jaya.models.*;
+import com.jaya.service.expenses.*;
 import org.springframework.http.ResponseEntity;
 
 import com.jaya.dto.ExpenseDTO;
@@ -15,7 +16,15 @@ import com.jaya.dto.ExpenseDTO;
 import jakarta.mail.MessagingException;
 
 public interface ExpenseService {
-    
+
+
+    ExpenseCoreService getCoreService();
+    ExpenseQueryService getQueryService();
+    ExpenseAnalyticsService getAnalyticsService();
+    ExpenseUtilityService getUtilityService();
+    ExpenseReportService getReportService();
+    ExpenseBillService getBillService();
+    ExpenseCategoryService getCategoryService();
     Expense addExpense(Expense expense, Integer userId) throws Exception;
 
     Expense copyExpense(Integer userId,Integer expenseId) throws  Exception;
@@ -30,7 +39,7 @@ public interface ExpenseService {
     List<Expense> getExpensesByCategoryId(Integer categoryId,Integer userId);
     // Add this method to the ExpenseService interface
     Map<String, Object> getFilteredExpensesByCategories(
-           Integer userId,
+            Integer userId,
             String rangeType,
             int offset,
             String flowType
@@ -54,7 +63,7 @@ public interface ExpenseService {
     List<Expense> getAllExpenses(Integer userId,String sortOrder);
     List<Expense> getAllExpenses(Integer userId);
     List<Expense> searchExpensesByName(String expenseName,Integer userId);
-    
+
     List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount,Integer userId);
 
 
@@ -71,120 +80,121 @@ public interface ExpenseService {
     void deleteExpensesByIds(List<Integer> ids, Integer userId) throws Exception;
     void deleteExpensesByIdsWithBillService(List<Integer> ids, Integer userId) throws Exception;
     List<Expense> getExpensesByDate(LocalDate date,Integer userId);
+    List<Expense> getExpensesByDateString(String dateString, Integer userId) throws Exception;
     void deleteExpense(Integer id,Integer userId) throws Exception;
     List<String> getTopExpenseNames(int topN,Integer userId);
     Map<String, Object> getMonthlySpendingInsights(int year, int month,Integer userId);
     List<String> getPaymentMethods(Integer userId);
     Map<String, Map<String, Double>> getPaymentMethodSummary(Integer userId);
-    
+
     List<Expense> getExpensesByType(String type,Integer userId);
     List<Expense> getLossExpenses(Integer userId);
-    
+
     List<Expense> getExpensesByPaymentMethod(String paymentMethod,Integer userId);
     List<Expense> getExpensesByTypeAndPaymentMethod(String type, String paymentMethod,Integer userId);
-    
+
     List<String> getTopPaymentMethods(Integer userId);
-    
+
     List<Expense> getTopGains(Integer userId);
-    
+
     List<Expense> getTopLosses(Integer userId);
-    
-    
-    
+
+
+
     List<Expense> getExpensesByMonthAndYear(int month, int year,Integer userId);
-    
-    
+
+
     List<String> getUniqueTopExpensesByGain(Integer userId,int limit);
-    
+
     List<String> getUniqueTopExpensesByLoss(Integer userId,int limit);
-    
-    
+
+
     List<Expense> getExpensesForToday(Integer userId);
-    
+
     List<Expense> getExpensesForLastMonth(Integer userId);
     List<Expense> getExpensesForCurrentMonth(Integer userId);
-    
+
     List<String> getDropdownValues();
     List<String> getSummaryTypes();
-    
+
     List<String> getExpensesTypes();
-    
+
     List<Expense> getExpensesByMonth(int year, int month);
-    
+
     List<Expense> getExpensesByCurrentWeek(Integer userId);
     List<Expense> getExpensesByLastWeek(Integer userId);
     String getCommentsForExpense(Integer expenseId,Integer userId);
-    
-    
-    String removeCommentFromExpense(Integer expenseId,Integer userId);
-    
-    ExpenseReport generateExpenseReport(Integer expenseId,Integer userId);
-    
 
-    
+
+    String removeCommentFromExpense(Integer expenseId,Integer userId);
+
+    ExpenseReport generateExpenseReport(Integer expenseId,Integer userId);
+
+
+
     List<ExpenseDetails> getExpenseDetailsByAmount(double amount,Integer userId);
-    
-    
+
+
     List<Expense> getExpenseDetailsByAmountRange(double minAmount, double maxAmount,Integer userId);
-    
+
     Double getTotalExpenseByName(String expenseName);
-    
+
     List<ExpenseDetails> getExpensesByName(String expenseName,Integer userId);
-    
-    
+
+
     List<Map<String, Object>> getTotalByCategory(Integer userId);
-    
+
     Map<String, Double> getTotalByDate(Integer userId);
-    
+
     Double getTotalForToday(Integer userId);
-    
+
     Double getTotalForCurrentMonth(Integer userId);
-    
+
     Double getTotalForMonthAndYear(int month, int year,Integer userId);
-    
+
     Double getTotalByDateRange(LocalDate startDate, LocalDate endDate,Integer userId);
-    
+
     Map<String, Double> getPaymentWiseTotalForCurrentMonth(Integer userId);
-    
+
     Map<String, Double> getPaymentWiseTotalForLastMonth(Integer userId);
-    
+
     Map<String, Double> getPaymentWiseTotalForDateRange(LocalDate startDate, LocalDate endDate,Integer userId);
-    
-    
+
+
     Map<String, Double> getPaymentWiseTotalForMonth(int month, int year,Integer userId);
-    
-    
+
+
     Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethod(int month, int year,Integer userId);
-    
+
     Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate,Integer userId);
-    
-    
+
+
     Map<String, Map<String, Double>> getTotalExpensesGroupedByPaymentMethod(Integer userId);
-    
-    
+
+
     String generateExcelReport(Integer userId) throws Exception;
 
 
     Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date);
-    
+
     void sendEmailWithAttachment(String toEmail, String subject, String body, String attachmentPath) throws MessagingException;
-    
+
     ResponseEntity<String> generateAndSendMonthlyReport(ReportRequest request);
-    
+
     List<String> getDailySummaryTypes();
     double calculateTotalAmount(Map<String, Map<String, Double>> categorizedExpenses);
     Map<String, Map<String, Double>> categorizeExpenses(List<ExpenseDTO> processedExpenses);
     List<ExpenseDTO> validateAndProcessExpenses(List<ExpenseDTO> expenses);
-    
+
     List<String> findTopExpenseNames(List<ExpenseDTO> expenses, int topN);
-    
+
     double calculateTotalCreditDue(List<ExpenseDTO> processedExpenses);
     String findTopPaymentMethod(List<ExpenseDTO> expenses);
-    
+
     Set<String> getPaymentMethodNames(List<ExpenseDTO> expenses);
-    
+
     List<Expense> getExpensesByIds(List<Integer> ids);
-    
+
     List<Expense> saveExpenses(List<Expense> expenses);
 
 
@@ -196,12 +206,12 @@ public interface ExpenseService {
 
     List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, Integer userId) throws Exception;
 
-    Map<String, Object> getExpenseNameOverTime(Integer userId,int year, int limit);
+    Map<String, Object> getExpenseNameOverTime(Integer userId,int year, int limit) throws Exception;
     Map<String, Object> getPaymentMethodDistribution(Integer userId,int year);
     Map<String, Object> getMonthlyExpenses(Integer userId,int year);
     Map<String, Object> getExpenseByName(Integer userId,int year);
     Map<String, Object> getExpenseTrend(Integer userId,int year);
-    Map<String, Object> getCumulativeExpenses(Integer userId,int year);
+    Map<String, Object> getCumulativeExpenses(Integer userId,int year) throws Exception;
 
 
 
@@ -224,4 +234,8 @@ public interface ExpenseService {
             String flowType
     );
 
+
+    Map<String, Object> generateExpenseSummary(Integer userId);
+
+    Map<String, Object> getExpensesGroupedByDateWithValidation(Integer userId, int page, int size, String sortBy, String sortOrder) throws Exception;
 }

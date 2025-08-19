@@ -51,6 +51,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 import SortIcon from "@mui/icons-material/Sort";
 import AddIcon from "@mui/icons-material/Add";
+import ReportIcon from "@mui/icons-material/Report";
 import { DataGrid } from "@mui/x-data-grid";
 import Modal from "./Modal";
 import {
@@ -1274,6 +1275,19 @@ const PaymentMethodFlow = () => {
                     strokeLinecap="round"
                   />
                 </svg>
+              </IconButton>
+              {/* Report button placed beside the plus icon */}
+              <IconButton
+                sx={{ color: "#ffd54f", ml: 0.5 }}
+                onClick={() =>
+                  friendId && friendId !== "undefined"
+                    ? navigate(`/payment-method/reports/friend/${friendId}`)
+                    : navigate(`/payment-method/reports`)
+                }
+                aria-label="Reports"
+                title="Reports"
+              >
+                <ReportIcon />
               </IconButton>
             </div>
             {/* Sort Popover */}

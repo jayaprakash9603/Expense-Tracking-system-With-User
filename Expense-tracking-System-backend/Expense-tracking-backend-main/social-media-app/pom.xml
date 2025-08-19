@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.jaya</groupId>
-    <artifactId>social-media-app</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>social-media-app</name>
-    <description>social media app</description>
+    <artifactId>expenses-service</artifactId>
+    <version>0.0.1</version>
+    <name>expenses-service</name>
+    <description>expenses-service</description>
     <url/>
     <licenses>
         <license/>

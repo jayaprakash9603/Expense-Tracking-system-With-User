@@ -7,6 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="expenses-service" />
         <module name="Category-Service" />
         <module name="Notification-Service" />
         <module name="FriendShip-Service" />
@@ -16,7 +17,6 @@
         <module name="User-service" />
         <module name="Audit-Service (2)" />
         <module name="Audit-Service (1)" />
-        <module name="social-media-app" />
         <module name="Payment-method-Service" />
         <module name="Audit-Service" />
         <module name="gateway" />
@@ -40,8 +40,8 @@
       <module name="Submission-service" options="-parameters" />
       <module name="User-service" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
+      <module name="expenses-service" options="-parameters" />
       <module name="gateway" options="-parameters" />
-      <module name="social-media-app" options="-parameters" />
     </option>
   </component>
 </project>

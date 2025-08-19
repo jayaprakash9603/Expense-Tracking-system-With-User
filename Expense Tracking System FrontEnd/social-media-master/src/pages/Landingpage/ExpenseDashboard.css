@@ -1,0 +1,1467 @@
+.expense-dashboard {
+  width: calc(100vw - 370px);
+  height: calc(100vh - 100px);
+  margin: 50px 20px 0 0;
+  background: #0b0b0b;
+  color: #ffffff;
+  padding: 24px;
+  overflow-y: auto;
+  border-radius: 16px;
+  border: 1px solid rgba(20, 184, 166, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+/* Custom Scrollbar */
+.expense-dashboard::-webkit-scrollbar {
+  width: 8px;
+}
+
+.expense-dashboard::-webkit-scrollbar-track {
+  background: rgba(20, 184, 166, 0.1);
+  border-radius: 4px;
+}
+
+.expense-dashboard::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #14b8a6, #06d6a0);
+  border-radius: 4px;
+}
+
+.expense-dashboard::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #06d6a0, #14b8a6);
+}
+
+/* Hide native scrollbars visually but keep scrolling functionality */
+.expense-dashboard {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+.expense-dashboard::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+/* Also hide scrollbar in the transactions list while preserving scroll */
+.transactions-list {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.transactions-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Header Styles */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(20, 184, 166, 0.2);
+  position: relative;
+}
+
+.dashboard-header::before {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, #14b8a6, transparent);
+}
+
+.header-left .header-title h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #14b8a6, #06d6a0);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 30px rgba(20, 184, 166, 0.3);
+}
+
+.header-left .header-title p {
+  color: #888;
+  margin: 8px 0 0 0;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.action-btn {
+  background: rgba(20, 184, 166, 0.1) !important;
+  border: 1px solid rgba(20, 184, 166, 0.3) !important;
+  color: #14b8a6 !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+  background: rgba(20, 184, 166, 0.2) !important;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(20, 184, 166, 0.4);
+  border-color: rgba(20, 184, 166, 0.5) !important;
+}
+
+.action-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.metric-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #14b8a6, #06d6a0, #118ab2);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.metric-card:hover::before {
+  opacity: 1;
+}
+
+.metric-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(20, 184, 166, 0.25);
+  border-color: rgba(20, 184, 166, 0.4);
+}
+
+.metric-card.primary {
+  background: linear-gradient(
+    135deg,
+    rgba(20, 184, 166, 0.15) 0%,
+    rgba(6, 214, 160, 0.08) 100%
+  );
+}
+
+.metric-card.expense {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.15) 0%,
+    rgba(220, 38, 38, 0.08) 100%
+  );
+}
+
+.metric-card.credit {
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.15) 0%,
+    rgba(217, 119, 6, 0.08) 100%
+  );
+}
+
+.metric-card.budget {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.15) 0%,
+    rgba(79, 70, 229, 0.08) 100%
+  );
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.metric-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(20, 184, 166, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #14b8a6;
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover .metric-icon {
+  background: rgba(20, 184, 166, 0.3);
+  transform: rotate(5deg) scale(1.1);
+}
+
+.trend-indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.trend-indicator.up {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.trend-indicator.down {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.metric-card:hover .trend-indicator {
+  transform: scale(1.1);
+}
+
+.metric-content h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #888;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+  line-height: 1;
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover .metric-value {
+  color: #14b8a6;
+  text-shadow: 0 0 20px rgba(20, 184, 166, 0.5);
+}
+
+.metric-change {
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.metric-change.positive {
+  color: #22c55e;
+}
+
+.metric-change.negative {
+  color: #ef4444;
+}
+
+.metric-sparkline {
+  display: flex;
+  gap: 3px;
+  align-items: end;
+  height: 24px;
+  margin-top: 16px;
+}
+
+.sparkline-bar {
+  width: 4px;
+  background: rgba(20, 184, 166, 0.6);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover .sparkline-bar {
+  background: #14b8a6;
+  transform: scaleY(1.2);
+}
+
+.metric-card:hover .sparkline-bar:nth-child(odd) {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    transform: scaleY(1.2);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.chart-container {
+  background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-overview {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.summary-overview ul li span:first-child {
+  color: #cfd8dc;
+}
+
+.summary-overview ul li span:last-child {
+  color: #14b8a6;
+}
+
+/* Ensure the two side-by-side panels align and share height */
+.chart-row > div > .chart-container,
+.chart-row > div > .summary-overview,
+.chart-row > div > .category-breakdown {
+  min-height: 420px;
+}
+
+.summary-overview .recharts-wrapper {
+  width: 110px !important;
+  height: 110px !important;
+}
+
+/* Overview card styling */
+.summary-overview .overview-content {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summary-overview .overview-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  flex: 1 1 60%;
+}
+
+.summary-overview .overview-metric {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: rgba(20, 184, 166, 0.03);
+  border: 1px solid rgba(20, 184, 166, 0.06);
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.summary-overview .metric-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 184, 166, 0.12);
+  border-radius: 8px;
+  font-size: 18px;
+}
+
+.summary-overview .metric-title {
+  font-size: 0.8rem;
+  color: #cfd8dc;
+}
+
+.summary-overview .metric-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.summary-overview .overview-chart {
+  width: 40%;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* New overview extra content */
+.overview-extra {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kpi-row {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.kpi-card {
+  flex: 1;
+  background: rgba(20, 184, 166, 0.03);
+  border: 1px solid rgba(20, 184, 166, 0.06);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.kpi-title {
+  font-size: 0.75rem;
+  color: #cfd8dc;
+  margin-bottom: 6px;
+}
+
+.kpi-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.kpi-sub {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+.overview-bottom {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.top-categories {
+  flex: 1.2;
+  background: rgba(20, 184, 166, 0.03);
+  border: 1px solid rgba(20, 184, 166, 0.06);
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.top-categories .small-header {
+  font-size: 0.85rem;
+  color: #cfd8dc;
+  margin-bottom: 8px;
+}
+
+.top-categories ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.top-category-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.top-category-item .cat-name {
+  flex: 1;
+  color: #fff;
+  font-weight: 600;
+}
+
+.top-category-item .cat-value {
+  color: #14b8a6;
+  font-weight: 700;
+}
+
+.category-progress {
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  height: 4px;
+  background: linear-gradient(90deg, #14b8a6, #06d6a0);
+  border-radius: 3px;
+  opacity: 0.9;
+}
+
+.details-column {
+  flex: 0.8;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.top-categories.full-width {
+  width: 100%;
+}
+
+.top-categories.full-width ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.top-category-item {
+  background: rgba(20, 184, 166, 0.03);
+  border: 1px solid rgba(20, 184, 166, 0.06);
+  padding: 10px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.top-category-item .cat-name {
+  font-weight: 700;
+  color: #fff;
+}
+.top-category-item .cat-value {
+  color: #14b8a6;
+  font-weight: 700;
+}
+.top-category-item .category-progress {
+  height: 6px;
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Top Expenses - same responsive grid but with date shown */
+.top-expenses.full-width ul {
+  display: grid;
+  /* larger minimum width per card so cards appear wider on large screens */
+  grid-template-columns: repeat(
+    2,
+    minmax(320px, 1fr)
+  ); /* two items per row with 320px min */
+  gap: 16px;
+}
+
+.top-expense-item {
+  background: rgba(20, 184, 166, 0.03);
+  border: 1px solid rgba(20, 184, 166, 0.06);
+  padding: 14px 18px; /* increased padding for larger feel */
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+}
+
+.top-expense-item .cat-name {
+  font-weight: 700;
+  color: #fff;
+  flex: 1 1 auto;
+  min-width: 0; /* allows proper truncation inside flex */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* keep name on a single line with ellipsis */
+}
+.top-expense-item .cat-sub {
+  color: #888;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  white-space: normal; /* allow full date visibility and wrapping if needed */
+  overflow: visible;
+}
+.top-expense-item .cat-value {
+  color: #14b8a6;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap; /* keep amount on one line */
+  margin-right: 8px;
+}
+
+/* new 30/70 layout: amount on left inside the card */
+
+/* 70/30 layout: name/date on left (70%), amount on right (30%) */
+.expense-left {
+  flex: 1 1 70%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0; /* allows truncation to work on the name */
+}
+.expense-right {
+  flex: 0 0 30%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* align amount to the right side of the card */
+  min-width: 90px; /* ensure room for amount */
+}
+
+/* ensure amount stays inside left column and doesn't push layout */
+.expense-right .cat-value {
+  font-weight: 700;
+  color: #14b8a6;
+  font-size: 1rem;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .top-expenses.full-width ul {
+    grid-template-columns: 1fr; /* stack on small screens */
+  }
+  .expense-left,
+  .expense-right {
+    flex: 1 1 100%;
+  }
+  .expense-right {
+    justify-content: flex-start;
+  }
+}
+/* keep the small progress markup but hide it so items stay single-line */
+.top-expense-item .category-progress {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .top-expenses.full-width ul {
+    grid-template-columns: 1fr; /* stack on small screens */
+  }
+}
+
+.chart-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.chart-container:hover::before {
+  opacity: 1;
+}
+
+.chart-container:hover {
+  border-color: rgba(20, 184, 166, 0.4);
+  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.15);
+  transform: translateY(-2px);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.chart-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.time-selector {
+  padding: 10px 15px;
+  border: 2px solid #333333;
+  border-radius: 8px;
+  background: #0b0b0b;
+  color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.time-selector:hover {
+  border-color: #14b8a6;
+  background: #1b1b1b;
+}
+
+.time-selector:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
+  background: #1b1b1b;
+}
+
+.time-selector option {
+  background: #1b1b1b;
+  color: #ffffff;
+}
+
+.total-amount {
+  font-size: 0.875rem;
+  color: #14b8a6;
+  font-weight: 600;
+  background: rgba(20, 184, 166, 0.1);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(20, 184, 166, 0.2);
+}
+
+.trend-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.trend-up {
+  color: #22c55e;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Daily Spending Chart (unique class to prevent collisions) */
+.daily-spending-chart {
+  grid-column: 1 / -1;
+}
+
+/* Bottom Section */
+.bottom-section {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+/* Recent Transactions */
+.recent-transactions {
+  background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.recent-transactions:hover {
+  border-color: rgba(20, 184, 166, 0.4);
+  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.view-all-btn {
+  background: rgba(20, 184, 166, 0.1);
+  border: 1px solid rgba(20, 184, 166, 0.3);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: #14b8a6;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.view-all-btn:hover {
+  background: rgba(20, 184, 166, 0.2);
+  border-color: rgba(20, 184, 166, 0.5);
+  transform: translateY(-1px);
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.transactions-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.transactions-list::-webkit-scrollbar-track {
+  background: rgba(20, 184, 166, 0.1);
+  border-radius: 2px;
+}
+
+.transactions-list::-webkit-scrollbar-thumb {
+  background: rgba(20, 184, 166, 0.5);
+  border-radius: 2px;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(20, 184, 166, 0.05);
+  border: 1px solid rgba(20, 184, 166, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.transaction-item:hover {
+  background: rgba(20, 184, 166, 0.1);
+  border-color: rgba(20, 184, 166, 0.2);
+  transform: translateX(4px);
+}
+
+.transaction-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 184, 166, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.transaction-item:hover .transaction-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.transaction-details {
+  flex: 1;
+}
+
+.transaction-name {
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+}
+
+.transaction-category {
+  font-size: 0.875rem;
+  color: #14b8a6;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.transaction-date {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.transaction-amount {
+  font-weight: 700;
+  font-size: 1.125rem;
+  transition: all 0.3s ease;
+}
+
+.transaction-amount.loss {
+  color: #ef4444;
+}
+
+.transaction-amount.gain {
+  color: #22c55e;
+}
+
+.transaction-item:hover .transaction-amount {
+  transform: scale(1.05);
+}
+
+/* Budget Overview */
+.budget-overview {
+  background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.budget-overview:hover {
+  border-color: rgba(20, 184, 166, 0.4);
+  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.1);
+}
+
+.budget-circle {
+  margin: 24px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.budget-progress {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #14b8a6 0deg,
+    #14b8a6 calc(var(--progress) * 3.6deg),
+    rgba(20, 184, 166, 0.2) calc(var(--progress) * 3.6deg),
+    rgba(20, 184, 166, 0.2) 360deg
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.budget-overview:hover .budget-progress {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(20, 184, 166, 0.3);
+}
+
+.budget-center {
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, #1b1b1b 0%, #2a2a2a 100%);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(20, 184, 166, 0.3);
+}
+
+.budget-percentage {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #14b8a6;
+  text-shadow: 0 0 20px rgba(20, 184, 166, 0.5);
+}
+
+.budget-label {
+  font-size: 0.875rem;
+  color: #888;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.budget-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.budget-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(20, 184, 166, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(20, 184, 166, 0.1);
+  transition: all 0.3s ease;
+}
+
+.budget-item:hover {
+  background: rgba(20, 184, 166, 0.1);
+  border-color: rgba(20, 184, 166, 0.2);
+  transform: translateX(2px);
+}
+
+.budget-item span:first-child {
+  color: #888;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.budget-item span:last-child {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.budget-item .positive {
+  color: #22c55e;
+}
+
+.budget-item .negative {
+  color: #ef4444;
+}
+
+/* Skeleton Styles (improved shimmer + staggered animations) */
+/* Base shimmer background used by most skeleton elements */
+.skeleton-bg {
+  background: linear-gradient(
+    90deg,
+    rgba(26, 26, 26, 1) 0%,
+    rgba(35, 178, 156, 0.12) 25%,
+    rgba(26, 26, 26, 1) 50%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+.metric-card-skeleton,
+.chart-skeleton {
+  background: linear-gradient(135deg, #151515 0%, #1f1f1f 100%);
+  border: 1px solid rgba(20, 184, 166, 0.06);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(#000, #000);
+}
+
+.metric-card-skeleton > .skeleton-row,
+.chart-skeleton > .skeleton-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.skeleton-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+.skeleton-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.skeleton-title,
+.skeleton-value,
+.skeleton-change,
+.skeleton-actions {
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+.skeleton-title {
+  height: 14px;
+  width: 45%;
+}
+.skeleton-value {
+  height: 28px;
+  width: 60%;
+}
+.skeleton-change {
+  height: 12px;
+  width: 30%;
+}
+.skeleton-actions {
+  height: 32px;
+  width: 90px;
+}
+
+.skeleton-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.skeleton-chart-header .skeleton-title {
+  height: 18px;
+  width: 180px;
+}
+.skeleton-chart-header .skeleton-actions {
+  height: 18px;
+  width: 80px;
+}
+
+.skeleton-chart-body {
+  height: 200px;
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+.skeleton-bars {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  width: 100%;
+}
+.skeleton-bar {
+  flex: 1;
+  height: 40%; /* initial visual height, individual bars will override */
+  border-radius: 6px 6px 0 0;
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Staggered heights and delays for a lively skeleton chart */
+.skeleton-bar:nth-child(1) {
+  height: 40%;
+  animation-delay: 0s;
+}
+.skeleton-bar:nth-child(2) {
+  height: 55%;
+  animation-delay: 0.08s;
+}
+.skeleton-bar:nth-child(3) {
+  height: 30%;
+  animation-delay: 0.16s;
+}
+.skeleton-bar:nth-child(4) {
+  height: 70%;
+  animation-delay: 0.24s;
+}
+.skeleton-bar:nth-child(5) {
+  height: 45%;
+  animation-delay: 0.32s;
+}
+.skeleton-bar:nth-child(6) {
+  height: 60%;
+  animation-delay: 0.4s;
+}
+
+/* Subtle shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Ensure skeleton elements keep the same spacing as the real dashboard components */
+.metrics-grid .metric-card-skeleton {
+  min-height: 120px; /* similar to typical metric card height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.metrics-grid {
+  gap: 24px; /* match real metrics grid gap */
+}
+
+/* Chart skeleton sizing to match .chart-container and summary layouts */
+.charts-grid .chart-skeleton,
+.chart-row .chart-skeleton,
+.chart-container.chart-skeleton {
+  min-height: 420px; /* align with chart container min-height used elsewhere */
+  padding: 24px; /* match chart container padding */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeleton-chart-body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* Make skeletons responsive like the real components */
+@media (max-width: 1200px) {
+  .charts-grid .chart-skeleton {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 768px) {
+  .metrics-grid .metric-card-skeleton {
+    min-height: 100px;
+    padding: 16px;
+  }
+  .charts-grid .chart-skeleton {
+    min-height: 300px;
+    padding: 16px;
+  }
+}
+
+/* Loading State: subtle overlay so skeletons are clearly visible */
+.expense-dashboard.loading {
+  pointer-events: none;
+}
+
+.expense-dashboard.loading::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 11, 11, 0.28); /* softened so skeletons show through */
+  z-index: 0; /* place behind skeleton elements */
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+/* Ensure skeletons render above the loading overlay */
+.expense-dashboard.loading .metric-card-skeleton,
+.expense-dashboard.loading .chart-skeleton {
+  position: relative;
+  z-index: 2;
+}
+
+/* Slight boost in contrast for chart skeleton bars so they remain visible under overlay */
+.expense-dashboard.loading .skeleton-bar,
+.expense-dashboard.loading .skeleton-title,
+.expense-dashboard.loading .skeleton-value {
+  filter: brightness(1.05);
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bg,
+  .skeleton-icon,
+  .skeleton-title,
+  .skeleton-value,
+  .skeleton-change,
+  .skeleton-bar,
+  .skeleton-actions {
+    animation: none !important;
+    background-size: auto !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .chart-row {
+    grid-template-columns: 1fr;
+  }
+
+  .bottom-section {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-dashboard {
+    width: calc(100vw - 300px);
+  }
+}
+
+@media (max-width: 1200px) {
+  .expense-dashboard {
+    width: calc(100vw - 40px);
+    margin: 20px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .header-left .header-title h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-dashboard {
+    padding: 16px;
+    margin: 10px;
+    width: calc(100vw - 20px);
+  }
+
+  .metric-card {
+    padding: 20px;
+  }
+
+  .chart-container {
+    padding: 20px;
+  }
+
+  .recent-transactions,
+  .budget-overview {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-left .header-title h1 {
+    font-size: 1.75rem;
+  }
+
+  .metric-value {
+    font-size: 1.875rem;
+  }
+
+  .chart-header h3 {
+    font-size: 1.125rem;
+  }
+
+  .budget-progress {
+    width: 140px;
+    height: 140px;
+  }
+
+  .budget-center {
+    width: 100px;
+    height: 100px;
+  }
+
+  .budget-percentage {
+    font-size: 1.75rem;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .expense-dashboard {
+    background: #0a0a0a;
+  }
+
+  .metric-card,
+  .chart-container,
+  .recent-transactions,
+  .budget-overview {
+    background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .expense-dashboard {
+    border: 2px solid #14b8a6;
+  }
+
+  .metric-card,
+  .chart-container,
+  .recent-transactions,
+  .budget-overview {
+    border: 2px solid rgba(20, 184, 166, 0.5);
+  }
+
+  .action-btn {
+    border: 2px solid #14b8a6 !important;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .metric-card,
+  .chart-container,
+  .transaction-item,
+  .budget-item,
+  .action-btn {
+    transition: none;
+  }
+
+  .metric-card:hover,
+  .chart-container:hover {
+    transform: none;
+  }
+
+  /* @keyframes pulse,
+  @keyframes sparkle,
+  @keyframes skeletonWave {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  } */
+}
+
+/* Print styles */
+@media print {
+  .expense-dashboard {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 20px;
+    background: white;
+    color: black;
+    box-shadow: none;
+    border: none;
+  }
+
+  .header-actions,
+  .action-btn,
+  .view-all-btn {
+    display: none;
+  }
+
+  .metric-card,
+  .chart-container,
+  .recent-transactions,
+  .budget-overview {
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+
+  .charts-grid {
+    page-break-inside: avoid;
+  }
+}

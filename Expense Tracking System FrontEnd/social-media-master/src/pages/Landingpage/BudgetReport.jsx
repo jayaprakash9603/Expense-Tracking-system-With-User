@@ -619,7 +619,7 @@ const BudgetReport = () => {
                     >
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-white font-semibold">
-                          {row.original.expense.expenseName}
+                          {row.original.expense?.expenseName || "N/A"}
                         </span>
                         <div className="flex items-center gap-2">
                           <span className="text-gray-300 text-sm">
@@ -640,19 +640,19 @@ const BudgetReport = () => {
                         </p>
                         <p>
                           <span className="font-medium">Amount:</span> $
-                          {row.original.expense.amount.toFixed(2)}
+                          {(row.original.expense?.amount ?? 0).toFixed(2)}
                         </p>
                         <p>
                           <span className="font-medium">Payment Method:</span>{" "}
-                          {row.original.expense.paymentMethod}
+                          {row.original.expense?.paymentMethod || "N/A"}
                         </p>
                         <p>
                           <span className="font-medium">Type:</span>{" "}
-                          {row.original.expense.type}
+                          {row.original.expense?.type || "N/A"}
                         </p>
                         <p>
                           <span className="font-medium">Comments:</span>{" "}
-                          {row.original.expense.comments || "N/A"}
+                          {row.original.expense?.comments || "N/A"}
                         </p>
                       </div>
                     </div>

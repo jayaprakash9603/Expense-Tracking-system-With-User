@@ -7,6 +7,7 @@ import {
   Alert,
   CircularProgress,
   Backdrop,
+  IconButton,
 } from "@mui/material";
 import {
   getExpensesAction,
@@ -139,6 +140,7 @@ const Upload = () => {
         <div
           className="flex flex-col flex-grow sm:p-6 w-full sm:w-[calc(100vw-370px)]"
           style={{
+            position: "relative",
             height: "calc(100vh - 100px)",
             backgroundColor: "rgb(11, 11, 11)",
             borderRadius: "8px",
@@ -147,6 +149,41 @@ const Upload = () => {
             opacity: 1,
           }}
         >
+          {/* Back button - same behaviour as Bill component */}
+          <div style={{ position: "absolute", top: 16, left: 16, zIndex: 10 }}>
+            <IconButton
+              sx={{
+                color: "#00DAC6",
+                backgroundColor: "#1b1b1b",
+                "&:hover": {
+                  backgroundColor: "#28282a",
+                },
+                zIndex: 10,
+              }}
+              onClick={() =>
+                friendId && friendId !== "undefined"
+                  ? navigate(`/friends/expenses/${friendId}`)
+                  : navigate("/expenses")
+              }
+              aria-label="Back"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 18L9 12L15 6"
+                  stroke="#00DAC6"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </IconButton>
+          </div>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error || "Failed to upload file. Please try again."}

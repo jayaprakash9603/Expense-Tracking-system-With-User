@@ -21,7 +21,6 @@ import NewExpense from "./pages/Landingpage/NewExpense";
 import Profile from "./pages/Landingpage/Profile";
 import NewBudget from "./pages/Landingpage/NewBudget";
 import EditBudget from "./pages/Landingpage/EditBudget";
-import BudgetReport from "./pages/Landingpage/BudgetReport";
 import Reports from "./pages/Landingpage/Reports";
 import Cashflow from "./pages/Landingpage/CashFlow";
 import CalendarView from "./pages/Landingpage/CalendarView";
@@ -50,6 +49,10 @@ import CreateGroup from "./pages/Landingpage/CreateGroup";
 import GroupDetail from "./pages/Landingpage/GroupDetail";
 import Chat from "./services/Chat";
 import ExpenseReport from "./pages/Landingpage/ExpenseReport";
+import ExpenseDashboard from "./pages/Landingpage/ExpenseDashboard";
+import CategoryReport from "./pages/Landingpage/Category Report/CategoryReport";
+import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentReport";
+import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
 function App() {
   const { auth } = useSelector((store) => store);
   const dispatch = useDispatch();
@@ -89,7 +92,8 @@ function App() {
           <Route path="/" element={<Home />}>
             <Route index element={<Navigate to="/home" />} />
             <Route path="/chats" element={<Chat />} />
-            <Route path="home" element={<HomeContent />} />
+            {/* <Route path="home" element={<HomeContent />} /> */}
+            <Route path="home" element={<ExpenseDashboard />} />
             <Route path="groups">
               <Route index element={<Groups />} />
               <Route path="create" element={<CreateGroup />} />
@@ -100,6 +104,7 @@ function App() {
             <Route path="payment-method">
               <Route index element={<PaymentMethodFlow />} />
               <Route path=":friendId" element={<PaymentMethodFlow />} />
+              <Route path="reports" element={<PaymentMethodsReport />} />
               <Route path="create" element={<CreatePaymentMethod />} />
               <Route
                 path="create/:friendId"
@@ -150,6 +155,7 @@ function App() {
               <Route path=":friendId" element={<CategoryFlow />} />
               <Route path="create" element={<CreateCategory />} />
               <Route path="create/:friendId" element={<CreateCategory />} />
+              <Route path="reports" element={<CategoryReport />} />
               <Route path="edit/:id" element={<EditCategory />} />
               <Route
                 path="edit/:id/friend/:friendId"
@@ -187,6 +193,7 @@ function App() {
                 path="edit/:id/friend/:friendId"
                 element={<EditBudget />}
               />
+              {/* <Route path="report/:id" element={<BudgetReport />} /> */}
               <Route path="report/:id" element={<BudgetReport />} />
               <Route
                 path="report/:id/friend/:friendId"

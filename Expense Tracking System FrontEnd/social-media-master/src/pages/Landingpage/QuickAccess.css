@@ -1,0 +1,128 @@
+/* QuickAccess - alternative pill design */
+.quick-access {
+  margin-top: 30px;
+  width: 100%;
+  background: #1b1b1b;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(20, 184, 166, 0.06);
+}
+
+.qa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.qa-title {
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0;
+}
+.qa-divider {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(80, 80, 80, 0.6),
+    transparent
+  );
+  border: none;
+}
+
+.qa-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* six equal columns */
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.qa-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 999px; /* pill */
+  background: #0b0b0b; /* card background as requested */
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  min-width: 170px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.qa-box .qa-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.qa-svg {
+  color: #fff !important;
+  width: 20px;
+  height: 20px;
+}
+.qa-text {
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+.qa-chevron {
+  margin-left: auto;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+.qa-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  border-color: rgba(20, 184, 166, 0.12);
+}
+
+.qa-icon-expense {
+  background: linear-gradient(135deg, #f11f99, #f28fb7);
+}
+.qa-icon-bill {
+  background: linear-gradient(135deg, #222255, #5246a8);
+}
+.qa-icon-upload {
+  background: linear-gradient(135deg, #124241, #2a8f86);
+}
+.qa-icon-budget {
+  background: linear-gradient(135deg, #682b3b, #b35465);
+}
+.qa-icon-category {
+  background: linear-gradient(135deg, #0ea5a4, #38bdf8);
+}
+.qa-icon-payment {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+
+/* responsive */
+@media (max-width: 1200px) {
+  .qa-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .qa-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .qa-grid {
+    grid-template-columns: 1fr;
+  }
+  .qa-box {
+    justify-content: flex-start;
+  }
+}

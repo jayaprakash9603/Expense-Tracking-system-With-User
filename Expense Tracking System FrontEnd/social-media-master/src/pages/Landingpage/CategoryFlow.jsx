@@ -1361,6 +1361,37 @@ const CategoryFlow = () => {
                   />
                 </svg>
               </IconButton>
+              {/* Reports button added beside Add New */}
+              <button
+                onClick={() => navigate("/category-flow/reports")}
+                title="Reports"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: isMobile ? "6px 8px" : "8px 10px",
+                  backgroundColor: "#1b1b1b",
+                  border: "1px solid #333",
+                  borderRadius: "8px",
+                  color: "#00DAC6",
+                  fontSize: isMobile ? "11px" : "13px",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  marginLeft: 8,
+                }}
+              >
+                <img
+                  src={require("../../assests/report.png")}
+                  alt="Reports"
+                  style={{
+                    width: isMobile ? 14 : 16,
+                    height: isMobile ? 14 : 16,
+                    filter:
+                      "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                  }}
+                />
+                {!isMobile && <span>Reports</span>}
+              </button>
             </div>
             {/* Sort Popover */}
             {popoverOpen &&

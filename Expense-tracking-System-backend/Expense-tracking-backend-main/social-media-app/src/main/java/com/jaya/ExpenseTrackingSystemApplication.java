@@ -12,24 +12,13 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 @EnableCaching
 @EnableFeignClients
-public class SocialMediaAppApplication {
+public class ExpenseTrackingSystemApplication {
 
-//	@Autowired
-//	private SocketIOServer socketIOServer;
+
 
 	public static void main(String[] args) {
-		SpringApplication.run(SocialMediaAppApplication.class, args);
+		SpringApplication.run(ExpenseTrackingSystemApplication.class, args);
 	}
 
-//	@PostConstruct
-//	public void startSocketServer() {
-//		socketIOServer.start();
-//		System.out.println("Socket server started on port: " + socketIOServer.getConfiguration().getPort());
-//	}
-//
-//	@PreDestroy
-//	public void stopSocketServer() {
-//		socketIOServer.stop();
-//
-//	}
+
 }

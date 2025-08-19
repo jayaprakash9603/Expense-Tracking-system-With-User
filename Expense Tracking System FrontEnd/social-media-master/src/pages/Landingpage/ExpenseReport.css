@@ -11,6 +11,10 @@
   color: #ffffff;
 }
 
+.expense-report {
+  position: relative;
+}
+
 /* Hide scrollbars visually for the main report container but keep scrolling */
 .expense-report {
   -ms-overflow-style: none; /* IE and Edge */
@@ -26,6 +30,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 40px;
   margin-bottom: 30px;
   padding: 20px;
   background: #1b1b1b;
@@ -268,18 +273,38 @@
 }
 
 .bills-table tr:hover {
-  background: #0b0b0b;
+  /* Slightly lighter hover so item chips remain visible */
+  background: #141414;
+  transition: background 160ms ease;
 }
 
 .bill-name strong {
-  display: block;
+  display: -webkit-box;
   color: #ffffff;
   margin-bottom: 5px;
+  width: 350px; /* fixed width for bill name */
+  -webkit-line-clamp: 2; /* clamp to 2 lines */
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .bill-name small {
   color: #cccccc;
   font-size: 0.85rem;
+  /* fixed width for description and clamp to 4 lines with ellipsis */
+  width: 200px;
+  display: -webkit-box; /* for line clamping */
+  -webkit-line-clamp: 4; /* show max 4 lines */
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal; /* allow wrapping */
+  word-break: break-word;
 }
 
 .category-badge {
@@ -323,8 +348,29 @@
   border: 1px solid #f59e0b;
 }
 
+/* Credit-related payment method badges */
+.payment-method.creditNeedToPaid {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%); /* dark gray */
+  color: #fca5a5; /* soft red/pink to indicate due */
+  border: 1px solid rgba(252, 165, 165, 0.18);
+}
+
+.payment-method.creditPaid {
+  background: linear-gradient(
+    135deg,
+    #064e3b 0%,
+    #0f766e 100%
+  ); /* teal/green */
+  color: #bbf7d0; /* light green */
+  border: 1px solid rgba(34, 197, 94, 0.14);
+}
+
 .items-list {
   max-width: 200px;
+  /* show up to ~5 items; let the list scroll internally if more items exist */
+  max-height: 160px; /* approx. 5 items at ~30px each */
+  overflow-y: auto;
+  padding-right: 6px; /* room for scrollbar */
 }
 
 .expense-item {
@@ -335,6 +381,59 @@
   font-size: 0.85rem;
   color: #cccccc;
   border: 1px solid #333333;
+}
+
+/* scrollbar styling for items-list (dark theme) */
+.items-list::-webkit-scrollbar {
+  width: 8px;
+}
+.items-list::-webkit-scrollbar-track {
+  background: #0b0b0b;
+  border-radius: 4px;
+}
+.items-list::-webkit-scrollbar-thumb {
+  background: #14b8a6;
+  border-radius: 4px;
+}
+.items-list::-webkit-scrollbar-thumb:hover {
+  background: #0d9488;
+}
+
+/* Pagination controls */
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 0 24px 0;
+}
+.page-btn,
+.page-number {
+  background: #0b0b0b;
+  color: #ffffff;
+  border: 1px solid #333333;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.pages-list {
+  display: flex;
+  gap: 8px;
+}
+.page-number.active {
+  background: #14b8a6;
+  color: #071011;
+  border-color: #14b8a6;
+}
+
+@media (max-width: 768px) {
+  .items-list {
+    max-height: 140px;
+  }
 }
 
 .category-details {
@@ -356,8 +455,12 @@
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  /* prevent single/dual cards from stretching full width by capping
+     the max column size and centering the grid content */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 340px));
   gap: 20px;
+  justify-content: start; /* left-align when few items */
+  margin: 0; /* keep aligned to container's padding */
 }
 
 .category-card {
@@ -367,6 +470,8 @@
   border-left: 4px solid #14b8a6;
   border: 1px solid #333333;
   transition: transform 0.3s ease;
+  max-width: 440px; /* avoid overly wide single cards */
+  width: 100%;
 }
 
 .category-card:hover {
@@ -991,5 +1096,25 @@
     width: 72px;
     height: 72px;
     font-size: 36px;
+  }
+}
+
+/* Force two-column layout for charts grid so category + payment method
+   are shown side-by-side on wider viewports. Keep a single column on
+   smaller screens. Use !important to override previous conflicting rules. */
+.chart-report-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 25px !important;
+  align-items: start !important;
+}
+
+.chart-container.chart-half-width {
+  grid-column: auto !important; /* ensure these occupy one grid column each */
+}
+
+@media (max-width: 900px) {
+  .charts-grid {
+    grid-template-columns: 1fr !important;
   }
 }
