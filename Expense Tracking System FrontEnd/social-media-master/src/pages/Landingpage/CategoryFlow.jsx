@@ -1337,6 +1337,97 @@ const CategoryFlow = () => {
                 isMobile={isMobile}
                 isTablet={isTablet}
               />
+              {/* Navigation Buttons to match CashFlow */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginLeft: isMobile ? 0 : "8px",
+                  flexShrink: 0,
+                  gap: isMobile ? "6px" : "8px",
+                  flexWrap: isMobile ? "wrap" : "nowrap",
+                }}
+              >
+                {[
+                  {
+                    path: "/category-flow",
+                    icon: "category.png",
+                    label: "Categories",
+                  },
+                  {
+                    path: "/transactions",
+                    icon: "history.png",
+                    label: "History",
+                  },
+                  { path: "/insights", icon: "insight.png", label: "Insights" },
+                  { path: "/reports", icon: "report.png", label: "Reports" },
+                  { path: "/cashflow", icon: "list.png", label: "Expenses" },
+                  { path: "/budget", icon: "budget.png", label: "Budget" },
+                  {
+                    path: "/payment-method",
+                    icon: "payment-method.png",
+                    label: "Payment Method",
+                  },
+                  { path: "/bill", icon: "bill.png", label: "Bill" },
+                  {
+                    path: "/calendar-view",
+                    icon: "calendar.png",
+                    label: "Calendar",
+                  },
+                ].map(({ path, icon, label }) => (
+                  <button
+                    key={path}
+                    onClick={() => navigate(path)}
+                    className="nav-button"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: isMobile ? "6px" : "6px",
+                      padding: isMobile ? "6px 8px" : "8px 10px",
+                      backgroundColor: "#1b1b1b",
+                      border: "1px solid #333",
+                      borderRadius: "8px",
+                      color: "#00DAC6",
+                      fontSize: isMobile ? "12px" : "14px",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      minWidth: "fit-content",
+                    }}
+                  >
+                    <img
+                      src={require(`../../assests/${icon}`)}
+                      alt={label}
+                      style={{
+                        width: isMobile ? 16 : 18,
+                        height: isMobile ? 16 : 18,
+                        filter:
+                          "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                        transition: "filter 0.2s ease",
+                      }}
+                    />
+                    {!isMobile && <span>{label}</span>}
+                  </button>
+                ))}
+              </div>
+              <style>{`
+                .nav-button:hover {
+                  background-color: #00dac6 !important;
+                  color: #000 !important;
+                  border-color: #00dac6 !important;
+                }
+                .nav-button:hover img {
+                  filter: brightness(0) saturate(100%) invert(0%) !important;
+                }
+                .nav-button:hover svg circle,
+                .nav-button:hover svg path {
+                  stroke: #000 !important;
+                }
+                .nav-button:hover span {
+                  color: #000 !important;
+                }
+                .nav-button:active { transform: scale(0.98); }
+              `}</style>
               <IconButton
                 sx={{ color: "#5b7fff", ml: 1 }}
                 onClick={() =>
@@ -1375,37 +1466,6 @@ const CategoryFlow = () => {
                   />
                 </svg>
               </IconButton>
-              {/* Reports button added beside Add New */}
-              <button
-                onClick={() => navigate("/category-flow/reports")}
-                title="Reports"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: isMobile ? "6px 8px" : "8px 10px",
-                  backgroundColor: "#1b1b1b",
-                  border: "1px solid #333",
-                  borderRadius: "8px",
-                  color: "#00DAC6",
-                  fontSize: isMobile ? "11px" : "13px",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  marginLeft: 8,
-                }}
-              >
-                <img
-                  src={require("../../assests/report.png")}
-                  alt="Reports"
-                  style={{
-                    width: isMobile ? 14 : 16,
-                    height: isMobile ? 14 : 16,
-                    filter:
-                      "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                  }}
-                />
-                {!isMobile && <span>Reports</span>}
-              </button>
             </div>
             {/* Sort Popover */}
             {popoverOpen &&
