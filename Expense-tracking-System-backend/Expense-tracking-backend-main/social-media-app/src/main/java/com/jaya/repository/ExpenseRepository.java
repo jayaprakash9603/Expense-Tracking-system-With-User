@@ -4,6 +4,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -27,6 +28,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     List<Expense> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(Integer userId, LocalDate startDate, LocalDate endDate);
 
 
+
+    @Modifying
+    @Query("DELETE FROM Expense e WHERE e.id IN :ids AND e.userId = :userId")
+    int deleteByIdsAndUserId(@Param("ids") List<Integer> ids, @Param("userId") Integer userId);
+
+    @Modifying
+    @Query("DELETE FROM ExpenseDetails ed WHERE ed.expense.id IN :expenseIds")
+    int deleteExpenseDetailsByExpenseIds(@Param("expenseIds") List<Integer> expenseIds);
 
 
     @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId")

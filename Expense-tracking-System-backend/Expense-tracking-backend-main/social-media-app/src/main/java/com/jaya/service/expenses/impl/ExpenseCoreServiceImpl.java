@@ -1,6 +1,7 @@
 package com.jaya.service.expenses.impl;
 
 import ch.qos.logback.classic.Logger;
+import com.jaya.async.AsyncExpensePostProcessor;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.dto.PaymentMethodEvent;
@@ -25,9 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -54,6 +58,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private AsyncExpensePostProcessor asyncExpensePostProcessor;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -361,11 +368,12 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     @CacheEvict(value = "expenses", allEntries = true)
     public void deleteAllExpenses(Integer userId, List<Expense> expenses) {
         if (expenses == null || expenses.isEmpty()) {
-            throw new IllegalArgumentException("Expenses list cannot be null or empty.");
+            throw new IllegalArgumentException("Expenses Are deleted");
         }
 
         List<String> errorMessages = new ArrayList<>();
         List<Expense> expensesToDelete = new ArrayList<>();
+        List<Integer> expenseIdsToDelete = new ArrayList<>();
 
         for (Expense expense : expenses) {
             if (expense.getId() == null) {
@@ -384,72 +392,20 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
 
             if (existing.getUserId() == null || !existing.getUserId().equals(userId)) {
-                errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() + " (Expense belongs to user " + (existing.getUserId() != null ? existing.getUserId() : "unknown") + ", current user is " + userId + ")");
+                errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() +
+                        " (Expense belongs to user " +
+                        (existing.getUserId() != null ? existing.getUserId() : "unknown") +
+                        ", current user is " + userId + ")");
                 continue;
             }
 
-            try {
-                Set<Integer> budgetIds = existing.getBudgetIds();
-                if (budgetIds != null) {
-                    for (Integer budgetId : budgetIds) {
-                        Budget budget = budgetService.getBudgetById(budgetId, userId);
-                        if (budget != null && budget.getExpenseIds() != null) {
-                            budget.getExpenseIds().remove(existing.getId());
-                            budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
-                            budgetService.save( budget);
-                        }
-                    }
-                }
-
-                Integer categoryId = existing.getCategoryId();
-                if (categoryId != null) {
-                    try {
-                        Category category = categoryService.getById(categoryId, userId);
-                        if (category != null && category.getExpenseIds() != null) {
-                            Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(userId, new HashSet<>());
-                            expenseSet.remove(existing.getId());
-                            if (expenseSet.isEmpty()) {
-                                category.getExpenseIds().remove(userId);
-                            } else {
-                                category.getExpenseIds().put(userId, expenseSet);
-                            }
-                            categoryService.save( category);
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Error removing expense from category: " + e.getMessage());
-                    }
-                }
-
-                ExpenseDetails details = existing.getExpense();
-                if (details != null && details.getPaymentMethod() != null && !details.getPaymentMethod().trim().isEmpty()) {
-                    String paymentMethodName = details.getPaymentMethod().trim();
-                    String paymentType = (details.getType() != null && details.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
-                    List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
-                    PaymentMethod paymentMethod = allMethods.stream().filter(pm -> pm.getName().equalsIgnoreCase(paymentMethodName) && pm.getType().equalsIgnoreCase(paymentType)).findFirst().orElse(null);
-                    if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
-                        Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
-                        Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(userId, new HashSet<>());
-                        userExpenseSet.remove(existing.getId());
-                        if (userExpenseSet.isEmpty()) {
-                            expenseIdsMap.remove(userId);
-                        } else {
-                            expenseIdsMap.put(userId, userExpenseSet);
-                        }
-                        paymentMethodService.save(paymentMethod);
-                    }
-                }
-
-
-
-                // auditExpenseService.logAudit(user, existing.getId(), "Expense Deleted", existing.getExpense().getExpenseName());
-                expensesToDelete.add(existing);
-            } catch (Exception e) {
-                errorMessages.add("Failed to process deletion for Expense ID: " + expense.getId() + " - " + e.getMessage());
-            }
+            expensesToDelete.add(existing);
+            expenseIdsToDelete.add(existing.getId());
         }
 
         if (!expensesToDelete.isEmpty()) {
-            expenseRepository.deleteAll(expensesToDelete);
+            // Optimized batch deletion
+            performOptimizedBatchDelete(expenseIdsToDelete, userId, expensesToDelete);
         }
 
         if (!errorMessages.isEmpty()) {
@@ -457,12 +413,75 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
     }
 
+    @Transactional
+    private void performOptimizedBatchDelete(List<Integer> expenseIds, Integer userId, List<Expense> expensesToDelete) {
+        final int BATCH_SIZE = 1000; // Adjust based on your database capabilities
+
+        // Create copies for async processing before deletion
+        List<Expense> expensesForAsync = createExpenseCopiesForAsync(expensesToDelete);
+
+        // Process in batches for very large datasets
+        for (int i = 0; i < expenseIds.size(); i += BATCH_SIZE) {
+            int endIndex = Math.min(i + BATCH_SIZE, expenseIds.size());
+            List<Integer> batchIds = expenseIds.subList(i, endIndex);
+
+            try {
+                // Delete ExpenseDetails first (child entities)
+                expenseRepository.deleteExpenseDetailsByExpenseIds(batchIds);
+
+                // Then delete Expenses (parent entities)
+                int deletedCount = expenseRepository.deleteByIdsAndUserId(batchIds, userId);
+
+                logger.info("Batch deleted {} expenses (expected: {}) for user: {}",
+                        deletedCount, batchIds.size(), userId);
+
+                // Flush after each batch to avoid memory issues
+                entityManager.flush();
+                entityManager.clear();
+
+            } catch (Exception e) {
+                logger.error("Error in batch deletion for batch starting at index {}: {}", i, e.getMessage());
+                throw new RuntimeException("Batch deletion failed: " + e.getMessage(), e);
+            }
+        }
+
+        // Register async processing after successful deletion
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                asyncExpensePostProcessor.publishDeletionEvents(expensesForAsync, userId);
+            }
+        });
+    }
+
+    private List<Expense> createExpenseCopiesForAsync(List<Expense> expensesToDelete) {
+        List<Expense> expensesForAsync = new ArrayList<>();
+
+        for (Expense expense : expensesToDelete) {
+            Expense copy = new Expense();
+            copy.setId(expense.getId());
+            copy.setUserId(expense.getUserId());
+            copy.setCategoryId(expense.getCategoryId());
+            copy.setCategoryName(expense.getCategoryName());
+            copy.setBudgetIds(expense.getBudgetIds() != null ? new HashSet<>(expense.getBudgetIds()) : new HashSet<>());
+
+            if (expense.getExpense() != null) {
+                ExpenseDetails details = new ExpenseDetails();
+                details.setPaymentMethod(expense.getExpense().getPaymentMethod());
+                details.setType(expense.getExpense().getType());
+                copy.setExpense(details);
+            }
+
+            expensesForAsync.add(copy);
+        }
+
+        return expensesForAsync;
+    }
+
     @Override
     @Transactional
     public List<Expense> addMultipleExpenses(List<Expense> expenses, Integer userId) throws Exception {
         User user = helper.validateUser(userId);
-        if (userId == null) throw new UserException("User not found.");
-
         int batchSize = 500;
         int count = 0;
         List<Expense> savedExpenses = new ArrayList<>();
@@ -490,18 +509,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         entityManager.flush();
         entityManager.clear();
 
-        // Now update category, payment method, and budget links with correct expense IDs
-        for (Expense savedExpense : savedExpenses) {
-            handlePaymentMethod(savedExpense, user);
-            updateCategoryExpenseIds(savedExpense, userId); // This will now use the correct ID
-            updateBudgetExpenseLinks(savedExpense, savedExpense.getBudgetIds(), user);
-
-
-
-        }
-
-
-        updateExpenseCache(savedExpenses, userId);
+        asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user);
 
         return savedExpenses;
     }
@@ -1135,7 +1143,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         for (Expense expense : expenses) {
             try {
                 if (expense.getUserId() == null || !expense.getUserId().equals(userId)) {
-                    errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() + " (Expense belongs to user " + (expense.getUserId() != null ? expense.getUserId() : "unknown") + ", current user is " + userId + ")");
+                    errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() +
+                            " (Expense belongs to user " + (expense.getUserId() != null ? expense.getUserId() : "unknown") +
+                            ", current user is " + userId + ")");
                     continue;
                 }
 
@@ -1143,61 +1153,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     continue;
                 }
 
-                // Process budget removal
-                Set<Integer> budgetIds = expense.getBudgetIds();
-                if (budgetIds != null) {
-                    for (Integer budgetId : budgetIds) {
-                        Budget budget = budgetService.getBudgetById(budgetId, userId);
-                        if (budget != null && budget.getExpenseIds() != null) {
-                            budget.getExpenseIds().remove(expense.getId());
-                            budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
-                            budgetService.save( budget);
-                        }
-                    }
-                }
-
-                // Process category removal
-                Integer categoryId = expense.getCategoryId();
-                if (categoryId != null) {
-                    try {
-                        Category category = categoryService.getById(categoryId, userId);
-                        if (category != null && category.getExpenseIds() != null) {
-                            Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(userId, new HashSet<>());
-                            expenseSet.remove(expense.getId());
-                            if (expenseSet.isEmpty()) {
-                                category.getExpenseIds().remove(userId);
-                            } else {
-                                category.getExpenseIds().put(userId, expenseSet);
-                            }
-                            categoryService.save( category);
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Error removing expense from category: " + e.getMessage());
-                    }
-                }
-
-                // Process payment method removal
-                ExpenseDetails details = expense.getExpense();
-                if (details != null && details.getPaymentMethod() != null && !details.getPaymentMethod().isEmpty()) {
-                    try {
-                        PaymentMethod paymentMethod = paymentMethodService.getByNameAndType(userId, details.getPaymentMethod(), details.getType().equals("loss") ? "expense" : "income");
-                        if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
-                            Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
-                            Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(userId, new HashSet<>());
-                            userExpenseSet.remove(expense.getId());
-                            if (userExpenseSet.isEmpty()) {
-                                expenseIdsMap.remove(userId);
-                            } else {
-                                expenseIdsMap.put(userId, userExpenseSet);
-                            }
-                            paymentMethodService.save(paymentMethod);
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Error removing expense from payment method: " + e.getMessage());
-                    }
-                }
-
-                // auditExpenseService.logAudit(user, expense.getId(), "Expense Deleted", expense.getExpense().getExpenseName());
                 expensesToDelete.add(expense);
             } catch (Exception e) {
                 errorMessages.add("Failed to process deletion for Expense ID: " + expense.getId() + " - " + e.getMessage());
@@ -1205,12 +1160,44 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
 
         if (!expensesToDelete.isEmpty()) {
+            // Delete expenses from database first
             expenseRepository.deleteAll(expensesToDelete);
+
+            // Create a copy of the expenses for async processing
+            List<Expense> expensesForAsync = new ArrayList<>();
+            for (Expense expense : expensesToDelete) {
+                Expense copy = new Expense();
+                copy.setId(expense.getId());
+                copy.setUserId(expense.getUserId());
+                copy.setCategoryId(expense.getCategoryId());
+                copy.setCategoryName(expense.getCategoryName());
+                copy.setBudgetIds(expense.getBudgetIds() != null ? new HashSet<>(expense.getBudgetIds()) : new HashSet<>());
+
+                if (expense.getExpense() != null) {
+                    ExpenseDetails details = new ExpenseDetails();
+                    details.setPaymentMethod(expense.getExpense().getPaymentMethod());
+                    details.setType(expense.getExpense().getType());
+                    copy.setExpense(details);
+                }
+
+                expensesForAsync.add(copy);
+            }
+
+            // Use TransactionSynchronization to ensure events are published after transaction commit
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    // This will execute after the transaction commits successfully
+                    asyncExpensePostProcessor.publishDeletionEvents(expensesForAsync, userId);
+                }
+            });
         }
+
         if (!errorMessages.isEmpty()) {
             throw new Exception("Errors occurred while deleting expenses: " + String.join("; ", errorMessages));
         }
     }
+
 
 
     private void handleCategory(Expense expense, User user) throws Exception {
@@ -1240,7 +1227,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     }
 
 
-    private void handlePaymentMethod(Expense savedExpense, User user) {
+    public void handlePaymentMethod(Expense savedExpense, User user) {
         ExpenseDetails details = savedExpense.getExpense();
         String paymentMethodName = details.getPaymentMethod().trim();
         String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
@@ -1253,7 +1240,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     }
 
     @Transactional
-    private void updateCategoryExpenseIds(Expense savedExpense, Integer userId) {
+    public void updateCategoryExpenseIds(Expense savedExpense, Integer userId) {
         logger.info("Updating categoryId: {}", savedExpense.getCategoryId());
         if (savedExpense.getCategoryId() != null) {
             logger.info("Entered inside if statement: {}", savedExpense.getCategoryId());
@@ -1303,7 +1290,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             throw new IllegalArgumentException("Expense type must not be empty.");
         }
     }
-    private void updateBudgetExpenseLinks(Expense savedExpense, Set<Integer> validBudgetIds, User user) throws Exception {
+    public void updateBudgetExpenseLinks(Expense savedExpense, Set<Integer> validBudgetIds, User user) throws Exception {
         if (!validBudgetIds.isEmpty()) {
             BudgetExpenseEvent budgetEvent = new BudgetExpenseEvent(user.getId(), savedExpense.getId(), validBudgetIds, "ADD");
             budgetExpenseKafkaProducerService.sendBudgetExpenseEvent(budgetEvent);
@@ -1317,7 +1304,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         updateExpenseCache(Collections.singletonList(savedExpense), userId);
     }
 
-    private void updateExpenseCache(List<Expense> savedExpenses, Integer userId) {
+    public void updateExpenseCache(List<Expense> savedExpenses, Integer userId) {
         Cache cache = cacheManager.getCache("expenses");
         if (cache == null) {
             logger.warn("Cache 'expenses' not found");

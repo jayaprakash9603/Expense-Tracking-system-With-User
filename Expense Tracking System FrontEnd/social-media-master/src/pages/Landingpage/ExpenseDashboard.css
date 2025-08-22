@@ -134,6 +134,7 @@
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
+  cursor: pointer;
 }
 
 .metric-card::before {
@@ -154,7 +155,7 @@
 
 .metric-card:hover {
   transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(20, 184, 166, 0.25);
+  box-shadow: none;
   border-color: rgba(20, 184, 166, 0.4);
 }
 
@@ -671,9 +672,16 @@
 }
 
 .chart-container:hover {
-  border-color: rgba(20, 184, 166, 0.4);
+  border-color: rgba(20, 184, 166, 0.2); /* keep same as default, no hover border highlight */
   box-shadow: 0 12px 30px rgba(20, 184, 166, 0.15);
   transform: translateY(-2px);
+}
+
+/* Remove hover shadow and lift specifically for the Daily Spending chart */
+.daily-spending-chart .chart-container:hover,
+.daily-spending-chart.chart-container:hover {
+  box-shadow: none;
+  transform: none;
 }
 
 .chart-header {
@@ -726,6 +734,77 @@
 .time-selector option {
   background: #1b1b1b;
   color: #ffffff;
+}
+
+/* Compact toggle for loss/gain beside timeframe selector */
+.type-toggle {
+  margin-left: 12px;
+  padding: 8px 12px;
+  background: rgba(20, 184, 166, 0.06);
+  color: #14b8a6;
+  border: 1px solid rgba(20, 184, 166, 0.12);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.type-toggle:hover {
+  background: rgba(20, 184, 166, 0.12);
+}
+
+/* segmented toggle buttons */
+.type-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+}
+.type-toggle .toggle-btn {
+  background: transparent;
+  border: none;
+  color: #cfd8dc;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+.type-toggle .toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.type-toggle .toggle-btn.active {
+  background: linear-gradient(
+    90deg,
+    rgba(20, 184, 166, 0.18),
+    rgba(20, 184, 166, 0.12)
+  );
+  color: #0b0b0b;
+  box-shadow: 0 6px 18px rgba(20, 184, 166, 0.12);
+}
+.type-toggle .toggle-btn.active:focus {
+  outline: 2px solid rgba(20, 184, 166, 0.18);
+}
+
+/* Daily-spending specific: color active loss/gain buttons appropriately
+   Keep these scoped to .daily-spending-chart so other toggles aren't affected */
+.daily-spending-chart .type-toggle .toggle-btn.loss.active {
+  background: #ef4444; /* solid red */
+  color: #ffffff; /* white text for contrast */
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.12);
+  border: 1px solid #ef4444;
+}
+.daily-spending-chart .type-toggle .toggle-btn.gain.active {
+  background: #22c55e; /* solid green */
+  color: #ffffff; /* white text for contrast */
+  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.12);
+  border: 1px solid #22c55e;
+}
+
+/* slightly stronger hover for the specific buttons (solid darker shades) */
+.daily-spending-chart .type-toggle .toggle-btn.loss:hover {
+  background: #dc2626; /* red-600 */
+}
+.daily-spending-chart .type-toggle .toggle-btn.gain:hover {
+  background: #16a34a; /* green-600 */
 }
 
 .total-amount {
@@ -817,12 +896,14 @@
 }
 
 .transactions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 10px 12px; /* row gap, column gap */
+  /* show all cards without scroll */
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
 }
 
 .transactions-list::-webkit-scrollbar {
@@ -842,13 +923,14 @@
 .transaction-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
+  gap: 10px;
+  padding: 10px 12px;
   background: rgba(20, 184, 166, 0.05);
   border: 1px solid rgba(20, 184, 166, 0.1);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.3s ease;
   cursor: pointer;
+  min-height: 64px; /* keep a consistent row height */
 }
 
 .transaction-item:hover {
@@ -858,9 +940,9 @@
 }
 
 .transaction-icon {
-  font-size: 1.5rem;
-  width: 40px;
-  height: 40px;
+  font-size: 1.1rem;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -880,26 +962,38 @@
 .transaction-name {
   font-weight: 600;
   color: #ffffff;
-  margin-bottom: 4px;
-  font-size: 0.95rem;
+  margin-bottom: 2px;
+  font-size: 0.88rem;
 }
 
 .transaction-category {
-  font-size: 0.875rem;
+  font-size: 0.78rem;
   color: #14b8a6;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   font-weight: 500;
 }
 
 .transaction-date {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   color: #888;
 }
 
 .transaction-amount {
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
+}
+
+/* Ensure two columns on medium+ screens, stack to one on very small screens */
+@media (max-width: 640px) {
+  .transactions-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Compact header spacing for Recent Transactions only to help fit 5 items */
+.recent-transactions .section-header {
+  margin-bottom: 12px;
 }
 
 .transaction-amount.loss {
@@ -1047,6 +1141,7 @@
   padding: 20px;
   position: relative;
   overflow: hidden;
+  mask-image: linear-gradient(#000, #000);
   -webkit-mask-image: linear-gradient(#000, #000);
 }
 

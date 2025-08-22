@@ -2502,24 +2502,35 @@ public class ExpenseController {
     }
 
 
-    @GetMapping("/current-month/daily-spending")
-    public ResponseEntity<List<Map<String, Object>>> getDailySpendingCurrentMonth(
+    @GetMapping("/daily-spending")
+    public ResponseEntity<List<Map<String, Object>>> getDailySpending(
             @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) Integer targetId) throws Exception {
+            @RequestParam(required = false) Integer targetId,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String type) throws Exception {
 
-            User reqUser = userService.findUserByJwt(jwt);
+        User reqUser = userService.findUserByJwt(jwt);
+        User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
+        List<Map<String, Object>> result;
 
-            User targetUser;
+        // Check if date range is provided
+        if (fromDate != null && toDate != null) {
+            result = expenseService.getDailySpendingByDateRange(targetUser.getId(), fromDate, toDate, type);
+        }
+        // Check if month and year are provided
+        else if (month != null && year != null) {
+            result = expenseService.getDailySpendingByMonth(targetUser.getId(), month, year, type);
+        }
+        // Default to current month
+        else {
+            result = expenseService.getDailySpendingCurrentMonth(targetUser.getId(), type);
+        }
 
-                targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-
-
-            List<Map<String, Object>> result = expenseService.getDailySpendingCurrentMonth(targetUser.getId());
-
-
-            return ResponseEntity.ok(result);
-
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/current-month/totals")

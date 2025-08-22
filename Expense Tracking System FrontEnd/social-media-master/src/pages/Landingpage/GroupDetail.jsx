@@ -406,13 +406,12 @@ const GroupDetail = ({
   // Event handlers
   const handleSendMessage = (replyId) => {
     if (chatMessage.trim()) {
-      const token = localStorage.getItem("token");
       if (replyId) {
         dispatch(replyToChat(replyId, chatMessage)).then(() => {
           dispatch(fetchGroupChat(id));
         });
       } else {
-        dispatch(sendGroupChat(id, chatMessage, token)).then(() => {
+        dispatch(sendGroupChat(id, chatMessage)).then(() => {
           // Fetch latest group chat after sending
           dispatch(fetchGroupChat(id));
         });

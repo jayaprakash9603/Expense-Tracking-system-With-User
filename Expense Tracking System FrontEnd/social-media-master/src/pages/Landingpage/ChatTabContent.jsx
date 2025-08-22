@@ -99,7 +99,9 @@ const ChatTabContent = ({
       const results = chatMessages
         .map((message, index) => ({ message, index }))
         .filter(({ message }) =>
-          message.content.toLowerCase().includes(searchTerm.toLowerCase())
+          (message.content || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
         );
       setSearchResults(results);
       setCurrentSearchIndex(results.length > 0 ? 0 : -1);
@@ -266,6 +268,11 @@ const ChatTabContent = ({
   };
 
   const handleReply = (message) => {
+    // Cancel any active edit when starting a reply
+    if (editingMessage) {
+      setEditingMessage(null);
+      setEditText("");
+    }
     setReplyingTo(message);
     setContextMenu(null);
   };
@@ -453,9 +460,11 @@ const ChatTabContent = ({
         <>
           <button
             onClick={() => {
+              // Cancel reply mode if we're starting to edit
+              setReplyingTo(null);
               setEditingMessage(message);
-              setEditText(message.content);
-              setChatMessage(message.content);
+              setEditText(message.content || "");
+              setChatMessage(message.content || "");
               setContextMenu(null);
             }}
             className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 flex items-center gap-2"
@@ -533,12 +542,42 @@ const ChatTabContent = ({
     return shownCharsMap[id] || Math.min(2000, (content || "").length);
   };
 
-  // Handler to show more for a message
+  // Handler to show more for a message while preserving scroll position
   const handleShowMore = (id, content) => {
+    const container = chatContainerRef.current;
+    const el = messageRefs.current[id];
+
+    // If we can measure, compute offset before change
+    let prevOffset = null;
+    let prevScrollTop = null;
+    if (container && el && el.getBoundingClientRect) {
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      prevOffset = elRect.top - containerRect.top;
+      prevScrollTop = container.scrollTop;
+    }
+
+    // Expand shown chars
     setShownCharsMap((prev) => ({
       ...prev,
       [id]: Math.min((prev[id] || 2000) + 2000, (content || "").length),
     }));
+
+    // Restore scroll so the message stays in the same visual position
+    if (container && prevOffset !== null) {
+      // Wait for DOM update
+      requestAnimationFrame(() => {
+        const newEl = messageRefs.current[id];
+        if (newEl && newEl.getBoundingClientRect) {
+          const containerRect = container.getBoundingClientRect();
+          const newElRect = newEl.getBoundingClientRect();
+          const newOffset = newElRect.top - containerRect.top;
+          const delta = newOffset - prevOffset;
+          // Adjust scrollTop by delta to keep element stationary
+          container.scrollTop = (prevScrollTop || 0) + delta;
+        }
+      });
+    }
   };
 
   // Reset shownChars for new messages
@@ -675,7 +714,10 @@ const ChatTabContent = ({
                 };
                 document.addEventListener("touchmove", cleanup, { once: true });
               }}
-              style={bubbleStyle}
+              style={{ ...bubbleStyle, cursor: "pointer" }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.cursor = "pointer";
+              }}
             >
               {/* Sender name inside message bubble */}
               {!isOwn && showSenderName && (
@@ -1043,7 +1085,7 @@ const ChatTabContent = ({
         <div ref={chatEndRef} />
 
         {/* Scroll to bottom arrow */}
-        {isScrolledAboveThreshold && !replyingTo && (
+        {isScrolledAboveThreshold && !replyingTo && !editingMessage && (
           <button
             onClick={() => {
               scrollToBottom();

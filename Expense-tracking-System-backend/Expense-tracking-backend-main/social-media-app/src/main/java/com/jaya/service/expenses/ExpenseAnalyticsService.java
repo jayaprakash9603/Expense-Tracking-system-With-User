@@ -49,4 +49,12 @@ public interface ExpenseAnalyticsService {
     List<Map<String, Object>> getExpenseDistributionCurrentMonth(Integer userId);
     List<Map<String, Object>> getMonthlySpendingAndIncomeCurrentMonth(Integer userId);
     List<Map<String, Object>> getDailySpendingCurrentMonth(Integer userId);
+    List<Map<String, Object>> getDailySpendingCurrentMonth(Integer userId, String type);
+
+    List<Map<String, Object>> getDailySpendingByMonth(Integer userId, Integer month, Integer year);
+    List<Map<String, Object>> getDailySpendingByMonth(Integer userId, Integer month, Integer year, String type);
+
+    List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate);
+    List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String type);
+
 }

@@ -464,10 +464,34 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseAnalyticsService.getCumulativeExpenses(userId, year);
     }
 
-    // Current month analytics
     @Override
     public List<Map<String, Object>> getDailySpendingCurrentMonth(Integer userId) {
         return expenseAnalyticsService.getDailySpendingCurrentMonth(userId);
+    }
+
+    @Override
+    public List<Map<String, Object>> getDailySpendingCurrentMonth(Integer userId, String type) {
+        return expenseAnalyticsService.getDailySpendingCurrentMonth(userId, type);
+    }
+
+    @Override
+    public List<Map<String, Object>> getDailySpendingByMonth(Integer userId, Integer month, Integer year) {
+        return expenseAnalyticsService.getDailySpendingByMonth(userId, month, year);
+    }
+
+    @Override
+    public List<Map<String, Object>> getDailySpendingByMonth(Integer userId, Integer month, Integer year, String type) {
+        return expenseAnalyticsService.getDailySpendingByMonth(userId, month, year, type);
+    }
+
+    @Override
+    public List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate) {
+        return expenseAnalyticsService.getDailySpendingByDateRange(userId, fromDate, toDate);
+    }
+
+    @Override
+    public List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String type) {
+        return expenseAnalyticsService.getDailySpendingByDateRange(userId, fromDate, toDate, type);
     }
 
     @Override

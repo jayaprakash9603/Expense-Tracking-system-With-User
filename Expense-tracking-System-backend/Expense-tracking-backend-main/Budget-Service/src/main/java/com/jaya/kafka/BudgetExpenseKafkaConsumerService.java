@@ -43,7 +43,7 @@ public class BudgetExpenseKafkaConsumerService {
                     updateBudgetExpenseLinks(event);
                     break;
                 case "REMOVE":
-                    removeExpenseFromBudgets(event);
+                    handleExpenseRemoval(event);
                     break;
                 default:
                     logger.warn("Unknown action: {} for budget expense event", event.getAction());
@@ -68,20 +68,14 @@ public class BudgetExpenseKafkaConsumerService {
         addExpenseToBudgets(event);
     }
 
-    private void removeExpenseFromBudgets(BudgetExpenseEvent event) throws Exception {
+    private void handleExpenseRemoval(BudgetExpenseEvent event) throws Exception {
         for (Integer budgetId : event.getBudgetIds()) {
-            try {
-                Budget budget = budgetService.getBudgetById(budgetId, event.getUserId());
-                if (budget != null && budget.getExpenseIds() != null) {
-                    if (budget.getExpenseIds().remove(event.getExpenseId())) {
-                        budgetService.editBudget(budget.getId(), budget, event.getUserId());
-                        logger.info("Removed expense ID: {} from budget ID: {} for user: {}",
-                                event.getExpenseId(), budgetId, event.getUserId());
-                    }
-                }
-            } catch (Exception e) {
-                logger.warn("Budget with ID {} not found for user {}, skipping removal: {}",
-                        budgetId, event.getUserId(), e.getMessage());
+            Budget budget = budgetService.getBudgetById(budgetId, event.getUserId());
+            if (budget != null && budget.getExpenseIds() != null) {
+                budget.getExpenseIds().remove(event.getExpenseId());
+                budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
+                budgetService.save(budget);
+                logger.info("Removed expense {} from budget {}", event.getExpenseId(), budgetId);
             }
         }
     }

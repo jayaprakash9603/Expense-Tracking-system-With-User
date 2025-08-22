@@ -1,0 +1,71 @@
+import axios from "axios";
+import { api } from "../config/api";
+
+/**
+ * Fetch daily spending from backend.
+ * params: { startDate, endDate, timeframe }
+ * Expected backend shape: { dailySpending: [{ day: '2025-08-01', spending: 123 }, ...] }
+ * Returns normalized array: [{ day: '2025-08-01', spending: 123 }, ...]
+ */
+export async function fetchDailySpending(params = {}) {
+  try {
+    const res = await api.get("/api/expenses/daily-spending", {
+      params,
+    });
+    const raw = res.data?.dailySpending ?? res.data ?? [];
+    return (Array.isArray(raw) ? raw : []).map((item) => ({
+      day: item.day ?? item.date ?? item.label ?? "",
+      spending: Number(item.spending ?? item.amount ?? item.value ?? 0),
+    }));
+  } catch (err) {
+    // Bubble error to caller; caller can fallback to sample data
+    throw err;
+  }
+}
+
+/**
+ * Fetch expense summary from backend.
+ * Endpoint: GET /api/expenses/summary-expenses
+ * Optional params are forwarded as query string, e.g. { month, year, fromDate, toDate, type }
+ * Returns the raw response body (object with summary fields as provided by backend).
+ */
+export async function fetchExpenseSummary(params = {}) {
+  try {
+    const res = await api.get("/api/expenses/summary-expenses", { params });
+    return res.data ?? {};
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Fetch monthly expenses from backend.
+ * Endpoint: GET /api/expenses/monthly
+ * Optional params forwarded as query string (e.g., { year } or date ranges).
+ * Returns raw response body; caller can shape as needed.
+ */
+export async function fetchMonthlyExpenses(params = {}) {
+  try {
+    const res = await api.get("/api/expenses/monthly", { params });
+    return res.data ?? [];
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Fetch payment method distribution from backend.
+ * Endpoint: GET /api/expenses/payment-methods
+ * Optional params forwarded as query string (e.g., { year, month, fromDate, toDate }).
+ * Returns raw response body; caller can shape as needed.
+ */
+export async function fetchPaymentMethods(params = {}) {
+  try {
+    const res = await api.get("/api/expenses/payment-methods", { params });
+    return res.data ?? [];
+  } catch (err) {
+    throw err;
+  }
+}
+
+export default fetchDailySpending;

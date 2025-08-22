@@ -108,8 +108,19 @@ const PaymentMethodSearchToolbar = ({
   setSearch,
   onFilterClick,
   filterRef,
+  isMobile,
+  isTablet,
 }) => (
-  <div style={{ display: "flex", gap: 8, padding: 8 }}>
+  <div
+    style={{
+      display: "flex",
+      gap: 8,
+      padding: isMobile ? 6 : 8,
+      alignItems: "center",
+      width: "100%",
+      maxWidth: isMobile ? "220px" : isTablet ? "280px" : "320px",
+    }}
+  >
     <input
       type="text"
       placeholder="Search Payment Method..."
@@ -119,21 +130,19 @@ const PaymentMethodSearchToolbar = ({
         backgroundColor: "#1b1b1b",
         color: "#ffffff",
         borderRadius: 8,
-        fontSize: "0.75rem",
+        fontSize: isMobile ? "0.7rem" : "0.75rem",
         border: "1px solid #00dac6",
-        padding: "8px 16px",
-        minWidth: 220,
-        maxWidth: 320,
+        padding: isMobile ? "6px 10px" : "8px 16px",
         width: "100%",
         outline: "none",
       }}
     />
     <IconButton
-      sx={{ color: "#00dac6" }}
+      sx={{ color: "#00dac6", flexShrink: 0, p: isMobile ? 0.5 : 1 }}
       onClick={onFilterClick}
       ref={filterRef}
     >
-      <FilterListIcon fontSize="small" />
+      <FilterListIcon fontSize={isMobile ? "small" : "small"} />
     </IconButton>
   </div>
 );
@@ -262,6 +271,9 @@ const PaymentMethodFlow = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const { friendId } = useParams();
+  // Match CashFlow/CategoryFlow chart container heights: mobile 120, tablet 160, desktop 220
+  const chartContainerHeight = isMobile ? 120 : isTablet ? 160 : 220;
+  const pieSkeletonSize = isMobile ? 110 : isTablet ? 140 : 160;
 
   // Fetch data from API with correct flowType
   useEffect(() => {
@@ -1081,7 +1093,7 @@ const PaymentMethodFlow = () => {
       </div> */}
 
         {/* Navigation Controls */}
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex justify-between items-center mt-4 mb-2">
           <button
             onClick={handleBack}
             disabled={offset <= -52}
@@ -1114,7 +1126,7 @@ const PaymentMethodFlow = () => {
           className="w-full rounded-lg p-4 mb-4"
           style={{
             background: "#1b1b1b",
-            height: isMobile ? 180 : isTablet ? 200 : 240,
+            height: chartContainerHeight,
             minWidth: 0,
             maxWidth: "100%",
             boxSizing: "border-box",
@@ -1124,8 +1136,8 @@ const PaymentMethodFlow = () => {
           {loading ? (
             <Skeleton
               variant="circular"
-              width={isMobile ? 140 : 180}
-              height={isMobile ? 140 : 180}
+              width={pieSkeletonSize}
+              height={pieSkeletonSize}
               animation="wave"
               sx={{
                 bgcolor: "#23243a",
@@ -1237,6 +1249,8 @@ const PaymentMethodFlow = () => {
                 setSearch={setSearch}
                 onFilterClick={() => setPopoverOpen((v) => !v)}
                 filterRef={filterBtnRef}
+                isMobile={isMobile}
+                isTablet={isTablet}
               />
               <IconButton
                 sx={{ color: "#5b7fff", ml: 1 }}

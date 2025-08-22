@@ -239,6 +239,7 @@ export const fetchFriendsNotInGroup = (groupId) => async (dispatch) => {
     return { success: false, error: errorMessage };
   }
 };
+
 export const inviteFriendToGroup =
   (groupId, userId, role, message) => async (dispatch, getState) => {
     dispatch({ type: INVITE_FRIEND_TO_GROUP_REQUEST });

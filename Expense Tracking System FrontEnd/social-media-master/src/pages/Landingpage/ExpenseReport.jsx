@@ -485,7 +485,7 @@ const TopItemsBarChart = ({ topItemsBarData, COLORS }) => (
 
 // Bills Table Component
 const BillsTable = ({ filteredBills }) => (
-  <div className="bills-table-container">
+  <div className="bills-table-container mt-[30px]">
     <h3>📋 Recent Bills</h3>
     <div className="table-wrapper">
       <table className="bills-table">

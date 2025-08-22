@@ -39,7 +39,7 @@ const chatReducer = (state = initialState, action) => {
     case SEND_GROUP_CHAT:
       return { ...state, loading: true, error: null };
     case SEND_GROUP_CHAT_SUCCESS:
-      return { ...state, loading: false, chat: action.payload };
+      return { ...state, loading: false, groupChat: action.payload };
     case SEND_GROUP_CHAT_FAILURE:
       return { ...state, loading: false, error: action.payload };
     case FETCH_GROUP_CHAT:
