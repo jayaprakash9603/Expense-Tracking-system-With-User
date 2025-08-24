@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
+import { IconButton } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  BarChart,
   Bar,
   XAxis,
   YAxis,
@@ -15,19 +16,7 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  Sankey,
   ComposedChart,
-  ScatterChart,
-  Scatter,
-  FunnelChart,
-  Funnel,
-  LabelList,
-  Treemap,
 } from "recharts";
 
 import {
@@ -35,13 +24,12 @@ import {
   TrendingDown,
   Filter,
   Download,
-  Calendar,
   PieChart as PieChartIcon,
-  BarChart3,
   Activity,
-  Target,
 } from "lucide-react";
 import "./CategoryReport.css";
+import { fetchCategoriesSummary } from "../../../utils/Api";
+import { CATEGORY_ICONS } from "../../../components/constants/categoryIcons";
 
 // Skeleton Components
 const HeaderSkeleton = () => (
@@ -91,6 +79,94 @@ const ChartSkeleton = ({ height = 400 }) => (
   </div>
 );
 
+// Pie chart specific skeleton (donut + right-side chips)
+const PieChartSkeleton = ({ height = 360 }) => (
+  <div className="chart-container skeleton">
+    <div className="chart-header">
+      <div className="skeleton-chart-title"></div>
+      <div className="skeleton-chart-subtitle"></div>
+    </div>
+    <div className="distribution-content">
+      <div className="distribution-left" style={{ height }}>
+        <div
+          style={{
+            position: "relative",
+            width: 280,
+            height: 280,
+            margin: "0 auto",
+            marginTop: 20,
+          }}
+        >
+          <div
+            className="skeleton"
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "50%",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: "25%",
+              left: "25%",
+              width: "50%",
+              height: "50%",
+              borderRadius: "50%",
+              background: "#0e0e0e",
+            }}
+          />
+        </div>
+      </div>
+      <div className="distribution-right" style={{ gap: 10 }}>
+        {[...Array(7)].map((_, i) => (
+          <div
+            key={i}
+            className="category-chip"
+            style={{ alignItems: "center" }}
+          >
+            <div
+              className="chip-left"
+              style={{ alignItems: "center", gap: 10 }}
+            >
+              <span
+                className="skeleton"
+                aria-hidden="true"
+                style={{
+                  display: "inline-block",
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                }}
+              />
+              <span
+                className="skeleton"
+                style={{
+                  display: "inline-block",
+                  width: 120,
+                  height: 12,
+                  borderRadius: 6,
+                }}
+              />
+            </div>
+            <div className="chip-right">
+              <span
+                className="skeleton"
+                style={{
+                  display: "inline-block",
+                  width: 40,
+                  height: 12,
+                  borderRadius: 6,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 const TableSkeleton = () => (
   <div className="chart-container skeleton">
     <div className="chart-header">
@@ -118,6 +194,7 @@ const LoadingSkeleton = () => (
   <div className="category-report">
     <HeaderSkeleton />
 
+    {/* Top overview cards */}
     <div className="category-overview-cards">
       {[...Array(4)].map((_, i) => (
         <OverviewCardSkeleton key={i} />
@@ -125,30 +202,17 @@ const LoadingSkeleton = () => (
     </div>
 
     <div className="charts-grid">
-      {/* Row 1: Distribution and Spending Analysis */}
-      <div className="chart-row">
-        <ChartSkeleton height={400} />
-        <ChartSkeleton height={400} />
+      {/* 1) Bar chart (Pareto) */}
+      <div className="chart-row full-width">
+        <ChartSkeleton height={430} />
       </div>
 
-      {/* Row 2: Trends and Budget Comparison */}
-      <div className="chart-row">
-        <ChartSkeleton height={400} />
-        <ChartSkeleton height={400} />
+      {/* 2) Pie chart (donut with chips) */}
+      <div className="chart-row full-width">
+        <PieChartSkeleton height={360} />
       </div>
 
-      {/* Row 3: Efficiency and Subcategory Analysis */}
-      <div className="chart-row">
-        <ChartSkeleton height={400} />
-        <ChartSkeleton height={400} />
-      </div>
-
-      {/* Row 4: Daily Patterns */}
-      <div className="chart-row">
-        <ChartSkeleton height={300} />
-      </div>
-
-      {/* Row 5: Performance Table */}
+      {/* 3) Performance Table */}
       <div className="chart-row full-width">
         <TableSkeleton />
       </div>
@@ -156,284 +220,21 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-// Sample Data for Category Reports
-const SAMPLE_DATA = {
-  categorySpending: [
-    {
-      name: "Food & Dining",
-      amount: 15420,
-      percentage: 28.5,
-      transactions: 45,
-      avgPerTransaction: 342,
-    },
-    {
-      name: "Transportation",
-      amount: 8750,
-      percentage: 16.2,
-      transactions: 32,
-      avgPerTransaction: 273,
-    },
-    {
-      name: "Shopping",
-      amount: 7890,
-      percentage: 14.6,
-      transactions: 18,
-      avgPerTransaction: 438,
-    },
-    {
-      name: "Entertainment",
-      amount: 6540,
-      percentage: 12.1,
-      transactions: 22,
-      avgPerTransaction: 297,
-    },
-    {
-      name: "Utilities",
-      amount: 4320,
-      percentage: 8.0,
-      transactions: 8,
-      avgPerTransaction: 540,
-    },
-    {
-      name: "Healthcare",
-      amount: 3850,
-      percentage: 7.1,
-      transactions: 6,
-      avgPerTransaction: 642,
-    },
-    {
-      name: "Education",
-      amount: 2900,
-      percentage: 5.4,
-      transactions: 4,
-      avgPerTransaction: 725,
-    },
-    {
-      name: "Investment",
-      amount: 2100,
-      percentage: 3.9,
-      transactions: 3,
-      avgPerTransaction: 700,
-    },
-    {
-      name: "Others",
-      amount: 2230,
-      percentage: 4.1,
-      transactions: 12,
-      avgPerTransaction: 186,
-    },
-  ],
-  monthlyTrends: [
-    {
-      month: "Jan",
-      "Food & Dining": 12500,
-      Transportation: 7200,
-      Shopping: 5400,
-      Entertainment: 4800,
-      Utilities: 4200,
-    },
-    {
-      month: "Feb",
-      "Food & Dining": 13200,
-      Transportation: 6800,
-      Shopping: 6200,
-      Entertainment: 5200,
-      Utilities: 4100,
-    },
-    {
-      month: "Mar",
-      "Food & Dining": 14800,
-      Transportation: 8200,
-      Shopping: 7800,
-      Entertainment: 6100,
-      Utilities: 4300,
-    },
-    {
-      month: "Apr",
-      "Food & Dining": 15420,
-      Transportation: 8750,
-      Shopping: 7890,
-      Entertainment: 6540,
-      Utilities: 4320,
-    },
-  ],
-  dailySpending: [
-    {
-      day: 1,
-      "Food & Dining": 450,
-      Transportation: 120,
-      Shopping: 0,
-      Entertainment: 200,
-    },
-    {
-      day: 2,
-      "Food & Dining": 320,
-      Transportation: 250,
-      Shopping: 1200,
-      Entertainment: 0,
-    },
-    {
-      day: 3,
-      "Food & Dining": 680,
-      Transportation: 180,
-      Shopping: 0,
-      Entertainment: 350,
-    },
-    {
-      day: 4,
-      "Food & Dining": 520,
-      Transportation: 300,
-      Shopping: 800,
-      Entertainment: 150,
-    },
-    {
-      day: 5,
-      "Food & Dining": 750,
-      Transportation: 200,
-      Shopping: 0,
-      Entertainment: 400,
-    },
-    {
-      day: 6,
-      "Food & Dining": 890,
-      Transportation: 150,
-      Shopping: 2100,
-      Entertainment: 600,
-    },
-    {
-      day: 7,
-      "Food & Dining": 420,
-      Transportation: 280,
-      Shopping: 0,
-      Entertainment: 250,
-    },
-  ],
-  categoryComparison: [
-    {
-      category: "Food & Dining",
-      thisMonth: 15420,
-      lastMonth: 14800,
-      budget: 16000,
-      variance: 4.2,
-    },
-    {
-      category: "Transportation",
-      thisMonth: 8750,
-      lastMonth: 8200,
-      budget: 9000,
-      variance: 6.7,
-    },
-    {
-      category: "Shopping",
-      thisMonth: 7890,
-      lastMonth: 7800,
-      budget: 8500,
-      variance: 1.2,
-    },
-    {
-      category: "Entertainment",
-      thisMonth: 6540,
-      lastMonth: 6100,
-      budget: 7000,
-      variance: 7.2,
-    },
-    {
-      category: "Utilities",
-      thisMonth: 4320,
-      lastMonth: 4300,
-      budget: 4500,
-      variance: -0.5,
-    },
-  ],
-  subcategoryBreakdown: [
-    {
-      category: "Food & Dining",
-      subcategory: "Restaurants",
-      amount: 8420,
-      percentage: 54.6,
-    },
-    {
-      category: "Food & Dining",
-      subcategory: "Groceries",
-      amount: 4200,
-      percentage: 27.2,
-    },
-    {
-      category: "Food & Dining",
-      subcategory: "Coffee & Snacks",
-      amount: 2800,
-      percentage: 18.2,
-    },
-    {
-      category: "Transportation",
-      subcategory: "Fuel",
-      amount: 4200,
-      percentage: 48.0,
-    },
-    {
-      category: "Transportation",
-      subcategory: "Public Transport",
-      amount: 2850,
-      percentage: 32.6,
-    },
-    {
-      category: "Transportation",
-      subcategory: "Taxi/Uber",
-      amount: 1700,
-      percentage: 19.4,
-    },
-    {
-      category: "Shopping",
-      subcategory: "Clothing",
-      amount: 4200,
-      percentage: 53.2,
-    },
-    {
-      category: "Shopping",
-      subcategory: "Electronics",
-      amount: 2890,
-      percentage: 36.6,
-    },
-    {
-      category: "Shopping",
-      subcategory: "Home & Garden",
-      amount: 800,
-      percentage: 10.1,
-    },
-  ],
-  categoryEfficiency: [
-    {
-      category: "Food & Dining",
-      efficiency: 75,
-      budgetUtilization: 96.4,
-      avgTransactionSize: 342,
-    },
-    {
-      category: "Transportation",
-      efficiency: 85,
-      budgetUtilization: 97.2,
-      avgTransactionSize: 273,
-    },
-    {
-      category: "Shopping",
-      efficiency: 65,
-      budgetUtilization: 92.8,
-      avgTransactionSize: 438,
-    },
-    {
-      category: "Entertainment",
-      efficiency: 70,
-      budgetUtilization: 93.4,
-      avgTransactionSize: 297,
-    },
-    {
-      category: "Utilities",
-      efficiency: 95,
-      budgetUtilization: 96.0,
-      avgTransactionSize: 540,
-    },
-  ],
-};
+// Month formatter helper
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 const COLORS = [
   "#14b8a6",
@@ -448,19 +249,137 @@ const COLORS = [
   "#a8dadc",
 ];
 
+// Validate if a string is a usable CSS color; avoids accidentally using URLs as colors
+// Supports: named colors (via CSS.supports/DOM), #RGB/#RGBA/#RRGGBB/#RRGGBBAA, rgb/rgba, hsl/hsla, transparent/currentColor
+const __cssColorCache = new Map();
+const isValidCssColor = (value) => {
+  if (value == null) return false;
+  if (typeof value !== "string") return false;
+  const v = value.trim().replace(/^['"]|['"]$/g, "");
+  if (!v) return false;
+
+  // Cached result
+  if (__cssColorCache.has(v)) return __cssColorCache.get(v);
+
+  // Quick reject: URLs, data URIs, blob, file, or url() functions
+  if (/^(https?:|data:|blob:|file:)/i.test(v) || /url\s*\(/i.test(v)) {
+    __cssColorCache.set(v, false);
+    return false;
+  }
+
+  // Explicitly allow a couple of well-known keywords
+  if (/^(transparent|currentColor)$/i.test(v)) {
+    __cssColorCache.set(v, true);
+    return true;
+  }
+
+  // Best: CSS.supports in modern browsers
+  try {
+    if (
+      typeof window !== "undefined" &&
+      window.CSS &&
+      typeof window.CSS.supports === "function"
+    ) {
+      const ok = window.CSS.supports("color", v);
+      __cssColorCache.set(v, !!ok);
+      if (ok) return true;
+    }
+  } catch (_) {
+    // ignore
+  }
+
+  // Fallback: DOM style parsing when document is available
+  try {
+    if (typeof document !== "undefined") {
+      const el = document.createElement("span");
+      el.style.color = "";
+      el.style.color = v;
+      const ok = !!el.style.color; // non-empty means the value parsed
+      __cssColorCache.set(v, ok);
+      if (ok) return true;
+    }
+  } catch (_) {
+    // ignore
+  }
+
+  // Final fallback heuristics: hex/rgb(a)/hsl(a) including 4/8 digit hex
+  const hexOk =
+    /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(
+      v
+    );
+  const rgbOk =
+    /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/i.test(
+      v
+    );
+  const hslOk =
+    /^hsla?\(\s*\d+(?:\.\d+)?(?:deg|rad|turn)?\s*,\s*\d+%\s*,\s*\d+%(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/i.test(
+      v
+    );
+  const ok = hexOk || rgbOk || hslOk;
+  __cssColorCache.set(v, ok);
+  return ok;
+};
+
 // Header Component
 const CategoryReportHeader = ({
   onFilter,
   onExport,
   onTimeframeChange,
   timeframe,
+  onBack,
+  flowType,
+  onFlowTypeChange,
 }) => (
   <div className="category-report-header">
-    <div className="header-left">
-      <h1>📊 Category Analytics</h1>
-      <p>Comprehensive spending analysis by categories</p>
+    <div
+      className="header-left"
+      style={{ display: "flex", alignItems: "center", gap: 12 }}
+    >
+      <IconButton
+        sx={{
+          color: "#00DAC6",
+          backgroundColor: "#1b1b1b",
+          "&:hover": { backgroundColor: "#28282a" },
+          zIndex: 10,
+          transform: "translateY(-15px)",
+        }}
+        onClick={onBack}
+        aria-label="Back"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M15 18L9 12L15 6"
+            stroke="#00DAC6"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </IconButton>
+      <div>
+        <h1 style={{ margin: 0 }}>📊 Category Analytics</h1>
+        <p style={{ margin: "6px 0 0 0" }}>
+          Comprehensive spending analysis by categories
+        </p>
+      </div>
     </div>
     <div className="header-controls">
+      <select
+        value={flowType}
+        onChange={(e) => onFlowTypeChange(e.target.value)}
+        className="timeframe-selector"
+        aria-label="Flow type"
+      >
+        <option value="all">All</option>
+        <option value="outflow">Outflow</option>
+        <option value="inflow">Inflow</option>
+      </select>
       <select
         value={timeframe}
         onChange={(e) => onTimeframeChange(e.target.value)}
@@ -485,14 +404,15 @@ const CategoryReportHeader = ({
 
 // Category Overview Cards
 const CategoryOverviewCards = ({ data }) => {
-  const totalSpending = data.reduce((sum, item) => sum + item.amount, 0);
-  const topCategory = data[0];
-  const avgTransaction =
-    data.reduce((sum, item) => sum + item.avgPerTransaction, 0) / data.length;
-  const totalTransactions = data.reduce(
-    (sum, item) => sum + item.transactions,
+  const safe = Array.isArray(data) ? data : [];
+  const totalSpending = safe.reduce((sum, item) => sum + (item.amount || 0), 0);
+  const topCategory = safe[0] || { name: "-", amount: 0, percentage: 0 };
+  const totalTransactions = safe.reduce(
+    (sum, item) => sum + (item.transactions || 0),
     0
   );
+  const avgTransaction =
+    totalTransactions > 0 ? Math.round(totalSpending / totalTransactions) : 0;
 
   return (
     <div className="category-overview-cards">
@@ -511,7 +431,8 @@ const CategoryOverviewCards = ({ data }) => {
           <h3>Top Category</h3>
           <div className="card-value">{topCategory.name}</div>
           <div className="card-change">
-            ₹{topCategory.amount.toLocaleString()} ({topCategory.percentage}%)
+            ₹{Number(topCategory.amount || 0).toLocaleString()} (
+            {Number(topCategory.percentage || 0)}%)
           </div>
         </div>
       </div>
@@ -537,341 +458,216 @@ const CategoryOverviewCards = ({ data }) => {
   );
 };
 
-// Category Distribution Pie Chart
-const CategoryDistributionChart = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>
-        <PieChartIcon size={20} /> Category Distribution
-      </h3>
-      <div className="chart-subtitle">Spending breakdown by categories</div>
-    </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          outerRadius={120}
-          innerRadius={60}
-          paddingAngle={2}
-          dataKey="amount"
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+// Category Distribution Pie Chart with right-side percentage cards
+const CategoryDistributionChart = ({ data }) => {
+  const safe = Array.isArray(data) ? data : [];
+  return (
+    <div className="chart-container">
+      <div className="chart-header">
+        <h3>
+          <PieChartIcon size={20} /> Category Distribution
+        </h3>
+        <div className="chart-subtitle">Spending breakdown by categories</div>
+      </div>
+      <div className="distribution-content">
+        <div className="distribution-left">
+          <ResponsiveContainer width="100%" height={360}>
+            <PieChart>
+              <Pie
+                data={safe}
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                innerRadius={64}
+                paddingAngle={2}
+                dataKey="amount"
+              >
+                {safe.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value, name) => [
+                  `₹${Number(value).toLocaleString()}`,
+                  name,
+                ]}
+                contentStyle={{
+                  backgroundColor: "#1a1a1a",
+                  border: "1px solid #14b8a6",
+                  borderRadius: "8px",
+                  color: "#fff",
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="distribution-right">
+          {safe.map((item, idx) => (
+            <div key={idx} className="category-chip">
+              <div className="chip-left">
+                {item.icon ? (
+                  <span
+                    className="chip-icon"
+                    aria-hidden="true"
+                    style={{
+                      background: isValidCssColor(item.color)
+                        ? item.color
+                        : COLORS[idx % COLORS.length],
+                    }}
+                  >
+                    {typeof item.icon === "string" &&
+                    CATEGORY_ICONS[item.icon] ? (
+                      CATEGORY_ICONS[item.icon]
+                    ) : /^https?:\/\//.test(item.icon) ||
+                      (typeof item.icon === "string" &&
+                        item.icon.startsWith("data:")) ? (
+                      <img src={item.icon} alt="" />
+                    ) : (
+                      <span className="chip-icon-text">{item.icon}</span>
+                    )}
+                  </span>
+                ) : null}
+                <span className="chip-name" title={item.name}>
+                  {item.name}
+                </span>
+              </div>
+              <div className="chip-right">
+                <span className="chip-pct">{item.percentage}%</span>
+              </div>
+            </div>
           ))}
-        </Pie>
-        <Tooltip
-          formatter={(value, name) => [`₹${value.toLocaleString()}`, name]}
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend
-          verticalAlign="bottom"
-          height={36}
-          formatter={(value, entry) =>
-            `${value} (${entry.payload.percentage}%)`
-          }
-        />
-      </PieChart>
-    </ResponsiveContainer>
-  </div>
-);
-
-// Category Spending Bar Chart
-const CategorySpendingChart = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>
-        <BarChart3 size={20} /> Category Spending Analysis
-      </h3>
-      <div className="chart-subtitle">
-        Amount spent per category with transaction count
+        </div>
       </div>
     </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <ComposedChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis
-          dataKey="name"
-          stroke="#888"
-          fontSize={12}
-          angle={-45}
-          textAnchor="end"
-          height={80}
-        />
-        <YAxis yAxisId="left" stroke="#888" fontSize={12} />
-        <YAxis
-          yAxisId="right"
-          orientation="right"
-          stroke="#888"
-          fontSize={12}
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-        <Bar
-          yAxisId="left"
-          dataKey="amount"
-          fill="#14b8a6"
-          name="Amount (₹)"
-          radius={[4, 4, 0, 0]}
-        />
-        <Line
-          yAxisId="right"
-          type="monotone"
-          dataKey="transactions"
-          stroke="#ff6b6b"
-          name="Transactions"
-          strokeWidth={2}
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
-  </div>
-);
+  );
+};
 
-// Monthly Category Trends
-const MonthlyCategoryTrends = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>
-        <Activity size={20} /> Monthly Category Trends
-      </h3>
-      <div className="chart-subtitle">Category spending trends over time</div>
-    </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <AreaChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis dataKey="month" stroke="#888" fontSize={12} />
-        <YAxis stroke="#888" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-        <Area
-          type="monotone"
-          dataKey="Food & Dining"
-          stackId="1"
-          stroke={COLORS[0]}
-          fill={COLORS[0]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
-          dataKey="Transportation"
-          stackId="1"
-          stroke={COLORS[1]}
-          fill={COLORS[1]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
-          dataKey="Shopping"
-          stackId="1"
-          stroke={COLORS[2]}
-          fill={COLORS[2]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
-          dataKey="Entertainment"
-          stackId="1"
-          stroke={COLORS[3]}
-          fill={COLORS[3]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
-          dataKey="Utilities"
-          stackId="1"
-          stroke={COLORS[4]}
-          fill={COLORS[4]}
-          fillOpacity={0.8}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
-  </div>
-);
+// Pareto Chart: highlights the cumulative contribution of top categories
+const CategoryParetoChart = ({ data, topN = 12 }) => {
+  const safe = Array.isArray(data) ? data : [];
+  // already sorted desc by amount in fetchData, but sort defensively
+  const sorted = [...safe].sort((a, b) => (b.amount || 0) - (a.amount || 0));
+  const total = sorted.reduce((s, d) => s + (d.amount || 0), 0) || 0;
 
-// Category vs Budget Comparison
-const CategoryBudgetComparison = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>
-        <Target size={20} /> Budget vs Actual Spending
-      </h3>
-      <div className="chart-subtitle">
-        Compare actual spending against budgets
-      </div>
-    </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <BarChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis
-          dataKey="category"
-          stroke="#888"
-          fontSize={12}
-          angle={-45}
-          textAnchor="end"
-          height={80}
-        />
-        <YAxis stroke="#888" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-        <Bar
-          dataKey="budget"
-          fill="#4a5568"
-          name="Budget"
-          radius={[4, 4, 0, 0]}
-        />
-        <Bar
-          dataKey="thisMonth"
-          fill="#14b8a6"
-          name="Actual Spending"
-          radius={[4, 4, 0, 0]}
-        />
-        <Bar
-          dataKey="lastMonth"
-          fill="#06d6a0"
-          name="Last Month"
-          radius={[4, 4, 0, 0]}
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-);
+  let display = sorted;
+  if (sorted.length > topN) {
+    const head = sorted.slice(0, topN);
+    const tailItems = sorted.slice(topN);
+    const tailSum = tailItems.reduce((s, d) => s + (d.amount || 0), 0);
+    const tailTx = tailItems.reduce((s, d) => s + (d.transactions || 0), 0);
+    display = [
+      ...head,
+      {
+        name: "Others",
+        amount: tailSum,
+        transactions: tailTx,
+        percentage: total ? +((tailSum / total) * 100).toFixed(1) : 0,
+      },
+    ];
+  }
 
-// Category Efficiency Radar Chart
-const CategoryEfficiencyRadar = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>🎯 Category Efficiency Analysis</h3>
-      <div className="chart-subtitle">
-        Multi-dimensional category performance
-      </div>
-    </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <RadarChart data={data}>
-        <PolarGrid stroke="#2a2a2a" />
-        <PolarAngleAxis
-          dataKey="category"
-          tick={{ fontSize: 12, fill: "#888" }}
-        />
-        <PolarRadiusAxis
-          angle={90}
-          domain={[0, 100]}
-          tick={{ fontSize: 10, fill: "#888" }}
-        />
-        <Radar
-          name="Efficiency"
-          dataKey="efficiency"
-          stroke="#14b8a6"
-          fill="#14b8a6"
-          fillOpacity={0.3}
-          strokeWidth={2}
-        />
-        <Radar
-          name="Budget Utilization"
-          dataKey="budgetUtilization"
-          stroke="#ff6b6b"
-          fill="#ff6b6b"
-          fillOpacity={0.3}
-          strokeWidth={2}
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-      </RadarChart>
-    </ResponsiveContainer>
-  </div>
-);
-
-// Subcategory Breakdown TreeMap
-const SubcategoryTreeMap = ({ data }) => {
-  const treeMapData = data.map((item, index) => ({
-    ...item,
-    size: item.amount,
-    fill: COLORS[index % COLORS.length],
-  }));
+  let running = 0;
+  const paretoData = display.map((d) => {
+    running += d.amount || 0;
+    const cumPct = total ? +((running / total) * 100).toFixed(1) : 0;
+    return { ...d, cumulative: cumPct };
+  });
 
   return (
     <div className="chart-container">
       <div className="chart-header">
-        <h3>🌳 Subcategory Breakdown</h3>
+        <h3>
+          <TrendingUp size={20} /> Pareto: Top Categories Contribution
+        </h3>
         <div className="chart-subtitle">
-          Hierarchical view of spending by subcategories
+          Bars: amount • Yellow line: cumulative % • Red line: transactions
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={400}>
-        <Treemap
-          data={treeMapData}
-          dataKey="size"
-          ratio={4 / 3}
-          stroke="#1a1a1a"
-          strokeWidth={2}
+      <ResponsiveContainer width="100%" height={430}>
+        <ComposedChart
+          data={paretoData}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
+          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+          <XAxis
+            dataKey="name"
+            stroke="#888"
+            fontSize={12}
+            angle={-45}
+            textAnchor="end"
+            height={80}
+          />
+          <YAxis yAxisId="left" stroke="#888" fontSize={12} />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            stroke="#888"
+            domain={[0, 100]}
+            tickFormatter={(v) => `${v}%`}
+          />
+          {/* Hidden axis to scale transactions line separately */}
+          <YAxis yAxisId="rightTx" orientation="right" hide={true} />
           <Tooltip
-            content={({ active, payload }) => {
-              if (active && payload && payload.length) {
-                const data = payload[0].payload;
-                return (
-                  <div
-                    style={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #14b8a6",
-                      borderRadius: "8px",
-                      color: "#fff",
-                      padding: "8px",
-                    }}
-                  >
-                    <p>{`${data.category} - ${data.subcategory}`}</p>
-                    <p>{`Amount: ₹${data.amount.toLocaleString()}`}</p>
-                    <p>{`Percentage: ${data.percentage}%`}</p>
-                  </div>
-                );
-              }
-              return null;
+            formatter={(value, name) => {
+              if (name === "cumulative") return [`${value}%`, "Cumulative %"];
+              if (name === "transactions")
+                return [
+                  `${Number(value || 0).toLocaleString()}`,
+                  "Transactions",
+                ];
+              if (name === "amount")
+                return [
+                  `₹${Number(value || 0).toLocaleString()}`,
+                  "Amount (₹)",
+                ];
+              return [value, name];
+            }}
+            contentStyle={{
+              backgroundColor: "#1a1a1a",
+              border: "1px solid #14b8a6",
+              borderRadius: "8px",
+              color: "#fff",
             }}
           />
-        </Treemap>
+          <Legend />
+          <Bar
+            yAxisId="left"
+            dataKey="amount"
+            fill="#06d6a0"
+            name="Amount (₹)"
+            radius={[4, 4, 0, 0]}
+          />
+          <Line
+            yAxisId="rightTx"
+            type="monotone"
+            dataKey="transactions"
+            stroke="#ff6b6b"
+            strokeWidth={2}
+            name="Transactions"
+          />
+          <Line
+            yAxisId="right"
+            type="monotone"
+            dataKey="cumulative"
+            stroke="#ffb703"
+            strokeWidth={2}
+            name="Cumulative %"
+          />
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );
 };
+
+// NOTE: Budget comparison requires budget data, which isn't provided by this API.
+// The section is intentionally omitted until backend supplies budgets.
+
+// NOTE: Efficiency and subcategory breakdown are omitted without explicit data.
+
+// NOTE: Subcategory treemap omitted as API doesn't provide subcategory fields.
 
 // Category Performance Table
 const CategoryPerformanceTable = ({ data }) => (
@@ -928,59 +724,157 @@ const CategoryPerformanceTable = ({ data }) => (
 );
 
 // Daily Category Spending Heatmap
-const DailyCategoryHeatmap = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>🔥 Daily Category Spending</h3>
-      <div className="chart-subtitle">Daily spending patterns by category</div>
-    </div>
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis dataKey="day" stroke="#888" fontSize={12} />
-        <YAxis stroke="#888" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-        <Line
-          type="monotone"
-          dataKey="Food & Dining"
-          stroke={COLORS[0]}
-          strokeWidth={2}
-        />
-        <Line
-          type="monotone"
-          dataKey="Transportation"
-          stroke={COLORS[1]}
-          strokeWidth={2}
-        />
-        <Line
-          type="monotone"
-          dataKey="Shopping"
-          stroke={COLORS[2]}
-          strokeWidth={2}
-        />
-        <Line
-          type="monotone"
-          dataKey="Entertainment"
-          stroke={COLORS[3]}
-          strokeWidth={2}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
-);
 
 // Main Category Report Component
 const CategoryReport = () => {
   const [timeframe, setTimeframe] = useState("month");
-  const [loading, setLoading] = useState(false);
+  const [flowType, setFlowType] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // normalized shapes for charts
+  const [categorySpending, setCategorySpending] = useState([]); // [{name, amount, percentage, transactions, avgPerTransaction}]
+  const [monthlyTrends, setMonthlyTrends] = useState([]); // [{month, [category]: amount}]
+  const [dailySpending, setDailySpending] = useState([]); // [{day, [category]: amount}]
+
+  const navigate = useNavigate();
+  const { friendId } = useParams();
+
+  // Compute date range from timeframe
+  const getRange = (tf) => {
+    const now = new Date();
+    const to = new Date(
+      Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+    );
+    let from;
+    switch (tf) {
+      case "week": {
+        const d = new Date(to);
+        d.setUTCDate(d.getUTCDate() - 6);
+        from = d;
+        break;
+      }
+      case "quarter": {
+        const d = new Date(to);
+        d.setUTCMonth(d.getUTCMonth() - 2, 1);
+        from = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+        break;
+      }
+      case "year": {
+        from = new Date(Date.UTC(to.getUTCFullYear(), 0, 1));
+        break;
+      }
+      case "month":
+      default: {
+        from = new Date(Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), 1));
+        break;
+      }
+    }
+    const fmt = (dt) => dt.toISOString().slice(0, 10);
+    return { fromDate: fmt(from), toDate: fmt(to) };
+  };
+
+  const fetchData = async (tf = timeframe, fl = flowType) => {
+    try {
+      setLoading(true);
+      setError("");
+      const { fromDate, toDate } = getRange(tf);
+      const params = { fromDate, toDate };
+      if (fl && fl !== "all") params.flowType = fl;
+      if (friendId) params.targetId = friendId;
+
+      const raw = await fetchCategoriesSummary(params);
+
+      const summary = raw?.summary ?? { totalAmount: 0, categoryTotals: {} };
+      const totalAmount = Number(summary.totalAmount || 0);
+
+      // Build per-category rollup
+      const categoryKeys = Object.keys(raw || {}).filter(
+        (k) => k !== "summary"
+      );
+      const cats = categoryKeys.map((key) => {
+        const c = raw[key] || {};
+        const amount = Number(c.totalAmount || 0);
+        const transactions = Number(
+          c.expenseCount || (c.expenses?.length ?? 0) || 0
+        );
+        const percentage =
+          totalAmount > 0
+            ? Number(((amount / totalAmount) * 100).toFixed(1))
+            : 0;
+        const avgPerTransaction =
+          transactions > 0 ? Math.round(amount / transactions) : 0;
+        return {
+          name: c.name || key,
+          amount,
+          percentage,
+          transactions,
+          avgPerTransaction,
+          expenses: c.expenses || [],
+          icon: c.icon || c.iconKey || c.categoryIcon || null,
+          color: c.color || c.categoryColor || null,
+        };
+      });
+      // Sort by amount desc
+      cats.sort((a, b) => b.amount - a.amount);
+      setCategorySpending(cats);
+
+      // Build daily spending per category across date range
+      const dailyMap = new Map(); // key: YYYY-MM-DD -> obj
+      cats.forEach((cat) => {
+        (cat.expenses || []).forEach((e) => {
+          const day = e.date;
+          const amt = Number(e?.details?.netAmount ?? e?.details?.amount ?? 0);
+          if (!day) return;
+          if (!dailyMap.has(day)) dailyMap.set(day, { day });
+          dailyMap.get(day)[cat.name] =
+            (dailyMap.get(day)[cat.name] || 0) + amt;
+        });
+      });
+      const dailyArr = Array.from(dailyMap.values()).sort((a, b) =>
+        a.day > b.day ? 1 : -1
+      );
+      setDailySpending(dailyArr);
+
+      // Build monthly trends by month label per category
+      const monthMap = new Map(); // key: YYYY-MM -> { month: 'Mon YYYY', [cat]: amt }
+      cats.forEach((cat) => {
+        (cat.expenses || []).forEach((e) => {
+          const dStr = e.date;
+          if (!dStr) return;
+          const d = new Date(dStr + "T00:00:00Z");
+          const ym = `${d.getUTCFullYear()}-${String(
+            d.getUTCMonth() + 1
+          ).padStart(2, "0")}`;
+          const label = `${MONTHS[d.getUTCMonth()]} ${String(
+            d.getUTCFullYear()
+          ).slice(2)}`;
+          const amt = Number(e?.details?.netAmount ?? e?.details?.amount ?? 0);
+          if (!monthMap.has(ym)) monthMap.set(ym, { month: label });
+          monthMap.get(ym)[cat.name] = (monthMap.get(ym)[cat.name] || 0) + amt;
+        });
+      });
+      const monthArr = Array.from(monthMap.entries())
+        .sort((a, b) => (a[0] > b[0] ? 1 : -1))
+        .map(([, v]) => v);
+      setMonthlyTrends(monthArr);
+    } catch (err) {
+      console.error("Failed to load category report:", err);
+      setError(
+        err?.response?.data?.message || err.message || "Failed to load data"
+      );
+      setCategorySpending([]);
+      setDailySpending([]);
+      setMonthlyTrends([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleFilter = () => {
     console.log("Opening category filters...");
@@ -992,9 +886,22 @@ const CategoryReport = () => {
 
   const handleTimeframeChange = (newTimeframe) => {
     setTimeframe(newTimeframe);
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => setLoading(false), 2000);
+    fetchData(newTimeframe, flowType);
+  };
+
+  const handleFlowTypeChange = (newFlow) => {
+    setFlowType(newFlow);
+    fetchData(timeframe, newFlow);
+  };
+
+  const handleBack = () => {
+    if (friendId && friendId !== "undefined") {
+      navigate(`/friends/expenses/${friendId}`);
+    } else if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/expenses");
+    }
   };
 
   if (loading) {
@@ -1008,37 +915,30 @@ const CategoryReport = () => {
         onExport={handleExport}
         onTimeframeChange={handleTimeframeChange}
         timeframe={timeframe}
+        onBack={handleBack}
+        flowType={flowType}
+        onFlowTypeChange={handleFlowTypeChange}
       />
 
-      <CategoryOverviewCards data={SAMPLE_DATA.categorySpending} />
+      {error ? (
+        <div style={{ padding: 16, color: "#ff6b6b" }}>Error: {error}</div>
+      ) : null}
+
+      <CategoryOverviewCards data={categorySpending} />
 
       <div className="charts-grid">
-        {/* Row 1: Distribution and Spending Analysis */}
-        <div className="chart-row">
-          <CategoryDistributionChart data={SAMPLE_DATA.categorySpending} />
-          <CategorySpendingChart data={SAMPLE_DATA.categorySpending} />
-        </div>
-
-        {/* Row 2: Trends and Budget Comparison */}
-        <div className="chart-row">
-          <MonthlyCategoryTrends data={SAMPLE_DATA.monthlyTrends} />
-          <CategoryBudgetComparison data={SAMPLE_DATA.categoryComparison} />
-        </div>
-
-        {/* Row 3: Efficiency and Subcategory Analysis */}
-        <div className="chart-row">
-          <CategoryEfficiencyRadar data={SAMPLE_DATA.categoryEfficiency} />
-          <SubcategoryTreeMap data={SAMPLE_DATA.subcategoryBreakdown} />
-        </div>
-
-        {/* Row 4: Daily Patterns and Performance Table */}
-        <div className="chart-row">
-          <DailyCategoryHeatmap data={SAMPLE_DATA.dailySpending} />
-        </div>
-
-        {/* Row 5: Full Width Performance Table */}
+        {/* Row 2: Pareto (always visible) */}
         <div className="chart-row full-width">
-          <CategoryPerformanceTable data={SAMPLE_DATA.categorySpending} />
+          <CategoryParetoChart data={categorySpending} />
+        </div>
+        {/* Row 1: Distribution and Spending Analysis */}
+        <div className="chart-row full-width">
+          <CategoryDistributionChart data={categorySpending} />
+        </div>
+
+        {/* Row 4: Full Width Performance Table */}
+        <div className="chart-row full-width">
+          <CategoryPerformanceTable data={categorySpending} />
         </div>
       </div>
     </div>

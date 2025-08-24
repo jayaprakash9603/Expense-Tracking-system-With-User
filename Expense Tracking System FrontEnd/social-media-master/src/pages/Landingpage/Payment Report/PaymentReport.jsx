@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from "react";
+import { IconButton } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -446,11 +448,45 @@ const PaymentMethodsHeader = ({
   onExport,
   onTimeframeChange,
   timeframe,
+  onBack,
 }) => (
   <div className="payment-methods-header">
-    <div className="header-left">
-      <h1>💳 Payment Methods Analytics</h1>
-      <p>Comprehensive analysis of payment method usage and trends</p>
+    <div
+      className="header-left"
+      style={{ display: "flex", alignItems: "center", gap: 12 }}
+    >
+      <IconButton
+        sx={{
+          color: "#00DAC6",
+          backgroundColor: "#1b1b1b",
+          "&:hover": { backgroundColor: "#28282a" },
+          zIndex: 10,
+        }}
+        onClick={onBack}
+        aria-label="Back"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M15 18L9 12L15 6"
+            stroke="#00DAC6"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </IconButton>
+      <div>
+        <h1 style={{ margin: 0 }}>💳 Payment Methods Analytics</h1>
+        <p style={{ margin: "6px 0 0 0" }}>
+          Comprehensive analysis of payment method usage and trends
+        </p>
+      </div>
     </div>
     <div className="header-controls">
       <select
@@ -976,6 +1012,8 @@ const PaymentPerformanceTable = ({ data }) => (
 const PaymentMethodsReport = () => {
   const [timeframe, setTimeframe] = useState("month");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { friendId } = useParams();
 
   const handleFilter = () => {
     console.log("Opening payment methods filters...");
@@ -991,6 +1029,16 @@ const PaymentMethodsReport = () => {
     setTimeout(() => setLoading(false), 2000);
   };
 
+  const handleBack = () => {
+    if (friendId && friendId !== "undefined") {
+      navigate(`/friends/expenses/${friendId}`);
+    } else if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/expenses");
+    }
+  };
+
   if (loading) {
     return <LoadingSkeleton />;
   }
@@ -1002,6 +1050,7 @@ const PaymentMethodsReport = () => {
         onExport={handleExport}
         onTimeframeChange={handleTimeframeChange}
         timeframe={timeframe}
+        onBack={handleBack}
       />
 
       <PaymentOverviewCards data={SAMPLE_DATA.paymentMethodsOverview} />

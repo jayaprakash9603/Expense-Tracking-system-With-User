@@ -129,7 +129,7 @@
   background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
   border: 1px solid rgba(20, 184, 166, 0.2);
   border-radius: 16px;
-  padding: 24px;
+  padding: 18px;
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -199,8 +199,8 @@
 }
 
 .metric-icon {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   background: rgba(20, 184, 166, 0.2);
   border-radius: 12px;
   display: flex;
@@ -216,8 +216,8 @@
 }
 
 .trend-indicator {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -240,7 +240,7 @@
 }
 
 .metric-content h3 {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #888;
   margin: 0 0 8px 0;
@@ -249,7 +249,7 @@
 }
 
 .metric-value {
-  font-size: 2.25rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 8px;
@@ -282,12 +282,12 @@
   display: flex;
   gap: 3px;
   align-items: end;
-  height: 24px;
+  height: 16px;
   margin-top: 16px;
 }
 
 .sparkline-bar {
-  width: 4px;
+  width: 3px;
   background: rgba(20, 184, 166, 0.6);
   border-radius: 2px;
   transition: all 0.3s ease;
@@ -672,7 +672,12 @@
 }
 
 .chart-container:hover {
-  border-color: rgba(20, 184, 166, 0.2); /* keep same as default, no hover border highlight */
+  border-color: rgba(
+    20,
+    184,
+    166,
+    0.2
+  ); /* keep same as default, no hover border highlight */
   box-shadow: 0 12px 30px rgba(20, 184, 166, 0.15);
   transform: translateY(-2px);
 }
@@ -807,6 +812,26 @@
   background: #16a34a; /* green-600 */
 }
 
+/* Category breakdown: use the same red/green scheme for loss/gain */
+.category-breakdown .type-toggle .toggle-btn.loss.active {
+  background: #ef4444; /* solid red */
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.12);
+  border: 1px solid #ef4444;
+}
+.category-breakdown .type-toggle .toggle-btn.gain.active {
+  background: #22c55e; /* solid green */
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.12);
+  border: 1px solid #22c55e;
+}
+.category-breakdown .type-toggle .toggle-btn.loss:hover {
+  background: #dc2626; /* red-600 */
+}
+.category-breakdown .type-toggle .toggle-btn.gain:hover {
+  background: #16a34a; /* green-600 */
+}
+
 .total-amount {
   font-size: 0.875rem;
   color: #14b8a6;
@@ -817,9 +842,108 @@
   border: 1px solid rgba(20, 184, 166, 0.2);
 }
 
+/* Bottom-right badge for totals inside chart containers */
+.category-breakdown {
+  position: relative;
+}
+.category-breakdown .total-amount-bottom {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+}
+
 .trend-stats {
   display: flex;
   gap: 16px;
+}
+
+/* Monthly trend header: right-aligned controls with nav buttons */
+.monthly-trend .chart-header .chart-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.monthly-trend .chart-header .chart-nav {
+  display: inline-flex;
+  gap: 8px;
+}
+.monthly-trend .chart-header .year-chip {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #cfd8dc;
+  font-weight: 600;
+}
+.monthly-trend .chart-header .nav-btn {
+  background: rgba(20, 184, 166, 0.08) !important;
+  border: 1px solid rgba(20, 184, 166, 0.25) !important;
+  color: #cfd8dc !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+}
+.monthly-trend .chart-header .nav-btn:hover:not(.Mui-disabled) {
+  background: rgba(20, 184, 166, 0.16) !important;
+  color: #14b8a6 !important;
+}
+.monthly-trend .chart-header .nav-btn.Mui-disabled {
+  opacity: 0.4;
+}
+
+/* Full-width nav bar with year centered between buttons */
+.monthly-trend .chart-nav-bar {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 8px;
+  margin: -8px 0 8px; /* tuck closer to header */
+}
+.monthly-trend .chart-nav-bar .nav-btn {
+  background: rgba(20, 184, 166, 0.08) !important;
+  border: 1px solid rgba(20, 184, 166, 0.25) !important;
+  color: #cfd8dc !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+}
+.monthly-trend .chart-nav-bar .nav-btn:hover:not(.Mui-disabled) {
+  background: rgba(20, 184, 166, 0.16) !important;
+  color: #14b8a6 !important;
+}
+.monthly-trend .chart-nav-bar .nav-btn.is-disabled,
+.monthly-trend .chart-nav-bar .nav-btn.Mui-disabled {
+  opacity: 0.5 !important;
+  filter: grayscale(0.2);
+  cursor: not-allowed !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #808e95 !important; /* muted */
+  box-shadow: none !important;
+}
+.monthly-trend .chart-nav-bar .nav-btn.is-disabled:hover,
+.monthly-trend .chart-nav-bar .nav-btn.Mui-disabled:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #808e95 !important;
+}
+.monthly-trend .chart-nav-bar .nav-right {
+  justify-self: end;
+}
+.monthly-trend .chart-nav-bar .year-chip {
+  justify-self: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: #cfd8dc;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.monthly-trend .chart-nav-bar .year-chip.current {
+  background: rgba(20, 184, 166, 0.12);
+  border-color: rgba(20, 184, 166, 0.35);
+  color: #14b8a6;
+  box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.12) inset;
 }
 
 .trend-up {
@@ -1190,6 +1314,51 @@
   animation: shimmer 1.6s linear infinite;
 }
 
+/* Line chart skeleton variant and control pills */
+.chart-skeleton .skeleton-line-body {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.skeleton-line-svg {
+  width: 100%;
+  height: 200px;
+}
+.skeleton-pill {
+  width: 110px;
+  height: 28px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.type-toggle .skeleton-pill {
+  width: 64px;
+  height: 28px;
+}
+.daily-spending-chart .chart-skeleton {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.skeleton-pie-wrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.skeleton-pie-svg {
+  width: min(80%, 380px);
+  height: min(80%, 380px);
+}
+
 .skeleton-title {
   height: 14px;
   width: 45%;
@@ -1286,7 +1455,7 @@
 
 /* Ensure skeleton elements keep the same spacing as the real dashboard components */
 .metrics-grid .metric-card-skeleton {
-  min-height: 120px; /* similar to typical metric card height */
+  min-height: 100px; /* align with reduced metric card size */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1322,14 +1491,94 @@
   }
 }
 
+/* Tablet <= 1024px: stack columns, adjust gaps and paddings */
+@media (max-width: 1024px) {
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .chart-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .chart-container {
+    padding: 16px;
+  }
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+/* Mobile <= 600px: single column, compact headers and controls */
+@media (max-width: 600px) {
+  .dashboard-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .header-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 6px;
+    width: 100%;
+    overflow: hidden; /* prevent wrapping */
+  }
+  .header-actions .action-btn {
+    flex: 0 0 auto;
+  }
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .metric-card {
+    padding: 14px;
+  }
+  .chart-container {
+  padding: 12px;
+  }
+  .chart-header h3 {
+    font-size: 1rem;
+  }
+  .chart-controls .time-selector {
+    min-width: 120px;
+  }
+  .type-toggle .toggle-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .bottom-section {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Align Application Overview and Category Breakdown heights tighter on small screens */
+  .summary-overview,
+  .category-breakdown {
+    min-height: 300px;
+  }
+  .summary-overview .overview-chart {
+    min-width: 140px;
+  }
+  .summary-overview .metric-value {
+    font-size: 1rem;
+  }
+  .summary-overview .metric-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
 @media (max-width: 768px) {
   .metrics-grid .metric-card-skeleton {
     min-height: 100px;
     padding: 16px;
   }
   .charts-grid .chart-skeleton {
-    min-height: 300px;
-    padding: 16px;
+    min-height: 260px;
+    padding: 14px;
   }
 }
 
@@ -1432,7 +1681,7 @@
   }
 
   .metric-card {
-    padding: 20px;
+    padding: 16px;
   }
 
   .chart-container {
@@ -1451,7 +1700,7 @@
   }
 
   .metric-value {
-    font-size: 1.875rem;
+    font-size: 1.6rem;
   }
 
   .chart-header h3 {

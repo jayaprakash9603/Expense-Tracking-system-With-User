@@ -53,6 +53,8 @@ import ExpenseDashboard from "./pages/Landingpage/ExpenseDashboard";
 import CategoryReport from "./pages/Landingpage/Category Report/CategoryReport";
 import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentReport";
 import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
+import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard/AdminDashboard";
+import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
 function App() {
   const { auth } = useSelector((store) => store);
   const dispatch = useDispatch();
@@ -92,6 +94,8 @@ function App() {
           <Route path="/" element={<Home />}>
             <Route index element={<Navigate to="/home" />} />
             <Route path="/chats" element={<Chat />} />
+            <Route path="/component1" element={<AdminDashboard />} />
+            <Route path="/component2" element={<InvestmentDashboard />} />
             {/* <Route path="home" element={<HomeContent />} /> */}
             <Route path="home" element={<ExpenseDashboard />} />
             <Route path="groups">

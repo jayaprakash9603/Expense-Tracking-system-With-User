@@ -186,7 +186,7 @@ public class CategoryService {
             throw new Exception("You can only edit this global category once.");
         }
 
-        if (existing.isGlobal() && !isUserEdited(userId, id)) {
+    if (existing.isGlobal() && !isUserEdited(userId, id)) {
             // Mark user as having edited this global category
             existing.getEditUserIds().add(userId);
             categoryRepository.save(existing);
@@ -210,17 +210,21 @@ public class CategoryService {
             // Save the new category to get its ID - make it final to use in lambda
             final Category savedNewCategory = categoryRepository.save(newCategory);
 
-            // Get expense IDs from the global category for this user
-            Set<Integer> globalExpenseIds = existing.getExpenseIds() != null &&
-                    existing.getExpenseIds().containsKey(userId) ?
-                    new HashSet<>(existing.getExpenseIds().get(userId)) :
-                    new HashSet<>();
+        // Get expense IDs from the global category for this user
+        Set<Integer> globalExpenseIds = existing.getExpenseIds() != null &&
+            existing.getExpenseIds().containsKey(userId) ?
+            new HashSet<>(existing.getExpenseIds().get(userId)) :
+            new HashSet<>();
 
-            // Get expense IDs from the input category for this user
-            Set<Integer> inputExpenseIds = category.getExpenseIds() != null &&
-                    category.getExpenseIds().containsKey(userId) ?
-                    new HashSet<>(category.getExpenseIds().get(userId)) :
-                    new HashSet<>();
+        // Determine if request explicitly contains expense assignments for this user
+        boolean hasExpenseIdsInRequest = category.getExpenseIds() != null &&
+            category.getExpenseIds().containsKey(userId);
+
+        // Get expense IDs from the input category for this user
+        // If no expenseIds provided in request, keep current assignments by default
+        Set<Integer> inputExpenseIds = hasExpenseIdsInRequest
+            ? new HashSet<>(category.getExpenseIds().get(userId))
+            : new HashSet<>(globalExpenseIds);
 
             // Get all categories excluding the current one
             List<Category> allCategories = categoryRepository.findAll().stream()
@@ -300,11 +304,19 @@ public class CategoryService {
                 existing.setIcon(category.getIcon());
             }
 
+            // Only process expense reassignment if the request explicitly includes expenseIds for this user
+            boolean hasExpenseIdsInRequest = category.getExpenseIds() != null && category.getExpenseIds().containsKey(userId);
+
+            if (!hasExpenseIdsInRequest) {
+                // No expense assignment changes requested; just persist basic field updates
+                return categoryRepository.save(existing);
+            }
+
             // Get old and new expense IDs for this user
-            Set<Integer> oldExpenseIds = existing.getExpenseIds().getOrDefault(userId, new HashSet<>());
-            Set<Integer> newExpenseIds = category.getExpenseIds() != null && category.getExpenseIds().containsKey(userId)
-                    ? new HashSet<>(category.getExpenseIds().get(userId))
+            Set<Integer> oldExpenseIds = existing.getExpenseIds() != null && existing.getExpenseIds().containsKey(userId)
+                    ? new HashSet<>(existing.getExpenseIds().get(userId))
                     : new HashSet<>();
+            Set<Integer> newExpenseIds = new HashSet<>(category.getExpenseIds().get(userId));
 
             // Get all categories excluding the current one
             List<Category> allCategories = categoryRepository.findAll().stream()

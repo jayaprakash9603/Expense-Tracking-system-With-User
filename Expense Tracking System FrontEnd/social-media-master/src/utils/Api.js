@@ -1,4 +1,3 @@
-import axios from "axios";
 import { api } from "../config/api";
 
 /**
@@ -63,6 +62,25 @@ export async function fetchPaymentMethods(params = {}) {
   try {
     const res = await api.get("/api/expenses/payment-methods", { params });
     return res.data ?? [];
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Fetch categories distribution/summary.
+ * Endpoint (assumed): GET /api/categories/summary
+ * Optional params forwarded as query string (e.g., { month, year, fromDate, toDate, type }).
+ * Returns the raw response body; expected shape includes { summary: { totalAmount, categoryTotals: {...} }, ... }
+ */
+export async function fetchCategoriesSummary(params = {}) {
+  try {
+    // Endpoint requires fromDate and toDate (YYYY-MM-DD)
+    const res = await api.get(
+      "/api/expenses/all-by-categories/detailed/filtered",
+      { params }
+    );
+    return res.data ?? {};
   } catch (err) {
     throw err;
   }
