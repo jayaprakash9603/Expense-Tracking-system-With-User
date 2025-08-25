@@ -3,7 +3,7 @@
   height: calc(100vh - 100px);
   margin-right: 20px;
   margin-top: 50px;
-  padding: 20px;
+  padding: 0 20px 20px 20px;
   background: #0b0b0b;
   border-radius: 12px;
   overflow-y: auto;
@@ -26,36 +26,49 @@
   height: 0;
 }
 
-.report-header {
+/* New header aligned with Category/Payment styles (unique class names) */
+.expense-report-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 40px;
-  margin-bottom: 30px;
-  padding: 20px;
-  background: #1b1b1b;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  border: 1px solid #333333;
-}
-
-.report-header.sticky-header {
-  position: -webkit-sticky;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #2a2a2a;
+  /* sticky within the scrollable container */
   position: sticky;
   top: 0;
-  z-index: 50;
-  /* Keep the header visually separated while overlapping content */
-  backdrop-filter: blur(6px);
-  background: linear-gradient(
-    135deg,
-    rgba(11, 11, 11, 0.95) 0%,
-    rgba(27, 27, 27, 0.95) 100%
-  );
-  /* ensure full width inside the container */
-  width: 100%;
-  /* preserve box shadow and border when sticky */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
-  border-bottom: 1px solid #2c2c2c;
+  z-index: 20;
+  background: #0f0f0f;
+  padding-top: 24px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+}
+
+.expense-report .header-left h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #14b8a6;
+}
+
+.expense-report .header-left p {
+  margin: 4px 0 0 0;
+  color: #888;
+  font-size: 14px;
+}
+
+.expense-header-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.expense-timeframe-selector {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
 }
 /* smooth scrolling on touch devices */
 .expense-report {
@@ -954,6 +967,37 @@
   width: 30%;
 }
 
+/* Header skeleton alignment for expense-report-header */
+.expense-report-header .skeleton-title.large {
+  width: 280px;
+}
+.expense-report-header .skeleton-subtitle {
+  height: 14px;
+  width: 360px;
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s linear infinite;
+  border-radius: 4px;
+}
+
+.expense-report-header .skeleton-select {
+  height: 36px;
+  width: 120px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s linear infinite;
+}
+
+.expense-report-header .skeleton-back-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s linear infinite;
+}
+
 .skeleton-filters {
   display: flex;
   gap: 12px;
@@ -1021,6 +1065,112 @@
 .skeleton-bar {
   width: 12%;
   border-radius: 6px;
+}
+
+/* Pie/Donut skeleton */
+.skeleton-pie {
+  position: relative;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.skeleton-pie-ring {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(255, 255, 255, 0.06) 0 25%,
+    rgba(255, 255, 255, 0.02) 25% 50%,
+    rgba(255, 255, 255, 0.06) 50% 75%,
+    rgba(255, 255, 255, 0.02) 75% 100%
+  );
+  mask: radial-gradient(circle 60px at center, transparent 60px, #000 61px);
+  animation: skeletonShimmer 1.6s linear infinite;
+}
+.skeleton-pie-center {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #0b0b0b;
+  border: 1px solid #222;
+}
+
+/* Line/Area skeleton */
+.skeleton-line-chart {
+  position: relative;
+  height: 220px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.01)
+  );
+  border-radius: 8px;
+}
+.skeleton-axis-y,
+.skeleton-axis-x {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.06);
+}
+.skeleton-axis-y {
+  left: 12px;
+  top: 8px;
+  bottom: 24px;
+  width: 2px;
+}
+.skeleton-axis-x {
+  left: 12px;
+  right: 8px;
+  bottom: 16px;
+  height: 2px;
+}
+.skeleton-line-dots {
+  position: absolute;
+  left: 24px;
+  right: 16px;
+  top: 12px;
+  bottom: 28px;
+}
+.skeleton-line-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s linear infinite;
+}
+
+/* Radial skeleton */
+.skeleton-radial {
+  position: relative;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.skeleton-radial-bar {
+  position: absolute;
+  width: 10px;
+  height: 40%;
+  bottom: 50%;
+  left: calc(50% - 5px);
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s linear infinite;
 }
 
 .table-skeleton {

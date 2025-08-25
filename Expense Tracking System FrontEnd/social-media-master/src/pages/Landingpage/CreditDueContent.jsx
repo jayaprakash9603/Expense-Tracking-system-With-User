@@ -489,7 +489,7 @@ const CreditDueContent = () => {
                       ...chartOptions.plugins,
                       title: {
                         ...chartOptions.plugins.title,
-                        text: "Expenses by Name Over Time",
+                        text: "Expenses by Name Over Times",
                       },
                     },
                   }}

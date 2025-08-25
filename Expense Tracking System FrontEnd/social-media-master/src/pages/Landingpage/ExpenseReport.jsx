@@ -16,27 +16,65 @@ import {
   AreaChart,
   RadialBarChart,
   RadialBar,
+  ComposedChart,
+  Line,
 } from "recharts";
 import "./ExpenseReport.css";
 import { fetchAllBills } from "../../Redux/Bill/bill.action";
 import { IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
-// Skeleton Components
-const ChartSkeleton = () => (
-  <div className="chart-skeleton">
-    <div className="skeleton-title"></div>
-    <div className="skeleton-chart">
-      <div className="skeleton-bars">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="skeleton-bar"
-            style={{ height: `${Math.random() * 80 + 20}%` }}
-          ></div>
-        ))}
-      </div>
+// Skeleton Components (type-specific)
+const BarChartSkeletonInner = () => (
+  <div className="skeleton-chart">
+    <div className="skeleton-bars">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div
+          key={i}
+          className="skeleton-bar"
+          style={{ height: `${30 + Math.random() * 60}%` }}
+        />
+      ))}
     </div>
+  </div>
+);
+
+const PieChartSkeletonInner = () => (
+  <div className="skeleton-pie">
+    <div className="skeleton-pie-ring" />
+    <div className="skeleton-pie-center" />
+  </div>
+);
+
+const LineAreaChartSkeletonInner = () => (
+  <div className="skeleton-line-chart">
+    <div className="skeleton-axis-y" />
+    <div className="skeleton-axis-x" />
+    <div className="skeleton-line-dots">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div
+          key={i}
+          className="skeleton-line-dot"
+          style={{
+            left: `${(i / 11) * 100}%`,
+            top: `${20 + Math.random() * 60}%`,
+          }}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+const RadialChartSkeletonInner = () => (
+  <div className="skeleton-radial">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <div
+        key={i}
+        className="skeleton-radial-bar"
+        style={{ transform: `rotate(${i * 60}deg) translate(0, -10%)` }}
+      />
+    ))}
+    <div className="skeleton-pie-center" />
   </div>
 );
 
@@ -55,7 +93,7 @@ const TableSkeleton = () => (
   </div>
 );
 
-// Header Component
+// Header Component (aligned with Category/Payment headers, unique classes)
 const ReportHeader = ({
   selectedTimeframe,
   setSelectedTimeframe,
@@ -67,18 +105,18 @@ const ReportHeader = ({
   handleReportActionClose,
   handleReportMenuItemClick,
 }) => (
-  <div className="report-header">
-    <div style={{ position: "absolute", top: 12, left: 12, zIndex: 1400 }}>
+  <div className="expense-report-header">
+    <div
+      className="header-left"
+      style={{ display: "flex", alignItems: "center", gap: 12 }}
+    >
       <IconButton
         sx={{
           color: "#00DAC6",
-          backgroundColor: "#0b0b0b",
-          border: "1px solid rgba(20,184,166,0.12)",
-          boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
-          width: 44,
-          height: 44,
-          padding: 0.5,
-          "&:hover": { backgroundColor: "#141414" },
+          backgroundColor: "#1b1b1b",
+          "&:hover": { backgroundColor: "#28282a" },
+          zIndex: 10,
+          transform: "translateY(-15px)",
         }}
         onClick={() =>
           window.history.length > 1
@@ -103,41 +141,42 @@ const ReportHeader = ({
           />
         </svg>
       </IconButton>
-    </div>
-    <h1>📊 Bill Report</h1>
-    <div
-      className="header-actions"
-      style={{ display: "flex", alignItems: "center", marginLeft: 12 }}
-    >
-      <div className="filters">
-        <select
-          value={selectedTimeframe}
-          onChange={(e) => setSelectedTimeframe(e.target.value)}
-          className="filter-select"
-        >
-          <option value="all">All Time</option>
-          <option value="week">Week</option>
-          <option value="month">Month</option>
-          <option value="year">Year</option>
-        </select>
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="filter-select"
-        >
-          <option value="all">All Categories</option>
-          {uniqueCategories.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
+      <div>
+        <h1 style={{ margin: 0 }}>📊 Bill Report</h1>
+        <p style={{ margin: "6px 0 0 0", color: "#888" }}>
+          Spending overview and insights
+        </p>
       </div>
+    </div>
+    <div className="expense-header-controls">
+      <select
+        value={selectedTimeframe}
+        onChange={(e) => setSelectedTimeframe(e.target.value)}
+        className="expense-timeframe-selector"
+      >
+        <option value="all">All Time</option>
+        <option value="week">Week</option>
+        <option value="month">Month</option>
+        <option value="year">Year</option>
+      </select>
+      <select
+        value={selectedCategory}
+        onChange={(e) => setSelectedCategory(e.target.value)}
+        className="expense-timeframe-selector"
+      >
+        <option value="all">All Categories</option>
+        {uniqueCategories.map((category) => (
+          <option key={category} value={category}>
+            {category}
+          </option>
+        ))}
+      </select>
 
       <IconButton
         onClick={handleReportActionClick}
         sx={{ color: "#14b8a6", ml: 1 }}
         size="small"
+        aria-label="More actions"
       >
         <MoreVertIcon />
       </IconButton>
@@ -399,19 +438,35 @@ const DailyTrendChart = ({
     </div>
 
     <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={dailyTrendData}>
+      <ComposedChart data={dailyTrendData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis />
-        <Tooltip formatter={(value) => [`₹${value}`, "Amount"]} />
+        <Tooltip
+          formatter={(value, name) => {
+            if (name === "average")
+              return [`₹${Number(value).toFixed(2)}`, "Running Avg"];
+            return [`₹${value}`, "Amount"];
+          }}
+        />
+        <Legend />
         <Area
           type="monotone"
           dataKey="amount"
+          name="Amount"
           stroke="#14b8a6"
           fill="#14b8a6"
           fillOpacity={0.3}
         />
-      </AreaChart>
+        <Line
+          type="monotone"
+          dataKey="average"
+          name="Running Avg"
+          stroke="#ffb703"
+          strokeWidth={2}
+          dot={false}
+        />
+      </ComposedChart>
     </ResponsiveContainer>
   </div>
 );
@@ -588,32 +643,72 @@ const CategoryDetails = ({ analytics }) => (
 // Loading Skeleton Component
 const LoadingSkeleton = () => (
   <div className="expense-report">
-    <div className="report-header">
-      <div className="skeleton-title large"></div>
-      <div className="skeleton-filters">
-        <div className="skeleton-select"></div>
-        <div className="skeleton-select"></div>
+    <div className="expense-report-header">
+      <div
+        className="header-left"
+        style={{ display: "flex", alignItems: "center", gap: 12 }}
+      >
+        <div
+          className="skeleton-back-btn"
+          style={{ transform: "translateY(-15px)" }}
+        />
+        <div>
+          <div className="skeleton-title large" />
+          <div
+            className="skeleton-subtitle"
+            style={{ marginTop: 6, width: 260 }}
+          />
+        </div>
+      </div>
+      <div className="expense-header-controls">
+        <div className="skeleton-select" />
+        <div className="skeleton-select" />
+        <div className="skeleton-select" />
       </div>
     </div>
 
     <div className="summary-cards">
-      {[...Array(4)].map((_, i) => (
+      {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="summary-card-skeleton">
-          <div className="skeleton-icon"></div>
+          <div className="skeleton-icon" />
           <div className="skeleton-content">
-            <div className="skeleton-text"></div>
-            <div className="skeleton-number"></div>
+            <div className="skeleton-text" />
+            <div className="skeleton-number" />
           </div>
         </div>
       ))}
     </div>
 
     <div className="chart-report-grid">
-      <ChartSkeleton />
-      <ChartSkeleton />
-      <ChartSkeleton />
-      <ChartSkeleton />
-      <ChartSkeleton />
+      {/* Expenses by Category (Bar) */}
+      <div className="chart-container chart-half-width">
+        <div className="skeleton-title" />
+        <BarChartSkeletonInner />
+      </div>
+
+      {/* Payment Methods (Pie/Donut) */}
+      <div className="chart-container chart-half-width">
+        <div className="skeleton-title" />
+        <PieChartSkeletonInner />
+      </div>
+
+      {/* Expense Trend (Line/Area) */}
+      <div className="chart-container full-width">
+        <div className="skeleton-title" />
+        <LineAreaChartSkeletonInner />
+      </div>
+
+      {/* Top Expense Items (Radial) */}
+      <div className="chart-container chart-half-width">
+        <div className="skeleton-title" />
+        <RadialChartSkeletonInner />
+      </div>
+
+      {/* Top Expense Items (Bar) */}
+      <div className="chart-container chart-half-width">
+        <div className="skeleton-title" />
+        <BarChartSkeletonInner />
+      </div>
     </div>
 
     <TableSkeleton />
@@ -901,7 +996,14 @@ const ExpenseReport = () => {
         }));
     }
 
-    return points;
+    // compute running average: at index i -> avg of amounts[0..i]
+    let running = 0;
+    return points.map((p, idx) => {
+      running += Number(p.amount || 0);
+      const avgRaw = running / (idx + 1);
+      const average = Math.round(avgRaw * 100) / 100; // keep only 2 decimals
+      return { ...p, average };
+    });
   }, [analytics.dailyExpenses, selectedTimeframe, trendCursor]);
 
   // navigation handlers for trend cursor

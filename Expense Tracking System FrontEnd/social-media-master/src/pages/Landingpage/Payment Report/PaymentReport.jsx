@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { IconButton } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -48,6 +48,7 @@ import {
   Building2,
 } from "lucide-react";
 import "./PaymentReport.css";
+import { fetchPaymentSummary } from "../../../utils/Api";
 
 // Skeleton Components
 const HeaderSkeleton = () => (
@@ -153,280 +154,6 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-// Sample Data for Payment Methods Reports
-const SAMPLE_DATA = {
-  paymentMethodsOverview: [
-    {
-      method: "Credit Card",
-      totalAmount: 45620,
-      percentage: 42.3,
-      transactions: 156,
-      avgPerTransaction: 292,
-      icon: "💳",
-      color: "#14b8a6",
-      trend: 8.5,
-    },
-    {
-      method: "Debit Card",
-      totalAmount: 28450,
-      percentage: 26.4,
-      transactions: 98,
-      avgPerTransaction: 290,
-      icon: "💰",
-      color: "#06d6a0",
-      trend: -2.1,
-    },
-    {
-      method: "Digital Wallet",
-      totalAmount: 18920,
-      percentage: 17.5,
-      transactions: 142,
-      avgPerTransaction: 133,
-      icon: "📱",
-      color: "#118ab2",
-      trend: 15.2,
-    },
-    {
-      method: "Cash",
-      totalAmount: 8750,
-      percentage: 8.1,
-      transactions: 67,
-      avgPerTransaction: 131,
-      icon: "💵",
-      color: "#ffd166",
-      trend: -12.3,
-    },
-    {
-      method: "Bank Transfer",
-      totalAmount: 4200,
-      percentage: 3.9,
-      transactions: 12,
-      avgPerTransaction: 350,
-      icon: "🏦",
-      color: "#f77f00",
-      trend: 5.7,
-    },
-    {
-      method: "Cryptocurrency",
-      totalAmount: 1980,
-      percentage: 1.8,
-      transactions: 8,
-      avgPerTransaction: 248,
-      icon: "₿",
-      color: "#e63946",
-      trend: 22.4,
-    },
-  ],
-  monthlyTrends: [
-    {
-      month: "Jan",
-      "Credit Card": 38500,
-      "Debit Card": 25200,
-      "Digital Wallet": 15800,
-      Cash: 9200,
-      "Bank Transfer": 3800,
-      Cryptocurrency: 1200,
-    },
-    {
-      month: "Feb",
-      "Credit Card": 41200,
-      "Debit Card": 26800,
-      "Digital Wallet": 16500,
-      Cash: 8900,
-      "Bank Transfer": 3900,
-      Cryptocurrency: 1500,
-    },
-    {
-      month: "Mar",
-      "Credit Card": 43800,
-      "Debit Card": 27900,
-      "Digital Wallet": 17800,
-      Cash: 8600,
-      "Bank Transfer": 4100,
-      Cryptocurrency: 1800,
-    },
-    {
-      month: "Apr",
-      "Credit Card": 45620,
-      "Debit Card": 28450,
-      "Digital Wallet": 18920,
-      Cash: 8750,
-      "Bank Transfer": 4200,
-      Cryptocurrency: 1980,
-    },
-  ],
-  dailyUsage: [
-    {
-      day: "Mon",
-      "Credit Card": 6500,
-      "Debit Card": 4200,
-      "Digital Wallet": 2800,
-      Cash: 1200,
-    },
-    {
-      day: "Tue",
-      "Credit Card": 7200,
-      "Debit Card": 3800,
-      "Digital Wallet": 3200,
-      Cash: 1100,
-    },
-    {
-      day: "Wed",
-      "Credit Card": 6800,
-      "Debit Card": 4500,
-      "Digital Wallet": 2600,
-      Cash: 1300,
-    },
-    {
-      day: "Thu",
-      "Credit Card": 7500,
-      "Debit Card": 4100,
-      "Digital Wallet": 3400,
-      Cash: 1000,
-    },
-    {
-      day: "Fri",
-      "Credit Card": 8200,
-      "Debit Card": 4800,
-      "Digital Wallet": 3800,
-      Cash: 1400,
-    },
-    {
-      day: "Sat",
-      "Credit Card": 5400,
-      "Debit Card": 3200,
-      "Digital Wallet": 2100,
-      Cash: 1800,
-    },
-    {
-      day: "Sun",
-      "Credit Card": 4000,
-      "Debit Card": 2900,
-      "Digital Wallet": 1900,
-      Cash: 1900,
-    },
-  ],
-  transactionSizes: [
-    {
-      range: "₹0-100",
-      "Credit Card": 45,
-      "Debit Card": 38,
-      "Digital Wallet": 89,
-      Cash: 52,
-    },
-    {
-      range: "₹100-500",
-      "Credit Card": 67,
-      "Debit Card": 42,
-      "Digital Wallet": 38,
-      Cash: 12,
-    },
-    {
-      range: "₹500-1000",
-      "Credit Card": 28,
-      "Debit Card": 12,
-      "Digital Wallet": 12,
-      Cash: 3,
-    },
-    {
-      range: "₹1000-5000",
-      "Credit Card": 12,
-      "Debit Card": 5,
-      "Digital Wallet": 3,
-      Cash: 0,
-    },
-    {
-      range: "₹5000+",
-      "Credit Card": 4,
-      "Debit Card": 1,
-      "Digital Wallet": 0,
-      Cash: 0,
-    },
-  ],
-  categoryBreakdown: [
-    {
-      category: "Food & Dining",
-      "Credit Card": 12500,
-      "Debit Card": 8200,
-      "Digital Wallet": 6800,
-      Cash: 3200,
-    },
-    {
-      category: "Shopping",
-      "Credit Card": 15200,
-      "Debit Card": 6800,
-      "Digital Wallet": 4200,
-      Cash: 1800,
-    },
-    {
-      category: "Transportation",
-      "Credit Card": 8900,
-      "Debit Card": 7200,
-      "Digital Wallet": 4800,
-      Cash: 2100,
-    },
-    {
-      category: "Entertainment",
-      "Credit Card": 6200,
-      "Debit Card": 3800,
-      "Digital Wallet": 2400,
-      Cash: 1200,
-    },
-    {
-      category: "Utilities",
-      "Credit Card": 2800,
-      "Debit Card": 2450,
-      "Digital Wallet": 720,
-      Cash: 450,
-    },
-  ],
-  securityMetrics: [
-    { method: "Credit Card", security: 95, convenience: 85, acceptance: 98 },
-    { method: "Debit Card", security: 90, convenience: 88, acceptance: 95 },
-    { method: "Digital Wallet", security: 88, convenience: 95, acceptance: 75 },
-    { method: "Cash", security: 60, convenience: 70, acceptance: 100 },
-    { method: "Bank Transfer", security: 98, convenience: 65, acceptance: 80 },
-    { method: "Cryptocurrency", security: 85, convenience: 45, acceptance: 25 },
-  ],
-  merchantAcceptance: [
-    {
-      merchant: "Online Stores",
-      "Credit Card": 98,
-      "Debit Card": 95,
-      "Digital Wallet": 85,
-      Cash: 0,
-    },
-    {
-      merchant: "Restaurants",
-      "Credit Card": 95,
-      "Debit Card": 90,
-      "Digital Wallet": 70,
-      Cash: 100,
-    },
-    {
-      merchant: "Gas Stations",
-      "Credit Card": 100,
-      "Debit Card": 98,
-      "Digital Wallet": 60,
-      Cash: 95,
-    },
-    {
-      merchant: "Grocery Stores",
-      "Credit Card": 98,
-      "Debit Card": 95,
-      "Digital Wallet": 80,
-      Cash: 100,
-    },
-    {
-      merchant: "Entertainment",
-      "Credit Card": 90,
-      "Debit Card": 85,
-      "Digital Wallet": 75,
-      Cash: 80,
-    },
-  ],
-};
-
 const COLORS = [
   "#14b8a6",
   "#06d6a0",
@@ -449,6 +176,8 @@ const PaymentMethodsHeader = ({
   onTimeframeChange,
   timeframe,
   onBack,
+  flowType,
+  onFlowTypeChange,
 }) => (
   <div className="payment-methods-header">
     <div
@@ -461,6 +190,7 @@ const PaymentMethodsHeader = ({
           backgroundColor: "#1b1b1b",
           "&:hover": { backgroundColor: "#28282a" },
           zIndex: 10,
+          transform: "translateY(-15px)",
         }}
         onClick={onBack}
         aria-label="Back"
@@ -489,6 +219,16 @@ const PaymentMethodsHeader = ({
       </div>
     </div>
     <div className="header-controls">
+      <select
+        value={flowType}
+        onChange={(e) => onFlowTypeChange(e.target.value)}
+        className="timeframe-selector"
+        aria-label="Flow type"
+      >
+        <option value="all">All</option>
+        <option value="outflow">Outflow</option>
+        <option value="inflow">Inflow</option>
+      </select>
       <select
         value={timeframe}
         onChange={(e) => onTimeframeChange(e.target.value)}
@@ -564,7 +304,7 @@ const PaymentOverviewCards = ({ data }) => {
   );
 };
 
-// Payment Methods Distribution Chart
+// Payment Methods Distribution Chart (donut + right-side chips)
 const PaymentDistributionChart = ({ data }) => (
   <div className="chart-container">
     <div className="chart-header">
@@ -575,372 +315,273 @@ const PaymentDistributionChart = ({ data }) => (
         Spending breakdown by payment methods
       </div>
     </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          outerRadius={120}
-          innerRadius={60}
-          paddingAngle={2}
-          dataKey="totalAmount"
+    <div className="distribution-content">
+      <div className="distribution-left">
+        <ResponsiveContainer width="100%" height={360}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              outerRadius={120}
+              innerRadius={64}
+              paddingAngle={2}
+              dataKey="totalAmount"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value, name) => [
+                `₹${Number(value).toLocaleString()}`,
+                name,
+              ]}
+              contentStyle={{
+                backgroundColor: "#1a1a1a",
+                border: "1px solid #14b8a6",
+                borderRadius: "8px",
+                color: "#fff",
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="distribution-right">
+        {data.map((item, idx) => (
+          <div key={idx} className="category-chip">
+            <div className="chip-left">
+              <span
+                className="chip-icon"
+                aria-hidden="true"
+                style={{ background: item.color }}
+              >
+                <span className="chip-icon-text">{item.icon}</span>
+              </span>
+              <span className="chip-name" title={item.method}>
+                {item.method}
+              </span>
+            </div>
+            <div className="chip-right">
+              <span className="chip-pct">{item.percentage}%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// Payment Methods Usage Analysis (Pareto-like: amount bars + cumulative % + transactions)
+const PaymentUsageChart = ({ data }) => {
+  const total = data.reduce((s, d) => s + (d.totalAmount || 0), 0) || 0;
+  const sorted = [...data].sort(
+    (a, b) => (b.totalAmount || 0) - (a.totalAmount || 0)
+  );
+  let running = 0;
+  const composed = sorted.map((d) => {
+    running += d.totalAmount || 0;
+    return {
+      ...d,
+      cumulative: total ? +((running / total) * 100).toFixed(1) : 0,
+    };
+  });
+
+  return (
+    <div className="chart-container">
+      <div className="chart-header">
+        <h3>
+          <BarChart3 size={20} /> Payment Methods Usage Analysis
+        </h3>
+        <div className="chart-subtitle">
+          Bars: amount • Yellow line: cumulative % • Red line: transactions
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={430}>
+        <ComposedChart
+          data={composed}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip
-          formatter={(value, name) => [`₹${value.toLocaleString()}`, name]}
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend
-          verticalAlign="bottom"
-          height={36}
-          formatter={(value, entry) => (
-            <span style={{ color: entry.color }}>
-              {entry.payload.icon} {value} ({entry.payload.percentage}%)
-            </span>
-          )}
-        />
-      </PieChart>
-    </ResponsiveContainer>
-  </div>
-);
-
-// Payment Methods Usage Analysis
-const PaymentUsageChart = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>
-        <BarChart3 size={20} /> Payment Methods Usage Analysis
-      </h3>
-      <div className="chart-subtitle">
-        Amount and transaction count by payment method
-      </div>
+          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+          <XAxis
+            dataKey="method"
+            stroke="#888"
+            fontSize={12}
+            angle={-45}
+            textAnchor="end"
+            height={80}
+          />
+          <YAxis yAxisId="left" stroke="#888" fontSize={12} />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            stroke="#888"
+            domain={[0, 100]}
+            tickFormatter={(v) => `${v}%`}
+          />
+          <YAxis yAxisId="rightTx" orientation="right" hide={true} />
+          <Tooltip
+            formatter={(value, name) => {
+              if (name === "cumulative") return [`${value}%`, "Cumulative %"];
+              if (name === "transactions")
+                return [
+                  `${Number(value || 0).toLocaleString()}`,
+                  "Transactions",
+                ];
+              if (name === "totalAmount")
+                return [
+                  `₹${Number(value || 0).toLocaleString()}`,
+                  "Amount (₹)",
+                ];
+              return [value, name];
+            }}
+            contentStyle={{
+              backgroundColor: "#1a1a1a",
+              border: "1px solid #14b8a6",
+              borderRadius: "8px",
+              color: "#fff",
+            }}
+          />
+          <Legend />
+          <Bar
+            yAxisId="left"
+            dataKey="totalAmount"
+            fill="#06d6a0"
+            name="Amount (₹)"
+            radius={[4, 4, 0, 0]}
+          />
+          <Line
+            yAxisId="rightTx"
+            type="monotone"
+            dataKey="transactions"
+            stroke="#ff6b6b"
+            strokeWidth={2}
+            name="Transactions"
+          />
+          <Line
+            yAxisId="right"
+            type="monotone"
+            dataKey="cumulative"
+            stroke="#ffb703"
+            strokeWidth={2}
+            name="Cumulative %"
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
     </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <ComposedChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis
-          dataKey="method"
-          stroke="#888"
-          fontSize={12}
-          angle={-45}
-          textAnchor="end"
-          height={80}
-        />
-        <YAxis yAxisId="left" stroke="#888" fontSize={12} />
-        <YAxis
-          yAxisId="right"
-          orientation="right"
-          stroke="#888"
-          fontSize={12}
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-        <Bar
-          yAxisId="left"
-          dataKey="totalAmount"
-          fill="#14b8a6"
-          name="Amount (₹)"
-          radius={[4, 4, 0, 0]}
-        />
-        <Line
-          yAxisId="right"
-          type="monotone"
-          dataKey="transactions"
-          stroke="#ff6b6b"
-          name="Transactions"
-          strokeWidth={2}
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
-  </div>
-);
-
-// Monthly Payment Trends
-const MonthlyPaymentTrends = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>
-        <Activity size={20} /> Monthly Payment Trends
-      </h3>
-      <div className="chart-subtitle">
-        Payment method usage trends over time
-      </div>
-    </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <AreaChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis dataKey="month" stroke="#888" fontSize={12} />
-        <YAxis stroke="#888" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-        <Area
-          type="monotone"
-          dataKey="Credit Card"
-          stackId="1"
-          stroke={COLORS[0]}
-          fill={COLORS[0]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
-          dataKey="Debit Card"
-          stackId="1"
-          stroke={COLORS[1]}
-          fill={COLORS[1]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
-          dataKey="Digital Wallet"
-          stackId="1"
-          stroke={COLORS[2]}
-          fill={COLORS[2]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
-          dataKey="Cash"
-          stackId="1"
-          stroke={COLORS[3]}
-          fill={COLORS[3]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
-          dataKey="Bank Transfer"
-          stackId="1"
-          stroke={COLORS[4]}
-          fill={COLORS[4]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
-          dataKey="Cryptocurrency"
-          stackId="1"
-          stroke={COLORS[5]}
-          fill={COLORS[5]}
-          fillOpacity={0.8}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
-  </div>
-);
+  );
+};
 
 // Transaction Size Distribution
-const TransactionSizeChart = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>
-        <Target size={20} /> Transaction Size Distribution
-      </h3>
-      <div className="chart-subtitle">
-        Payment method usage by transaction amount ranges
-      </div>
-    </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <BarChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis dataKey="range" stroke="#888" fontSize={12} />
-        <YAxis stroke="#888" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-        <Bar dataKey="Credit Card" fill={COLORS[0]} name="Credit Card" />
-        <Bar dataKey="Debit Card" fill={COLORS[1]} name="Debit Card" />
-        <Bar dataKey="Digital Wallet" fill={COLORS[2]} name="Digital Wallet" />
-        <Bar dataKey="Cash" fill={COLORS[3]} name="Cash" />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-);
+const TransactionSizeChart = ({ data, methodsColors = [] }) => {
+  const keys = useMemo(() => {
+    const first = data?.[0] || {};
+    return Object.keys(first).filter((k) => k !== "range");
+  }, [data]);
+  const colorMap = useMemo(() => {
+    const map = new Map();
+    methodsColors.forEach((m, i) => map.set(m.method, m.color));
+    return map;
+  }, [methodsColors]);
 
-// Payment Security & Convenience Radar
-const PaymentSecurityRadar = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>🔒 Payment Security & Convenience Analysis</h3>
-      <div className="chart-subtitle">
-        Multi-dimensional payment method comparison
+  return (
+    <div className="chart-container">
+      <div className="chart-header">
+        <h3>
+          <Target size={20} /> Transaction Size Distribution
+        </h3>
+        <div className="chart-subtitle">
+          Payment method usage by transaction amount ranges
+        </div>
       </div>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+          <XAxis dataKey="range" stroke="#888" fontSize={12} />
+          <YAxis stroke="#888" fontSize={12} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#1a1a1a",
+              border: "1px solid #14b8a6",
+              borderRadius: "8px",
+              color: "#fff",
+            }}
+          />
+          <Legend />
+          {keys.map((k, i) => (
+            <Bar
+              key={k}
+              dataKey={k}
+              fill={colorMap.get(k) || COLORS[i % COLORS.length]}
+              name={k}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
     </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <RadarChart data={data}>
-        <PolarGrid stroke="#2a2a2a" />
-        <PolarAngleAxis
-          dataKey="method"
-          tick={{ fontSize: 12, fill: "#888" }}
-        />
-        <PolarRadiusAxis
-          angle={90}
-          domain={[0, 100]}
-          tick={{ fontSize: 10, fill: "#888" }}
-        />
-        <Radar
-          name="Security"
-          dataKey="security"
-          stroke="#14b8a6"
-          fill="#14b8a6"
-          fillOpacity={0.3}
-          strokeWidth={2}
-        />
-        <Radar
-          name="Convenience"
-          dataKey="convenience"
-          stroke="#ff6b6b"
-          fill="#ff6b6b"
-          fillOpacity={0.3}
-          strokeWidth={2}
-        />
-        <Radar
-          name="Acceptance"
-          dataKey="acceptance"
-          stroke="#ffd166"
-          fill="#ffd166"
-          fillOpacity={0.3}
-          strokeWidth={2}
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-      </RadarChart>
-    </ResponsiveContainer>
-  </div>
-);
+  );
+};
 
-// Category-wise Payment Breakdown
-const CategoryPaymentBreakdown = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>🏷️ Category-wise Payment Breakdown</h3>
-      <div className="chart-subtitle">
-        Payment method preferences by spending category
-      </div>
-    </div>
-    <ResponsiveContainer width="100%" height={400}>
-      <BarChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis
-          dataKey="category"
-          stroke="#888"
-          fontSize={12}
-          angle={-45}
-          textAnchor="end"
-          height={80}
-        />
-        <YAxis stroke="#888" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-        <Bar dataKey="Credit Card" stackId="a" fill={COLORS[0]} />
-        <Bar dataKey="Debit Card" stackId="a" fill={COLORS[1]} />
-        <Bar dataKey="Digital Wallet" stackId="a" fill={COLORS[2]} />
-        <Bar dataKey="Cash" stackId="a" fill={COLORS[3]} />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-);
+// Category-wise Payment Breakdown (dynamic by methods)
+const CategoryPaymentBreakdown = ({ data, methodsColors = [] }) => {
+  const methodKeys = useMemo(() => {
+    const first = data?.[0] || {};
+    return Object.keys(first).filter((k) => k !== "category");
+  }, [data]);
+  const colorMap = useMemo(() => {
+    const m = new Map();
+    methodsColors.forEach(({ method, color }) => m.set(method, color));
+    return m;
+  }, [methodsColors]);
 
-// Daily Usage Patterns
-const DailyUsagePatterns = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>📅 Daily Usage Patterns</h3>
-      <div className="chart-subtitle">
-        Payment method usage throughout the week
+  return (
+    <div className="chart-container">
+      <div className="chart-header">
+        <h3>🏷️ Category-wise Payment Breakdown</h3>
+        <div className="chart-subtitle">
+          Payment method preferences by spending category
+        </div>
       </div>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+          <XAxis
+            dataKey="category"
+            stroke="#888"
+            fontSize={12}
+            angle={-45}
+            textAnchor="end"
+            height={80}
+          />
+          <YAxis stroke="#888" fontSize={12} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#1a1a1a",
+              border: "1px solid #14b8a6",
+              borderRadius: "8px",
+              color: "#fff",
+            }}
+          />
+          <Legend />
+          {methodKeys.map((k, i) => (
+            <Bar
+              key={k}
+              dataKey={k}
+              stackId="a"
+              fill={colorMap.get(k) || COLORS[i % COLORS.length]}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
     </div>
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-        <XAxis dataKey="day" stroke="#888" fontSize={12} />
-        <YAxis stroke="#888" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #14b8a6",
-            borderRadius: "8px",
-            color: "#fff",
-          }}
-        />
-        <Legend />
-        <Line
-          type="monotone"
-          dataKey="Credit Card"
-          stroke={COLORS[0]}
-          strokeWidth={2}
-        />
-        <Line
-          type="monotone"
-          dataKey="Debit Card"
-          stroke={COLORS[1]}
-          strokeWidth={2}
-        />
-        <Line
-          type="monotone"
-          dataKey="Digital Wallet"
-          stroke={COLORS[2]}
-          strokeWidth={2}
-        />
-        <Line
-          type="monotone"
-          dataKey="Cash"
-          stroke={COLORS[3]}
-          strokeWidth={2}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
-);
+  );
+};
 
 // Payment Methods Performance Table
 const PaymentPerformanceTable = ({ data }) => (
@@ -1011,9 +652,210 @@ const PaymentPerformanceTable = ({ data }) => (
 // Main Payment Methods Report Component
 const PaymentMethodsReport = () => {
   const [timeframe, setTimeframe] = useState("month");
-  const [loading, setLoading] = useState(false);
+  const [flowType, setFlowType] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [methodsData, setMethodsData] = useState([]); // [{method, totalAmount, percentage, transactions, avgPerTransaction, icon, color, expenses: []}]
+  const [txSizeData, setTxSizeData] = useState([]); // [{range, [method]: count}]
+  const [categoryBreakdown, setCategoryBreakdown] = useState([]); // [{category, [method]: amount}]
+  const [categories, setCategories] = useState([]); // Unique categories extracted from expenses: [{ name, totalAmount, transactions }]
   const navigate = useNavigate();
   const { friendId } = useParams();
+
+  // Compute date range from timeframe (same logic as Category)
+  const getRange = (tf) => {
+    const now = new Date();
+    const to = new Date(
+      Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+    );
+    let from;
+    switch (tf) {
+      case "week": {
+        const d = new Date(to);
+        d.setUTCDate(d.getUTCDate() - 6);
+        from = d;
+        break;
+      }
+      case "quarter": {
+        const d = new Date(to);
+        d.setUTCMonth(d.getUTCMonth() - 2, 1);
+        from = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+        break;
+      }
+      case "year": {
+        from = new Date(Date.UTC(to.getUTCFullYear(), 0, 1));
+        break;
+      }
+      case "month":
+      default: {
+        from = new Date(Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), 1));
+        break;
+      }
+    }
+    const fmt = (dt) => dt.toISOString().slice(0, 10);
+    return { fromDate: fmt(from), toDate: fmt(to) };
+  };
+
+  const buildTxSizeBins = (methods) => {
+    const bins = [
+      { label: "₹0-100", min: 0, max: 100 },
+      { label: "₹100-500", min: 100, max: 500 },
+      { label: "₹500-1000", min: 500, max: 1000 },
+      { label: "₹1000-5000", min: 1000, max: 5000 },
+      { label: "₹5000+", min: 5000, max: Infinity },
+    ];
+    const result = bins.map((b) => ({ range: b.label }));
+    methods.forEach((m) => {
+      const name = m.method;
+      (m.expenses || []).forEach((e) => {
+        const amt = Math.abs(
+          Number(e?.details?.netAmount ?? e?.details?.amount ?? 0)
+        );
+        const bin = bins.find((b) => amt >= b.min && amt < b.max);
+        if (!bin) return;
+        const r = result.find((x) => x.range === bin.label);
+        r[name] = (r[name] || 0) + 1;
+      });
+    });
+    return result;
+  };
+
+  const buildCategoryBreakdown = (methods, flow = "all") => {
+    const map = new Map(); // key: categoryName -> { category, [method]: amount }
+    methods.forEach((m) => {
+      const method = m.method;
+      (m.expenses || []).forEach((e) => {
+        // Respect flow type: outflow -> loss; inflow -> profit
+        const t = (e?.details?.type || e?.type || "").toLowerCase();
+        if (flow === "outflow" && t && t !== "loss") return;
+        if (flow === "inflow" && t && t !== "profit") return;
+
+        const cat =
+          e?.details?.categoryName ||
+          e?.categoryName ||
+          e?.details?.expenseName ||
+          "Uncategorized";
+        const amt = Math.abs(
+          Number(e?.details?.netAmount ?? e?.details?.amount ?? 0)
+        );
+        if (!map.has(cat)) map.set(cat, { category: cat });
+        const obj = map.get(cat);
+        obj[method] = (obj[method] || 0) + amt;
+      });
+    });
+    // sort categories by total across methods desc
+    const arr = Array.from(map.values());
+    arr.sort((a, b) => {
+      const sum = (o) =>
+        Object.entries(o).reduce(
+          (s, [k, v]) => (k === "category" ? s : s + Number(v || 0)),
+          0
+        );
+      return sum(b) - sum(a);
+    });
+    return arr;
+  };
+
+  // Extract unique categories directly from expenses for generic use (filters, chips, etc.)
+  const extractCategoriesFromExpenses = (methods, flow = "all") => {
+    const map = new Map(); // name -> { name, totalAmount, transactions }
+    methods.forEach((m) => {
+      (m.expenses || []).forEach((e) => {
+        const t = (e?.details?.type || e?.type || "").toLowerCase();
+        if (flow === "outflow" && t && t !== "loss") return;
+        if (flow === "inflow" && t && t !== "profit") return;
+
+        const name =
+          e?.details?.categoryName ||
+          e?.categoryName ||
+          e?.details?.expenseName ||
+          "Uncategorized";
+        const amt = Math.abs(
+          Number(e?.details?.netAmount ?? e?.details?.amount ?? 0)
+        );
+        const rec = map.get(name) || { name, totalAmount: 0, transactions: 0 };
+        rec.totalAmount += amt;
+        rec.transactions += 1;
+        map.set(name, rec);
+      });
+    });
+    return Array.from(map.values()).sort(
+      (a, b) => b.totalAmount - a.totalAmount
+    );
+  };
+
+  const fetchData = async (tf = timeframe, fl = flowType) => {
+    try {
+      setLoading(true);
+      setError("");
+      const { fromDate, toDate } = getRange(tf);
+      const params = { fromDate, toDate };
+      if (fl && fl !== "all") params.flowType = fl;
+      if (friendId) params.targetId = friendId;
+
+      const raw = await fetchPaymentSummary(params);
+      const summary = raw?.summary ?? {
+        totalAmount: 0,
+        paymentMethodTotals: {},
+      };
+      const totalAmount = Number(summary.totalAmount || 0);
+
+      const keys = Object.keys(raw || {}).filter((k) => k !== "summary");
+      const methods = keys.map((key, idx) => {
+        const c = raw[key] || {};
+        const amount = Number(c.totalAmount || 0);
+        const transactions = Number(
+          c.expenseCount || (c.expenses?.length ?? 0) || 0
+        );
+        const percentage =
+          totalAmount > 0
+            ? Number(((amount / totalAmount) * 100).toFixed(1))
+            : 0;
+        const avgPerTransaction =
+          transactions > 0 ? Math.round(amount / transactions) : 0;
+        return {
+          method: c.name || key,
+          totalAmount: amount,
+          percentage,
+          transactions,
+          avgPerTransaction,
+          expenses: c.expenses || [],
+          icon: c.icon || c.iconKey || null,
+          color: c.color || COLORS[idx % COLORS.length],
+          trend: 0,
+        };
+      });
+      // sort desc by amount
+      methods.sort((a, b) => b.totalAmount - a.totalAmount);
+      setMethodsData(methods);
+
+      const txBins = buildTxSizeBins(methods);
+      setTxSizeData(txBins);
+
+      const catBreak = buildCategoryBreakdown(methods, fl);
+      setCategoryBreakdown(catBreak);
+
+      // Also surface the raw categories list for other UI pieces
+      const cats = extractCategoriesFromExpenses(methods, fl);
+      setCategories(cats);
+    } catch (err) {
+      console.error("Failed to load payment report:", err);
+      setError(
+        err?.response?.data?.message || err.message || "Failed to load data"
+      );
+      setMethodsData([]);
+      setTxSizeData([]);
+      setCategoryBreakdown([]);
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleFilter = () => {
     console.log("Opening payment methods filters...");
@@ -1025,8 +867,12 @@ const PaymentMethodsReport = () => {
 
   const handleTimeframeChange = (newTimeframe) => {
     setTimeframe(newTimeframe);
-    setLoading(true);
-    setTimeout(() => setLoading(false), 2000);
+    fetchData(newTimeframe, flowType);
+  };
+
+  const handleFlowTypeChange = (newFlow) => {
+    setFlowType(newFlow);
+    fetchData(timeframe, newFlow);
   };
 
   const handleBack = () => {
@@ -1051,37 +897,52 @@ const PaymentMethodsReport = () => {
         onTimeframeChange={handleTimeframeChange}
         timeframe={timeframe}
         onBack={handleBack}
+        flowType={flowType}
+        onFlowTypeChange={handleFlowTypeChange}
       />
 
-      <PaymentOverviewCards data={SAMPLE_DATA.paymentMethodsOverview} />
+      {error ? (
+        <div style={{ padding: 16, color: "#ff6b6b" }}>Error: {error}</div>
+      ) : null}
+
+      <PaymentOverviewCards data={methodsData} />
 
       <div className="charts-grid">
-        {/* Row 1: Distribution and Usage Analysis */}
-        <div className="chart-row">
-          <PaymentDistributionChart data={SAMPLE_DATA.paymentMethodsOverview} />
-          <PaymentUsageChart data={SAMPLE_DATA.paymentMethodsOverview} />
-        </div>
-
-        {/* Row 2: Trends and Transaction Sizes */}
-        <div className="chart-row">
-          <MonthlyPaymentTrends data={SAMPLE_DATA.monthlyTrends} />
-          <TransactionSizeChart data={SAMPLE_DATA.transactionSizes} />
-        </div>
-
-        {/* Row 3: Security Analysis and Category Breakdown */}
-        <div className="chart-row">
-          <PaymentSecurityRadar data={SAMPLE_DATA.securityMetrics} />
-          <CategoryPaymentBreakdown data={SAMPLE_DATA.categoryBreakdown} />
-        </div>
-
-        {/* Row 4: Daily Patterns */}
-        <div className="chart-row">
-          <DailyUsagePatterns data={SAMPLE_DATA.dailyUsage} />
-        </div>
-
-        {/* Row 5: Performance Table */}
+        {/* Row 1: Distribution (full width) */}
         <div className="chart-row full-width">
-          <PaymentPerformanceTable data={SAMPLE_DATA.paymentMethodsOverview} />
+          <PaymentDistributionChart data={methodsData} />
+        </div>
+
+        {/* Row 2: Usage Analysis (full width) */}
+        <div className="chart-row full-width">
+          <PaymentUsageChart data={methodsData} />
+        </div>
+
+        {/* Row 3: Transaction Sizes (computed) */}
+        {txSizeData.length > 0 ? (
+          <div className="chart-row">
+            <TransactionSizeChart
+              data={txSizeData}
+              methodsColors={methodsData.map(({ method, color }) => ({
+                method,
+                color,
+              }))}
+            />
+            {categoryBreakdown.length > 0 ? (
+              <CategoryPaymentBreakdown
+                data={categoryBreakdown}
+                methodsColors={methodsData.map(({ method, color }) => ({
+                  method,
+                  color,
+                }))}
+              />
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Row 4: Performance Table */}
+        <div className="chart-row full-width">
+          <PaymentPerformanceTable data={methodsData} />
         </div>
       </div>
     </div>
