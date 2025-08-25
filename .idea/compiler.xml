@@ -19,15 +19,27 @@
         <module name="Audit-Service (1)" />
         <module name="Payment-method-Service" />
         <module name="Audit-Service" />
+        <module name="Analytics-Service" />
         <module name="gateway" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="Audit-Service (1)" target="17" />
+      <module name="Audit-Service (2)" target="17" />
+      <module name="Category-Service" target="17" />
+      <module name="Chat-Service" target="17" />
+      <module name="eureka-server" target="17" />
+      <module name="FriendShip-Service" target="17" />
+      <module name="gateway" target="17" />
+      <module name="Notification-Service" target="17" />
+      <module name="Payment-method-Service" target="17" />
       <module name="Submission-service" target="17" />
+      <module name="User-service" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Analytics-Service" options="-parameters" />
       <module name="Audit-Service" options="-parameters" />
       <module name="Audit-Service (1)" options="-parameters" />
       <module name="Audit-Service (2)" options="-parameters" />
