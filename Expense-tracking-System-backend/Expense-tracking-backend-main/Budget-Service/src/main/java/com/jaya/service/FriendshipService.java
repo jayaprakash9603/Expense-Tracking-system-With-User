@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "FRIENDSHIP-SERVICE", url = "http://localhost:6009")
-public interface FriendShipService {
+public interface FriendshipService {
 
 
     @GetMapping("/api/friendships/can-access-expenses")

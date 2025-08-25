@@ -384,25 +384,25 @@ public class BudgetServiceImpl implements BudgetService {
                 userId
         );
 
-        double totalCashLosses = expenses.stream()
-                .filter(expense ->
-                        "cash".equalsIgnoreCase(expense.getExpense().getPaymentMethod()) &&
-                                "loss".equalsIgnoreCase(expense.getExpense().getType()))
-                .mapToDouble(expense -> expense.getExpense().getAmount())
-                .sum();
+      
+double totalCashLosses = expenses.stream()
+        .filter(expense ->
+                "cash".equalsIgnoreCase(expense.getExpense().getPaymentMethod()) &&
+                        "loss".equalsIgnoreCase(expense.getExpense().getType()))
+        .mapToDouble(expense -> expense.getExpense().getAmount())
+        .sum();
 
-        double totalCreditLosses = expenses.stream()
-                .filter(expense ->
-                        "creditNeedToPaid".equalsIgnoreCase(expense.getExpense().getPaymentMethod()) &&
-                                "loss".equalsIgnoreCase(expense.getExpense().getType()))
-                .mapToDouble(expense -> expense.getExpense().getAmount())
-                .sum();
+double totalCreditLosses = expenses.stream()
+        .filter(expense ->
+                "creditNeedToPaid".equalsIgnoreCase(expense.getExpense().getPaymentMethod()) &&
+                        "loss".equalsIgnoreCase(expense.getExpense().getType()))
+        .mapToDouble(expense -> expense.getExpense().getAmount())
+        .sum();
 
-        double totalExpenses = expenses.stream()
-                .mapToDouble(expense -> expense.getExpense().getAmount())
-                .sum();
 
-        double remainingAmount = budget.getAmount() - totalExpenses;
+double totalExpenses = totalCashLosses + totalCreditLosses;
+
+double remainingAmount = budget.getAmount() - totalExpenses;
 
         boolean isBudgetValid = isBudgetValid(budgetId);
 
