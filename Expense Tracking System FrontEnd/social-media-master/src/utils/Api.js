@@ -86,4 +86,17 @@ export async function fetchCategoriesSummary(params = {}) {
   }
 }
 
+export async function fetchPaymentSummary(params = {}) {
+  try {
+    // Endpoint requires fromDate and toDate (YYYY-MM-DD)
+    const res = await api.get(
+      "/api/expenses/all-by-payment-method/detailed/filtered",
+      { params }
+    );
+    return res.data ?? {};
+  } catch (err) {
+    throw err;
+  }
+}
+
 export default fetchDailySpending;

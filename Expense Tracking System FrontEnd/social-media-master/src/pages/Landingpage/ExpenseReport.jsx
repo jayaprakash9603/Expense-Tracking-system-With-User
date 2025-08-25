@@ -16,6 +16,8 @@ import {
   AreaChart,
   RadialBarChart,
   RadialBar,
+  ComposedChart,
+  Line,
 } from "recharts";
 import "./ExpenseReport.css";
 import { fetchAllBills } from "../../Redux/Bill/bill.action";
@@ -399,19 +401,35 @@ const DailyTrendChart = ({
     </div>
 
     <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={dailyTrendData}>
+      <ComposedChart data={dailyTrendData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis />
-        <Tooltip formatter={(value) => [`₹${value}`, "Amount"]} />
+        <Tooltip
+          formatter={(value, name) => {
+            if (name === "average")
+              return [`₹${Number(value).toFixed(2)}`, "Running Avg"];
+            return [`₹${value}`, "Amount"];
+          }}
+        />
+        <Legend />
         <Area
           type="monotone"
           dataKey="amount"
+          name="Amount"
           stroke="#14b8a6"
           fill="#14b8a6"
           fillOpacity={0.3}
         />
-      </AreaChart>
+        <Line
+          type="monotone"
+          dataKey="average"
+          name="Running Avg"
+          stroke="#ffb703"
+          strokeWidth={2}
+          dot={false}
+        />
+      </ComposedChart>
     </ResponsiveContainer>
   </div>
 );
@@ -613,7 +631,7 @@ const LoadingSkeleton = () => (
       <ChartSkeleton />
       <ChartSkeleton />
       <ChartSkeleton />
-      <ChartSkeleton />
+      <ChartSkeleton height={300} />
     </div>
 
     <TableSkeleton />
@@ -901,7 +919,14 @@ const ExpenseReport = () => {
         }));
     }
 
-    return points;
+    // compute running average: at index i -> avg of amounts[0..i]
+    let running = 0;
+    return points.map((p, idx) => {
+      running += Number(p.amount || 0);
+      const avgRaw = running / (idx + 1);
+      const average = Math.round(avgRaw * 100) / 100; // keep only 2 decimals
+      return { ...p, average };
+    });
   }, [analytics.dailyExpenses, selectedTimeframe, trendCursor]);
 
   // navigation handlers for trend cursor

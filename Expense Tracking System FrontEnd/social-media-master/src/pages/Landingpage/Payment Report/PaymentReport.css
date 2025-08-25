@@ -3,11 +3,12 @@
   height: calc(100vh - 100px);
   margin-top: 50px;
   margin-right: 20px;
-  padding: 24px;
+  padding: 0px 24px 24px 24px;
   background: #0f0f0f;
   color: #fff;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative; /* establish stacking context for sticky header */
 }
 
 .payment-methods-report.loading {
@@ -29,6 +30,13 @@
   margin-bottom: 32px;
   padding-bottom: 24px;
   border-bottom: 1px solid #2a2a2a;
+  /* Sticky header within the scrollable report container */
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #0f0f0f;
+  padding-top: 24px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
 }
 
 .header-left h1 {
@@ -175,6 +183,9 @@
   border-radius: 12px;
   padding: 24px;
   transition: box-shadow 0.2s;
+  position: relative;
+  overflow: hidden; /* prevent inner content bleeding over sticky header */
+  z-index: 1; /* keep below sticky header */
 }
 
 .chart-container:hover {
@@ -226,6 +237,85 @@
 
 .performance-table td {
   font-size: 14px;
+}
+
+/* Distribution layout (borrowed from Category Report for consistency) */
+.distribution-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.distribution-left {
+  min-width: 0;
+}
+
+.distribution-right {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-content: start;
+  max-height: 360px;
+  overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.distribution-right::-webkit-scrollbar {
+  display: none;
+}
+
+.category-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.chip-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chip-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.chip-name {
+  color: #ddd;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.chip-right {
+  color: #14b8a6;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.chip-pct {
+  background: rgba(20, 184, 166, 0.12);
+  border: 1px solid rgba(20, 184, 166, 0.25);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+/* Keep Recharts tooltip below sticky header */
+.payment-methods-report .recharts-tooltip-wrapper {
+  z-index: 10 !important; /* header uses 20+ */
 }
 
 .payment-method-cell {
@@ -474,39 +564,23 @@
 }
 
 /* Custom Scrollbar for the main container */
+/* Hidden scrollbars (keep scrolling) to match Category report */
+.payment-methods-report {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
 .payment-methods-report::-webkit-scrollbar {
-  width: 8px;
-}
-
-.payment-methods-report::-webkit-scrollbar-track {
-  background: #1a1a1a;
-}
-
-.payment-methods-report::-webkit-scrollbar-thumb {
-  background: #14b8a6;
-  border-radius: 4px;
-}
-
-.payment-methods-report::-webkit-scrollbar-thumb:hover {
-  background: #06d6a0;
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Custom Scrollbar for performance table */
+/* Hide performance table scrollbar for consistency */
+.performance-table {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
 .performance-table::-webkit-scrollbar {
-  height: 6px;
-}
-
-.performance-table::-webkit-scrollbar-track {
-  background: #1a1a1a;
-}
-
-.performance-table::-webkit-scrollbar-thumb {
-  background: #14b8a6;
-  border-radius: 3px;
-}
-
-.performance-table::-webkit-scrollbar-thumb:hover {
-  background: #06d6a0;
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Responsive Design */
