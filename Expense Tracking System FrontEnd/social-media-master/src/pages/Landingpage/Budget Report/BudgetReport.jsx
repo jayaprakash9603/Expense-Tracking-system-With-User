@@ -1219,7 +1219,6 @@ const BudgetReport = () => {
           <Tab icon={<CompareArrows />} label="Comparison" />
           <Tab icon={<ShowChart />} label="Forecast" />
           <Tab icon={<Analytics />} label="Patterns" />
-          <Tab icon={<Target />} label="Goals" />
           <Tab icon={<MonetizationOn />} label="Expenses" />
         </Tabs>
       </Card>
@@ -1229,7 +1228,10 @@ const BudgetReport = () => {
         {/* Categories Tab */}
         <div className="budget-report-charts-grid">
           {/* Expense Category Breakdown */}
-          <Card className="budget-report-chart-container">
+          <Card
+            className="budget-report-chart-container"
+            style={{ gridColumn: "span 1" }}
+          >
             <CardContent>
               <Typography variant="h6" className="budget-report-chart-title">
                 <PieChartIcon style={{ marginRight: 8 }} />
@@ -1266,7 +1268,10 @@ const BudgetReport = () => {
           </Card>
 
           {/* Category Performance with Budget Variance */}
-          <Card className="budget-report-chart-container">
+          <Card
+            className="budget-report-chart-container"
+            style={{ gridColumn: "span 1" }}
+          >
             <CardContent>
               <Typography variant="h6" className="budget-report-chart-title">
                 <BarChartIcon style={{ marginRight: 8 }} />
@@ -1315,118 +1320,75 @@ const BudgetReport = () => {
             </CardContent>
           </Card>
 
-          {/* Category Trends Over Time */}
+          {/* Enhanced Detailed Breakdown Table */}
           <Card
-            className="budget-report-chart-container"
-            style={{ gridColumn: "1 / -1" }}
+            className="budget-report-breakdown-table"
+            style={{ gridColumn: "span 2" }}
           >
             <CardContent>
-              <Typography variant="h6" className="budget-report-chart-title">
-                <ShowChart style={{ marginRight: 8 }} />
-                Category Spending Trends
+              <Typography variant="h6" className="budget-report-section-title">
+                Detailed Category Breakdown
               </Typography>
-              <Typography
-                variant="body2"
-                className="budget-report-chart-subtitle"
-              >
-                6-month spending trend by category
-              </Typography>
-              <div className="budget-report-chart-body">
-                <ResponsiveContainer width="100%" height={350}>
-                  <LineChart>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                    <XAxis dataKey="month" stroke="#b0b6c3" />
-                    <YAxis stroke="#b0b6c3" />
-                    <Tooltip content={<EnhancedTooltip />} />
-                    <Legend />
-                    {categoryTrends.slice(0, 5).map((category, index) => (
-                      <Line
-                        key={category.category}
-                        type="monotone"
-                        dataKey="amount"
-                        data={category.data}
-                        stroke={expenseColors[index]}
-                        name={category.category}
-                        strokeWidth={2}
-                        dot={{ r: 4 }}
-                        activeDot={{ r: 6 }}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Subcategory Treemap */}
-          <Card className="budget-report-chart-container">
-            <CardContent>
-              <Typography variant="h6" className="budget-report-chart-title">
-                <Analytics style={{ marginRight: 8 }} />
-                Subcategory Breakdown
-              </Typography>
-              <Typography
-                variant="body2"
-                className="budget-report-chart-subtitle"
-              >
-                Hierarchical view of spending by subcategories
-              </Typography>
-              <div className="budget-report-chart-body">
-                <ResponsiveContainer width="100%" height={350}>
-                  <Treemap
-                    data={expenseData.flatMap(
-                      (category) =>
-                        category.subcategories?.map((sub) => ({
-                          name: sub.name,
-                          size: sub.amount,
-                          category: category.name,
-                          fill: category.color,
-                        })) || []
-                    )}
-                    dataKey="size"
-                    ratio={4 / 3}
-                    stroke="#fff"
-                    fill="#8884d8"
-                  />
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Methods Radial Chart */}
-          <Card className="budget-report-chart-container">
-            <CardContent>
-              <Typography variant="h6" className="budget-report-chart-title">
-                <Assessment style={{ marginRight: 8 }} />
-                Payment Methods Analysis
-              </Typography>
-              <Typography
-                variant="body2"
-                className="budget-report-chart-subtitle"
-              >
-                Distribution with transaction details
-              </Typography>
-              <div className="budget-report-chart-body">
-                <ResponsiveContainer width="100%" height={350}>
-                  <RadialBarChart
-                    cx="50%"
-                    cy="50%"
-                    innerRadius="20%"
-                    outerRadius="80%"
-                    data={paymentMethodData}
-                  >
-                    <RadialBar
-                      minAngle={15}
-                      label={{ position: "insideStart", fill: "#fff" }}
-                      background
-                      clockWise
-                      dataKey="amount"
-                      fill={(entry) => entry.color}
-                    />
-                    <Legend />
-                    <Tooltip content={<EnhancedTooltip />} />
-                  </RadialBarChart>
-                </ResponsiveContainer>
+              <div className="budget-report-table-container">
+                <div className="budget-report-table-header">
+                  <div className="budget-report-table-cell">Category</div>
+                  <div className="budget-report-table-cell">Amount</div>
+                  <div className="budget-report-table-cell">Budget</div>
+                  <div className="budget-report-table-cell">Variance</div>
+                  <div className="budget-report-table-cell">Transactions</div>
+                  <div className="budget-report-table-cell">
+                    Avg/Transaction
+                  </div>
+                  <div className="budget-report-table-cell">Trend</div>
+                </div>
+                {expenseData.map((category, index) => (
+                  <div key={index} className="budget-report-table-row">
+                    <div className="budget-report-table-cell">
+                      <div className="budget-report-category-info">
+                        <div
+                          className="budget-report-category-color"
+                          style={{ backgroundColor: category.color }}
+                        />
+                        <span>{category.name}</span>
+                      </div>
+                    </div>
+                    <div className="budget-report-table-cell">
+                      ₹{category.amount.toLocaleString()}
+                    </div>
+                    <div className="budget-report-table-cell">
+                      ₹{category.budgetAllocated.toLocaleString()}
+                    </div>
+                    <div className="budget-report-table-cell">
+                      <span
+                        style={{
+                          color:
+                            category.variance > 0
+                              ? colorScheme.error
+                              : colorScheme.success,
+                        }}
+                      >
+                        {category.variance > 0 ? "+" : ""}₹
+                        {category.variance.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="budget-report-table-cell">
+                      {category.count}
+                    </div>
+                    <div className="budget-report-table-cell">
+                      ₹{Math.round(category.avgPerTransaction).toLocaleString()}
+                    </div>
+                    <div className="budget-report-table-cell">
+                      <div
+                        className={`trend-indicator ${
+                          category.trend > 0 ? "positive" : "negative"
+                        }`}
+                      >
+                        {category.trend > 0 ? <TrendingUp /> : <TrendingDown />}
+                        <span>{Math.abs(category.trend).toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -1692,59 +1654,6 @@ const BudgetReport = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Budget Performance Radar */}
-          <Card className="budget-report-chart-container">
-            <CardContent>
-              <Typography variant="h6" className="budget-report-chart-title">
-                <Target style={{ marginRight: 8 }} />
-                Budget Performance Radar
-              </Typography>
-              <Typography
-                variant="body2"
-                className="budget-report-chart-subtitle"
-              >
-                Multi-dimensional budget analysis
-              </Typography>
-              <div className="budget-report-chart-body">
-                <ResponsiveContainer width="100%" height={350}>
-                  <RadarChart
-                    data={expenseData.map((item) => ({
-                      category: item.name,
-                      budgetUtilization:
-                        (item.amount / item.budgetAllocated) * 100,
-                      transactionFreq: item.count,
-                      avgTransaction: item.avgPerTransaction / 10, // Scaled for visualization
-                      trend: Math.abs(item.trend) * 10, // Scaled for visualization
-                    }))}
-                  >
-                    <PolarGrid stroke="#2a2a2a" />
-                    <PolarAngleAxis
-                      dataKey="category"
-                      tick={{ fill: "#b0b6c3", fontSize: 12 }}
-                    />
-                    <PolarRadiusAxis tick={{ fill: "#b0b6c3", fontSize: 10 }} />
-                    <Radar
-                      name="Budget Utilization %"
-                      dataKey="budgetUtilization"
-                      stroke={colorScheme.primary}
-                      fill={colorScheme.primary}
-                      fillOpacity={0.3}
-                    />
-                    <Radar
-                      name="Transaction Frequency"
-                      dataKey="transactionFreq"
-                      stroke={colorScheme.secondary}
-                      fill={colorScheme.secondary}
-                      fillOpacity={0.2}
-                    />
-                    <Tooltip />
-                    <Legend />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </TabPanel>
 
@@ -1754,7 +1663,7 @@ const BudgetReport = () => {
           {/* Spending Forecast */}
           <Card
             className="budget-report-chart-container"
-            style={{ gridColumn: "span 2" }}
+            style={{ gridColumn: "span 3" }}
           >
             <CardContent>
               <Typography variant="h6" className="budget-report-chart-title">
@@ -1804,7 +1713,10 @@ const BudgetReport = () => {
           </Card>
 
           {/* Budget Projection */}
-          <Card className="budget-report-chart-container">
+          <Card
+            className="budget-report-chart-container"
+            style={{ gridColumn: "span 1" }}
+          >
             <CardContent>
               <Typography variant="h6" className="budget-report-chart-title">
                 <Timeline style={{ marginRight: 8 }} />
@@ -1880,7 +1792,10 @@ const BudgetReport = () => {
           </Card>
 
           {/* Scenario Analysis */}
-          <Card className="budget-report-chart-container">
+          <Card
+            className="budget-report-chart-container"
+            style={{ gridColumn: "span 2" }}
+          >
             <CardContent>
               <Typography variant="h6" className="budget-report-chart-title">
                 <Analytics style={{ marginRight: 8 }} />
@@ -1959,6 +1874,74 @@ const BudgetReport = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Enhanced Insights Section */}
+          <Card
+            className="budget-report-insights-section"
+            style={{ gridColumn: "span 3" }}
+          >
+            <CardContent>
+              <Typography variant="h6" className="budget-report-section-title">
+                <Insights style={{ marginRight: 8 }} />
+                AI-Powered Insights & Recommendations
+              </Typography>
+              <div className="budget-report-insights-grid">
+                {insights.map((insight, index) => (
+                  <div
+                    key={index}
+                    className={`budget-report-insight-card priority-${insight.priority}`}
+                  >
+                    <div className="budget-report-insight-header">
+                      <Avatar
+                        className="budget-report-insight-icon"
+                        style={{ backgroundColor: insight.color }}
+                      >
+                        <insight.icon />
+                      </Avatar>
+                      <div className="insight-title-section">
+                        <Typography
+                          variant="subtitle1"
+                          className="budget-report-insight-title"
+                        >
+                          {insight.title}
+                        </Typography>
+                        <Chip
+                          label={insight.priority}
+                          size="small"
+                          style={{
+                            backgroundColor:
+                              insight.priority === "high"
+                                ? colorScheme.error
+                                : insight.priority === "medium"
+                                ? colorScheme.warning
+                                : colorScheme.success,
+                            color: "#fff",
+                            fontSize: "10px",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <Typography
+                      variant="body2"
+                      className="budget-report-insight-message"
+                    >
+                      {insight.message}
+                    </Typography>
+                    {insight.actionable && (
+                      <div className="insight-suggestion">
+                        <Typography
+                          variant="caption"
+                          style={{ color: colorScheme.info }}
+                        >
+                          💡 {insight.suggestion}
+                        </Typography>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </TabPanel>
 
@@ -1968,7 +1951,7 @@ const BudgetReport = () => {
           {/* Spending Patterns */}
           <Card
             className="budget-report-chart-container"
-            style={{ gridColumn: "span 2" }}
+            style={{ gridColumn: "span 3" }}
           >
             <CardContent>
               <Typography variant="h6" className="budget-report-chart-title">
@@ -2029,7 +2012,10 @@ const BudgetReport = () => {
           </Card>
 
           {/* Transaction Scatter Plot */}
-          <Card className="budget-report-chart-container">
+          <Card
+            className="budget-report-chart-container"
+            style={{ gridColumn: "span 2" }}
+          >
             <CardContent>
               <Typography variant="h6" className="budget-report-chart-title">
                 <ShowChart style={{ marginRight: 8 }} />
@@ -2078,7 +2064,10 @@ const BudgetReport = () => {
           </Card>
 
           {/* Payment Method Efficiency */}
-          <Card className="budget-report-chart-container">
+          <Card
+            className="budget-report-chart-container"
+            style={{ gridColumn: "span 1" }}
+          >
             <CardContent>
               <Typography variant="h6" className="budget-report-chart-title">
                 <Assessment style={{ marginRight: 8 }} />
@@ -2117,188 +2106,6 @@ const BudgetReport = () => {
       </TabPanel>
 
       <TabPanel value={activeTab} index={5}>
-        {/* Goals Tab */}
-        <div className="budget-report-charts-grid">
-          {/* Budget Goals Progress */}
-          <Card
-            className="budget-report-chart-container"
-            style={{ gridColumn: "span 2" }}
-          >
-            <CardContent>
-              <Typography variant="h6" className="budget-report-chart-title">
-                <Target style={{ marginRight: 8 }} />
-                Budget Goals Progress
-              </Typography>
-              <Typography
-                variant="body2"
-                className="budget-report-chart-subtitle"
-              >
-                Track your financial goals and achievements
-              </Typography>
-              <div className="budget-report-chart-body">
-                <div className="goals-grid">
-                  {budgetGoals.map((goal, index) => (
-                    <div key={index} className="goal-card">
-                      <div className="goal-header">
-                        <Typography
-                          variant="subtitle1"
-                          style={{ fontWeight: 600 }}
-                        >
-                          {goal.goal}
-                        </Typography>
-                        <Chip
-                          label={goal.status}
-                          size="small"
-                          style={{
-                            backgroundColor:
-                              goal.status === "on-track"
-                                ? colorScheme.success
-                                : goal.status === "behind"
-                                ? colorScheme.warning
-                                : colorScheme.error,
-                            color: "#fff",
-                          }}
-                        />
-                      </div>
-                      <div className="goal-progress">
-                        <div className="goal-amounts">
-                          <Typography variant="body2">
-                            ₹{goal.current.toLocaleString()} / ₹
-                            {goal.target.toLocaleString()}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            style={{ color: colorScheme.textSecondary }}
-                          >
-                            {goal.progress.toFixed(1)}%
-                          </Typography>
-                        </div>
-                        <LinearProgress
-                          variant="determinate"
-                          value={Math.min(goal.progress, 100)}
-                          sx={{
-                            height: 8,
-                            borderRadius: 4,
-                            backgroundColor: "#2a2a2a",
-                            "& .MuiLinearProgress-bar": {
-                              backgroundColor:
-                                goal.status === "on-track"
-                                  ? colorScheme.success
-                                  : goal.status === "behind"
-                                  ? colorScheme.warning
-                                  : colorScheme.error,
-                              borderRadius: 4,
-                            },
-                          }}
-                        />
-                      </div>
-                      <Typography
-                        variant="caption"
-                        style={{ color: colorScheme.textSecondary }}
-                      >
-                        Deadline: {dayjs(goal.deadline).format("MMM DD, YYYY")}
-                      </Typography>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Goals Achievement Chart */}
-          <Card className="budget-report-chart-container">
-            <CardContent>
-              <Typography variant="h6" className="budget-report-chart-title">
-                <Assessment style={{ marginRight: 8 }} />
-                Goals Achievement
-              </Typography>
-              <Typography
-                variant="body2"
-                className="budget-report-chart-subtitle"
-              >
-                Visual progress tracking
-              </Typography>
-              <div className="budget-report-chart-body">
-                <ResponsiveContainer width="100%" height={350}>
-                  <BarChart data={budgetGoals} layout="horizontal">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-                    <XAxis type="number" stroke="#b0b6c3" domain={[0, 100]} />
-                    <YAxis
-                      dataKey="goal"
-                      type="category"
-                      stroke="#b0b6c3"
-                      width={120}
-                    />
-                    <Tooltip content={<EnhancedTooltip />} />
-                    <Bar
-                      dataKey="progress"
-                      fill={colorScheme.primary}
-                      name="Progress %"
-                    />
-                    <ReferenceLine
-                      x={100}
-                      stroke={colorScheme.success}
-                      strokeDasharray="5 5"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Savings Funnel */}
-          <Card className="budget-report-chart-container">
-            <CardContent>
-              <Typography variant="h6" className="budget-report-chart-title">
-                <TrendingUp style={{ marginRight: 8 }} />
-                Savings Funnel
-              </Typography>
-              <Typography
-                variant="body2"
-                className="budget-report-chart-subtitle"
-              >
-                Money flow from income to savings
-              </Typography>
-              <div className="budget-report-chart-body">
-                <ResponsiveContainer width="100%" height={350}>
-                  <FunnelChart>
-                    <Tooltip />
-                    <Funnel
-                      dataKey="value"
-                      data={[
-                        {
-                          name: "Total Income",
-                          value: 60000,
-                          fill: colorScheme.primary,
-                        },
-                        {
-                          name: "After Fixed Expenses",
-                          value: 50000,
-                          fill: colorScheme.secondary,
-                        },
-                        {
-                          name: "After Variable Expenses",
-                          value: 31500,
-                          fill: colorScheme.warning,
-                        },
-                        {
-                          name: "Available for Savings",
-                          value: 18500,
-                          fill: colorScheme.success,
-                        },
-                      ]}
-                    >
-                      <LabelList position="center" fill="#fff" stroke="none" />
-                    </Funnel>
-                  </FunnelChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={6}>
         {/* Expenses Tab */}
         <div className="budget-report-charts-grid">
           <Card
@@ -2466,137 +2273,6 @@ const BudgetReport = () => {
           </Card>
         </div>
       </TabPanel>
-
-      {/* Enhanced Insights Section */}
-      <Card className="budget-report-insights-section">
-        <CardContent>
-          <Typography variant="h6" className="budget-report-section-title">
-            <Insights style={{ marginRight: 8 }} />
-            AI-Powered Insights & Recommendations
-          </Typography>
-          <div className="budget-report-insights-grid">
-            {insights.map((insight, index) => (
-              <div
-                key={index}
-                className={`budget-report-insight-card priority-${insight.priority}`}
-              >
-                <div className="budget-report-insight-header">
-                  <Avatar
-                    className="budget-report-insight-icon"
-                    style={{ backgroundColor: insight.color }}
-                  >
-                    <insight.icon />
-                  </Avatar>
-                  <div className="insight-title-section">
-                    <Typography
-                      variant="subtitle1"
-                      className="budget-report-insight-title"
-                    >
-                      {insight.title}
-                    </Typography>
-                    <Chip
-                      label={insight.priority}
-                      size="small"
-                      style={{
-                        backgroundColor:
-                          insight.priority === "high"
-                            ? colorScheme.error
-                            : insight.priority === "medium"
-                            ? colorScheme.warning
-                            : colorScheme.success,
-                        color: "#fff",
-                        fontSize: "10px",
-                      }}
-                    />
-                  </div>
-                </div>
-                <Typography
-                  variant="body2"
-                  className="budget-report-insight-message"
-                >
-                  {insight.message}
-                </Typography>
-                {insight.actionable && (
-                  <div className="insight-suggestion">
-                    <Typography
-                      variant="caption"
-                      style={{ color: colorScheme.info }}
-                    >
-                      💡 {insight.suggestion}
-                    </Typography>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Enhanced Detailed Breakdown Table */}
-      <Card className="budget-report-breakdown-table">
-        <CardContent>
-          <Typography variant="h6" className="budget-report-section-title">
-            Detailed Category Breakdown
-          </Typography>
-          <div className="budget-report-table-container">
-            <div className="budget-report-table-header">
-              <div className="budget-report-table-cell">Category</div>
-              <div className="budget-report-table-cell">Amount</div>
-              <div className="budget-report-table-cell">Budget</div>
-              <div className="budget-report-table-cell">Variance</div>
-              <div className="budget-report-table-cell">Transactions</div>
-              <div className="budget-report-table-cell">Avg/Transaction</div>
-              <div className="budget-report-table-cell">Trend</div>
-            </div>
-            {expenseData.map((category, index) => (
-              <div key={index} className="budget-report-table-row">
-                <div className="budget-report-table-cell">
-                  <div className="budget-report-category-info">
-                    <div
-                      className="budget-report-category-color"
-                      style={{ backgroundColor: category.color }}
-                    />
-                    <span>{category.name}</span>
-                  </div>
-                </div>
-                <div className="budget-report-table-cell">
-                  ₹{category.amount.toLocaleString()}
-                </div>
-                <div className="budget-report-table-cell">
-                  ₹{category.budgetAllocated.toLocaleString()}
-                </div>
-                <div className="budget-report-table-cell">
-                  <span
-                    style={{
-                      color:
-                        category.variance > 0
-                          ? colorScheme.error
-                          : colorScheme.success,
-                    }}
-                  >
-                    {category.variance > 0 ? "+" : ""}₹
-                    {category.variance.toLocaleString()}
-                  </span>
-                </div>
-                <div className="budget-report-table-cell">{category.count}</div>
-                <div className="budget-report-table-cell">
-                  ₹{Math.round(category.avgPerTransaction).toLocaleString()}
-                </div>
-                <div className="budget-report-table-cell">
-                  <div
-                    className={`trend-indicator ${
-                      category.trend > 0 ? "positive" : "negative"
-                    }`}
-                  >
-                    {category.trend > 0 ? <TrendingUp /> : <TrendingDown />}
-                    <span>{Math.abs(category.trend).toFixed(1)}%</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

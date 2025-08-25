@@ -5,7 +5,7 @@ import com.jaya.dto.ExpenseDTO;
 import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
 import com.jaya.service.BudgetService;
-import com.jaya.service.FriendShipService;
+import com.jaya.service.FriendshipService;
 import com.jaya.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class BudgetController {
 
 
     @Autowired
-    private FriendShipService friendshipService;
+    private FriendshipService friendshipService;
 
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess) throws Exception {
         if (targetId == null) {
