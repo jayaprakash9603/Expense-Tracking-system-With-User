@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class AsyncExpensePostProcessor {
@@ -51,16 +51,58 @@ public class AsyncExpensePostProcessor {
     public void publishEvent(List<Expense> savedExpenses, Integer userId, User user) {
         if (savedExpenses == null || savedExpenses.isEmpty()) return;
         try {
-            List<CompletableFuture<Void>> futures = savedExpenses.stream()
-                    .map(e -> CompletableFuture.runAsync(
-                            () -> processSingleExpense(e, userId, user),
-                            expensePostExecutor))
-                    .toList();
+            // Process in chunks to avoid spawning one task per expense
+            int chunkSize = 1000;
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            for (int i = 0; i < savedExpenses.size(); i += chunkSize) {
+                int from = i;
+                int to = Math.min(i + chunkSize, savedExpenses.size());
+                List<Expense> chunk = savedExpenses.subList(from, to);
+                futures.add(CompletableFuture.runAsync(() -> {
+                    for (Expense e : chunk) {
+                        processSingleExpense(e, userId, user);
+                    }
+                }, expensePostExecutor));
+            }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             updateExpenseCache(savedExpenses, userId);
             logger.info("Async post-processing completed for {} expenses (user {})", savedExpenses.size(), userId);
         } catch (Exception ex) {
             logger.error("Async parallel post-processing failed: {}", ex.getMessage(), ex);
+        }
+    }
+
+    // Overload with jobId and counters for observability
+    @Async("expensePostExecutor")
+    public void publishEvent(List<Expense> savedExpenses, Integer userId, User user, String jobId) {
+        if (savedExpenses == null || savedExpenses.isEmpty()) return;
+        AtomicInteger pmCount = new AtomicInteger(0);
+        AtomicInteger catCount = new AtomicInteger(0);
+        AtomicInteger budCount = new AtomicInteger(0);
+        AtomicInteger failed = new AtomicInteger(0);
+        try {
+            int chunkSize = 1000;
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            for (int i = 0; i < savedExpenses.size(); i += chunkSize) {
+                int from = i;
+                int to = Math.min(i + chunkSize, savedExpenses.size());
+                List<Expense> chunk = savedExpenses.subList(from, to);
+                futures.add(CompletableFuture.runAsync(() -> {
+                    for (Expense e : chunk) {
+                        processSingleExpenseTracked(e, userId, user, pmCount, catCount, budCount, failed);
+                    }
+                }, expensePostExecutor));
+            }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            updateExpenseCache(savedExpenses, userId);
+            int pm = pmCount.get();
+            int cat = catCount.get();
+            int bud = budCount.get();
+            int total = pm + cat + bud;
+            logger.info("Job {}: total events produced: {} (payment: {}, category: {}, budget: {}), failures: {}, expenses: {} (user {})",
+                    jobId, total, pm, cat, bud, failed.get(), savedExpenses.size(), userId);
+        } catch (Exception ex) {
+            logger.error("Job {}: Async post-processing failed: {}", jobId, ex.getMessage(), ex);
         }
     }
 
@@ -71,6 +113,62 @@ public class AsyncExpensePostProcessor {
             updateBudgetExpenseLinks(e, e.getBudgetIds(), user);
         } catch (Exception ex) {
             logger.error("Failed processing expense {}: {}", e.getId(), ex.getMessage(), ex);
+        }
+    }
+
+    private void processSingleExpenseTracked(Expense savedExpense, Integer userId, User user,
+                                             AtomicInteger pmCount, AtomicInteger catCount,
+                                             AtomicInteger budCount, AtomicInteger failed) {
+        try {
+            // Payment method event
+            ExpenseDetails details = savedExpense.getExpense();
+            if (details != null && details.getPaymentMethod() != null) {
+                String paymentMethodName = details.getPaymentMethod().trim();
+                if (!paymentMethodName.isEmpty()) {
+                    String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
+                    PaymentMethodEvent event = new PaymentMethodEvent(
+                            user.getId(),
+                            savedExpense.getId(),
+                            paymentMethodName,
+                            paymentType,
+                            "Automatically created for expense: " + paymentMethodName,
+                            CASH,
+                            getThemeAppropriateColor("salary"),
+                            "CREATE"
+                    );
+                    paymentMethodKafkaProducer.sendPaymentMethodEvent(event);
+                    pmCount.incrementAndGet();
+                }
+            }
+
+            // Category event
+            if (savedExpense.getCategoryId() != null) {
+                CategoryExpenseEvent event = new CategoryExpenseEvent(
+                        userId,
+                        savedExpense.getId(),
+                        savedExpense.getCategoryId(),
+                        savedExpense.getCategoryName(),
+                        "ADD"
+                );
+                categoryExpenseKafkaProducer.sendCategoryExpenseEvent(event);
+                catCount.incrementAndGet();
+            }
+
+            // Budget event
+            Set<Integer> validBudgetIds = savedExpense.getBudgetIds();
+            if (validBudgetIds != null && !validBudgetIds.isEmpty()) {
+                BudgetExpenseEvent event = new BudgetExpenseEvent(
+                        user.getId(),
+                        savedExpense.getId(),
+                        validBudgetIds,
+                        "ADD"
+                );
+                budgetExpenseKafkaProducerService.sendBudgetExpenseEvent(event);
+                budCount.incrementAndGet();
+            }
+        } catch (Exception ex) {
+            failed.incrementAndGet();
+            logger.error("Failed processing expense {}: {}", savedExpense.getId(), ex.getMessage(), ex);
         }
     }
 

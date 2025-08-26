@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp } from "lucide-react";
 import {
   MoreVertical,
@@ -57,6 +57,8 @@ const ChatTabContent = ({
   const [searchText, setSearchText] = useState("");
   const [pinnedMessages, setPinnedMessages] = useState([]);
   const [localMessages, setLocalMessages] = useState([]);
+  // Local input buffer to avoid re-rendering the whole list on each keystroke
+  const [localInput, setLocalInput] = useState("");
   const debounceTimeout = useRef(null);
   // Search functionality states
   const [searchResults, setSearchResults] = useState([]);
@@ -73,6 +75,10 @@ const ChatTabContent = ({
   const chatContainerRef = useRef(null);
   const messageRefs = useRef({});
   const inputRef = useRef(null);
+
+  // Normalize content from various backend payload shapes
+  const contentOf = (m) =>
+    (m && (m.content ?? m.message ?? m.text ?? m.body ?? "")) || "";
 
   // Handler to check scroll position
   const handleScroll = (e) => {
@@ -99,9 +105,7 @@ const ChatTabContent = ({
       const results = chatMessages
         .map((message, index) => ({ message, index }))
         .filter(({ message }) =>
-          (message.content || "")
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
+          contentOf(message).toLowerCase().includes(searchTerm.toLowerCase())
         );
       setSearchResults(results);
       setCurrentSearchIndex(results.length > 0 ? 0 : -1);
@@ -145,6 +149,12 @@ const ChatTabContent = ({
     if (editingMessage && editInputRef.current) {
       editInputRef.current.focus();
     }
+    // Populate local input when entering edit mode
+    if (editingMessage) {
+      const text = editingMessage.content || "";
+      setLocalInput(text);
+      setChatMessage(text);
+    }
   }, [editingMessage]);
 
   // Search navigation functions
@@ -183,8 +193,9 @@ const ChatTabContent = ({
     if (input) {
       const start = input.selectionStart;
       const end = input.selectionEnd;
-      const newValue =
-        chatMessage.slice(0, start) + emoji + chatMessage.slice(end);
+      const base = localInput ?? "";
+      const newValue = base.slice(0, start) + emoji + base.slice(end);
+      setLocalInput(newValue);
       setChatMessage(newValue);
 
       // Set cursor position after emoji
@@ -193,7 +204,8 @@ const ChatTabContent = ({
         input.setSelectionRange(start + emoji.length, start + emoji.length);
       }, 0);
     } else {
-      setChatMessage((prev) => prev + emoji);
+      setLocalInput((prev) => (prev || "") + emoji);
+      setChatMessage((prev) => (prev || "") + emoji);
     }
   };
 
@@ -265,6 +277,7 @@ const ChatTabContent = ({
     }
     setEditingMessage(null);
     setChatMessage("");
+    setLocalInput("");
   };
 
   const handleReply = (message) => {
@@ -346,6 +359,8 @@ const ChatTabContent = ({
 
   const handleInputChange = (e) => {
     const val = e.target.value;
+    setLocalInput(val);
+    // Only sync to chatMessage (parent state) when editing, so Save works
     setChatMessage(val);
     if (editingMessage) setEditText(val);
   };
@@ -389,6 +404,23 @@ const ChatTabContent = ({
       ? senderId.toString().charCodeAt(0) % colors.length
       : 0;
     return colors[index];
+  };
+
+  // Determine if a message was actually edited
+  const wasEdited = (msg) => {
+    if (!msg) return false;
+    // Prefer server-provided editedAt if present
+    if (msg.editedAt) {
+      try {
+        const edited = new Date(msg.editedAt);
+        const created = new Date(msg.timestamp || msg.createdAt || 0);
+        return !isNaN(edited) && (isNaN(created) || edited > created);
+      } catch (_) {
+        return false;
+      }
+    }
+    // Fall back to boolean flags only when editedAt is not provided
+    return msg.isEdited === true || msg.edited === true;
   };
 
   const shouldShowSenderName = (currentMessage, previousMessage) => {
@@ -515,7 +547,7 @@ const ChatTabContent = ({
 
       <button
         onClick={() => {
-          navigator.clipboard.writeText(message.content);
+          navigator.clipboard.writeText(contentOf(message));
           setContextMenu(null);
         }}
         className="w-full px-4 py-2 text-left text-white hover:bg-gray-700 flex items-center gap-2"
@@ -586,7 +618,8 @@ const ChatTabContent = ({
       const newMap = { ...prev };
       chatMessages.forEach((msg) => {
         if (!(msg.id in newMap)) {
-          newMap[msg.id] = Math.min(2000, (msg.content || "").length);
+          const c = contentOf(msg);
+          newMap[msg.id] = Math.min(2000, (c || "").length);
         }
       });
       return newMap;
@@ -613,13 +646,13 @@ const ChatTabContent = ({
     const isOwn = message.senderId === userId;
     const isEditing = editingMessage?.id === message.id;
     const senderImage = message.image ? message.image : null;
-    const messageContent = message.content || "";
+    const messageContent = contentOf(message);
     const isLong = messageContent.length > 2000;
     const shownChars = getShownChars(message.id, messageContent);
 
     // Increase bubble width for edited/forwarded messages or very short (single-letter) messages
     const bubbleMinWidth =
-      message.isEdited ||
+      wasEdited(message) ||
       message.isForwarded ||
       (messageContent || "").length <= 1
         ? 150
@@ -738,10 +771,9 @@ const ChatTabContent = ({
                   );
                   if (!repliedMessage) return null;
 
+                  const rText = contentOf(repliedMessage) || "";
                   const previewText =
-                    (repliedMessage.content || "").length > 120
-                      ? (repliedMessage.content || "").slice(0, 120) + "..."
-                      : repliedMessage.content || "";
+                    rText.length > 120 ? rText.slice(0, 120) + "..." : rText;
 
                   const handleJumpToReplied = (e) => {
                     e.stopPropagation();
@@ -777,61 +809,48 @@ const ChatTabContent = ({
                 })()}
 
               {/* Message content with show more logic */}
-              {isEditing ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-400 text-xs">Editing...</span>
-                  <button
-                    onClick={() => setEditingMessage(null)}
-                    className="text-gray-400 hover:text-white"
+              {/* Always render original content, even while editing */}
+              {/* Jump-to-replied-message chevron */}
+              {message.replyToMessageId && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    jumpToMessageById(message.replyToMessageId);
+                  }}
+                  title="Jump to replied message"
+                  className="absolute left-2 top-2 p-1 rounded-full hover:bg-gray-600"
+                  style={{ lineHeight: 0 }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {/* Jump-to-replied-message chevron */}
-                  {message.replyToMessageId && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        jumpToMessageById(message.replyToMessageId);
-                      }}
-                      title="Jump to replied message"
-                      className="absolute left-2 top-2 p-1 rounded-full hover:bg-gray-600"
-                      style={{ lineHeight: 0 }}
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M7 17l7-5-7-5v10z"
-                          fill="currentColor"
-                          opacity="0.85"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                  <p className="break-words text-sm leading-relaxed">
-                    {searchTerm
-                      ? highlightText(
-                          messageContent.substring(0, shownChars),
-                          searchTerm
-                        )
-                      : messageContent.substring(0, shownChars)}
-                  </p>
-                  {isLong && shownChars < messageContent.length && (
-                    <button
-                      onClick={() => handleShowMore(message.id, messageContent)}
-                      className="text-xs text-teal-400 mt-1 underline hover:text-teal-300"
-                    >
-                      Show more
-                    </button>
-                  )}
-                </>
+                    <path
+                      d="M7 17l7-5-7-5v10z"
+                      fill="currentColor"
+                      opacity="0.85"
+                    />
+                  </svg>
+                </button>
+              )}
+              <p className="break-words text-sm leading-relaxed">
+                {searchTerm
+                  ? highlightText(
+                      messageContent.substring(0, shownChars),
+                      searchTerm
+                    )
+                  : messageContent.substring(0, shownChars)}
+              </p>
+              {isLong && shownChars < messageContent.length && (
+                <button
+                  onClick={() => handleShowMore(message.id, messageContent)}
+                  className="text-xs text-teal-400 mt-1 underline hover:text-teal-300"
+                >
+                  Show more
+                </button>
               )}
 
               {/* Timestamp & status: show inside bubble, right-aligned and slightly lower */}
@@ -848,7 +867,7 @@ const ChatTabContent = ({
                   textOverflow: "ellipsis",
                 }}
                 title={
-                  (message.isEdited ? "edited " : "") +
+                  (wasEdited(message) ? "edited " : "") +
                   (message.isForwarded ? "forwarded " : "") +
                   formatTime(message.timestamp)
                 }
@@ -864,7 +883,7 @@ const ChatTabContent = ({
                     opacity: 0.8,
                   }}
                 >
-                  {message.isEdited && (
+                  {wasEdited(message) && (
                     <span className="text-[11px] opacity-60">edited</span>
                   )}
                   {message.isForwarded && (
@@ -926,6 +945,54 @@ const ChatTabContent = ({
       </div>
     );
   };
+
+  // Memoize the rendered messages so typing in the input doesn't re-render the full list
+  const renderedMessages = useMemo(() => {
+    const filtered = chatMessages.filter((message) => {
+      const c = contentOf(message);
+      return c && c.trim();
+    });
+    return filtered.map((message, index) => {
+      const previousMessage = index > 0 ? filtered[index - 1] : null;
+      const nextMessage =
+        index < filtered.length - 1 ? filtered[index + 1] : null;
+      const showDateSeparator = shouldShowDateSeparator(
+        message,
+        previousMessage
+      );
+      const showAvatar = shouldShowAvatar(message, nextMessage);
+      const showSenderName = shouldShowSenderName(message, previousMessage);
+      const key =
+        message.id ??
+        message.chatId ??
+        message.messageId ??
+        `${index}-${contentOf(message).slice(0, 20)}-${
+          message.timestamp || ""
+        }`;
+
+      return (
+        <React.Fragment key={key}>
+          {showDateSeparator && <DateSeparator date={message.timestamp} />}
+          <MessageComponent
+            message={message}
+            showAvatar={showAvatar}
+            showSenderName={showSenderName}
+            previousMessage={previousMessage}
+            isLast={index === filtered.length - 1}
+          />
+        </React.Fragment>
+      );
+    });
+  }, [
+    chatMessages,
+    highlightedMessageId,
+    isSelectionMode,
+    selectedMessages,
+    searchTerm,
+    shownCharsMap,
+    pinnedMessages,
+    userId,
+  ]);
 
   return (
     <div
@@ -1035,7 +1102,7 @@ const ChatTabContent = ({
           </div>
           {pinnedMessages.slice(0, 2).map((msg) => (
             <div key={msg.id} className="text-xs text-gray-300 truncate">
-              {getSenderName(msg)}: {msg.content}
+              {getSenderName(msg)}: {contentOf(msg)}
             </div>
           ))}
         </div>
@@ -1048,40 +1115,7 @@ const ChatTabContent = ({
         style={{ scrollbarWidth: "thin", scrollbarColor: "#14b8a6 #2a2a2a" }}
         onScroll={handleScroll}
       >
-        {chatMessages
-          .filter((message) => message.content && message.content.trim())
-          .map((message, index, filteredMessages) => {
-            const previousMessage =
-              index > 0 ? filteredMessages[index - 1] : null;
-            const nextMessage =
-              index < filteredMessages.length - 1
-                ? filteredMessages[index + 1]
-                : null;
-            const showDateSeparator = shouldShowDateSeparator(
-              message,
-              previousMessage
-            );
-            const showAvatar = shouldShowAvatar(message, nextMessage);
-            const showSenderName = shouldShowSenderName(
-              message,
-              previousMessage
-            );
-
-            return (
-              <React.Fragment key={message.id}>
-                {showDateSeparator && (
-                  <DateSeparator date={message.timestamp} />
-                )}
-                <MessageComponent
-                  message={message}
-                  showAvatar={showAvatar}
-                  showSenderName={showSenderName}
-                  previousMessage={previousMessage}
-                  isLast={index === filteredMessages.length - 1}
-                />
-              </React.Fragment>
-            );
-          })}
+        {renderedMessages}
         <div ref={chatEndRef} />
 
         {/* Scroll to bottom arrow */}
@@ -1259,17 +1293,23 @@ const ChatTabContent = ({
             <div className="flex-1 relative">
               <textarea
                 ref={inputRef}
-                value={chatMessage}
+                value={localInput}
                 onChange={handleInputChange}
                 onKeyPress={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
+                    const text = (localInput || "").trim();
+                    if (!text) return;
                     if (editingMessage) {
-                      handleEditSubmit(editingMessage.id, chatMessage);
+                      handleEditSubmit(editingMessage.id, localInput);
                     } else {
-                      handleSendMessage(replyingTo?.id);
+                      // Sync and send
+                      setChatMessage(localInput);
+                      handleSendMessage(replyingTo?.id, localInput);
                       setReplyingTo(null);
                     }
+                    // Clear input after send or edit
+                    setLocalInput("");
                   }
                 }}
                 placeholder={
@@ -1307,9 +1347,9 @@ const ChatTabContent = ({
             {editingMessage ? (
               <button
                 onClick={() => {
-                  handleEditSubmit(editingMessage.id, chatMessage);
+                  handleEditSubmit(editingMessage.id, localInput);
                 }}
-                disabled={!chatMessage.trim()}
+                disabled={!localInput.trim()}
                 className="bg-teal-500 text-white p-3 rounded-lg hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg
@@ -1331,10 +1371,12 @@ const ChatTabContent = ({
             ) : (
               <button
                 onClick={() => {
-                  handleSendMessage(replyingTo?.id);
+                  setChatMessage(localInput);
+                  handleSendMessage(replyingTo?.id, localInput);
                   setReplyingTo(null);
+                  setLocalInput("");
                 }}
-                disabled={!chatMessage.trim()}
+                disabled={!localInput.trim()}
                 className="bg-teal-500 text-white p-3 rounded-lg hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="w-5 h-5" />

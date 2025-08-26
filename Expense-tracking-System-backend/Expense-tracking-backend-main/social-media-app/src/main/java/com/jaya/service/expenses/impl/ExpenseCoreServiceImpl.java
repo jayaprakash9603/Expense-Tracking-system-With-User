@@ -603,7 +603,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 progressTracker.increment(jobId, progressSinceLastUpdate);
             }
 
-            asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user);
+            asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user, jobId);
             return savedExpenses;
         } catch (Exception ex) {
             // Mark job as failed; rethrow for controller to handle
@@ -681,7 +681,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
 
         // Publish events after commit
-        asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user);
+    asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user, jobId);
         return savedExpenses;
     }
 
