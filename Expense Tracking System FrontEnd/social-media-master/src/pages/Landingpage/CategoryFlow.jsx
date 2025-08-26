@@ -39,7 +39,6 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import { CreateCategory } from "../../components/Category";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { createPortal } from "react-dom";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
@@ -65,6 +64,7 @@ import {
   fetchFriendsDetailed,
   fetchFriendship,
 } from "../../Redux/Friends/friendsActions";
+import CreateCategory from "./CreateCategory";
 
 const rangeTypes = [
   { label: "Week", value: "week" },

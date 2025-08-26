@@ -35,6 +35,8 @@ public interface ExpenseService {
     List<Expense> getExpensesByIds(Integer userId, Set<Integer> expenseIds) throws UserException;
     List<Expense>getExpensesByUserAndSort(Integer userId, String sortOrder) throws UserException;
     List<Expense> addMultipleExpenses(List<Expense> expenses, Integer userId) throws Exception;
+        // New: same as addMultipleExpenses but reports progress to a tracker using jobId
+        List<Expense> addMultipleExpensesWithProgress(List<Expense> expenses, Integer userId, String jobId) throws Exception;
 
     List<Expense> getExpensesByCategoryId(Integer categoryId,Integer userId);
     // Add this method to the ExpenseService interface

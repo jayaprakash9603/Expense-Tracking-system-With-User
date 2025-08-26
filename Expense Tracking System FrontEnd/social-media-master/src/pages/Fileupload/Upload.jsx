@@ -12,10 +12,12 @@ import {
 import {
   getExpensesAction,
   saveExpenses,
+  startTrackedSaveExpenses,
 } from "../../Redux/Expenses/expense.action";
 import ExpensesTable from "../Landingpage/ExpensesTable";
 import { useNavigate, useParams } from "react-router";
 import PercentageLoader from "../../components/Loaders/PercentageLoader";
+import { api, API_BASE_URL } from "../../config/api";
 
 const Upload = () => {
   const dispatch = useDispatch();
@@ -25,6 +27,8 @@ const Upload = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [saveProgress, setSaveProgress] = useState(0);
+  const [saveProcessed, setSaveProcessed] = useState(0);
+  const [saveTotal, setSaveTotal] = useState(0);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("");
   const navigate = useNavigate();
@@ -58,31 +62,66 @@ const Upload = () => {
   };
 
   const handleSave = async () => {
-    console.log("handling the save");
-    setSaveProgress(0);
     setIsLoading(true);
     setLoadingMessage("Saving expenses...");
+    setSaveProgress(0);
+    setSaveProcessed(0);
+    setSaveTotal(uploadedData?.length || 0);
 
-    // Simulate progress update during save
-    const interval = setInterval(() => {
-      setSaveProgress((prev) => {
-        console.log("Progress updated to:", prev + 10);
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
+    try {
+      const jobId = await dispatch(
+        startTrackedSaveExpenses(uploadedData, friendId)
+      );
+
+      // Polling loop
+      const poll = async () => {
+        try {
+          const res = await api.get(
+            `/api/expenses/add-multiple/progress/${jobId}`
+          );
+          // Support either direct payload or wrapped under `data`
+          const payload = res?.data?.data ?? res?.data ?? {};
+          const percent =
+            typeof payload.percent === "number"
+              ? payload.percent
+              : typeof payload.percentage === "number"
+              ? payload.percentage
+              : 0;
+          const processed = payload.processed ?? payload.completed ?? 0;
+          const total = payload.total ?? payload.count ?? 0;
+          const status = payload.status ?? payload.state ?? "RUNNING";
+
+          setSaveProgress(Math.max(0, Math.min(100, Number(percent) || 0)));
+          setSaveProcessed(Number(processed) || 0);
+          setSaveTotal(Number(total) || 0);
+
+          if (status === "COMPLETED") {
+            setIsLoading(false);
+            setLoadingMessage("");
+            // Refresh list
+            dispatch(getExpensesAction("desc", friendId));
+            friendId
+              ? navigate(`/friends/expenses/${friendId}`)
+              : navigate("/expenses");
+            return;
+          }
+          if (status === "FAILED") {
+            setIsLoading(false);
+            setLoadingMessage("Failed to save expenses.");
+            return;
+          }
+          // keep polling
+          setTimeout(poll, 750);
+        } catch (e) {
+          // backoff and retry a few times if wanted; keep simple
+          setTimeout(poll, 1500);
         }
-        return prev + 1;
-      });
-    }, 500);
-
-    await dispatch(saveExpenses(uploadedData, friendId));
-    setIsLoading(false);
-    setLoadingMessage("");
-    setSaveProgress(100);
-    console.log("Save operation completed, isLoading set to false");
-    friendId
-      ? navigate(`/friends/expenses/${friendId}`)
-      : navigate("/expenses");
+      };
+      poll();
+    } catch (e) {
+      setIsLoading(false);
+      setLoadingMessage("Failed to start save.");
+    }
   };
 
   const handleUploadStart = () => {
@@ -110,7 +149,7 @@ const Upload = () => {
       setIsLoading(false);
       setUploadProgress(100);
       setLoadingMessage("");
-      dispatch(getExpensesAction(friendId));
+      dispatch(getExpensesAction("desc", friendId));
     }
     if (error) {
       setIsLoading(false);
@@ -263,6 +302,8 @@ const Upload = () => {
             progressColor="#14b8a6"
             textColor="#fff"
             showPercentage={true}
+            processed={isTableVisible ? saveProcessed : null}
+            total={isTableVisible ? saveTotal : null}
           />
 
           {loadingMessage && (

@@ -50,21 +50,21 @@ spring:
     level:
       org:
         hibernate:
-          SQL: DEBUG
+          SQL: INFO
           type:
             descriptor:
               sql:
-                BasicBinder: TRACE
+                BasicBinder: INFO
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         jdbc:
-          batch_size: 100
+          batch_size: 1000
         order_inserts: true
         order_updates: true
         jdbc.batch_versioned_data: true
@@ -74,12 +74,12 @@ spring:
           use_query_cache: false
 
   datasource:
-    url: jdbc:mysql://localhost:5000/expense_tracker?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:5000/expense_tracker?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&cachePrepStmts=true&useServerPrepStmts=true&prepStmtCacheSize=250&prepStmtCacheSqlLimit=2048
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 20
+      maximum-pool-size: 50
       minimum-idle: 5
       connection-timeout: 30000
       idle-timeout: 600000

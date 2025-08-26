@@ -415,6 +415,26 @@ export const saveExpenses = (expenses, targetId) => {
     }
   };
 };
+
+// Start a tracked bulk save and return jobId
+export const startTrackedSaveExpenses = (expenses, targetId) => async () => {
+  const { data } = await api.post(
+    `/api/expenses/add-multiple/tracked`,
+    expenses,
+    {
+      params: { targetId: targetId || "" },
+    }
+  );
+  return data?.jobId;
+};
+
+// Poll progress for a jobId; returns the ProgressStatus
+export const pollSaveProgress = async (jobId) => {
+  const { data } = await api.get(
+    `/api/expenses/add-multiple/progress/${jobId}`
+  );
+  return data; // { jobId, total, processed, percent, status, message }
+};
 export const fetchExpenses =
   (from, to, sortOrder = "desc", targetId) =>
   async (dispatch) => {

@@ -24,6 +24,7 @@ public interface ExpenseCoreService {
 
     // Batch operations
     List<Expense> addMultipleExpenses(List<Expense> expenses, Integer userId) throws Exception;
+    List<Expense> addMultipleExpensesWithProgress(List<Expense> expenses, Integer userId, String jobId) throws Exception;
     List<Expense> updateMultipleExpenses(Integer userId, List<Expense> expenses) throws Exception;
     List<Expense> saveExpenses(List<Expense> expenses);
     List<Expense> saveExpenses(List<ExpenseDTO> expenseDTOs, Integer userId) throws Exception;
