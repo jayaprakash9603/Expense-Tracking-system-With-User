@@ -419,53 +419,125 @@ public class ExcelService {
 
     public List<Expense> parseExcelFile(MultipartFile file) throws IOException {
         List<Expense> expenses = new ArrayList<>();
-        Workbook workbook = WorkbookFactory.create(file.getInputStream());
-        Sheet sheet = workbook.getSheetAt(0);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
 
-        // Read the header row to determine column indices
-        Map<String, Integer> columnIndices = new HashMap<>();
-        Row headerRow = sheet.getRow(0);
-        for (Cell cell : headerRow) {
-            columnIndices.put(cell.getStringCellValue(), cell.getColumnIndex());
-        }
-
-        for (Row row : sheet) {
-            if (row.getRowNum() == 0) {
-                continue; // Skip header row
+            // Read the header row to determine column indices (normalized, case/space-insensitive)
+            Map<String, Integer> columnIndices = new HashMap<>();
+            Row headerRow = sheet.getRow(0);
+            if (headerRow == null) {
+                return expenses; // no rows
             }
-
-            Expense expense = new Expense();
-            ExpenseDetails expenseDetails = new ExpenseDetails();
-
-            String dateStr = getCellValue(row.getCell(columnIndices.get("Date")));
-            if (!dateStr.isEmpty()) {
-                try {
-                    expense.setDate(LocalDate.parse(dateStr, formatter));
-                } catch (DateTimeParseException e) {
-                    // Handle invalid date format
-                    continue; // Skip this row if date is invalid
+            for (Cell cell : headerRow) {
+                String header = getCellValue(cell, evaluator).trim();
+                if (!header.isEmpty()) {
+                    columnIndices.put(normalizeHeader(header), cell.getColumnIndex());
                 }
-            } else {
-                continue; // Skip this row if date is empty
             }
 
-            expenseDetails.setExpenseName(getCellValue(row.getCell(columnIndices.get("Expense Name"))));
-            expenseDetails.setAmount(Double.parseDouble(getCellValue(row.getCell(columnIndices.get("Amount")))));
-            expenseDetails.setType(getCellValue(row.getCell(columnIndices.get("Type"))));
-            expenseDetails.setPaymentMethod(getCellValue(row.getCell(columnIndices.get("Payment Method"))));
-            expenseDetails.setNetAmount(Double.parseDouble(getCellValue(row.getCell(columnIndices.get("Net Amount")))));
-            expenseDetails.setComments(getCellValue(row.getCell(columnIndices.get("Comments"))));
-            expenseDetails.setCreditDue(Double.parseDouble(getCellValue(row.getCell(columnIndices.get("Credit Due")))));
+            // Helper to find a column index by synonyms
+            java.util.function.Function<String[], Integer> findCol = (syns) -> {
+                for (String s : syns) {
+                    Integer idx = columnIndices.get(normalizeHeader(s));
+                    if (idx != null) return idx;
+                }
+                return null;
+            };
 
-            expense.setExpense(expenseDetails);
-            expenseDetails.setExpense(expense);
+            Integer dateCol = findCol.apply(new String[]{"Date", "Transaction Date", "Day"});
+            Integer nameCol = findCol.apply(new String[]{"Expense Name", "Description", "Name", "Expense"});
+            Integer amountCol = findCol.apply(new String[]{"Amount", "Amt", "Value", "Price"});
+            Integer typeCol = findCol.apply(new String[]{"Type"});
+            Integer paymentMethodCol = findCol.apply(new String[]{"Payment Method", "Payment", "Method"});
+            Integer netAmountCol = findCol.apply(new String[]{"Net Amount", "Net"});
+            Integer commentsCol = findCol.apply(new String[]{"Comments", "Comment", "Notes", "Remark"});
+            Integer creditDueCol = findCol.apply(new String[]{"Credit Due", "Credit_Due", "CreditDue", "Credit"});
+            Integer categoryIdCol = findCol.apply(new String[]{"Category ID", "Category_Id", "CategoryId"});
+            Integer categoryNameCol = findCol.apply(new String[]{"Category Name", "Category", "CategoryName"});
 
-            expenses.add(expense);
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0) {
+                    continue; // Skip header row
+                }
+
+                Expense expense = new Expense();
+                ExpenseDetails expenseDetails = new ExpenseDetails();
+
+                // Date (required)
+                String dateStr = dateCol != null ? getCellValue(row.getCell(dateCol), evaluator) : "";
+                if (!dateStr.isEmpty()) {
+                    try {
+                        expense.setDate(LocalDate.parse(dateStr, formatter));
+                    } catch (DateTimeParseException e) {
+                        // If Excel date was numeric and formatted differently, try from cell directly
+                        Cell dc = dateCol != null ? row.getCell(dateCol) : null;
+                        if (dc != null && dc.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(dc)) {
+                            expense.setDate(dc.getLocalDateTimeCellValue().toLocalDate());
+                        } else {
+                            continue; // Skip this row if date is invalid
+                        }
+                    }
+                } else {
+                    // Try Excel date numeric
+                    Cell dc = dateCol != null ? row.getCell(dateCol) : null;
+                    if (dc != null && dc.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(dc)) {
+                        expense.setDate(dc.getLocalDateTimeCellValue().toLocalDate());
+                    } else {
+                        continue; // Skip this row if date is empty
+                    }
+                }
+
+                // Expense Name (fallback to Description)
+                String expName = nameCol != null ? getCellValue(row.getCell(nameCol), evaluator) : "";
+                expenseDetails.setExpenseName(expName);
+
+                // Amount (required)
+                String amountStr = amountCol != null ? getCellValue(row.getCell(amountCol), evaluator) : "";
+                Double amount = parseDoubleSafe(amountStr, null);
+                if (amount == null) {
+                    continue; // amount missing -> skip row
+                }
+                expenseDetails.setAmount(amount);
+
+                // Type (optional)
+                String type = typeCol != null ? getCellValue(row.getCell(typeCol), evaluator) : "";
+                expenseDetails.setType(type);
+
+                // Payment Method (optional)
+                String pMethod = paymentMethodCol != null ? getCellValue(row.getCell(paymentMethodCol), evaluator) : "";
+                expenseDetails.setPaymentMethod(pMethod);
+
+                // Net Amount (optional, fallback to Amount)
+                String netAmountStr = netAmountCol != null ? getCellValue(row.getCell(netAmountCol), evaluator) : "";
+                Double netAmount = parseDoubleSafe(netAmountStr, amount);
+                expenseDetails.setNetAmount(netAmount);
+
+                // Comments (optional)
+                String comments = commentsCol != null ? getCellValue(row.getCell(commentsCol), evaluator) : "";
+                expenseDetails.setComments(comments);
+
+                // Credit Due (optional, default 0.0)
+                String creditDueStr = creditDueCol != null ? getCellValue(row.getCell(creditDueCol), evaluator) : "";
+                Double creditDue = parseDoubleSafe(creditDueStr, 0.0);
+                expenseDetails.setCreditDue(creditDue);
+
+                // Category fields (optional)
+                String categoryIdStr = categoryIdCol != null ? getCellValue(row.getCell(categoryIdCol), evaluator) : "";
+                Integer categoryId = parseIntegerSafe(categoryIdStr, null);
+                expense.setCategoryId(categoryId);
+                String categoryName = categoryNameCol != null ? getCellValue(row.getCell(categoryNameCol), evaluator) : "";
+                expense.setCategoryName(categoryName);
+
+                expense.setExpense(expenseDetails);
+                expenseDetails.setExpense(expense);
+
+                expenses.add(expense);
+            }
+
+            return expenses;
         }
-
-        workbook.close();
-        return expenses;
     }
 
     private String getCellValue(Cell cell) {
@@ -489,6 +561,73 @@ public class ExcelService {
                 return "";
             default:
                 return "";
+        }
+    }
+
+    // Overload that evaluates formulas and normalizes output to String
+    private String getCellValue(Cell cell, FormulaEvaluator evaluator) {
+        if (cell == null) return "";
+        CellType type = cell.getCellType();
+        if (type == CellType.FORMULA && evaluator != null) {
+            type = evaluator.evaluateFormulaCell(cell);
+        }
+        switch (type) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getLocalDateTimeCellValue().toLocalDate().toString();
+                } else {
+                    // Avoid scientific notation surprises
+                    double val = cell.getNumericCellValue();
+                    // trim trailing .0
+                    String s = Double.toString(val);
+                    if (s.endsWith(".0")) s = s.substring(0, s.length() - 2);
+                    return s;
+                }
+            case BOOLEAN:
+                return Boolean.toString(cell.getBooleanCellValue());
+            case BLANK:
+                return "";
+            case ERROR:
+                return "";
+            default:
+                return cell.toString();
+        }
+    }
+
+    private static String normalizeHeader(String header) {
+        return header == null ? "" : header.trim().toLowerCase().replaceAll("[ _-]", "");
+    }
+
+    private static Double parseDoubleSafe(String s, Double defaultVal) {
+        if (s == null) return defaultVal;
+        String t = s.trim();
+        if (t.isEmpty()) return defaultVal;
+        // remove common formatting
+        t = t.replace(",", "");
+        try {
+            return Double.parseDouble(t);
+        } catch (NumberFormatException ex) {
+            return defaultVal;
+        }
+    }
+
+    private static Integer parseIntegerSafe(String s, Integer defaultVal) {
+        if (s == null) return defaultVal;
+        String t = s.trim();
+        if (t.isEmpty()) return defaultVal;
+        t = t.replace(",", "");
+        try {
+            return Integer.parseInt(t);
+        } catch (NumberFormatException ex) {
+            try {
+                // In case the cell had a double like "12.0"
+                Double d = Double.parseDouble(t);
+                return d.intValue();
+            } catch (NumberFormatException ex2) {
+                return defaultVal;
+            }
         }
     }
 }
