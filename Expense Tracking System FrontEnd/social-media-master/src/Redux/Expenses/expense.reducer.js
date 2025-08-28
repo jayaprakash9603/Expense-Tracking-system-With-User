@@ -57,6 +57,9 @@ import {
   COPY_EXPENSE_REQUEST,
   COPY_EXPENSE_SUCCESS,
   COPY_EXPENSE_FAILURE,
+  UPLOAD_CATEGORIES_REQUEST,
+  UPLOAD_CATEGORIES_SUCCESS,
+  UPLOAD_CATEGORIES_FAILURE,
 } from "./expense.actionType";
 
 const initialState = {
@@ -75,6 +78,9 @@ const initialState = {
   cashflowExpenses: [],
   particularDateExpenses: [],
   categoryExpenses: {},
+  uploadCategoriesLoading: false,
+  uploadCategoriesError: null,
+  uploadedCategoriesPreview: [],
 };
 
 export const expenseReducer = (state = initialState, action) => {
@@ -97,6 +103,12 @@ export const expenseReducer = (state = initialState, action) => {
     case FETCH_CATEGORIES_WITH_EXPENSES_REQUEST:
     case COPY_EXPENSE_REQUEST:
       return { ...state, error: null, loading: true };
+    case UPLOAD_CATEGORIES_REQUEST:
+      return {
+        ...state,
+        uploadCategoriesLoading: true,
+        uploadCategoriesError: null,
+      };
 
     // Success actions
 
@@ -105,6 +117,12 @@ export const expenseReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         categoryExpenses: action.payload,
+      };
+    case UPLOAD_CATEGORIES_SUCCESS:
+      return {
+        ...state,
+        uploadCategoriesLoading: false,
+        uploadedCategoriesPreview: action.payload,
       };
 
     case FETCH_CASHFLOW_EXPENSES_SUCCESS:
@@ -227,6 +245,12 @@ export const expenseReducer = (state = initialState, action) => {
         ...state,
         error: action.payload,
         loading: false,
+      };
+    case UPLOAD_CATEGORIES_FAILURE:
+      return {
+        ...state,
+        uploadCategoriesLoading: false,
+        uploadCategoriesError: action.payload,
       };
     case FETCH_PREVIOUS_EXPENSES_REQUEST:
       return {

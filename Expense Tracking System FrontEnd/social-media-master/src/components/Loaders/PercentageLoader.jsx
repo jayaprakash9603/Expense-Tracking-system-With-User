@@ -9,6 +9,8 @@ const PercentageLoader = ({
   textColor = "#000",
   showPercentage = true,
   label = "",
+  processed = null,
+  total = null,
 }) => {
   // Size configurations
   const sizeConfig = {
@@ -89,8 +91,8 @@ const PercentageLoader = ({
         )}
       </Box>
 
-      {/* Optional Label */}
-      {label && (
+      {/* Optional Label or processed/total */}
+      {(label || (processed !== null && total !== null)) && (
         <Typography
           variant="body2"
           sx={{
@@ -99,7 +101,7 @@ const PercentageLoader = ({
             fontSize: config.fontSize,
           }}
         >
-          {label}
+          {label || `${processed} / ${total}`}
         </Typography>
       )}
     </Box>

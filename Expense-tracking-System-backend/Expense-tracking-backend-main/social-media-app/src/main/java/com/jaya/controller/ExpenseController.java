@@ -1,16 +1,19 @@
 package com.jaya.controller;
 
 import com.jaya.dto.User;
+import com.jaya.dto.ProgressStatus;
 import com.jaya.exceptions.UserException;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.*;
 import com.jaya.util.UserPermissionHelper;
+import com.jaya.util.BulkProgressTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -53,6 +56,8 @@ public class ExpenseController {
     private final ExcelService excelService;
     private final EmailService emailService;
     private final UserPermissionHelper permissionHelper;
+    private final BulkProgressTracker progressTracker;
+    private final TaskExecutor taskExecutor;
 
     @Autowired
     public ExpenseController(ExpenseService expenseService,
@@ -63,7 +68,9 @@ public class ExpenseController {
                              ExcelService excelService,
                              EmailService emailService,
                              KafkaProducerService producer,
-                             UserPermissionHelper permissionHelper) {
+                             UserPermissionHelper permissionHelper,
+                             BulkProgressTracker progressTracker,
+                             TaskExecutor taskExecutor) {
         this.expenseService = expenseService;
         this.helper = helper;
         this.userService = userService;
@@ -71,6 +78,8 @@ public class ExpenseController {
         this.excelService = excelService;
         this.emailService = emailService;
         this.permissionHelper = permissionHelper;
+        this.progressTracker = progressTracker;
+        this.taskExecutor = taskExecutor;
     }
 
 
@@ -189,6 +198,47 @@ public class ExpenseController {
             List<Expense> savedExpenses = expenseService.addMultipleExpenses(expenses, targetUser.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(savedExpenses);
 
+    }
+
+    // New: start a tracked bulk import and return a jobId for polling
+    @PostMapping("/add-multiple/tracked")
+    public ResponseEntity<Map<String, String>> addMultipleExpensesTracked(@RequestHeader("Authorization") String jwt,
+                                                                          @RequestBody List<Expense> expenses,
+                                                                          @RequestParam(required = false) Integer targetId) throws Exception {
+        User reqUser = userService.findUserByJwt(jwt);
+        User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+
+        String jobId = progressTracker.start(targetUser.getId(), expenses != null ? expenses.size() : 0, "Bulk import started");
+
+        // Process asynchronously; frontend polls via /progress
+        taskExecutor.execute(() -> {
+            try {
+                List<Expense> saved;
+                try {
+                    saved = expenseService.addMultipleExpensesWithProgress(expenses, targetUser.getId(), jobId);
+                } catch (Exception ex) {
+                    // addMultipleExpensesWithProgress already marks failed; rethrow to outer catch
+                    throw ex;
+                }
+                progressTracker.complete(jobId, "Bulk import completed: " + (saved != null ? saved.size() : 0) + " records");
+            } catch (Exception ex) {
+                progressTracker.fail(jobId, ex.getMessage());
+            }
+        });
+
+        Map<String, String> response = new HashMap<>();
+        response.put("jobId", jobId);
+    return ResponseEntity.accepted().body(response);
+    }
+
+    // New: poll progress by jobId
+    @GetMapping("/add-multiple/progress/{jobId}")
+    public ResponseEntity<ProgressStatus> getAddMultipleProgress(@PathVariable String jobId,
+                                                                 @RequestHeader("Authorization") String jwt) throws Exception {
+        userService.findUserByJwt(jwt); // ensure token is valid; job is user-scoped in tracker
+        ProgressStatus status = progressTracker.get(jobId);
+        if (status == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(status);
     }
 
 
@@ -2009,6 +2059,21 @@ public class ExpenseController {
             }
             return ResponseEntity.ok(expenses);
 
+    }
+
+    @PostMapping("/upload-categories")
+    public ResponseEntity<List<Category>> getCategoryFileContent(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("Authorization") String jwt) throws IOException {
+        userService.findUserByJwt(jwt);
+        List<Category> categories = excelService.parseCategorySummarySheet(file);
+        int i = 0;
+        for (Category category : categories) {
+            // Mirror the expense upload behavior: assign a transient sequential ID for preview
+            category.setId(i++);
+            // Keep parsed fields as-is (name, color, icon, description, global, userIds, editUserIds)
+        }
+        return ResponseEntity.ok(categories);
     }
 
 //    @PostMapping("/delete")

@@ -31,6 +31,18 @@ const inputWrapper = {
   alignItems: "center",
 };
 
+// Normalize UI labels to backend keys
+const normalizePaymentMethod = (pm) => {
+  if (!pm) return "cash";
+  const s = String(pm).toLowerCase().trim();
+  // Support both old label "Credit Need to Paid" and new UI label "Credit Due"
+  if (s.startsWith("credit need") || s.startsWith("credit due"))
+    return "creditNeedToPaid";
+  if (s.startsWith("credit paid")) return "creditPaid";
+  if (s === "cash") return "cash";
+  return pm; // fallback
+};
+
 const NewExpense = ({ onClose, onSuccess }) => {
   const location = useLocation();
   // Get date from query param if present
@@ -117,30 +129,42 @@ const NewExpense = ({ onClose, onSuccess }) => {
   }, [dateFromQuery]);
 
   const fetchSuggestions = (query) => {
-    if (!query.trim()) {
-      setSuggestions([]);
+    const list = Array.isArray(topExpenses) ? topExpenses : [];
+    if (!query || !query.trim()) {
+      // Show a capped list on focus with no query
+      setSuggestions(list.slice(0, 50));
+      setLoadingSuggestions(false);
       return;
     }
 
     setLoadingSuggestions(true);
-
-    const filtered = topExpenses.filter((item) =>
-      item.toLowerCase().includes(query.toLowerCase())
+    const filtered = list.filter((item) =>
+      String(item).toLowerCase().includes(query.toLowerCase())
     );
-
     setSuggestions(filtered);
     setLoadingSuggestions(false);
   };
 
   const highlightText = (text, inputValue) => {
-    const regex = new RegExp(`(${inputValue})`, "gi");
-    return text.split(regex).map((part, index) =>
-      part.toLowerCase() === inputValue.toLowerCase() ? (
-        <span key={index} style={{ fontWeight: 700, color: "#00b8a0" }}>
+    if (!inputValue) return text;
+    const safe = inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${safe})`, "gi");
+    const parts = String(text).split(regex);
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <mark
+          key={i}
+          style={{
+            background: "none",
+            color: "#00dac6",
+            fontWeight: 700,
+            padding: 0,
+          }}
+        >
           {part}
-        </span>
+        </mark>
       ) : (
-        part
+        <span key={i}>{part}</span>
       )
     );
   };
@@ -180,6 +204,13 @@ const NewExpense = ({ onClose, onSuccess }) => {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
+    // Use normalized payment method string for backend
+    const normalizedPm = normalizePaymentMethod(expenseData.paymentMethod);
+
+    // Derive creditDue value based on payment method and amount
+    const amt = parseFloat(expenseData.amount) || 0;
+    const derivedCreditDue = normalizedPm === "creditNeedToPaid" ? amt : 0;
+
     const budgetIds = budgets
       .filter((budget, index) => checkboxStates[index])
       .map((budget) => budget.id);
@@ -194,10 +225,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
             expenseName: expenseData.expenseName,
             amount: expenseData.amount,
             netAmount: expenseData.amount,
-            paymentMethod: expenseData.paymentMethod,
+            paymentMethod: normalizedPm,
             type: expenseData.transactionType.toLowerCase(),
             comments: expenseData.comments,
-            creditDue: expenseData.creditDue || 0,
+            creditDue: derivedCreditDue,
           },
         },
         friendId || ""
@@ -448,10 +479,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
           freeSolo
           autoHighlight
           options={suggestions}
-          loading={loading}
+          loading={loadingSuggestions}
           loadingText="Loading"
-          noOptionsText={expenseData?.expenseName ? "No Data Found" : ""}
+          noOptionsText="No options found"
           value={expenseData?.expenseName || ""}
+          onOpen={() => fetchSuggestions(expenseData?.expenseName || "")}
           onInputChange={(event, newValue) => {
             setExpenseData((prev) => ({ ...prev, expenseName: newValue }));
             fetchSuggestions(newValue);
@@ -468,6 +500,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
           sx={{
             width: "100%",
             maxWidth: "300px",
+            "& .MuiAutocomplete-option": {
+              fontSize: "0.92rem",
+              paddingTop: "4px",
+              paddingBottom: "4px",
+            },
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
                 borderColor: errors.expenseName ? "#ff4d4f" : "rgb(75, 85, 99)",
@@ -489,6 +526,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               error={errors.expenseName}
               InputProps={{
                 ...params.InputProps,
+                className: fieldStyles,
                 endAdornment: (
                   <>
                     {loadingSuggestions ? (
@@ -500,14 +538,23 @@ const NewExpense = ({ onClose, onSuccess }) => {
               }}
             />
           )}
-          renderOption={(props, option, { inputValue }) => {
-            const { key, ...optionProps } = props;
-            return (
-              <li key={key} {...optionProps} className="mb-2 ml-3">
-                <div>{highlightText(option, inputValue)}</div>
-              </li>
-            );
-          }}
+          renderOption={(props, option, { inputValue }) => (
+            <li
+              {...props}
+              style={{
+                fontSize: "0.92rem",
+                paddingTop: 4,
+                paddingBottom: 12,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: 300,
+              }}
+              title={option}
+            >
+              {highlightText(option, inputValue)}
+            </li>
+          )}
         />
       </div>
     </div>
@@ -558,6 +605,32 @@ const NewExpense = ({ onClose, onSuccess }) => {
               }}
             />
           )}
+          renderOption={(props, option, { inputValue }) => (
+            <li
+              {...props}
+              style={{
+                fontSize: "0.92rem",
+                paddingTop: 4,
+                paddingBottom: 12,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: 300,
+              }}
+              title={option.name}
+            >
+              {highlightText(option.name, inputValue)}
+            </li>
+          )}
+          sx={{
+            width: "100%",
+            maxWidth: "300px",
+            "& .MuiAutocomplete-option": {
+              fontSize: "0.92rem",
+              paddingTop: "4px",
+              paddingBottom: "4px",
+            },
+          }}
         />
       </div>
     </div>
@@ -575,7 +648,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={["Cash", "Credit Need to Paid", "Credit Paid"]}
+          options={["Cash", "Credit Due", "Credit Paid"]}
           getOptionLabel={(option) => option}
           value={expenseData.paymentMethod || ""}
           onInputChange={(event, newValue) => {
@@ -596,21 +669,31 @@ const NewExpense = ({ onClose, onSuccess }) => {
               }}
             />
           )}
-          renderOption={(props, option, { inputValue }) => {
-            const { key, ...optionProps } = props;
-            return (
-              <li
-                key={key}
-                {...optionProps}
-                className="flex items-center mb-2 ml-3"
-              >
-                <div>{highlightText(option, inputValue)}</div>
-              </li>
-            );
-          }}
+          renderOption={(props, option, { inputValue }) => (
+            <li
+              {...props}
+              style={{
+                fontSize: "0.92rem",
+                paddingTop: 4,
+                paddingBottom: 12,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: 300,
+              }}
+              title={option}
+            >
+              {highlightText(option, inputValue)}
+            </li>
+          )}
           sx={{
             width: "100%",
             maxWidth: "300px",
+            "& .MuiAutocomplete-option": {
+              fontSize: "0.92rem",
+              paddingTop: "4px",
+              paddingBottom: "4px",
+            },
           }}
         />
       </div>
@@ -656,6 +739,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
           sx={{
             width: "100%",
             maxWidth: "300px",
+            "& .MuiAutocomplete-option": {
+              fontSize: "0.92rem",
+              paddingTop: "4px",
+              paddingBottom: "4px",
+            },
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
                 borderColor: errors.transactionType
@@ -697,18 +785,23 @@ const NewExpense = ({ onClose, onSuccess }) => {
               }}
             />
           )}
-          renderOption={(props, option, { inputValue }) => {
-            const { key, ...optionProps } = props;
-            return (
-              <li
-                key={key}
-                {...optionProps}
-                className="flex items-center mb-2 ml-3"
-              >
-                <div>{highlightText(option, inputValue)}</div>
-              </li>
-            );
-          }}
+          renderOption={(props, option, { inputValue }) => (
+            <li
+              {...props}
+              style={{
+                fontSize: "0.92rem",
+                paddingTop: 4,
+                paddingBottom: 12,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: 300,
+              }}
+              title={option}
+            >
+              {highlightText(option, inputValue)}
+            </li>
+          )}
         />
       </div>
     </div>

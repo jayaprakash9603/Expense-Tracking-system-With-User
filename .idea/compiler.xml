@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="expenses-service" />
         <module name="Category-Service" />
+        <module name="Budget-Service" />
         <module name="Notification-Service" />
         <module name="FriendShip-Service" />
         <module name="Bill-Service" />
@@ -16,6 +17,7 @@
         <module name="Chat-Service" />
         <module name="User-service" />
         <module name="Audit-Service (2)" />
+        <module name="Payment-Method" />
         <module name="Audit-Service (1)" />
         <module name="Payment-method-Service" />
         <module name="Audit-Service" />
@@ -26,15 +28,8 @@
     <bytecodeTargetLevel>
       <module name="Audit-Service (1)" target="17" />
       <module name="Audit-Service (2)" target="17" />
-      <module name="Category-Service" target="17" />
-      <module name="Chat-Service" target="17" />
-      <module name="eureka-server" target="17" />
-      <module name="FriendShip-Service" target="17" />
-      <module name="gateway" target="17" />
-      <module name="Notification-Service" target="17" />
       <module name="Payment-method-Service" target="17" />
       <module name="Submission-service" target="17" />
-      <module name="User-service" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -44,10 +39,12 @@
       <module name="Audit-Service (1)" options="-parameters" />
       <module name="Audit-Service (2)" options="-parameters" />
       <module name="Bill-Service" options="-parameters" />
+      <module name="Budget-Service" options="-parameters" />
       <module name="Category-Service" options="-parameters" />
       <module name="Chat-Service" options="-parameters" />
       <module name="FriendShip-Service" options="-parameters" />
       <module name="Notification-Service" options="-parameters" />
+      <module name="Payment-Method" options="-parameters" />
       <module name="Payment-method-Service" options="-parameters" />
       <module name="Submission-service" options="-parameters" />
       <module name="User-service" options="-parameters" />

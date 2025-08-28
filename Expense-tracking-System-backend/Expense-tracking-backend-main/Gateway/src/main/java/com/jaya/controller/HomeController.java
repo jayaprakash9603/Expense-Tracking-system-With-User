@@ -11,9 +11,9 @@ public class HomeController {
 
 
 
-    @GetMapping("/gateway")
+    @GetMapping("")
     public ResponseEntity<String>home()
     {
-        return new ResponseEntity<>("welcome to submission service", HttpStatus.OK);
+        return new ResponseEntity<>("welcome to gateway service", HttpStatus.OK);
     }
 }

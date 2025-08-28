@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import FileUploadModal from "../Fileupload/FileUploadModal";
 import {
@@ -8,25 +8,37 @@ import {
   CircularProgress,
   Backdrop,
   IconButton,
+  Switch,
 } from "@mui/material";
+import PreviewDataGrid from "../../components/PreviewDataGrid";
 import {
   getExpensesAction,
   saveExpenses,
+  startTrackedSaveExpenses,
+  uploadCategoriesFile,
 } from "../../Redux/Expenses/expense.action";
 import ExpensesTable from "../Landingpage/ExpensesTable";
 import { useNavigate, useParams } from "react-router";
 import PercentageLoader from "../../components/Loaders/PercentageLoader";
+import { api, API_BASE_URL } from "../../config/api";
 
 const Upload = () => {
   const dispatch = useDispatch();
   const [isModalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("expenses");
   const [uploadedData, setUploadedData] = useState([]);
   const [isTableVisible, setIsTableVisible] = useState(false);
+  const [isCatTableVisible, setIsCatTableVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [categorySearchText, setCategorySearchText] = useState("");
   const [saveProgress, setSaveProgress] = useState(0);
+  const [saveProcessed, setSaveProcessed] = useState(0);
+  const [saveTotal, setSaveTotal] = useState(0);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("");
+  const [uploadedCategories, setUploadedCategories] = useState([]);
+  const catFileInputRef = useRef(null);
   const navigate = useNavigate();
 
   const { friendId } = useParams();
@@ -37,7 +49,8 @@ const Upload = () => {
     error = null,
   } = useSelector((state) => state.fileUpload || {});
 
-  const openModal = () => {
+  const openModal = (mode = "expenses") => {
+    setModalMode(mode);
     setModalOpen(true);
     setIsLoading(false);
     setUploadProgress(0);
@@ -57,32 +70,73 @@ const Upload = () => {
     setSearchText("");
   };
 
+  const hideCategoryTable = () => {
+    setIsCatTableVisible(false);
+    setUploadedCategories([]);
+    setCategorySearchText("");
+  };
+
   const handleSave = async () => {
-    console.log("handling the save");
-    setSaveProgress(0);
     setIsLoading(true);
     setLoadingMessage("Saving expenses...");
+    setSaveProgress(0);
+    setSaveProcessed(0);
+    setSaveTotal(uploadedData?.length || 0);
 
-    // Simulate progress update during save
-    const interval = setInterval(() => {
-      setSaveProgress((prev) => {
-        console.log("Progress updated to:", prev + 10);
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
+    try {
+      const jobId = await dispatch(
+        startTrackedSaveExpenses(uploadedData, friendId)
+      );
+
+      // Polling loop
+      const poll = async () => {
+        try {
+          const res = await api.get(
+            `/api/expenses/add-multiple/progress/${jobId}`
+          );
+          // Support either direct payload or wrapped under `data`
+          const payload = res?.data?.data ?? res?.data ?? {};
+          const percent =
+            typeof payload.percent === "number"
+              ? payload.percent
+              : typeof payload.percentage === "number"
+              ? payload.percentage
+              : 0;
+          const processed = payload.processed ?? payload.completed ?? 0;
+          const total = payload.total ?? payload.count ?? 0;
+          const status = payload.status ?? payload.state ?? "RUNNING";
+
+          setSaveProgress(Math.max(0, Math.min(100, Number(percent) || 0)));
+          setSaveProcessed(Number(processed) || 0);
+          setSaveTotal(Number(total) || 0);
+
+          if (status === "COMPLETED") {
+            setIsLoading(false);
+            setLoadingMessage("");
+            // Refresh list
+            dispatch(getExpensesAction("desc", friendId));
+            friendId
+              ? navigate(`/friends/expenses/${friendId}`)
+              : navigate("/expenses");
+            return;
+          }
+          if (status === "FAILED") {
+            setIsLoading(false);
+            setLoadingMessage("Failed to save expenses.");
+            return;
+          }
+          // keep polling
+          setTimeout(poll, 750);
+        } catch (e) {
+          // backoff and retry a few times if wanted; keep simple
+          setTimeout(poll, 1500);
         }
-        return prev + 1;
-      });
-    }, 500);
-
-    await dispatch(saveExpenses(uploadedData, friendId));
-    setIsLoading(false);
-    setLoadingMessage("");
-    setSaveProgress(100);
-    console.log("Save operation completed, isLoading set to false");
-    friendId
-      ? navigate(`/friends/expenses/${friendId}`)
-      : navigate("/expenses");
+      };
+      poll();
+    } catch (e) {
+      setIsLoading(false);
+      setLoadingMessage("Failed to start save.");
+    }
   };
 
   const handleUploadStart = () => {
@@ -102,6 +156,8 @@ const Upload = () => {
     }, 1000);
   };
 
+  const openCategoryFilePicker = () => openModal("categories");
+
   useEffect(() => {
     if (success && data?.length) {
       console.log("Uploaded data:", data);
@@ -110,7 +166,7 @@ const Upload = () => {
       setIsLoading(false);
       setUploadProgress(100);
       setLoadingMessage("");
-      dispatch(getExpensesAction(friendId));
+      dispatch(getExpensesAction("desc", friendId));
     }
     if (error) {
       setIsLoading(false);
@@ -131,6 +187,13 @@ const Upload = () => {
     console.log("Filtered expenses:", filtered);
     return filtered;
   }, [uploadedData, searchText]);
+
+  const filteredCategories = useMemo(() => {
+    if (!categorySearchText) return uploadedCategories;
+    return uploadedCategories.filter((c) =>
+      (c?.name || "").toLowerCase().includes(categorySearchText.toLowerCase())
+    );
+  }, [uploadedCategories, categorySearchText]);
 
   return (
     <>
@@ -211,16 +274,132 @@ const Upload = () => {
                 </button>
               </div>
             </div>
+          ) : isCatTableVisible && uploadedCategories.length > 0 ? (
+            <PreviewDataGrid
+              rows={filteredCategories || []}
+              columns={[
+                {
+                  field: "displayId",
+                  headerName: "ID",
+                  width: 90,
+                  valueGetter: (value, row, column, apiRef) => {
+                    const fn =
+                      apiRef?.current?.getRowIndexRelativeToVisibleRows ||
+                      apiRef?.current?.getRowIndex;
+                    const idx = typeof fn === "function" ? fn(row?.id) : 0;
+                    return (typeof idx === "number" ? idx : 0) + 1;
+                  },
+                  sortable: false,
+                },
+                {
+                  field: "name",
+                  headerName: "Name",
+                  flex: 1,
+                  minWidth: 140,
+                  editable: true,
+                },
+                {
+                  field: "color",
+                  headerName: "Color",
+                  flex: 1,
+                  minWidth: 140,
+                  editable: true,
+                  renderCell: (params) => (
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
+                      <span
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: 3,
+                          background: params.value || "#999",
+                          border: "1px solid #444",
+                          display: "inline-block",
+                        }}
+                      />
+                      <span>{params.value || ""}</span>
+                    </div>
+                  ),
+                },
+                {
+                  field: "icon",
+                  headerName: "Icon",
+                  width: 110,
+                  minWidth: 100,
+                  editable: true,
+                },
+                {
+                  field: "description",
+                  headerName: "Description",
+                  flex: 2,
+                  minWidth: 280,
+                  editable: true,
+                },
+
+                {
+                  field: "global",
+                  headerName: "Global",
+                  width: 140,
+                  renderCell: (params) => {
+                    const checked = !!(
+                      params.row?.global ?? params.row?.isGlobal
+                    );
+                    return (
+                      <Switch
+                        size="small"
+                        checked={checked}
+                        onChange={(e) => {
+                          const value = e.target.checked;
+                          setUploadedCategories((prev) =>
+                            (prev || []).map((c) =>
+                              c.id === params.row.id
+                                ? { ...c, global: value, isGlobal: value }
+                                : c
+                            )
+                          );
+                        }}
+                        inputProps={{ "aria-label": "Toggle Global" }}
+                      />
+                    );
+                  },
+                  sortable: false,
+                },
+              ]}
+              onCancel={hideCategoryTable}
+              onSave={null}
+              saveDisabled
+              saveLabel="Save (coming soon)"
+              height={700}
+              marginTop={50}
+              onCellEditCommit={(params) => {
+                const { id, field, value } = params || {};
+                if (!id || !field) return;
+                setUploadedCategories((prev) =>
+                  (prev || []).map((c) =>
+                    c.id === id ? { ...c, [field]: value } : c
+                  )
+                );
+              }}
+            />
           ) : (
             <div className="flex justify-center items-center h-full">
               <div className="relative w-full h-[60vh] sm:h-[80vh]">
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <button
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
-                    onClick={openModal}
-                  >
-                    Upload File
-                  </button>
+                  <div className="flex flex-col gap-3 items-center">
+                    <button
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
+                      onClick={openModal}
+                    >
+                      Upload Expenses
+                    </button>
+                    <button
+                      className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
+                      onClick={openCategoryFilePicker}
+                    >
+                      Upload Categories
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -230,6 +409,15 @@ const Upload = () => {
             isOpen={isModalOpen}
             onClose={closeModal}
             onUploadStart={handleUploadStart}
+            mode={modalMode}
+            onSuccess={(cats) => {
+              const list = Array.isArray(cats) ? cats : [];
+              setUploadedCategories(list);
+              setIsCatTableVisible(true);
+              setIsLoading(false);
+              setUploadProgress(100);
+              setLoadingMessage("");
+            }}
           />
         </div>
 
@@ -263,6 +451,8 @@ const Upload = () => {
             progressColor="#14b8a6"
             textColor="#fff"
             showPercentage={true}
+            processed={isTableVisible ? saveProcessed : null}
+            total={isTableVisible ? saveTotal : null}
           />
 
           {loadingMessage && (

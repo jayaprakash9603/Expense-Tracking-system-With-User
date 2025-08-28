@@ -304,6 +304,7 @@ const EditCategory = () => {
         setInitialLoading(true);
         await dispatch(fetchCategoryById(id, friendId || ""));
         // Remove the fetchCategoryExpenses call from here
+        await dispatch(fetchCategoryExpenses(id, 1, 1000, friendId || ""));
       } catch (error) {
         console.error("Error fetching category data:", error);
         setErrors((prevErrors) => ({
@@ -592,18 +593,20 @@ const EditCategory = () => {
                 InputProps={{
                   startAdornment: (
                     <>
-                      {categoryData.selectedIconKey ? (
-                        React.cloneElement(
-                          CATEGORY_ICONS[categoryData.selectedIconKey],
-                          {
+                      {(() => {
+                        const el =
+                          categoryData.selectedIconKey &&
+                          CATEGORY_ICONS[categoryData.selectedIconKey];
+                        return React.isValidElement(el) ? (
+                          React.cloneElement(el, {
                             sx: { mr: 1, color: categoryData.color },
-                          }
-                        )
-                      ) : (
-                        <CategoryIcon
-                          sx={{ mr: 1, color: categoryData.color }}
-                        />
-                      )}
+                          })
+                        ) : (
+                          <CategoryIcon
+                            sx={{ mr: 1, color: categoryData.color }}
+                          />
+                        );
+                      })()}
                     </>
                   ),
                   style: { color: "white" },
@@ -923,15 +926,31 @@ const EditCategory = () => {
                                 : {},
                           }}
                         >
-                          {React.cloneElement(CATEGORY_ICONS[iconKey], {
-                            style: {
-                              color:
-                                categoryData.selectedIconKey === iconKey
-                                  ? categoryData.color
-                                  : "white",
-                              fontSize: "26px",
-                            },
-                          })}
+                          {(() => {
+                            const el = CATEGORY_ICONS[iconKey];
+                            if (React.isValidElement(el)) {
+                              return React.cloneElement(el, {
+                                style: {
+                                  color:
+                                    categoryData.selectedIconKey === iconKey
+                                      ? categoryData.color
+                                      : "white",
+                                  fontSize: "26px",
+                                },
+                              });
+                            }
+                            return (
+                              <CategoryIcon
+                                sx={{
+                                  color:
+                                    categoryData.selectedIconKey === iconKey
+                                      ? categoryData.color
+                                      : "white",
+                                  fontSize: "26px",
+                                }}
+                              />
+                            );
+                          })()}
                         </Box>
                       ))}
                     </Box>

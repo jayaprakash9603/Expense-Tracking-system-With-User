@@ -22,7 +22,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -69,8 +68,6 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
 
         if (expenseOptional != null) {
             Expense expense = expenseOptional;
-
-
             String expenseName = expense.getExpense().getExpenseName();
             String comments = expense.getExpense().getComments();
 
@@ -102,50 +99,79 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         List<Expense> expenses = expenseRepository.findByUserId(userId);
 
         User user = helper.validateUser(userId);
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Expenses");
+        try (Workbook workbook = new XSSFWorkbook()) {
+        Sheet expensesSheet = workbook.createSheet("Expenses");
+        Map<Integer, Category> categoryCache = preloadCategories(userId);
+        writeExpensesHeader(expensesSheet);
+        writeExpensesRows(expensesSheet, expenses);
+        autosizeColumns(expensesSheet, 14);
 
-        // Create header row with additional category columns
+        Sheet summarySheet = workbook.createSheet("Category Summary");
+        writeCategorySummaryHeader(summarySheet);
+        Map<Integer, Double> categoryTotals = computeCategoryTotals(expenses);
+        Map<Integer, Integer> categoryCounts = computeCategoryCounts(expenses);
+        writeCategorySummaryRows(summarySheet, categoryTotals, categoryCounts, categoryCache);
+        autosizeColumns(summarySheet, 10);
+
+        Sheet paymentMethodSheet = workbook.createSheet("Payment Method Summary");
+        writePaymentMethodHeader(paymentMethodSheet);
+        Map<String, Double> pmTotals = computePaymentMethodTotals(expenses);
+        Map<String, Integer> pmCounts = computePaymentMethodCounts(expenses);
+        writePaymentMethodRows(paymentMethodSheet, pmTotals, pmCounts);
+        autosizeColumns(paymentMethodSheet, 3);
+
+        Sheet budgetSheet = workbook.createSheet("Budgets");
+        writeBudgetHeader(budgetSheet);
+        List<Budget> budgets = budgetService.getAllBudgetForUser(userId);
+        writeBudgetRows(budgetSheet, budgets);
+        autosizeColumns(budgetSheet, 9);
+
+        String filePath = buildReportPath(user, userId);
+        writeWorkbookToFile(workbook, filePath);
+        return filePath;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // --- helpers: expenses sheet ---
+    private void writeExpensesHeader(Sheet sheet) {
         Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Expense Name");
-        headerRow.createCell(1).setCellValue("Payment Method");
-        headerRow.createCell(2).setCellValue("Amount");
-        headerRow.createCell(3).setCellValue("Net Amount");
-        headerRow.createCell(4).setCellValue("Credit Due");
-        headerRow.createCell(5).setCellValue("Type");
-        headerRow.createCell(6).setCellValue("Date");
-        headerRow.createCell(7).setCellValue("Category ID");
-        headerRow.createCell(8).setCellValue("Comments");
+    headerRow.createCell(0).setCellValue("Expense ID");
+    headerRow.createCell(1).setCellValue("Expense Name");
+    headerRow.createCell(2).setCellValue("Payment Method");
+    headerRow.createCell(3).setCellValue("Amount");
+    headerRow.createCell(4).setCellValue("Net Amount");
+    headerRow.createCell(5).setCellValue("Credit Due");
+    headerRow.createCell(6).setCellValue("Type");
+    headerRow.createCell(7).setCellValue("Date");
+    headerRow.createCell(8).setCellValue("Category ID");
+    headerRow.createCell(9).setCellValue("Category Name");
+    headerRow.createCell(10).setCellValue("Comments");
+    }
 
-        // Create a map to cache category information to avoid repeated database lookups
-        Map<Integer, Category> categoryCache = new HashMap<>();
-
+    private void writeExpensesRows(Sheet sheet, List<Expense> expenses) {
         int rowNum = 1;
         for (Expense expense : expenses) {
             ExpenseDetails details = expense.getExpense();
             if (details == null) continue;
-
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(expense.getId());
+            row.createCell(0).setCellValue(expense.getId() != null ? expense.getId() : 0);
             row.createCell(1).setCellValue(details.getExpenseName());
             row.createCell(2).setCellValue(details.getPaymentMethod());
             row.createCell(3).setCellValue(details.getAmount());
             row.createCell(4).setCellValue(details.getNetAmount());
             row.createCell(5).setCellValue(details.getCreditDue());
             row.createCell(6).setCellValue(details.getType());
-            row.createCell(7).setCellValue(expense.getDate().toString());
+            row.createCell(7).setCellValue(expense.getDate() != null ? expense.getDate().toString() : "");
             row.createCell(8).setCellValue(expense.getCategoryId() != null ? expense.getCategoryId() : 0);
-            row.createCell(9).setCellValue(details.getComments() != null ? details.getComments() : "");
+            row.createCell(9).setCellValue(expense.getCategoryName() != null ? expense.getCategoryName() : "Others");
+            row.createCell(10).setCellValue(details.getComments() != null ? details.getComments() : "");
         }
+    }
 
-
-        // Auto-size columns for better readability
-        for (int i = 0; i < 14; i++) {
-            sheet.autoSizeColumn(i);
-        }
-
-        // Create a summary sheet
-        Sheet summarySheet = workbook.createSheet("Category Summary");
+    // --- helpers: category summary ---
+    private void writeCategorySummaryHeader(Sheet summarySheet) {
         Row summaryHeader = summarySheet.createRow(0);
         summaryHeader.createCell(0).setCellValue("Category ID");
         summaryHeader.createCell(1).setCellValue("Category Name");
@@ -157,43 +183,48 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         summaryHeader.createCell(7).setCellValue("Number of Expenses");
         summaryHeader.createCell(8).setCellValue("User Ids");
         summaryHeader.createCell(9).setCellValue("Edited UserIds");
+    }
 
-        // Calculate totals by category
-        Map<Integer, Double> categoryTotals = new HashMap<>();
-        Map<Integer, Integer> categoryExpenseCounts = new HashMap<>();
-
+    private Map<Integer, Double> computeCategoryTotals(List<Expense> expenses) {
+        Map<Integer, Double> totals = new HashMap<>();
         for (Expense expense : expenses) {
             Integer categoryId = expense.getCategoryId();
             if (categoryId == null) categoryId = 0;
-
             double amount = expense.getExpense() != null ? expense.getExpense().getAmount() : 0;
-            categoryTotals.put(categoryId, categoryTotals.getOrDefault(categoryId, 0.0) + amount);
-            categoryExpenseCounts.put(categoryId, categoryExpenseCounts.getOrDefault(categoryId, 0) + 1);
+            totals.put(categoryId, totals.getOrDefault(categoryId, 0.0) + amount);
         }
+        return totals;
+    }
 
-        // Write summary data
-        int summaryRowNum = 1;
+    private Map<Integer, Integer> computeCategoryCounts(List<Expense> expenses) {
+        Map<Integer, Integer> counts = new HashMap<>();
+        for (Expense expense : expenses) {
+            Integer categoryId = expense.getCategoryId();
+            if (categoryId == null) categoryId = 0;
+            counts.put(categoryId, counts.getOrDefault(categoryId, 0) + 1);
+        }
+        return counts;
+    }
 
-        List<Category> categories = categoryService.getAllForUser(userId);
-        for (Map.Entry<Integer, Double> entry : categoryTotals.entrySet()) {
+    private void writeCategorySummaryRows(Sheet sheet, Map<Integer, Double> totals, Map<Integer, Integer> counts, Map<Integer, Category> cache) {
+        int rowNum = 1;
+        for (Map.Entry<Integer, Double> entry : totals.entrySet()) {
             Integer categoryId = entry.getKey();
             Double totalAmount = entry.getValue();
-            Integer expenseCount = categoryExpenseCounts.get(categoryId);
+            Integer expenseCount = counts.get(categoryId);
 
-            Row row = summarySheet.createRow(summaryRowNum++);
+            Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(categoryId);
 
-            // Get category details
             String categoryName = "Uncategorized";
             String categoryColor = "";
             String categoryIcon = "";
             String categoryDescription = "";
-            Set<Integer> expenseIds = new HashSet<>();
             boolean isGlobal = false;
             Set<Integer> editedUserIds = new HashSet<>();
             Set<Integer> userIds = new HashSet<>();
-            if (categoryId > 0) {
-                Category category = categoryCache.get(categoryId);
+            if (categoryId != null && categoryId > 0) {
+                Category category = cache.get(categoryId);
                 if (category != null) {
                     categoryName = category.getName();
                     categoryColor = category.getColor();
@@ -211,73 +242,76 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
             row.createCell(4).setCellValue(categoryDescription);
             row.createCell(5).setCellValue(isGlobal);
             row.createCell(6).setCellValue(totalAmount);
-            row.createCell(7).setCellValue(expenseCount);
+            row.createCell(7).setCellValue(expenseCount != null ? expenseCount : 0);
             row.createCell(8).setCellValue(userIds != null ? userIds.toString() : "[]");
             row.createCell(9).setCellValue(editedUserIds != null ? editedUserIds.toString() : "[]");
         }
+    }
 
-        // Auto-size summary columns
-        for (int i = 0; i < 10; i++) {
-            summarySheet.autoSizeColumn(i);
-        }
+    // --- helpers: payment method summary ---
+    private void writePaymentMethodHeader(Sheet sheet) {
+        Row header = sheet.createRow(0);
+        header.createCell(0).setCellValue("Payment Method");
+        header.createCell(1).setCellValue("Total Amount");
+        header.createCell(2).setCellValue("Number of Expenses");
+    }
 
-        // Create a payment method summary sheet
-        Sheet paymentMethodSheet = workbook.createSheet("Payment Method Summary");
-        Row paymentMethodHeader = paymentMethodSheet.createRow(0);
-        paymentMethodHeader.createCell(0).setCellValue("Payment Method");
-        paymentMethodHeader.createCell(1).setCellValue("Total Amount");
-        paymentMethodHeader.createCell(2).setCellValue("Number of Expenses");
-
-        // Calculate totals by payment method
-        Map<String, Double> paymentMethodTotals = new HashMap<>();
-        Map<String, Integer> paymentMethodCounts = new HashMap<>();
-
+    private Map<String, Double> computePaymentMethodTotals(List<Expense> expenses) {
+        Map<String, Double> totals = new HashMap<>();
         for (Expense expense : expenses) {
-            if (expense.getExpense() != null) {
-                String paymentMethod = expense.getExpense().getPaymentMethod();
-                if (paymentMethod != null && !paymentMethod.isEmpty()) {
-                    double amount = expense.getExpense().getAmount();
-                    paymentMethodTotals.put(paymentMethod, paymentMethodTotals.getOrDefault(paymentMethod, 0.0) + amount);
-                    paymentMethodCounts.put(paymentMethod, paymentMethodCounts.getOrDefault(paymentMethod, 0) + 1);
-                }
-            }
+            ExpenseDetails details = expense.getExpense();
+            if (details == null) continue;
+            String method = details.getPaymentMethod();
+            if (method == null || method.isEmpty()) continue;
+            double amount = details.getAmount();
+            totals.put(method, totals.getOrDefault(method, 0.0) + amount);
         }
+        return totals;
+    }
 
-        // Write payment method summary data
-        int paymentMethodRowNum = 1;
-        for (Map.Entry<String, Double> entry : paymentMethodTotals.entrySet()) {
-            String paymentMethod = entry.getKey();
+    private Map<String, Integer> computePaymentMethodCounts(List<Expense> expenses) {
+        Map<String, Integer> counts = new HashMap<>();
+        for (Expense expense : expenses) {
+            ExpenseDetails details = expense.getExpense();
+            if (details == null) continue;
+            String method = details.getPaymentMethod();
+            if (method == null || method.isEmpty()) continue;
+            counts.put(method, counts.getOrDefault(method, 0) + 1);
+        }
+        return counts;
+    }
+
+    private void writePaymentMethodRows(Sheet sheet, Map<String, Double> totals, Map<String, Integer> counts) {
+        int rowNum = 1;
+        for (Map.Entry<String, Double> entry : totals.entrySet()) {
+            String method = entry.getKey();
             Double totalAmount = entry.getValue();
-            Integer expenseCount = paymentMethodCounts.get(paymentMethod);
-
-            Row row = paymentMethodSheet.createRow(paymentMethodRowNum++);
-            row.createCell(0).setCellValue(paymentMethod);
+            Integer count = counts.get(method);
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(method);
             row.createCell(1).setCellValue(totalAmount);
-            row.createCell(2).setCellValue(expenseCount);
+            row.createCell(2).setCellValue(count != null ? count : 0);
         }
+    }
 
-        // Auto-size payment method columns
-        for (int i = 0; i < 3; i++) {
-            paymentMethodSheet.autoSizeColumn(i);
-        }
+    // --- helpers: budgets sheet ---
+    private void writeBudgetHeader(Sheet sheet) {
+        Row header = sheet.createRow(0);
+        header.createCell(0).setCellValue("Budget ID");
+        header.createCell(1).setCellValue("Name");
+        header.createCell(2).setCellValue("Description");
+        header.createCell(3).setCellValue("Amount");
+        header.createCell(4).setCellValue("Remaining Amount");
+        header.createCell(5).setCellValue("Start Date");
+        header.createCell(6).setCellValue("End Date");
+        header.createCell(7).setCellValue("Has Expenses");
+        header.createCell(8).setCellValue("Expenses Ids");
+    }
 
-
-        List<Budget> budgets = budgetService.getAllBudgetForUser(userId);
-        Sheet budgetSheet = workbook.createSheet("Budgets");
-        Row budgetHeader = budgetSheet.createRow(0);
-        budgetHeader.createCell(0).setCellValue("Budget ID");
-        budgetHeader.createCell(1).setCellValue("Name");
-        budgetHeader.createCell(2).setCellValue("Description");
-        budgetHeader.createCell(3).setCellValue("Amount");
-        budgetHeader.createCell(4).setCellValue("Remaining Amount");
-        budgetHeader.createCell(5).setCellValue("Start Date");
-        budgetHeader.createCell(6).setCellValue("End Date");
-        budgetHeader.createCell(7).setCellValue("Has Expenses");
-        budgetHeader.createCell(8).setCellValue("Expenses Ids");
-
-        int budgetRowNum = 1;
+    private void writeBudgetRows(Sheet sheet, List<Budget> budgets) {
+        int rowNum = 1;
         for (Budget budget : budgets) {
-            Row row = budgetSheet.createRow(budgetRowNum++);
+            Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(budget.getId());
             row.createCell(1).setCellValue(budget.getName());
             row.createCell(2).setCellValue(budget.getDescription());
@@ -288,35 +322,45 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
             row.createCell(7).setCellValue(budget.isBudgetHasExpenses());
             row.createCell(8).setCellValue(budget.getExpenseIds() != null ? budget.getExpenseIds().toString() : "");
         }
-        for (int i = 0; i < 9; i++) {
-            budgetSheet.autoSizeColumn(i);
+    }
+
+    // --- helpers: categories cache and utilities ---
+    private Map<Integer, Category> preloadCategories(Integer userId) throws Exception {
+        Map<Integer, Category> cache = new HashMap<>();
+        List<Category> categories = categoryService.getAllForUser(userId);
+        if (categories != null) {
+            for (Category c : categories) {
+                if (c != null && c.getId() != null) {
+                    cache.put(c.getId(), c);
+                }
+            }
         }
-        // Create the file
-        String emailPrefix = user.getEmail().split("@")[0];  // Get the part before '@' in the email address
+        return cache;
+    }
+
+    private void autosizeColumns(Sheet sheet, int count) {
+        for (int i = 0; i < count; i++) {
+            sheet.autoSizeColumn(i);
+        }
+    }
+
+    private String buildReportPath(User user, Integer userId) {
+        String emailPrefix = user.getEmail().split("@")[0];
         String userFolderName = emailPrefix + "_" + userId;
         String userFolderPath = Paths.get(System.getProperty("user.home"), "reports", userFolderName).toString();
-
         File userFolder = new File(userFolderPath);
         if (!userFolder.exists()) {
             userFolder.mkdirs();
         }
-
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
         String timestamp = dateFormat.format(new Date());
-        String filePath = Paths.get(userFolderPath, "expenses_report_" + timestamp + ".xlsx").toString();
+        return Paths.get(userFolderPath, "expenses_report_" + timestamp + ".xlsx").toString();
+    }
 
+    private void writeWorkbookToFile(Workbook workbook, String filePath) throws IOException {
         try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
             workbook.write(fileOut);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
-
-
-        workbook.close();
-
-        return filePath;
     }
 
     @Override

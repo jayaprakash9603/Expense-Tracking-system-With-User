@@ -1,7 +1,7 @@
 package com.jaya.util;
 import com.jaya.dto.User;
 import com.jaya.exceptions.UserException;
-import com.jaya.service.FriendShipService;;
+import com.jaya.service.FriendShipService;
 import com.jaya.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

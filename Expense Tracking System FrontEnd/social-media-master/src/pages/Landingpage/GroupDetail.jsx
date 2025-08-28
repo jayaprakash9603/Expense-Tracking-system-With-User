@@ -39,6 +39,7 @@ import {
   editChatMessage,
 } from "../../Redux/chats/chatActions";
 import { replyToChat } from "../../Redux/chats/chatActions";
+import { createStompClient } from "../../services/stomp";
 
 const GroupDetail = ({
   groupData: groupDataProp,
@@ -112,6 +113,10 @@ const GroupDetail = ({
   );
   const [chatMessages, setChatMessages] = useState([]);
 
+  // STOMP client refs
+  const stompClientRef = useRef(null);
+  const stompSubRef = useRef(null);
+
   // Fetch chat messages from API when group id changes
   useEffect(() => {
     if (id) {
@@ -125,6 +130,53 @@ const GroupDetail = ({
       setChatMessages(groupChatMessages);
     }
   }, [groupChatMessages]);
+
+  // Live group chat subscription via STOMP
+  useEffect(() => {
+    // Ensure group id is present
+    if (!id) return;
+
+    // Create client and connect
+    const sc = createStompClient();
+    stompClientRef.current = sc;
+
+    sc.activate(() => {
+      // Subscribe to the group's topic so all members receive new messages instantly
+      const sub = sc.subscribe(`/topic/group/${id}`, (payload) => {
+        // Defensive: ignore empty payloads
+        if (!payload) return;
+
+        setChatMessages((prev) => {
+          // Avoid duplicates by id if present
+          const msgId = payload.id ?? payload.messageId ?? payload.chatId;
+          if (
+            msgId &&
+            prev.some((m) => (m.id ?? m.messageId ?? m.chatId) === msgId)
+          ) {
+            return prev;
+          }
+          return [...prev, payload];
+        });
+      });
+      stompSubRef.current = sub;
+    });
+
+    // Cleanup on group change / unmount
+    return () => {
+      try {
+        if (stompSubRef.current) {
+          stompSubRef.current.unsubscribe();
+          stompSubRef.current = null;
+        }
+      } catch (_) {}
+      try {
+        if (stompClientRef.current) {
+          stompClientRef.current.deactivate();
+          stompClientRef.current = null;
+        }
+      } catch (_) {}
+    };
+  }, [id]);
 
   // Modal states
   const [showAddMember, setShowAddMember] = useState(false);
@@ -404,17 +456,15 @@ const GroupDetail = ({
   };
 
   // Event handlers
-  const handleSendMessage = (replyId) => {
-    if (chatMessage.trim()) {
+  const handleSendMessage = (replyId, content) => {
+    const text = (content ?? chatMessage ?? "").trim();
+    if (text) {
       if (replyId) {
-        dispatch(replyToChat(replyId, chatMessage)).then(() => {
-          dispatch(fetchGroupChat(id));
-        });
+        // Server will publish reply to the topic; rely on STOMP update
+        dispatch(replyToChat(replyId, text));
       } else {
-        dispatch(sendGroupChat(id, chatMessage)).then(() => {
-          // Fetch latest group chat after sending
-          dispatch(fetchGroupChat(id));
-        });
+        // Server will publish to /topic/group/{id}; rely on STOMP update
+        dispatch(sendGroupChat(id, text));
       }
 
       setChatMessage("");

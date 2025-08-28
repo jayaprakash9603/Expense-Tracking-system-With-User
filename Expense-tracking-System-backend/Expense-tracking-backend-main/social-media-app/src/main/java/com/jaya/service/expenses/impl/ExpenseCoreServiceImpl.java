@@ -19,19 +19,23 @@ import com.jaya.service.*;
 import com.jaya.service.expenses.ExpenseCoreService;
 import com.jaya.util.JsonConverter;
 import com.jaya.util.ServiceHelper;
+import com.jaya.util.BulkProgressTracker;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.FlushModeType;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -66,6 +70,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     private EntityManager entityManager;
 
     @Autowired
+    private jakarta.persistence.EntityManagerFactory entityManagerFactory;
+
+    @Autowired
     private BudgetServices budgetService;
 
     @Autowired
@@ -89,6 +96,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Autowired
     private BudgetExpenseKafkaProducerService budgetExpenseKafkaProducerService;
+
+    @Autowired
+    private BulkProgressTracker progressTracker;
 
     public ExpenseCoreServiceImpl(ExpenseRepository expenseRepository, ExpenseReportRepository expenseReportRepository) {
         this.expenseRepository = expenseRepository;
@@ -512,6 +522,272 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user);
 
         return savedExpenses;
+    }
+
+    @Override
+    @Transactional
+    public List<Expense> addMultipleExpensesWithProgress(List<Expense> expenses, Integer userId, String jobId) throws Exception {
+        User user = helper.validateUser(userId);
+    // Reduce unnecessary flush work during batch processing
+    entityManager.setFlushMode(FlushModeType.COMMIT);
+        // For very large loads, switch to Hibernate StatelessSession (no first-level cache, no dirty checking)
+        final int STATELESS_THRESHOLD = 20_000;
+        if (expenses.size() >= STATELESS_THRESHOLD) {
+            return addMultipleExpensesWithProgressStateless(expenses, userId, jobId, user);
+        }
+        // Use a larger batch to leverage Hibernate + MySQL batched statements
+        final int batchSize = 1000;
+        int count = 0;
+        List<Expense> savedExpenses = new ArrayList<>(Math.min(expenses.size(), 10_000));
+
+    // Caches to drastically reduce DB lookups inside the loop
+    Map<Integer, Budget> budgetCache = new HashMap<>();
+    // Cache category lookups by ID and by Name; store Optional.empty() for negative lookups to avoid repeated calls
+    Map<Integer, Optional<Category>> categoryIdCache = new HashMap<>();
+    Map<String, Optional<Category>> categoryNameCache = new HashMap<>();
+
+        // Resolve or create 'Others' category once per user (used as a fast fallback)
+        Category othersCategory = null;
+        try {
+            List<Category> others = categoryService.getByName(OTHERS, user.getId());
+            if (others != null && !others.isEmpty()) {
+                othersCategory = others.get(0);
+            }
+        } catch (Exception ignore) { }
+        if (othersCategory == null) {
+            try {
+                othersCategory = createOthersCategory(user.getId());
+            } catch (Exception e) {
+                logger.warn("Failed to ensure 'Others' category exists: {}", e.getMessage());
+            }
+        }
+
+        // Coalesce progress updates to avoid contention
+        final int progressStep = 250; // update progress every 250 rows
+        int progressSinceLastUpdate = 0;
+
+        try {
+            for (Expense expense : expenses) {
+                expense.setId(null);
+                expense.setUserId(userId);
+                if (expense.getExpense() != null) {
+                    expense.getExpense().setId(null);
+                    expense.getExpense().setExpense(expense);
+                }
+                if (expense.getBudgetIds() == null) expense.setBudgetIds(new HashSet<>());
+                // Use cached budget validation to minimize DB round-trips
+                Set<Integer> validBudgetIds = validateAndExtractBudgetIdsCached(expense, user, budgetCache);
+                expense.setBudgetIds(validBudgetIds);
+                // Use fast category handler with local caches and preloaded 'Others'
+                handleCategoryFast(expense, user, categoryIdCache, categoryNameCache, othersCategory);
+
+                entityManager.persist(expense);
+                savedExpenses.add(expense);
+
+                // Coalesced progress updates
+                if (++progressSinceLastUpdate >= progressStep) {
+                    progressTracker.increment(jobId, progressSinceLastUpdate);
+                    progressSinceLastUpdate = 0;
+                }
+
+                if (++count % batchSize == 0) {
+                    entityManager.flush();
+                    entityManager.clear();
+                }
+            }
+            entityManager.flush();
+            entityManager.clear();
+
+            // Flush remaining progress counts
+            if (progressSinceLastUpdate > 0) {
+                progressTracker.increment(jobId, progressSinceLastUpdate);
+            }
+
+            asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user, jobId);
+            return savedExpenses;
+        } catch (Exception ex) {
+            // Mark job as failed; rethrow for controller to handle
+            progressTracker.fail(jobId, ex.getMessage());
+            throw ex;
+        }
+    }
+
+    // Ultra-fast bulk insert using Hibernate StatelessSession (bypasses persistence context overhead).
+    private List<Expense> addMultipleExpensesWithProgressStateless(List<Expense> expenses, Integer userId, String jobId, User user) throws Exception {
+        SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+        List<Expense> savedExpenses = new ArrayList<>(expenses.size());
+
+        // Caches to reduce cross-service lookups
+        Map<Integer, Budget> budgetCache = new HashMap<>();
+        Map<Integer, Optional<Category>> categoryIdCache = new HashMap<>();
+        Map<String, Optional<Category>> categoryNameCache = new HashMap<>();
+
+        // Ensure Others category once
+        Category othersCategory = null;
+        try {
+            List<Category> others = categoryService.getByName(OTHERS, user.getId());
+            if (others != null && !others.isEmpty()) othersCategory = others.get(0);
+        } catch (Exception ignore) {}
+        if (othersCategory == null) {
+            try { othersCategory = createOthersCategory(user.getId()); } catch (Exception ignore) {}
+        }
+
+        final int progressStep = 1000; // larger step to minimize overhead
+        int progressSinceLastUpdate = 0;
+
+        try (StatelessSession session = sessionFactory.openStatelessSession()) {
+            Transaction tx = session.beginTransaction();
+            try {
+                for (Expense expense : expenses) {
+                    // Normalize entity graph
+                    expense.setId(null);
+                    expense.setUserId(userId);
+
+                    ExpenseDetails details = expense.getExpense();
+                    if (details != null) {
+                        details.setId(null);
+                        details.setExpense(expense);
+                    }
+
+                    if (expense.getBudgetIds() == null) expense.setBudgetIds(new HashSet<>());
+                    Set<Integer> validBudgetIds = validateAndExtractBudgetIdsCached(expense, user, budgetCache);
+                    expense.setBudgetIds(validBudgetIds);
+
+                    handleCategoryFast(expense, user, categoryIdCache, categoryNameCache, othersCategory);
+
+                    // Insert parent
+                    session.insert(expense);
+
+                    // Insert child manually (no cascade in stateless mode)
+                    if (details != null) {
+                        session.insert(details);
+                    }
+
+                    savedExpenses.add(expense);
+
+                    if (++progressSinceLastUpdate >= progressStep) {
+                        progressTracker.increment(jobId, progressSinceLastUpdate);
+                        progressSinceLastUpdate = 0;
+                    }
+                }
+                if (progressSinceLastUpdate > 0) {
+                    progressTracker.increment(jobId, progressSinceLastUpdate);
+                }
+                tx.commit();
+            } catch (Exception e) {
+                if (tx != null) tx.rollback();
+                throw e;
+            }
+        }
+
+        // Publish events after commit
+    asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user, jobId);
+        return savedExpenses;
+    }
+
+    // Fast path for budget validation leveraging a method-local cache to avoid repeated service calls.
+    private Set<Integer> validateAndExtractBudgetIdsCached(Expense expense, User user, Map<Integer, Budget> budgetCache) {
+        Set<Integer> validBudgetIds = new HashSet<>();
+        if (expense.getBudgetIds() == null || expense.getBudgetIds().isEmpty()) return validBudgetIds;
+
+        LocalDate expenseDate = expense.getDate();
+        for (Integer budgetId : expense.getBudgetIds()) {
+            if (budgetId == null) continue;
+            Budget budget = budgetCache.get(budgetId);
+            if (budget == null) {
+                try {
+                    budget = budgetService.getBudgetById(budgetId, user.getId());
+                    if (budget != null) {
+                        budgetCache.put(budgetId, budget);
+                    }
+                } catch (Exception ignore) {
+                    // skip invalid budget ids
+                }
+            }
+            if (budget != null && !expenseDate.isBefore(budget.getStartDate()) && !expenseDate.isAfter(budget.getEndDate())) {
+                validBudgetIds.add(budgetId);
+            }
+        }
+        return validBudgetIds;
+    }
+
+    // Fast category resolver with memoization for ID and Name; caches negative lookups to avoid repeated DB calls.
+    private void handleCategoryFast(Expense expense, User user,
+                                    Map<Integer, Optional<Category>> categoryIdCache,
+                                    Map<String, Optional<Category>> categoryNameCache,
+                                    Category othersCategory) {
+        try {
+            // 1) Try by ID if provided
+            Integer categoryId = expense.getCategoryId();
+            if (categoryId != null) {
+                // Treat non-positive IDs as invalid without any DB call
+                if (categoryId <= 0) {
+                    categoryIdCache.putIfAbsent(categoryId, Optional.empty());
+                } else {
+                    Optional<Category> cachedById = categoryIdCache.get(categoryId);
+                    if (cachedById == null) {
+                        // Cache miss: fetch once
+                        Category found = null;
+                        try {
+                            found = categoryService.getById(categoryId, user.getId());
+                        } catch (Exception ignore) {}
+                        cachedById = Optional.ofNullable(found);
+                        categoryIdCache.put(categoryId, cachedById);
+                        if (found != null && found.getName() != null) {
+                            categoryNameCache.putIfAbsent(found.getName().trim().toLowerCase(Locale.ROOT), Optional.of(found));
+                        }
+                    }
+                    if (cachedById.isPresent()) {
+                        Category cat = cachedById.get();
+                        expense.setCategoryId(cat.getId());
+                        expense.setCategoryName(cat.getName());
+                        return;
+                    }
+                }
+            }
+
+            // 2) Try by Name if present (and ID wasn't resolved)
+            String categoryName = expense.getCategoryName();
+            if (categoryName != null && !categoryName.trim().isEmpty()) {
+                String key = categoryName.trim().toLowerCase(Locale.ROOT);
+                Optional<Category> cachedByName = categoryNameCache.get(key);
+                if (cachedByName == null) {
+                    Category found = null;
+                    try {
+                        List<Category> matches = categoryService.getByName(categoryName.trim(), user.getId());
+                        if (matches != null && !matches.isEmpty()) {
+                            // Prefer exact (case-insensitive) match when multiple are returned
+                            found = matches.stream()
+                                    .filter(c -> c.getName() != null && c.getName().equalsIgnoreCase(categoryName.trim()))
+                                    .findFirst()
+                                    .orElse(matches.get(0));
+                        }
+                    } catch (Exception ignore) {}
+                    cachedByName = Optional.ofNullable(found);
+                    categoryNameCache.put(key, cachedByName);
+                    if (found != null) {
+                        categoryIdCache.putIfAbsent(found.getId(), Optional.of(found));
+                    }
+                }
+                if (cachedByName.isPresent()) {
+                    Category cat = cachedByName.get();
+                    expense.setCategoryId(cat.getId());
+                    expense.setCategoryName(cat.getName());
+                    return;
+                }
+            }
+
+            // 3) Fallback to preloaded Others category; do not perform any extra DB round-trips here
+            if (othersCategory != null) {
+                expense.setCategoryId(othersCategory.getId());
+                expense.setCategoryName(othersCategory.getName());
+            } else {
+                // As a last resort, defer to the existing logic (rare path)
+                handleCategory(expense, user);
+            }
+        } catch (Exception e) {
+            logger.warn("Category handling fallback triggered: {}", e.getMessage());
+        }
     }
 
     @Override

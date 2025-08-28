@@ -119,6 +119,11 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    public List<Expense> addMultipleExpensesWithProgress(List<Expense> expenses, Integer userId, String jobId) throws Exception {
+        return expenseCoreService.addMultipleExpensesWithProgress(expenses, userId, jobId);
+    }
+
+    @Override
     public List<Expense> updateMultipleExpenses(Integer userId, List<Expense> expenses) throws Exception {
         return expenseCoreService.updateMultipleExpenses(userId, expenses);
     }
