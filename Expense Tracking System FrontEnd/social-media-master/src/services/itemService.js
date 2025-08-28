@@ -119,6 +119,4 @@ export async function searchItems(term = "") {
   );
 }
 
-const itemService = { getAllItems, searchItems };
-
-export default itemService;
+export default { getAllItems, searchItems };

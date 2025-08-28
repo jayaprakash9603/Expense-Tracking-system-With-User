@@ -20,8 +20,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class ExcelService {
@@ -540,6 +542,115 @@ public class ExcelService {
         }
     }
 
+    /**
+     * Parse the "Category Summary" sheet (exported by ExpenseReportServiceImpl) and return Categories.
+     * Expected headers (case/space-insensitive):
+     * - Category ID, Category Name, Category Color, Category Icon, Category Description,
+     *   Is Global, Total Amount, Number of Expenses, User Ids, Edited UserIds
+     */
+    public List<Category> parseCategorySummarySheet(MultipartFile file) throws IOException {
+        List<Category> categories = new ArrayList<>();
+        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+            Sheet sheet = workbook.getSheet("Category Summary");
+            if (sheet == null) {
+                return categories; // no such sheet
+            }
+
+            FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+
+            // Build header map
+            Map<String, Integer> columnIndices = new HashMap<>();
+            Row headerRow = sheet.getRow(0);
+            if (headerRow == null) {
+                return categories;
+            }
+            for (Cell cell : headerRow) {
+                String header = getCellValue(cell, evaluator).trim();
+                if (!header.isEmpty()) {
+                    columnIndices.put(normalizeHeader(header), cell.getColumnIndex());
+                }
+            }
+
+            java.util.function.Function<String[], Integer> findCol = (syns) -> {
+                for (String s : syns) {
+                    Integer idx = columnIndices.get(normalizeHeader(s));
+                    if (idx != null) return idx;
+                }
+                return null;
+            };
+
+            Integer idCol = findCol.apply(new String[]{"Category ID", "CategoryId", "Category_Id"});
+            Integer nameCol = findCol.apply(new String[]{"Category Name", "CategoryName", "Name"});
+            Integer colorCol = findCol.apply(new String[]{"Category Color", "Color"});
+            Integer iconCol = findCol.apply(new String[]{"Category Icon", "Icon"});
+            Integer descCol = findCol.apply(new String[]{"Category Description", "Description"});
+            Integer globalCol = findCol.apply(new String[]{"Is Global", "Global"});
+            Integer userIdsCol = findCol.apply(new String[]{"User Ids", "UserIds", "Users"});
+            Integer editUserIdsCol = findCol.apply(new String[]{"Edited UserIds", "Edit UserIds", "EditedUsers"});
+
+            // Iterate rows
+            int lastRow = sheet.getLastRowNum();
+            for (int r = 1; r <= lastRow; r++) {
+                Row row = sheet.getRow(r);
+                if (row == null) continue;
+
+                Category c = new Category();
+
+                // ID
+                if (idCol != null) {
+                    String s = getCellValue(row.getCell(idCol), evaluator);
+                    Integer id = parseIntegerSafe(s, null);
+                    c.setId(id);
+                }
+
+                // Name
+                if (nameCol != null) {
+                    c.setName(getCellValue(row.getCell(nameCol), evaluator));
+                }
+
+                // Color
+                if (colorCol != null) {
+                    c.setColor(getCellValue(row.getCell(colorCol), evaluator));
+                }
+
+                // Icon
+                if (iconCol != null) {
+                    c.setIcon(getCellValue(row.getCell(iconCol), evaluator));
+                }
+
+                // Description
+                if (descCol != null) {
+                    c.setDescription(getCellValue(row.getCell(descCol), evaluator));
+                }
+
+                // Global
+                if (globalCol != null) {
+                    String gs = getCellValue(row.getCell(globalCol), evaluator);
+                    Boolean gb = parseBooleanSafe(gs, false);
+                    c.setGlobal(gb);
+                }
+
+                // User Ids
+                if (userIdsCol != null) {
+                    String s = getCellValue(row.getCell(userIdsCol), evaluator);
+                    Set<Integer> ids = parseIntegerSet(s);
+                    if (ids != null) c.setUserIds(ids);
+                }
+
+                // Edited User Ids
+                if (editUserIdsCol != null) {
+                    String s = getCellValue(row.getCell(editUserIdsCol), evaluator);
+                    Set<Integer> ids = parseIntegerSet(s);
+                    if (ids != null) c.setEditUserIds(ids);
+                }
+
+                categories.add(c);
+            }
+
+            return categories;
+        }
+    }
+
     private String getCellValue(Cell cell) {
         if (cell == null) {
             return "";
@@ -629,5 +740,31 @@ public class ExcelService {
                 return defaultVal;
             }
         }
+    }
+
+    private static Boolean parseBooleanSafe(String s, Boolean defaultVal) {
+        if (s == null) return defaultVal;
+        String t = s.trim().toLowerCase();
+        if (t.isEmpty()) return defaultVal;
+        if (t.equals("true") || t.equals("yes") || t.equals("1")) return true;
+        if (t.equals("false") || t.equals("no") || t.equals("0")) return false;
+        return defaultVal;
+    }
+
+    private static Set<Integer> parseIntegerSet(String s) {
+        if (s == null) return new HashSet<>();
+        String t = s.trim();
+        if (t.isEmpty()) return new HashSet<>();
+        // Expect formats like "[1, 2, 3]" or "1,2,3" or single number
+        if (t.startsWith("[") && t.endsWith("]")) {
+            t = t.substring(1, t.length() - 1);
+        }
+        String[] parts = t.split(",");
+        Set<Integer> out = new HashSet<>();
+        for (String p : parts) {
+            Integer v = parseIntegerSafe(p, null);
+            if (v != null) out.add(v);
+        }
+        return out;
     }
 }

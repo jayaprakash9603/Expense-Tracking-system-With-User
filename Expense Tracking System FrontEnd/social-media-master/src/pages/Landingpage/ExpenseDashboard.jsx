@@ -40,6 +40,7 @@ import fetchDailySpending, {
   fetchPaymentMethods,
   fetchCategoriesSummary,
 } from "../../utils/Api";
+import { api } from "../../config/api";
 
 // Add zero-decimal formatter
 const formatNumber0 = (v) =>
@@ -1247,11 +1248,11 @@ const ExpenseDashboard = () => {
     // populate after dashboardData is created in this scope
     []
   );
-  // monthly trend (bar + line) data; start with sample and replace via API
+
   const [monthlyTrendData, setMonthlyTrendData] = useState(null);
   // payment methods (radial bars) data; start with sample and replace via API
   const [paymentMethodsData, setPaymentMethodsData] = useState(null);
-  // monthly trend navigation by year
+
   const currentYear = new Date().getFullYear();
   const [trendYear, setTrendYear] = useState(currentYear);
   // category distribution data; can be array or API object shape
@@ -1288,8 +1289,9 @@ const ExpenseDashboard = () => {
     setRefreshKey((k) => k + 1);
   };
 
-  const handleExport = () => {
-    console.log("Exporting dashboard data...");
+  const handleExport = async () => {
+    const response = await api.get("/api/expenses/generate-excel-report");
+    window.alert("Excel report generated");
   };
 
   const handleFilter = () => {

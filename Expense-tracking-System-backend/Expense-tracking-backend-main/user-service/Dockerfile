@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy the built jar file (update the jar name if needed)
-COPY target/User-service-0.0.1-SNAPSHOT.jar app.jar
+COPY target/User-service-0.0.1.jar app.jar
 
 # Expose the application port
 EXPOSE 6001

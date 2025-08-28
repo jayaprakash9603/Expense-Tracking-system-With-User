@@ -2,7 +2,7 @@ package com.jaya.task.user.service.service;
 
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.request.UserUpdateRequest;
-import org.springframework.http.ResponseEntity;
+import com.jaya.task.user.service.request.SignupRequest;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
@@ -25,5 +25,8 @@ public interface UserService {
     public User findByEmail(String email);
 
     public void updatePassword(User user, String newPassword);
+
+    // Register a new user, handling roles and password hashing
+    public User signup(SignupRequest signupRequest);
 
 }

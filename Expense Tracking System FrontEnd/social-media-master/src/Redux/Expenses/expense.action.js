@@ -65,6 +65,9 @@ import {
   COPY_EXPENSE_REQUEST,
   COPY_EXPENSE_SUCCESS,
   COPY_EXPENSE_FAILURE,
+  UPLOAD_CATEGORIES_REQUEST,
+  UPLOAD_CATEGORIES_SUCCESS,
+  UPLOAD_CATEGORIES_FAILURE,
 } from "./expense.actionType";
 
 export const getExpensesAction =
@@ -379,6 +382,38 @@ export const uploadFile = (file, targetId) => async (dispatch) => {
 export const resetUploadState = () => ({
   type: RESET_UPLOAD_STATE,
 });
+
+// Upload categories Excel (Category Summary sheet) and get preview list
+export const uploadCategoriesFile = (file, targetId) => async (dispatch) => {
+  dispatch({ type: UPLOAD_CATEGORIES_REQUEST });
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await api.post(
+      `/api/expenses/upload-categories`,
+      formData,
+      {
+        params: {
+          targetId: targetId || "",
+        },
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    dispatch({ type: UPLOAD_CATEGORIES_SUCCESS, payload: response.data });
+    return response.data;
+  } catch (error) {
+    dispatch({
+      type: UPLOAD_CATEGORIES_FAILURE,
+      payload: error.response?.data?.message || error.message,
+    });
+    throw error;
+  }
+};
 
 export const saveExpensesRequest = () => ({
   type: SAVE_EXPENSES_REQUEST,

@@ -13,13 +13,20 @@ import { Button } from "@mui/material";
 import {
   resetUploadState,
   uploadFile,
+  uploadCategoriesFile,
 } from "../../Redux/Expenses/expense.action";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../../components/Loaders/Loader";
 import Modal from "../../pages/Landingpage/Modal"; // Updated import path for Modal component
 import { useParams } from "react-router";
 
-const FileUploadModal = ({ isOpen, onClose }) => {
+const FileUploadModal = ({
+  isOpen,
+  onClose,
+  mode = "expenses",
+  onUploadStart,
+  onSuccess,
+}) => {
   const [files, setFiles] = useState([]);
   const [progress, setProgress] = useState({});
   const [loading, setLoading] = useState(false);
@@ -74,16 +81,39 @@ const FileUploadModal = ({ isOpen, onClose }) => {
     }, 300);
   };
 
-  const handleUploadClick = () => {
+  const handleUploadClick = async () => {
     if (!files.length) {
       alert("Please select a file.");
       return;
     }
     setLoading(true);
-    dispatch(uploadFile(files[0], friendId));
+    // Trigger parent progress overlay if provided
+    if (typeof onUploadStart === "function") {
+      onUploadStart();
+    }
+    if (mode === "categories") {
+      try {
+        const data = await dispatch(uploadCategoriesFile(files[0], friendId));
+        // Notify parent with parsed categories
+        if (typeof onSuccess === "function") {
+          onSuccess(data);
+        }
+        setLoading(false);
+        setFiles([]);
+        setProgress({});
+        onClose();
+      } catch (e) {
+        alert("Upload failed: " + (e?.response?.data?.message || e.message));
+        setLoading(false);
+      }
+    } else {
+      // default expenses path (existing behavior)
+      dispatch(uploadFile(files[0], friendId));
+    }
   };
 
   useEffect(() => {
+    if (mode === "categories") return; // categories handled inline
     if (uploadState.success) {
       alert("Upload successful!");
       setLoading(false);
@@ -95,7 +125,7 @@ const FileUploadModal = ({ isOpen, onClose }) => {
       alert("Upload failed: " + uploadState.error);
       setLoading(false);
     }
-  }, [uploadState, dispatch, onClose]);
+  }, [uploadState, dispatch, onClose, mode]);
 
   const handleRemoveFile = () => {
     setFiles([]);

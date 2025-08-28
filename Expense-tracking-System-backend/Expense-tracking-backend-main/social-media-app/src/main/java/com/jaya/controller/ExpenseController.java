@@ -2061,6 +2061,21 @@ public class ExpenseController {
 
     }
 
+    @PostMapping("/upload-categories")
+    public ResponseEntity<List<Category>> getCategoryFileContent(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("Authorization") String jwt) throws IOException {
+        userService.findUserByJwt(jwt);
+        List<Category> categories = excelService.parseCategorySummarySheet(file);
+        int i = 0;
+        for (Category category : categories) {
+            // Mirror the expense upload behavior: assign a transient sequential ID for preview
+            category.setId(i++);
+            // Keep parsed fields as-is (name, color, icon, description, global, userIds, editUserIds)
+        }
+        return ResponseEntity.ok(categories);
+    }
+
 //    @PostMapping("/delete")
 //    public ResponseEntity<Map<String, Object>> deleteEntries(@RequestParam("file") MultipartFile file) {
 //        try {

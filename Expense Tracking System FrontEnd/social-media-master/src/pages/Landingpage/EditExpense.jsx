@@ -37,6 +37,29 @@ const firstFormRow =
   "mt-2 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
 const inputWrapper = { width: "150px" };
 
+// Helpers to normalize between UI labels and backend keys
+const normalizePaymentMethod = (pm) => {
+  if (!pm) return "cash";
+  const s = String(pm).toLowerCase().trim();
+  if (s.startsWith("credit due") || s.startsWith("credit need"))
+    return "creditNeedToPaid";
+  if (s.startsWith("credit paid")) return "creditPaid";
+  if (s === "cash" || s === "cash".toLowerCase()) return "cash";
+  return pm; // fallback
+};
+
+const paymentMethodLabelFromKey = (key) => {
+  const s = String(key || "").toLowerCase();
+  if (s === "creditneedtopaid") return "Credit Due";
+  if (s === "creditpaid") return "Credit Paid";
+  if (s === "cash") return "Cash";
+  // if already a label, return capitalized version
+  if (s.startsWith("credit due")) return "Credit Due";
+  if (s.startsWith("credit need")) return "Credit Due";
+  if (s.startsWith("credit paid")) return "Credit Paid";
+  return key || "Cash";
+};
+
 const EditExpense = ({}) => {
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
@@ -116,7 +139,9 @@ const EditExpense = ({}) => {
         expenseName: expense.expense.expenseName || "",
         amount: expense.expense.amount || "",
         netAmount: expense.expense.netAmount || "",
-        paymentMethod: expense.expense.paymentMethod || "cash",
+        paymentMethod: paymentMethodLabelFromKey(
+          expense.expense.paymentMethod || "cash"
+        ),
         transactionType: expense.expense.type || "loss",
         comments: expense.expense.comments || "",
         date: expense.date || today,
@@ -128,14 +153,15 @@ const EditExpense = ({}) => {
 
   // Fetch suggestions based on input (same as NewExpense)
   const fetchSuggestions = (query) => {
+    const list = Array.isArray(topExpenses) ? topExpenses : [];
     if (!query || !query.trim()) {
-      setSuggestions([]);
+      setSuggestions(list.slice(0, 50));
       setLoadingSuggestions(false);
       return;
     }
     setLoadingSuggestions(true);
-    const filtered = (topExpenses || []).filter((item) =>
-      item.toLowerCase().includes(query.toLowerCase())
+    const filtered = list.filter((item) =>
+      String(item).toLowerCase().includes(query.toLowerCase())
     );
     setSuggestions(filtered);
     setLoadingSuggestions(false);
@@ -193,6 +219,11 @@ const EditExpense = ({}) => {
       .map((budget) => budget.id);
 
     try {
+      // Normalize payment method and compute creditDue per rules
+      const normalizedPm = normalizePaymentMethod(expenseData.paymentMethod);
+      const amt = parseFloat(expenseData.amount) || 0;
+      const derivedCreditDue = normalizedPm === "creditNeedToPaid" ? amt : 0;
+
       await dispatch(
         editExpenseAction(
           id,
@@ -204,9 +235,10 @@ const EditExpense = ({}) => {
               expenseName: expenseData.expenseName,
               amount: expenseData.amount,
               netAmount: expenseData.amount,
-              paymentMethod: expenseData.paymentMethod,
-              type: expenseData.transactionType,
+              paymentMethod: normalizedPm,
+              type: (expenseData.transactionType || "").toLowerCase(),
               comments: expenseData.comments,
+              creditDue: derivedCreditDue,
             },
           },
           friendId || ""
@@ -501,7 +533,7 @@ const EditExpense = ({}) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={["Cash", "Credit Need to Paid", "Credit Paid"]}
+          options={["Cash", "Credit Due", "Credit Paid"]}
           getOptionLabel={(option) => option}
           value={expenseData.paymentMethod || ""}
           onInputChange={(event, newValue) => {
@@ -712,8 +744,9 @@ const EditExpense = ({}) => {
           options={suggestions}
           loading={loadingTopExpenses || loadingSuggestions}
           loadingText="Loading"
-          noOptionsText={expenseData?.expenseName ? "No Data Found" : ""}
+          noOptionsText="No options found"
           value={expenseData?.expenseName || ""}
+          onOpen={() => fetchSuggestions(expenseData?.expenseName || "")}
           onInputChange={(event, newValue) => {
             setExpenseData((prev) => ({ ...prev, expenseName: newValue }));
             fetchSuggestions(newValue);

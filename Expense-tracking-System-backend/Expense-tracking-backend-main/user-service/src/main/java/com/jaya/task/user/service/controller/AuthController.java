@@ -2,7 +2,6 @@ package com.jaya.task.user.service.controller;
 
 import com.jaya.task.user.service.config.JwtProvider;
 import com.jaya.task.user.service.modal.User;
-import com.jaya.task.user.service.modal.Role;
 import com.jaya.task.user.service.repository.UserRepository;
 import com.jaya.task.user.service.repository.RoleRepository;
 import com.jaya.task.user.service.request.LoginRequest;
@@ -26,7 +25,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -35,10 +33,6 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
 
     @Autowired
     private OtpService otpService;
@@ -55,87 +49,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest) {
         try {
-            // Add null-safe validation before processing
-            if (signupRequest.getEmail() == null || signupRequest.getEmail().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Email is required"));
-            }
-
-            if (signupRequest.getFirstName() == null || signupRequest.getFirstName().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "First Name is required"));
-            }
-
-            if (signupRequest.getLastName() == null || signupRequest.getLastName().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Last Name is required"));
-            }
-
-            if (signupRequest.getPassword() == null || signupRequest.getPassword().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Password is required"));
-            }
-
-            User isUserExist = userRepository.findByEmail(signupRequest.getEmail().trim());
-            if (isUserExist != null) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(Map.of("error", "User already exists with email: " + signupRequest.getEmail()));
-            }
-
-            User newUser = new User();
-            newUser.setEmail(signupRequest.getEmail().toLowerCase().trim());
-            newUser.setFirstName(signupRequest.getFirstName().trim());
-            newUser.setLastName(signupRequest.getLastName().trim());
-            newUser.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-
-            // ... rest of your existing code remains the same
-            Set<String> userRoles = new HashSet<>();
-            Set<Role> rolesToUpdate = new HashSet<>();
-
-            if (signupRequest.getRoles() != null && !signupRequest.getRoles().isEmpty()) {
-                for (String roleName : signupRequest.getRoles()) {
-                    String normalizedRoleName = roleName.toUpperCase().trim();
-                    Optional<Role> existingRole = roleRepository.findByName(normalizedRoleName);
-                    Role role;
-                    if (existingRole.isPresent()) {
-                        role = existingRole.get();
-                    } else if (normalizedRoleName.equals("USER") || normalizedRoleName.equals("ADMIN")) {
-                        role = roleRepository.save(new Role(normalizedRoleName, "Auto-created role"));
-                    } else {
-                        return ResponseEntity.badRequest()
-                                .body(Map.of("error", "Invalid role: " + roleName + ". Only USER and ADMIN roles are allowed during signup."));
-                    }
-                    userRoles.add(role.getName());
-                    rolesToUpdate.add(role);
-                }
-            } else {
-                Role role;
-                Optional<Role> userRole = roleRepository.findByName("USER");
-                if (userRole.isPresent()) {
-                    role = userRole.get();
-                    System.out.println("Added default USER role");
-                } else {
-                    role = roleRepository.save(new Role("USER", "Default user role"));
-                    System.out.println("Created and added default USER role");
-                }
-                userRoles.add(role.getName());
-                rolesToUpdate.add(role);
-            }
-
-            newUser.setRoles(userRoles);
-            newUser.setCreatedAt(LocalDateTime.now());
-            newUser.setUpdatedAt(LocalDateTime.now());
-
-            User savedUser = userRepository.save(newUser);
-
-            // Update each role's users set with the new user's ID
-            for (Role role : rolesToUpdate) {
-                if (role.getUsers() == null) {
-                    role.setUsers(new HashSet<>());
-                }
-                role.getUsers().add(savedUser.getId().intValue());
-                roleRepository.save(role);
-            }
+            User savedUser = userService.signup(signupRequest);
 
             UserDetails userDetails = customUserService.loadUserByUsername(savedUser.getEmail());
             Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -154,6 +68,9 @@ public class AuthController {
 
             return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
 
+        } catch (UserAlreadyExistsException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
