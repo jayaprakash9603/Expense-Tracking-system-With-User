@@ -104,6 +104,18 @@ const NewExpense = ({ onClose, onSuccess }) => {
     dispatch(fetchCategories(friendId || ""));
   }, [dispatch]);
 
+  // Ensure unique categories strictly by name (case-insensitive, trimmed)
+  const uniqueCategories = useMemo(() => {
+    const list = Array.isArray(categories) ? categories : [];
+    const byName = new Map();
+    for (const c of list) {
+      const nameKey = c?.name?.toLowerCase().trim();
+      if (!nameKey) continue;
+      if (!byName.has(nameKey)) byName.set(nameKey, c);
+    }
+    return Array.from(byName.values());
+  }, [categories]);
+
   // Set initial type based on salary date logic if dateFromQuery is present
   React.useEffect(() => {
     if (dateFromQuery) {
@@ -568,18 +580,44 @@ const NewExpense = ({ onClose, onSuccess }) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={Array.isArray(categories) ? categories : []}
+          options={uniqueCategories}
           getOptionLabel={(option) => option.name || ""}
+          isOptionEqualToValue={(option, value) =>
+            option?.id != null && value?.id != null
+              ? option.id === value.id
+              : (option?.name || "").toLowerCase().trim() ===
+                (value?.name || "").toLowerCase().trim()
+          }
+          filterOptions={(options, state) => {
+            // Apply default filtering by input; then dedupe by name
+            const input = (state.inputValue || "").toLowerCase().trim();
+            const filtered = options.filter((opt) =>
+              (opt?.name || "").toLowerCase().includes(input)
+            );
+            const seen = new Set();
+            const out = [];
+            for (const o of filtered) {
+              const k = (o?.name || "").toLowerCase().trim();
+              if (k && !seen.has(k)) {
+                seen.add(k);
+                out.push(o);
+              }
+            }
+            return out;
+          }}
           value={
-            Array.isArray(categories)
-              ? categories.find((cat) => cat.id === expenseData.category) ||
-                null
+            Array.isArray(uniqueCategories)
+              ? uniqueCategories.find(
+                  (cat) => cat.id === expenseData.category
+                ) || null
               : null
           }
           onInputChange={(event, newValue) => {
-            const matchedCategory = Array.isArray(categories)
-              ? categories.find(
-                  (cat) => cat.name.toLowerCase() === newValue.toLowerCase()
+            const matchedCategory = Array.isArray(uniqueCategories)
+              ? uniqueCategories.find(
+                  (cat) =>
+                    (cat.name || "").toLowerCase().trim() ===
+                    (newValue || "").toLowerCase().trim()
                 )
               : null;
             setExpenseData((prev) => ({
