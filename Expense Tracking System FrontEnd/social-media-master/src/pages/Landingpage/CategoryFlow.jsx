@@ -597,6 +597,13 @@ const CategoryFlow = () => {
         });
     }
 
+    // Ensure every bucket has an entry for every segment (so tooltip shows all categories)
+    data.forEach((row) => {
+      segments.forEach((s) => {
+        if (row[s.key] === undefined) row[s.key] = 0;
+      });
+    });
+
     return { barSegments: segments, stackedChartData: data, xAxisKey: xKey };
   }, [pieData, categoryExpenses, activeRange, offset]);
 
@@ -890,6 +897,89 @@ const CategoryFlow = () => {
     setToastOpen(false);
     setToastMessage("");
   };
+
+  // Custom tooltip to truncate long category names and show compact amounts
+  const CategoryStackTooltip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
+    const nameMax = isMobile ? 110 : isTablet ? 150 : 180;
+    const items = payload
+      .filter((p) => Number(p?.value) > 0)
+      .sort((a, b) => Number(b.value) - Number(a.value));
+    if (!items.length) return null;
+    return (
+      <div
+        style={{
+          background: "#0b0b0b",
+          border: "1px solid #333",
+          color: "#e5e7eb",
+          borderRadius: 8,
+          padding: 12,
+          maxWidth: isMobile ? 220 : 320,
+          // No maxHeight or overflow clipping so all categories are visible
+          boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
+        }}
+      >
+        {label && (
+          <div
+            style={{
+              color: "#00DAC6",
+              fontWeight: 700,
+              marginBottom: 8,
+              fontSize: 12,
+            }}
+          >
+            {label}
+          </div>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {items.map((item, idx) => (
+            <div
+              key={idx}
+              style={{ display: "flex", alignItems: "center", gap: 8 }}
+            >
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 2,
+                  background: item?.color || "#5b7fff",
+                  flexShrink: 0,
+                }}
+              />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  width: "100%",
+                }}
+              >
+                <div
+                  title={item?.name}
+                  style={{
+                    maxWidth: nameMax,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    color: "#b0b6c3",
+                    fontSize: 12,
+                  }}
+                >
+                  {item?.name}
+                </div>
+                <div
+                  style={{ fontWeight: 800, fontSize: 12, color: "#ffffff" }}
+                >
+                  ₹{formatCompactNumber(item?.value || 0)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
   // Stacked single-bar chart (categories as segments)
   const renderStackedBarChart = () => (
     <ResponsiveContainer width="100%" height="100%">
@@ -915,16 +1005,9 @@ const CategoryFlow = () => {
         />
         <Tooltip
           cursor={{ fill: "#23243a22" }}
-          formatter={(value, name) => [`₹${formatNumberFull(value)}`, name]}
-          contentStyle={{
-            background: "#23243a",
-            border: "1px solid #00dac6",
-            color: "#fff",
-            borderRadius: 8,
-            fontWeight: 500,
-          }}
-          labelStyle={{ color: "#00dac6", fontWeight: 700 }}
-          itemStyle={{ color: "#b0b6c3" }}
+          content={<CategoryStackTooltip />}
+          wrapperStyle={{ zIndex: 9999 }}
+          allowEscapeViewBox={{ x: true, y: true }}
         />
         {barSegments.map((seg, i) => {
           const isTopOfStack = i === barSegments.length - 1;
@@ -1403,7 +1486,7 @@ const CategoryFlow = () => {
             minWidth: 0,
             maxWidth: "100%",
             boxSizing: "border-box",
-            overflow: "hidden",
+            overflow: "visible", // allow tooltip to escape
           }}
         >
           {loading ? (

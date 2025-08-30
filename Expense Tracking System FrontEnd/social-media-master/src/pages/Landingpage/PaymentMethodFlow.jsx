@@ -7,6 +7,11 @@ import {
   Tooltip,
   ResponsiveContainer,
   Sector,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from "recharts";
 import { fetchCategoriesWithExpenses } from "../../Redux/Expenses/expense.action";
 import dayjs from "dayjs";
@@ -102,6 +107,22 @@ const getRangeLabel = (range, offset, flowType) => {
   }
   return label;
 };
+
+// Period labels (optional; we dynamically build labels per range)
+const yearMonths = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 const PaymentMethodSearchToolbar = ({
   search,
@@ -673,6 +694,197 @@ const PaymentMethodFlow = () => {
     setToastOpen(false);
     setToastMessage("");
   };
+
+  // Formatters matching CategoryFlow
+  const formatCompactNumber = (value) => {
+    if (value === null || value === undefined || isNaN(value)) return "0";
+    const abs = Math.abs(value);
+    const sign = value < 0 ? "-" : "";
+    if (abs >= 1e9) return `${sign}${(abs / 1e9).toFixed(1)}B`;
+    if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(1)}M`;
+    if (abs >= 1e3) return `${sign}${(abs / 1e3).toFixed(1)}k`;
+    return value % 1 === 0 ? `${sign}${Math.round(abs)}` : `${sign}${abs.toFixed(2)}`;
+  };
+
+  // Build stacked multi-bar data (per day for month, per weekday for week, per month for year)
+  const { barSegments, stackedChartData, xAxisKey } = useMemo(() => {
+    const segments = (pieData || []).map((c) => ({
+      label: c.name,
+      key: `pm_${c.name ? c.name.replace(/[^a-zA-Z0-9_]/g, "_") : "_"}`,
+      color: c.color || getRandomColor(c.name || ""),
+    }));
+
+    const baseNow = dayjs();
+    let baseStart, bucketCount, labels, xKey = "slot";
+    if (activeRange === "week") {
+      baseStart = baseNow.startOf("week").add(offset, "week");
+      bucketCount = 7;
+      // Mon..Sun based on dayjs startOf("week")
+      labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    } else if (activeRange === "month") {
+      baseStart = baseNow.startOf("month").add(offset, "month");
+      bucketCount = baseStart.daysInMonth();
+      labels = Array.from({ length: bucketCount }, (_, i) => `${i + 1}`);
+    } else {
+      baseStart = baseNow.startOf("year").add(offset, "year");
+      bucketCount = 12;
+      labels = yearMonths;
+    }
+
+    const data = Array.from({ length: bucketCount }, (_, i) => ({ [xKey]: labels[i] }));
+
+    const addAmt = (idx, key, amt) => {
+      if (idx < 0 || idx >= data.length) return;
+      data[idx][key] = (data[idx][key] || 0) + (Number(amt) || 0);
+    };
+
+    if (paymentMethodExpenses) {
+      Object.keys(paymentMethodExpenses)
+        .filter((k) => k !== "summary")
+        .forEach((pmName) => {
+          const pm = paymentMethodExpenses[pmName];
+          const key = `pm_${pmName.replace(/[^a-zA-Z0-9_]/g, "_")}`;
+          if (!segments.find((s) => s.key === key)) {
+            segments.push({ label: pmName, key, color: pm.color || getRandomColor(pmName) });
+          }
+          const expenses = Array.isArray(pm.expenses) ? pm.expenses : [];
+          expenses.forEach((e) => {
+            if (!e) return;
+            const d = dayjs(e.date);
+            let idx = -1;
+            if (activeRange === "week") {
+              const diff = d.startOf("day").diff(baseStart.startOf("day"), "day");
+              idx = diff;
+            } else if (activeRange === "month") {
+              if (d.year() === baseStart.year() && d.month() === baseStart.month()) {
+                idx = d.date() - 1;
+              }
+            } else {
+              if (d.year() === baseStart.year()) {
+                idx = d.month();
+              }
+            }
+            if (idx >= 0 && idx < bucketCount) {
+              const amt = (e.details && e.details.amount) || e.amount || 0;
+              addAmt(idx, key, amt);
+            }
+          });
+        });
+    }
+
+    // Ensure zero entries exist for all segments per bucket (for consistent stacks)
+    data.forEach((row) => {
+      segments.forEach((s) => {
+        if (row[s.key] === undefined) row[s.key] = 0;
+      });
+    });
+
+    return { barSegments: segments, stackedChartData: data, xAxisKey: xKey };
+  }, [pieData, paymentMethodExpenses, activeRange, offset]);
+
+  // Click a stacked segment to filter that payment method within the clicked bucket
+  const handleBarSegmentClick = (segment, bucketIdx) => {
+    const label = segment.label;
+    const pmCard = categoryCards.find((c) => c.categoryName === label);
+    const pmData = paymentMethodExpenses && paymentMethodExpenses[label];
+    const expensesAll = Array.isArray(pmData?.expenses)
+      ? pmData.expenses
+      : Array.isArray(pmCard?.expenses)
+      ? pmCard.expenses
+      : [];
+
+    const baseNow = dayjs();
+    let start, end;
+    if (activeRange === "week") {
+      const baseStart = baseNow.startOf("week").add(offset, "week");
+      start = baseStart.add(bucketIdx, "day").startOf("day");
+      end = start.endOf("day");
+    } else if (activeRange === "month") {
+      const baseStart = baseNow.startOf("month").add(offset, "month");
+      const dayOfMonth = bucketIdx + 1;
+      start = baseStart.date(dayOfMonth).startOf("day");
+      end = baseStart.date(dayOfMonth).endOf("day");
+    } else {
+      const baseStart = baseNow.startOf("year").add(offset, "year");
+      start = baseStart.month(bucketIdx).startOf("month");
+      end = baseStart.month(bucketIdx).endOf("month");
+    }
+
+    const sMs = start.valueOf();
+    const eMs = end.valueOf();
+    const filtered = expensesAll.filter((e) => {
+      if (!e || !e.date) return false;
+      const t = dayjs(e.date).valueOf();
+      return t >= sMs && t <= eMs;
+    });
+
+    if (pmCard) setSelectedPaymentMethod(pmCard);
+    setSelectedPaymentMethodExpenses(filtered);
+    setShowExpenseTable(true);
+    setPage(0);
+  };
+
+  // Custom dark tooltip (names truncated, only non-zero values, sorted desc)
+  const PaymentStackTooltip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
+    const nameMax = isMobile ? 110 : isTablet ? 150 : 180;
+    const items = payload
+      .filter((p) => Number(p?.value) > 0)
+      .sort((a, b) => Number(b.value) - Number(a.value));
+    if (!items.length) return null;
+    return (
+      <div
+        style={{
+          background: "#0b0b0b",
+          border: "1px solid #333",
+          color: "#e5e7eb",
+          borderRadius: 8,
+          padding: 12,
+          maxWidth: isMobile ? 220 : 320,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
+        }}
+      >
+        {label && (
+          <div style={{ color: "#00DAC6", fontWeight: 700, marginBottom: 8, fontSize: 12 }}>
+            {label}
+          </div>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {items.map((item, idx) => (
+            <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 2,
+                  background: item?.color || "#5b7fff",
+                  flexShrink: 0,
+                }}
+              />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%" }}>
+                <div
+                  title={item?.name}
+                  style={{
+                    maxWidth: nameMax,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    color: "#b0b6c3",
+                    fontSize: 12,
+                  }}
+                >
+                  {item?.name}
+                </div>
+                <div style={{ fontWeight: 800, fontSize: 12, color: "#ffffff" }}>
+                  ₹{formatCompactNumber(item?.value || 0)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
   // Update the PieChart in the renderPieChart function
   const renderPieChart = () => (
     <ResponsiveContainer width="100%" height="100%">
@@ -1121,7 +1333,7 @@ const PaymentMethodFlow = () => {
           </button>
         </div>
 
-        {/* Pie Chart Container - Always visible */}
+        {/* Payment Method distribution as a multi-bar stacked chart (replaces Pie) */}
         <div
           className="w-full rounded-lg p-4 mb-4"
           style={{
@@ -1130,21 +1342,11 @@ const PaymentMethodFlow = () => {
             minWidth: 0,
             maxWidth: "100%",
             boxSizing: "border-box",
-            overflow: "hidden",
+            overflow: "visible", // allow tooltip to escape
           }}
         >
           {loading ? (
-            <Skeleton
-              variant="circular"
-              width={pieSkeletonSize}
-              height={pieSkeletonSize}
-              animation="wave"
-              sx={{
-                bgcolor: "#23243a",
-                borderRadius: "50%",
-                margin: "0 auto",
-              }}
-            />
+            <Skeleton variant="rectangular" width="100%" height={isMobile ? 100 : isTablet ? 130 : 160} animation="wave" sx={{ bgcolor: "#23243a", borderRadius: 2 }} />
           ) : pieData.length === 0 ? (
             <div
               style={{
@@ -1176,55 +1378,27 @@ const PaymentMethodFlow = () => {
                   pointerEvents: "none",
                 }}
               >
-                No Payment Data to Display
+                No payment method data to display
               </span>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                <Pie
-                  activeIndex={activeIndex}
-                  activeShape={renderActiveShape}
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={isMobile ? 35 : 50}
-                  outerRadius={isMobile ? 55 : 70}
-                  fill="#8884d8"
-                  dataKey="value"
-                  onMouseEnter={(data, index) => setActiveIndex(index)}
-                  onClick={(data) => handlePieClick(data, activeIndex)}
-                  style={{ cursor: "pointer", outline: "none" }}
-                  tabIndex={-1} // Remove from tab order to prevent focus
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={
-                        entry.color ||
-                        `#${Math.floor(Math.random() * 16777215).toString(16)}`
-                      }
-                      stroke="#1b1b1b"
-                      strokeWidth={2}
-                      style={{ cursor: "pointer", outline: "none" }}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [`₹${value}`, "Amount"]}
-                  contentStyle={{
-                    background: "#1b1b1b",
-                    border: "1px solid #00dac6",
-                    color: "#fff",
-                    borderRadius: 8,
-                    fontWeight: 500,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                  }}
-                  labelStyle={{ color: "#00dac6", fontWeight: 700 }}
-                  itemStyle={{ color: "#b0b6c3" }}
-                  cursor={{ fill: "transparent" }}
-                />
-              </PieChart>
+              <BarChart data={stackedChartData} margin={{ top: 4, right: isMobile ? 8 : 24, left: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
+                <XAxis dataKey={xAxisKey} stroke="#b0b6c3" tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }} tickLine={false} axisLine={{ stroke: "#33384e" }} />
+                <YAxis stroke="#b0b6c3" tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }} axisLine={{ stroke: "#33384e" }} tickLine={false} width={80} tickFormatter={(v) => formatCompactNumber(v)} />
+                <Tooltip cursor={{ fill: "#23243a22" }} content={<PaymentStackTooltip />} wrapperStyle={{ zIndex: 9999 }} allowEscapeViewBox={{ x: true, y: true }} />
+                {barSegments.map((seg, i) => {
+                  const isTopOfStack = i === barSegments.length - 1;
+                  return (
+                    <Bar key={seg.key} dataKey={seg.key} name={seg.label} stackId="total" fill={seg.color} radius={isTopOfStack ? [6, 6, 0, 0] : [0, 0, 0, 0]} maxBarSize={48}>
+                      {stackedChartData.map((entry, idx) => (
+                        <Cell key={`${seg.key}-${idx}`} cursor="pointer" onClick={() => handleBarSegmentClick(seg, idx)} />
+                      ))}
+                    </Bar>
+                  );
+                })}
+              </BarChart>
             </ResponsiveContainer>
           )}
         </div>
