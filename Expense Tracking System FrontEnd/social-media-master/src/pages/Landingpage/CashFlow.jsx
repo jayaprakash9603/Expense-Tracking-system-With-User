@@ -748,6 +748,42 @@ const Cashflow = () => {
           labelStyle={{ color: "#00dac6", fontWeight: 700 }}
           itemStyle={{ color: "#b0b6c3" }}
           formatter={(value) => [formatCurrencyCompact(value), "Amount"]}
+          wrapperStyle={{ zIndex: 1000 }}
+    labelFormatter={(label, payload) => {
+            try {
+              if (!Array.isArray(payload) || payload.length === 0) return label;
+              if (activeRange === "year") {
+                const monthIdx = yearMonths.indexOf(String(label));
+                if (monthIdx >= 0) {
+                  const baseYear = dayjs().startOf("year").add(offset, "year");
+                  const monthStart = baseYear.month(monthIdx).startOf("month");
+                  const monthEnd = monthStart.endOf("month");
+      return `${monthStart.format("MMM")} (${monthStart.format("D MMM")} - ${monthEnd.format("D MMM")})`;
+                }
+              } else if (activeRange === "month") {
+                const dayNum = parseInt(String(label), 10);
+                if (!isNaN(dayNum)) {
+                  const baseMonth = dayjs().startOf("month").add(offset, "month");
+                  const date = baseMonth.date(dayNum);
+      return date.format("D MMM");
+                }
+              } else if (activeRange === "week") {
+                const idx = weekDays.indexOf(String(label));
+                if (idx >= 0) {
+                  // Align to Monday as first day to match weekDays [Mon..Sun]
+                  const mondayStart = dayjs()
+                    .startOf("week")
+                    .add(offset, "week")
+                    .day(1); // set to Monday of that week
+                  const date = mondayStart.add(idx, "day");
+      return `${date.format("ddd")}, ${date.format("D MMM")}`;
+                }
+              }
+            } catch (e) {
+              // no-op fallback
+            }
+            return label;
+          }}
         />
         {/* Average line */}
         {Array.isArray(chartData) &&
@@ -1813,27 +1849,50 @@ const Cashflow = () => {
                       <span
                         className="text-xs font-semibold text-[#b0b6c3] ml-2 flex-shrink-0"
                         style={{ whiteSpace: "nowrap" }}
-                        title={
-                          activeRange === "week"
-                            ? row.day
-                            : activeRange === "month"
-                            ? `Day ${row.day}`
-                            : row.month
-                        }
+                        title={(() => {
+                          const dt = row.date || row.expense?.date;
+                          const dtStr = dt && dayjs(dt).isValid()
+              ? dayjs(dt).format("D MMM")
+                            : "";
+                          const left =
+                            activeRange === "week"
+                              ? row.day
+                              : activeRange === "month"
+                              ? `Day ${row.day}`
+                              : ""; // year: avoid repeating month name
+                          if (dtStr && left) return `${left} • ${dtStr}`;
+                          return left || dtStr;
+                        })()}
                         data-tooltip-id={`expense-date-tooltip-${idx}`}
-                        data-tooltip-content={
-                          activeRange === "week"
-                            ? row.day
-                            : activeRange === "month"
-                            ? `Day ${row.day}`
-                            : row.month
-                        }
+                        data-tooltip-content={(() => {
+                          const dt = row.date || row.expense?.date;
+                          const dtStr = dt && dayjs(dt).isValid()
+              ? dayjs(dt).format("D MMM")
+                            : "";
+                          const left =
+                            activeRange === "week"
+                              ? row.day
+                              : activeRange === "month"
+                              ? `Day ${row.day}`
+                              : ""; // year
+                          if (dtStr && left) return `${left} • ${dtStr}`;
+                          return left || dtStr;
+                        })()}
                       >
-                        {activeRange === "week"
-                          ? row.day
-                          : activeRange === "month"
-                          ? `Day ${row.day}`
-                          : row.month}
+                        {(() => {
+                          const dt = row.date || row.expense?.date;
+                          const dtStr = dt && dayjs(dt).isValid()
+              ? dayjs(dt).format("D MMM")
+                            : "";
+                          const left =
+                            activeRange === "week"
+                              ? row.day
+                              : activeRange === "month"
+                              ? `Day ${row.day}`
+                              : ""; // year
+                          if (dtStr && left) return `${left} • ${dtStr}`;
+                          return left || dtStr;
+                        })()}
                       </span>
                     </div>
                     <div className="text-base font-bold flex items-center gap-1">
