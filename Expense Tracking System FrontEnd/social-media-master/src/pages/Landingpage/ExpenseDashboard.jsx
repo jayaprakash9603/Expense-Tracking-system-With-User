@@ -29,7 +29,9 @@ import {
   Refresh,
   TrendingDown,
   TrendingUp,
+  TrendingFlat,
   Wallet,
+  CurrencyExchange,
 } from "@mui/icons-material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { Target } from "lucide-react";
@@ -198,7 +200,13 @@ const MetricCard = ({
       <div className="metric-header">
         <div className="metric-icon">{icon}</div>
         <div className={`trend-indicator ${trend}`}>
-          {trend === "up" ? <TrendingUp /> : <TrendingDown />}
+          {trend === "up" ? (
+            <TrendingUp />
+          ) : trend === "down" ? (
+            <TrendingDown />
+          ) : (
+            <TrendingFlat />
+          )}
         </div>
       </div>
       <div className="metric-content">
@@ -1726,7 +1734,7 @@ const ExpenseDashboard = () => {
                   ? "positive"
                   : "neutral"
               }
-              icon={<TrendingDown />}
+              icon={<CurrencyExchange />}
               type="expense"
               trend="down"
             />
@@ -1752,23 +1760,36 @@ const ExpenseDashboard = () => {
             />
             <MetricCard
               title="Credit Card Bill Paid"
-              value={Math.abs(analyticsSummary?.creditPaidLastMonth ?? 0)}
+              value={Math.abs(
+                analyticsSummary?.creditBillPaymentComparison
+                  ?.currentMonthBillPaid ??
+                  analyticsSummary?.creditBillPaymentComparison
+                    ?.lastCreditBillPaid ??
+                  0
+              )}
               change={null}
               changeText={
-                analyticsSummary?.creditPaidLastMonthComparison
+                analyticsSummary?.creditBillPaymentComparison
                   ?.percentageChange || null
               }
               changeDirection={(() => {
                 const t = (
-                  analyticsSummary?.creditPaidLastMonthComparison?.trend || ""
+                  analyticsSummary?.creditBillPaymentComparison?.trend || ""
                 ).toLowerCase();
                 if (t === "increase") return "positive";
                 if (t === "decrease") return "negative";
                 return "neutral";
               })()}
-              icon={<Target />}
+              icon={<CreditCard />}
               type="budget"
-              trend="up"
+              trend={(() => {
+                const t = (
+                  analyticsSummary?.creditBillPaymentComparison?.trend || ""
+                ).toLowerCase();
+                if (t === "increase") return "up";
+                if (t === "decrease") return "down";
+                return "neutral";
+              })()}
             />
           </>
         )}
