@@ -15,8 +15,6 @@ import {
   ResponsiveContainer,
   Area,
   AreaChart,
-  RadialBarChart,
-  RadialBar,
   ComposedChart,
 } from "recharts";
 import { IconButton, useMediaQuery } from "@mui/material";
@@ -722,7 +720,8 @@ const MonthlyTrendChart = ({ data, year, onPrevYear, onNextYear }) => {
   const isAtCurrentYear = year >= currentYear;
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:1024px)");
-  const chartHeight = isMobile ? 220 : isTablet ? 260 : 300;
+  // Increase height to align with Payment Methods/Category charts
+  const chartHeight = isMobile ? 260 : isTablet ? 380 : 480;
   return (
     <div className="chart-container monthly-trend">
       <div className="chart-header">
@@ -817,17 +816,77 @@ const MonthlyTrendChart = ({ data, year, onPrevYear, onNextYear }) => {
   );
 };
 
-// Payment Method Distribution
-const PaymentMethodChart = ({ data }) => {
-  const COLORS = ["#14b8a6", "#06d6a0", "#118ab2"];
+// Payment Method Distribution (Pie chart, not donut)
+const PaymentMethodChart = ({
+  data,
+  timeframe,
+  onTimeframeChange,
+  flowType,
+  onFlowTypeChange,
+}) => {
+  const COLORS = [
+    "#14b8a6",
+    "#06d6a0",
+    "#118ab2",
+    "#073b4c",
+    "#ffd166",
+    "#f77f00",
+    "#fcbf49",
+    "#f95738",
+  ];
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:1024px)");
-  const chartHeight = isMobile ? 220 : isTablet ? 240 : 280;
+  // Match Category Breakdown sizing for visual parity
+  const chartHeight = isMobile ? 260 : isTablet ? 380 : 480;
+  const outerRadius = isMobile ? 110 : isTablet ? 150 : 180;
+
+  // compute total for display
+  const totalAmount = (() => {
+    const series = Array.isArray(data?.datasets?.[0]?.data)
+      ? data.datasets[0].data
+      : [];
+    return series.reduce((a, b) => a + (Number(b) || 0), 0);
+  })();
 
   return (
     <div className="chart-container payment-methods">
       <div className="chart-header">
         <h3>💳 Payment Methods</h3>
+        <div className="chart-controls">
+          <select
+            className="time-selector"
+            value={timeframe}
+            onChange={(e) =>
+              onTimeframeChange && onTimeframeChange(e.target.value)
+            }
+          >
+            <option value="this_month">This Month</option>
+            <option value="last_month">Last Month</option>
+            <option value="last_3_months">Last 3 Months</option>
+          </select>
+          <div className="type-toggle">
+            <button
+              type="button"
+              className={`toggle-btn loss ${
+                flowType === "loss" ? "active" : ""
+              }`}
+              onClick={() => onFlowTypeChange && onFlowTypeChange("loss")}
+              aria-pressed={flowType === "loss"}
+            >
+              Loss
+            </button>
+            <button
+              type="button"
+              className={`toggle-btn gain ${
+                flowType === "gain" ? "active" : ""
+              }`}
+              onClick={() => onFlowTypeChange && onFlowTypeChange("gain")}
+              aria-pressed={flowType === "gain"}
+            >
+              Gain
+            </button>
+          </div>
+        </div>
       </div>
 
       <ResponsiveContainer width="100%" height={chartHeight}>
@@ -836,34 +895,69 @@ const PaymentMethodChart = ({ data }) => {
           const series = Array.isArray(data?.datasets?.[0]?.data)
             ? data.datasets[0].data
             : [];
-          const radialData = series.map((value, index) => ({
-            name: labels[index] ?? `M${index + 1}`,
-            value,
-            fill: COLORS[index % COLORS.length],
+          const pieData = series.map((value, index) => ({
+            name: labels[index] ?? `Item ${index + 1}`,
+            value: Number(value) || 0,
           }));
           return (
-            <RadialBarChart
-              cx="50%"
-              cy="50%"
-              innerRadius="30%"
-              outerRadius="80%"
-              data={radialData}
-            >
-              <RadialBar dataKey="value" cornerRadius={10} fill="#14b8a6" />
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                outerRadius={outerRadius}
+                paddingAngle={2}
+                dataKey="value"
+              >
+                {pieData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "#1b1b1b",
-                  border: "1px solid #14b8a6",
-                  borderRadius: "8px",
-                  color: "#fff",
+                content={({ active, payload }) => {
+                  if (!active || !payload || !payload.length) return null;
+                  const p = payload[0];
+                  const name = p.payload.name ?? p.name;
+                  const value = p.payload.value ?? p.value ?? 0;
+                  return (
+                    <div
+                      style={{
+                        backgroundColor: "#1b1b1b",
+                        border: "1px solid #14b8a6",
+                        borderRadius: 8,
+                        color: "#fff",
+                        padding: 8,
+                        minWidth: 120,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, color: "#cfd8dc" }}>
+                        {name}
+                      </div>
+                      <div style={{ fontWeight: 700, color: "#14b8a6" }}>
+                        ₹{formatNumber0(value)}
+                      </div>
+                    </div>
+                  );
                 }}
-                formatter={(value) => [`₹${formatNumber0(value)}`, "Amount"]}
               />
-              <Legend />
-            </RadialBarChart>
+              <Legend
+                verticalAlign="bottom"
+                height={36}
+                wrapperStyle={{
+                  color: "#fff",
+                  fontSize: isMobile ? "10px" : "12px",
+                }}
+              />
+            </PieChart>
           );
         })()}
       </ResponsiveContainer>
+      <div className="total-amount total-amount-bottom">
+        Total: ₹{formatNumber0(totalAmount)}
+      </div>
     </div>
   );
 };
@@ -950,6 +1044,8 @@ const DashboardDataRefetcher = ({
   categoryTimeframe,
   categoryFlowType,
   trendYear,
+  paymentMethodsTimeframe,
+  paymentMethodsFlowType,
   // loading setters
   setDailyLoading,
   setCategoryLoading,
@@ -1167,21 +1263,44 @@ const DashboardDataRefetcher = ({
       setPaymentMethodsLoading(true);
       try {
         const now = new Date();
+        const fmt = (d) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return `${y}-${m}-${day}`;
+        };
         const params = {};
-        if (timeframe === "this_month" || timeframe === "month") {
-          params.month = now.getMonth() + 1;
-          params.year = now.getFullYear();
-        } else if (timeframe === "last_month") {
-          const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          params.month = d.getMonth() + 1;
-          params.year = d.getFullYear();
-        } else if (timeframe === "last_3_months" || timeframe === "last_3") {
+        // timeframe specific for payment methods
+        if (
+          paymentMethodsTimeframe === "this_month" ||
+          paymentMethodsTimeframe === "month"
+        ) {
+          const start = new Date(now.getFullYear(), now.getMonth(), 1);
+          const end = now;
+          params.fromDate = fmt(start);
+          params.toDate = fmt(end);
+        } else if (paymentMethodsTimeframe === "last_month") {
+          const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          const end = new Date(now.getFullYear(), now.getMonth(), 0);
+          params.fromDate = fmt(start);
+          params.toDate = fmt(end);
+        } else if (
+          paymentMethodsTimeframe === "last_3_months" ||
+          paymentMethodsTimeframe === "last_3"
+        ) {
           const end = now;
           const start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-          params.fromDate = start.toISOString().split("T")[0];
-          params.toDate = end.toISOString().split("T")[0];
+          params.fromDate = fmt(start);
+          params.toDate = fmt(end);
         }
-        if (selectedType) params.type = selectedType;
+        // flow type mapping for payment methods
+        if (paymentMethodsFlowType === "gain") {
+          params.flowType = "inflow";
+          params.type = "gain";
+        } else {
+          params.flowType = "outflow";
+          params.type = "loss";
+        }
         const res = await fetchPaymentMethods(params);
         let normalized = null;
         if (
@@ -1238,6 +1357,7 @@ const DashboardDataRefetcher = ({
 // Main Dashboard Component
 const ExpenseDashboard = () => {
   const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:1024px)");
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   // granular loading flags for skeletons during fetch
@@ -1246,6 +1366,9 @@ const ExpenseDashboard = () => {
   const [categoryLoading, setCategoryLoading] = useState(true);
   const [monthlyTrendLoading, setMonthlyTrendLoading] = useState(true);
   const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(true);
+  const [paymentMethodsTimeframe, setPaymentMethodsTimeframe] =
+    useState("this_month");
+  const [paymentMethodsFlowType, setPaymentMethodsFlowType] = useState("loss");
   const [timeframe, setTimeframe] = useState("this_month"); // daily spending timeframe
   const [categoryTimeframe, setCategoryTimeframe] = useState("this_month"); // category breakdown timeframe
   const [categoryFlowType, setCategoryFlowType] = useState("loss"); // category breakdown gain/loss
@@ -1582,21 +1705,42 @@ const ExpenseDashboard = () => {
       setPaymentMethodsLoading(true);
       try {
         const now = new Date();
+        const fmt = (d) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return `${y}-${m}-${day}`;
+        };
         const params = {};
-        if (timeframe === "this_month" || timeframe === "month") {
-          params.month = now.getMonth() + 1;
-          params.year = now.getFullYear();
-        } else if (timeframe === "last_month") {
-          const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          params.month = d.getMonth() + 1;
-          params.year = d.getFullYear();
-        } else if (timeframe === "last_3_months" || timeframe === "last_3") {
+        if (
+          paymentMethodsTimeframe === "this_month" ||
+          paymentMethodsTimeframe === "month"
+        ) {
+          const start = new Date(now.getFullYear(), now.getMonth(), 1);
+          const end = now;
+          params.fromDate = fmt(start);
+          params.toDate = fmt(end);
+        } else if (paymentMethodsTimeframe === "last_month") {
+          const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          const end = new Date(now.getFullYear(), now.getMonth(), 0);
+          params.fromDate = fmt(start);
+          params.toDate = fmt(end);
+        } else if (
+          paymentMethodsTimeframe === "last_3_months" ||
+          paymentMethodsTimeframe === "last_3"
+        ) {
           const end = now;
           const start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-          params.fromDate = start.toISOString().split("T")[0];
-          params.toDate = end.toISOString().split("T")[0];
+          params.fromDate = fmt(start);
+          params.toDate = fmt(end);
         }
-        if (selectedType) params.type = selectedType;
+        if (paymentMethodsFlowType === "gain") {
+          params.flowType = "inflow";
+          params.type = "gain";
+        } else {
+          params.flowType = "outflow";
+          params.type = "loss";
+        }
 
         const res = await fetchPaymentMethods(params);
 
@@ -1661,7 +1805,7 @@ const ExpenseDashboard = () => {
     return () => {
       mounted = false;
     };
-  }, [timeframe, selectedType]);
+  }, [paymentMethodsTimeframe, paymentMethodsFlowType]);
 
   // removed global skeleton; per-section skeletons handle loading visuals
 
@@ -1674,6 +1818,8 @@ const ExpenseDashboard = () => {
         categoryTimeframe={categoryTimeframe}
         categoryFlowType={categoryFlowType}
         trendYear={trendYear}
+        paymentMethodsTimeframe={paymentMethodsTimeframe}
+        paymentMethodsFlowType={paymentMethodsFlowType}
         setDailyLoading={setDailyLoading}
         setCategoryLoading={setCategoryLoading}
         setMetricsLoading={setMetricsLoading}
@@ -1877,7 +2023,7 @@ const ExpenseDashboard = () => {
 
         <div className="chart-row">
           {monthlyTrendLoading ? (
-            <ChartSkeleton height={300} />
+            <ChartSkeleton height={isMobile ? 260 : isTablet ? 380 : 480} />
           ) : (
             <MonthlyTrendChart
               data={monthlyTrendData}
@@ -1889,9 +2035,31 @@ const ExpenseDashboard = () => {
             />
           )}
           {paymentMethodsLoading ? (
-            <ChartSkeleton height={280} />
+            <div className="chart-container payment-methods">
+              <div className="chart-header">
+                <h3>💳 Payment Methods</h3>
+                <div className="chart-controls">
+                  <div className="time-selector skeleton-pill" />
+                  <div className="type-toggle">
+                    <div className="toggle-btn loss skeleton-pill" />
+                    <div className="toggle-btn gain skeleton-pill" />
+                  </div>
+                </div>
+              </div>
+              <ChartSkeleton height={480} variant="pie" />
+              <div
+                className="total-amount total-amount-bottom skeleton-pill"
+                style={{ width: 140 }}
+              />
+            </div>
           ) : (
-            <PaymentMethodChart data={paymentMethodsData} />
+            <PaymentMethodChart
+              data={paymentMethodsData}
+              timeframe={paymentMethodsTimeframe}
+              onTimeframeChange={(val) => setPaymentMethodsTimeframe(val)}
+              flowType={paymentMethodsFlowType}
+              onFlowTypeChange={(t) => setPaymentMethodsFlowType(t)}
+            />
           )}
         </div>
       </div>

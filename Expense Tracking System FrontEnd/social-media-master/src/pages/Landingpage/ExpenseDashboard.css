@@ -832,6 +832,26 @@
   background: #16a34a; /* green-600 */
 }
 
+/* Payment methods: match category breakdown loss/gain colors */
+.payment-methods .type-toggle .toggle-btn.loss.active {
+  background: #ef4444; /* solid red */
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.12);
+  border: 1px solid #ef4444;
+}
+.payment-methods .type-toggle .toggle-btn.gain.active {
+  background: #22c55e; /* solid green */
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.12);
+  border: 1px solid #22c55e;
+}
+.payment-methods .type-toggle .toggle-btn.loss:hover {
+  background: #dc2626; /* red-600 */
+}
+.payment-methods .type-toggle .toggle-btn.gain:hover {
+  background: #16a34a; /* green-600 */
+}
+
 .total-amount {
   font-size: 0.875rem;
   color: #14b8a6;
@@ -847,6 +867,13 @@
   position: relative;
 }
 .category-breakdown .total-amount-bottom {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+}
+
+/* Match Payment Methods total placement to Category Breakdown */
+.payment-methods .total-amount-bottom {
   position: absolute;
   right: 16px;
   bottom: 16px;
@@ -1691,6 +1718,71 @@
   .recent-transactions,
   .budget-overview {
     padding: 20px;
+  }
+
+  /* Recent Transactions: tighter fonts and compact button on small screens */
+  .recent-transactions .section-header {
+    margin-bottom: 10px;
+  }
+  .recent-transactions .section-header h3 {
+    font-size: 0.95rem;
+  }
+  .recent-transactions .view-all-btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    line-height: 1;
+    white-space: nowrap;
+    border-radius: 6px;
+  }
+  .recent-transactions .transactions-list {
+    gap: 8px;
+  }
+  .recent-transactions .transaction-item {
+    padding: 8px 10px;
+    min-height: 56px;
+  }
+  .recent-transactions .transaction-name {
+    font-size: 0.82rem;
+  }
+  .recent-transactions .transaction-category {
+    font-size: 0.72rem;
+  }
+  .recent-transactions .transaction-date {
+    font-size: 0.62rem;
+  }
+  .recent-transactions .transaction-amount {
+    font-size: 0.85rem;
+  }
+
+  /* Payment Methods: title single line, controls on next line */
+  .payment-methods .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .payment-methods .chart-header h3 {
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .payment-methods .chart-controls {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .payment-methods .chart-controls .time-selector {
+    min-width: 140px; /* slightly wider for readability */
+    flex: 0 0 auto;
+  }
+  .payment-methods .chart-controls .type-toggle {
+    margin-left: 6px; /* reduce left margin on mobile */
+    padding: 4px 6px;
+  }
+  .payment-methods .chart-controls .type-toggle .toggle-btn {
+    padding: 6px 8px;
+    font-size: 12px;
   }
 }
 

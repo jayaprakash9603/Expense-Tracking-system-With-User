@@ -9,7 +9,8 @@ import Parent from "./pages/DetailedExpensesTable/Parent";
 import Loader from "./components/Loaders/Loader";
 import CreateExpenses from "./components/CreateExpenses/CreateExpenses";
 import ReportsGeneration from "./pages/ReportsGeneration";
-import Upload from "./pages/Fileupload/Upload"; // Import Upload component
+import Upload from "./pages/Fileupload/Upload"; // Existing expenses upload
+import UploadBills from "./pages/Fileupload/UploadBills"; // New bills upload
 import Home from "./pages/Landingpage/Home";
 import HomeContent from "./pages/Landingpage/HomeContent";
 import ExpensesContent from "./pages/Landingpage/ExpensesContent";
@@ -125,6 +126,8 @@ function App() {
               <Route index element={<Bill />} />
               <Route path=":friendId" element={<Bill />} />
               <Route path="report" element={<ExpenseReport />} />
+              <Route path="upload" element={<UploadBills />} />
+              <Route path="upload/:friendId" element={<UploadBills />} />
               <Route path="create" element={<CreateBill />} />
               <Route path="create/:friendId" element={<CreateBill />} />
               <Route path="edit/:id" element={<EditBill />} />

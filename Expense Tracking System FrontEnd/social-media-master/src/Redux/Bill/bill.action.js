@@ -278,3 +278,17 @@ export const clearBillsError = () => ({
 export const resetBillsState = () => ({
   type: RESET_BILLS_STATE,
 });
+
+// Bulk: start a tracked save for bills and return jobId
+export const startTrackedSaveBills = (bills, targetId) => async () => {
+  const { data } = await api.post(`/api/bills/add-multiple/tracked`, bills, {
+    params: { targetId: targetId || "" },
+  });
+  return data?.jobId;
+};
+
+// Bulk: poll progress for a bills jobId
+export const pollBillsSaveProgress = async (jobId) => {
+  const { data } = await api.get(`/api/bills/add-multiple/progress/${jobId}`);
+  return data; // { jobId, total, processed, percent, status, message }
+};

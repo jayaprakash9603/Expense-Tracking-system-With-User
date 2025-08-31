@@ -25,4 +25,8 @@ public interface BillService {
 
     Bill getBillIdByExpenseId(Integer userId,Integer billId) throws Exception;
     List<String> getUserAndBackupItems(Integer userId) throws Exception;
+
+    // Bulk APIs
+    List<Bill> addMultipleBills(List<Bill> bills, Integer userId) throws Exception;
+    List<Bill> addMultipleBillsWithProgress(List<Bill> bills, Integer userId, String jobId) throws Exception;
 }

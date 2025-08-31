@@ -749,7 +749,7 @@ const Cashflow = () => {
           itemStyle={{ color: "#b0b6c3" }}
           formatter={(value) => [formatCurrencyCompact(value), "Amount"]}
           wrapperStyle={{ zIndex: 1000 }}
-    labelFormatter={(label, payload) => {
+          labelFormatter={(label, payload) => {
             try {
               if (!Array.isArray(payload) || payload.length === 0) return label;
               if (activeRange === "year") {
@@ -758,14 +758,18 @@ const Cashflow = () => {
                   const baseYear = dayjs().startOf("year").add(offset, "year");
                   const monthStart = baseYear.month(monthIdx).startOf("month");
                   const monthEnd = monthStart.endOf("month");
-      return `${monthStart.format("MMM")} (${monthStart.format("D MMM")} - ${monthEnd.format("D MMM")})`;
+                  return `${monthStart.format("MMM")} (${monthStart.format(
+                    "D MMM"
+                  )} - ${monthEnd.format("D MMM")})`;
                 }
               } else if (activeRange === "month") {
                 const dayNum = parseInt(String(label), 10);
                 if (!isNaN(dayNum)) {
-                  const baseMonth = dayjs().startOf("month").add(offset, "month");
+                  const baseMonth = dayjs()
+                    .startOf("month")
+                    .add(offset, "month");
                   const date = baseMonth.date(dayNum);
-      return date.format("D MMM");
+                  return date.format("D MMM");
                 }
               } else if (activeRange === "week") {
                 const idx = weekDays.indexOf(String(label));
@@ -776,7 +780,7 @@ const Cashflow = () => {
                     .add(offset, "week")
                     .day(1); // set to Monday of that week
                   const date = mondayStart.add(idx, "day");
-      return `${date.format("ddd")}, ${date.format("D MMM")}`;
+                  return `${date.format("ddd")}, ${date.format("D MMM")}`;
                 }
               }
             } catch (e) {
@@ -1257,7 +1261,7 @@ const Cashflow = () => {
             minWidth: 0,
           }}
         >
-          {loading ? (
+          {loading && !search ? (
             <Skeleton
               variant="rectangular"
               width="100%"
@@ -1700,7 +1704,7 @@ const Cashflow = () => {
                 }
           }
         >
-          {loading ? (
+          {loading && !search ? (
             Array.from({ length: 3 }).map((_, idx) => (
               <Skeleton
                 key={idx}
@@ -1851,45 +1855,33 @@ const Cashflow = () => {
                         style={{ whiteSpace: "nowrap" }}
                         title={(() => {
                           const dt = row.date || row.expense?.date;
-                          const dtStr = dt && dayjs(dt).isValid()
-              ? dayjs(dt).format("D MMM")
-                            : "";
-                          const left =
-                            activeRange === "week"
-                              ? row.day
-                              : activeRange === "month"
-                              ? `Day ${row.day}`
-                              : ""; // year: avoid repeating month name
+                          const dtStr =
+                            dt && dayjs(dt).isValid()
+                              ? dayjs(dt).format("D MMM")
+                              : "";
+                          const left = ""; // show only D MMM across ranges on card
                           if (dtStr && left) return `${left} • ${dtStr}`;
                           return left || dtStr;
                         })()}
                         data-tooltip-id={`expense-date-tooltip-${idx}`}
                         data-tooltip-content={(() => {
                           const dt = row.date || row.expense?.date;
-                          const dtStr = dt && dayjs(dt).isValid()
-              ? dayjs(dt).format("D MMM")
-                            : "";
-                          const left =
-                            activeRange === "week"
-                              ? row.day
-                              : activeRange === "month"
-                              ? `Day ${row.day}`
-                              : ""; // year
+                          const dtStr =
+                            dt && dayjs(dt).isValid()
+                              ? dayjs(dt).format("D MMM")
+                              : "";
+                          const left = ""; // show only D MMM across ranges on card
                           if (dtStr && left) return `${left} • ${dtStr}`;
                           return left || dtStr;
                         })()}
                       >
                         {(() => {
                           const dt = row.date || row.expense?.date;
-                          const dtStr = dt && dayjs(dt).isValid()
-              ? dayjs(dt).format("D MMM")
-                            : "";
-                          const left =
-                            activeRange === "week"
-                              ? row.day
-                              : activeRange === "month"
-                              ? `Day ${row.day}`
-                              : ""; // year
+                          const dtStr =
+                            dt && dayjs(dt).isValid()
+                              ? dayjs(dt).format("D MMM")
+                              : "";
+                          const left = ""; // show only D MMM across ranges on card
                           if (dtStr && left) return `${left} • ${dtStr}`;
                           return left || dtStr;
                         })()}

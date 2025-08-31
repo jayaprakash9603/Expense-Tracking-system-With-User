@@ -16,6 +16,7 @@ import {
 import {
   fetchCashflowExpenses,
   deleteExpenseAction,
+  deleteMultiExpenses,
 } from "../../Redux/Expenses/expense.action";
 
 import dayjs from "dayjs";
@@ -33,7 +34,6 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  x,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import RepeatIcon from "@mui/icons-material/Repeat";
@@ -178,7 +178,8 @@ const FriendsExpenses = () => {
   const [flowTab, setFlowTab] = useState("all"); // Start with 'all'
   const [search, setSearch] = useState("");
   const [selectedBar, setSelectedBar] = useState(null); // For bar chart filtering
-  const [selectedCardIdx, setSelectedCardIdx] = useState(null); // NEW: for card selection only
+  const [selectedCardIdx, setSelectedCardIdx] = useState([]); // multi-select indices
+  const [lastSelectedIdx, setLastSelectedIdx] = useState(null); // for Shift selection
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sortType, setSortType] = useState("recent");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -320,7 +321,7 @@ const FriendsExpenses = () => {
   // Reset selectedBar when main view changes
   useEffect(() => {
     setSelectedBar(null);
-    setSelectedCardIdx(null); // Deselect card when range or offset changes
+    setSelectedCardIdx([]); // Deselect card when range or offset changes
   }, [activeRange, offset, flowTab]);
 
   // Popover close on outside click
@@ -507,12 +508,36 @@ const FriendsExpenses = () => {
     } else {
       setSelectedBar({ data, idx });
     }
-    setSelectedCardIdx(null);
+    setSelectedCardIdx([]);
   };
 
-  // Handler for card click (just highlights, does not filter)
-  const handleCardClick = (idx) => {
-    setSelectedCardIdx(idx === selectedCardIdx ? null : idx);
+  // Handler for card click with Shift/Ctrl multi-select
+  const handleCardClick = (idx, event) => {
+    if (event) event.preventDefault();
+    if (
+      event &&
+      event.shiftKey &&
+      lastSelectedIdx !== null &&
+      lastSelectedIdx !== undefined
+    ) {
+      const start = Math.min(lastSelectedIdx, idx);
+      const end = Math.max(lastSelectedIdx, idx);
+      const range = [];
+      for (let i = start; i <= end; i++) range.push(i);
+      setSelectedCardIdx(range);
+    } else if (event && event.ctrlKey) {
+      setSelectedCardIdx((prev) => {
+        if (prev.includes(idx)) return prev.filter((i) => i !== idx);
+        return [...prev, idx];
+      });
+      setLastSelectedIdx(idx);
+    } else {
+      setSelectedCardIdx((prev) => {
+        if (prev.length === 1 && prev[0] === idx) return [];
+        return [idx];
+      });
+      setLastSelectedIdx(idx);
+    }
   };
 
   // Cycle flowTab on button click
@@ -521,7 +546,7 @@ const FriendsExpenses = () => {
     const next = flowTypeCycle[(idx + 1) % flowTypeCycle.length];
     setFlowTab(next.value);
     setSelectedBar(null);
-    setSelectedCardIdx(null);
+    setSelectedCardIdx([]);
   };
 
   useEffect(() => {
@@ -568,16 +593,29 @@ const FriendsExpenses = () => {
   };
 
   const handleConfirmDelete = () => {
-    if (expenseToDelete) {
-      dispatch(deleteExpenseAction(expenseToDelete, friendId))
-        .then(() => {
-          // Refresh cashflow data after delete
-          dispatch(
-            fetchCashflowExpenses(activeRange, offset, flowTab, "", friendId)
+    if (!expenseToDelete) return;
+    const refresh = () =>
+      dispatch(
+        fetchCashflowExpenses(activeRange, offset, flowTab, "", friendId)
+      );
+    if (Array.isArray(expenseToDelete)) {
+      dispatch(deleteMultiExpenses(expenseToDelete))
+        .then(refresh)
+        .catch(() => {
+          setToastMessage(
+            "Error deleting selected expenses. Please try again."
           );
-          // setToastMessage("Expense deleted successfully.");
-          // setToastOpen(true);
+          setToastOpen(true);
         })
+        .finally(() => {
+          setIsDeleteModalOpen(false);
+          setExpenseToDelete(null);
+          setExpenseData({});
+          setSelectedCardIdx([]);
+        });
+    } else {
+      dispatch(deleteExpenseAction(expenseToDelete, friendId))
+        .then(refresh)
         .catch(() => {
           setToastMessage("Error deleting expense. Please try again.");
           setToastOpen(true);
@@ -586,7 +624,7 @@ const FriendsExpenses = () => {
           setIsDeleteModalOpen(false);
           setExpenseToDelete(null);
           setExpenseData({});
-          setSelectedCardIdx(null);
+          setSelectedCardIdx([]);
         });
     }
   };
@@ -695,13 +733,12 @@ const FriendsExpenses = () => {
               }
             />
           ))}
-          {/* Add value labels on top of bars */}
           {!barChartStyles.hideNumbers && (
             <LabelList
               dataKey="amount"
               position="top"
               content={({ x, y, width, value }) => {
-                if (!value) return null; // Don't render label for 0
+                if (!value) return null;
                 const labelY = y < 18 ? y + 14 : y - 6;
                 return (
                   <text
@@ -760,7 +797,7 @@ const FriendsExpenses = () => {
 
       // Reset any selected states
       setSelectedBar(null);
-      setSelectedCardIdx(null);
+      setSelectedCardIdx([]);
     } catch (error) {
       console.error("Error refreshing data:", error);
       setToastMessage("Error loading friend data. Please try again.");
@@ -892,6 +929,60 @@ const FriendsExpenses = () => {
             gap: 8,
           }}
         >
+          {/* Delete Selected Button - only visible if more than one card is selected */}
+          {selectedCardIdx.length > 1 && (
+            <button
+              onClick={() => {
+                setIsDeleteModalOpen(true);
+                setExpenseData({});
+                setExpenseToDelete(
+                  selectedCardIdx.map(
+                    (idx) =>
+                      sortedCardData[idx].id || sortedCardData[idx].expenseId
+                  )
+                );
+              }}
+              style={{
+                minWidth: isMobile ? 80 : 140,
+                minHeight: isMobile ? 32 : 38,
+                width: isMobile ? 100 : 160,
+                height: isMobile ? 32 : 38,
+                background: "#ff4d4f",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                boxShadow: "0 2px 8px #0002",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 600,
+                fontSize: isMobile ? 13 : 15,
+                cursor: "pointer",
+                transition: "background 0.2s",
+                gap: 6,
+              }}
+              title={`Delete ${selectedCardIdx.length} selected`}
+            >
+              <svg
+                width={isMobile ? 16 : 20}
+                height={isMobile ? 16 : 20}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
+              </svg>
+              {!isMobile && (
+                <span style={{ marginLeft: 4 }}>Delete Selected</span>
+              )}
+            </button>
+          )}
           <button
             onClick={handleFlowTabToggle}
             className={`rounded-lg flex items-center justify-center animate-morph-flow-toggle-rect ${
@@ -1046,7 +1137,7 @@ const FriendsExpenses = () => {
             minWidth: 0,
           }}
         >
-          {loading && !isFiltering ? (
+          {loading && !isFiltering && !search ? (
             <Skeleton
               variant="rectangular"
               width="100%"
@@ -1506,7 +1597,7 @@ const FriendsExpenses = () => {
                 }
           }
         >
-          {loading && !isFiltering ? (
+          {loading && !isFiltering && !search ? (
             Array.from({ length: 3 }).map((_, idx) => (
               <Skeleton
                 key={idx}
@@ -1533,7 +1624,7 @@ const FriendsExpenses = () => {
             </div>
           ) : (
             sortedCardData.map((row, idx) => {
-              const isSelected = selectedCardIdx === idx;
+              const isSelected = selectedCardIdx.includes(idx);
               // Determine type for icon/color in 'all' mode
               let type;
               if (flowTab === "all") {
@@ -1634,7 +1725,8 @@ const FriendsExpenses = () => {
                       ? `2px solid ${isGain ? "#06d6a0" : "#ff4d4f"}`
                       : "2px solid transparent",
                   }}
-                  onClick={() => handleCardClick(idx)} // Only select card, do not filter
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={(e) => handleCardClick(idx, e)} // multi-select support
                 >
                   <div
                     className="flex flex-col gap-2"
@@ -1653,27 +1745,38 @@ const FriendsExpenses = () => {
                       <span
                         className="text-xs font-semibold text-[#b0b6c3] ml-2 flex-shrink-0"
                         style={{ whiteSpace: "nowrap" }}
-                        title={
-                          activeRange === "week"
-                            ? row.day
-                            : activeRange === "month"
-                            ? `Day ${row.day}`
-                            : row.month
-                        }
+                        title={(() => {
+                          const dt = row.date || row.expense?.date;
+                          const dtStr =
+                            dt && dayjs(dt).isValid()
+                              ? dayjs(dt).format("D MMM")
+                              : "";
+                          const left = ""; // show only D MMM across ranges on card
+                          if (dtStr && left) return `${left} • ${dtStr}`;
+                          return left || dtStr;
+                        })()}
                         data-tooltip-id={`expense-date-tooltip-${idx}`}
-                        data-tooltip-content={
-                          activeRange === "week"
-                            ? row.day
-                            : activeRange === "month"
-                            ? `Day ${row.day}`
-                            : row.month
-                        }
+                        data-tooltip-content={(() => {
+                          const dt = row.date || row.expense?.date;
+                          const dtStr =
+                            dt && dayjs(dt).isValid()
+                              ? dayjs(dt).format("D MMM")
+                              : "";
+                          const left = ""; // show only D MMM across ranges on card
+                          if (dtStr && left) return `${left} • ${dtStr}`;
+                          return left || dtStr;
+                        })()}
                       >
-                        {activeRange === "week"
-                          ? row.day
-                          : activeRange === "month"
-                          ? `Day ${row.day}`
-                          : row.month}
+                        {(() => {
+                          const dt = row.date || row.expense?.date;
+                          const dtStr =
+                            dt && dayjs(dt).isValid()
+                              ? dayjs(dt).format("D MMM")
+                              : "";
+                          const left = ""; // show only D MMM across ranges on card
+                          if (dtStr && left) return `${left} • ${dtStr}`;
+                          return left || dtStr;
+                        })()}
                       </span>
                     </div>
                     <div className="text-base font-bold flex items-center gap-1">
@@ -1707,7 +1810,7 @@ const FriendsExpenses = () => {
                       {row.comments}
                     </div>
                   </div>
-                  {isSelected && (
+                  {isSelected && selectedCardIdx.length === 1 && (
                     <div
                       className="absolute bottom-2 right-2 flex gap-2 opacity-90"
                       style={{
