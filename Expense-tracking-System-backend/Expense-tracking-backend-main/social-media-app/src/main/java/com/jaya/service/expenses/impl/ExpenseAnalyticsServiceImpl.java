@@ -563,16 +563,16 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         private DatePeriod getLastMonthCreditPeriod() {
             LocalDate today = LocalDate.now();
             // Calculate from 17th of previous month to 16th of current month
-            LocalDate startDate = today.minusMonths(1).withDayOfMonth(17);
-            LocalDate endDate = today.withDayOfMonth(16);
+            LocalDate endDate = today.minusMonths(1).withDayOfMonth(17);
+            LocalDate startDate = today.minusMonths(2).withDayOfMonth(16);
             return new DatePeriod(startDate, endDate);
         }
 
         // New method to get current month bill payment period (17th to 5th next month)
         private DatePeriod getCurrentMonthBillPeriod() {
             LocalDate today = LocalDate.now();
-            LocalDate startDate = today.withDayOfMonth(17);
-            LocalDate endDate = today.plusMonths(1).withDayOfMonth(5);
+            LocalDate endDate = today.withDayOfMonth(16);
+            LocalDate startDate = today.minusMonths(1).withDayOfMonth(17);
             return new DatePeriod(startDate, endDate);
         }
 

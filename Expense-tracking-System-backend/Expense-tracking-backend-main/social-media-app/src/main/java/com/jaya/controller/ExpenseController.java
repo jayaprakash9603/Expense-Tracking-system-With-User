@@ -2504,18 +2504,8 @@ public class ExpenseController {
             @RequestParam(value = "year", defaultValue = "0") int year,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-            if (year == 0) {
-                year = Year.now().getValue();
-            }
-            if (year < 2000 || year > 2100) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Year must be between 2000 and 2100");
-            }
             User reqUser = userService.findUserByJwt(jwt);
-            if (reqUser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Invalid or expired token");
-            }
+            
             User targetUser;
 
                 targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
