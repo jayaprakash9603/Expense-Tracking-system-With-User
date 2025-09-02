@@ -397,9 +397,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 continue;
             }
 
-            if (existing.isBill()) {
-                continue;
-            }
+//            if (existing.isBill()) {
+//                continue;
+//            }
 
             if (existing.getUserId() == null || !existing.getUserId().equals(userId)) {
                 errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() +

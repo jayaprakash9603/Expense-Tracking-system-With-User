@@ -405,6 +405,7 @@ public class BillServiceImpl implements BillService {
                 helper.validateBillData(bill);
 
                 ExpenseDTO expenseDto = helper.createExpenseFromBill(bill, user);
+                System.out.println(("category id in bill"+expenseDto.getCategoryId()));
                 ExpenseDTO savedExpense = expenseService.addExpense(expenseDto, userId);
 
                 Bill toSave = helper.mapExpenseToBill(bill, savedExpense);

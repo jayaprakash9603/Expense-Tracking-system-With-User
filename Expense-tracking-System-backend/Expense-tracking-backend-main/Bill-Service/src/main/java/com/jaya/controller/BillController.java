@@ -8,6 +8,7 @@ import com.jaya.dto.ProgressStatus;
 import com.jaya.models.UserDto;
 import com.jaya.response.Error;
 import com.jaya.service.BillService;
+import com.jaya.service.ExcelExportService;
 import com.jaya.service.FriendShipService;
 import com.jaya.service.UserService;
 import com.jaya.util.ServiceHelper;
@@ -16,12 +17,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.core.task.TaskExecutor;
 import com.jaya.util.BulkProgressTracker;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/bills")
@@ -34,6 +39,8 @@ public class BillController {
     private final FriendShipService friendshipService;
     private final BulkProgressTracker progressTracker;
     private final TaskExecutor taskExecutor;
+
+    private final ExcelExportService excelExportService;
 
 
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser) throws Exception {
@@ -152,16 +159,13 @@ public class BillController {
     }
 
     @DeleteMapping()
-    public ResponseEntity<String> deleteAllBills( @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) {
-        try {
+    public ResponseEntity<String> deleteAllBills( @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) throws Exception {
+
             UserDto reqUser = userService.getuserProfile(jwt);
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
             String message=billService.deleteAllBillsForUser(targetUser.getId());
-
             return new ResponseEntity<>(message,HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+
     }
     @GetMapping("/expenses/{expenseId}")
     public ResponseEntity<Bill> getExpenseIdByBillId( @RequestHeader("Authorization") String jwt,@PathVariable Integer expenseId, @RequestParam(required = false) Integer targetId) {
@@ -225,16 +229,175 @@ public class BillController {
     }
 
     @GetMapping("/items")
-    public ResponseEntity<?> getAllUniqueItemNames(@RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) {
-        try {
+    public ResponseEntity<List<String>> getAllUniqueItemNames(@RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) throws Exception {
+
             UserDto reqUser = userService.getuserProfile(jwt);
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
-            java.util.List<String> resp = billService.getUserAndBackupItems(targetUser.getId());
+         List<String> resp = billService.getUserAndBackupItems(targetUser.getId());
             return ResponseEntity.ok(resp);
+
+    }
+
+
+    // Add this method to your existing BillController class
+
+    @GetMapping("/export/excel")
+    public ResponseEntity<String> exportUserBillsToExcel(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false, defaultValue = "C:\\Users\\jayapraj\\Downloads\\") String filePath) {
+
+        UserDto user=userService.getuserProfile(jwt);
+        try {
+            // Get all bills for the user
+            List<Bill> userBills = billService.getAllBillsForUser(user.getId());
+
+            if (userBills.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("No bills found for user ID: " + user.getId());
+            }
+
+            // Generate filename with timestamp
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String fileName = "User_" + user.getEmail() + "_Bills_" + timestamp + ".xlsx";
+            String fullPath = filePath + fileName;
+
+            // Generate Excel file
+            excelExportService.generateBillExcel(userBills, fullPath);
+
+            return ResponseEntity.ok("Excel file generated successfully at: " + fullPath);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error generating Excel file: " + e.getMessage());
         } catch (Exception e) {
-            Error error = new Error();
-            error.setMessage(e.getMessage());
-            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unexpected error: " + e.getMessage());
+        }
+    }
+
+
+
+    // Add this method to your existing BillController class
+
+    @PostMapping("/import/excel")
+    public ResponseEntity<?> importBillsFromExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+
+        try {
+            // Validate file
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("Please select a file to upload");
+            }
+
+            // Check file extension
+            String fileName = file.getOriginalFilename();
+            if (fileName == null || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+                return ResponseEntity.badRequest()
+                        .body("Please upload a valid Excel file (.xlsx or .xls)");
+            }
+
+            // Validate user permissions
+            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+
+            // Import bills from Excel
+            List<BillRequestDTO> importedBills = excelExportService.importBillsFromExcel(file);
+
+            if (importedBills.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("No valid bill data found in the Excel file");
+            }
+
+            // Set the target user ID for all bills
+            importedBills.forEach(bill -> bill.setUserId(targetUser.getId()));
+
+            // Return the imported bills as JSON
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Bills imported successfully from Excel file");
+            response.put("totalBills", importedBills.size());
+            response.put("bills", importedBills);
+
+            return ResponseEntity.ok(response);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error reading Excel file: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body("Invalid Excel file format: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unexpected error: " + e.getMessage());
+        }
+    }
+
+    // Add this method to your existing BillController class
+
+    @PostMapping("/import/excel/save")
+    public ResponseEntity<?> importAndSaveBillsFromExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId,
+            @RequestParam(required = false, defaultValue = "false") boolean skipDuplicates) {
+
+        try {
+            // Validate file
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("Please select a file to upload");
+            }
+
+            // Check file extension
+            String fileName = file.getOriginalFilename();
+            if (fileName == null || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+                return ResponseEntity.badRequest()
+                        .body("Please upload a valid Excel file (.xlsx or .xls)");
+            }
+
+            // Validate user permissions
+            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+
+            // Import bills from Excel
+            List<BillRequestDTO> importedBills = excelExportService.importBillsFromExcel(file);
+
+            if (importedBills.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("No valid bill data found in the Excel file");
+            }
+
+            // Convert to entities and save
+            List<Bill> billsToSave = importedBills.stream()
+                    .map(dto -> com.jaya.mapper.BillMapper.toEntity(dto, targetUser.getId()))
+                    .toList();
+
+            List<Bill> savedBills = billService.addMultipleBills(billsToSave, targetUser.getId());
+
+            // Convert back to DTOs for response
+            List<BillResponseDTO> savedBillDTOs = savedBills.stream()
+                    .map(com.jaya.mapper.BillMapper::toDto)
+                    .toList();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Bills imported and saved successfully");
+            response.put("totalImported", importedBills.size());
+            response.put("totalSaved", savedBills.size());
+            response.put("savedBills", savedBillDTOs);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error reading Excel file: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body("Invalid Excel file format: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unexpected error: " + e.getMessage());
         }
     }
 }

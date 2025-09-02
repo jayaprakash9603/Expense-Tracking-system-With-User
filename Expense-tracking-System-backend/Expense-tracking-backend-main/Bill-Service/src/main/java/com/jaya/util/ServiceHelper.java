@@ -234,6 +234,7 @@ public class ServiceHelper {
         expense.setDate(bill.getDate());
         expense.setUserId(user.getId());
         expense.setCategoryId(bill.getCategoryId() != null ? bill.getCategoryId() : 0);
+        expense.setCategoryName(bill.getCategory());
         expense.setBudgetIds(bill.getBudgetIds() != null ? bill.getBudgetIds() : new HashSet<>());
         expense.setBill(true);
 
