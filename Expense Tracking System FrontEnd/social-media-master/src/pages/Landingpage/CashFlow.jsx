@@ -102,7 +102,6 @@ const CashflowSearchToolbar = ({
   setSearch,
   onFilterClick,
   filterRef,
-  setIsFiltering,
   isMobile,
   isTablet,
 }) => (
@@ -120,13 +119,7 @@ const CashflowSearchToolbar = ({
       type="text"
       placeholder="Search expenses..."
       value={search}
-      onChange={(e) => {
-        // Set filtering flag to true when user is typing
-        setIsFiltering(true);
-        setSearch(e.target.value);
-        // Reset filtering flag after a short delay
-        setTimeout(() => setIsFiltering(false), 300);
-      }}
+      onChange={(e) => setSearch(e.target.value)}
       style={{
         backgroundColor: "#1b1b1b",
         color: "#ffffff",
@@ -214,7 +207,7 @@ const Cashflow = () => {
       maximumFractionDigits: 2,
     });
   };
-  const [isFiltering, setIsFiltering] = useState(false);
+  // Removed isFiltering; search is client-side only
   const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
   const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const [confirmationText, setConfirmationText] = useState("");
@@ -241,34 +234,22 @@ const Cashflow = () => {
     }
   }, [location.state]);
 
-  // Replace the existing useEffect for fetching data with this one
+  // Fetch data on range/offset/flow changes; search is client-side only
   useEffect(() => {
-    // Get the category filter from search term
-    const categoryFilter = search.trim() || null;
-
     console.log("Fetching expenses with filters:", {
       range: activeRange,
       offset: offset,
       flowType: flowTab === "all" ? null : flowTab,
-      categoryFilter: categoryFilter,
     });
-
-    // Set filtering flag to true when making API call
-    setIsFiltering(true);
-
-    // Make the API call with proper parameters
     dispatch(
       fetchCashflowExpenses(
         activeRange,
         offset,
         flowTab === "all" ? null : flowTab,
-        categoryFilter
+        null
       )
-    ).finally(() => {
-      // Reset filtering flag when API call completes
-      setIsFiltering(false);
-    });
-  }, [activeRange, offset, flowTab, dispatch, search]);
+    );
+  }, [activeRange, offset, flowTab, dispatch]);
 
   // Add this to your component to debug the category selection
   useEffect(() => {
@@ -323,9 +304,39 @@ const Cashflow = () => {
     hideAxisLabels: isMobile, // Hide axis labels for small screens
   };
 
-  // Aggregate data for graph and cards
+  // Apply client-side search filter once and use it for both chart and cards
+  const filteredExpensesForView = useMemo(() => {
+    const list = Array.isArray(cashflowExpenses) ? cashflowExpenses : [];
+    const q = (search || "").toLowerCase().trim();
+    if (!q) return list;
+    return list.filter((item) => {
+      const exp = item?.expense || {};
+      const name = (exp.expenseName || item.name || "").toLowerCase();
+      const comments = (exp.comments || item.comments || "").toLowerCase();
+      const amountStr = String(exp.amount ?? item.amount ?? "").toLowerCase();
+      const category = (
+        item.categoryName ||
+        item.category?.name ||
+        item.category ||
+        ""
+      )
+        .toString()
+        .toLowerCase();
+      return (
+        name.includes(q) ||
+        comments.includes(q) ||
+        amountStr.includes(q) ||
+        category.includes(q)
+      );
+    });
+  }, [cashflowExpenses, search]);
+
+  // Aggregate data for graph and cards from filtered list
   const { chartData, cardData } = useMemo(() => {
-    if (!Array.isArray(cashflowExpenses) || cashflowExpenses.length === 0) {
+    if (
+      !Array.isArray(filteredExpensesForView) ||
+      filteredExpensesForView.length === 0
+    ) {
       return { chartData: [], cardData: [] };
     }
 
@@ -335,7 +346,7 @@ const Cashflow = () => {
       weekDays.forEach(
         (d) => (weekMap[d] = { day: d, amount: 0, expenses: [] })
       );
-      cashflowExpenses.forEach((item) => {
+      filteredExpensesForView.forEach((item) => {
         const date = item.date || item.expense?.date;
         const dayIdx = dayjs(date).day(); // 0=Sunday, 1=Monday...
         const weekDay = weekDays[(dayIdx + 6) % 7]; // shift so Monday is 0
@@ -367,7 +378,7 @@ const Cashflow = () => {
       for (let i = 1; i <= daysInMonth; i++) {
         monthMap[i] = { day: i, amount: 0, expenses: [] };
       }
-      cashflowExpenses.forEach((item) => {
+      filteredExpensesForView.forEach((item) => {
         const date = item.date || item.expense?.date;
         const day = dayjs(date).date();
         if (monthMap[day]) {
@@ -396,7 +407,7 @@ const Cashflow = () => {
       yearMonths.forEach(
         (m, idx) => (yearMap[idx] = { month: m, amount: 0, expenses: [] })
       );
-      cashflowExpenses.forEach((item) => {
+      filteredExpensesForView.forEach((item) => {
         const date = item.date || item.expense?.date;
         const monthIdx = dayjs(date).month(); // 0=Jan
         yearMap[monthIdx].amount += item.expense?.amount || 0;
@@ -419,13 +430,13 @@ const Cashflow = () => {
       };
     }
     return { chartData: [], cardData: [] };
-  }, [cashflowExpenses, activeRange, offset]);
+  }, [filteredExpensesForView, activeRange, offset]);
 
   // Chart axis keys
   const xKey =
     activeRange === "week" ? "day" : activeRange === "month" ? "day" : "month";
 
-  // Filter cardData by search and selectedBar
+  // Filter cardData by selectedBar (search already applied above)
   const filteredCardData = useMemo(() => {
     let filtered = cardData;
     if (selectedBar) {
@@ -440,15 +451,8 @@ const Cashflow = () => {
         );
       }
     }
-    if (!search) return filtered;
-    const lower = search.toLowerCase();
-    return filtered.filter(
-      (row) =>
-        row.name.toLowerCase().includes(lower) ||
-        row.comments.toLowerCase().includes(lower) ||
-        (row.amount + "").includes(lower)
-    );
-  }, [cardData, search, selectedBar, activeRange]);
+    return filtered;
+  }, [cardData, selectedBar, activeRange]);
 
   // Sort filteredCardData based on sortType
   const sortedCardData = useMemo(() => {
@@ -534,16 +538,20 @@ const Cashflow = () => {
   const totals = useMemo(() => {
     let inflow = 0;
     let outflow = 0;
-    if (Array.isArray(cashflowExpenses)) {
-      cashflowExpenses.forEach((item) => {
-        const amount = item.expense?.amount || 0;
-        const type = item.type || item.expense?.type || "outflow";
+    if (Array.isArray(filteredExpensesForView)) {
+      filteredExpensesForView.forEach((item) => {
+        const amount = item.expense?.amount || item.amount || 0;
+        const type = (
+          item.type ||
+          item.expense?.type ||
+          "outflow"
+        ).toLowerCase();
         if (type === "inflow" || type === "gain") inflow += amount;
         else outflow += amount;
       });
     }
     return { inflow, outflow, total: inflow + outflow };
-  }, [cashflowExpenses]);
+  }, [filteredExpensesForView]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -740,6 +748,46 @@ const Cashflow = () => {
           labelStyle={{ color: "#00dac6", fontWeight: 700 }}
           itemStyle={{ color: "#b0b6c3" }}
           formatter={(value) => [formatCurrencyCompact(value), "Amount"]}
+          wrapperStyle={{ zIndex: 1000 }}
+          labelFormatter={(label, payload) => {
+            try {
+              if (!Array.isArray(payload) || payload.length === 0) return label;
+              if (activeRange === "year") {
+                const monthIdx = yearMonths.indexOf(String(label));
+                if (monthIdx >= 0) {
+                  const baseYear = dayjs().startOf("year").add(offset, "year");
+                  const monthStart = baseYear.month(monthIdx).startOf("month");
+                  const monthEnd = monthStart.endOf("month");
+                  return `${monthStart.format("MMM")} (${monthStart.format(
+                    "D MMM"
+                  )} - ${monthEnd.format("D MMM")})`;
+                }
+              } else if (activeRange === "month") {
+                const dayNum = parseInt(String(label), 10);
+                if (!isNaN(dayNum)) {
+                  const baseMonth = dayjs()
+                    .startOf("month")
+                    .add(offset, "month");
+                  const date = baseMonth.date(dayNum);
+                  return date.format("D MMM");
+                }
+              } else if (activeRange === "week") {
+                const idx = weekDays.indexOf(String(label));
+                if (idx >= 0) {
+                  // Align to Monday as first day to match weekDays [Mon..Sun]
+                  const mondayStart = dayjs()
+                    .startOf("week")
+                    .add(offset, "week")
+                    .day(1); // set to Monday of that week
+                  const date = mondayStart.add(idx, "day");
+                  return `${date.format("ddd")}, ${date.format("D MMM")}`;
+                }
+              }
+            } catch (e) {
+              // no-op fallback
+            }
+            return label;
+          }}
         />
         {/* Average line */}
         {Array.isArray(chartData) &&
@@ -1213,7 +1261,7 @@ const Cashflow = () => {
             minWidth: 0,
           }}
         >
-          {loading && !isFiltering ? (
+          {loading && !search ? (
             <Skeleton
               variant="rectangular"
               width="100%"
@@ -1275,7 +1323,6 @@ const Cashflow = () => {
             setSearch={setSearch}
             onFilterClick={() => setPopoverOpen((v) => !v)}
             filterRef={filterBtnRef}
-            setIsFiltering={setIsFiltering}
             isMobile={isMobile}
             isTablet={isTablet}
           />
@@ -1657,7 +1704,7 @@ const Cashflow = () => {
                 }
           }
         >
-          {loading && !isFiltering ? (
+          {loading && !search ? (
             Array.from({ length: 3 }).map((_, idx) => (
               <Skeleton
                 key={idx}
@@ -1806,27 +1853,38 @@ const Cashflow = () => {
                       <span
                         className="text-xs font-semibold text-[#b0b6c3] ml-2 flex-shrink-0"
                         style={{ whiteSpace: "nowrap" }}
-                        title={
-                          activeRange === "week"
-                            ? row.day
-                            : activeRange === "month"
-                            ? `Day ${row.day}`
-                            : row.month
-                        }
+                        title={(() => {
+                          const dt = row.date || row.expense?.date;
+                          const dtStr =
+                            dt && dayjs(dt).isValid()
+                              ? dayjs(dt).format("D MMM")
+                              : "";
+                          const left = ""; // show only D MMM across ranges on card
+                          if (dtStr && left) return `${left} • ${dtStr}`;
+                          return left || dtStr;
+                        })()}
                         data-tooltip-id={`expense-date-tooltip-${idx}`}
-                        data-tooltip-content={
-                          activeRange === "week"
-                            ? row.day
-                            : activeRange === "month"
-                            ? `Day ${row.day}`
-                            : row.month
-                        }
+                        data-tooltip-content={(() => {
+                          const dt = row.date || row.expense?.date;
+                          const dtStr =
+                            dt && dayjs(dt).isValid()
+                              ? dayjs(dt).format("D MMM")
+                              : "";
+                          const left = ""; // show only D MMM across ranges on card
+                          if (dtStr && left) return `${left} • ${dtStr}`;
+                          return left || dtStr;
+                        })()}
                       >
-                        {activeRange === "week"
-                          ? row.day
-                          : activeRange === "month"
-                          ? `Day ${row.day}`
-                          : row.month}
+                        {(() => {
+                          const dt = row.date || row.expense?.date;
+                          const dtStr =
+                            dt && dayjs(dt).isValid()
+                              ? dayjs(dt).format("D MMM")
+                              : "";
+                          const left = ""; // show only D MMM across ranges on card
+                          if (dtStr && left) return `${left} • ${dtStr}`;
+                          return left || dtStr;
+                        })()}
                       </span>
                     </div>
                     <div className="text-base font-bold flex items-center gap-1">

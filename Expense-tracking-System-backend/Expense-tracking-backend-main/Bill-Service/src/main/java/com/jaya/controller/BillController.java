@@ -4,6 +4,7 @@ package com.jaya.controller;
 import com.jaya.models.Bill;
 import com.jaya.dto.BillRequestDTO;
 import com.jaya.dto.BillResponseDTO;
+import com.jaya.dto.ProgressStatus;
 import com.jaya.models.UserDto;
 import com.jaya.response.Error;
 import com.jaya.service.BillService;
@@ -17,6 +18,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.core.task.TaskExecutor;
+import com.jaya.util.BulkProgressTracker;
 
 @RestController
 @RequestMapping("/api/bills")
@@ -27,6 +32,8 @@ public class BillController {
     private final UserService userService;
     private final ServiceHelper helper;
     private final FriendShipService friendshipService;
+    private final BulkProgressTracker progressTracker;
+    private final TaskExecutor taskExecutor;
 
 
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser) throws Exception {
@@ -57,6 +64,54 @@ public class BillController {
     Bill createdBill = billService.createBill(bill, targetUser.getId());
     BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(createdBill);
     return ResponseEntity.ok(resp);
+    }
+
+    // Bulk create bills (immediate, no tracking)
+    @PostMapping("/add-multiple")
+    public ResponseEntity<List<BillResponseDTO>> addMultipleBills(@RequestHeader("Authorization") String jwt,
+                                                                  @RequestBody List<BillRequestDTO> bills,
+                                                                  @RequestParam(required = false) Integer targetId) throws Exception {
+        UserDto reqUser = userService.getuserProfile(jwt);
+        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+        List<Bill> toCreate = bills.stream().map(dto -> com.jaya.mapper.BillMapper.toEntity(dto, targetUser.getId())).toList();
+        List<Bill> saved = billService.addMultipleBills(toCreate, targetUser.getId());
+        List<BillResponseDTO> resp = saved.stream().map(com.jaya.mapper.BillMapper::toDto).toList();
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+    }
+
+    // Start a tracked bulk import and return a jobId
+    @PostMapping("/add-multiple/tracked")
+    public ResponseEntity<Map<String, String>> addMultipleBillsTracked(@RequestHeader("Authorization") String jwt,
+                                                                       @RequestBody List<BillRequestDTO> bills,
+                                                                       @RequestParam(required = false) Integer targetId) throws Exception {
+        UserDto reqUser = userService.getuserProfile(jwt);
+        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+
+        String jobId = progressTracker.start(targetUser.getId(), bills != null ? bills.size() : 0, "Bulk bills import started");
+
+        taskExecutor.execute(() -> {
+            try {
+                List<Bill> toCreate = bills == null ? java.util.Collections.emptyList() : bills.stream().map(dto -> com.jaya.mapper.BillMapper.toEntity(dto, targetUser.getId())).toList();
+                List<Bill> saved = billService.addMultipleBillsWithProgress(toCreate, targetUser.getId(), jobId);
+                progressTracker.complete(jobId, "Bulk bills import completed: " + (saved != null ? saved.size() : 0) + " records");
+            } catch (Exception ex) {
+                progressTracker.fail(jobId, ex.getMessage());
+            }
+        });
+
+        Map<String, String> response = new HashMap<>();
+        response.put("jobId", jobId);
+        return ResponseEntity.accepted().body(response);
+    }
+
+    // Poll progress by jobId
+    @GetMapping("/add-multiple/progress/{jobId}")
+    public ResponseEntity<ProgressStatus> getAddMultipleBillsProgress(@PathVariable String jobId,
+                                                                      @RequestHeader("Authorization") String jwt) throws Exception {
+        userService.getuserProfile(jwt); // auth check
+        ProgressStatus status = progressTracker.get(jobId);
+        if (status == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(status);
     }
 
 

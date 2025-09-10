@@ -85,7 +85,18 @@ const categoryReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        categories: [...state.categories, action.payload],
+        categories: (() => {
+          const exists = state.categories.some(
+            (c) =>
+              c.id === action.payload.id ||
+              (c.name &&
+                action.payload.name &&
+                c.name.toLowerCase() === action.payload.name.toLowerCase())
+          );
+          return exists
+            ? state.categories
+            : [...state.categories, action.payload];
+        })(),
         error: "",
       };
     case CREATE_CATEGORY_FAILURE:

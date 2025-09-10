@@ -5,6 +5,7 @@ import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.models.Bill;
 import com.jaya.models.UserDto;
 import com.jaya.repository.BillRepository;
+import com.jaya.util.BulkProgressTracker;
 import com.jaya.util.ServiceHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,8 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -30,6 +33,8 @@ public class BillServiceImpl implements BillService {
 
 
     private final ServiceHelper helper;
+
+    private final BulkProgressTracker progressTracker;
 
     // lazy-loaded backup items
     private static volatile List<String> cachedBackupItems = null;
@@ -173,9 +178,6 @@ public class BillServiceImpl implements BillService {
             UserDto user = helper.validateUser(userId);
             Bill bill =getByBillId(id,userId);
             expenseService.deleteExpensesByIdsWithBillService(Arrays.asList(bill.getExpenseId()), user.getId());
-            if (bill==null) {
-                throw new Exception("Bill not found with ID: " + id);
-            }
 
             billRepository.deleteById(id);
 
@@ -356,6 +358,69 @@ public class BillServiceImpl implements BillService {
             return new java.util.ArrayList<>(merged);
         } catch (Exception e) {
             throw new Exception("Error retrieving user and backup items: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<Bill> addMultipleBills(List<Bill> bills, Integer userId) throws Exception {
+        UserDto user = helper.validateUser(userId);
+        if (bills == null || bills.isEmpty()) return java.util.Collections.emptyList();
+
+        final int batchSize = 500;
+        int count = 0;
+        java.util.List<Bill> savedBills = new java.util.ArrayList<>(bills.size());
+
+        for (Bill bill : bills) {
+            helper.validateBillData(bill);
+
+            // Create and save corresponding expense first
+            ExpenseDTO expenseDto = helper.createExpenseFromBill(bill, user);
+           ExpenseDTO savedExpense = expenseService.addExpense(expenseDto, userId);
+
+            Bill toSave = helper.mapExpenseToBill(bill, savedExpense);
+            billRepository.save(toSave);
+            savedBills.add(toSave);
+
+            if (++count % batchSize == 0) {
+                // Use repository flush via JPA if available
+                // entityManager is not injected here; repository flush is fine for batch boundaries
+            }
+        }
+        return savedBills;
+    }
+
+    @Override
+    @Transactional
+    public List<Bill> addMultipleBillsWithProgress(List<Bill> bills, Integer userId, String jobId) throws Exception {
+        UserDto user = helper.validateUser(userId);
+        if (bills == null || bills.isEmpty()) return Collections.emptyList();
+
+        final int progressStep = 250;
+        int sinceLast = 0;
+        List<Bill> savedBills = new ArrayList<>(Math.min(bills.size(), 10_000));
+
+        try {
+            for (Bill bill : bills) {
+                helper.validateBillData(bill);
+
+                ExpenseDTO expenseDto = helper.createExpenseFromBill(bill, user);
+                ExpenseDTO savedExpense = expenseService.addExpense(expenseDto, userId);
+
+                Bill toSave = helper.mapExpenseToBill(bill, savedExpense);
+                billRepository.save(toSave);
+                savedBills.add(toSave);
+
+                if (++sinceLast >= progressStep) {
+                    progressTracker.increment(jobId, sinceLast);
+                    sinceLast = 0;
+                }
+            }
+            if (sinceLast > 0) progressTracker.increment(jobId, sinceLast);
+            return savedBills;
+        } catch (Exception ex) {
+            progressTracker.fail(jobId, ex.getMessage());
+            throw ex;
         }
     }
 }

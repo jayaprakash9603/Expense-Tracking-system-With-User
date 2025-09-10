@@ -7,6 +7,12 @@ import {
   Tooltip,
   ResponsiveContainer,
   Sector,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LabelList,
 } from "recharts";
 import { fetchCategoriesWithExpenses } from "../../Redux/Expenses/expense.action";
 import dayjs from "dayjs";
@@ -70,6 +76,24 @@ const rangeTypes = [
   { label: "Week", value: "week" },
   { label: "Month", value: "month" },
   { label: "Year", value: "year" },
+];
+
+// Period labels (align with CashFlow)
+const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const monthDays = Array.from({ length: 31 }, (_, i) => `${i + 1}`);
+const yearMonths = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 const flowTypeCycle = [
@@ -396,6 +420,27 @@ const CategoryFlow = () => {
 
   const rangeLabel = getRangeLabel(activeRange, offset, flowTab);
 
+  // Formatters (aligned with CashFlow)
+  const formatCompactNumber = (value) => {
+    if (value === null || value === undefined || isNaN(value)) return "0";
+    const abs = Math.abs(value);
+    const sign = value < 0 ? "-" : "";
+    if (abs >= 1e9) return `${sign}${(abs / 1e9).toFixed(1)}B`;
+    if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(1)}M`;
+    if (abs >= 1e3) return `${sign}${(abs / 1e3).toFixed(1)}k`;
+    return value % 1 === 0
+      ? `${sign}${Math.round(abs)}`
+      : `${sign}${abs.toFixed(2)}`;
+  };
+
+  const formatNumberFull = (value) => {
+    if (value === null || value === undefined || isNaN(value)) return "0";
+    if (Number.isInteger(value)) return Number(value).toLocaleString();
+    return Number(value).toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    });
+  };
+
   // Generate a consistent color based on category name
   function getRandomColor(str) {
     // Predefined colors that work well with dark theme
@@ -467,6 +512,100 @@ const CategoryFlow = () => {
       categoryCards: cards,
     };
   }, [categoryExpenses]);
+
+  // Build stacked multi-bar data (per day for month, per weekday for week, per month for year)
+  const { barSegments, stackedChartData, xAxisKey } = useMemo(() => {
+    // Segments: stable mapping of category -> key/color
+    const segments = (pieData || []).map((c) => ({
+      label: c.name,
+      key: `cat_${c.name ? c.name.replace(/[^a-zA-Z0-9_]/g, "_") : "_"}`,
+      color: c.color || getRandomColor(c.name || ""),
+    }));
+
+    const baseNow = dayjs();
+    let baseStart,
+      bucketCount,
+      labels,
+      xKey = "slot";
+    if (activeRange === "week") {
+      baseStart = baseNow.startOf("week").add(offset, "week");
+      bucketCount = 7;
+      labels = weekDays;
+    } else if (activeRange === "month") {
+      baseStart = baseNow.startOf("month").add(offset, "month");
+      bucketCount = baseStart.daysInMonth();
+      labels = Array.from({ length: bucketCount }, (_, i) => `${i + 1}`);
+    } else {
+      baseStart = baseNow.startOf("year").add(offset, "year");
+      bucketCount = 12;
+      labels = yearMonths;
+    }
+
+    // Initialize data buckets
+    const data = Array.from({ length: bucketCount }, (_, i) => ({
+      [xKey]: labels[i],
+    }));
+
+    // Helper to add amount
+    const addAmt = (idx, key, amt) => {
+      if (idx < 0 || idx >= data.length) return;
+      data[idx][key] = (data[idx][key] || 0) + (Number(amt) || 0);
+    };
+
+    // Iterate categories and their expenses
+    if (categoryExpenses) {
+      Object.keys(categoryExpenses)
+        .filter((k) => k !== "summary")
+        .forEach((catName) => {
+          const cat = categoryExpenses[catName];
+          const key = `cat_${catName.replace(/[^a-zA-Z0-9_]/g, "_")}`;
+          // Ensure segment exists
+          if (!segments.find((s) => s.key === key)) {
+            segments.push({
+              label: catName,
+              key,
+              color: cat.color || getRandomColor(catName),
+            });
+          }
+          const expenses = Array.isArray(cat.expenses) ? cat.expenses : [];
+          expenses.forEach((e) => {
+            if (!e) return;
+            const d = dayjs(e.date);
+            let idx = -1;
+            if (activeRange === "week") {
+              const diff = d
+                .startOf("day")
+                .diff(baseStart.startOf("day"), "day");
+              idx = diff;
+            } else if (activeRange === "month") {
+              if (
+                d.year() === baseStart.year() &&
+                d.month() === baseStart.month()
+              ) {
+                idx = d.date() - 1; // 0-based
+              }
+            } else {
+              if (d.year() === baseStart.year()) {
+                idx = d.month(); // 0-11
+              }
+            }
+            if (idx >= 0 && idx < bucketCount) {
+              const amt = (e.details && e.details.amount) || e.amount || 0;
+              addAmt(idx, key, amt);
+            }
+          });
+        });
+    }
+
+    // Ensure every bucket has an entry for every segment (so tooltip shows all categories)
+    data.forEach((row) => {
+      segments.forEach((s) => {
+        if (row[s.key] === undefined) row[s.key] = 0;
+      });
+    });
+
+    return { barSegments: segments, stackedChartData: data, xAxisKey: xKey };
+  }, [pieData, categoryExpenses, activeRange, offset]);
 
   // Filter category cards by search
   const filteredCategoryCards = useMemo(() => {
@@ -560,6 +699,50 @@ const CategoryFlow = () => {
     setSelectedCategoryExpenses(expenses);
     setShowExpenseTable(true);
     setPage(0); // Reset pagination when changing category
+  };
+
+  // Click handler for a stacked bar segment: filters by category + bucket (day/week/month)
+  const handleBarSegmentClick = (segment, bucketIdx) => {
+    // Find category card and raw expenses for the label
+    const label = segment.label;
+    const catCard = categoryCards.find((c) => c.categoryName === label);
+    const catData = categoryExpenses && categoryExpenses[label];
+    const expensesAll = Array.isArray(catData?.expenses)
+      ? catData.expenses
+      : Array.isArray(catCard?.expenses)
+      ? catCard.expenses
+      : [];
+
+    // Compute bucket start/end based on activeRange and offset
+    const baseNow = dayjs();
+    let start, end;
+    if (activeRange === "week") {
+      const baseStart = baseNow.startOf("week").add(offset, "week");
+      start = baseStart.add(bucketIdx, "day").startOf("day");
+      end = start.endOf("day");
+    } else if (activeRange === "month") {
+      const baseStart = baseNow.startOf("month").add(offset, "month");
+      const dayOfMonth = bucketIdx + 1; // 1..N
+      start = baseStart.date(dayOfMonth).startOf("day");
+      end = baseStart.date(dayOfMonth).endOf("day");
+    } else {
+      const baseStart = baseNow.startOf("year").add(offset, "year");
+      start = baseStart.month(bucketIdx).startOf("month");
+      end = baseStart.month(bucketIdx).endOf("month");
+    }
+
+    const sMs = start.valueOf();
+    const eMs = end.valueOf();
+    const filtered = expensesAll.filter((e) => {
+      if (!e || !e.date) return false;
+      const t = dayjs(e.date).valueOf();
+      return t >= sMs && t <= eMs;
+    });
+
+    if (catCard) setSelectedCategory(catCard);
+    setSelectedCategoryExpenses(filtered);
+    setShowExpenseTable(true);
+    setPage(0);
   };
   // Handler for category card double click
   const handleCategoryDoubleClick = (e, category) => {
@@ -714,53 +897,141 @@ const CategoryFlow = () => {
     setToastOpen(false);
     setToastMessage("");
   };
-  // Update the PieChart in the renderPieChart function
-  const renderPieChart = () => (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
-          activeIndex={activeIndex}
-          activeShape={renderActiveShape}
-          data={pieData}
-          cx="50%"
-          cy="50%"
-          innerRadius={isMobile ? 35 : 50}
-          outerRadius={isMobile ? 55 : 70}
-          fill="#8884d8"
-          dataKey="value"
-          onMouseEnter={(data, index) => setActiveIndex(index)}
-          onClick={(data) => handlePieClick(data, activeIndex)}
-          style={{ cursor: "pointer", outline: "none" }}
-          tabIndex={-1} // Remove from tab order to prevent focus
-        >
-          {pieData.map((entry, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={
-                entry.color ||
-                `#${Math.floor(Math.random() * 16777215).toString(16)}`
-              }
-              stroke="#1b1b1b"
-              strokeWidth={2}
-              style={{ cursor: "pointer", outline: "none" }}
-            />
+
+  // Custom tooltip to truncate long category names and show compact amounts
+  const CategoryStackTooltip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
+    const nameMax = isMobile ? 110 : isTablet ? 150 : 180;
+    const items = payload
+      .filter((p) => Number(p?.value) > 0)
+      .sort((a, b) => Number(b.value) - Number(a.value));
+    if (!items.length) return null;
+    return (
+      <div
+        style={{
+          background: "#0b0b0b",
+          border: "1px solid #333",
+          color: "#e5e7eb",
+          borderRadius: 8,
+          padding: 12,
+          maxWidth: isMobile ? 220 : 320,
+          // No maxHeight or overflow clipping so all categories are visible
+          boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
+        }}
+      >
+        {label && (
+          <div
+            style={{
+              color: "#00DAC6",
+              fontWeight: 700,
+              marginBottom: 8,
+              fontSize: 12,
+            }}
+          >
+            {label}
+          </div>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {items.map((item, idx) => (
+            <div
+              key={idx}
+              style={{ display: "flex", alignItems: "center", gap: 8 }}
+            >
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 2,
+                  background: item?.color || "#5b7fff",
+                  flexShrink: 0,
+                }}
+              />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  width: "100%",
+                }}
+              >
+                <div
+                  title={item?.name}
+                  style={{
+                    maxWidth: nameMax,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    color: "#b0b6c3",
+                    fontSize: 12,
+                  }}
+                >
+                  {item?.name}
+                </div>
+                <div
+                  style={{ fontWeight: 800, fontSize: 12, color: "#ffffff" }}
+                >
+                  ₹{formatCompactNumber(item?.value || 0)}
+                </div>
+              </div>
+            </div>
           ))}
-        </Pie>
-        <Tooltip
-          formatter={(value) => [`₹${value}`, "Amount"]}
-          contentStyle={{
-            background: "#1b1b1b",
-            border: "1px solid #00dac6",
-            color: "#fff",
-            borderRadius: 8,
-            fontWeight: 500,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-          }}
-          labelStyle={{ color: "#00dac6", fontWeight: 700 }}
-          itemStyle={{ color: "#b0b6c3" }}
-          cursor={{ fill: "transparent" }}
+        </div>
+      </div>
+    );
+  };
+  // Stacked single-bar chart (categories as segments)
+  const renderStackedBarChart = () => (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart
+        data={stackedChartData}
+        margin={{ top: 4, right: isMobile ? 8 : 24, left: 8, bottom: 0 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
+        <XAxis
+          dataKey={xAxisKey}
+          stroke="#b0b6c3"
+          tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
+          tickLine={false}
+          axisLine={{ stroke: "#33384e" }}
         />
-      </PieChart>
+        <YAxis
+          stroke="#b0b6c3"
+          tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
+          axisLine={{ stroke: "#33384e" }}
+          tickLine={false}
+          width={80}
+          tickFormatter={(v) => formatCompactNumber(v)}
+        />
+        <Tooltip
+          cursor={{ fill: "#23243a22" }}
+          content={<CategoryStackTooltip />}
+          wrapperStyle={{ zIndex: 9999 }}
+          allowEscapeViewBox={{ x: true, y: true }}
+        />
+        {barSegments.map((seg, i) => {
+          const isTopOfStack = i === barSegments.length - 1;
+          return (
+            <Bar
+              key={seg.key}
+              dataKey={seg.key}
+              name={seg.label}
+              stackId="total"
+              fill={seg.color}
+              radius={isTopOfStack ? [6, 6, 0, 0] : [0, 0, 0, 0]}
+              maxBarSize={48}
+            >
+              {stackedChartData.map((entry, idx) => (
+                <Cell
+                  key={`${seg.key}-${idx}`}
+                  cursor="pointer"
+                  onClick={() => handleBarSegmentClick(seg, idx)}
+                />
+              ))}
+            </Bar>
+          );
+        })}
+      </BarChart>
     </ResponsiveContainer>
   );
 
@@ -1206,7 +1477,7 @@ const CategoryFlow = () => {
           </button>
         </div>
 
-        {/* Pie Chart Container - Always visible */}
+        {/* Category distribution as a single stacked bar (replaces Pie) */}
         <div
           className="w-full rounded-lg p-4 mb-4"
           style={{
@@ -1215,19 +1486,18 @@ const CategoryFlow = () => {
             minWidth: 0,
             maxWidth: "100%",
             boxSizing: "border-box",
-            overflow: "hidden",
+            overflow: "visible", // allow tooltip to escape
           }}
         >
           {loading ? (
             <Skeleton
-              variant="circular"
-              width={pieSkeletonSize}
-              height={pieSkeletonSize}
+              variant="rectangular"
+              width="100%"
+              height={isMobile ? 100 : isTablet ? 130 : 160}
               animation="wave"
               sx={{
                 bgcolor: "#23243a",
-                borderRadius: "50%",
-                margin: "0 auto",
+                borderRadius: 2,
               }}
             />
           ) : pieData.length === 0 ? (
@@ -1265,52 +1535,7 @@ const CategoryFlow = () => {
               </span>
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                <Pie
-                  activeIndex={activeIndex}
-                  activeShape={renderActiveShape}
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={isMobile ? 35 : 50}
-                  outerRadius={isMobile ? 55 : 70}
-                  fill="#8884d8"
-                  dataKey="value"
-                  onMouseEnter={(data, index) => setActiveIndex(index)}
-                  onClick={(data) => handlePieClick(data, activeIndex)}
-                  style={{ cursor: "pointer", outline: "none" }}
-                  tabIndex={-1} // Remove from tab order to prevent focus
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={
-                        entry.color ||
-                        `#${Math.floor(Math.random() * 16777215).toString(16)}`
-                      }
-                      stroke="#1b1b1b"
-                      strokeWidth={2}
-                      style={{ cursor: "pointer", outline: "none" }}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [`₹${value}`, "Amount"]}
-                  contentStyle={{
-                    background: "#1b1b1b",
-                    border: "1px solid #00dac6",
-                    color: "#fff",
-                    borderRadius: 8,
-                    fontWeight: 500,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                  }}
-                  labelStyle={{ color: "#00dac6", fontWeight: 700 }}
-                  itemStyle={{ color: "#b0b6c3" }}
-                  cursor={{ fill: "transparent" }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            renderStackedBarChart()
           )}
         </div>
 

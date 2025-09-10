@@ -27,6 +27,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import { fetchCategories } from "../../Redux/Category/categoryActions";
 
 // Use the same fieldStyles, labelStyle, formRow, firstFormRow, inputWrapper as NewExpense
 const fieldStyles =
@@ -75,6 +76,18 @@ const EditExpense = ({}) => {
   } = useSelector((state) => state.categories || {});
   const dispatch = useDispatch();
 
+  // Unique categories by name (case-insensitive, trimmed)
+  const uniqueCategories = useMemo(() => {
+    const list = Array.isArray(categories) ? categories : [];
+    const byName = new Map();
+    for (const c of list) {
+      const key = (c?.name || "").toLowerCase().trim();
+      if (!key) continue;
+      if (!byName.has(key)) byName.set(key, c);
+    }
+    return Array.from(byName.values());
+  }, [categories]);
+
   const [expenseData, setExpenseData] = useState({
     expenseName: "",
     amount: "",
@@ -119,6 +132,11 @@ const EditExpense = ({}) => {
     );
     dispatch(getExpenseAction(id || "", friendId || ""));
   }, [dispatch]);
+
+  // Fetch categories on mount (and when friendId changes), same as NewExpense
+  useEffect(() => {
+    dispatch(fetchCategories(friendId || ""));
+  }, [dispatch, friendId]);
 
   // Fetch expense name suggestions (same as NewExpense)
   useEffect(() => {
@@ -459,26 +477,54 @@ const EditExpense = ({}) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={categories}
+          options={uniqueCategories}
           getOptionLabel={(option) => option.name || ""}
+          isOptionEqualToValue={(option, value) =>
+            option?.id != null && value?.id != null
+              ? option.id === value.id
+              : (option?.name || "").toLowerCase().trim() ===
+                (value?.name || "").toLowerCase().trim()
+          }
+          filterOptions={(options, state) => {
+            const input = (state.inputValue || "").toLowerCase().trim();
+            const filtered = options.filter((opt) =>
+              (opt?.name || "").toLowerCase().includes(input)
+            );
+            const seen = new Set();
+            const out = [];
+            for (const o of filtered) {
+              const k = (o?.name || "").toLowerCase().trim();
+              if (k && !seen.has(k)) {
+                seen.add(k);
+                out.push(o);
+              }
+            }
+            return out;
+          }}
           value={
-            categories.find((cat) => cat.name === expenseData.categoryName) ||
-            null
+            Array.isArray(uniqueCategories)
+              ? uniqueCategories.find(
+                  (cat) => cat.id === expenseData.category
+                ) || null
+              : null
           }
           onInputChange={(event, newValue) => {
-            const matchedCategory = categories.find(
-              (cat) => cat.name.toLowerCase() === newValue.toLowerCase()
+            const matchedCategory = uniqueCategories.find(
+              (cat) =>
+                (cat.name || "").toLowerCase().trim() ===
+                (newValue || "").toLowerCase().trim()
             );
             setExpenseData((prev) => ({
               ...prev,
               category: matchedCategory ? matchedCategory.id : "",
-              categoryName: matchedCategory ? matchedCategory.name : "",
+              categoryName: newValue || "",
             }));
           }}
           onChange={(event, newValue) => {
             setExpenseData((prev) => ({
               ...prev,
               category: newValue ? newValue.id : "",
+              categoryName: newValue ? newValue.name : prev.categoryName,
             }));
           }}
           noOptionsText="No options found"

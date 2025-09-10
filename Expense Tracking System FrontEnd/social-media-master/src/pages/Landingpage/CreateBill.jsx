@@ -93,19 +93,38 @@ const CreateBill = ({ onClose, onSuccess }) => {
     useState(null);
 
   const formatPaymentMethodName = (name) => {
-    switch (name.toLowerCase()) {
+    const n = String(name || "").toLowerCase();
+    switch (n) {
       case "cash":
         return "Cash";
-      case "creditNeedToPaid":
+      case "creditneedtopaid":
+      case "credit due":
         return "Credit Due";
-      case "creditPaid":
+      case "creditpaid":
         return "Credit Paid";
       default:
         // For other payment methods, convert to title case
-        return name
+        return String(name || "")
           .replace(/([A-Z])/g, " $1")
           .replace(/^./, (str) => str.toUpperCase())
           .trim();
+    }
+  };
+
+  // Normalize any payment method label/value into backend-friendly keys
+  const normalizePaymentMethod = (name) => {
+    const raw = String(name || "").trim();
+    const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
+    switch (key) {
+      case "creditneedtopaid":
+      case "creditdue":
+        return "creditNeedToPaid";
+      case "creditpaid":
+        return "creditPaid";
+      case "cash":
+        return "cash";
+      default:
+        return raw; // keep custom methods as-is
     }
   };
 
@@ -145,7 +164,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
       });
 
       availablePaymentMethods = filteredMethods.map((pm) => ({
-        value: pm.name,
+        value: normalizePaymentMethod(pm.name),
         label: formatPaymentMethodName(pm.name),
         ...pm,
       }));
@@ -171,7 +190,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
       });
 
       availablePaymentMethods = defaultMethodsForType.map((pm) => ({
-        value: pm.name,
+        value: normalizePaymentMethod(pm.name),
         label: pm.label,
         type: pm.type, // Include type in the mapped object
       }));
@@ -320,7 +339,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
       if (!currentMethodValid) {
         setBillData((prev) => ({
           ...prev,
-          paymentMethod: processedPaymentMethods[0]?.value || "cash",
+          paymentMethod: normalizePaymentMethod(
+            processedPaymentMethods[0]?.value || "cash"
+          ),
         }));
       }
     }
@@ -593,12 +614,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
       const netAmount = totalAmount;
 
       // Prepare bill data for submission
+      const normalizedMethod = normalizePaymentMethod(billData.paymentMethod);
+
       const billPayload = {
         name: billData.name.trim(),
         description: billData.description?.trim() || "",
         amount: totalAmount,
         netAmount: netAmount,
-        paymentMethod: billData.paymentMethod,
+        paymentMethod: normalizedMethod,
         type: billData.type,
         date: billData.date,
         categoryId: billData.categoryId || 0, // Use 0 instead of null
@@ -611,8 +634,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
         })),
         budgetIds: selectedBudgets.map((budget) => budget.id) || [],
         creditDue:
-          billData.type === "loss" &&
-          billData.paymentMethod === "creditNeedToPaid"
+          billData.type === "loss" && normalizedMethod === "creditNeedToPaid"
             ? totalAmount
             : 0,
         includeInBudget: selectedBudgets.length > 0, // Add this field
@@ -897,7 +919,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
           onChange={(event, newValue) => {
             setBillData((prev) => ({
               ...prev,
-              paymentMethod: newValue ? newValue.value : "cash",
+              paymentMethod: newValue
+                ? normalizePaymentMethod(newValue.value)
+                : "cash",
             }));
           }}
           loading={localPaymentMethodsLoading}

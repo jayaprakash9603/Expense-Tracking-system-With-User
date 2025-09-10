@@ -437,6 +437,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         public CashSummary getCashSummary() { return cashSummary; }
     }
 
+
+
     private class ExpenseSummaryCalculator {
         private double totalGains = 0.0;
         private double totalLosses = 0.0;
@@ -446,16 +448,19 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         private double currentMonthLosses = 0.0;
         private final Map<String, Double> lossesByPaymentMethod = new HashMap<>();
         private final LocalDate today = LocalDate.now();
-        private double creditPaidLastMonth=0.0;
-
+        private double creditPaidLastMonth = 0.0;
 
         private double lastMonthLosses = 0.0;
         private double lastMonthCreditDue = 0.0;
         private double lastMonthRemainingBudget = 0.0;
         private double lastMonthCreditPaidAmount = 0.0;
 
-
-
+        // New fields for credit card bill payment tracking
+        private double lastCreditBillPaidAmount = 0.0;
+        private LocalDate lastCreditBillPaidDate = null;
+        private double previousCreditBillPaidAmount = 0.0;
+        private LocalDate previousCreditBillPaidDate = null;
+        private double currentMonthBillPaid = 0.0; // New field for current month bill paid
 
         public void processExpense(Expense expense, DatePeriod currentPeriod) {
             ExpenseDetails details = expense.getExpense();
@@ -474,6 +479,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             processCreditExpense(paymentMethod, amount);
             processCreditPaidLastMonth(paymentMethod, amount, date);
             processLastMonthComparison(type, paymentMethod, amount, date);
+            processCreditBillPayments(paymentMethod, amount, date); // Updated method
         }
 
         private void processGainExpense(String type, String paymentMethod, double amount) {
@@ -493,6 +499,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                 }
             }
         }
+
         private boolean isDateInPeriod(LocalDate date, DatePeriod period) {
             return !date.isBefore(period.getStartDate()) && !date.isAfter(period.getEndDate());
         }
@@ -521,11 +528,51 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             }
         }
 
+        // Updated method to track credit bill payments for comparison
+        private void processCreditBillPayments(String paymentMethod, double amount, LocalDate date) {
+            if (CREDIT_PAID.equalsIgnoreCase(paymentMethod)) {
+                DatePeriod lastMonthCreditPeriod = getLastMonthCreditPeriod();
+                DatePeriod currentMonthBillPeriod = getCurrentMonthBillPeriod();
+
+                // Check if this payment is within the current month bill period (17th to 5th next month)
+                if (isDateInPeriod(date, currentMonthBillPeriod)) {
+                    currentMonthBillPaid += amount;
+                    // Update last credit bill payment if this is more recent or first one found
+                    if (lastCreditBillPaidDate == null || date.isAfter(lastCreditBillPaidDate)) {
+                        lastCreditBillPaidAmount = amount;
+                        lastCreditBillPaidDate = date;
+                    }
+                } else if (isDateInPeriod(date, lastMonthCreditPeriod)) {
+                    // This is a payment within the last month credit period (17th to 16th)
+                    // Update last credit bill payment if this is more recent or first one found
+                    if (lastCreditBillPaidDate == null || date.isAfter(lastCreditBillPaidDate)) {
+                        lastCreditBillPaidAmount = amount;
+                        lastCreditBillPaidDate = date;
+                    }
+                } else if (date.isBefore(lastMonthCreditPeriod.getStartDate())) {
+                    // This is a payment before the last month credit period
+                    // Update previous credit bill payment if this is more recent or first one found
+                    if (previousCreditBillPaidDate == null || date.isAfter(previousCreditBillPaidDate)) {
+                        previousCreditBillPaidAmount = amount;
+                        previousCreditBillPaidDate = date;
+                    }
+                }
+            }
+        }
+
         private DatePeriod getLastMonthCreditPeriod() {
             LocalDate today = LocalDate.now();
             // Calculate from 17th of previous month to 16th of current month
             LocalDate startDate = today.minusMonths(1).withDayOfMonth(17);
             LocalDate endDate = today.withDayOfMonth(16);
+            return new DatePeriod(startDate, endDate);
+        }
+
+        // New method to get current month bill payment period (17th to 5th next month)
+        private DatePeriod getCurrentMonthBillPeriod() {
+            LocalDate today = LocalDate.now();
+            LocalDate startDate = today.withDayOfMonth(17);
+            LocalDate endDate = today.plusMonths(1).withDayOfMonth(5);
             return new DatePeriod(startDate, endDate);
         }
 
@@ -556,7 +603,6 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                 }
             }
         }
-
 
         private DatePeriod getLastMonthPeriod() {
             LocalDate now = LocalDate.now();
@@ -620,6 +666,50 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             return comparison;
         }
 
+        // Updated method to calculate credit bill payment comparison
+        private Map<String, Object> calculateCreditBillComparison() {
+            Map<String, Object> comparison = new HashMap<>();
+
+            comparison.put("lastCreditBillPaid", lastCreditBillPaidAmount);
+            comparison.put("lastCreditBillPaidDate", lastCreditBillPaidDate != null ? lastCreditBillPaidDate.toString() : null);
+            comparison.put("previousCreditBillPaid", previousCreditBillPaidAmount);
+            comparison.put("previousCreditBillPaidDate", previousCreditBillPaidDate != null ? previousCreditBillPaidDate.toString() : null);
+            comparison.put("currentMonthBillPaid", currentMonthBillPaid); // New field
+
+            if (previousCreditBillPaidAmount == 0.0) {
+                if (lastCreditBillPaidAmount > 0) {
+                    comparison.put("percentageChange", "First credit bill payment recorded");
+                    comparison.put("trend", "new");
+                    comparison.put("rawPercentage", 0.0);
+                } else {
+                    comparison.put("percentageChange", "No credit bill payments found");
+                    comparison.put("trend", "none");
+                    comparison.put("rawPercentage", 0.0);
+                }
+            } else {
+                double percentageChange = ((lastCreditBillPaidAmount - previousCreditBillPaidAmount) / previousCreditBillPaidAmount) * 100;
+                String trend;
+                String changeText;
+
+                if (percentageChange > 0) {
+                    trend = "increase";
+                    changeText = String.format("%.1f%% more than previous payment", percentageChange);
+                } else if (percentageChange < 0) {
+                    trend = "decrease";
+                    changeText = String.format("%.1f%% less than previous payment", Math.abs(percentageChange));
+                } else {
+                    trend = "stable";
+                    changeText = "Same as previous payment";
+                }
+
+                comparison.put("percentageChange", changeText);
+                comparison.put("trend", trend);
+                comparison.put("rawPercentage", Math.round(percentageChange * 100.0) / 100.0);
+            }
+
+            return comparison;
+        }
+
         public Map<String, Object> buildSummaryResponse(List<Expense> lastFiveExpenses) {
             double remainingBudget = totalGains - totalLosses - totalCreditPaid;
 
@@ -641,11 +731,21 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             response.put("lastMonthRemainingBudget", lastMonthRemainingBudget);
             response.put("lastMonthCreditPaidAmount", lastMonthCreditPaidAmount);
 
+            // Credit bill payment tracking
+            response.put("lastCreditBillPaidAmount", lastCreditBillPaidAmount);
+            response.put("lastCreditBillPaidDate", lastCreditBillPaidDate != null ? lastCreditBillPaidDate.toString() : null);
+            response.put("previousCreditBillPaidAmount", previousCreditBillPaidAmount);
+            response.put("previousCreditBillPaidDate", previousCreditBillPaidDate != null ? previousCreditBillPaidDate.toString() : null);
+            response.put("currentMonthBillPaid", currentMonthBillPaid); // New field
+
             // Comparisons with percentage changes for specific fields only
             response.put("currentMonthLossesComparison", calculateComparison("currentMonthLosses", currentMonthLosses, lastMonthLosses));
             response.put("creditPaidLastMonthComparison", calculateComparison("creditPaidLastMonth", creditPaidLastMonth, lastMonthCreditPaidAmount));
             response.put("totalCreditDueComparison", calculateComparison("totalCreditDue", totalCreditDue, lastMonthCreditDue));
             response.put("remainingBudgetComparison", calculateComparison("remainingBudget", remainingBudget, lastMonthRemainingBudget));
+
+            // Credit bill payment comparison
+            response.put("creditBillPaymentComparison", calculateCreditBillComparison());
 
             return response;
         }

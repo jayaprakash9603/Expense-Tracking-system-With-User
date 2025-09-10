@@ -113,7 +113,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           name: bill.name || "",
           description: bill.description || "",
           amount: bill.amount?.toString() || "0",
-          paymentMethod: bill.paymentMethod || "cash",
+          paymentMethod: normalizePaymentMethod(bill.paymentMethod || "cash"),
           type: bill.type || "loss",
           date: bill.date || "",
           categoryId: bill.categoryId || "",
@@ -170,6 +170,23 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     }
   };
 
+  // Normalize payment method to backend keys
+  const normalizePaymentMethod = (name) => {
+    const raw = String(name || "").trim();
+    const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
+    switch (key) {
+      case "creditneedtopaid":
+      case "creditdue":
+        return "creditNeedToPaid";
+      case "creditpaid":
+        return "creditPaid";
+      case "cash":
+        return "cash";
+      default:
+        return raw;
+    }
+  };
+
   const defaultPaymentMethods = [
     { name: "cash", label: "Cash", type: "expense" },
     { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
@@ -193,7 +210,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           return true;
         })
         .map((pm) => ({
-          value: pm.name,
+          value: normalizePaymentMethod(pm.name),
           label: formatPaymentMethodName(pm.name),
           type: pm.type,
         }));
@@ -210,7 +227,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           return true;
         })
         .map((pm) => ({
-          value: pm.name,
+          value: normalizePaymentMethod(pm.name),
           label: pm.label,
           type: pm.type,
         }));
@@ -225,7 +242,9 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
       const currentMethodValid = processedPaymentMethods.some(
         (pm) => pm.value === billData.paymentMethod
       );
-      const newPaymentMethod = processedPaymentMethods[0]?.value || "cash";
+      const newPaymentMethod = normalizePaymentMethod(
+        processedPaymentMethods[0]?.value || "cash"
+      );
 
       if (!currentMethodValid && billData.paymentMethod !== newPaymentMethod) {
         setBillData((prev) => ({
@@ -557,12 +576,13 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         .filter((_, index) => checkboxStates[index])
         .map((budget) => budget.id);
 
+      const normalizedMethod = normalizePaymentMethod(billData.paymentMethod);
       const updatedBillData = {
         id: currentBillId,
         name: billData.name,
         description: billData.description,
         amount: totalAmount,
-        paymentMethod: billData.paymentMethod,
+        paymentMethod: normalizedMethod,
         type: billData.type,
         date: billData.date,
         categoryId: billData.categoryId || 0,
@@ -570,8 +590,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         expenses: expenses,
         netAmount: totalAmount,
         creditDue:
-          billData.type === "loss" &&
-          billData.paymentMethod === "creditNeedToPaid"
+          billData.type === "loss" && normalizedMethod === "creditNeedToPaid"
             ? totalAmount
             : 0,
       };
@@ -859,7 +878,9 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           onChange={(event, newValue) => {
             setBillData((prev) => ({
               ...prev,
-              paymentMethod: newValue ? newValue.value : "cash",
+              paymentMethod: newValue
+                ? normalizePaymentMethod(newValue.value)
+                : "cash",
             }));
           }}
           loading={paymentMethodsLoading}
