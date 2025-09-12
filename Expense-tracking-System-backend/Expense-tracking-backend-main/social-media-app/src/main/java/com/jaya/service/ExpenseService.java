@@ -242,6 +242,7 @@ public interface ExpenseService {
 
 
 
+    Map<String, Object> getPaymentMethodDistributionByDateRange(Integer userId, LocalDate startDate, LocalDate endDate,String flowType,String type);
 
     List<Map<String, Object>> getDailySpendingCurrentMonth(Integer userId);
     List<Map<String, Object>> getDailySpendingCurrentMonth(Integer userId, String type);

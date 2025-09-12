@@ -386,6 +386,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         return generateDailySpendingResponse(dateRangePeriod, dailySpending);
     }
 
+
+
     // Helper Classes and Methods
 
     private static class DatePeriod {
@@ -1296,7 +1298,14 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
 
 
-    
+
+    @Override
+    public Map<String, Object> getPaymentMethodDistributionByDateRange(Integer userId, LocalDate startDate, LocalDate endDate, String flowType, String type) {
+        List<Object[]> results = expenseRepository.findPaymentMethodDistributionByDateRange(startDate, endDate, userId, flowType, type);
+        return createDistributionChart(results);
+    }
+
+
 
 
 }

@@ -57,4 +57,6 @@ public interface ExpenseAnalyticsService {
     List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate);
     List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String type);
 
+    Map<String, Object> getPaymentMethodDistributionByDateRange(Integer userId, LocalDate startDate, LocalDate endDate,String flowType,String type);
+
 }

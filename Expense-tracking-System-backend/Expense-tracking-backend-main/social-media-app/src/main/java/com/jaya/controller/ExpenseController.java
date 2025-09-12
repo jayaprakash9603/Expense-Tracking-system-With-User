@@ -2498,23 +2498,54 @@ public class ExpenseController {
 
     }
 
+
+
     @GetMapping("/payment-methods")
     public ResponseEntity<?> getPaymentMethodDistribution(
             @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(value = "year", defaultValue = "0") int year,
+            @RequestParam(required = false) String flowType,
+            @RequestParam(required = false) String type,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-            User reqUser = userService.findUserByJwt(jwt);
-            
-            User targetUser;
+        User reqUser = userService.findUserByJwt(jwt);
 
-                targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser;
 
-            Map<String, Object> result = expenseService.getPaymentMethodDistribution(targetUser.getId(), year);
+        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
+        // Validate flowType parameter
+        if (flowType != null && !flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid flowType. Must be 'inflow' or 'outflow'");
+        }
 
-            return ResponseEntity.ok(result);
+        // Validate type parameter
+        if (type != null && !type.equalsIgnoreCase("loss") && !type.equalsIgnoreCase("gain")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid type. Must be 'loss' or 'gain'");
+        }
 
+        Map<String, Object> result;
+
+        // If both start and end dates are provided, use date range
+        if (fromDate != null && toDate != null) {
+            // Validate date range
+            if (toDate.isBefore(fromDate)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("End date cannot be before start date");
+            }
+            result = expenseService.getPaymentMethodDistributionByDateRange(
+                    targetUser.getId(), fromDate, toDate, flowType, type);
+        } else {
+            // Fallback to year-based filtering (existing functionality)
+            result = expenseService.getPaymentMethodDistribution(
+                    targetUser.getId(), year);
+        }
+
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/cumulative")

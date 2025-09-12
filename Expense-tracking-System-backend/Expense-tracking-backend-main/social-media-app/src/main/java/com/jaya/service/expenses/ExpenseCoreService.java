@@ -3,7 +3,10 @@ package com.jaya.service.expenses;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.exceptions.UserException;
 import com.jaya.models.Expense;
+
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -40,6 +43,9 @@ public interface ExpenseCoreService {
     // Comments management
     String getCommentsForExpense(Integer expenseId, Integer userId);
     String removeCommentFromExpense(Integer expenseId, Integer userId);
+
+
+
 
     // Validation and processing
 //    boolean validateExpenseData(Expense expense);

@@ -711,42 +711,14 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         return validBudgetIds;
     }
 
+
     // Fast category resolver with memoization for ID and Name; caches negative lookups to avoid repeated DB calls.
     private void handleCategoryFast(Expense expense, User user,
                                     Map<Integer, Optional<Category>> categoryIdCache,
                                     Map<String, Optional<Category>> categoryNameCache,
                                     Category othersCategory) {
         try {
-            // 1) Try by ID if provided
-            Integer categoryId = expense.getCategoryId();
-            if (categoryId != null) {
-                // Treat non-positive IDs as invalid without any DB call
-                if (categoryId <= 0) {
-                    categoryIdCache.putIfAbsent(categoryId, Optional.empty());
-                } else {
-                    Optional<Category> cachedById = categoryIdCache.get(categoryId);
-                    if (cachedById == null) {
-                        // Cache miss: fetch once
-                        Category found = null;
-                        try {
-                            found = categoryService.getById(categoryId, user.getId());
-                        } catch (Exception ignore) {}
-                        cachedById = Optional.ofNullable(found);
-                        categoryIdCache.put(categoryId, cachedById);
-                        if (found != null && found.getName() != null) {
-                            categoryNameCache.putIfAbsent(found.getName().trim().toLowerCase(Locale.ROOT), Optional.of(found));
-                        }
-                    }
-                    if (cachedById.isPresent()) {
-                        Category cat = cachedById.get();
-                        expense.setCategoryId(cat.getId());
-                        expense.setCategoryName(cat.getName());
-                        return;
-                    }
-                }
-            }
-
-            // 2) Try by Name if present (and ID wasn't resolved)
+            // 1) PRIORITIZE by Name if present (from payload)
             String categoryName = expense.getCategoryName();
             if (categoryName != null && !categoryName.trim().isEmpty()) {
                 String key = categoryName.trim().toLowerCase(Locale.ROOT);
@@ -777,6 +749,30 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 }
             }
 
+            // 2) Fallback to ID if name resolution failed and ID is provided
+            Integer categoryId = expense.getCategoryId();
+            if (categoryId != null && categoryId > 0) {
+                Optional<Category> cachedById = categoryIdCache.get(categoryId);
+                if (cachedById == null) {
+                    // Cache miss: fetch once
+                    Category found = null;
+                    try {
+                        found = categoryService.getById(categoryId, user.getId());
+                    } catch (Exception ignore) {}
+                    cachedById = Optional.ofNullable(found);
+                    categoryIdCache.put(categoryId, cachedById);
+                    if (found != null && found.getName() != null) {
+                        categoryNameCache.putIfAbsent(found.getName().trim().toLowerCase(Locale.ROOT), Optional.of(found));
+                    }
+                }
+                if (cachedById.isPresent()) {
+                    Category cat = cachedById.get();
+                    expense.setCategoryId(cat.getId());
+                    expense.setCategoryName(cat.getName());
+                    return;
+                }
+            }
+
             // 3) Fallback to preloaded Others category; do not perform any extra DB round-trips here
             if (othersCategory != null) {
                 expense.setCategoryId(othersCategory.getId());
@@ -787,6 +783,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
         } catch (Exception e) {
             logger.warn("Category handling fallback triggered: {}", e.getMessage());
+            // Fallback to Others category in case of any exception
+            if (othersCategory != null) {
+                expense.setCategoryId(othersCategory.getId());
+                expense.setCategoryName(othersCategory.getName());
+            }
         }
     }
 
@@ -1838,4 +1839,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         int index = Math.abs(hash % colorArray.length);
         return colorArray[index];
     }
+
+
+
+
+
 }
