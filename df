@@ -1,0 +1,318 @@
+[33mcommit 699c9abca657dff587e0cf953bee6919e00a3cc7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m)[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Fri Sep 12 14:26:37 2025 +0530
+
+    added event service
+
+[33mcommit c942a3a5abe3f82c7579c35f46e25961c25d427f[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Tue Sep 2 20:38:59 2025 +0530
+
+    added a feature to add the bills with excel and can download the excel for bills
+
+[33mcommit 61de600935ccc2dbf4071441fac5715784a33029[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon Sep 1 13:05:32 2025 +0530
+
+    made a changes related to credit card  bill paid values
+
+[33mcommit d317b261b2f430ad17ab9e01a32a1ac293cf4f71[m[33m ([m[1;31morigin/dev[m[33m)[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun Aug 31 18:42:42 2025 +0530
+
+    added one endpoints in bill service and made the ui changes in expense dashboard
+
+[33mcommit 1d82d2bf77f9ddaf87e662f4ce1fb13993acd930[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sat Aug 30 12:55:06 2025 +0530
+
+    changes made related to cashflow displayin the date
+
+[33mcommit e4ccaa2bcae5b2afc30bb9bf3f6a6aef925bb8ab[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sat Aug 30 12:42:08 2025 +0530
+
+    removed pie charts and added bar charts for the category flow and payment flow also
+
+[33mcommit d20b40913b2d099f823c003679066e369191e575[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sat Aug 30 12:09:31 2025 +0530
+
+    changed the design in categoryflow and some changes in expese dashboard
+
+[33mcommit 7e7da0cd029e2ac7041326e3e3977e1cb4e08bad[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Fri Aug 29 15:26:43 2025 +0530
+
+    made a changes related to category dropdown
+
+[33mcommit aa61037cd90729db59d5c9cd14b6c825ef545c7f[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Thu Aug 28 17:21:43 2025 +0530
+
+    made a changes related to user service and added config files for kubernetes
+
+[33mcommit 9847df5589dba6b67b2e98cb8dc2e2c92edc53a2[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Wed Aug 27 11:07:16 2025 +0530
+
+    changes in the excel service to get the correct excel
+
+[33mcommit 7d5c91b61eec55d9ddf8fb4090d7409d35142895[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Wed Aug 27 11:06:23 2025 +0530
+
+    modified the report generation in a way to get the correct kind of reports
+
+[33mcommit d2d03227748e93f98d4f21d62b65113dc9e1c2fa[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Tue Aug 26 20:22:59 2025 +0530
+
+    added a changes for chat tab
+
+[33mcommit 46569bdb546d27ee96a6b7dd120c2bf91a187a1e[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Tue Aug 26 16:37:25 2025 +0530
+
+    made a changes in addmultiple expenses to speed the insertion
+
+[33mcommit 30040e18524aadacc0dab8bfd0f375e8e3d192b5[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Tue Aug 26 11:41:29 2025 +0530
+
+    removed the unwanted files which is present in folder
+
+[33mcommit c73028ba7c1051501fdca4657256f438400fb814[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon Aug 25 22:34:22 2025 +0530
+
+    made a class names changes in backend and some changes in ui for budget report
+
+[33mcommit dd12b3873e649f4c7593ce7478eab0509fd04fc1[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon Aug 25 20:51:19 2025 +0530
+
+    made a changes in bill report
+
+[33mcommit c322d56b2521ae0d6a8c99de32dbab6d72adf6b3[m
+Merge: b80bce2 1e2b12c
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon Aug 25 20:35:58 2025 +0530
+
+    make the chanes in payment method
+
+[33mcommit b80bce22a53c01f200d3e19093da75b6b0f969a8[m[33m ([m[1;31morigin/staging[m[33m)[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon Aug 25 17:55:14 2025 +0530
+
+    changes in
+
+[33mcommit 04e02be0d380d6cabe2ee33bb309604384755bb7[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon Aug 25 17:46:58 2025 +0530
+
+    changes
+
+[33mcommit 1e2b12c747a20ccad3bde7ca3773a32d34f37303[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon Aug 25 17:44:12 2025 +0530
+
+    WIP
+
+[33mcommit a8c7b3bfb7d67c0bd8efdb4fa8b275c248614c66[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun Aug 24 17:38:15 2025 +0530
+
+    integrated with api for category report
+
+[33mcommit 9f3cd2efa0187099a822263e663d6e29e3f4a893[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Fri Aug 22 23:14:32 2025 +0530
+
+    made a changes in buttons
+
+[33mcommit 26ab7701fe5ca1966b212b924768947d26902128[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Fri Aug 22 22:59:18 2025 +0530
+
+    made some changes regarding aync processing
+
+[33mcommit 3dd65a140d76e6aa47bac0734fd1ed6838f8c1b0[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Tue Aug 19 17:41:49 2025 +0530
+
+    created dashboard for expenses,category,payment method and budget
+
+[33mcommit c64e369cbf3bf35cf707dcc5ad702d58ad2e1cc4[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun Aug 17 10:35:54 2025 +0530
+
+    added dtos in backend
+
+[33mcommit 875e6928ed1d26d283f2f77beec0b3d7c0336667[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun Aug 10 18:31:41 2025 +0530
+
+    added group service and chat sevices
+
+[33mcommit 321e08706083c4e9f6a14fa7f15ae30fce53d359[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon Jul 28 20:26:22 2025 +0530
+
+    converting monolithic to microservices
+
+[33mcommit b36141f42e8eb7f367d67737c1b89d971901b338[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Fri Jul 18 17:48:02 2025 +0530
+
+    changing the monolithic to microservices
+
+[33mcommit ec0959ea07e49368b4b3a8c76aefeeea4a38676e[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sat Jul 5 13:07:09 2025 +0530
+
+    made a changes in create bill component
+
+[33mcommit 9e2ee366cdf877037fd6e7c0667e321920e17a62[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Thu Jul 3 19:53:17 2025 +0530
+
+    added a bill frontend and backend part
+
+[33mcommit bb062d9057b3a2f3624caa56500ef88a15df9457[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Thu Jul 3 19:52:36 2025 +0530
+
+    added a bill payment system
+
+[33mcommit 4beb9e9cb20d98b74f431fe262cd8af7cb168a5d[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sat Jun 21 11:55:14 2025 +0530
+
+    made a changes in friends controller
+
+[33mcommit 623df93cc77dc520f7e65d1279630158aefe0ed8[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon Jun 16 22:40:11 2025 +0530
+
+    Friend section has been enhanced
+
+[33mcommit 05979ba5f52dbb9d1c29ab83a8b2ee1440127d6e[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sat Jun 14 17:25:48 2025 +0530
+
+    added a socket service and ui implmentation for friend
+
+[33mcommit 065ff608578ea0d1387124a9547bf4947152a869[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Wed Jun 11 23:11:56 2025 +0530
+
+    made changed to cateogory endpoints in backend and changes in frontend
+
+[33mcommit 7c37d5b5ab608164bebfdbf6ecce99dc93a66e29[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Tue Jun 10 23:23:32 2025 +0530
+
+    addea funtionality for create expense and in backend implemented the frienships an category endpoints
+
+[33mcommit f512151e274ae106a9e3cdf91a7b53ae4e506036[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Tue Jun 10 23:22:15 2025 +0530
+
+    added new funtionality endpoiints for friendships and category and payment method
+
+[33mcommit 19b5d64dc8a0dce5e9b18f5d5b23b971509a00a8[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sat Jun 7 23:38:41 2025 +0530
+
+    made a changed to endpoints in category payment method and made a changes for tables in fronend
+
+[33mcommit 3bf25b665dcf18fbcde0f80af268ac666f4ac536[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Fri Jun 6 23:29:57 2025 +0530
+
+    make some changes in frontend and in backend for adding category
+
+[33mcommit 5cbffefcc9fc614d33f18c48c75304be12596a44[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun Jun 1 19:23:28 2025 +0530
+
+    added a category in fronend in new expense and in backend implmented the category logic
+
+[33mcommit 1686650f7ff8ece135c8e5e13b80f997821118b3[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Mon May 26 23:46:31 2025 +0530
+
+    added a expense calender view
+
+[33mcommit 215eed4a2812199b3edc1e60e8c5c4d9d718fe23[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun May 25 19:05:30 2025 +0530
+
+    added a cashflows for reference is taken from mobikwik app
+
+[33mcommit 1495ebe34fea1a9a4b87963ac238376af3128a80[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sat May 10 13:17:56 2025 +0530
+
+    everything is working fine
+
+[33mcommit 353b936fa154152ffa5427f12c8ea3bb2828519d[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun May 4 18:06:19 2025 +0530
+
+    made some import changes
+
+[33mcommit e00fc3b3e6f0ca03cd49116484bfc4be6fe24aad[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun May 4 18:02:18 2025 +0530
+
+    added a budgetservce in backend and created a crud operations in frontend and report creation
+
+[33mcommit 0760653c90f262b4d1942dd30303c9d839abb7ad[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Fri May 2 23:21:26 2025 +0530
+
+    made a changes in budgets endpoints
+
+[33mcommit c563df6e788587f539a5be2190201e992155252b[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Fri May 2 17:06:47 2025 +0530
+
+    made a changes in frontend and backend
+
+[33mcommit f23cc695d85be6fb358fa2c35b03dd5ca360d83d[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Thu May 1 17:54:37 2025 +0530
+
+    made changes for endpoint
+
+[33mcommit 69215b930d8dc43a17899705e7eaf847e8010af8[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Thu May 1 16:59:24 2025 +0530
+
+    everything is working fine in backend added endpoints for insights
+
+[33mcommit 39fe016b42ca13e3c771e7eee5328acf87fb62e7[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun Apr 27 17:28:52 2025 +0530
+
+    everything is working fine
+
+[33mcommit b61e77ab4e47bb0d13c0816436cee3087d93ddf1[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun Feb 9 17:03:53 2025 +0530
+
+    home css is removed
+
+[33mcommit b1a111a8db681753e5d6b2b8ed2e66e6e1aa638c[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun Feb 9 16:50:42 2025 +0530
+
+    made some changes on expenses table and audtis table
+
+[33mcommit 298d872b31693a480ad3d530651aca80e4689450[m
+Author: J Jaya prakash <96061167+jayaprakash9603@users.noreply.github.com>
+Date:   Sun Feb 9 16:29:33 2025 +0530
+
+    commit
