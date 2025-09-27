@@ -34,7 +34,7 @@ kind: ConfigMap
 metadata:
   name: db-config
 data:
-  dbName: "expense_tracker"
+  dbName: "expense_user_service"
 ---
 # ---------------------------
 # MySQL Deployment

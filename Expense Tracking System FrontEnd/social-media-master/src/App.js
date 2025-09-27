@@ -37,7 +37,7 @@ import ExpensesView from "./pages/Landingpage/ExpensesView";
 import PaymentMethodFlow from "./pages/Landingpage/PaymentMethodFlow";
 import CreatePaymentMethod from "./pages/Landingpage/CreatePaymentMethod";
 import EditPaymentMethod from "./pages/Landingpage/EditPaymentMethod";
-import Bill from "./pages/Landingpage/Bill";
+
 import CreateBill from "./pages/Landingpage/CreateBill";
 import EditBill from "./pages/Landingpage/EditBill";
 import BillCalendarView from "./pages/Landingpage/BillCalendarView";
@@ -56,6 +56,8 @@ import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentRepo
 import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
 import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard/AdminDashboard";
 import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
+import Bill from "./pages/Landingpage/Bills/Bill";
+// import Bill from "./pages/Landingpage/Bills/Bill";
 function App() {
   const { auth } = useSelector((store) => store);
   const dispatch = useDispatch();

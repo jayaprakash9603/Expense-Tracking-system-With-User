@@ -43,6 +43,7 @@ public class ExcelService {
             // Data
             int rowIdx = 1;
             for (Expense expense : expenses) {
+
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(expense.getId());
                 row.createCell(1).setCellValue(expense.getDate().toString());

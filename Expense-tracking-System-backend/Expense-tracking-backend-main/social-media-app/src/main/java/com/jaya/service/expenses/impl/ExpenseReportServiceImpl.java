@@ -155,6 +155,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         for (Expense expense : expenses) {
             ExpenseDetails details = expense.getExpense();
             if (details == null) continue;
+            if(expense.isBill()) continue;
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(expense.getId() != null ? expense.getId() : 0);
             row.createCell(1).setCellValue(details.getExpenseName());

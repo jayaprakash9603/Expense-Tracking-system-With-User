@@ -273,6 +273,36 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
 
 
+    // For date range with flowType and type filtering
+    @Query("SELECT ed.paymentMethod, SUM(ed.amount) as total " +
+            "FROM Expense e JOIN e.expense ed " +
+            "WHERE e.date BETWEEN :startDate AND :endDate AND e.userId = :userId " +
+            "AND (:flowType IS NULL OR " +
+            "    (:flowType = 'inflow' AND ed.amount > 0) OR " +
+            "    (:flowType = 'outflow' AND ed.amount < 0)) " +
+            "AND (:type IS NULL OR ed.type = :type) " +
+            "GROUP BY ed.paymentMethod")
+    List<Object[]> findPaymentMethodDistributionByDateRange(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("userId") Integer userId,
+            @Param("flowType") String flowType,
+            @Param("type") String type);
+
+    // For year with flowType and type filtering
+    @Query("SELECT ed.paymentMethod, SUM(ed.amount) as total " +
+            "FROM Expense e JOIN e.expense ed " +
+            "WHERE YEAR(e.date) = :year AND e.userId = :userId " +
+            "AND (:flowType IS NULL OR " +
+            "    (:flowType = 'inflow' AND ed.amount > 0) OR " +
+            "    (:flowType = 'outflow' AND ed.amount < 0)) " +
+            "AND (:type IS NULL OR ed.type = :type) " +
+            "GROUP BY ed.paymentMethod")
+    List<Object[]> findPaymentMethodDistributionByUserIdWithFilters(
+            @Param("year") int year,
+            @Param("userId") Integer userId,
+            @Param("flowType") String flowType,
+            @Param("type") String type);
 
 
 

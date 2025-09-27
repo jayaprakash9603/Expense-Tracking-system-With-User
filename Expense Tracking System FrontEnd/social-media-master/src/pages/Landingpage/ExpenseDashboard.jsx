@@ -1422,6 +1422,7 @@ const ExpenseDashboard = () => {
 
   const handleExport = async () => {
     const response = await api.get("/api/expenses/generate-excel-report");
+    const response1 = await api.get("/api/bills/export/excel");
     window.alert("Excel report generated");
   };
 

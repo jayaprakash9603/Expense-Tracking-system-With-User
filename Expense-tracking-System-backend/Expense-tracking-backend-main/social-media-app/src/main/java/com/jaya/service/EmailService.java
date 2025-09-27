@@ -32,13 +32,17 @@ public class EmailService {
     public void sendEmailWithAttachment(String to, String subject, String text, ByteArrayResource attachment, String attachmentFilename) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
+        helper.setFrom("jjayaprakash2002@gmail.com");
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text);
         helper.addAttachment(attachmentFilename, attachment);
 
+        System.out.println("email was sending");
+
         mailSender.send(message);
+
+        System.out.println("email was sent successfully");
 
         // Log the email sending history
         EmailLog emailLog = new EmailLog();

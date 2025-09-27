@@ -577,6 +577,11 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseQueryService.getExpensesGroupedByDateWithValidation(userId, page, size, sortBy, sortOrder);
     }
 
+    @Override
+    public Map<String, Object> getPaymentMethodDistributionByDateRange(Integer userId, LocalDate startDate, LocalDate endDate,String flowType,String type) {
+        return expenseAnalyticsService.getPaymentMethodDistributionByDateRange(userId,startDate,endDate,flowType,type);
+    }
+
     // Comments management
     @Override
     public String getCommentsForExpense(Integer expenseId, Integer userId) {
