@@ -58,7 +58,8 @@ import { fetchBills, deleteBill } from "../../Redux/Bill/bill.action";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router";
 import EditBill from "./EditBill";
-import Modal from "./Modal";
+import Modal from "../Landingpage/Modal";
+
 
 const Bill = () => {
   const [activeTab, setActiveTab] = useState(0);
