@@ -153,6 +153,8 @@ const Cashflow = () => {
   const [flowTab, setFlowTab] = useState("all"); // Start with 'all'
   const [search, setSearch] = useState("");
   const [selectedBar, setSelectedBar] = useState(null); // For bar chart filtering
+  // Track which bar user is hovering (via activeTooltipIndex) so even tiny bars can be clicked
+  const [hoverBarIndex, setHoverBarIndex] = useState(null);
   const [selectedCardIdx, setSelectedCardIdx] = useState([]); // Change from null to an array
   const [lastSelectedIdx, setLastSelectedIdx] = useState(null); // For shift selection
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -678,14 +680,29 @@ const Cashflow = () => {
   const renderBarChart = () => (
     <ResponsiveContainer
       width="100%"
-      height={isMobile ? "100%" : "100%"} // Ensure full width and height for small screens
+      height={isMobile ? "100%" : "100%"}
     >
       <BarChart
         data={chartData}
         barWidth={barChartStyles.barWidth}
         hideNumbers={barChartStyles.hideNumbers}
-        onBarClick={handleBarClick}
-        margin={{ right: isMobile ? 0 : 40 }} // Remove right margin for small screens
+        margin={{ right: isMobile ? 0 : 40 }}
+        // Use mouse move to capture activeTooltipIndex (works even if bar value ~0)
+        onMouseMove={(state) => {
+          if (state && typeof state.activeTooltipIndex === 'number') {
+            setHoverBarIndex(state.activeTooltipIndex);
+          } else {
+            setHoverBarIndex(null);
+          }
+        }}
+        onMouseLeave={() => setHoverBarIndex(null)}
+        // Chart-level click: if we have a hovered index, select that bar
+        onClick={() => {
+          if (hoverBarIndex !== null && chartData[hoverBarIndex]) {
+            handleBarClick(chartData[hoverBarIndex], hoverBarIndex);
+          }
+        }}
+        style={{ cursor: hoverBarIndex !== null ? 'pointer' : 'default' }}
       >
         <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
         <XAxis
@@ -865,24 +882,22 @@ const Cashflow = () => {
           radius={[6, 6, 0, 0]}
           maxBarSize={32}
         >
-          {chartData.map((entry, idx) => (
-            <Cell
-              key={idx}
-              fill={
-                selectedBar && selectedBar.idx === idx
-                  ? flowTab === "outflow"
-                    ? "#ff4d4f"
-                    : "#06d6a0"
-                  : "#5b7fff"
-              }
-              cursor={chartData.length > 0 ? "pointer" : "default"}
-              onClick={
-                chartData.length > 0
-                  ? () => handleBarClick(entry, idx)
-                  : undefined
-              }
-            />
-          ))}
+          {chartData.map((entry, idx) => {
+            const isSelected = selectedBar && selectedBar.idx === idx;
+            const isHover = hoverBarIndex === idx && !isSelected;
+            return (
+              <Cell
+                key={idx}
+                fill={
+                  isSelected
+                    ? (flowTab === 'outflow' ? '#ff4d4f' : '#06d6a0')
+                    : isHover
+                    ? '#7895ff' // hover highlight
+                    : '#5b7fff'
+                }
+              />
+            );
+          })}
           {/* Add value labels on top of bars */}
           {!barChartStyles.hideNumbers && (
             <LabelList
