@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   BarChart,
@@ -12,6 +12,7 @@ import {
   ReferenceLine,
   Label,
   LabelList,
+  Customized,
 } from "recharts";
 import {
   fetchCashflowExpenses,
@@ -152,7 +153,9 @@ const Cashflow = () => {
   const [offset, setOffset] = useState(0);
   const [flowTab, setFlowTab] = useState("all"); // Start with 'all'
   const [search, setSearch] = useState("");
-  const [selectedBar, setSelectedBar] = useState(null); // For bar chart filtering
+  // Legacy single selection kept for compatibility; new multi-select uses selectedBars
+  const [selectedBar, setSelectedBar] = useState(null); // last clicked (primary) bar
+  const [selectedBars, setSelectedBars] = useState([]); // array of { idx, data }
   // Track which bar user is hovering (via activeTooltipIndex) so even tiny bars can be clicked
   const [hoverBarIndex, setHoverBarIndex] = useState(null);
   const [selectedCardIdx, setSelectedCardIdx] = useState([]); // Change from null to an array
@@ -268,9 +271,10 @@ const Cashflow = () => {
     setOffset(0);
   }, [activeRange]);
 
-  // Reset selectedBar when main view changes
+  // Reset selections when main view changes
   useEffect(() => {
     setSelectedBar(null);
+    setSelectedBars([]);
     setSelectedCardIdx([]); // Deselect card when range or offset changes
   }, [activeRange, offset, flowTab]);
 
@@ -438,23 +442,25 @@ const Cashflow = () => {
   const xKey =
     activeRange === "week" ? "day" : activeRange === "month" ? "day" : "month";
 
-  // Filter cardData by selectedBar (search already applied above)
+  // Filter cardData by multi-selection (union). If none selected, show all.
   const filteredCardData = useMemo(() => {
-    let filtered = cardData;
-    if (selectedBar) {
-      // Filter by bar (day or month)
-      if (activeRange === "week") {
-        filtered = filtered.filter((row) => row.day === selectedBar.data.day);
-      } else if (activeRange === "month") {
-        filtered = filtered.filter((row) => row.day === selectedBar.data.day);
+    if (!selectedBars.length) return cardData;
+    const keys = new Set();
+    selectedBars.forEach((b) => {
+      if (activeRange === "week" || activeRange === "month") {
+        keys.add(`${b.data.day}`);
       } else if (activeRange === "year") {
-        filtered = filtered.filter(
-          (row) => row.month === selectedBar.data.month
-        );
+        keys.add(`${b.data.month}`);
       }
-    }
-    return filtered;
-  }, [cardData, selectedBar, activeRange]);
+    });
+    return cardData.filter((row) => {
+      if (activeRange === "week" || activeRange === "month") {
+        return keys.has(String(row.day));
+      }
+      if (activeRange === "year") return keys.has(String(row.month));
+      return true;
+    });
+  }, [cardData, selectedBars, activeRange]);
 
   // Sort filteredCardData based on sortType
   const sortedCardData = useMemo(() => {
@@ -474,14 +480,30 @@ const Cashflow = () => {
   }, [filteredCardData, sortType]);
 
   // Handler for bar click (filters cards)
-  const handleBarClick = (data, idx) => {
-    // Toggle selection: if already selected, deselect
-    if (selectedBar && selectedBar.idx === idx) {
-      setSelectedBar(null);
-    } else {
-      setSelectedBar({ data, idx });
-    }
+  const handleBarClick = (data, idx, multi = false) => {
     setSelectedCardIdx([]);
+    if (!multi) {
+      // single selection (replace)
+      setSelectedBar((prev) => (prev && prev.idx === idx ? null : { data, idx }));
+      setSelectedBars((prev) => {
+        if (prev.length === 1 && prev[0].idx === idx) return [];
+        return [{ data, idx }];
+      });
+      return;
+    }
+    // multi-select toggle
+    setSelectedBars((prev) => {
+      const exists = prev.find((p) => p.idx === idx);
+      let next;
+      if (exists) {
+        next = prev.filter((p) => p.idx !== idx);
+      } else {
+        next = [...prev, { data, idx }];
+      }
+      // update primary selectedBar to last toggled or null if empty
+      setSelectedBar(next.length ? next[next.length - 1] : null);
+      return next;
+    });
   };
 
   // Modify the handleCardClick function to support Shift+Click and prevent text selection
@@ -682,7 +704,7 @@ const Cashflow = () => {
       width="100%"
       height={isMobile ? "100%" : "100%"}
     >
-      <BarChart
+  <BarChart
         data={chartData}
         barWidth={barChartStyles.barWidth}
         hideNumbers={barChartStyles.hideNumbers}
@@ -697,20 +719,65 @@ const Cashflow = () => {
         }}
         onMouseLeave={() => setHoverBarIndex(null)}
         // Chart-level click: if we have a hovered index, select that bar
-        onClick={() => {
+        onClick={(e) => {
           if (hoverBarIndex !== null && chartData[hoverBarIndex]) {
-            handleBarClick(chartData[hoverBarIndex], hoverBarIndex);
+            const multi = e && (e.ctrlKey || e.metaKey);
+            handleBarClick(chartData[hoverBarIndex], hoverBarIndex, multi);
           }
         }}
         style={{ cursor: hoverBarIndex !== null ? 'pointer' : 'default' }}
       >
         <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
+        {/** Custom clickable X axis tick so user can click anywhere on the date label area (not just the bar). */}
         <XAxis
           dataKey={xKey}
           stroke="#b0b6c3"
-          tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
           tickLine={false}
           axisLine={{ stroke: "#33384e" }}
+          height={50}
+          tick={(props) => {
+            const { x, y, payload, index } = props; // index corresponds to data index
+            const isSelected = selectedBars.some((b) => b.idx === index);
+            // Approximate band width for clickable rect (safer than relying on internals)
+            const band = barChartStyles.barWidth + (isMobile ? 8 : 12);
+            const selectedColor = flowTab === 'outflow'
+              ? '#ff4d4f'
+              : flowTab === 'inflow'
+              ? '#06d6a0'
+              : '#5b7fff';
+            return (
+              <g
+                transform={`translate(${x},${y})`}
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                  // Allow Ctrl / Cmd multi-select when clicking the label
+                  const multi = e && (e.ctrlKey || e.metaKey);
+                  if (chartData[index]) {
+                    handleBarClick(chartData[index], index, multi);
+                  }
+                  e.stopPropagation();
+                }}
+              >
+                {/* Invisible rectangle expands the hit area for easier clicking */}
+                <rect
+                  x={-band / 2}
+                  y={- (isMobile ? 26 : 30)}
+                  width={band}
+                  height={isMobile ? 34 : 40}
+                  fill="transparent"
+                />
+                <text
+                  dy={10}
+                  fill={isSelected ? selectedColor : '#b0b6c3'}
+                  fontSize={13}
+                  fontWeight={isSelected ? 800 : 600}
+                  textAnchor="middle"
+                >
+                  {payload?.value}
+                </text>
+              </g>
+            );
+          }}
           label={
             barChartStyles.hideAxisLabels
               ? null
@@ -730,7 +797,6 @@ const Cashflow = () => {
                   dx: 30,
                 }
           }
-          height={50}
         />
         <YAxis
           stroke="#b0b6c3"
@@ -754,7 +820,7 @@ const Cashflow = () => {
           width={80} // Increase Y axis width for more space
         />
         <Tooltip
-          cursor={{ fill: "#23243a22" }}
+          cursor={false}
           contentStyle={{
             background: "#23243a",
             border: "1px solid #00dac6",
@@ -883,18 +949,29 @@ const Cashflow = () => {
           maxBarSize={32}
         >
           {chartData.map((entry, idx) => {
-            const isSelected = selectedBar && selectedBar.idx === idx;
+            const isSelected = selectedBars.some((b) => b.idx === idx);
             const isHover = hoverBarIndex === idx && !isSelected;
             return (
               <Cell
                 key={idx}
                 fill={
                   isSelected
-                    ? (flowTab === 'outflow' ? '#ff4d4f' : '#06d6a0')
+                    ? (flowTab === 'outflow'
+                        ? '#ff4d4f'
+                        : flowTab === 'inflow'
+                        ? '#06d6a0'
+                        : '#5b7fff')
                     : isHover
-                    ? '#7895ff' // hover highlight
+                    ? '#7895ff'
                     : '#5b7fff'
                 }
+                cursor={chartData.length > 0 ? 'pointer' : 'default'}
+                onClick={(e) => {
+                  if (!chartData.length) return;
+                  const multi = e && (e.ctrlKey || e.metaKey);
+                  handleBarClick(entry, idx, multi);
+                  e.stopPropagation(); // prevent chart-level click double firing
+                }}
               />
             );
           })}
@@ -921,6 +998,56 @@ const Cashflow = () => {
             />
           )}
         </Bar>
+        {/* Transparent full-height clickable columns so user can click empty vertical space above tiny bars */}
+        <Customized
+          component={(props) => {
+            const { xAxisMap, offset } = props || {};
+            if (!xAxisMap || !chartData?.length) return null;
+            const axisKey = Object.keys(xAxisMap)[0];
+            const xAxisCfg = xAxisMap[axisKey];
+            const scale = xAxisCfg && xAxisCfg.scale;
+            if (!scale || typeof scale.bandwidth !== 'function') return null;
+            const bandW = scale.bandwidth();
+            return (
+              <g>
+                {chartData.map((entry, idx) => {
+                  const xPos = scale(entry[xKey]);
+                  if (typeof xPos !== 'number' || isNaN(xPos)) return null;
+                  const isSelected = selectedBars.some((b) => b.idx === idx);
+                  const isHover = hoverBarIndex === idx && !isSelected;
+                  return (
+                    <g key={`col-hit-${idx}`}>
+                      <rect
+                        x={xPos}
+                        y={offset.top}
+                        width={bandW}
+                        height={offset.height}
+                        fill={(function() {
+                          const base = flowTab === 'outflow'
+                            ? '255,77,79'
+                            : flowTab === 'inflow'
+                            ? '6,214,160'
+                            : '91,127,255';
+                          if (isSelected) return `rgba(${base},0.18)`;
+                          if (isHover) return `rgba(${base},0.12)`;
+                          return 'transparent';
+                        })()}
+                        style={{ cursor: 'pointer', transition: 'fill 100ms linear' }}
+                        onMouseEnter={() => setHoverBarIndex(idx)}
+                        onMouseLeave={() => setHoverBarIndex(null)}
+                        onClick={(e) => {
+                          const multi = e && (e.ctrlKey || e.metaKey);
+                          handleBarClick(entry, idx, multi);
+                          e.stopPropagation();
+                        }}
+                      />
+                    </g>
+                  );
+                })}
+              </g>
+            );
+          }}
+        />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -1072,6 +1199,7 @@ const Cashflow = () => {
                 const next = flowTypeCycle[(idx + 1) % flowTypeCycle.length];
                 setFlowTab(next.value);
                 setSelectedBar(null);
+                setSelectedBars([]);
                 setSelectedCardIdx([]);
               }}
               aria-pressed={false}
@@ -1223,6 +1351,7 @@ const Cashflow = () => {
               onClick={() => {
                 if (activeRange === tab.value) {
                   setSelectedBar(null); // Reset bar selection if clicking the same tab
+                  setSelectedBars([]);
                 }
                 setActiveRange(tab.value);
               }}
