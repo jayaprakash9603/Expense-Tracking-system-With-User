@@ -758,33 +758,30 @@ const Cashflow = () => {
                   const baseYear = dayjs().startOf("year").add(offset, "year");
                   const monthStart = baseYear.month(monthIdx).startOf("month");
                   const monthEnd = monthStart.endOf("month");
-                  return `${monthStart.format("MMM")} (${monthStart.format(
-                    "D MMM"
-                  )} - ${monthEnd.format("D MMM")})`;
+                  return `${monthStart.format("MMM")} (${monthStart.format("D MMM")} - ${monthEnd.format("D MMM")})`;
                 }
               } else if (activeRange === "month") {
                 const dayNum = parseInt(String(label), 10);
                 if (!isNaN(dayNum)) {
-                  const baseMonth = dayjs()
-                    .startOf("month")
-                    .add(offset, "month");
+                  const baseMonth = dayjs().startOf("month").add(offset, "month");
                   const date = baseMonth.date(dayNum);
                   return date.format("D MMM");
                 }
               } else if (activeRange === "week") {
                 const idx = weekDays.indexOf(String(label));
                 if (idx >= 0) {
-                  // Align to Monday as first day to match weekDays [Mon..Sun]
-                  const mondayStart = dayjs()
-                    .startOf("week")
-                    .add(offset, "week")
-                    .day(1); // set to Monday of that week
-                  const date = mondayStart.add(idx, "day");
+                  // Compute Monday of the CURRENT week explicitly (independent of startOf('week') which is Sunday)
+                  // then apply the offset in weeks. This avoids accidental +1 week drift.
+                  const today = dayjs();
+                  const daysSinceMonday = (today.day() + 6) % 7; // 0 if Monday, 6 if Sunday
+                  const currentMonday = today.subtract(daysSinceMonday, "day");
+                  const monday = currentMonday.add(offset, "week");
+                  const date = monday.add(idx, "day");
                   return `${date.format("ddd")}, ${date.format("D MMM")}`;
                 }
               }
             } catch (e) {
-              // no-op fallback
+              // silent fallback
             }
             return label;
           }}
