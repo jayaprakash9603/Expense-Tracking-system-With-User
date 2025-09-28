@@ -1272,6 +1272,13 @@
 }
 
 /* Skeleton Styles (improved shimmer + staggered animations) */
+/* Height normalization + design tokens */
+:root {
+  --metric-skeleton-height: 120px; /* unified metric card skeleton height */
+  --chart-skeleton-height: 420px; /* default chart skeleton height */
+  --skeleton-gap: 12px;
+}
+
 /* Base shimmer background used by most skeleton elements */
 .skeleton-bg {
   background: linear-gradient(
@@ -1294,6 +1301,10 @@
   overflow: hidden;
   mask-image: linear-gradient(#000, #000);
   -webkit-mask-image: linear-gradient(#000, #000);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--skeleton-gap);
 }
 
 .metric-card-skeleton > .skeleton-row,
@@ -1373,6 +1384,14 @@
   background: transparent;
   border: none;
   padding: 0;
+  min-height: auto; /* inherit real chart natural height */
+}
+
+/* Constrain skeleton internals for daily spending chart to mirror real chart height */
+.daily-spending-chart .chart-skeleton .skeleton-line-svg,
+.daily-spending-chart .chart-skeleton .skeleton-chart-body {
+  height: 260px; /* match actual rendered chart height */
+  max-height: 260px;
 }
 .skeleton-pie-wrap {
   width: 100%;
@@ -1482,11 +1501,8 @@
 
 /* Ensure skeleton elements keep the same spacing as the real dashboard components */
 .metrics-grid .metric-card-skeleton {
-  min-height: 100px; /* align with reduced metric card size */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 12px;
+  min-height: var(--metric-skeleton-height);
+  justify-content: center; /* center inner vertical content */
 }
 
 .metrics-grid {
@@ -1497,10 +1513,8 @@
 .charts-grid .chart-skeleton,
 .chart-row .chart-skeleton,
 .chart-container.chart-skeleton {
-  min-height: 420px; /* align with chart container min-height used elsewhere */
+  min-height: var(--chart-skeleton-height); /* consistent chart skeleton height */
   padding: 24px; /* match chart container padding */
-  display: flex;
-  flex-direction: column;
   gap: 16px;
 }
 
@@ -1514,7 +1528,7 @@
 /* Make skeletons responsive like the real components */
 @media (max-width: 1200px) {
   .charts-grid .chart-skeleton {
-    min-height: 360px;
+  min-height: calc(var(--chart-skeleton-height) - 60px);
   }
 }
 
@@ -1600,11 +1614,11 @@
 
 @media (max-width: 768px) {
   .metrics-grid .metric-card-skeleton {
-    min-height: 100px;
+  min-height: calc(var(--metric-skeleton-height) - 10px);
     padding: 16px;
   }
   .charts-grid .chart-skeleton {
-    min-height: 260px;
+  min-height: calc(var(--chart-skeleton-height) - 160px);
     padding: 14px;
   }
 }
@@ -1642,6 +1656,12 @@
 }
 
 /* Respect reduced motion preferences */
+/* Utility: fade transition for replacing skeleton with real content */
+.fade-in-enter { opacity: 0; }
+.fade-in-enter-active { opacity: 1; transition: opacity .35s ease; }
+.fade-out-exit { opacity: 1; }
+.fade-out-exit-active { opacity: 0; transition: opacity .28s ease; }
+
 @media (prefers-reduced-motion: reduce) {
   .skeleton-bg,
   .skeleton-icon,
@@ -1899,5 +1919,73 @@
 
   .charts-grid {
     page-break-inside: avoid;
+  }
+}
+
+@media (min-width: 769px) {
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+
+}
+
+/* Extra small screen adjustments */
+@media (max-width: 480px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .metric-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+  
+  .metric-header {
+    margin-bottom: 10px;
+  }
+  
+  .metric-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+  
+  .trend-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+  
+  .metric-content h3 {
+    font-size: 0.65rem;
+    margin: 0 0 4px 0;
+  }
+  
+  .metric-value {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+  }
+  
+  .metric-change {
+    font-size: 0.7rem;
+  }
+  
+  .metric-sparkline {
+    height: 10px;
+    margin-top: 10px;
+    gap: 2px;
+  }
+  
+  .sparkline-bar {
+    width: 2px;
   }
 }

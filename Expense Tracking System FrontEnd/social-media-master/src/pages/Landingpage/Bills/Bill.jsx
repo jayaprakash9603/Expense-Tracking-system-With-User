@@ -23,7 +23,7 @@ import BillTabs from "./BillTabs";
 
 import BillSummary from "./BillSummary";
 import EmptyBillState from "./EmptyBillState";
-import Modal from "./Modal";
+import Modal from "../../Landingpage/Modal";
 import BillAccordion from "./BillAccordian";
 
 const Bill = () => {

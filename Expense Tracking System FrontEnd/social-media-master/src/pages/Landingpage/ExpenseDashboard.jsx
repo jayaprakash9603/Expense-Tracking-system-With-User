@@ -1040,7 +1040,7 @@ const BudgetOverview = ({ remainingBudget, totalLosses }) => {
 const DashboardDataRefetcher = ({
   trigger,
   timeframe,
-  selectedType,
+  // removed selectedType to avoid global refetch on daily type toggle
   categoryTimeframe,
   categoryFlowType,
   trendYear,
@@ -1089,7 +1089,7 @@ const DashboardDataRefetcher = ({
           params.fromDate = start.toISOString().split("T")[0];
           params.toDate = end.toISOString().split("T")[0];
         }
-        if (selectedType) params.type = selectedType;
+  // daily type filtering handled by dedicated hook in main component
         const res = await fetchDailySpending(params);
         setDailySpendingData(Array.isArray(res) ? res : []);
       } catch (e) {
@@ -1173,7 +1173,7 @@ const DashboardDataRefetcher = ({
           params.fromDate = start.toISOString().split("T")[0];
           params.toDate = end.toISOString().split("T")[0];
         }
-        if (selectedType) params.type = selectedType;
+  // omit type so summary isn't refetched on daily gain/loss toggle
         const res = await fetchExpenseSummary(params);
         setAnalyticsSummary(res && typeof res === "object" ? res : null);
       } catch (e) {
@@ -1188,7 +1188,7 @@ const DashboardDataRefetcher = ({
       setMonthlyTrendLoading(true);
       try {
         const params = { year: trendYear };
-        if (selectedType) params.type = selectedType;
+  // omit type to decouple monthly trend from daily toggle
         const res = await fetchMonthlyExpenses(params);
         const MONTHS = [
           "Jan",
@@ -1372,7 +1372,8 @@ const ExpenseDashboard = () => {
   const [timeframe, setTimeframe] = useState("this_month"); // daily spending timeframe
   const [categoryTimeframe, setCategoryTimeframe] = useState("this_month"); // category breakdown timeframe
   const [categoryFlowType, setCategoryFlowType] = useState("loss"); // category breakdown gain/loss
-  const [selectedType, setSelectedType] = useState("loss");
+  // Separate type state for daily spending to avoid triggering other API calls
+  const [dailyType, setDailyType] = useState("loss");
   // hold fetched daily spending; initialize with sample so chart shows something
   const [dailySpendingData, setDailySpendingData] = useState(
     // dashboardData is declared below; for now we'll set to an empty array and
@@ -1430,6 +1431,7 @@ const ExpenseDashboard = () => {
     console.log("Opening filter options...");
   };
 
+  // Daily spending effect reacts to timeframe or its own type only
   useEffect(() => {
     // indicate loading while fetching daily spending
     setDailyLoading(true);
@@ -1455,7 +1457,7 @@ const ExpenseDashboard = () => {
           params.toDate = end.toISOString().split("T")[0];
         }
         // include transaction type (loss/gain) if provided
-        if (selectedType) params.type = selectedType;
+  if (dailyType) params.type = dailyType;
 
         const res = await fetchDailySpending(params);
         if (mounted) {
@@ -1476,7 +1478,7 @@ const ExpenseDashboard = () => {
     return () => {
       mounted = false;
     };
-  }, [timeframe, selectedType]);
+  }, [timeframe, dailyType]);
 
   // Load category distribution from backend in the new shape (uses independent categoryTimeframe and flow type)
   useEffect(() => {
@@ -1581,7 +1583,6 @@ const ExpenseDashboard = () => {
           params.fromDate = start.toISOString().split("T")[0];
           params.toDate = end.toISOString().split("T")[0];
         }
-        if (selectedType) params.type = selectedType;
 
         const res = await fetchExpenseSummary(params);
         if (mounted) {
@@ -1601,7 +1602,7 @@ const ExpenseDashboard = () => {
     return () => {
       mounted = false;
     };
-  }, [timeframe, selectedType]);
+  }, [timeframe]);
 
   // Load monthly expenses from backend to replace static monthlyTrend
   useEffect(() => {
@@ -1610,7 +1611,6 @@ const ExpenseDashboard = () => {
       setMonthlyTrendLoading(true);
       try {
         const params = { year: trendYear };
-        if (selectedType) params.type = selectedType;
 
         const res = await fetchMonthlyExpenses(params);
 
@@ -1697,7 +1697,7 @@ const ExpenseDashboard = () => {
       mounted = false;
     };
     // Re-fetch when type or year changes
-  }, [selectedType, trendYear]);
+  }, [trendYear]);
 
   // Load payment methods distribution from backend (replaces static sample)
   useEffect(() => {
@@ -1815,7 +1815,6 @@ const ExpenseDashboard = () => {
       <DashboardDataRefetcher
         trigger={refreshKey}
         timeframe={timeframe}
-        selectedType={selectedType}
         categoryTimeframe={categoryTimeframe}
         categoryFlowType={categoryFlowType}
         trendYear={trendYear}
@@ -1964,8 +1963,8 @@ const ExpenseDashboard = () => {
               data={dailySpendingData}
               timeframe={timeframe}
               onTimeframeChange={(val) => setTimeframe(val)}
-              selectedType={selectedType}
-              onTypeToggle={(type) => setSelectedType(type)}
+              selectedType={dailyType}
+              onTypeToggle={(type) => setDailyType(type)}
             />
           )}
 

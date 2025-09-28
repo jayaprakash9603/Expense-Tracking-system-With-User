@@ -100,7 +100,10 @@ function App() {
             <Route path="/component1" element={<AdminDashboard />} />
             <Route path="/component2" element={<InvestmentDashboard />} />
             {/* <Route path="home" element={<HomeContent />} /> */}
+
             <Route path="home" element={<ExpenseDashboard />} />
+
+            {/* <Route path="home" element={<Loader />} /> */}
             <Route path="groups">
               <Route index element={<Groups />} />
               <Route path="create" element={<CreateGroup />} />
