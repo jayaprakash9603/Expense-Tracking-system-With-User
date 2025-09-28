@@ -246,6 +246,8 @@ const DailySpendingChart = ({
   const isTablet = useMediaQuery("(max-width:1024px)");
   const chartHeight = isMobile ? 220 : isTablet ? 260 : 300;
   const hideXAxis = timeframe === "last_3_months" || isMobile;
+  // animation: create a changing key when core inputs change to retrigger mount animation
+  const animationKey = `${timeframe}-${selectedType}-${Array.isArray(data) ? data.length : 0}`;
   // Protect against non-array `data` (e.g. a Promise or object) which causes
   // "data.map is not a function". Use an empty array fallback.
   const safeData = Array.isArray(data) ? data : [];
@@ -267,7 +269,7 @@ const DailySpendingChart = ({
   const gradId = `spendingGradient-${selType}`;
 
   return (
-    <div className="chart-container daily-spending-chart">
+    <div className="chart-container daily-spending-chart fade-in">
       <div className="chart-header">
         <h3>📊 Daily Spending Pattern</h3>
         <div className="chart-controls">
@@ -308,7 +310,7 @@ const DailySpendingChart = ({
         </div>
       </div>
       <ResponsiveContainer width="100%" height={chartHeight}>
-        <AreaChart data={chartData}>
+        <AreaChart data={chartData} key={animationKey}>
           <defs>
             <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={color} stopOpacity={0.8} />
@@ -376,6 +378,10 @@ const DailySpendingChart = ({
             fillOpacity={0.3}
             fill={`url(#${gradId})`}
             strokeWidth={2}
+            isAnimationActive={true}
+            animationBegin={0}
+            animationDuration={900}
+            animationEasing="ease-out"
           />
         </AreaChart>
       </ResponsiveContainer>
