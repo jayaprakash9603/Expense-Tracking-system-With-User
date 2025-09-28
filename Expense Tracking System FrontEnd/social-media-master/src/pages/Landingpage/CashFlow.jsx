@@ -148,6 +148,34 @@ const flowTypeCycle = [
   { label: "Money Out", value: "outflow", color: "bg-[#FF6B6B] text-white" },
 ];
 
+// Small pill for selection summary values (basic pill reused inside enhanced bar)
+const SummaryPill = ({ label, value, icon }) => (
+  <span
+    style={{
+  background: '#1b1b1b',
+  border: '1px solid #262626',
+      borderRadius: 8,
+      padding: '6px 10px',
+      fontSize: 11,
+      fontWeight: 600,
+      color: '#cfd3d8',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      lineHeight: 1.15,
+      position: 'relative',
+      minHeight: 30,
+      boxShadow: '0 2px 4px -1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.03)'
+    }}
+  >
+    {icon && (
+      <span style={{ fontSize: 13, opacity: 0.9, display: 'inline-flex', alignItems: 'center' }}>{icon}</span>
+    )}
+    <span style={{ opacity: 0.55, fontWeight: 500 }}>{label}</span>
+    <span style={{ color: '#00dac6', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+  </span>
+);
+
 const Cashflow = () => {
   const [activeRange, setActiveRange] = useState("month"); // Default to month on mount
   const [offset, setOffset] = useState(0);
@@ -156,6 +184,7 @@ const Cashflow = () => {
   // Legacy single selection kept for compatibility; new multi-select uses selectedBars
   const [selectedBar, setSelectedBar] = useState(null); // last clicked (primary) bar
   const [selectedBars, setSelectedBars] = useState([]); // array of { idx, data }
+  const [lastBarSelectedIdx, setLastBarSelectedIdx] = useState(null); // anchor for shift selection
   // Track which bar user is hovering (via activeTooltipIndex) so even tiny bars can be clicked
   const [hoverBarIndex, setHoverBarIndex] = useState(null);
   const [selectedCardIdx, setSelectedCardIdx] = useState([]); // Change from null to an array
@@ -164,6 +193,8 @@ const Cashflow = () => {
   const [sortType, setSortType] = useState("recent");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
+  // Enhanced summary bar toggle (collapsed by default on very small screens)
+  const [summaryExpanded, setSummaryExpanded] = useState(true);
   const [expenseData, setExpenseData] = useState({});
   const dispatch = useDispatch();
   const { cashflowExpenses, loading } = useSelector((state) => state.expenses);
@@ -479,19 +510,33 @@ const Cashflow = () => {
     return data;
   }, [filteredCardData, sortType]);
 
-  // Handler for bar click (filters cards)
-  const handleBarClick = (data, idx, multi = false) => {
+  // Handler for bar click (supports single, ctrl/cmd multi, and shift range)
+  const handleBarClick = (data, idx, multi = false, rangeSelect = false) => {
     setSelectedCardIdx([]);
+    if (rangeSelect && lastBarSelectedIdx !== null && lastBarSelectedIdx !== undefined) {
+      const start = Math.min(lastBarSelectedIdx, idx);
+      const end = Math.max(lastBarSelectedIdx, idx);
+      const range = [];
+      for (let i = start; i <= end; i++) {
+        if (chartData[i]) range.push({ data: chartData[i], idx: i });
+      }
+      setSelectedBars(range);
+      setSelectedBar(range[range.length - 1] || null);
+      return;
+    }
     if (!multi) {
-      // single selection (replace)
       setSelectedBar((prev) => (prev && prev.idx === idx ? null : { data, idx }));
       setSelectedBars((prev) => {
-        if (prev.length === 1 && prev[0].idx === idx) return [];
+        if (prev.length === 1 && prev[0].idx === idx) {
+          setLastBarSelectedIdx(null);
+          return [];
+        }
+        setLastBarSelectedIdx(idx);
         return [{ data, idx }];
       });
       return;
     }
-    // multi-select toggle
+    // ctrl/cmd multi toggle
     setSelectedBars((prev) => {
       const exists = prev.find((p) => p.idx === idx);
       let next;
@@ -499,8 +544,8 @@ const Cashflow = () => {
         next = prev.filter((p) => p.idx !== idx);
       } else {
         next = [...prev, { data, idx }];
+        setLastBarSelectedIdx(idx);
       }
-      // update primary selectedBar to last toggled or null if empty
       setSelectedBar(next.length ? next[next.length - 1] : null);
       return next;
     });
@@ -576,6 +621,25 @@ const Cashflow = () => {
     }
     return { inflow, outflow, total: inflow + outflow };
   }, [filteredExpensesForView]);
+
+  // Selection statistics (bars). If none selected, fallback to whole chartData.
+  const selectionStats = useMemo(() => {
+    const base = selectedBars.length ? selectedBars.map(b => b.data) : [];
+    if (!base.length) return null;
+    const amounts = base.map(d => d.amount || 0);
+    const count = amounts.length;
+    const total = amounts.reduce((a,b)=>a+b,0);
+    const avg = count ? total / count : 0;
+    let min = Infinity, max = -Infinity, minIdx = -1, maxIdx = -1;
+    amounts.forEach((v,i)=>{ if(v<min){min=v;minIdx=i;} if(v>max){max=v;maxIdx=i;} });
+    return { count, total, avg, min: min===Infinity?0:min, max: max===-Infinity?0:max };
+  }, [selectedBars]);
+
+  const clearSelection = () => {
+    setSelectedBars([]);
+    setSelectedBar(null);
+    setLastBarSelectedIdx(null);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -722,7 +786,8 @@ const Cashflow = () => {
         onClick={(e) => {
           if (hoverBarIndex !== null && chartData[hoverBarIndex]) {
             const multi = e && (e.ctrlKey || e.metaKey);
-            handleBarClick(chartData[hoverBarIndex], hoverBarIndex, multi);
+            const rangeSel = e && e.shiftKey;
+            handleBarClick(chartData[hoverBarIndex], hoverBarIndex, multi, rangeSel);
           }
         }}
         style={{ cursor: hoverBarIndex !== null ? 'pointer' : 'default' }}
@@ -750,10 +815,10 @@ const Cashflow = () => {
                 transform={`translate(${x},${y})`}
                 style={{ cursor: 'pointer' }}
                 onClick={(e) => {
-                  // Allow Ctrl / Cmd multi-select when clicking the label
                   const multi = e && (e.ctrlKey || e.metaKey);
+                  const rangeSel = e && e.shiftKey;
                   if (chartData[index]) {
-                    handleBarClick(chartData[index], index, multi);
+                    handleBarClick(chartData[index], index, multi, rangeSel);
                   }
                   e.stopPropagation();
                 }}
@@ -969,8 +1034,9 @@ const Cashflow = () => {
                 onClick={(e) => {
                   if (!chartData.length) return;
                   const multi = e && (e.ctrlKey || e.metaKey);
-                  handleBarClick(entry, idx, multi);
-                  e.stopPropagation(); // prevent chart-level click double firing
+                  const rangeSel = e && e.shiftKey;
+                  handleBarClick(entry, idx, multi, rangeSel);
+                  e.stopPropagation();
                 }}
               />
             );
@@ -1037,7 +1103,8 @@ const Cashflow = () => {
                         onMouseLeave={() => setHoverBarIndex(null)}
                         onClick={(e) => {
                           const multi = e && (e.ctrlKey || e.metaKey);
-                          handleBarClick(entry, idx, multi);
+                          const rangeSel = e && e.shiftKey;
+                          handleBarClick(entry, idx, multi, rangeSel);
                           e.stopPropagation();
                         }}
                       />
@@ -1343,6 +1410,133 @@ const Cashflow = () => {
           }
         `}</style>
         </div>
+        {/* Enhanced Selection Summary Bar */}
+  {selectionStats && selectionStats.count > 1 && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 14,
+      left: '50%',
+      // Shift 50px to the right from centered position
+      transform: 'translateX(calc(-50% + 50px))',
+              zIndex: 7,
+              maxWidth: isMobile ? '94%' : 840,
+              width: 'max-content',
+              pointerEvents: 'auto'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'stretch',
+                  gap: 8,
+                  background: '#1b1b1b',
+                  backdropFilter: 'blur(10px) saturate(140%)',
+                  WebkitBackdropFilter: 'blur(10px) saturate(140%)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  boxShadow: '0 4px 18px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.6)',
+                  borderRadius: 14,
+                  padding: '10px 14px 10px 14px',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Decorative gradient shimmer */}
+                {/* Removed decorative gradient overlays per solid background request */}
+
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: summaryExpanded ? 8 : 0 }}>
+                  <button
+                    onClick={() => setSummaryExpanded(e => !e)}
+                    aria-label={summaryExpanded ? 'Collapse selection stats' : 'Expand selection stats'}
+                    style={{
+                      background: '#1b1b1b',
+                      border: '1px solid #303030',
+                      color: '#00dac6',
+                      width: 34,
+                      height: 34,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 10,
+                      cursor: 'pointer',
+                      fontSize: 16,
+                      fontWeight: 600,
+                      boxShadow: '0 2px 6px -2px #0009, inset 0 0 0 1px rgba(255,255,255,0.03)',
+                      transition: 'all .35s cubic-bezier(.4,0,.2,1)'
+                    }}
+                    title={summaryExpanded ? 'Hide stats' : 'Show stats'}
+                  >
+                    {summaryExpanded ? '−' : '+'}
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 10,
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    paddingLeft: 4,
+                    paddingRight: 4,
+                    maxWidth: summaryExpanded ? (isMobile ? '66vw' : '600px') : 0,
+                    overflow: 'hidden',
+                    transition: 'max-width .45s cubic-bezier(.4,0,.2,1)'
+                  }}
+                >
+                  {summaryExpanded && (
+                    <>
+                      <SummaryPill icon="" label="Expenses" value={selectedBars.length ? sortedCardData.length : 0} />
+                      <SummaryPill icon="💰" label="Total" value={formatNumberFull(selectionStats.total)} />
+                      <SummaryPill icon="📊" label="Avg" value={formatNumberFull(Math.trunc(selectionStats.avg))} />
+                      <SummaryPill icon="⬇" label="Min" value={formatNumberFull(selectionStats.min)} />
+                      <SummaryPill icon="⬆" label="Max" value={formatNumberFull(selectionStats.max)} />
+                    </>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', marginLeft: 4 }}>
+                  <button
+                    onClick={clearSelection}
+                    style={{
+                      background: '#2a1313',
+                      border: '1px solid #4b1d1d',
+                      color: '#ff6b6b',
+                      fontSize: 12,
+                      padding: '8px 12px',
+                      borderRadius: 10,
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      lineHeight: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      boxShadow: '0 2px 6px -2px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.04)',
+                      transition: 'background .35s, transform .25s'
+                    }}
+                    onMouseDown={e => e.preventDefault()}
+                    title="Clear selection"
+                  >
+                    <span style={{ fontSize: 14 }}>✕</span>
+                    <span style={{ letterSpacing: 0.5 }}>Clear</span>
+                  </button>
+                </div>
+              </div>
+              {/* Keyboard hint (appears when expanded)
+              {summaryExpanded && (
+                <div style={{ textAlign: 'center', fontSize: 10, color: '#8a8f95', fontWeight: 500, letterSpacing: 0.5 }}>
+                  Ctrl / Cmd to toggle • Shift for range • Click Clear to reset
+                </div>
+              )} */}
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-4 mb-4">
           {rangeTypes.map((tab) => (
