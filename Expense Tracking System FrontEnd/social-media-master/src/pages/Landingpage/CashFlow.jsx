@@ -61,41 +61,32 @@ const yearMonths = [
   "Dec",
 ];
 
-const getRangeLabel = (range, offset, flowType) => {
-  const now = dayjs();
-  let start, end, label;
-  if (range === "week") {
-    start = now.startOf("week").add(offset, "week");
-    end = now.endOf("week").add(offset, "week");
+// Format range label per new requirements (month: full date range, week: week range, year: year only)
+const getRangeLabel = (range, offset) => {
+  const base = dayjs();
+  if (range === 'month') {
+    const start = base.startOf('month').add(offset, 'month');
+    const end = base.endOf('month').add(offset, 'month');
     if (offset === 0) {
-      label = `${flowType === "outflow" ? "Debited" : "Credited"} this week`;
-    } else {
-      label = `${
-        flowType === "outflow" ? "Debited" : "Credited"
-      } ${start.format("D MMM")} - ${end.format("D MMM, YYYY")}`;
+      // Current month label format: This Month (Sep 25)
+      return `This Month (${base.format('MMM YY')})`;
     }
-  } else if (range === "month") {
-    start = now.startOf("month").add(offset, "month");
-    end = now.endOf("month").add(offset, "month");
-    if (offset === 0) {
-      label = `${flowType === "outflow" ? "Debited" : "Credited"} this month`;
-    } else {
-      label = `${
-        flowType === "outflow" ? "Debited" : "Credited"
-      } ${start.format("D MMM")} - ${end.format("D MMM, YYYY")}`;
-    }
-  } else if (range === "year") {
-    start = now.startOf("year").add(offset, "year");
-    end = now.endOf("year").add(offset, "year");
-    if (offset === 0) {
-      label = `${flowType === "outflow" ? "Debited" : "Credited"} this year`;
-    } else {
-      label = `${
-        flowType === "outflow" ? "Debited" : "Credited"
-      } ${start.format("D MMM")} - ${end.format("D MMM, YYYY")}`;
-    }
+    return `${start.format('D MMM YYYY')} - ${end.format('D MMM YYYY')}`;
   }
-  return label;
+  if (range === 'week') {
+    const start = base.startOf('week').add(offset, 'week');
+    const end = base.endOf('week').add(offset, 'week');
+    // Show concise range without redundant year if same year
+    if (start.year() === end.year()) {
+      return `${start.format('D MMM')} - ${end.format('D MMM YYYY')}`;
+    }
+    return `${start.format('D MMM YYYY')} - ${end.format('D MMM YYYY')}`;
+  }
+  if (range === 'year') {
+    const year = base.startOf('year').add(offset, 'year').year();
+    return `${year}`;
+  }
+  return '';
 };
 
 const CashflowSearchToolbar = ({
@@ -332,7 +323,7 @@ const Cashflow = () => {
     setPopoverOpen(false);
   };
 
-  const rangeLabel = getRangeLabel(activeRange, offset, flowTab);
+  const rangeLabel = getRangeLabel(activeRange, offset);
 
   // Adjust bar chart styles based on screen size
   const barChartStyles = {
