@@ -82,7 +82,6 @@ public class EmailService {
             throw new RuntimeException("Failed to send OTP email", e);
         }
 
-        logger.info("OTP for {}: {}", to, otp);
     }
     public List<EmailLog> getAllEmailLogs() {
         return emailLogRepository.findAll();

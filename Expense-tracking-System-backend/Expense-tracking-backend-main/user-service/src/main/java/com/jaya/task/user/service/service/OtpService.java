@@ -50,7 +50,7 @@ public class OtpService {
         // Send OTP via email (currently logged)
         emailService.sendOtpEmail(email, otp);
 
-        return otp; // Return OTP for response
+        return "Otp Send Successfull"; // Return OTP for response
     }
 
     @Transactional

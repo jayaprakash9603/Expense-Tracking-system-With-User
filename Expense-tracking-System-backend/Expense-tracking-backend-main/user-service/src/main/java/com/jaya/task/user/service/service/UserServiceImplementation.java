@@ -73,7 +73,7 @@ public class UserServiceImplementation implements UserService{
         // Find the user to update
         User userToUpdate = userRepository.findByEmail(updateRequest.getEmail());
         if (userToUpdate == null) {
-            throw new RuntimeException("User not found with email: " + updateRequest.getEmail());
+            throw new RuntimeException("User not found");
         }
 
         // Update user fields

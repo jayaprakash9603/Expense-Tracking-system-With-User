@@ -1550,7 +1550,7 @@ const CategoryFlow = () => {
               className="flex justify-start mt-2 mb-2"
               style={{
                 flexDirection: isMobile ? "column" : "row",
-                gap: isMobile ? 4 : 8,
+                gap: isMobile ? 8 : 0,
                 flexWrap: "wrap",
               }}
             >
@@ -1575,22 +1575,15 @@ const CategoryFlow = () => {
               >
                 {[
                   {
-                    path: "/category-flow",
-                    icon: "category.png",
-                    label: "Categories",
-                  },
-                  {
                     path: "/transactions",
                     icon: "history.png",
                     label: "History",
                   },
-                  { path: "/insights", icon: "insight.png", label: "Insights" },
                   {
                     path: "/category-flow/reports",
                     icon: "report.png",
                     label: "Reports",
                   },
-                  { path: "/cashflow", icon: "list.png", label: "Expenses" },
                   { path: "/budget", icon: "budget.png", label: "Budget" },
                   {
                     path: "/payment-method",
@@ -1598,11 +1591,7 @@ const CategoryFlow = () => {
                     label: "Payment Method",
                   },
                   { path: "/bill", icon: "bill.png", label: "Bill" },
-                  {
-                    path: "/calendar-view",
-                    icon: "calendar.png",
-                    label: "Calendar",
-                  },
+                
                 ].map(({ path, icon, label }) => (
                   <button
                     key={path}

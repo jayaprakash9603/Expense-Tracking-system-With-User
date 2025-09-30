@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -100,11 +101,11 @@ public class AuthController {
         UserDetails userDetails = customUserService.loadUserByUsername(username);
 
         if (userDetails == null) {
-            throw new BadCredentialsException("Invalid username or password");
+            throw new UsernameNotFoundException("User not found");
         }
 
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException("Invalid username or password");
+            throw new BadCredentialsException("Invalid Username or Password");
         }
 
         return new UsernamePasswordAuthenticationToken(
@@ -112,8 +113,6 @@ public class AuthController {
                 null,
                 userDetails.getAuthorities()
         );
-
-
     }
 
     @PostMapping("/refresh-token")
@@ -197,7 +196,6 @@ public class AuthController {
             String otp = otpService.generateAndSendOtp(email);
             Map<String, String> response = new HashMap<>();
             response.put("message", "OTP sent successfully");
-            response.put("otp", otp); // Include OTP in response for testing
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
