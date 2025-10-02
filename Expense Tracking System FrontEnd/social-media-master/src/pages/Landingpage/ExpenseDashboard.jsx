@@ -2117,7 +2117,7 @@ const ExpenseDashboard = () => {
         ) : (
           <>
             <RecentTransactions
-              transactions={analyticsSummary?.lastFiveExpenses ?? []}
+              transactions={analyticsSummary?.lastTenExpenses ?? []}
             />
             <BudgetOverview
               remainingBudget={analyticsSummary?.remainingBudget ?? 0}

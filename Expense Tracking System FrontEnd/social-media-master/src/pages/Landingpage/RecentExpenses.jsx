@@ -13,7 +13,7 @@ const shimmerKeyframes = {
 const RecentExpenses = () => {
   const dispatch = useDispatch();
   const { summary, loading } = useSelector((state) => state.expenses || {});
-  const lastFiveExpenses = summary?.lastFiveExpenses || [];
+  const lastFiveExpenses = summary?.lastTenExpenses || [];
   const [hoveredId, setHoveredId] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
