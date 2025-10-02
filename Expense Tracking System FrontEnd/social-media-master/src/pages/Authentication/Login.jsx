@@ -55,17 +55,17 @@ const Login = () => {
 
   // Function to get the first error message in priority order
   const getFirstError = (errors, touched) => {
-    // Priority order: email, password, then login error
-    if (touched.email && errors.email) {
-      return errors.email;
+    // If both fields are touched (formik does this on submit) & both have errors -> show unified message
+    if (
+      touched.email && touched.password &&
+      errors.email && errors.password
+    ) {
+      return "Enter all the mandatory fields";
     }
-    if (touched.password && errors.password) {
-      return errors.password;
-    }
-    if (error) {
-      return error;
-    }
-
+    // Priority order: email, password, then login/server error
+    if (touched.email && errors.email) return errors.email;
+    if (touched.password && errors.password) return errors.password;
+    if (error) return error;
     return null;
   };
 

@@ -82,37 +82,40 @@ public class AuthController {
     public ResponseEntity<AuthResponse> signin(@RequestBody LoginRequest loginRequest) {
         String username = loginRequest.getEmail();
         String password = loginRequest.getPassword();
+        try {
+            Authentication authentication = authenticate(username, password);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        Authentication authentication = authenticate(username, password);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = JwtProvider.generateToken(authentication);
 
+            AuthResponse authResponse = new AuthResponse();
+            authResponse.setStatus(true);
+            authResponse.setMessage("Login Success");
+            authResponse.setJwt(token);
 
-        String token = JwtProvider.generateToken(authentication);
-
-        AuthResponse authResponse = new AuthResponse();
-        authResponse.setStatus(true);
-        authResponse.setMessage("Login Success");
-        authResponse.setJwt(token);
-
-        return new ResponseEntity<>(authResponse, HttpStatus.OK);
+            return new ResponseEntity<>(authResponse, HttpStatus.OK);
+        } catch (BadCredentialsException ex) {
+            AuthResponse authResponse = new AuthResponse();
+            authResponse.setStatus(false);
+            authResponse.setMessage("Invalid email or password");
+            return new ResponseEntity<>(authResponse, HttpStatus.UNAUTHORIZED);
+        }
     }
 
     private Authentication authenticate(String username, String password) {
-        UserDetails userDetails = customUserService.loadUserByUsername(username);
-
-        if (userDetails == null) {
-            throw new UsernameNotFoundException("User not found");
+        try {
+            UserDetails userDetails = customUserService.loadUserByUsername(username);
+            if (userDetails == null || !passwordEncoder.matches(password, userDetails.getPassword())) {
+                throw new BadCredentialsException("Invalid email or password");
+            }
+            return new UsernamePasswordAuthenticationToken(
+                    userDetails.getUsername(),
+                    null,
+                    userDetails.getAuthorities()
+            );
+        } catch (UsernameNotFoundException e) {
+            throw new BadCredentialsException("Invalid email or password");
         }
-
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException("Invalid Username or Password");
-        }
-
-        return new UsernamePasswordAuthenticationToken(
-                userDetails.getUsername(),
-                null,
-                userDetails.getAuthorities()
-        );
     }
 
     @PostMapping("/refresh-token")
