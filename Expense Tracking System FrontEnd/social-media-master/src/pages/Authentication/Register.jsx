@@ -28,20 +28,36 @@ const initialValues = {
 };
 
 // Stricter email regex: disallows consecutive dots, leading/trailing dot, invalid chars, numeric IP, short/very long TLDs, underscores or $ in domain, etc.
-const STRICT_EMAIL_REGEX = /^(?!.*\.\.)[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@(?!(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)(?!-)(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,15}$/;
+// Updated: restrict final TLD to 2-9 letters to invalidate extremely long TLDs like 'toolongtld'
+const STRICT_EMAIL_REGEX = /^(?!.*\.{2})[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@(?!(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)(?!-)(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,9}$/;
+// Safe name regex allows letters, spaces, apostrophes, and hyphens; disallows angle brackets and script tags
+const SAFE_NAME_REGEX = /^[A-Za-z][A-Za-z'\- ]*$/;
 
 const validationSchema = Yup.object({
-  firstName: Yup.string().required("First name is required"),
-  lastName: Yup.string().required("Last name is required"),
+  firstName: Yup.string()
+    .transform(v => (v == null ? v : v.trim()))
+    .required("First Name is required")
+    .test('safe-first-name','Invalid characters', v => !v || SAFE_NAME_REGEX.test(v))
+    .max(20, "First Name too long"),
+  lastName: Yup.string()
+    .transform(v => (v == null ? v : v.trim()))
+    .required("Last Name is required")
+    .test('safe-last-name','Invalid characters', v => !v || SAFE_NAME_REGEX.test(v))
+    .max(20, "Last Name too long"),
   email: Yup.string()
+    .transform(v => (v == null ? v : v.trim()))
     .required("Email is required")
     .test("strict-email", "Enter a valid email", (value) => {
       if (!value) return false;
-      return STRICT_EMAIL_REGEX.test(value.trim());
+      return STRICT_EMAIL_REGEX.test(value);
     }),
   password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
+    .transform(v => (v == null ? v : v.trim()))
+    .required("Password is required")
+    .test('min-length','Password too short', (v)=> !v || v.length>=8)
+    .test('has-number','Password must contain a number', (v)=> !v || /\d/.test(v))
+    .test('has-letter','Password must contain a letter', (v)=> !v || /[A-Za-z]/.test(v))
+    .test('has-symbol','Password must contain a symbol', (v)=> !v || /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(v)),
   // gender optional now
 });
 
@@ -71,6 +87,12 @@ const Register = () => {
   };
 
   const handleSubmit = async (values, { setSubmitting }) => {
+    // Normalize & sanitize to prevent XSS or angle bracket injection
+    const sanitize = (s) => s?.replace(/[<>]/g, '').trim();
+    values.firstName = sanitize(values.firstName);
+    values.lastName = sanitize(values.lastName);
+    values.email = values.email?.trim();
+    values.password = values.password?.trim();
     if (gender) {
       values.gender = gender;
     }

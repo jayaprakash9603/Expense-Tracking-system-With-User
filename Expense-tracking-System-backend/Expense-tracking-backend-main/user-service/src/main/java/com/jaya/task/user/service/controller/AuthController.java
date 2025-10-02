@@ -97,7 +97,7 @@ public class AuthController {
         } catch (BadCredentialsException ex) {
             AuthResponse authResponse = new AuthResponse();
             authResponse.setStatus(false);
-            authResponse.setMessage("Invalid email or password");
+            authResponse.setMessage("Invalid Username or Password");
             return new ResponseEntity<>(authResponse, HttpStatus.UNAUTHORIZED);
         }
     }
@@ -106,7 +106,7 @@ public class AuthController {
         try {
             UserDetails userDetails = customUserService.loadUserByUsername(username);
             if (userDetails == null || !passwordEncoder.matches(password, userDetails.getPassword())) {
-                throw new BadCredentialsException("Invalid email or password");
+                throw new BadCredentialsException("Invalid Username or Password");
             }
             return new UsernamePasswordAuthenticationToken(
                     userDetails.getUsername(),
@@ -114,7 +114,7 @@ public class AuthController {
                     userDetails.getAuthorities()
             );
         } catch (UsernameNotFoundException e) {
-            throw new BadCredentialsException("Invalid email or password");
+            throw new BadCredentialsException("Invalid Username or Password");
         }
     }
 

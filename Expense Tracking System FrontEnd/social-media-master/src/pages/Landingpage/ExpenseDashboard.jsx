@@ -17,7 +17,7 @@ import {
   AreaChart,
   ComposedChart,
 } from "recharts";
-import { IconButton, useMediaQuery } from "@mui/material";
+import { IconButton, useMediaQuery, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import "./ExpenseDashboard.css";
 import {
   CreditCard,
@@ -61,12 +61,14 @@ const MetricCardSkeleton = () => (
   </div>
 );
 
-const ChartSkeleton = ({ height = 300, variant = "bar" }) => (
+const ChartSkeleton = ({ height = 300, variant = "bar", noHeader = false }) => (
   <div className="chart-skeleton" style={{ height }}>
-    <div className="skeleton-chart-header">
-      <div className="skeleton-title"></div>
-      <div className="skeleton-actions"></div>
-    </div>
+    {!noHeader && (
+      <div className="skeleton-chart-header">
+        <div className="skeleton-title"></div>
+        <div className="skeleton-actions"></div>
+      </div>
+    )}
     <div className="skeleton-chart-body">
       {variant === "line" ? (
         <div className="skeleton-line-body">
@@ -149,31 +151,60 @@ const ChartSkeleton = ({ height = 300, variant = "bar" }) => (
   </div>
 );
 
-// Enhanced Header Component
-const DashboardHeader = ({ onRefresh, onExport, onFilter }) => (
-  <div className="dashboard-header">
-    <div className="header-left">
-      <div className="header-title">
-        <h1>💰 Financial Dashboard</h1>
-        <p>Real-time insights into your financial health</p>
+// Enhanced Header Component with MUI Menu popover
+const DashboardHeader = ({ onRefresh, onExport, onFilter }) => {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+  const handleAndClose = (cb) => () => { handleClose(); cb && cb(); };
+  return (
+    <div className="dashboard-header">
+      <div className="header-left">
+        <div className="header-title">
+          <h1>💰 Financial Dashboard</h1>
+          <p>Real-time insights into your financial health</p>
+        </div>
+      </div>
+      <div className="header-actions">
+        <IconButton
+          className="action-btn no-lift"
+          aria-label="More actions"
+          aria-controls={open ? 'dashboard-menu' : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? 'true' : undefined}
+          onClick={handleMenuOpen}
+        >
+          <MoreVert />
+        </IconButton>
+        <Menu
+          id="dashboard-menu"
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          MenuListProps={{ 'aria-labelledby': 'dashboard-menu' }}
+          PaperProps={{
+            sx: {
+              backgroundColor: '#1e1e1e',
+              color: '#fff',
+              border: '1px solid #2a2a2a',
+              minWidth: 220,
+            }
+          }}
+        >
+          <MenuItem onClick={handleAndClose(onRefresh)}>
+            <ListItemIcon sx={{ color: '#14b8a6' }}><Refresh fontSize="small" /></ListItemIcon>
+            <ListItemText primary="Refresh" secondary="Reload dashboard data" />
+          </MenuItem>
+          <MenuItem onClick={handleAndClose(onExport)}>
+            <ListItemIcon sx={{ color: '#14b8a6' }}><Download fontSize="small" /></ListItemIcon>
+            <ListItemText primary="Export Reports" secondary="Download Excel summaries" />
+          </MenuItem>
+        </Menu>
       </div>
     </div>
-    <div className="header-actions">
-      <IconButton onClick={onFilter} className="action-btn">
-        <Filter />
-      </IconButton>
-      <IconButton onClick={onRefresh} className="action-btn">
-        <Refresh />
-      </IconButton>
-      <IconButton onClick={onExport} className="action-btn">
-        <Download />
-      </IconButton>
-      <IconButton className="action-btn">
-        <MoreVert />
-      </IconButton>
-    </div>
-  </div>
-);
+  );
+};
 
 // Enhanced Metric Cards
 const MetricCard = ({
@@ -1006,9 +1037,10 @@ const RecentTransactions = ({ transactions }) => (
 
 // Budget Overview
 const BudgetOverview = ({ remainingBudget, totalLosses }) => {
-  const budgetUsed =
-    (Math.abs(remainingBudget) / (totalLosses + Math.abs(remainingBudget))) *
-    100;
+  const absRemain = Math.abs(remainingBudget || 0);
+  const losses = Math.abs(totalLosses || 0);
+  const denominator = losses + absRemain;
+  const budgetUsed = denominator > 0 ? (absRemain / denominator) * 100 : 0;
 
   return (
     <div className="budget-overview">
@@ -1951,19 +1983,24 @@ const ExpenseDashboard = () => {
       <div className="charts-grid">
         <div className="chart-row">
           {dailyLoading ? (
-            <div className="chart-container daily-spending-chart">
-              <div className="chart-header">
-                <h3>📊 Daily Spending Pattern</h3>
-                <div className="chart-controls">
-                  <div className="time-selector skeleton-pill" />
-                  <div className="type-toggle">
-                    <div className="toggle-btn loss skeleton-pill" />
-                    <div className="toggle-btn gain skeleton-pill" />
+            (() => {
+              const dailySkeletonHeight = isMobile ? 220 : isTablet ? 260 : 200;
+              return (
+                <div className="chart-container daily-spending-chart">
+                  <div className="chart-header">
+                    <h3>📊 Daily Spending Pattern</h3>
+                    <div className="chart-controls">
+                      <div className="time-selector skeleton-pill" />
+                      <div className="type-toggle">
+                        <div className="toggle-btn loss skeleton-pill" />
+                        <div className="toggle-btn gain skeleton-pill" />
+                      </div>
+                    </div>
                   </div>
+                  <ChartSkeleton height={dailySkeletonHeight} variant="line" noHeader />
                 </div>
-              </div>
-              <ChartSkeleton height={300} variant="line" />
-            </div>
+              );
+            })()
           ) : (
             <DailySpendingChart
               data={dailySpendingData}
