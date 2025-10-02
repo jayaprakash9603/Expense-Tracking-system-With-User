@@ -17,10 +17,16 @@ import ForgotPassword from "./ForgotPassword";
 
 const initialValues = { email: "", password: "" };
 
+const STRICT_EMAIL_REGEX = /^(?!.*\.\.)[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@(?!(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)(?!-)(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,15}$/;
+
 const validationSchema = Yup.object({
-  email: Yup.string().email("Invalid email").required("Email is required"),
-  password: Yup.string()
-    .required("Password is required"),
+  email: Yup.string()
+    .required("Email is required")
+    .test("strict-email", "Enter a valid email", (value) => {
+      if (!value) return false;
+      return STRICT_EMAIL_REGEX.test(value.trim());
+    }),
+  password: Yup.string().required("Password is required"),
 });
 
 const Login = () => {
@@ -81,7 +87,7 @@ const Login = () => {
             const currentError = getFirstError(errors, touched);
 
             return (
-              <Form className="space-y-4">
+              <Form className="space-y-4" noValidate>
                 {/* Further Reduced Height Error Message Container */}
                 <div className="min-h-[10px] mb-1">
                   {currentError && (
@@ -107,7 +113,7 @@ const Login = () => {
                       <TextField
                         {...field}
                         placeholder="Email"
-                        type="email"
+                        type="text" /* use text to suppress native email tooltip */
                         variant="outlined"
                         fullWidth
                         error={touched.email && !!errors.email}
@@ -118,6 +124,8 @@ const Login = () => {
                         onFocus={() => {
                           if (error) setError("");
                         }}
+                        inputMode="email"
+                        autoComplete="email"
                         InputProps={{
                           style: {
                             backgroundColor: "rgb(56, 56, 56)",

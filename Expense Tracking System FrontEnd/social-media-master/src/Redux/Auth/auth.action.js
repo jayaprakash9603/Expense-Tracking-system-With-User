@@ -89,34 +89,23 @@ export const resetCloudinaryState = () => ({
   type: RESET_CLOUDINARY_STATE,
 });
 
-// Register User Action
+// Register User Action (no auto-login; user must manually sign in)
 export const registerUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
-
   try {
     const { data } = await axios.post(
       `${API_BASE_URL}/auth/signup`,
       loginData.data
     );
     console.log("Register response data:", data);
-    if (data.jwt) {
-      localStorage.setItem("jwt", data.jwt);
-    }
-
-    dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
-
-    // Fetch the user profile after registration
-    dispatch(getProfileAction(data.jwt));
-    updateAuthHeader();
+    // Do NOT store token or mark as logged in; require explicit login afterwards
+    dispatch({ type: LOGIN_SUCCESS, payload: null });
     return { success: true };
   } catch (error) {
     console.log("Register error:", error);
-    dispatch({ type: LOGIN_FAILURE, payload: error });
-
-    return {
-      success: false,
-      message: error.response?.data?.message || error.message,
-    };
+    const message = error.response?.data?.message || error.message;
+    dispatch({ type: LOGIN_FAILURE, payload: message });
+    return { success: false, message };
   }
 };
 

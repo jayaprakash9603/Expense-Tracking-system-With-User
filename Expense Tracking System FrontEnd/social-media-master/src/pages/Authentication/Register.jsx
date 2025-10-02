@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { registerUserAction } from "../../Redux/Auth/auth.action";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
+import ToastNotification from "../Landingpage/ToastNotification";
 import { IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { API_BASE_URL } from "../../config/api";
@@ -26,14 +27,22 @@ const initialValues = {
   gender: "",
 };
 
+// Stricter email regex: disallows consecutive dots, leading/trailing dot, invalid chars, numeric IP, short/very long TLDs, underscores or $ in domain, etc.
+const STRICT_EMAIL_REGEX = /^(?!.*\.\.)[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@(?!(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)(?!-)(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,15}$/;
+
 const validationSchema = Yup.object({
   firstName: Yup.string().required("First name is required"),
   lastName: Yup.string().required("Last name is required"),
-  email: Yup.string().email("Invalid email").required("Email is required"),
+  email: Yup.string()
+    .required("Email is required")
+    .test("strict-email", "Enter a valid email", (value) => {
+      if (!value) return false;
+      return STRICT_EMAIL_REGEX.test(value.trim());
+    }),
   password: Yup.string()
     .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
-  gender: Yup.string().required("Gender is required"),
+  // gender optional now
 });
 
 const Register = () => {
@@ -42,6 +51,7 @@ const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
+  const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
   const checkEmailAvailability = async (email) => {
     try {
@@ -61,50 +71,55 @@ const Register = () => {
   };
 
   const handleSubmit = async (values, { setSubmitting }) => {
-    values.gender = gender;
+    if (gender) {
+      values.gender = gender;
+    }
     const isEmailAvailable = await checkEmailAvailability(values.email);
     if (isEmailAvailable) {
-      dispatch(registerUserAction({ data: values }));
+      const result = await dispatch(registerUserAction({ data: values }));
+      if (result?.success) {
+        setToast({ open: true, message: 'Registration successful. Please login.', severity: 'success' });
+        setTimeout(() => navigate('/login'), 1200);
+      }
     }
     setSubmitting(false);
   };
 
   // Function to get the first error message in priority order
-  const getFirstError = (errors, touched) => {
-    // Priority order: firstName, lastName, email, password, gender, emailError
-    if (touched.firstName && errors.firstName) {
-      return errors.firstName;
+  const getFirstError = (errors, touched, values) => {
+    const requiredFields = [
+      { name: 'firstName', label: errors.firstName },
+      { name: 'lastName', label: errors.lastName },
+      { name: 'email', label: errors.email },
+      { name: 'password', label: errors.password },
+      // gender removed from required list
+    ];
+    const emptyTouchedErrors = requiredFields.filter(f => touched[f.name] && !values[f.name] && errors[f.name]);
+    if (emptyTouchedErrors.length >= 2) {
+      return 'Enter all the mandatory fields';
     }
-    if (touched.lastName && errors.lastName) {
-      return errors.lastName;
-    }
-    if (touched.email && errors.email) {
-      return errors.email;
-    }
-    if (emailError) {
-      return emailError;
-    }
-    if (touched.password && errors.password) {
-      return errors.password;
-    }
-    if (touched.gender && errors.gender) {
-      return errors.gender;
-    }
-
+    // Single field error precedence (same original priority)
+    if (touched.firstName && errors.firstName) return errors.firstName;
+    if (touched.lastName && errors.lastName) return errors.lastName;
+    if (touched.email && errors.email) return errors.email;
+    if (emailError) return emailError;
+    if (touched.password && errors.password) return errors.password;
+  // gender no longer required
     return null;
   };
 
   return (
-    <Formik
+  <>
+  <Formik
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
       initialValues={initialValues}
     >
       {({ values, setFieldValue, errors, touched }) => {
-        const currentError = getFirstError(errors, touched);
+        const currentError = getFirstError(errors, touched, values);
 
         return (
-          <Form className="space-y-4 p-4">
+          <Form className="space-y-4 p-4" noValidate>
             {/* Single Error Message Display */}
             {currentError && (
               <div className="mb-4">
@@ -184,7 +199,7 @@ const Register = () => {
                 as={TextField}
                 name="email"
                 placeholder="Email"
-                type="email"
+                type="text" /* suppress native tooltip */
                 variant="outlined"
                 fullWidth
                 error={
@@ -199,6 +214,8 @@ const Register = () => {
                     borderRadius: "8px",
                   },
                 }}
+                inputMode="email"
+                autoComplete="email"
                 InputLabelProps={{ style: { color: "#d8fffb" } }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -266,31 +283,13 @@ const Register = () => {
               >
                 <FormControlLabel
                   value="female"
-                  control={
-                    <Radio
-                      style={{
-                        color:
-                          touched.gender && errors.gender && !values.gender
-                            ? "#f44336"
-                            : "#14b8a6",
-                      }}
-                    />
-                  }
+                  control={<Radio style={{ color: "#14b8a6" }} />}
                   label="Female"
                   className="text-gray-400"
                 />
                 <FormControlLabel
                   value="male"
-                  control={
-                    <Radio
-                      style={{
-                        color:
-                          touched.gender && errors.gender && !values.gender
-                            ? "#f44336"
-                            : "#14b8a6",
-                      }}
-                    />
-                  }
+                  control={<Radio style={{ color: "#14b8a6" }} />}
                   label="Male"
                   className="text-gray-400"
                 />
@@ -328,6 +327,14 @@ const Register = () => {
         );
       }}
     </Formik>
+    <ToastNotification
+      open={toast.open}
+      message={toast.message}
+      severity={toast.severity}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      onClose={() => setToast({ ...toast, open: false })}
+    />
+    </>
   );
 };
 
