@@ -18,8 +18,8 @@ public class OtpService {
     @Autowired
     private OtpRepository otpRepository;
 
-    @Autowired
-    private EmailService emailService;
+        @Autowired
+        private EmailService emailService;
 
     private static final int OTP_LENGTH = 6;
     private static final int OTP_VALIDITY_MINUTES = 5;

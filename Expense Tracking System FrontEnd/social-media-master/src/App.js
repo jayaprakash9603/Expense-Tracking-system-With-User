@@ -57,6 +57,7 @@ import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
 import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard/AdminDashboard";
 import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
 import Bill from "./pages/Landingpage/Bills/Bill";
+import BudgetDashboard from "./pages/Landingpage/Budget/BudgetDashboard";
 // import Bill from "./pages/Landingpage/Bills/Bill";
 function App() {
   const { auth } = useSelector((store) => store);
@@ -196,7 +197,8 @@ function App() {
               <Route path=":friendId" element={<ExpensesView />} />
             </Route>
             <Route path="budget">
-              <Route index element={<Budget />} />
+              {/* <Route index element={<Budget />} /> */}
+              <Route index element={<BudgetDashboard />} />
               <Route path=":friendId" element={<Budget />} />
               <Route path="create" element={<NewBudget />} />
               <Route path="create/:friendId" element={<NewBudget />} />

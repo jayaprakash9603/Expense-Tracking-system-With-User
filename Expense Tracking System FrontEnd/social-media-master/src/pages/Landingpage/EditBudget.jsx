@@ -33,9 +33,18 @@ const EditBudget = () => {
   const [showTable, setShowTable] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
-  const { expenses, error: expenseError } = useSelector(
-    (state) => state.expenses
-  );
+  const rawExpenses = useSelector((state) => state.expenses.expenses);
+  // Defensive: some responses may return an object keyed by date or null; normalize to flat array
+  const expenses = useMemo(() => {
+    if (Array.isArray(rawExpenses)) return rawExpenses;
+    if (rawExpenses && typeof rawExpenses === "object") {
+      // If shape is { '2025-10-02': [ ... ], '2025-10-03': [ ... ] }
+      const all = Object.values(rawExpenses).filter(Array.isArray).flat();
+      return all;
+    }
+    return [];
+  }, [rawExpenses]);
+  const expenseError = useSelector((state) => state.expenses.error);
   const { budget, error: budgetError } = useSelector((state) => state.budgets);
   const [checkboxStates, setCheckboxStates] = useState([]);
 
