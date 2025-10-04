@@ -31,7 +31,6 @@ import CreateCategory from "./pages/Landingpage/CreateCategory";
 import EditCategory from "./pages/Landingpage/EditCategory";
 import Utilities from "./pages/Landingpage/Utilities";
 import Friends from "./pages/Landingpage/Friends";
-import FriendExpenses from "./pages/Landingpage/FriendsExpenses";
 import ExpensesView from "./pages/Landingpage/ExpensesView";
 
 import PaymentMethodFlow from "./pages/Landingpage/PaymentMethodFlow";
@@ -144,7 +143,8 @@ function App() {
 
             <Route path="friends">
               <Route index element={<Friends />} />
-              <Route path="expenses/:friendId" element={<FriendExpenses />} />
+              {/* Use unified Cashflow component for friend expenses */}
+              <Route path="expenses/:friendId" element={<Cashflow />} />
             </Route>
             <Route path="all" element={<Utilities />} />
 
@@ -193,8 +193,9 @@ function App() {
               <Route path=":friendId" element={<Reports />} />
             </Route>
             <Route path="cashflow">
-              <Route index element={<ExpensesView />} />
-              <Route path=":friendId" element={<ExpensesView />} />
+              {/* Directly render Cashflow for both self and friend contexts */}
+              <Route index element={<Cashflow />} />
+              <Route path=":friendId" element={<Cashflow />} />
             </Route>
             <Route path="budget">
               {/* <Route index element={<Budget />} /> */}

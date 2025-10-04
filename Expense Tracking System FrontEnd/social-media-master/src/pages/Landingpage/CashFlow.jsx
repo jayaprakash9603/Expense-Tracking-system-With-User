@@ -27,7 +27,13 @@ import {
   deleteMultiExpenses,
 } from "../../Redux/Expenses/expense.action";
 import dayjs from "dayjs";
-import { IconButton, Skeleton, useTheme, useMediaQuery } from "@mui/material";
+import {
+  IconButton,
+  Skeleton,
+  useTheme,
+  useMediaQuery,
+  Button,
+} from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import { createPortal } from "react-dom";
@@ -35,7 +41,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import recentPng from "../../assests/recent.png";
 import CalendarViewMonthIcon from "@mui/icons-material/CalendarViewMonth";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import ToastNotification from "./ToastNotification";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -44,6 +50,12 @@ import Modal from "./Modal";
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
 import NoDataPlaceholder from "../../components/NoDataPlaceholder";
+// Friend related imports
+import FriendInfoBar from "./FriendInfoBar";
+import {
+  fetchFriendship,
+  fetchFriendsDetailed,
+} from "../../Redux/Friends/friendsActions";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -208,6 +220,7 @@ const Cashflow = () => {
   const [expenseData, setExpenseData] = useState({});
   const dispatch = useDispatch();
   const { cashflowExpenses, loading } = useSelector((state) => state.expenses);
+  const { friendship, friends } = useSelector((state) => state.friends || {});
   const filterBtnRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -216,6 +229,8 @@ const Cashflow = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const { friendId } = useParams();
+  const isFriendView = Boolean(friendId && friendId !== "undefined");
   // Compact number formatter: 1.2k, 3.4M, 1B
   const formatCompactNumber = (value) => {
     if (value === null || value === undefined || isNaN(value)) return "0";
@@ -282,20 +297,25 @@ const Cashflow = () => {
 
   // Fetch data on range/offset/flow changes; search is client-side only
   useEffect(() => {
-    console.log("Fetching expenses with filters:", {
-      range: activeRange,
-      offset: offset,
-      flowType: flowTab === "all" ? null : flowTab,
-    });
+    // Friend view adds friendId param, category filter still derived from search client-side
     dispatch(
       fetchCashflowExpenses(
         activeRange,
         offset,
         flowTab === "all" ? null : flowTab,
-        null
+        null,
+        isFriendView ? friendId : null
       )
     );
-  }, [activeRange, offset, flowTab, dispatch]);
+  }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView]);
+
+  // Load friendship + friends list if in friend view
+  useEffect(() => {
+    if (isFriendView) {
+      if (friendId) dispatch(fetchFriendship(friendId));
+      dispatch(fetchFriendsDetailed());
+    }
+  }, [dispatch, friendId, isFriendView]);
 
   // Add this to your component to debug the category selection
   useEffect(() => {
@@ -746,8 +766,21 @@ const Cashflow = () => {
       setIsDeleting(true);
       if (Array.isArray(expenseToDelete)) {
         try {
-          await dispatch(deleteMultiExpenses(expenseToDelete));
-          dispatch(fetchCashflowExpenses(activeRange, offset, flowTab));
+          await dispatch(
+            deleteMultiExpenses(
+              expenseToDelete,
+              isFriendView ? friendId : undefined
+            )
+          );
+          dispatch(
+            fetchCashflowExpenses(
+              activeRange,
+              offset,
+              flowTab === "all" ? null : flowTab,
+              null,
+              isFriendView ? friendId : null
+            )
+          );
           setToastMessage("Selected expenses deleted successfully.");
           setToastOpen(true);
         } catch (err) {
@@ -771,7 +804,15 @@ const Cashflow = () => {
           await dispatch(
             bill ? deleteBill(bill.id) : deleteExpenseAction(expenseToDelete)
           );
-          dispatch(fetchCashflowExpenses(activeRange, offset, flowTab));
+          dispatch(
+            fetchCashflowExpenses(
+              activeRange,
+              offset,
+              flowTab === "all" ? null : flowTab,
+              null,
+              isFriendView ? friendId : null
+            )
+          );
           setToastMessage(
             bill ? "Bill deleted successfully" : "Expense deleted successfully."
           );
@@ -1164,9 +1205,49 @@ const Cashflow = () => {
     </ResponsiveContainer>
   );
 
+  // Friend switching helper
+  const handleRouteChange = async (newFriendId) => {
+    navigate(`/friends/expenses/${newFriendId}`);
+  };
+
+  const refreshData = async (newFriendId) => {
+    const targetId = newFriendId || friendId;
+    if (!targetId) return;
+    await Promise.all([
+      dispatch(fetchFriendship(targetId)),
+      dispatch(fetchFriendsDetailed()),
+      dispatch(
+        fetchCashflowExpenses(
+          activeRange,
+          offset,
+          flowTab === "all" ? null : flowTab,
+          null,
+          targetId
+        )
+      ),
+    ]);
+    setSelectedBar(null);
+    setSelectedBars([]);
+    setSelectedCardIdx([]);
+  };
+
   return (
     <>
-      <div className={isMobile ? "h-[34px]" : "h-[50px]"}></div>
+      {/* Friend info bar if in friend view */}
+      {isFriendView && (
+        <FriendInfoBar
+          friendship={friendship}
+          friendId={friendId}
+          friends={friends || []}
+          loading={loading}
+          onRouteChange={handleRouteChange}
+          refreshData={refreshData}
+          showInfoBar={true}
+        />
+      )}
+      {!isFriendView && (
+        <div className={isMobile ? "h-[34px]" : "h-[50px]"}></div>
+      )}
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{
@@ -1628,6 +1709,46 @@ const Cashflow = () => {
         )}
 
         <div className="flex gap-4 mb-4">
+          {isFriendView && (
+            <Button
+              variant="contained"
+              onClick={() =>
+                friendId && friendId !== "undefined"
+                  ? navigate(`/friends`)
+                  : navigate("/expenses")
+              }
+              sx={{
+                backgroundColor: "#1b1b1b",
+                borderRadius: "8px",
+                color: "#00DAC6",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                px: 1.5,
+                py: 0.75,
+                textTransform: "none",
+                fontSize: "0.8rem",
+                "&:hover": { backgroundColor: "#28282a" },
+              }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 18L9 12L15 6"
+                  stroke="#00DAC6"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Back
+            </Button>
+          )}
           {rangeTypes.map((tab) => (
             <button
               key={tab.value}
@@ -1738,6 +1859,7 @@ const Cashflow = () => {
           >
             {[
               {
+                // Use base path; friendId appended later to avoid duplicate /id/id
                 path: "/category-flow",
                 icon: "category.png",
                 label: "Categories",
@@ -1765,7 +1887,10 @@ const Cashflow = () => {
             ].map(({ path, icon, label }) => (
               <button
                 key={path}
-                onClick={() => navigate(path)}
+                onClick={() => {
+                  const target = isFriendView ? `${path}/${friendId}` : path;
+                  navigate(target);
+                }}
                 className="nav-button"
                 style={{
                   display: "flex",
@@ -1857,22 +1982,28 @@ const Cashflow = () => {
                   {[
                     {
                       label: "Add Expense",
-                      route: "/expenses/create",
+                      route: isFriendView
+                        ? `/expenses/create/${friendId}`
+                        : "/expenses/create",
                       color: "#00DAC6",
                     },
                     {
                       label: "Upload File",
-                      route: "/upload",
+                      route: isFriendView ? `/upload/${friendId}` : "/upload",
                       color: "#5b7fff",
                     },
                     {
                       label: "Add Budget",
-                      route: "/budget/create",
+                      route: isFriendView
+                        ? `/budget/create/${friendId}`
+                        : "/budget/create",
                       color: "#FFC107",
                     },
                     {
                       label: "Add Category",
-                      route: "/category-flow/create",
+                      route: isFriendView
+                        ? `/categories/create/${friendId}`
+                        : "/category-flow/create",
                       color: "#ff6b6b",
                     },
                   ].map((item, idx) => (
@@ -2347,16 +2478,25 @@ const Cashflow = () => {
                               date: dayjs().format("YYYY-MM-DD"),
                             })
                           );
-
                           const expensedata = await dispatch(
                             getExpenseAction(row.id)
                           );
                           const bill = expensedata.bill
                             ? await dispatch(getBillByExpenseId(row.id))
                             : false;
-                          expensedata.bill
-                            ? navigate(`/bill/edit/${bill.id}`)
-                            : navigate(`/expenses/edit/${row.id}`);
+                          if (expensedata.bill) {
+                            navigate(
+                              isFriendView
+                                ? `/bill/edit/${bill.id}/friend/${friendId}`
+                                : `/bill/edit/${bill.id}`
+                            );
+                          } else {
+                            navigate(
+                              isFriendView
+                                ? `/expenses/edit/${row.id}/friend/${friendId}`
+                                : `/expenses/edit/${row.id}`
+                            );
+                          }
                         }}
                         aria-label="Edit Expense"
                       >
