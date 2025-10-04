@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Popover,
   FormGroup,
@@ -8,7 +8,6 @@ import {
   Divider,
   Box,
   Button,
-  Chip,
 } from "@mui/material";
 
 /*
@@ -19,9 +18,9 @@ import {
     onClose: () => void
     title: string
     options: Array<{ value: string, label: string }>
-    selected: string[]
-    onChange: (newSelected: string[]) => void
-    onClear?: () => void
+  selected: string[] (committed / external)
+  onApply: (newSelected: string[]) => void
+  onClear?: () => void
 */
 const FilterPopover = ({
   anchorEl,
@@ -30,22 +29,30 @@ const FilterPopover = ({
   title = "Filters",
   options = [],
   selected = [],
-  onChange,
+  onApply,
   onClear,
 }) => {
+  const [working, setWorking] = useState(selected);
+
+  // Sync when popover opens with committed selection
+  useEffect(() => {
+    if (open) setWorking(selected);
+  }, [open, selected]);
+
   const handleToggle = (value) => {
-    let next;
-    if (selected.includes(value)) {
-      next = selected.filter((v) => v !== value);
-    } else {
-      next = [...selected, value];
-    }
-    onChange(next);
+    setWorking((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
   };
 
   const handleClear = () => {
-    onChange([]);
+    setWorking([]);
     onClear && onClear();
+  };
+
+  const handleDone = () => {
+    onApply && onApply(working);
+    onClose();
   };
 
   return (
@@ -78,7 +85,7 @@ const FilterPopover = ({
           }}
         >
           {title}
-          {selected.length > 0 && (
+          {working.length > 0 && (
             <span
               style={{
                 background: "#14b8a6",
@@ -90,7 +97,7 @@ const FilterPopover = ({
                 lineHeight: 1,
               }}
             >
-              {selected.length}
+              {working.length}
             </span>
           )}
         </Typography>
@@ -105,7 +112,7 @@ const FilterPopover = ({
               control={
                 <Checkbox
                   size="small"
-                  checked={selected.includes(opt.value)}
+                  checked={working.includes(opt.value)}
                   onChange={() => handleToggle(opt.value)}
                   sx={{ color: "#888", "&.Mui-checked": { color: "#14b8a6" } }}
                 />
@@ -125,18 +132,29 @@ const FilterPopover = ({
             variant="outlined"
             size="small"
             onClick={handleClear}
-            disabled={selected.length === 0}
+            disabled={working.length === 0 && selected.length === 0}
             sx={{
-              borderColor: selected.length === 0 ? "#333" : "#e6a935",
-              color: selected.length === 0 ? "#555" : "#e6a935",
+              borderColor:
+                working.length === 0 && selected.length === 0
+                  ? "#333"
+                  : "#e6a935",
+              color:
+                working.length === 0 && selected.length === 0
+                  ? "#555"
+                  : "#e6a935",
               backgroundColor:
-                selected.length === 0 ? "transparent" : "rgba(230,169,53,0.08)",
+                working.length === 0 && selected.length === 0
+                  ? "transparent"
+                  : "rgba(230,169,53,0.08)",
               fontWeight: 600,
               letterSpacing: 0.3,
               "&:hover": {
-                borderColor: selected.length === 0 ? "#444" : "#f0b949",
+                borderColor:
+                  working.length === 0 && selected.length === 0
+                    ? "#444"
+                    : "#f0b949",
                 backgroundColor:
-                  selected.length === 0
+                  working.length === 0 && selected.length === 0
                     ? "rgba(255,255,255,0.04)"
                     : "rgba(230,169,53,0.15)",
               },
@@ -148,7 +166,7 @@ const FilterPopover = ({
           <Button
             variant="contained"
             size="small"
-            onClick={onClose}
+            onClick={handleDone}
             sx={{
               backgroundColor: "#14b8a6",
               "&:hover": { backgroundColor: "#0f8b7d" },

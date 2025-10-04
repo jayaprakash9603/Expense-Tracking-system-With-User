@@ -171,6 +171,37 @@ const Friends = () => {
   const [friendFilters, setFriendFilters] = useState([]);
   const [sharedFilters, setSharedFilters] = useState([]);
 
+  // Persist filters across navigation (localStorage)
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem("friends_filter_state") || "{}"
+      );
+      if (saved.suggestionFilters)
+        setSuggestionFilters(saved.suggestionFilters);
+      if (saved.requestFilters) setRequestFilters(saved.requestFilters);
+      if (saved.friendFilters) setFriendFilters(saved.friendFilters);
+      if (saved.sharedFilters) setSharedFilters(saved.sharedFilters);
+    } catch (e) {
+      /* ignore */
+    }
+  }, []);
+
+  const persistFilters = (next = {}) => {
+    try {
+      const current = {
+        suggestionFilters,
+        requestFilters,
+        friendFilters,
+        sharedFilters,
+        ...next,
+      };
+      localStorage.setItem("friends_filter_state", JSON.stringify(current));
+    } catch (e) {
+      /* ignore */
+    }
+  };
+
   const filterOptionSets = {
     suggestions: [
       { value: "hasAccess", label: "Has Any Access" },
@@ -220,19 +251,23 @@ const Friends = () => {
         return [];
     }
   };
-  const setSelectedFilters = (vals) => {
+  const applySelectedFilters = (vals) => {
     switch (activeFilterContext) {
       case "suggestions":
         setSuggestionFilters(vals);
+        persistFilters({ suggestionFilters: vals });
         break;
       case "requests":
         setRequestFilters(vals);
+        persistFilters({ requestFilters: vals });
         break;
       case "friends":
         setFriendFilters(vals);
+        persistFilters({ friendFilters: vals });
         break;
       case "shared":
         setSharedFilters(vals);
+        persistFilters({ sharedFilters: vals });
         break;
       default:
         break;
@@ -2021,7 +2056,7 @@ const Friends = () => {
             activeFilterContext ? filterOptionSets[activeFilterContext] : []
           }
           selected={getSelectedFilters()}
-          onChange={setSelectedFilters}
+          onApply={applySelectedFilters}
         />
       </div>
     </>
