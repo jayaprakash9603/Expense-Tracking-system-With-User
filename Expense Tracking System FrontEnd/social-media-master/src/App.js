@@ -194,8 +194,8 @@ function App() {
             </Route>
             <Route path="cashflow">
               {/* Directly render Cashflow for both self and friend contexts */}
-              <Route index element={<Cashflow />} />
-              <Route path=":friendId" element={<Cashflow />} />
+              <Route index element={<ExpensesView />} />
+              <Route path=":friendId" element={<ExpensesView />} />
             </Route>
             <Route path="budget">
               {/* <Route index element={<Budget />} /> */}

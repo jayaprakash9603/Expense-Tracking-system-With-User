@@ -50,6 +50,9 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import recentPng from "../../assests/recent.png";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+// Friend related imports (aligned with CashFlow & CategoryFlow)
+import FriendInfoBar from "./FriendInfoBar";
+import { fetchFriendship, fetchFriendsDetailed } from "../../Redux/Friends/friendsActions";
 import ToastNotification from "./ToastNotification";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -293,16 +296,35 @@ const PaymentMethodFlow = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const { friendId } = useParams();
+  const isFriendView = Boolean(friendId && friendId !== "undefined");
+  // friend data from store
+  const { friendship, friends, loading: friendsLoading } = useSelector(
+    (state) => state.friends || {}
+  );
+  const [showFriendInfo, setShowFriendInfo] = useState(true);
   // Match CashFlow/CategoryFlow chart container heights: mobile 120, tablet 160, desktop 220
   const chartContainerHeight = isMobile ? 120 : isTablet ? 160 : 220;
   const pieSkeletonSize = isMobile ? 110 : isTablet ? 140 : 160;
 
-  // Fetch data from API with correct flowType
+  // Fetch data from API with correct flowType (include friendId when in friend view)
   useEffect(() => {
     dispatch(
-      fetchPaymentMethodsWithExpenses(activeRange, offset, flowTab, friendId)
+      fetchPaymentMethodsWithExpenses(
+        activeRange,
+        offset,
+        flowTab,
+        isFriendView ? friendId : null
+      )
     );
-  }, [activeRange, offset, flowTab, dispatch, friendId]);
+  }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView]);
+
+  // Load friendship + friends list if in friend view
+  useEffect(() => {
+    if (isFriendView) {
+      if (friendId) dispatch(fetchFriendship(friendId));
+      dispatch(fetchFriendsDetailed());
+    }
+  }, [dispatch, friendId, isFriendView]);
 
   useEffect(() => {
     setOffset(0);
@@ -376,6 +398,29 @@ const PaymentMethodFlow = () => {
   };
 
   const rangeLabel = getRangeLabel(activeRange, offset, flowTab);
+
+  // Route change handler for FriendInfoBar (switching friends)
+  const handleRouteChange = async (newFriendId) => {
+    if (!newFriendId) return;
+    // Navigate to the same payment-method base with new friend id
+    navigate(`/payment-method/${newFriendId}`);
+    // After navigation, refresh data
+    await refreshData(newFriendId);
+  };
+
+  // Refresh function used by FriendInfoBar
+  const refreshData = async (newFriendId) => {
+    const id = newFriendId || friendId;
+    if (!id) return;
+    dispatch(
+      fetchPaymentMethodsWithExpenses(
+        activeRange,
+        offset,
+        flowTab,
+        id
+      )
+    );
+  };
 
   function getRandomColor(str) {
     // Predefined colors that work well with dark theme
@@ -1145,7 +1190,20 @@ const PaymentMethodFlow = () => {
 
   return (
     <>
-      <div className="h-[50px]"></div>
+      {isFriendView ? (
+        <FriendInfoBar
+          friendship={friendship}
+          friendId={friendId}
+          friends={friends || []}
+          loading={friendsLoading}
+          onRouteChange={handleRouteChange}
+          refreshData={refreshData}
+          showInfoBar={showFriendInfo}
+        />
+      ) : (
+        <div className="h-[50px]"></div>
+      )}
+     
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{
