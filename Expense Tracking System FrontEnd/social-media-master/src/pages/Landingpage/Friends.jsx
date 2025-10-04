@@ -616,23 +616,25 @@ const Friends = () => {
 
   // Get access level icon
   const getAccessLevelIcon = (level) => {
-    const iconColor = "#14b8a6";
+    const palette = {
+      NONE: "#555555", // muted gray
+      READ: "#14b8a6", // teal
+      WRITE: "#e6a935", // amber
+      FULL: "#e35353", // strong red
+    };
+    const color = palette[level] || palette.NONE;
 
     switch (level) {
       case "NONE":
-        return (
-          <VisibilityOffIcon fontSize="small" style={{ color: iconColor }} />
-        );
+        return <VisibilityOffIcon fontSize="small" style={{ color }} />;
       case "READ":
-        return <VisibilityIcon fontSize="small" style={{ color: iconColor }} />;
+        return <VisibilityIcon fontSize="small" style={{ color }} />;
       case "WRITE":
-        return <EditIcon fontSize="small" style={{ color: iconColor }} />;
+        return <EditIcon fontSize="small" style={{ color }} />;
       case "FULL":
-        return <LockIcon fontSize="small" style={{ color: iconColor }} />;
+        return <LockIcon fontSize="small" style={{ color }} />;
       default:
-        return (
-          <VisibilityOffIcon fontSize="small" style={{ color: iconColor }} />
-        );
+        return <VisibilityOffIcon fontSize="small" style={{ color }} />;
     }
   };
 
