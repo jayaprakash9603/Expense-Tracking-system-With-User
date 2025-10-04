@@ -54,6 +54,14 @@ import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
 import FriendsEmptyState from "../../components/FriendsEmptyState";
 // Removed direct NoDataPlaceholder import; using FriendsEmptyState everywhere for consistency
 import SharingCard from "../../components/SharingCard";
+import FilterPopover from "../../components/FilterPopover";
+import {
+  filterSuggestions,
+  filterRequests,
+  filterFriends as utilFilterFriends,
+  buildSharedCombined,
+  filterSharedBySelectedFilters,
+} from "../../utils/friendFilters";
 
 // Define theme color for icons
 const themeColor = "#14b8a6";
@@ -81,6 +89,22 @@ const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #14b8a6;
   }
+
+  /* Horizontal chip scroll (single-line) */
+  .chip-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    -ms-overflow-style: none; /* IE */
+    scrollbar-width: none; /* Firefox */
+  }
+  .chip-scroll::-webkit-scrollbar { height: 6px; }
+  .chip-scroll::-webkit-scrollbar-track { background: transparent; }
+  .chip-scroll::-webkit-scrollbar-thumb { background: #2f2f2f; border-radius: 8px; }
+  .chip-scroll::-webkit-scrollbar-thumb:hover { background: #3d3d3d; }
 `;
 
 const Friends = () => {
@@ -137,6 +161,83 @@ const Friends = () => {
   const [sharingSort, setSharingSort] = useState("name"); // 'name' | 'level'
   const [sharingFilter, setSharingFilter] = useState("all"); // 'all' | 'incoming' | 'outgoing'
   const [sharingSearchTerm, setSharingSearchTerm] = useState(""); // search within shared tab
+  // Filter popover state
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  const [activeFilterContext, setActiveFilterContext] = useState(null); // 'suggestions' | 'requests' | 'friends' | 'shared'
+
+  // Selected filter values per tab
+  const [suggestionFilters, setSuggestionFilters] = useState([]);
+  const [requestFilters, setRequestFilters] = useState([]);
+  const [friendFilters, setFriendFilters] = useState([]);
+  const [sharedFilters, setSharedFilters] = useState([]);
+
+  const filterOptionSets = {
+    suggestions: [
+      { value: "hasAccess", label: "Has Any Access" },
+      { value: "noAccess", label: "No Access" },
+      { value: "firstNameA", label: "First Name A-M" },
+      { value: "firstNameN", label: "First Name N-Z" },
+    ],
+    requests: [
+      { value: "incoming", label: "Incoming" },
+      { value: "recent", label: "Recent (<7d)" },
+    ],
+    friends: [
+      { value: "withAccess", label: "Access Granted" },
+      { value: "mutualFull", label: "Full Both Ways" },
+      { value: "noAccess", label: "No Access" },
+    ],
+    shared: [
+      { value: "incoming", label: "Incoming Only" },
+      { value: "outgoing", label: "Outgoing Only" },
+      { value: "read", label: "Read" },
+      { value: "write", label: "Write" },
+      { value: "full", label: "Full" },
+      { value: "none", label: "None" },
+    ],
+  };
+
+  const openFilter = (event, ctx) => {
+    setActiveFilterContext(ctx);
+    setFilterAnchor(event.currentTarget);
+  };
+  const closeFilter = () => {
+    setFilterAnchor(null);
+    setActiveFilterContext(null);
+  };
+
+  const getSelectedFilters = () => {
+    switch (activeFilterContext) {
+      case "suggestions":
+        return suggestionFilters;
+      case "requests":
+        return requestFilters;
+      case "friends":
+        return friendFilters;
+      case "shared":
+        return sharedFilters;
+      default:
+        return [];
+    }
+  };
+  const setSelectedFilters = (vals) => {
+    switch (activeFilterContext) {
+      case "suggestions":
+        setSuggestionFilters(vals);
+        break;
+      case "requests":
+        setRequestFilters(vals);
+        break;
+      case "friends":
+        setFriendFilters(vals);
+        break;
+      case "shared":
+        setSharedFilters(vals);
+        break;
+      default:
+        break;
+    }
+  };
 
   // New state for access level menu
   const [accessMenuAnchorEl, setAccessMenuAnchorEl] = useState(null);
@@ -512,48 +613,20 @@ const Friends = () => {
       : friendship.requesterAccess;
   };
 
-  // Filter suggestions based on search term
-  const filteredSuggestions = suggestions.filter(
-    (friend) =>
-      friend.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      friend.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      friend.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Filter friends based on search term
-  const filteredFriends = friends
-    .map((friendship) => {
-      const otherUser = friendship?.recipient; // Ensure recipient exists
-      if (otherUser) {
-        otherUser.friendship = friendship; // Only set friendship if recipient exists
-      }
-      return otherUser;
-    })
-    .filter(
-      (friend) =>
-        friend &&
-        (friend.firstName
-          ?.toLowerCase()
-          .includes(friendSearchTerm.toLowerCase()) ||
-          friend.lastName
-            ?.toLowerCase()
-            .includes(friendSearchTerm.toLowerCase()) ||
-          friend.email?.toLowerCase().includes(friendSearchTerm.toLowerCase()))
-    );
-
-  // Filter friend requests based on search term
-  const filteredRequests = friendRequests.filter(
-    (request) =>
-      request.requester.firstName
-        ?.toLowerCase()
-        .includes(requestSearchTerm.toLowerCase()) ||
-      request.requester.lastName
-        ?.toLowerCase()
-        .includes(requestSearchTerm.toLowerCase()) ||
-      request.requester.email
-        ?.toLowerCase()
-        .includes(requestSearchTerm.toLowerCase())
-  );
+  // Filtered datasets via utility functions (DRY)
+  const filteredSuggestions = filterSuggestions(suggestions, {
+    term: searchTerm,
+    filters: suggestionFilters,
+  });
+  const filteredRequests = filterRequests(friendRequests, {
+    term: requestSearchTerm,
+    filters: requestFilters,
+  });
+  const filteredFriends = utilFilterFriends(friends, {
+    term: friendSearchTerm,
+    filters: friendFilters,
+    userId: user?.id,
+  });
 
   // Generate initials from name
   const getInitials = (firstName, lastName) => {
@@ -768,16 +841,41 @@ const Friends = () => {
                   />
                   <Button
                     size="small"
-                    onClick={() => setSuggestionsFilterOn((p) => !p)}
+                    onClick={(e) => openFilter(e, "suggestions")}
                     sx={{
-                      color: suggestionsFilterOn ? "#14b8a6" : "#14b8a6",
+                      color: suggestionFilters.length ? "#14b8a6" : "#14b8a6",
                       minWidth: 0,
+                      position: "relative",
                     }}
-                    title={suggestionsFilterOn ? "Filter active" : "Filter"}
+                    title={
+                      suggestionFilters.length
+                        ? `${suggestionFilters.length} filters selected`
+                        : "Filter"
+                    }
                   >
                     <FilterAltIcon sx={{ fontSize: 35 }} />
+                    {suggestionFilters.length > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          transform: "translate(40%, -40%)",
+                          background: "#14b8a6",
+                          color: "#0b0b0b",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          lineHeight: 1,
+                          padding: "2px 5px",
+                        }}
+                      >
+                        {suggestionFilters.length}
+                      </span>
+                    )}
                   </Button>
                 </div>
+                {/* Chips removed per request */}
 
                 {/* Loading State */}
                 {loading && (
@@ -882,16 +980,41 @@ const Friends = () => {
                   />
                   <Button
                     size="small"
-                    onClick={() => setRequestsFilterOn((p) => !p)}
+                    onClick={(e) => openFilter(e, "requests")}
                     sx={{
-                      color: requestsFilterOn ? "#14b8a6" : "#14b8a6",
+                      color: requestFilters.length ? "#14b8a6" : "#14b8a6",
                       minWidth: 0,
+                      position: "relative",
                     }}
-                    title={requestsFilterOn ? "Filter active" : "Filter"}
+                    title={
+                      requestFilters.length
+                        ? `${requestFilters.length} filters selected`
+                        : "Filter"
+                    }
                   >
                     <FilterAltIcon sx={{ fontSize: 35 }} />
+                    {requestFilters.length > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          transform: "translate(40%, -40%)",
+                          background: "#14b8a6",
+                          color: "#0b0b0b",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          lineHeight: 1,
+                          padding: "2px 5px",
+                        }}
+                      >
+                        {requestFilters.length}
+                      </span>
+                    )}
                   </Button>
                 </div>
+                {/* Chips removed per request */}
 
                 {/* Loading State */}
                 {loadingRequests && (
@@ -1009,16 +1132,41 @@ const Friends = () => {
                   />
                   <Button
                     size="small"
-                    onClick={() => setFriendsFilterOn((p) => !p)}
+                    onClick={(e) => openFilter(e, "friends")}
                     sx={{
-                      color: friendsFilterOn ? "#14b8a6" : "#14b8a6",
+                      color: friendFilters.length ? "#14b8a6" : "#14b8a6",
                       minWidth: 0,
+                      position: "relative",
                     }}
-                    title={friendsFilterOn ? "Filter active" : "Filter"}
+                    title={
+                      friendFilters.length
+                        ? `${friendFilters.length} filters selected`
+                        : "Filter"
+                    }
                   >
                     <FilterAltIcon sx={{ fontSize: 35 }} />
+                    {friendFilters.length > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          transform: "translate(40%, -40%)",
+                          background: "#14b8a6",
+                          color: "#0b0b0b",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          lineHeight: 1,
+                          padding: "2px 5px",
+                        }}
+                      >
+                        {friendFilters.length}
+                      </span>
+                    )}
                   </Button>
                 </div>
+                {/* Chips removed per request */}
 
                 {/* Loading State */}
                 {/* {loadingFriends && (
@@ -1138,56 +1286,64 @@ const Friends = () => {
                   />
                   <Button
                     size="small"
-                    onClick={() =>
-                      setSharingFilter((prev) =>
-                        prev === "all"
-                          ? "incoming"
-                          : prev === "incoming"
-                          ? "outgoing"
-                          : "all"
-                      )
+                    onClick={(e) => openFilter(e, "shared")}
+                    sx={{
+                      color: sharedFilters.length ? "#14b8a6" : "#14b8a6",
+                      minWidth: 0,
+                      position: "relative",
+                    }}
+                    title={
+                      sharedFilters.length
+                        ? `${sharedFilters.length} filters selected`
+                        : "Filter"
                     }
-                    sx={{ color: "#14b8a6", minWidth: 0 }}
-                    title={`Filter: ${sharingFilter}`}
                   >
                     <FilterAltIcon sx={{ fontSize: 35 }} />
+                    {sharedFilters.length > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          transform: "translate(40%, -40%)",
+                          background: "#14b8a6",
+                          color: "#0b0b0b",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          lineHeight: 1,
+                          padding: "2px 5px",
+                        }}
+                      >
+                        {sharedFilters.length}
+                      </span>
+                    )}
                   </Button>
                 </div>
+                {/* Chips removed per request */}
 
                 {(() => {
-                  // Prepare unified data structures with search filtering
-                  const searchLower = sharingSearchTerm.toLowerCase();
-                  const matchesSearch = (u) =>
-                    !searchLower ||
-                    (u.name && u.name.toLowerCase().includes(searchLower)) ||
-                    (u.email && u.email.toLowerCase().includes(searchLower));
-                  const incoming = sharedWithMe
-                    .filter(matchesSearch)
-                    .map((u) => ({ ...u, _direction: "incoming" }));
-                  const outgoing = iSharedWith
-                    .filter(matchesSearch)
-                    .map((u) => ({ ...u, _direction: "outgoing" }));
+                  const { combined, incoming, outgoing } = buildSharedCombined({
+                    incoming: sharedWithMe,
+                    outgoing: iSharedWith,
+                    viewMode: sharingViewMode,
+                    filter: sharingFilter,
+                    sort: sharingSort,
+                    term: sharingSearchTerm,
+                  });
 
-                  // Apply filter
-                  let combined = [];
-                  if (sharingViewMode === "combined") {
-                    combined = [...incoming, ...outgoing];
-                    if (sharingFilter !== "all") {
-                      combined = combined.filter(
-                        (c) => c._direction === sharingFilter
-                      );
-                    }
-                    // Sort
-                    combined.sort((a, b) => {
-                      if (sharingSort === "name") {
-                        return (a.name || "").localeCompare(b.name || "");
-                      } else {
-                        return (a.accessLevel || "NONE").localeCompare(
-                          b.accessLevel || "NONE"
-                        );
-                      }
-                    });
-                  }
+                  const applySelectedSharedFilters = (arr) =>
+                    filterSharedBySelectedFilters(arr, sharedFilters);
+
+                  const finalCombined = combined
+                    ? applySelectedSharedFilters(combined)
+                    : null;
+                  const finalIncoming = incoming
+                    ? applySelectedSharedFilters(incoming)
+                    : [];
+                  const finalOutgoing = outgoing
+                    ? applySelectedSharedFilters(outgoing)
+                    : [];
 
                   const renderCard = (item) => (
                     <SharingCard
@@ -1218,7 +1374,7 @@ const Friends = () => {
                   if (sharingViewMode === "combined") {
                     if (
                       (loadingSharedWithMe || loadingISharedWith) &&
-                      combined.length === 0
+                      (finalCombined?.length || 0) === 0
                     ) {
                       return (
                         <div className="flex justify-center py-10">
@@ -1229,7 +1385,7 @@ const Friends = () => {
                         </div>
                       );
                     }
-                    if (combined.length === 0) {
+                    if (!finalCombined || finalCombined.length === 0) {
                       return (
                         <div
                           className="custom-scrollbar overflow-y-auto pr-1"
@@ -1247,7 +1403,7 @@ const Friends = () => {
                         className={`${"grid gap-4"} custom-scrollbar overflow-y-auto pr-1`}
                         style={{ maxHeight: "calc(100vh - 340px)" }}
                       >
-                        {combined.map(renderCard)}
+                        {finalCombined.map(renderCard)}
                       </div>
                     );
                   }
@@ -1291,7 +1447,7 @@ const Friends = () => {
                             className={`${"grid gap-4"} custom-scrollbar overflow-y-auto pr-1`}
                             style={{ maxHeight: "260px" }}
                           >
-                            {incoming.map(renderCard)}
+                            {finalIncoming.map(renderCard)}
                           </div>
                         )}
                       </div>
@@ -1331,7 +1487,7 @@ const Friends = () => {
                             className={`${"grid gap-4"} custom-scrollbar overflow-y-auto pr-1`}
                             style={{ maxHeight: "260px" }}
                           >
-                            {outgoing.map(renderCard)}
+                            {finalOutgoing.map(renderCard)}
                           </div>
                         )}
                       </div>
@@ -1846,6 +2002,27 @@ const Friends = () => {
             {snackbar.message}
           </Alert>
         </Snackbar>
+        <FilterPopover
+          anchorEl={filterAnchor}
+          open={Boolean(filterAnchor)}
+          onClose={closeFilter}
+          title={
+            activeFilterContext === "suggestions"
+              ? "Suggestion Filters"
+              : activeFilterContext === "requests"
+              ? "Request Filters"
+              : activeFilterContext === "friends"
+              ? "Friend Filters"
+              : activeFilterContext === "shared"
+              ? "Shared Filters"
+              : "Filters"
+          }
+          options={
+            activeFilterContext ? filterOptionSets[activeFilterContext] : []
+          }
+          selected={getSelectedFilters()}
+          onChange={setSelectedFilters}
+        />
       </div>
     </>
   );
