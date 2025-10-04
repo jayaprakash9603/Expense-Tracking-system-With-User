@@ -179,7 +179,14 @@ const RecentExpenses = () => {
                   cursor: "pointer",
                   transition: "all 0.3s ease",
                   height: hoveredId === id ? "60px" : "50px",
-                  backgroundColor: hoveredId === id ? "#29282b" : "transparent",
+                  backgroundColor:
+                    hoveredId === id
+                      ? "#29282b"
+                      : expense?.type === "loss"
+                      ? "rgba(255,0,0,0.08)"
+                      : expense?.type === "gain"
+                      ? "rgba(0,255,0,0.08)"
+                      : "transparent",
                   boxSizing: "border-box",
                   alignItems: "center",
                 }}

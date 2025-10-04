@@ -1009,7 +1009,19 @@ const RecentTransactions = ({ transactions }) => (
     <div className="transactions-list">
       {(Array.isArray(transactions) ? transactions.slice(0, 10) : []).map(
         (transaction, index) => (
-          <div key={transaction.id} className="transaction-item">
+          <div
+            key={transaction.id}
+            className="transaction-item"
+            style={{
+              backgroundColor:
+                transaction.expense.type === "loss"
+                  ? "rgba(255,0,0,0.08)"
+                  : transaction.expense.type === "gain"
+                  ? "rgba(0,255,0,0.08)"
+                  : "transparent",
+              transition: "background-color 0.3s ease",
+            }}
+          >
             <div className="transaction-icon">
               {transaction.expense.type === "loss" ? "💸" : "💰"}
             </div>
