@@ -67,12 +67,12 @@ const scrollbarStyles = `
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #3eb489;
+    background: #14b8a6;
     border-radius: 10px;
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #2d8a67;
+    background: #14b8a6;
   }
 `;
 
@@ -549,7 +549,7 @@ const Friends = () => {
   const getAvatarColor = (id) => {
     const colors = [
       "#8a56e2",
-      "#3eb489",
+      "#14b8a6",
       "#e6a935",
       "#e35353",
       "#5c6bc0",
@@ -662,10 +662,10 @@ const Friends = () => {
                 title="Refresh sharing data"
                 sx={{
                   minWidth: "auto",
-                  color: "#3eb489",
+                  color: "#14b8a6",
                   padding: "4px",
                   "&:hover": {
-                    backgroundColor: "rgba(62, 180, 137, 0.1)",
+                    backgroundColor: "rgba(20, 184, 166, 0.1)",
                   },
                 }}
               >
@@ -683,12 +683,12 @@ const Friends = () => {
                 scrollButtons="auto"
                 sx={{
                   "& .MuiTabs-indicator": {
-                    backgroundColor: "#3eb489",
+                    backgroundColor: "#14b8a6",
                   },
                   "& .MuiTab-root": {
                     color: "white",
                     "&.Mui-selected": {
-                      color: "#3eb489",
+                      color: "#14b8a6",
                     },
                   },
                 }}
@@ -760,7 +760,7 @@ const Friends = () => {
                 {/* Loading State */}
                 {loading && (
                   <div className="flex justify-center my-4">
-                    <CircularProgress size={40} sx={{ color: "#3eb489" }} />
+                    <CircularProgress size={40} sx={{ color: "#14b8a6" }} />
                   </div>
                 )}
 
@@ -788,7 +788,7 @@ const Friends = () => {
                         key={friend.id}
                         className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
                           selectedFriend?.id === friend.id
-                            ? "border-2 border-green-500"
+                            ? "border-2 border-[#14b8a6]"
                             : ""
                         }`}
                         onClick={() => handleFriendSelect(friend)}
@@ -872,7 +872,7 @@ const Friends = () => {
                 {/* Loading State */}
                 {loadingRequests && (
                   <div className="flex justify-center my-4">
-                    <CircularProgress size={40} sx={{ color: "#3eb489" }} />
+                    <CircularProgress size={40} sx={{ color: "#14b8a6" }} />
                   </div>
                 )}
 
@@ -997,7 +997,7 @@ const Friends = () => {
                 {/* Loading State */}
                 {/* {loadingFriends && (
                   <div className="flex justify-center my-4">
-                    <CircularProgress size={40} sx={{ color: "#3eb489" }} />
+                    <CircularProgress size={40} sx={{ color: "#14b8a6" }} />
                   </div>
                 )} */}
 
@@ -1025,7 +1025,7 @@ const Friends = () => {
                         key={friend.id}
                         className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
                           selectedFriend?.id === friend.id
-                            ? "border-2 border-green-500"
+                            ? "border-2 border-[#14b8a6]"
                             : ""
                         }`}
                         onClick={() => handleFriendSelect(friend)}
@@ -1068,7 +1068,7 @@ const Friends = () => {
                             onClick={(e) =>
                               handleAccessMenuOpen(e, friend.friendship)
                             }
-                            sx={{ color: "#3eb489", minWidth: "40px" }}
+                            sx={{ color: "#14b8a6", minWidth: "40px" }}
                           >
                             <Settings />
                           </Button>
@@ -1088,7 +1088,7 @@ const Friends = () => {
                   </Typography>
                   <div className="flex items-center">
                     <div
-                      className={`w-3 h-3 rounded-full mr-2 ${"bg-green-500"}`}
+                      className={`w-3 h-3 rounded-full mr-2 ${"bg-[#14b8a6]"}`}
                       title={"Real-time updates active"}
                     ></div>
                     <span className="text-xs text-gray-400 mr-2">
@@ -1099,13 +1099,13 @@ const Friends = () => {
 
                 <div className="mb-6">
                   <div className="flex items-center mb-3">
-                    <Typography variant="subtitle1" sx={{ color: "#3eb489" }}>
+                    <Typography variant="subtitle1" sx={{ color: "#14b8a6" }}>
                       Friends Sharing With Me
                     </Typography>
                     {loadingSharedWithMe && (
                       <CircularProgress
                         size={20}
-                        sx={{ color: "#3eb489", ml: 2 }}
+                        sx={{ color: "#14b8a6", ml: 2 }}
                       />
                     )}
                   </div>
@@ -1131,7 +1131,7 @@ const Friends = () => {
                           key={item.userId}
                           className={`bg-[#2a2a2a] p-4 rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
                             selectedFriend?.userId === item.userId
-                              ? "border-2 border-green-500"
+                              ? "border-2 border-[#14b8a6]"
                               : ""
                           }`}
                           onClick={() => handleFriendSelect(item)}
@@ -1163,7 +1163,7 @@ const Friends = () => {
                                 </p>
                                 <div className="flex items-center text-sm">
                                   {getAccessLevelIcon(item.accessLevel)}
-                                  <span className="ml-2 text-[#3eb489] text-sm">
+                                  <span className="ml-2 text-[#14b8a6] text-sm">
                                     {getAccessLevelDescription(
                                       item.accessLevel,
                                       "theySharing"
@@ -1180,15 +1180,15 @@ const Friends = () => {
                                 handleViewSharedExpenses(item.userId);
                               }}
                               sx={{
-                                color: "#3eb489",
-                                borderColor: "#3eb489",
+                                color: "#14b8a6",
+                                borderColor: "#14b8a6",
                                 minWidth: "40px",
                                 width: "40px",
                                 height: "40px",
                                 padding: "8px",
                                 "&:hover": {
-                                  borderColor: "#3eb489",
-                                  backgroundColor: "rgba(62, 180, 137, 0.1)",
+                                  borderColor: "#14b8a6",
+                                  backgroundColor: "rgba(20, 184, 166, 0.1)",
                                 },
                               }}
                             >
@@ -1204,13 +1204,13 @@ const Friends = () => {
                 {/* I Shared With Section */}
                 <div>
                   <div className="flex items-center mb-3">
-                    <Typography variant="subtitle1" sx={{ color: "#3eb489" }}>
+                    <Typography variant="subtitle1" sx={{ color: "#14b8a6" }}>
                       I'm Sharing With
                     </Typography>
                     {loadingISharedWith && (
                       <CircularProgress
                         size={20}
-                        sx={{ color: "#3eb489", ml: 2 }}
+                        sx={{ color: "#14b8a6", ml: 2 }}
                       />
                     )}
                   </div>
@@ -1268,7 +1268,7 @@ const Friends = () => {
                                 </p>
                                 <div className="flex items-center text-sm">
                                   {getAccessLevelIcon(item.accessLevel)}
-                                  <span className="ml-2 text-[#3eb489] text-sm">
+                                  <span className="ml-2 text-[#14b8a6] text-sm">
                                     {getAccessLevelDescription(
                                       item.accessLevel,
                                       "youSharing"
@@ -1291,13 +1291,13 @@ const Friends = () => {
                                 }
                               }}
                               sx={{
-                                color: "#3eb489",
+                                color: "#14b8a6",
                                 minWidth: "40px",
                                 width: "40px",
                                 height: "40px",
                                 padding: "8px",
                                 "&:hover": {
-                                  backgroundColor: "rgba(62, 180, 137, 0.1)",
+                                  backgroundColor: "rgba(20, 184, 166, 0.1)",
                                 },
                               }}
                             >
@@ -1350,7 +1350,7 @@ const Friends = () => {
                     }
                     fullWidth
                     sx={{
-                      backgroundColor: "#3eb489",
+                      backgroundColor: "#14b8a6",
                       "&:hover": {
                         backgroundColor: "#2d8a67",
                       },
@@ -1386,7 +1386,7 @@ const Friends = () => {
                         .map((interest, index) => (
                           <span
                             key={index}
-                            className="px-3 py-1 bg-[#3eb48933] text-[#3eb489] rounded-full text-sm"
+                            className="px-3 py-1 bg-[#14b8a633] text-[#14b8a6] rounded-full text-sm"
                           >
                             {interest.trim()}
                           </span>
@@ -1428,7 +1428,7 @@ const Friends = () => {
                     disabled={respondingToRequest}
                     sx={{
                       flex: 1,
-                      backgroundColor: "#3eb489",
+                      backgroundColor: "#14b8a6",
                       "&:hover": {
                         backgroundColor: "#2d8a67",
                       },
@@ -1577,11 +1577,11 @@ const Friends = () => {
                           handleViewSharedExpenses(selectedFriend.id)
                         }
                         sx={{
-                          borderColor: "#3eb489",
-                          color: "#3eb489",
+                          borderColor: "#14b8a6",
+                          color: "#14b8a6",
                           "&:hover": {
                             borderColor: "#2d8a67",
-                            backgroundColor: "rgba(62, 180, 137, 0.1)",
+                            backgroundColor: "rgba(20, 184, 166, 0.1)",
                           },
                         }}
                       >
@@ -1641,7 +1641,7 @@ const Friends = () => {
                     variant="contained"
                     fullWidth
                     sx={{
-                      backgroundColor: "#3eb489",
+                      backgroundColor: "#14b8a6",
                       "&:hover": {
                         backgroundColor: "#2d8a67",
                       },
@@ -1670,7 +1670,7 @@ const Friends = () => {
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center p-8">
-                  <ShareIcon sx={{ fontSize: 80, color: "#3eb48933", mb: 2 }} />
+                  <ShareIcon sx={{ fontSize: 80, color: "#14b8a633", mb: 2 }} />
                   <h2 className="text-2xl font-bold text-white mb-2">
                     {activeTab === 0
                       ? "Select a friend suggestion"
@@ -1715,7 +1715,7 @@ const Friends = () => {
               "&:hover": { backgroundColor: "#333333" },
               color:
                 getCurrentAccessLevel(selectedFriendship) === "NONE"
-                  ? "#3eb489"
+                  ? "#14b8a6"
                   : "white",
             }}
           >
@@ -1724,7 +1724,7 @@ const Friends = () => {
                 sx={{
                   color:
                     getCurrentAccessLevel(selectedFriendship) === "NONE"
-                      ? "#3eb489"
+                      ? "#14b8a6"
                       : "white",
                 }}
               />
@@ -1738,7 +1738,7 @@ const Friends = () => {
               "&:hover": { backgroundColor: "#333333" },
               color:
                 getCurrentAccessLevel(selectedFriendship) === "READ"
-                  ? "#3eb489"
+                  ? "#14b8a6"
                   : "white",
             }}
           >

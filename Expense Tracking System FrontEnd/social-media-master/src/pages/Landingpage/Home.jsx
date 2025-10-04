@@ -3,7 +3,10 @@ import Left from "./Left.jsx";
 import { Outlet, useParams, useLocation, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import FriendInfoBar from "./FriendInfoBar";
-import { fetchFriendship, fetchFriendsDetailed } from "../../Redux/Friends/friendsActions";
+import {
+  fetchFriendship,
+  fetchFriendsDetailed,
+} from "../../Redux/Friends/friendsActions";
 
 const Home = () => {
   const { friendId } = useParams();
