@@ -18,6 +18,7 @@ import {
   ListItemText,
   Divider,
   Typography,
+  Skeleton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -29,6 +30,10 @@ import EditIcon from "@mui/icons-material/Edit";
 import BlockIcon from "@mui/icons-material/Block";
 import LockIcon from "@mui/icons-material/Lock";
 import ShareIcon from "@mui/icons-material/Share";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import ViewAgendaIcon from "@mui/icons-material/ViewAgenda";
+import SortIcon from "@mui/icons-material/Sort";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {
@@ -47,6 +52,18 @@ import {
 import UserAvatar from "./UserAvatar";
 import { useNavigate } from "react-router-dom";
 import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
+import FriendsEmptyState from "../../components/FriendsEmptyState";
+// Removed direct NoDataPlaceholder import; using FriendsEmptyState everywhere for consistency
+import SharingCard from "../../components/SharingCard";
+import FilterPopover from "../../components/FilterPopover";
+import ListSkeleton from "../../components/ListSkeleton";
+import {
+  filterSuggestions,
+  filterRequests,
+  filterFriends as utilFilterFriends,
+  buildSharedCombined,
+  filterSharedBySelectedFilters,
+} from "../../utils/friendFilters";
 
 // Define theme color for icons
 const themeColor = "#14b8a6";
@@ -67,13 +84,29 @@ const scrollbarStyles = `
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #3eb489;
+    background: #14b8a6;
     border-radius: 10px;
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #2d8a67;
+    background: #14b8a6;
   }
+
+  /* Horizontal chip scroll (single-line) */
+  .chip-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    -ms-overflow-style: none; /* IE */
+    scrollbar-width: none; /* Firefox */
+  }
+  .chip-scroll::-webkit-scrollbar { height: 6px; }
+  .chip-scroll::-webkit-scrollbar-track { background: transparent; }
+  .chip-scroll::-webkit-scrollbar-thumb { background: #2f2f2f; border-radius: 8px; }
+  .chip-scroll::-webkit-scrollbar-thumb:hover { background: #3d3d3d; }
 `;
 
 const Friends = () => {
@@ -113,6 +146,10 @@ const Friends = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [friendSearchTerm, setFriendSearchTerm] = useState("");
   const [requestSearchTerm, setRequestSearchTerm] = useState("");
+  // Simple toggle states for new filter icons (visual only for now)
+  const [suggestionsFilterOn, setSuggestionsFilterOn] = useState(false);
+  const [requestsFilterOn, setRequestsFilterOn] = useState(false);
+  const [friendsFilterOn, setFriendsFilterOn] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [snackbar, setSnackbar] = useState({
@@ -120,6 +157,124 @@ const Friends = () => {
     message: "",
     severity: "success",
   });
+  // Shared tab UI state
+  const [sharingViewMode, setSharingViewMode] = useState("combined"); // 'combined' | 'split'
+  // Removed list/grid toggle; always grid now
+  const [sharingSort, setSharingSort] = useState("name"); // 'name' | 'level'
+  const [sharingFilter, setSharingFilter] = useState("all"); // 'all' | 'incoming' | 'outgoing'
+  const [sharingSearchTerm, setSharingSearchTerm] = useState(""); // search within shared tab
+  // Filter popover state
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  const [activeFilterContext, setActiveFilterContext] = useState(null); // 'suggestions' | 'requests' | 'friends' | 'shared'
+
+  // Selected filter values per tab
+  const [suggestionFilters, setSuggestionFilters] = useState([]);
+  const [requestFilters, setRequestFilters] = useState([]);
+  const [friendFilters, setFriendFilters] = useState([]);
+  const [sharedFilters, setSharedFilters] = useState([]);
+
+  // Persist filters across navigation (localStorage)
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(
+        localStorage.getItem("friends_filter_state") || "{}"
+      );
+      if (saved.suggestionFilters)
+        setSuggestionFilters(saved.suggestionFilters);
+      if (saved.requestFilters) setRequestFilters(saved.requestFilters);
+      if (saved.friendFilters) setFriendFilters(saved.friendFilters);
+      if (saved.sharedFilters) setSharedFilters(saved.sharedFilters);
+    } catch (e) {
+      /* ignore */
+    }
+  }, []);
+
+  const persistFilters = (next = {}) => {
+    try {
+      const current = {
+        suggestionFilters,
+        requestFilters,
+        friendFilters,
+        sharedFilters,
+        ...next,
+      };
+      localStorage.setItem("friends_filter_state", JSON.stringify(current));
+    } catch (e) {
+      /* ignore */
+    }
+  };
+
+  const filterOptionSets = {
+    suggestions: [
+      { value: "hasAccess", label: "Has Any Access" },
+      { value: "noAccess", label: "No Access" },
+      { value: "firstNameA", label: "First Name A-M" },
+      { value: "firstNameN", label: "First Name N-Z" },
+    ],
+    requests: [
+      { value: "incoming", label: "Incoming" },
+      { value: "recent", label: "Recent (<7d)" },
+    ],
+    friends: [
+      { value: "withAccess", label: "Access Granted" },
+      { value: "mutualFull", label: "Full Both Ways" },
+      { value: "noAccess", label: "No Access" },
+    ],
+    shared: [
+      { value: "incoming", label: "Incoming Only" },
+      { value: "outgoing", label: "Outgoing Only" },
+      { value: "read", label: "Read" },
+      { value: "write", label: "Write" },
+      { value: "full", label: "Full" },
+      { value: "none", label: "None" },
+    ],
+  };
+
+  const openFilter = (event, ctx) => {
+    setActiveFilterContext(ctx);
+    setFilterAnchor(event.currentTarget);
+  };
+  const closeFilter = () => {
+    setFilterAnchor(null);
+    setActiveFilterContext(null);
+  };
+
+  const getSelectedFilters = () => {
+    switch (activeFilterContext) {
+      case "suggestions":
+        return suggestionFilters;
+      case "requests":
+        return requestFilters;
+      case "friends":
+        return friendFilters;
+      case "shared":
+        return sharedFilters;
+      default:
+        return [];
+    }
+  };
+  const applySelectedFilters = (vals) => {
+    switch (activeFilterContext) {
+      case "suggestions":
+        setSuggestionFilters(vals);
+        persistFilters({ suggestionFilters: vals });
+        break;
+      case "requests":
+        setRequestFilters(vals);
+        persistFilters({ requestFilters: vals });
+        break;
+      case "friends":
+        setFriendFilters(vals);
+        persistFilters({ friendFilters: vals });
+        break;
+      case "shared":
+        setSharedFilters(vals);
+        persistFilters({ sharedFilters: vals });
+        break;
+      default:
+        break;
+    }
+  };
 
   // New state for access level menu
   const [accessMenuAnchorEl, setAccessMenuAnchorEl] = useState(null);
@@ -495,48 +650,20 @@ const Friends = () => {
       : friendship.requesterAccess;
   };
 
-  // Filter suggestions based on search term
-  const filteredSuggestions = suggestions.filter(
-    (friend) =>
-      friend.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      friend.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      friend.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Filter friends based on search term
-  const filteredFriends = friends
-    .map((friendship) => {
-      const otherUser = friendship?.recipient; // Ensure recipient exists
-      if (otherUser) {
-        otherUser.friendship = friendship; // Only set friendship if recipient exists
-      }
-      return otherUser;
-    })
-    .filter(
-      (friend) =>
-        friend &&
-        (friend.firstName
-          ?.toLowerCase()
-          .includes(friendSearchTerm.toLowerCase()) ||
-          friend.lastName
-            ?.toLowerCase()
-            .includes(friendSearchTerm.toLowerCase()) ||
-          friend.email?.toLowerCase().includes(friendSearchTerm.toLowerCase()))
-    );
-
-  // Filter friend requests based on search term
-  const filteredRequests = friendRequests.filter(
-    (request) =>
-      request.requester.firstName
-        ?.toLowerCase()
-        .includes(requestSearchTerm.toLowerCase()) ||
-      request.requester.lastName
-        ?.toLowerCase()
-        .includes(requestSearchTerm.toLowerCase()) ||
-      request.requester.email
-        ?.toLowerCase()
-        .includes(requestSearchTerm.toLowerCase())
-  );
+  // Filtered datasets via utility functions (DRY)
+  const filteredSuggestions = filterSuggestions(suggestions, {
+    term: searchTerm,
+    filters: suggestionFilters,
+  });
+  const filteredRequests = filterRequests(friendRequests, {
+    term: requestSearchTerm,
+    filters: requestFilters,
+  });
+  const filteredFriends = utilFilterFriends(friends, {
+    term: friendSearchTerm,
+    filters: friendFilters,
+    userId: user?.id,
+  });
 
   // Generate initials from name
   const getInitials = (firstName, lastName) => {
@@ -549,7 +676,7 @@ const Friends = () => {
   const getAvatarColor = (id) => {
     const colors = [
       "#8a56e2",
-      "#3eb489",
+      "#14b8a6",
       "#e6a935",
       "#e35353",
       "#5c6bc0",
@@ -599,23 +726,25 @@ const Friends = () => {
 
   // Get access level icon
   const getAccessLevelIcon = (level) => {
-    const iconColor = "#14b8a6";
+    const palette = {
+      NONE: "#555555", // muted gray
+      READ: "#14b8a6", // teal
+      WRITE: "#e6a935", // amber
+      FULL: "#e35353", // strong red
+    };
+    const color = palette[level] || palette.NONE;
 
     switch (level) {
       case "NONE":
-        return (
-          <VisibilityOffIcon fontSize="small" style={{ color: iconColor }} />
-        );
+        return <VisibilityOffIcon fontSize="small" style={{ color }} />;
       case "READ":
-        return <VisibilityIcon fontSize="small" style={{ color: iconColor }} />;
+        return <VisibilityIcon fontSize="small" style={{ color }} />;
       case "WRITE":
-        return <EditIcon fontSize="small" style={{ color: iconColor }} />;
+        return <EditIcon fontSize="small" style={{ color }} />;
       case "FULL":
-        return <LockIcon fontSize="small" style={{ color: iconColor }} />;
+        return <LockIcon fontSize="small" style={{ color }} />;
       default:
-        return (
-          <VisibilityOffIcon fontSize="small" style={{ color: iconColor }} />
-        );
+        return <VisibilityOffIcon fontSize="small" style={{ color }} />;
     }
   };
 
@@ -642,7 +771,7 @@ const Friends = () => {
       <style>{scrollbarStyles}</style>
 
       <div className="bg-[#1b1b1b]">
-        <div className="h-[50px] bg-[#1b1b1b]"></div>
+        {/* <div className="h-[50px] bg-[#1b1b1b]"></div> */}
         <div
           className="flex flex-col md:flex-row w-full md:w-[calc(100vw-350px)] p-2 md:p-4 rounded-lg border border-black bg-[rgb(11,11,11)] shadow-sm"
           style={{
@@ -662,10 +791,10 @@ const Friends = () => {
                 title="Refresh sharing data"
                 sx={{
                   minWidth: "auto",
-                  color: "#3eb489",
+                  color: "#14b8a6",
                   padding: "4px",
                   "&:hover": {
-                    backgroundColor: "rgba(62, 180, 137, 0.1)",
+                    backgroundColor: "rgba(20, 184, 166, 0.1)",
                   },
                 }}
               >
@@ -683,12 +812,12 @@ const Friends = () => {
                 scrollButtons="auto"
                 sx={{
                   "& .MuiTabs-indicator": {
-                    backgroundColor: "#3eb489",
+                    backgroundColor: "#14b8a6",
                   },
                   "& .MuiTab-root": {
                     color: "white",
                     "&.Mui-selected": {
-                      color: "#3eb489",
+                      color: "#14b8a6",
                     },
                   },
                 }}
@@ -719,48 +848,79 @@ const Friends = () => {
               // Suggestions Tab Content
               <>
                 {/* Search Bar using MUI TextField */}
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Search suggestions"
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  sx={{
-                    mb: 3,
-                    "& .MuiOutlinedInput-root": {
-                      color: "white",
-                      backgroundColor: "#2a2a2a",
-                      "& fieldset": {
-                        borderColor: "#4a4a4a",
+                <div className="flex items-center gap-2 mb-3">
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Search suggestions"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        color: "white",
+                        backgroundColor: "#2a2a2a",
+                        "& fieldset": { borderColor: "#4a4a4a" },
+                        "&:hover fieldset": { borderColor: "#6a6a6a" },
+                        "&.Mui-focused fieldset": { borderColor: "#6a6a6a" },
                       },
-                      "&:hover fieldset": {
-                        borderColor: "#6a6a6a",
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "gray",
+                        opacity: 1,
                       },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#6a6a6a",
-                      },
-                    },
-                    "& .MuiInputLabel-root": {
-                      color: "gray",
-                    },
-                    "& .MuiInputBase-input::placeholder": {
-                      color: "gray",
-                      opacity: 1,
-                    },
-                  }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: "gray" }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: "gray" }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button
+                    size="small"
+                    onClick={(e) => openFilter(e, "suggestions")}
+                    sx={{
+                      color: suggestionFilters.length ? "#14b8a6" : "#14b8a6",
+                      minWidth: 0,
+                      position: "relative",
+                    }}
+                    title={
+                      suggestionFilters.length
+                        ? `${suggestionFilters.length} filters selected`
+                        : "Filter"
+                    }
+                  >
+                    <FilterAltIcon sx={{ fontSize: 35 }} />
+                    {suggestionFilters.length > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          transform: "translate(40%, -40%)",
+                          background: "#14b8a6",
+                          color: "#0b0b0b",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          lineHeight: 1,
+                          padding: "2px 5px",
+                        }}
+                      >
+                        {suggestionFilters.length}
+                      </span>
+                    )}
+                  </Button>
+                </div>
+                {/* Chips removed per request */}
 
                 {/* Loading State */}
                 {loading && (
-                  <div className="flex justify-center my-4">
-                    <CircularProgress size={40} sx={{ color: "#3eb489" }} />
+                  <div
+                    className="my-4 pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    <ListSkeleton count={3} variant="user" />
                   </div>
                 )}
 
@@ -771,108 +931,139 @@ const Friends = () => {
                   </div>
                 )}
 
-                {/* Friends List with custom scrollbar */}
-                <div
-                  className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
-                  style={{ maxHeight: "calc(100vh - 300px)" }}
-                >
-                  {filteredSuggestions.length === 0 && !loading ? (
-                    <div className="text-gray-400 text-center py-4">
-                      {searchTerm
-                        ? "No friends found matching your search"
-                        : "No friend suggestions available"}
-                    </div>
-                  ) : (
-                    filteredSuggestions.map((friend) => (
-                      <div
-                        key={friend.id}
-                        className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
-                          selectedFriend?.id === friend.id
-                            ? "border-2 border-green-500"
-                            : ""
-                        }`}
-                        onClick={() => handleFriendSelect(friend)}
-                      >
-                        <div className="flex items-center flex-grow mr-2">
-                          <div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
-                            style={{
-                              backgroundColor: getAvatarColor(friend.id),
-                            }}
-                          >
-                            {getInitials(friend.firstName, friend.lastName)}
-                          </div>
-                          <div className="max-w-[calc(100%-80px)]">
-                            <p className="text-white font-medium truncate">
-                              {friend.firstName} {friend.lastName}
-                            </p>
-                            <p className="text-sm text-gray-400 truncate">
-                              {friend.email}
-                            </p>
-                            <div className="flex items-center mt-1">
-                              {getAccessLevelIcon(
-                                friend.friendship?.recipientAccess || "NONE"
-                              )}
-                              <span className="text-xs text-gray-400 ml-2">
-                                {getAccessLevelDescription(
+                {!loading && (
+                  <div
+                    className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    {filteredSuggestions.length === 0 ? (
+                      <FriendsEmptyState
+                        type="suggestions"
+                        searchActive={Boolean(searchTerm)}
+                      />
+                    ) : (
+                      filteredSuggestions.map((friend) => (
+                        <div
+                          key={friend.id}
+                          className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
+                            selectedFriend?.id === friend.id
+                              ? "border-2 border-[#14b8a6]"
+                              : ""
+                          }`}
+                          onClick={() => handleFriendSelect(friend)}
+                        >
+                          <div className="flex items-center flex-grow mr-2">
+                            <div
+                              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
+                              style={{
+                                backgroundColor: getAvatarColor(friend.id),
+                              }}
+                            >
+                              {getInitials(friend.firstName, friend.lastName)}
+                            </div>
+                            <div className="max-w-[calc(100%-80px)]">
+                              <p className="text-white font-medium truncate">
+                                {friend.firstName} {friend.lastName}
+                              </p>
+                              <p className="text-sm text-gray-400 truncate">
+                                {friend.email}
+                              </p>
+                              <div className="flex items-center mt-1">
+                                {getAccessLevelIcon(
                                   friend.friendship?.recipientAccess || "NONE"
                                 )}
-                              </span>
+                                <span className="text-xs text-gray-400 ml-2">
+                                  {getAccessLevelDescription(
+                                    friend.friendship?.recipientAccess || "NONE"
+                                  )}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <ChevronRight className="text-gray-400 flex-shrink-0" />
                         </div>
-                        <ChevronRight className="text-gray-400 flex-shrink-0" />
-                      </div>
-                    ))
-                  )}
-                </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </>
             ) : activeTab === 1 ? (
               // Requests Tab Content
               <>
                 {/* Search Bar for Requests */}
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Search friend requests"
-                  value={requestSearchTerm}
-                  onChange={handleRequestSearchChange}
-                  sx={{
-                    mb: 3,
-                    "& .MuiOutlinedInput-root": {
-                      color: "white",
-                      backgroundColor: "#2a2a2a",
-                      "& fieldset": {
-                        borderColor: "#4a4a4a",
+                <div className="flex items-center gap-2 mb-3">
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Search friend requests"
+                    value={requestSearchTerm}
+                    onChange={handleRequestSearchChange}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        color: "white",
+                        backgroundColor: "#2a2a2a",
+                        "& fieldset": { borderColor: "#4a4a4a" },
+                        "&:hover fieldset": { borderColor: "#6a6a6a" },
+                        "&.Mui-focused fieldset": { borderColor: "#6a6a6a" },
                       },
-                      "&:hover fieldset": {
-                        borderColor: "#6a6a6a",
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "gray",
+                        opacity: 1,
                       },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#6a6a6a",
-                      },
-                    },
-                    "& .MuiInputLabel-root": {
-                      color: "gray",
-                    },
-                    "& .MuiInputBase-input::placeholder": {
-                      color: "gray",
-                      opacity: 1,
-                    },
-                  }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: "gray" }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: "gray" }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button
+                    size="small"
+                    onClick={(e) => openFilter(e, "requests")}
+                    sx={{
+                      color: requestFilters.length ? "#14b8a6" : "#14b8a6",
+                      minWidth: 0,
+                      position: "relative",
+                    }}
+                    title={
+                      requestFilters.length
+                        ? `${requestFilters.length} filters selected`
+                        : "Filter"
+                    }
+                  >
+                    <FilterAltIcon sx={{ fontSize: 35 }} />
+                    {requestFilters.length > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          transform: "translate(40%, -40%)",
+                          background: "#14b8a6",
+                          color: "#0b0b0b",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          lineHeight: 1,
+                          padding: "2px 5px",
+                        }}
+                      >
+                        {requestFilters.length}
+                      </span>
+                    )}
+                  </Button>
+                </div>
+                {/* Chips removed per request */}
 
                 {/* Loading State */}
                 {loadingRequests && (
-                  <div className="flex justify-center my-4">
-                    <CircularProgress size={40} sx={{ color: "#3eb489" }} />
+                  <div
+                    className="my-4 pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    <ListSkeleton count={3} variant="user" />
                   </div>
                 )}
 
@@ -883,123 +1074,151 @@ const Friends = () => {
                   </div>
                 )}
 
-                {/* Friend Requests List with custom scrollbar */}
-                <div
-                  className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
-                  style={{ maxHeight: "calc(100vh - 300px)" }}
-                >
-                  {filteredRequests.length === 0 && !loadingRequests ? (
-                    <div className="text-gray-400 text-center py-4">
-                      {requestSearchTerm
-                        ? "No requests found matching your search"
-                        : "No pending friend requests"}
-                    </div>
-                  ) : (
-                    filteredRequests.map((request) => {
-                      // Get the requester (the person who sent the request)
-                      const requester = request.requester;
-
-                      return (
-                        <div
-                          key={request.id}
-                          className="bg-[#2a2a2a] p-4 rounded-lg"
-                        >
-                          <div className="flex items-center mb-4">
-                            <div className="mr-4">
-                              <UserAvatar user={requester} />
+                {!loadingRequests && (
+                  <div
+                    className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    {filteredRequests.length === 0 ? (
+                      <FriendsEmptyState
+                        type="requests"
+                        searchActive={Boolean(requestSearchTerm)}
+                      />
+                    ) : (
+                      filteredRequests.map((request) => {
+                        const requester = request.requester;
+                        return (
+                          <div
+                            key={request.id}
+                            className="bg-[#2a2a2a] p-4 rounded-lg"
+                          >
+                            <div className="flex items-center mb-4">
+                              <div className="mr-4">
+                                <UserAvatar user={requester} />
+                              </div>
+                              <div className="min-w-0 flex-grow">
+                                <p className="text-white font-medium truncate">
+                                  {requester.firstName} {requester.lastName}
+                                </p>
+                                <p className="text-sm text-gray-400 overflow-hidden text-ellipsis">
+                                  {requester.email}
+                                </p>
+                              </div>
                             </div>
-                            <div className="min-w-0 flex-grow">
-                              <p className="text-white font-medium truncate">
-                                {requester.firstName} {requester.lastName}
-                              </p>
-                              <p className="text-sm text-gray-400 overflow-hidden text-ellipsis">
-                                {requester.email}
-                              </p>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="contained"
+                                color="success"
+                                startIcon={<CheckCircleIcon />}
+                                onClick={() =>
+                                  handleRespondToRequest(request.id, true)
+                                }
+                                disabled={respondingToRequest}
+                                size="small"
+                                fullWidth
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                variant="contained"
+                                color="error"
+                                startIcon={<CancelIcon />}
+                                onClick={() =>
+                                  handleRespondToRequest(request.id, false)
+                                }
+                                disabled={respondingToRequest}
+                                size="small"
+                                fullWidth
+                              >
+                                Reject
+                              </Button>
                             </div>
                           </div>
-
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="contained"
-                              color="success"
-                              startIcon={<CheckCircleIcon />}
-                              onClick={() =>
-                                handleRespondToRequest(request.id, true)
-                              }
-                              disabled={respondingToRequest}
-                              size="small"
-                              fullWidth
-                            >
-                              Accept
-                            </Button>
-                            <Button
-                              variant="contained"
-                              color="error"
-                              startIcon={<CancelIcon />}
-                              onClick={() =>
-                                handleRespondToRequest(request.id, false)
-                              }
-                              disabled={respondingToRequest}
-                              size="small"
-                              fullWidth
-                            >
-                              Reject
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
               </>
             ) : activeTab === 2 ? (
               // My Friends Tab Content
               <>
                 {/* Search Bar for Friends */}
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  placeholder="Search my friends"
-                  value={friendSearchTerm}
-                  onChange={handleFriendSearchChange}
-                  sx={{
-                    mb: 3,
-                    "& .MuiOutlinedInput-root": {
-                      color: "white",
-                      backgroundColor: "#2a2a2a",
-                      "& fieldset": {
-                        borderColor: "#4a4a4a",
+                <div className="flex items-center gap-2 mb-3">
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Search my friends"
+                    value={friendSearchTerm}
+                    onChange={handleFriendSearchChange}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        color: "white",
+                        backgroundColor: "#2a2a2a",
+                        "& fieldset": { borderColor: "#4a4a4a" },
+                        "&:hover fieldset": { borderColor: "#6a6a6a" },
+                        "&.Mui-focused fieldset": { borderColor: "#6a6a6a" },
                       },
-                      "&:hover fieldset": {
-                        borderColor: "#6a6a6a",
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "gray",
+                        opacity: 1,
                       },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#6a6a6a",
-                      },
-                    },
-                    "& .MuiInputLabel-root": {
-                      color: "gray",
-                    },
-                    "& .MuiInputBase-input::placeholder": {
-                      color: "gray",
-                      opacity: 1,
-                    },
-                  }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: "gray" }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: "gray" }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button
+                    size="small"
+                    onClick={(e) => openFilter(e, "friends")}
+                    sx={{
+                      color: friendFilters.length ? "#14b8a6" : "#14b8a6",
+                      minWidth: 0,
+                      position: "relative",
+                    }}
+                    title={
+                      friendFilters.length
+                        ? `${friendFilters.length} filters selected`
+                        : "Filter"
+                    }
+                  >
+                    <FilterAltIcon sx={{ fontSize: 35 }} />
+                    {friendFilters.length > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          transform: "translate(40%, -40%)",
+                          background: "#14b8a6",
+                          color: "#0b0b0b",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          lineHeight: 1,
+                          padding: "2px 5px",
+                        }}
+                      >
+                        {friendFilters.length}
+                      </span>
+                    )}
+                  </Button>
+                </div>
+                {/* Chips removed per request */}
 
                 {/* Loading State */}
-                {/* {loadingFriends && (
-                  <div className="flex justify-center my-4">
-                    <CircularProgress size={40} sx={{ color: "#3eb489" }} />
+                {loadingFriends && (
+                  <div
+                    className="my-4 pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    <ListSkeleton count={3} variant="user" />
                   </div>
-                )} */}
+                )}
 
                 {/* Error State */}
                 {friendsError && (
@@ -1008,307 +1227,305 @@ const Friends = () => {
                   </div>
                 )}
 
-                {/* Friends List with custom scrollbar */}
-                <div
-                  className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
-                  style={{ maxHeight: "calc(100vh - 300px)" }}
-                >
-                  {filteredFriends.length === 0 && !loadingFriends ? (
-                    <div className="text-gray-400 text-center py-4">
-                      {friendSearchTerm
-                        ? "No friends found matching your search"
-                        : "You don't have any friends yet"}
-                    </div>
-                  ) : (
-                    filteredFriends.map((friend) => (
-                      <div
-                        key={friend.id}
-                        className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
-                          selectedFriend?.id === friend.id
-                            ? "border-2 border-green-500"
-                            : ""
-                        }`}
-                        onClick={() => handleFriendSelect(friend)}
-                      >
-                        <div className="flex items-center flex-grow mr-2">
-                          <div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
-                            style={{
-                              backgroundColor: getAvatarColor(friend.id),
-                            }}
-                          >
-                            {getInitials(friend.firstName, friend.lastName)}
-                          </div>
-                          <div className="max-w-[calc(100%-80px)]">
-                            <p className="text-white font-medium truncate">
-                              {friend.firstName} {friend.lastName}
-                            </p>
-                            <p className="text-sm text-gray-400 truncate">
-                              {friend.email}
-                            </p>
-                            <div className="flex items-center mt-1">
-                              {getAccessLevelIcon(
-                                // Check if the current user is the requester or recipient and show the appropriate access level
-                                friend.friendship?.requester.id === user.id
-                                  ? friend.friendship?.recipientAccess // If user is requester, show what they gave to recipient
-                                  : friend.friendship?.requesterAccess // If user is recipient, show what they gave to requester
-                              )}
-                              <span className="text-xs text-gray-400 ml-2">
-                                {getAccessLevelDescription(
+                {!loadingFriends && (
+                  <div
+                    className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    {filteredFriends.length === 0 ? (
+                      <FriendsEmptyState
+                        type="friends"
+                        searchActive={Boolean(friendSearchTerm)}
+                      />
+                    ) : (
+                      filteredFriends.map((friend) => (
+                        <div
+                          key={friend.id}
+                          className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
+                            selectedFriend?.id === friend.id
+                              ? "border-2 border-[#14b8a6]"
+                              : ""
+                          }`}
+                          onClick={() => handleFriendSelect(friend)}
+                        >
+                          <div className="flex items-center flex-grow mr-2">
+                            <div
+                              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
+                              style={{
+                                backgroundColor: getAvatarColor(friend.id),
+                              }}
+                            >
+                              {getInitials(friend.firstName, friend.lastName)}
+                            </div>
+                            <div className="max-w-[calc(100%-80px)]">
+                              <p className="text-white font-medium truncate">
+                                {friend.firstName} {friend.lastName}
+                              </p>
+                              <p className="text-sm text-gray-400 truncate">
+                                {friend.email}
+                              </p>
+                              <div className="flex items-center mt-1">
+                                {getAccessLevelIcon(
                                   friend.friendship?.requester.id === user.id
                                     ? friend.friendship?.recipientAccess
                                     : friend.friendship?.requesterAccess
                                 )}
-                              </span>
+                                <span className="text-xs text-gray-400 ml-2">
+                                  {getAccessLevelDescription(
+                                    friend.friendship?.requester.id === user.id
+                                      ? friend.friendship?.recipientAccess
+                                      : friend.friendship?.requesterAccess
+                                  )}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <div className="flex items-center">
+                            <Button
+                              onClick={(e) =>
+                                handleAccessMenuOpen(e, friend.friendship)
+                              }
+                              sx={{ color: "#14b8a6", minWidth: "40px" }}
+                            >
+                              <Settings />
+                            </Button>
+                            <ChevronRight className="text-gray-400 flex-shrink-0" />
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <Button
-                            onClick={(e) =>
-                              handleAccessMenuOpen(e, friend.friendship)
-                            }
-                            sx={{ color: "#3eb489", minWidth: "40px" }}
-                          >
-                            <Settings />
-                          </Button>
-                          <ChevronRight className="text-gray-400 flex-shrink-0" />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </>
             ) : (
-              // Shared Expenses Tab Content
+              // Shared Expenses Tab Content - NEW DESIGN
               <>
-                <div className="flex items-center justify-between mb-4">
-                  <Typography variant="h6" sx={{ color: "white" }}>
-                    Expense Sharing
-                  </Typography>
-                  <div className="flex items-center">
-                    <div
-                      className={`w-3 h-3 rounded-full mr-2 ${"bg-green-500"}`}
-                      title={"Real-time updates active"}
-                    ></div>
-                    <span className="text-xs text-gray-400 mr-2">
-                      {"Live Updates"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <div className="flex items-center mb-3">
-                    <Typography variant="subtitle1" sx={{ color: "#3eb489" }}>
-                      Friends Sharing With Me
-                    </Typography>
-                    {loadingSharedWithMe && (
-                      <CircularProgress
-                        size={20}
-                        sx={{ color: "#3eb489", ml: 2 }}
-                      />
+                <div className="flex items-center gap-2 mb-3">
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Search shared connections"
+                    value={sharingSearchTerm}
+                    onChange={(e) => setSharingSearchTerm(e.target.value)}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        color: "white",
+                        backgroundColor: "#2a2a2a",
+                        // Match other tabs' border behavior
+                        "& fieldset": { borderColor: "#4a4a4a" },
+                        "&:hover fieldset": { borderColor: "#6a6a6a" },
+                        "&.Mui-focused fieldset": { borderColor: "#6a6a6a" },
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "gray",
+                        opacity: 1,
+                      },
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: "gray" }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button
+                    size="small"
+                    onClick={(e) => openFilter(e, "shared")}
+                    sx={{
+                      color: sharedFilters.length ? "#14b8a6" : "#14b8a6",
+                      minWidth: 0,
+                      position: "relative",
+                    }}
+                    title={
+                      sharedFilters.length
+                        ? `${sharedFilters.length} filters selected`
+                        : "Filter"
+                    }
+                  >
+                    <FilterAltIcon sx={{ fontSize: 35 }} />
+                    {sharedFilters.length > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          transform: "translate(40%, -40%)",
+                          background: "#14b8a6",
+                          color: "#0b0b0b",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          lineHeight: 1,
+                          padding: "2px 5px",
+                        }}
+                      >
+                        {sharedFilters.length}
+                      </span>
                     )}
-                  </div>
-
-                  {sharedWithMeError ? (
-                    <div className="text-red-500 text-sm mb-2">
-                      {sharedWithMeError}
-                    </div>
-                  ) : sharedWithMe.length === 0 ? (
-                    <div className="text-gray-400 text-sm mb-2 p-4 bg-[#2a2a2a] rounded-lg">
-                      No one has shared their expense data with you yet.
-                    </div>
-                  ) : (
-                    <div
-                      className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
-                      style={{
-                        maxHeight: sharedWithMe.length > 2 ? "220px" : "auto",
-                        minHeight: "80px",
-                      }}
-                    >
-                      {sharedWithMe.map((item) => (
-                        <div
-                          key={item.userId}
-                          className={`bg-[#2a2a2a] p-4 rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
-                            selectedFriend?.userId === item.userId
-                              ? "border-2 border-green-500"
-                              : ""
-                          }`}
-                          onClick={() => handleFriendSelect(item)}
-                          style={{ minHeight: "90px" }}
-                        >
-                          <div className="flex items-center justify-between h-full">
-                            <div className="flex items-center flex-grow">
-                              <div className="mr-4">
-                                <div
-                                  className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                                  style={{
-                                    backgroundColor: getAvatarColor(
-                                      item.userId
-                                    ),
-                                  }}
-                                >
-                                  {getInitials(
-                                    item.name.split(" ")[0],
-                                    item.name.split(" ")[1] || ""
-                                  )}
-                                </div>
-                              </div>
-                              <div className="min-w-0 flex-grow">
-                                <p className="text-white text-sm font-medium truncate mb-1">
-                                  {item.name}
-                                </p>
-                                <p className="text-sm text-gray-400 truncate mb-2">
-                                  {item.email}
-                                </p>
-                                <div className="flex items-center text-sm">
-                                  {getAccessLevelIcon(item.accessLevel)}
-                                  <span className="ml-2 text-[#3eb489] text-sm">
-                                    {getAccessLevelDescription(
-                                      item.accessLevel,
-                                      "theySharing"
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewSharedExpenses(item.userId);
-                              }}
-                              sx={{
-                                color: "#3eb489",
-                                borderColor: "#3eb489",
-                                minWidth: "40px",
-                                width: "40px",
-                                height: "40px",
-                                padding: "8px",
-                                "&:hover": {
-                                  borderColor: "#3eb489",
-                                  backgroundColor: "rgba(62, 180, 137, 0.1)",
-                                },
-                              }}
-                            >
-                              <VisibilityIcon fontSize="small" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  </Button>
                 </div>
+                {/* Chips removed per request */}
 
-                {/* I Shared With Section */}
-                <div>
-                  <div className="flex items-center mb-3">
-                    <Typography variant="subtitle1" sx={{ color: "#3eb489" }}>
-                      I'm Sharing With
-                    </Typography>
-                    {loadingISharedWith && (
-                      <CircularProgress
-                        size={20}
-                        sx={{ color: "#3eb489", ml: 2 }}
-                      />
-                    )}
-                  </div>
+                {(() => {
+                  const { combined, incoming, outgoing } = buildSharedCombined({
+                    incoming: sharedWithMe,
+                    outgoing: iSharedWith,
+                    viewMode: sharingViewMode,
+                    filter: sharingFilter,
+                    sort: sharingSort,
+                    term: sharingSearchTerm,
+                  });
 
-                  {iSharedWithError ? (
-                    <div className="text-red-500 text-sm mb-2">
-                      {iSharedWithError}
-                    </div>
-                  ) : iSharedWith.length === 0 ? (
-                    <div className="text-gray-400 text-sm mb-2 p-4 bg-[#2a2a2a] rounded-lg">
-                      You haven't shared your expense data with anyone yet.
-                    </div>
-                  ) : (
-                    <div
-                      className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
-                      style={{
-                        maxHeight: iSharedWith.length > 2 ? "220px" : "auto",
-                        minHeight: "80px",
+                  const applySelectedSharedFilters = (arr) =>
+                    filterSharedBySelectedFilters(arr, sharedFilters);
+
+                  const finalCombined = combined
+                    ? applySelectedSharedFilters(combined)
+                    : null;
+                  const finalIncoming = incoming
+                    ? applySelectedSharedFilters(incoming)
+                    : [];
+                  const finalOutgoing = outgoing
+                    ? applySelectedSharedFilters(outgoing)
+                    : [];
+
+                  const renderCard = (item) => (
+                    <SharingCard
+                      key={item.userId + item._direction}
+                      user={item}
+                      direction={item._direction}
+                      selected={selectedFriend?.userId === item.userId}
+                      onSelect={() => handleFriendSelect(item)}
+                      onView={() => handleViewSharedExpenses(item.userId)}
+                      onSettings={(e) => {
+                        const friendship = friends.find(
+                          (f) =>
+                            f.requester.id === item.userId ||
+                            f.recipient.id === item.userId
+                        );
+                        if (friendship) {
+                          handleAccessMenuOpen(e, friendship);
+                        }
                       }}
-                    >
-                      {iSharedWith.map((item) => (
+                      getAccessLevelIcon={getAccessLevelIcon}
+                      getAccessLevelDescription={getAccessLevelDescription}
+                      getInitials={getInitials}
+                      getAvatarColor={getAvatarColor}
+                      themeColor={themeColor}
+                    />
+                  );
+
+                  if (sharingViewMode === "combined") {
+                    if (loadingSharedWithMe || loadingISharedWith) {
+                      return (
                         <div
-                          key={item.userId}
-                          className={`bg-[#2a2a2a] p-4 rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
-                            selectedFriend?.userId === item.userId
-                              ? "border-2 border-green-500"
-                              : ""
-                          }`}
-                          onClick={() => handleFriendSelect(item)}
-                          style={{ minHeight: "90px" }}
+                          className="custom-scrollbar overflow-y-auto pr-1 py-2"
+                          style={{ maxHeight: "calc(100vh - 340px)" }}
                         >
-                          <div className="flex items-center justify-between h-full">
-                            <div className="flex items-center flex-grow">
-                              <div className="mr-4">
-                                <div
-                                  className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                                  style={{
-                                    backgroundColor: getAvatarColor(
-                                      item.userId
-                                    ),
-                                  }}
-                                >
-                                  {getInitials(
-                                    item.name.split(" ")[0],
-                                    item.name.split(" ")[1] || ""
-                                  )}
-                                </div>
-                              </div>
-                              <div className="min-w-0 flex-grow">
-                                <p className="text-white text-sm font-medium truncate mb-1">
-                                  {item.name}
-                                </p>
-                                <p className="text-sm text-gray-400 truncate mb-2">
-                                  {item.email}
-                                </p>
-                                <div className="flex items-center text-sm">
-                                  {getAccessLevelIcon(item.accessLevel)}
-                                  <span className="ml-2 text-[#3eb489] text-sm">
-                                    {getAccessLevelDescription(
-                                      item.accessLevel,
-                                      "youSharing"
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Find the corresponding friendship
-                                const friendship = friends.find(
-                                  (f) =>
-                                    f.requester.id === item.userId ||
-                                    f.recipient.id === item.userId
-                                );
-                                if (friendship) {
-                                  handleAccessMenuOpen(e, friendship);
-                                }
-                              }}
-                              sx={{
-                                color: "#3eb489",
-                                minWidth: "40px",
-                                width: "40px",
-                                height: "40px",
-                                padding: "8px",
-                                "&:hover": {
-                                  backgroundColor: "rgba(62, 180, 137, 0.1)",
-                                },
-                              }}
-                            >
-                              <Settings fontSize="small" />
-                            </Button>
-                          </div>
+                          <ListSkeleton count={3} variant="sharing" />
                         </div>
-                      ))}
+                      );
+                    }
+                    if (!finalCombined || finalCombined.length === 0) {
+                      return (
+                        <div
+                          className="custom-scrollbar overflow-y-auto pr-1"
+                          style={{ maxHeight: "calc(100vh - 340px)" }}
+                        >
+                          <FriendsEmptyState
+                            type="shared"
+                            searchActive={Boolean(sharingSearchTerm)}
+                          />
+                        </div>
+                      );
+                    }
+                    return (
+                      <div
+                        className={`${"grid gap-4"} custom-scrollbar overflow-y-auto pr-1`}
+                        style={{ maxHeight: "calc(100vh - 340px)" }}
+                      >
+                        {finalCombined.map(renderCard)}
+                      </div>
+                    );
+                  }
+
+                  // Split view
+                  return (
+                    <div className="flex flex-col gap-10">
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ color: "#14b8a6", fontWeight: 600 }}
+                            >
+                              Friends Sharing With Me
+                            </Typography>
+                            {loadingSharedWithMe && <></>}
+                          </div>
+                          {sharedWithMe.length > 0 && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-[#14b8a61a] text-[#14b8a6] border border-[#14b8a633]">
+                              {sharedWithMe.length}
+                            </span>
+                          )}
+                        </div>
+                        {sharedWithMeError ? (
+                          <div className="text-red-500 text-sm mb-2">
+                            {sharedWithMeError}
+                          </div>
+                        ) : incoming.length === 0 ? (
+                          <FriendsEmptyState
+                            type="shared"
+                            searchActive={Boolean(sharingSearchTerm)}
+                          />
+                        ) : (
+                          <div
+                            className={`${"grid gap-4"} custom-scrollbar overflow-y-auto pr-1`}
+                            style={{ maxHeight: "260px" }}
+                          >
+                            {finalIncoming.map(renderCard)}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ color: "#14b8a6", fontWeight: 600 }}
+                            >
+                              I'm Sharing With
+                            </Typography>
+                            {loadingISharedWith && <></>}
+                          </div>
+                          {iSharedWith.length > 0 && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-[#14b8a61a] text-[#14b8a6] border border-[#14b8a633]">
+                              {iSharedWith.length}
+                            </span>
+                          )}
+                        </div>
+                        {iSharedWithError ? (
+                          <div className="text-red-500 text-sm mb-2">
+                            {iSharedWithError}
+                          </div>
+                        ) : outgoing.length === 0 ? (
+                          <FriendsEmptyState
+                            type="shared"
+                            searchActive={Boolean(sharingSearchTerm)}
+                          />
+                        ) : (
+                          <div
+                            className={`${"grid gap-4"} custom-scrollbar overflow-y-auto pr-1`}
+                            style={{ maxHeight: "260px" }}
+                          >
+                            {finalOutgoing.map(renderCard)}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
               </>
             )}
           </div>
@@ -1350,7 +1567,7 @@ const Friends = () => {
                     }
                     fullWidth
                     sx={{
-                      backgroundColor: "#3eb489",
+                      backgroundColor: "#14b8a6",
                       "&:hover": {
                         backgroundColor: "#2d8a67",
                       },
@@ -1386,7 +1603,7 @@ const Friends = () => {
                         .map((interest, index) => (
                           <span
                             key={index}
-                            className="px-3 py-1 bg-[#3eb48933] text-[#3eb489] rounded-full text-sm"
+                            className="px-3 py-1 bg-[#14b8a633] text-[#14b8a6] rounded-full text-sm"
                           >
                             {interest.trim()}
                           </span>
@@ -1428,7 +1645,7 @@ const Friends = () => {
                     disabled={respondingToRequest}
                     sx={{
                       flex: 1,
-                      backgroundColor: "#3eb489",
+                      backgroundColor: "#14b8a6",
                       "&:hover": {
                         backgroundColor: "#2d8a67",
                       },
@@ -1577,11 +1794,11 @@ const Friends = () => {
                           handleViewSharedExpenses(selectedFriend.id)
                         }
                         sx={{
-                          borderColor: "#3eb489",
-                          color: "#3eb489",
+                          borderColor: "#14b8a6",
+                          color: "#14b8a6",
                           "&:hover": {
                             borderColor: "#2d8a67",
-                            backgroundColor: "rgba(62, 180, 137, 0.1)",
+                            backgroundColor: "rgba(20, 184, 166, 0.1)",
                           },
                         }}
                       >
@@ -1641,7 +1858,7 @@ const Friends = () => {
                     variant="contained"
                     fullWidth
                     sx={{
-                      backgroundColor: "#3eb489",
+                      backgroundColor: "#14b8a6",
                       "&:hover": {
                         backgroundColor: "#2d8a67",
                       },
@@ -1670,7 +1887,7 @@ const Friends = () => {
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center p-8">
-                  <ShareIcon sx={{ fontSize: 80, color: "#3eb48933", mb: 2 }} />
+                  <ShareIcon sx={{ fontSize: 80, color: "#14b8a633", mb: 2 }} />
                   <h2 className="text-2xl font-bold text-white mb-2">
                     {activeTab === 0
                       ? "Select a friend suggestion"
@@ -1715,7 +1932,7 @@ const Friends = () => {
               "&:hover": { backgroundColor: "#333333" },
               color:
                 getCurrentAccessLevel(selectedFriendship) === "NONE"
-                  ? "#3eb489"
+                  ? "#14b8a6"
                   : "white",
             }}
           >
@@ -1724,7 +1941,7 @@ const Friends = () => {
                 sx={{
                   color:
                     getCurrentAccessLevel(selectedFriendship) === "NONE"
-                      ? "#3eb489"
+                      ? "#14b8a6"
                       : "white",
                 }}
               />
@@ -1738,7 +1955,7 @@ const Friends = () => {
               "&:hover": { backgroundColor: "#333333" },
               color:
                 getCurrentAccessLevel(selectedFriendship) === "READ"
-                  ? "#3eb489"
+                  ? "#14b8a6"
                   : "white",
             }}
           >
@@ -1817,6 +2034,27 @@ const Friends = () => {
             {snackbar.message}
           </Alert>
         </Snackbar>
+        <FilterPopover
+          anchorEl={filterAnchor}
+          open={Boolean(filterAnchor)}
+          onClose={closeFilter}
+          title={
+            activeFilterContext === "suggestions"
+              ? "Suggestion Filters"
+              : activeFilterContext === "requests"
+              ? "Request Filters"
+              : activeFilterContext === "friends"
+              ? "Friend Filters"
+              : activeFilterContext === "shared"
+              ? "Shared Filters"
+              : "Filters"
+          }
+          options={
+            activeFilterContext ? filterOptionSets[activeFilterContext] : []
+          }
+          selected={getSelectedFilters()}
+          onApply={applySelectedFilters}
+        />
       </div>
     </>
   );

@@ -553,7 +553,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
 
   return (
     <div className="bg-[#1b1b1b]">
-      <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
         style={{
@@ -561,6 +561,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
           minHeight: "calc(100vh - 100px)",
           backgroundColor: "rgb(11, 11, 11)",
           borderRadius: "8px",
+          marginRight: "20px",
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
           border: "1px solid rgb(0, 0, 0)",
           opacity: 1,

@@ -192,7 +192,7 @@ const CreateGroup = () => {
     } else if (formData.description.trim().length < 10) {
       newErrors.description = "Description must be at least 10 characters";
     }
-    if (formData.memberIds.length < 2) {
+    if (formData.memberIds.length < 1) {
       newErrors.members =
         "Please select at least one friend to add to the group";
     }
@@ -261,7 +261,7 @@ const CreateGroup = () => {
       style={{
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
-        marginTop: "50px",
+        // marginTop: "50px",
         marginRight: "20px",
         backgroundColor: "#0b0b0b",
       }}

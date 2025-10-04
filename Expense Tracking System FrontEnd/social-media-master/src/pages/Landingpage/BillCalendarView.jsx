@@ -147,7 +147,7 @@ const BillCalendarView = () => {
 
   return (
     <div
-      className="bg-[#0b0b0b] p-4 rounded-lg mt-[50px]"
+      className="bg-[#0b0b0b] p-4 rounded-lg"
       style={{
         width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
         height: isSmallScreen ? "auto" : "calc(100vh - 100px)",

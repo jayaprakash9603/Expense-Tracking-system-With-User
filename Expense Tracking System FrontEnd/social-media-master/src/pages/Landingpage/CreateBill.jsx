@@ -1200,7 +1200,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
   return (
     <>
-      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex flex-col relative create-bill-container"
         style={{
@@ -1210,6 +1210,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
           borderRadius: "8px",
           border: "1px solid rgb(0, 0, 0)",
           padding: "20px",
+          marginRight: "20px",
           overflowY: "auto",
         }}
       >

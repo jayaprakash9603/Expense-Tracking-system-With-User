@@ -450,7 +450,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
 
   return (
     <div className="bg-[#1b1b1b]">
-      <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
         style={{

@@ -626,7 +626,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   if (isLoading) {
     return (
       <>
-        <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+        <div className="w-[calc(100vw-350px)]  bg-[#1b1b1b]"></div>
         <div
           className="flex flex-col items-center justify-center"
           style={{

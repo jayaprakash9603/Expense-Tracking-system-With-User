@@ -36,7 +36,7 @@ const Utilities = () => {
 
   return (
     <div className="bg-[#1b1b1b]">
-      <div className="h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex flex-col items-center w-full md:w-[calc(100vw-370px)]  md:h-[calc(100vh-100px)] p-2 md:p-4 rounded-lg border border-black bg-[rgb(11,11,11)] shadow-sm"
         style={{

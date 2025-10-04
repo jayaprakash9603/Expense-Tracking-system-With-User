@@ -20,6 +20,7 @@ import {
 import ExpensesTable from "../Landingpage/ExpensesTable";
 import { useNavigate, useParams } from "react-router";
 import PercentageLoader from "../../components/Loaders/PercentageLoader";
+import PulseLoader from "../../components/Loaders/Loader"; // added
 import { api, API_BASE_URL } from "../../config/api";
 
 const Upload = () => {
@@ -198,7 +199,7 @@ const Upload = () => {
   return (
     <>
       <div className="min-h-screen flex flex-col bg-[#1b1b1b] sm:px-0">
-        <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b] "></div>
+        {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b] "></div> */}
 
         <div
           className="flex flex-col flex-grow sm:p-6 w-full sm:w-[calc(100vw-370px)]"
@@ -429,56 +430,74 @@ const Upload = () => {
       <Backdrop
         sx={{
           color: "#fff",
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          zIndex: (theme) => theme.zIndex.drawer + 1400,
+          backgroundColor: "rgba(0, 0, 0, 0.78)",
           backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          p: 2,
         }}
         open={isLoading}
+        role="alert"
+        aria-live="assertive"
+        aria-label={loadingMessage || "Processing"}
       >
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 3,
-            textAlign: "center",
-          }}
-        >
-          <PercentageLoader
-            percentage={isTableVisible ? saveProgress : uploadProgress}
-            size="xl"
-            trackColor="#2a2a2a"
-            progressColor="#14b8a6"
-            textColor="#fff"
-            showPercentage={true}
-            processed={isTableVisible ? saveProcessed : null}
-            total={isTableVisible ? saveTotal : null}
-          />
-
-          {loadingMessage && (
-            <Box
-              sx={{
-                color: "#fff",
-                fontSize: "1.2rem",
-                fontWeight: "500",
-                textShadow: "0 2px 4px rgba(0,0,0,0.5)",
-              }}
-            >
-              {loadingMessage}
-            </Box>
-          )}
-
+        {/* Show pulse loader for file upload phase (before table visible); show percentage only during save */}
+        {!isTableVisible ? (
+          <PulseLoader message={loadingMessage || "Processing file..."} />
+        ) : (
           <Box
             sx={{
-              color: "#a0a0a0",
-              fontSize: "0.9rem",
-              maxWidth: "300px",
-              lineHeight: 1.5,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 3,
+              textAlign: "center",
+              width: "100%",
+              maxWidth: 420,
+              mx: "auto",
             }}
           >
-            Please wait while we process your request...
+            <PercentageLoader
+              percentage={saveProgress}
+              size="xl"
+              trackColor="#2a2a2a"
+              progressColor="#14b8a6"
+              textColor="#fff"
+              showPercentage={true}
+              processed={saveProcessed}
+              total={saveTotal}
+            />
+            {saveTotal > 0 && (
+              <Box sx={{ color: "#9ca3af", fontSize: "0.8rem" }}>
+                {saveProcessed} / {saveTotal} items saved
+              </Box>
+            )}
+            {loadingMessage && (
+              <Box
+                sx={{
+                  color: "#fff",
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                }}
+              >
+                {loadingMessage}
+              </Box>
+            )}
+            <Box
+              sx={{
+                color: "#a0a0a0",
+                fontSize: "0.85rem",
+                maxWidth: 340,
+                lineHeight: 1.5,
+              }}
+            >
+              Please wait while we process your request...
+            </Box>
           </Box>
-        </Box>
+        )}
       </Backdrop>
     </>
   );

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -38,14 +37,14 @@ const Bill = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [anchorEl, setAnchorEl] = useState(null);
   const [expandedAccordion, setExpandedAccordion] = useState(null);
-  
+
   // Bill action states
   const [billActionAnchorEl, setBillActionAnchorEl] = useState(null);
   const [selectedBillForAction, setSelectedBillForAction] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [billToDelete, setBillToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   // Notification state
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -54,9 +53,11 @@ const Bill = () => {
   });
 
   // Custom hooks
-  const { billsData, loading, error, fetchBillsData, deleteBillData } = useBillData(friendId);
+  const { billsData, loading, error, fetchBillsData, deleteBillData } =
+    useBillData(friendId);
   const { filteredBills, billStats } = useBillFilters(billsData, activeTab);
-  const { currentPage, totalPages, paginatedData, setCurrentPage } = usePagination(filteredBills, 4);
+  const { currentPage, totalPages, paginatedData, setCurrentPage } =
+    usePagination(filteredBills, 4);
 
   // Effects
   useEffect(() => {
@@ -67,9 +68,10 @@ const Bill = () => {
 
   // Event handlers
   const handleBack = () => {
-    const destination = friendId && friendId !== "undefined" 
-      ? `/friends/expenses/${friendId}` 
-      : "/expenses";
+    const destination =
+      friendId && friendId !== "undefined"
+        ? `/friends/expenses/${friendId}`
+        : "/expenses";
     navigate(destination);
   };
 
@@ -89,7 +91,7 @@ const Bill = () => {
       report: friendId ? `/bill/report/${friendId}` : "/bill/report",
       calendar: friendId ? `/bill/calendar/${friendId}` : "/bill/calendar",
     };
-    
+
     if (routes[action]) {
       navigate(routes[action]);
     }
@@ -102,11 +104,11 @@ const Bill = () => {
   const handleDateChange = (newValue) => {
     if (!newValue) return;
     const today = dayjs();
-    
+
     if (newValue.isAfter(today, "month")) {
       return;
     }
-    
+
     setSelectedDate(newValue);
   };
 
@@ -118,11 +120,11 @@ const Bill = () => {
   const handleNextMonth = () => {
     const currentMonth = dayjs();
     const nextMonth = selectedDate.add(1, "month");
-    
+
     if (nextMonth.isAfter(currentMonth, "month")) {
       return;
     }
-    
+
     setSelectedDate(nextMonth);
   };
 
@@ -139,8 +141,8 @@ const Bill = () => {
 
   const handleEditBill = (bill) => {
     handleBillActionClose();
-    const editRoute = friendId 
-      ? `/bill/edit/${bill.id}/friend/${friendId}` 
+    const editRoute = friendId
+      ? `/bill/edit/${bill.id}/friend/${friendId}`
       : `/bill/edit/${bill.id}`;
     navigate(editRoute);
   };
@@ -157,7 +159,7 @@ const Bill = () => {
     try {
       setIsDeleting(true);
       await deleteBillData(billToDelete.id);
-      
+
       // Refresh bills data
       const month = selectedDate.month() + 1;
       const year = selectedDate.year();
@@ -191,7 +193,7 @@ const Bill = () => {
     <Box
       sx={{
         height: "calc(100vh - 100px)",
-        top: "50px",
+        // top: "50px",
         width: "calc(100vw - 370px)",
         backgroundColor: "#0b0b0b",
         position: "relative",
@@ -239,7 +241,8 @@ const Bill = () => {
             onClose={() => setSnackbar({ ...snackbar, open: false })}
             severity={snackbar.severity}
             sx={{
-              backgroundColor: snackbar.severity === "success" ? "#14b8a6" : "#f44336",
+              backgroundColor:
+                snackbar.severity === "success" ? "#14b8a6" : "#f44336",
               color: "#fff",
             }}
           >
@@ -303,36 +306,32 @@ const Bill = () => {
           )}
         </Box>
 
-        
-{totalPages > 1 && (
-  <Box sx={{ display: "flex", justifyContent: "center", mb: 0.5 }}>
-    <Pagination
-      count={totalPages}
-      page={currentPage}
-      onChange={(event, value) => setCurrentPage(value)}
-      color="primary"
-      sx={{
-        "& .MuiPaginationItem-root": {
-          color: "#b0b0b0",
-          "&.Mui-selected": {
-            backgroundColor: "#14b8a6",
-            color: "white",
-          },
-          "&:hover": {
-            backgroundColor: "#14b8a6",
-            opacity: 0.7,
-          },
-        },
-      }}
-    />
-  </Box>
-)}
+        {totalPages > 1 && (
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 0.5 }}>
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={(event, value) => setCurrentPage(value)}
+              color="primary"
+              sx={{
+                "& .MuiPaginationItem-root": {
+                  color: "#b0b0b0",
+                  "&.Mui-selected": {
+                    backgroundColor: "#14b8a6",
+                    color: "white",
+                  },
+                  "&:hover": {
+                    backgroundColor: "#14b8a6",
+                    opacity: 0.7,
+                  },
+                },
+              }}
+            />
+          </Box>
+        )}
 
         {filteredBills.length > 0 && (
-          <BillSummary
-            billStats={billStats}
-            selectedDate={selectedDate}
-          />
+          <BillSummary billStats={billStats} selectedDate={selectedDate} />
         )}
       </Box>
     </Box>
