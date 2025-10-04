@@ -642,7 +642,7 @@ const Friends = () => {
       <style>{scrollbarStyles}</style>
 
       <div className="bg-[#1b1b1b]">
-        <div className="h-[50px] bg-[#1b1b1b]"></div>
+        {/* <div className="h-[50px] bg-[#1b1b1b]"></div> */}
         <div
           className="flex flex-col md:flex-row w-full md:w-[calc(100vw-350px)] p-2 md:p-4 rounded-lg border border-black bg-[rgb(11,11,11)] shadow-sm"
           style={{

@@ -52,7 +52,10 @@ import recentPng from "../../assests/recent.png";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 // Friend related imports (aligned with CashFlow & CategoryFlow)
 import FriendInfoBar from "./FriendInfoBar";
-import { fetchFriendship, fetchFriendsDetailed } from "../../Redux/Friends/friendsActions";
+import {
+  fetchFriendship,
+  fetchFriendsDetailed,
+} from "../../Redux/Friends/friendsActions";
 import ToastNotification from "./ToastNotification";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -298,9 +301,11 @@ const PaymentMethodFlow = () => {
   const { friendId } = useParams();
   const isFriendView = Boolean(friendId && friendId !== "undefined");
   // friend data from store
-  const { friendship, friends, loading: friendsLoading } = useSelector(
-    (state) => state.friends || {}
-  );
+  const {
+    friendship,
+    friends,
+    loading: friendsLoading,
+  } = useSelector((state) => state.friends || {});
   const [showFriendInfo, setShowFriendInfo] = useState(true);
   // Match CashFlow/CategoryFlow chart container heights: mobile 120, tablet 160, desktop 220
   const chartContainerHeight = isMobile ? 120 : isTablet ? 160 : 220;
@@ -412,14 +417,7 @@ const PaymentMethodFlow = () => {
   const refreshData = async (newFriendId) => {
     const id = newFriendId || friendId;
     if (!id) return;
-    dispatch(
-      fetchPaymentMethodsWithExpenses(
-        activeRange,
-        offset,
-        flowTab,
-        id
-      )
-    );
+    dispatch(fetchPaymentMethodsWithExpenses(activeRange, offset, flowTab, id));
   };
 
   function getRandomColor(str) {
@@ -1190,7 +1188,7 @@ const PaymentMethodFlow = () => {
 
   return (
     <>
-      {isFriendView ? (
+      {/* {isFriendView ? (
         <FriendInfoBar
           friendship={friendship}
           friendId={friendId}
@@ -1202,8 +1200,8 @@ const PaymentMethodFlow = () => {
         />
       ) : (
         <div className="h-[50px]"></div>
-      )}
-     
+      )} */}
+
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{

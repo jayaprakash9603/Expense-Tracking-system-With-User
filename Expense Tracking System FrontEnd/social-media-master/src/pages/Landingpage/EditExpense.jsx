@@ -874,7 +874,7 @@ const EditExpense = ({}) => {
 
   return (
     <>
-      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex flex-col relative new-expense-container"
         style={{
@@ -882,6 +882,7 @@ const EditExpense = ({}) => {
           height: "calc(100vh - 100px)",
           backgroundColor: "rgb(11, 11, 11)",
           borderRadius: "8px",
+           marginRight: "20px",
           border: "1px solid rgb(0, 0, 0)",
           padding: "20px",
         }}

@@ -160,7 +160,7 @@ const DayBillsView = () => {
 
   return (
     <div
-      className="bg-[#0b0b0b] p-4 rounded-lg mt-[50px]"
+      className="bg-[#0b0b0b] p-4 rounded-lg"
       style={{
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",

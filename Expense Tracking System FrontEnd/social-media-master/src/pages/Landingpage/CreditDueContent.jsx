@@ -274,7 +274,7 @@ const CreditDueContent = () => {
 
   return (
     <>
-      <div style={headerStyle}></div>
+      {/* <div style={headerStyle}></div> */}
 
       <div className="flex flex-col p-4" style={containerStyle}>
         <Box

@@ -1234,7 +1234,7 @@ const Cashflow = () => {
   return (
     <>
       {/* Friend info bar if in friend view */}
-      {isFriendView && (
+      {/* {isFriendView && (
         <FriendInfoBar
           friendship={friendship}
           friendId={friendId}
@@ -1247,7 +1247,7 @@ const Cashflow = () => {
       )}
       {!isFriendView && (
         <div className={isMobile ? "h-[34px]" : "h-[50px]"}></div>
-      )}
+      )} */}
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{

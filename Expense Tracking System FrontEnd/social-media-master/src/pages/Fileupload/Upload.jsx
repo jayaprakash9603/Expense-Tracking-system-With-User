@@ -199,7 +199,7 @@ const Upload = () => {
   return (
     <>
       <div className="min-h-screen flex flex-col bg-[#1b1b1b] sm:px-0">
-        <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b] "></div>
+        {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b] "></div> */}
 
         <div
           className="flex flex-col flex-grow sm:p-6 w-full sm:w-[calc(100vw-370px)]"

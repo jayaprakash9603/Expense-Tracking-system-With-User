@@ -21,7 +21,7 @@ const TransactionsContent = () => {
 
   return (
     <>
-      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#0b0b0b] sm:bg-[#1b1b1b]"></div>
+      {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#0b0b0b] sm:bg-[#1b1b1b]"></div> */}
 
       <Box
         sx={{

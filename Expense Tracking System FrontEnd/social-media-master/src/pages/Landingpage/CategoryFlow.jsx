@@ -1209,7 +1209,7 @@ const CategoryFlow = () => {
 
   return (
     <>
-      {friendId && friendId !== "undefined" ? (
+      {/* {friendId && friendId !== "undefined" ? (
         <FriendInfoBar
           friendship={friendship}
           friendId={friendId}
@@ -1221,7 +1221,7 @@ const CategoryFlow = () => {
         />
       ) : (
         <div className="h-[50px]"></div>
-      )}
+      )} */}
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{

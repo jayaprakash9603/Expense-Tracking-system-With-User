@@ -82,13 +82,13 @@ const Reports = () => {
 
   return (
     <Box sx={{ bgcolor: "#1b1b1b" }}>
-      <Box
+      {/* <Box
         sx={{
           width: isMobile ? "100%" : "calc(100vw - 370px)",
-          height: "50px",
+          // height: "50px",
           bgcolor: "#1b1b1b",
         }}
-      />
+      /> */}
 
       <Box
         sx={{

@@ -1,7 +1,7 @@
 .payment-methods-report {
   width: calc(100vw - 370px);
   height: calc(100vh - 100px);
-  margin-top: 50px;
+  /* margin-top: 50px; */
   margin-right: 20px;
   padding: 0px 24px 24px 24px;
   background: #0f0f0f;
