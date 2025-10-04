@@ -64,6 +64,7 @@ import {
   fetchPaymentMethodsWithExpenses,
 } from "../../Redux/Payment Method/paymentMethod.action";
 import CreatePaymentMethod from "./CreatePaymentMethod";
+import NoDataPlaceholder from "../../components/NoDataPlaceholder";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -703,7 +704,9 @@ const PaymentMethodFlow = () => {
     if (abs >= 1e9) return `${sign}${(abs / 1e9).toFixed(1)}B`;
     if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(1)}M`;
     if (abs >= 1e3) return `${sign}${(abs / 1e3).toFixed(1)}k`;
-    return value % 1 === 0 ? `${sign}${Math.round(abs)}` : `${sign}${abs.toFixed(2)}`;
+    return value % 1 === 0
+      ? `${sign}${Math.round(abs)}`
+      : `${sign}${abs.toFixed(2)}`;
   };
 
   // Build stacked multi-bar data (per day for month, per weekday for week, per month for year)
@@ -715,7 +718,10 @@ const PaymentMethodFlow = () => {
     }));
 
     const baseNow = dayjs();
-    let baseStart, bucketCount, labels, xKey = "slot";
+    let baseStart,
+      bucketCount,
+      labels,
+      xKey = "slot";
     if (activeRange === "week") {
       baseStart = baseNow.startOf("week").add(offset, "week");
       bucketCount = 7;
@@ -731,7 +737,9 @@ const PaymentMethodFlow = () => {
       labels = yearMonths;
     }
 
-    const data = Array.from({ length: bucketCount }, (_, i) => ({ [xKey]: labels[i] }));
+    const data = Array.from({ length: bucketCount }, (_, i) => ({
+      [xKey]: labels[i],
+    }));
 
     const addAmt = (idx, key, amt) => {
       if (idx < 0 || idx >= data.length) return;
@@ -745,7 +753,11 @@ const PaymentMethodFlow = () => {
           const pm = paymentMethodExpenses[pmName];
           const key = `pm_${pmName.replace(/[^a-zA-Z0-9_]/g, "_")}`;
           if (!segments.find((s) => s.key === key)) {
-            segments.push({ label: pmName, key, color: pm.color || getRandomColor(pmName) });
+            segments.push({
+              label: pmName,
+              key,
+              color: pm.color || getRandomColor(pmName),
+            });
           }
           const expenses = Array.isArray(pm.expenses) ? pm.expenses : [];
           expenses.forEach((e) => {
@@ -753,10 +765,15 @@ const PaymentMethodFlow = () => {
             const d = dayjs(e.date);
             let idx = -1;
             if (activeRange === "week") {
-              const diff = d.startOf("day").diff(baseStart.startOf("day"), "day");
+              const diff = d
+                .startOf("day")
+                .diff(baseStart.startOf("day"), "day");
               idx = diff;
             } else if (activeRange === "month") {
-              if (d.year() === baseStart.year() && d.month() === baseStart.month()) {
+              if (
+                d.year() === baseStart.year() &&
+                d.month() === baseStart.month()
+              ) {
                 idx = d.date() - 1;
               }
             } else {
@@ -845,13 +862,23 @@ const PaymentMethodFlow = () => {
         }}
       >
         {label && (
-          <div style={{ color: "#00DAC6", fontWeight: 700, marginBottom: 8, fontSize: 12 }}>
+          <div
+            style={{
+              color: "#00DAC6",
+              fontWeight: 700,
+              marginBottom: 8,
+              fontSize: 12,
+            }}
+          >
             {label}
           </div>
         )}
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {items.map((item, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div
+              key={idx}
+              style={{ display: "flex", alignItems: "center", gap: 8 }}
+            >
               <span
                 style={{
                   width: 8,
@@ -861,7 +888,15 @@ const PaymentMethodFlow = () => {
                   flexShrink: 0,
                 }}
               />
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  width: "100%",
+                }}
+              >
                 <div
                   title={item?.name}
                   style={{
@@ -875,7 +910,9 @@ const PaymentMethodFlow = () => {
                 >
                   {item?.name}
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 12, color: "#ffffff" }}>
+                <div
+                  style={{ fontWeight: 800, fontSize: 12, color: "#ffffff" }}
+                >
                   ₹{formatCompactNumber(item?.value || 0)}
                 </div>
               </div>
@@ -1346,54 +1383,71 @@ const PaymentMethodFlow = () => {
           }}
         >
           {loading ? (
-            <Skeleton variant="rectangular" width="100%" height={isMobile ? 100 : isTablet ? 130 : 160} animation="wave" sx={{ bgcolor: "#23243a", borderRadius: 2 }} />
+            <Skeleton
+              variant="rectangular"
+              width="100%"
+              height={isMobile ? 100 : isTablet ? 130 : 160}
+              animation="wave"
+              sx={{ bgcolor: "#23243a", borderRadius: 2 }}
+            />
           ) : pieData.length === 0 ? (
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#1b1b1b",
-                borderRadius: 8,
-                border: "1px solid #23243a",
-                position: "relative",
-                minWidth: 0,
-                boxSizing: "border-box",
-              }}
-            >
-              <span
-                style={{
-                  color: "#5b7fff",
-                  fontWeight: 600,
-                  fontSize: isMobile ? "14px" : "18px",
-                  width: "100%",
-                  textAlign: "center",
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  pointerEvents: "none",
-                }}
-              >
-                No payment method data to display
-              </span>
-            </div>
+            <NoDataPlaceholder
+              size={isMobile ? "md" : "lg"}
+              fullWidth
+              message="No data to display"
+              subMessage="Try adjusting filters or date range"
+            />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stackedChartData} margin={{ top: 4, right: isMobile ? 8 : 24, left: 8, bottom: 0 }}>
+              <BarChart
+                data={stackedChartData}
+                margin={{
+                  top: 4,
+                  right: isMobile ? 8 : 24,
+                  left: 8,
+                  bottom: 0,
+                }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
-                <XAxis dataKey={xAxisKey} stroke="#b0b6c3" tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }} tickLine={false} axisLine={{ stroke: "#33384e" }} />
-                <YAxis stroke="#b0b6c3" tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }} axisLine={{ stroke: "#33384e" }} tickLine={false} width={80} tickFormatter={(v) => formatCompactNumber(v)} />
-                <Tooltip cursor={{ fill: "#23243a22" }} content={<PaymentStackTooltip />} wrapperStyle={{ zIndex: 9999 }} allowEscapeViewBox={{ x: true, y: true }} />
+                <XAxis
+                  dataKey={xAxisKey}
+                  stroke="#b0b6c3"
+                  tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
+                  tickLine={false}
+                  axisLine={{ stroke: "#33384e" }}
+                />
+                <YAxis
+                  stroke="#b0b6c3"
+                  tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
+                  axisLine={{ stroke: "#33384e" }}
+                  tickLine={false}
+                  width={80}
+                  tickFormatter={(v) => formatCompactNumber(v)}
+                />
+                <Tooltip
+                  cursor={{ fill: "#23243a22" }}
+                  content={<PaymentStackTooltip />}
+                  wrapperStyle={{ zIndex: 9999 }}
+                  allowEscapeViewBox={{ x: true, y: true }}
+                />
                 {barSegments.map((seg, i) => {
                   const isTopOfStack = i === barSegments.length - 1;
                   return (
-                    <Bar key={seg.key} dataKey={seg.key} name={seg.label} stackId="total" fill={seg.color} radius={isTopOfStack ? [6, 6, 0, 0] : [0, 0, 0, 0]} maxBarSize={48}>
+                    <Bar
+                      key={seg.key}
+                      dataKey={seg.key}
+                      name={seg.label}
+                      stackId="total"
+                      fill={seg.color}
+                      radius={isTopOfStack ? [6, 6, 0, 0] : [0, 0, 0, 0]}
+                      maxBarSize={48}
+                    >
                       {stackedChartData.map((entry, idx) => (
-                        <Cell key={`${seg.key}-${idx}`} cursor="pointer" onClick={() => handleBarSegmentClick(seg, idx)} />
+                        <Cell
+                          key={`${seg.key}-${idx}`}
+                          cursor="pointer"
+                          onClick={() => handleBarSegmentClick(seg, idx)}
+                        />
                       ))}
                     </Bar>
                   );
@@ -1448,16 +1502,15 @@ const PaymentMethodFlow = () => {
                     icon: "history.png",
                     label: "History",
                   },
-                
+
                   {
                     path: "/payment-method/reports",
                     icon: "report.png",
                     label: "Reports",
                   },
                   { path: "/budget", icon: "budget.png", label: "Budget" },
-                  
+
                   { path: "/bill", icon: "bill.png", label: "Bill" },
-                  
                 ].map(({ path, icon, label }) => (
                   <button
                     key={path}
@@ -1718,18 +1771,18 @@ const PaymentMethodFlow = () => {
                   />
                 ))
               ) : sortedPaymentMethodCards.length === 0 ? (
-                <div
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <div className="text-center text-gray-400 py-4">
-                    No payment methods found
-                  </div>
-                </div>
+                <NoDataPlaceholder
+                  size={isMobile ? "lg" : "fill"}
+                  fullWidth
+                  iconSize={isMobile ? 54 : 72}
+                  style={{ minHeight: isMobile ? 260 : 340 }}
+                  message={search ? "No matches" : "No data found"}
+                  subMessage={
+                    search
+                      ? "Try a different search term"
+                      : "Adjust filters or change the period"
+                  }
+                />
               ) : (
                 sortedPaymentMethodCards.map((category, idx) => (
                   <div

@@ -17,7 +17,14 @@ import {
   AreaChart,
   ComposedChart,
 } from "recharts";
-import { IconButton, useMediaQuery, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import {
+  IconButton,
+  useMediaQuery,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 import "./ExpenseDashboard.css";
 import {
   CreditCard,
@@ -157,7 +164,10 @@ const DashboardHeader = ({ onRefresh, onExport, onFilter }) => {
   const open = Boolean(anchorEl);
   const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
-  const handleAndClose = (cb) => () => { handleClose(); cb && cb(); };
+  const handleAndClose = (cb) => () => {
+    handleClose();
+    cb && cb();
+  };
   return (
     <div className="dashboard-header">
       <div className="header-left">
@@ -170,9 +180,9 @@ const DashboardHeader = ({ onRefresh, onExport, onFilter }) => {
         <IconButton
           className="action-btn no-lift"
           aria-label="More actions"
-          aria-controls={open ? 'dashboard-menu' : undefined}
+          aria-controls={open ? "dashboard-menu" : undefined}
           aria-haspopup="true"
-          aria-expanded={open ? 'true' : undefined}
+          aria-expanded={open ? "true" : undefined}
           onClick={handleMenuOpen}
         >
           <MoreVert />
@@ -182,23 +192,30 @@ const DashboardHeader = ({ onRefresh, onExport, onFilter }) => {
           anchorEl={anchorEl}
           open={open}
           onClose={handleClose}
-          MenuListProps={{ 'aria-labelledby': 'dashboard-menu' }}
+          MenuListProps={{ "aria-labelledby": "dashboard-menu" }}
           PaperProps={{
             sx: {
-              backgroundColor: '#1e1e1e',
-              color: '#fff',
-              border: '1px solid #2a2a2a',
+              backgroundColor: "#1e1e1e",
+              color: "#fff",
+              border: "1px solid #2a2a2a",
               minWidth: 220,
-            }
+            },
           }}
         >
           <MenuItem onClick={handleAndClose(onRefresh)}>
-            <ListItemIcon sx={{ color: '#14b8a6' }}><Refresh fontSize="small" /></ListItemIcon>
+            <ListItemIcon sx={{ color: "#14b8a6" }}>
+              <Refresh fontSize="small" />
+            </ListItemIcon>
             <ListItemText primary="Refresh" secondary="Reload dashboard data" />
           </MenuItem>
           <MenuItem onClick={handleAndClose(onExport)}>
-            <ListItemIcon sx={{ color: '#14b8a6' }}><Download fontSize="small" /></ListItemIcon>
-            <ListItemText primary="Export Reports" secondary="Download Excel summaries" />
+            <ListItemIcon sx={{ color: "#14b8a6" }}>
+              <Download fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Export Reports"
+              secondary="Download Excel summaries"
+            />
           </MenuItem>
         </Menu>
       </div>
@@ -278,7 +295,9 @@ const DailySpendingChart = ({
   const chartHeight = isMobile ? 220 : isTablet ? 260 : 300;
   const hideXAxis = timeframe === "last_3_months" || isMobile;
   // animation: create a changing key when core inputs change to retrigger mount animation
-  const animationKey = `${timeframe}-${selectedType}-${Array.isArray(data) ? data.length : 0}`;
+  const animationKey = `${timeframe}-${selectedType}-${
+    Array.isArray(data) ? data.length : 0
+  }`;
   // Protect against non-array `data` (e.g. a Promise or object) which causes
   // "data.map is not a function". Use an empty array fallback.
   const safeData = Array.isArray(data) ? data : [];
@@ -1139,7 +1158,7 @@ const DashboardDataRefetcher = ({
           params.fromDate = start.toISOString().split("T")[0];
           params.toDate = end.toISOString().split("T")[0];
         }
-  // daily type filtering handled by dedicated hook in main component
+        // daily type filtering handled by dedicated hook in main component
         const res = await fetchDailySpending(params);
         setDailySpendingData(Array.isArray(res) ? res : []);
       } catch (e) {
@@ -1223,7 +1242,7 @@ const DashboardDataRefetcher = ({
           params.fromDate = start.toISOString().split("T")[0];
           params.toDate = end.toISOString().split("T")[0];
         }
-  // omit type so summary isn't refetched on daily gain/loss toggle
+        // omit type so summary isn't refetched on daily gain/loss toggle
         const res = await fetchExpenseSummary(params);
         setAnalyticsSummary(res && typeof res === "object" ? res : null);
       } catch (e) {
@@ -1238,7 +1257,7 @@ const DashboardDataRefetcher = ({
       setMonthlyTrendLoading(true);
       try {
         const params = { year: trendYear };
-  // omit type to decouple monthly trend from daily toggle
+        // omit type to decouple monthly trend from daily toggle
         const res = await fetchMonthlyExpenses(params);
         const MONTHS = [
           "Jan",
@@ -1507,7 +1526,7 @@ const ExpenseDashboard = () => {
           params.toDate = end.toISOString().split("T")[0];
         }
         // include transaction type (loss/gain) if provided
-  if (dailyType) params.type = dailyType;
+        if (dailyType) params.type = dailyType;
 
         const res = await fetchDailySpending(params);
         if (mounted) {
@@ -2009,7 +2028,11 @@ const ExpenseDashboard = () => {
                       </div>
                     </div>
                   </div>
-                  <ChartSkeleton height={dailySkeletonHeight} variant="line" noHeader />
+                  <ChartSkeleton
+                    height={dailySkeletonHeight}
+                    variant="line"
+                    noHeader
+                  />
                 </div>
               );
             })()

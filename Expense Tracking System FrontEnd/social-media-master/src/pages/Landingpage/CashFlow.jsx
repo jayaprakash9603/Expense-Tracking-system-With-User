@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   BarChart,
@@ -37,6 +43,7 @@ import Modal from "./Modal";
 // removed image imports for flow icons to use inline SVGs for cleaner, scalable UI
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
+import NoDataPlaceholder from "../../components/NoDataPlaceholder";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -64,29 +71,29 @@ const yearMonths = [
 // Format range label per new requirements (month: full date range, week: week range, year: year only)
 const getRangeLabel = (range, offset) => {
   const base = dayjs();
-  if (range === 'month') {
-    const start = base.startOf('month').add(offset, 'month');
-    const end = base.endOf('month').add(offset, 'month');
+  if (range === "month") {
+    const start = base.startOf("month").add(offset, "month");
+    const end = base.endOf("month").add(offset, "month");
     if (offset === 0) {
       // Current month label format: This Month (Sep 25)
-      return `This Month (${base.format('MMM YY')})`;
+      return `This Month (${base.format("MMM YY")})`;
     }
-    return `${start.format('D MMM YYYY')} - ${end.format('D MMM YYYY')}`;
+    return `${start.format("D MMM YYYY")} - ${end.format("D MMM YYYY")}`;
   }
-  if (range === 'week') {
-    const start = base.startOf('week').add(offset, 'week');
-    const end = base.endOf('week').add(offset, 'week');
+  if (range === "week") {
+    const start = base.startOf("week").add(offset, "week");
+    const end = base.endOf("week").add(offset, "week");
     // Show concise range without redundant year if same year
     if (start.year() === end.year()) {
-      return `${start.format('D MMM')} - ${end.format('D MMM YYYY')}`;
+      return `${start.format("D MMM")} - ${end.format("D MMM YYYY")}`;
     }
-    return `${start.format('D MMM YYYY')} - ${end.format('D MMM YYYY')}`;
+    return `${start.format("D MMM YYYY")} - ${end.format("D MMM YYYY")}`;
   }
-  if (range === 'year') {
-    const year = base.startOf('year').add(offset, 'year').year();
+  if (range === "year") {
+    const year = base.startOf("year").add(offset, "year").year();
     return `${year}`;
   }
-  return '';
+  return "";
 };
 
 const CashflowSearchToolbar = ({
@@ -143,27 +150,39 @@ const flowTypeCycle = [
 const SummaryPill = ({ label, value, icon }) => (
   <span
     style={{
-  background: '#1b1b1b',
-  border: '1px solid #262626',
+      background: "#1b1b1b",
+      border: "1px solid #262626",
       borderRadius: 8,
-      padding: '6px 10px',
+      padding: "6px 10px",
       fontSize: 11,
       fontWeight: 600,
-      color: '#cfd3d8',
-      display: 'inline-flex',
-      alignItems: 'center',
+      color: "#cfd3d8",
+      display: "inline-flex",
+      alignItems: "center",
       gap: 6,
       lineHeight: 1.15,
-      position: 'relative',
+      position: "relative",
       minHeight: 30,
-      boxShadow: '0 2px 4px -1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.03)'
+      boxShadow:
+        "0 2px 4px -1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.03)",
     }}
   >
     {icon && (
-      <span style={{ fontSize: 13, opacity: 0.9, display: 'inline-flex', alignItems: 'center' }}>{icon}</span>
+      <span
+        style={{
+          fontSize: 13,
+          opacity: 0.9,
+          display: "inline-flex",
+          alignItems: "center",
+        }}
+      >
+        {icon}
+      </span>
     )}
     <span style={{ opacity: 0.55, fontWeight: 500 }}>{label}</span>
-    <span style={{ color: '#00dac6', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+    <span style={{ color: "#00dac6", fontVariantNumeric: "tabular-nums" }}>
+      {value}
+    </span>
   </span>
 );
 
@@ -504,7 +523,11 @@ const Cashflow = () => {
   // Handler for bar click (supports single, ctrl/cmd multi, and shift range)
   const handleBarClick = (data, idx, multi = false, rangeSelect = false) => {
     setSelectedCardIdx([]);
-    if (rangeSelect && lastBarSelectedIdx !== null && lastBarSelectedIdx !== undefined) {
+    if (
+      rangeSelect &&
+      lastBarSelectedIdx !== null &&
+      lastBarSelectedIdx !== undefined
+    ) {
       const start = Math.min(lastBarSelectedIdx, idx);
       const end = Math.max(lastBarSelectedIdx, idx);
       const range = [];
@@ -516,7 +539,9 @@ const Cashflow = () => {
       return;
     }
     if (!multi) {
-      setSelectedBar((prev) => (prev && prev.idx === idx ? null : { data, idx }));
+      setSelectedBar((prev) =>
+        prev && prev.idx === idx ? null : { data, idx }
+      );
       setSelectedBars((prev) => {
         if (prev.length === 1 && prev[0].idx === idx) {
           setLastBarSelectedIdx(null);
@@ -615,15 +640,33 @@ const Cashflow = () => {
 
   // Selection statistics (bars). If none selected, fallback to whole chartData.
   const selectionStats = useMemo(() => {
-    const base = selectedBars.length ? selectedBars.map(b => b.data) : [];
+    const base = selectedBars.length ? selectedBars.map((b) => b.data) : [];
     if (!base.length) return null;
-    const amounts = base.map(d => d.amount || 0);
+    const amounts = base.map((d) => d.amount || 0);
     const count = amounts.length;
-    const total = amounts.reduce((a,b)=>a+b,0);
+    const total = amounts.reduce((a, b) => a + b, 0);
     const avg = count ? total / count : 0;
-    let min = Infinity, max = -Infinity, minIdx = -1, maxIdx = -1;
-    amounts.forEach((v,i)=>{ if(v<min){min=v;minIdx=i;} if(v>max){max=v;maxIdx=i;} });
-    return { count, total, avg, min: min===Infinity?0:min, max: max===-Infinity?0:max };
+    let min = Infinity,
+      max = -Infinity,
+      minIdx = -1,
+      maxIdx = -1;
+    amounts.forEach((v, i) => {
+      if (v < min) {
+        min = v;
+        minIdx = i;
+      }
+      if (v > max) {
+        max = v;
+        maxIdx = i;
+      }
+    });
+    return {
+      count,
+      total,
+      avg,
+      min: min === Infinity ? 0 : min,
+      max: max === -Infinity ? 0 : max,
+    };
   }, [selectedBars]);
 
   const clearSelection = () => {
@@ -755,18 +798,15 @@ const Cashflow = () => {
 
   // Render bar chart
   const renderBarChart = () => (
-    <ResponsiveContainer
-      width="100%"
-      height={isMobile ? "100%" : "100%"}
-    >
-  <BarChart
+    <ResponsiveContainer width="100%" height={isMobile ? "100%" : "100%"}>
+      <BarChart
         data={chartData}
         barWidth={barChartStyles.barWidth}
         hideNumbers={barChartStyles.hideNumbers}
         margin={{ right: isMobile ? 0 : 40 }}
         // Use mouse move to capture activeTooltipIndex (works even if bar value ~0)
         onMouseMove={(state) => {
-          if (state && typeof state.activeTooltipIndex === 'number') {
+          if (state && typeof state.activeTooltipIndex === "number") {
             setHoverBarIndex(state.activeTooltipIndex);
           } else {
             setHoverBarIndex(null);
@@ -778,10 +818,15 @@ const Cashflow = () => {
           if (hoverBarIndex !== null && chartData[hoverBarIndex]) {
             const multi = e && (e.ctrlKey || e.metaKey);
             const rangeSel = e && e.shiftKey;
-            handleBarClick(chartData[hoverBarIndex], hoverBarIndex, multi, rangeSel);
+            handleBarClick(
+              chartData[hoverBarIndex],
+              hoverBarIndex,
+              multi,
+              rangeSel
+            );
           }
         }}
-        style={{ cursor: hoverBarIndex !== null ? 'pointer' : 'default' }}
+        style={{ cursor: hoverBarIndex !== null ? "pointer" : "default" }}
       >
         <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
         {/** Custom clickable X axis tick so user can click anywhere on the date label area (not just the bar). */}
@@ -796,15 +841,16 @@ const Cashflow = () => {
             const isSelected = selectedBars.some((b) => b.idx === index);
             // Approximate band width for clickable rect (safer than relying on internals)
             const band = barChartStyles.barWidth + (isMobile ? 8 : 12);
-            const selectedColor = flowTab === 'outflow'
-              ? '#ff4d4f'
-              : flowTab === 'inflow'
-              ? '#06d6a0'
-              : '#5b7fff';
+            const selectedColor =
+              flowTab === "outflow"
+                ? "#ff4d4f"
+                : flowTab === "inflow"
+                ? "#06d6a0"
+                : "#5b7fff";
             return (
               <g
                 transform={`translate(${x},${y})`}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: "pointer" }}
                 onClick={(e) => {
                   const multi = e && (e.ctrlKey || e.metaKey);
                   const rangeSel = e && e.shiftKey;
@@ -817,14 +863,14 @@ const Cashflow = () => {
                 {/* Invisible rectangle expands the hit area for easier clicking */}
                 <rect
                   x={-band / 2}
-                  y={- (isMobile ? 26 : 30)}
+                  y={-(isMobile ? 26 : 30)}
                   width={band}
                   height={isMobile ? 34 : 40}
                   fill="transparent"
                 />
                 <text
                   dy={10}
-                  fill={isSelected ? selectedColor : '#b0b6c3'}
+                  fill={isSelected ? selectedColor : "#b0b6c3"}
                   fontSize={13}
                   fontWeight={isSelected ? 800 : 600}
                   textAnchor="middle"
@@ -897,12 +943,16 @@ const Cashflow = () => {
                   const baseYear = dayjs().startOf("year").add(offset, "year");
                   const monthStart = baseYear.month(monthIdx).startOf("month");
                   const monthEnd = monthStart.endOf("month");
-                  return `${monthStart.format("MMM")} (${monthStart.format("D MMM")} - ${monthEnd.format("D MMM")})`;
+                  return `${monthStart.format("MMM")} (${monthStart.format(
+                    "D MMM"
+                  )} - ${monthEnd.format("D MMM")})`;
                 }
               } else if (activeRange === "month") {
                 const dayNum = parseInt(String(label), 10);
                 if (!isNaN(dayNum)) {
-                  const baseMonth = dayjs().startOf("month").add(offset, "month");
+                  const baseMonth = dayjs()
+                    .startOf("month")
+                    .add(offset, "month");
                   const date = baseMonth.date(dayNum);
                   return date.format("D MMM");
                 }
@@ -1012,16 +1062,16 @@ const Cashflow = () => {
                 key={idx}
                 fill={
                   isSelected
-                    ? (flowTab === 'outflow'
-                        ? '#ff4d4f'
-                        : flowTab === 'inflow'
-                        ? '#06d6a0'
-                        : '#5b7fff')
+                    ? flowTab === "outflow"
+                      ? "#ff4d4f"
+                      : flowTab === "inflow"
+                      ? "#06d6a0"
+                      : "#5b7fff"
                     : isHover
-                    ? '#7895ff'
-                    : '#5b7fff'
+                    ? "#7895ff"
+                    : "#5b7fff"
                 }
-                cursor={chartData.length > 0 ? 'pointer' : 'default'}
+                cursor={chartData.length > 0 ? "pointer" : "default"}
                 onClick={(e) => {
                   if (!chartData.length) return;
                   const multi = e && (e.ctrlKey || e.metaKey);
@@ -1063,13 +1113,13 @@ const Cashflow = () => {
             const axisKey = Object.keys(xAxisMap)[0];
             const xAxisCfg = xAxisMap[axisKey];
             const scale = xAxisCfg && xAxisCfg.scale;
-            if (!scale || typeof scale.bandwidth !== 'function') return null;
+            if (!scale || typeof scale.bandwidth !== "function") return null;
             const bandW = scale.bandwidth();
             return (
               <g>
                 {chartData.map((entry, idx) => {
                   const xPos = scale(entry[xKey]);
-                  if (typeof xPos !== 'number' || isNaN(xPos)) return null;
+                  if (typeof xPos !== "number" || isNaN(xPos)) return null;
                   const isSelected = selectedBars.some((b) => b.idx === idx);
                   const isHover = hoverBarIndex === idx && !isSelected;
                   return (
@@ -1079,17 +1129,21 @@ const Cashflow = () => {
                         y={offset.top}
                         width={bandW}
                         height={offset.height}
-                        fill={(function() {
-                          const base = flowTab === 'outflow'
-                            ? '255,77,79'
-                            : flowTab === 'inflow'
-                            ? '6,214,160'
-                            : '91,127,255';
+                        fill={(function () {
+                          const base =
+                            flowTab === "outflow"
+                              ? "255,77,79"
+                              : flowTab === "inflow"
+                              ? "6,214,160"
+                              : "91,127,255";
                           if (isSelected) return `rgba(${base},0.18)`;
                           if (isHover) return `rgba(${base},0.12)`;
-                          return 'transparent';
+                          return "transparent";
                         })()}
-                        style={{ cursor: 'pointer', transition: 'fill 100ms linear' }}
+                        style={{
+                          cursor: "pointer",
+                          transition: "fill 100ms linear",
+                        }}
                         onMouseEnter={() => setHoverBarIndex(idx)}
                         onMouseLeave={() => setHoverBarIndex(null)}
                         onClick={(e) => {
@@ -1402,116 +1456,160 @@ const Cashflow = () => {
         `}</style>
         </div>
         {/* Enhanced Selection Summary Bar */}
-  {selectionStats && selectionStats.count > 1 && (
+        {selectionStats && selectionStats.count > 1 && (
           <div
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 14,
-      left: '50%',
-      // Shift 50px to the right from centered position
-      transform: 'translateX(calc(-50% + 50px))',
+              left: "50%",
+              // Shift 50px to the right from centered position
+              transform: "translateX(calc(-50% + 50px))",
               zIndex: 7,
-              maxWidth: isMobile ? '94%' : 840,
-              width: 'max-content',
-              pointerEvents: 'auto'
+              maxWidth: isMobile ? "94%" : 840,
+              width: "max-content",
+              pointerEvents: "auto",
             }}
           >
             <div
               style={{
-                display: 'flex',
-                flexDirection: 'column',
+                display: "flex",
+                flexDirection: "column",
                 gap: 6,
               }}
             >
               <div
                 style={{
-                  display: 'flex',
-                  alignItems: 'stretch',
+                  display: "flex",
+                  alignItems: "stretch",
                   gap: 8,
-                  background: '#1b1b1b',
-                  backdropFilter: 'blur(10px) saturate(140%)',
-                  WebkitBackdropFilter: 'blur(10px) saturate(140%)',
-                  border: '1px solid rgba(255,255,255,0.05)',
-                  boxShadow: '0 4px 18px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.6)',
+                  background: "#1b1b1b",
+                  backdropFilter: "blur(10px) saturate(140%)",
+                  WebkitBackdropFilter: "blur(10px) saturate(140%)",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                  boxShadow:
+                    "0 4px 18px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.6)",
                   borderRadius: 14,
-                  padding: '10px 14px 10px 14px',
-                  position: 'relative',
-                  overflow: 'hidden'
+                  padding: "10px 14px 10px 14px",
+                  position: "relative",
+                  overflow: "hidden",
                 }}
               >
                 {/* Decorative gradient shimmer */}
                 {/* Removed decorative gradient overlays per solid background request */}
 
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: summaryExpanded ? 8 : 0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    paddingRight: summaryExpanded ? 8 : 0,
+                  }}
+                >
                   <button
-                    onClick={() => setSummaryExpanded(e => !e)}
-                    aria-label={summaryExpanded ? 'Collapse selection stats' : 'Expand selection stats'}
+                    onClick={() => setSummaryExpanded((e) => !e)}
+                    aria-label={
+                      summaryExpanded
+                        ? "Collapse selection stats"
+                        : "Expand selection stats"
+                    }
                     style={{
-                      background: '#1b1b1b',
-                      border: '1px solid #303030',
-                      color: '#00dac6',
+                      background: "#1b1b1b",
+                      border: "1px solid #303030",
+                      color: "#00dac6",
                       width: 34,
                       height: 34,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                       borderRadius: 10,
-                      cursor: 'pointer',
+                      cursor: "pointer",
                       fontSize: 16,
                       fontWeight: 600,
-                      boxShadow: '0 2px 6px -2px #0009, inset 0 0 0 1px rgba(255,255,255,0.03)',
-                      transition: 'all .35s cubic-bezier(.4,0,.2,1)'
+                      boxShadow:
+                        "0 2px 6px -2px #0009, inset 0 0 0 1px rgba(255,255,255,0.03)",
+                      transition: "all .35s cubic-bezier(.4,0,.2,1)",
                     }}
-                    title={summaryExpanded ? 'Hide stats' : 'Show stats'}
+                    title={summaryExpanded ? "Hide stats" : "Show stats"}
                   >
-                    {summaryExpanded ? '−' : '+'}
+                    {summaryExpanded ? "−" : "+"}
                   </button>
                 </div>
 
                 <div
                   style={{
-                    display: 'flex',
+                    display: "flex",
                     gap: 10,
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
+                    alignItems: "center",
+                    flexWrap: "wrap",
                     paddingLeft: 4,
                     paddingRight: 4,
-                    maxWidth: summaryExpanded ? (isMobile ? '66vw' : '600px') : 0,
-                    overflow: 'hidden',
-                    transition: 'max-width .45s cubic-bezier(.4,0,.2,1)'
+                    maxWidth: summaryExpanded
+                      ? isMobile
+                        ? "66vw"
+                        : "600px"
+                      : 0,
+                    overflow: "hidden",
+                    transition: "max-width .45s cubic-bezier(.4,0,.2,1)",
                   }}
                 >
                   {summaryExpanded && (
                     <>
-                      <SummaryPill icon="" label="Expenses" value={selectedBars.length ? sortedCardData.length : 0} />
-                      <SummaryPill icon="💰" label="Total" value={formatNumberFull(selectionStats.total)} />
-                      <SummaryPill icon="📊" label="Avg" value={formatNumberFull(Math.trunc(selectionStats.avg))} />
-                      <SummaryPill icon="⬇" label="Min" value={formatNumberFull(selectionStats.min)} />
-                      <SummaryPill icon="⬆" label="Max" value={formatNumberFull(selectionStats.max)} />
+                      <SummaryPill
+                        icon=""
+                        label="Expenses"
+                        value={selectedBars.length ? sortedCardData.length : 0}
+                      />
+                      <SummaryPill
+                        icon="💰"
+                        label="Total"
+                        value={formatNumberFull(selectionStats.total)}
+                      />
+                      <SummaryPill
+                        icon="📊"
+                        label="Avg"
+                        value={formatNumberFull(Math.trunc(selectionStats.avg))}
+                      />
+                      <SummaryPill
+                        icon="⬇"
+                        label="Min"
+                        value={formatNumberFull(selectionStats.min)}
+                      />
+                      <SummaryPill
+                        icon="⬆"
+                        label="Max"
+                        value={formatNumberFull(selectionStats.max)}
+                      />
                     </>
                   )}
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', marginLeft: 4 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginLeft: 4,
+                  }}
+                >
                   <button
                     onClick={clearSelection}
                     style={{
-                      background: '#2a1313',
-                      border: '1px solid #4b1d1d',
-                      color: '#ff6b6b',
+                      background: "#2a1313",
+                      border: "1px solid #4b1d1d",
+                      color: "#ff6b6b",
                       fontSize: 12,
-                      padding: '8px 12px',
+                      padding: "8px 12px",
                       borderRadius: 10,
-                      cursor: 'pointer',
+                      cursor: "pointer",
                       fontWeight: 600,
                       lineHeight: 1,
-                      display: 'flex',
-                      alignItems: 'center',
+                      display: "flex",
+                      alignItems: "center",
                       gap: 6,
-                      boxShadow: '0 2px 6px -2px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.04)',
-                      transition: 'background .35s, transform .25s'
+                      boxShadow:
+                        "0 2px 6px -2px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.04)",
+                      transition: "background .35s, transform .25s",
                     }}
-                    onMouseDown={e => e.preventDefault()}
+                    onMouseDown={(e) => e.preventDefault()}
                     title="Clear selection"
                   >
                     <span style={{ fontSize: 14 }}>✕</span>
@@ -1596,40 +1694,12 @@ const Cashflow = () => {
               sx={{ bgcolor: "#23243a", borderRadius: 2 }}
             />
           ) : chartData.length === 0 ? (
-            <div
-              style={{
-                width: "100%",
-                height: isMobile ? "80px" : "150px", // Adjust height for small screens
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#1b1b1b",
-                borderRadius: 8,
-                border: "1px solid #23243a",
-                position: "relative",
-                minWidth: 0,
-                boxSizing: "border-box",
-                padding: isMobile ? "5px" : "16px", // Add padding for small screens
-              }}
-            >
-              <span
-                style={{
-                  color: "#5b7fff",
-                  fontWeight: 600,
-                  fontSize: isMobile ? "14px" : "18px", // Adjust font size for small screens
-                  width: "100%",
-                  textAlign: "center",
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  pointerEvents: "none",
-                }}
-              >
-                No data to display
-              </span>
-            </div>
+            <NoDataPlaceholder
+              size={isMobile ? "md" : "lg"}
+              fullWidth
+              message="No data to display"
+              subMessage="Try adjusting filters or date range"
+            />
           ) : (
             renderBarChart()
           )}
@@ -2043,18 +2113,18 @@ const Cashflow = () => {
               />
             ))
           ) : sortedCardData.length === 0 ? (
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <div className="col-span-full text-center text-gray-400 py-4">
-                No data found
-              </div>
-            </div>
+            <NoDataPlaceholder
+              size={isMobile ? "lg" : "fill"}
+              fullWidth
+              iconSize={isMobile ? 54 : 72}
+              style={{ minHeight: isMobile ? 260 : 340 }}
+              message={search ? "No matches" : "No data found"}
+              subMessage={
+                search
+                  ? "Try a different search term"
+                  : "Adjust filters or change the period"
+              }
+            />
           ) : (
             sortedCardData.map((row, idx) => {
               const isSelected = selectedCardIdx.includes(idx);

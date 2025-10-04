@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import NoDataPlaceholder from "../../components/NoDataPlaceholder";
 import { useDispatch, useSelector } from "react-redux";
 import {
   PieChart,
@@ -1501,39 +1502,12 @@ const CategoryFlow = () => {
               }}
             />
           ) : pieData.length === 0 ? (
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#1b1b1b",
-                borderRadius: 8,
-                border: "1px solid #23243a",
-                position: "relative",
-                minWidth: 0,
-                boxSizing: "border-box",
-              }}
-            >
-              <span
-                style={{
-                  color: "#5b7fff",
-                  fontWeight: 600,
-                  fontSize: isMobile ? "14px" : "18px",
-                  width: "100%",
-                  textAlign: "center",
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  pointerEvents: "none",
-                }}
-              >
-                No category data to display
-              </span>
-            </div>
+            <NoDataPlaceholder
+              size={isMobile ? "md" : "lg"}
+              fullWidth
+              message="No data to display"
+              subMessage="Try adjusting filters or date range"
+            />
           ) : (
             renderStackedBarChart()
           )}
@@ -1591,7 +1565,6 @@ const CategoryFlow = () => {
                     label: "Payment Method",
                   },
                   { path: "/bill", icon: "bill.png", label: "Bill" },
-                
                 ].map(({ path, icon, label }) => (
                   <button
                     key={path}
@@ -1854,18 +1827,18 @@ const CategoryFlow = () => {
                   />
                 ))
               ) : sortedCategoryCards.length === 0 ? (
-                <div
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <div className="text-center text-gray-400 py-4">
-                    No categories found
-                  </div>
-                </div>
+                <NoDataPlaceholder
+                  size={isMobile ? "lg" : "fill"}
+                  fullWidth
+                  iconSize={isMobile ? 54 : 72}
+                  style={{ minHeight: isMobile ? 260 : 340 }}
+                  message={search ? "No matches" : "No data found"}
+                  subMessage={
+                    search
+                      ? "Try a different search term"
+                      : "Adjust filters or change the period"
+                  }
+                />
               ) : (
                 sortedCategoryCards.map((category, idx) => (
                   <div
