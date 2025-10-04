@@ -18,6 +18,7 @@ import {
   ListItemText,
   Divider,
   Typography,
+  Skeleton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -55,6 +56,7 @@ import FriendsEmptyState from "../../components/FriendsEmptyState";
 // Removed direct NoDataPlaceholder import; using FriendsEmptyState everywhere for consistency
 import SharingCard from "../../components/SharingCard";
 import FilterPopover from "../../components/FilterPopover";
+import ListSkeleton from "../../components/ListSkeleton";
 import {
   filterSuggestions,
   filterRequests,
@@ -914,8 +916,11 @@ const Friends = () => {
 
                 {/* Loading State */}
                 {loading && (
-                  <div className="flex justify-center my-4">
-                    <CircularProgress size={40} sx={{ color: "#14b8a6" }} />
+                  <div
+                    className="my-4 pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    <ListSkeleton count={3} variant="user" />
                   </div>
                 )}
 
@@ -926,60 +931,61 @@ const Friends = () => {
                   </div>
                 )}
 
-                {/* Friends List with custom scrollbar */}
-                <div
-                  className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
-                  style={{ maxHeight: "calc(100vh - 300px)" }}
-                >
-                  {filteredSuggestions.length === 0 && !loading ? (
-                    <FriendsEmptyState
-                      type="suggestions"
-                      searchActive={Boolean(searchTerm)}
-                    />
-                  ) : (
-                    filteredSuggestions.map((friend) => (
-                      <div
-                        key={friend.id}
-                        className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
-                          selectedFriend?.id === friend.id
-                            ? "border-2 border-[#14b8a6]"
-                            : ""
-                        }`}
-                        onClick={() => handleFriendSelect(friend)}
-                      >
-                        <div className="flex items-center flex-grow mr-2">
-                          <div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
-                            style={{
-                              backgroundColor: getAvatarColor(friend.id),
-                            }}
-                          >
-                            {getInitials(friend.firstName, friend.lastName)}
-                          </div>
-                          <div className="max-w-[calc(100%-80px)]">
-                            <p className="text-white font-medium truncate">
-                              {friend.firstName} {friend.lastName}
-                            </p>
-                            <p className="text-sm text-gray-400 truncate">
-                              {friend.email}
-                            </p>
-                            <div className="flex items-center mt-1">
-                              {getAccessLevelIcon(
-                                friend.friendship?.recipientAccess || "NONE"
-                              )}
-                              <span className="text-xs text-gray-400 ml-2">
-                                {getAccessLevelDescription(
+                {!loading && (
+                  <div
+                    className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    {filteredSuggestions.length === 0 ? (
+                      <FriendsEmptyState
+                        type="suggestions"
+                        searchActive={Boolean(searchTerm)}
+                      />
+                    ) : (
+                      filteredSuggestions.map((friend) => (
+                        <div
+                          key={friend.id}
+                          className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
+                            selectedFriend?.id === friend.id
+                              ? "border-2 border-[#14b8a6]"
+                              : ""
+                          }`}
+                          onClick={() => handleFriendSelect(friend)}
+                        >
+                          <div className="flex items-center flex-grow mr-2">
+                            <div
+                              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
+                              style={{
+                                backgroundColor: getAvatarColor(friend.id),
+                              }}
+                            >
+                              {getInitials(friend.firstName, friend.lastName)}
+                            </div>
+                            <div className="max-w-[calc(100%-80px)]">
+                              <p className="text-white font-medium truncate">
+                                {friend.firstName} {friend.lastName}
+                              </p>
+                              <p className="text-sm text-gray-400 truncate">
+                                {friend.email}
+                              </p>
+                              <div className="flex items-center mt-1">
+                                {getAccessLevelIcon(
                                   friend.friendship?.recipientAccess || "NONE"
                                 )}
-                              </span>
+                                <span className="text-xs text-gray-400 ml-2">
+                                  {getAccessLevelDescription(
+                                    friend.friendship?.recipientAccess || "NONE"
+                                  )}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <ChevronRight className="text-gray-400 flex-shrink-0" />
                         </div>
-                        <ChevronRight className="text-gray-400 flex-shrink-0" />
-                      </div>
-                    ))
-                  )}
-                </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </>
             ) : activeTab === 1 ? (
               // Requests Tab Content
@@ -1053,8 +1059,11 @@ const Friends = () => {
 
                 {/* Loading State */}
                 {loadingRequests && (
-                  <div className="flex justify-center my-4">
-                    <CircularProgress size={40} sx={{ color: "#14b8a6" }} />
+                  <div
+                    className="my-4 pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    <ListSkeleton count={3} variant="user" />
                   </div>
                 )}
 
@@ -1065,73 +1074,71 @@ const Friends = () => {
                   </div>
                 )}
 
-                {/* Friend Requests List with custom scrollbar */}
-                <div
-                  className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
-                  style={{ maxHeight: "calc(100vh - 300px)" }}
-                >
-                  {filteredRequests.length === 0 && !loadingRequests ? (
-                    <FriendsEmptyState
-                      type="requests"
-                      searchActive={Boolean(requestSearchTerm)}
-                    />
-                  ) : (
-                    filteredRequests.map((request) => {
-                      // Get the requester (the person who sent the request)
-                      const requester = request.requester;
-
-                      return (
-                        <div
-                          key={request.id}
-                          className="bg-[#2a2a2a] p-4 rounded-lg"
-                        >
-                          <div className="flex items-center mb-4">
-                            <div className="mr-4">
-                              <UserAvatar user={requester} />
+                {!loadingRequests && (
+                  <div
+                    className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    {filteredRequests.length === 0 ? (
+                      <FriendsEmptyState
+                        type="requests"
+                        searchActive={Boolean(requestSearchTerm)}
+                      />
+                    ) : (
+                      filteredRequests.map((request) => {
+                        const requester = request.requester;
+                        return (
+                          <div
+                            key={request.id}
+                            className="bg-[#2a2a2a] p-4 rounded-lg"
+                          >
+                            <div className="flex items-center mb-4">
+                              <div className="mr-4">
+                                <UserAvatar user={requester} />
+                              </div>
+                              <div className="min-w-0 flex-grow">
+                                <p className="text-white font-medium truncate">
+                                  {requester.firstName} {requester.lastName}
+                                </p>
+                                <p className="text-sm text-gray-400 overflow-hidden text-ellipsis">
+                                  {requester.email}
+                                </p>
+                              </div>
                             </div>
-                            <div className="min-w-0 flex-grow">
-                              <p className="text-white font-medium truncate">
-                                {requester.firstName} {requester.lastName}
-                              </p>
-                              <p className="text-sm text-gray-400 overflow-hidden text-ellipsis">
-                                {requester.email}
-                              </p>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="contained"
+                                color="success"
+                                startIcon={<CheckCircleIcon />}
+                                onClick={() =>
+                                  handleRespondToRequest(request.id, true)
+                                }
+                                disabled={respondingToRequest}
+                                size="small"
+                                fullWidth
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                variant="contained"
+                                color="error"
+                                startIcon={<CancelIcon />}
+                                onClick={() =>
+                                  handleRespondToRequest(request.id, false)
+                                }
+                                disabled={respondingToRequest}
+                                size="small"
+                                fullWidth
+                              >
+                                Reject
+                              </Button>
                             </div>
                           </div>
-
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="contained"
-                              color="success"
-                              startIcon={<CheckCircleIcon />}
-                              onClick={() =>
-                                handleRespondToRequest(request.id, true)
-                              }
-                              disabled={respondingToRequest}
-                              size="small"
-                              fullWidth
-                            >
-                              Accept
-                            </Button>
-                            <Button
-                              variant="contained"
-                              color="error"
-                              startIcon={<CancelIcon />}
-                              onClick={() =>
-                                handleRespondToRequest(request.id, false)
-                              }
-                              disabled={respondingToRequest}
-                              size="small"
-                              fullWidth
-                            >
-                              Reject
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
               </>
             ) : activeTab === 2 ? (
               // My Friends Tab Content
@@ -1204,11 +1211,14 @@ const Friends = () => {
                 {/* Chips removed per request */}
 
                 {/* Loading State */}
-                {/* {loadingFriends && (
-                  <div className="flex justify-center my-4">
-                    <CircularProgress size={40} sx={{ color: "#14b8a6" }} />
+                {loadingFriends && (
+                  <div
+                    className="my-4 pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    <ListSkeleton count={3} variant="user" />
                   </div>
-                )} */}
+                )}
 
                 {/* Error State */}
                 {friendsError && (
@@ -1217,75 +1227,75 @@ const Friends = () => {
                   </div>
                 )}
 
-                {/* Friends List with custom scrollbar */}
-                <div
-                  className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
-                  style={{ maxHeight: "calc(100vh - 300px)" }}
-                >
-                  {filteredFriends.length === 0 && !loadingFriends ? (
-                    <FriendsEmptyState
-                      type="friends"
-                      searchActive={Boolean(friendSearchTerm)}
-                    />
-                  ) : (
-                    filteredFriends.map((friend) => (
-                      <div
-                        key={friend.id}
-                        className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
-                          selectedFriend?.id === friend.id
-                            ? "border-2 border-[#14b8a6]"
-                            : ""
-                        }`}
-                        onClick={() => handleFriendSelect(friend)}
-                      >
-                        <div className="flex items-center flex-grow mr-2">
-                          <div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
-                            style={{
-                              backgroundColor: getAvatarColor(friend.id),
-                            }}
-                          >
-                            {getInitials(friend.firstName, friend.lastName)}
-                          </div>
-                          <div className="max-w-[calc(100%-80px)]">
-                            <p className="text-white font-medium truncate">
-                              {friend.firstName} {friend.lastName}
-                            </p>
-                            <p className="text-sm text-gray-400 truncate">
-                              {friend.email}
-                            </p>
-                            <div className="flex items-center mt-1">
-                              {getAccessLevelIcon(
-                                // Check if the current user is the requester or recipient and show the appropriate access level
-                                friend.friendship?.requester.id === user.id
-                                  ? friend.friendship?.recipientAccess // If user is requester, show what they gave to recipient
-                                  : friend.friendship?.requesterAccess // If user is recipient, show what they gave to requester
-                              )}
-                              <span className="text-xs text-gray-400 ml-2">
-                                {getAccessLevelDescription(
+                {!loadingFriends && (
+                  <div
+                    className="space-y-3 overflow-y-auto pr-2 custom-scrollbar"
+                    style={{ maxHeight: "calc(100vh - 300px)" }}
+                  >
+                    {filteredFriends.length === 0 ? (
+                      <FriendsEmptyState
+                        type="friends"
+                        searchActive={Boolean(friendSearchTerm)}
+                      />
+                    ) : (
+                      filteredFriends.map((friend) => (
+                        <div
+                          key={friend.id}
+                          className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
+                            selectedFriend?.id === friend.id
+                              ? "border-2 border-[#14b8a6]"
+                              : ""
+                          }`}
+                          onClick={() => handleFriendSelect(friend)}
+                        >
+                          <div className="flex items-center flex-grow mr-2">
+                            <div
+                              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
+                              style={{
+                                backgroundColor: getAvatarColor(friend.id),
+                              }}
+                            >
+                              {getInitials(friend.firstName, friend.lastName)}
+                            </div>
+                            <div className="max-w-[calc(100%-80px)]">
+                              <p className="text-white font-medium truncate">
+                                {friend.firstName} {friend.lastName}
+                              </p>
+                              <p className="text-sm text-gray-400 truncate">
+                                {friend.email}
+                              </p>
+                              <div className="flex items-center mt-1">
+                                {getAccessLevelIcon(
                                   friend.friendship?.requester.id === user.id
                                     ? friend.friendship?.recipientAccess
                                     : friend.friendship?.requesterAccess
                                 )}
-                              </span>
+                                <span className="text-xs text-gray-400 ml-2">
+                                  {getAccessLevelDescription(
+                                    friend.friendship?.requester.id === user.id
+                                      ? friend.friendship?.recipientAccess
+                                      : friend.friendship?.requesterAccess
+                                  )}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <div className="flex items-center">
+                            <Button
+                              onClick={(e) =>
+                                handleAccessMenuOpen(e, friend.friendship)
+                              }
+                              sx={{ color: "#14b8a6", minWidth: "40px" }}
+                            >
+                              <Settings />
+                            </Button>
+                            <ChevronRight className="text-gray-400 flex-shrink-0" />
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <Button
-                            onClick={(e) =>
-                              handleAccessMenuOpen(e, friend.friendship)
-                            }
-                            sx={{ color: "#14b8a6", minWidth: "40px" }}
-                          >
-                            <Settings />
-                          </Button>
-                          <ChevronRight className="text-gray-400 flex-shrink-0" />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </>
             ) : (
               // Shared Expenses Tab Content - NEW DESIGN
@@ -1407,16 +1417,13 @@ const Friends = () => {
                   );
 
                   if (sharingViewMode === "combined") {
-                    if (
-                      (loadingSharedWithMe || loadingISharedWith) &&
-                      (finalCombined?.length || 0) === 0
-                    ) {
+                    if (loadingSharedWithMe || loadingISharedWith) {
                       return (
-                        <div className="flex justify-center py-10">
-                          <CircularProgress
-                            size={34}
-                            sx={{ color: "#14b8a6" }}
-                          />
+                        <div
+                          className="custom-scrollbar overflow-y-auto pr-1 py-2"
+                          style={{ maxHeight: "calc(100vh - 340px)" }}
+                        >
+                          <ListSkeleton count={3} variant="sharing" />
                         </div>
                       );
                     }
@@ -1455,12 +1462,7 @@ const Friends = () => {
                             >
                               Friends Sharing With Me
                             </Typography>
-                            {loadingSharedWithMe && (
-                              <CircularProgress
-                                size={16}
-                                sx={{ color: "#14b8a6" }}
-                              />
-                            )}
+                            {loadingSharedWithMe && <></>}
                           </div>
                           {sharedWithMe.length > 0 && (
                             <span className="text-xs px-2 py-1 rounded-full bg-[#14b8a61a] text-[#14b8a6] border border-[#14b8a633]">
@@ -1495,12 +1497,7 @@ const Friends = () => {
                             >
                               I'm Sharing With
                             </Typography>
-                            {loadingISharedWith && (
-                              <CircularProgress
-                                size={16}
-                                sx={{ color: "#14b8a6" }}
-                              />
-                            )}
+                            {loadingISharedWith && <></>}
                           </div>
                           {iSharedWith.length > 0 && (
                             <span className="text-xs px-2 py-1 rounded-full bg-[#14b8a61a] text-[#14b8a6] border border-[#14b8a633]">
