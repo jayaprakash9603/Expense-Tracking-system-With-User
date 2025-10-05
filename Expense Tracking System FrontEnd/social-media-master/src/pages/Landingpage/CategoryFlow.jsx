@@ -1607,7 +1607,7 @@ const CategoryFlow = () => {
             <NoDataPlaceholder
               size={isMobile ? "md" : "lg"}
               fullWidth
-              message="No data to display"
+              message="No Category data to display"
               subMessage="Try adjusting filters or date range"
             />
           ) : (
