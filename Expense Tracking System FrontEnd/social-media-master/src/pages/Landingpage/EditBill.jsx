@@ -8,6 +8,7 @@ import {
   Box,
   IconButton,
   Button,
+  Skeleton,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
@@ -623,26 +624,52 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     });
   };
 
-  if (isLoading) {
-    return (
-      <>
-        {/* <div className="w-[calc(100vw-350px)]  bg-[#1b1b1b]"></div> */}
-        <div
-          className="flex flex-col items-center justify-center"
-          style={{
-            width: "calc(100vw - 370px)",
-            height: "calc(100vh - 100px)",
-            backgroundColor: "rgb(11, 11, 11)",
-            borderRadius: "8px",
-            border: "1px solid rgb(0, 0, 0)",
-          }}
-        >
-          <CircularProgress sx={{ color: "#00DAC6" }} size={60} />
-          <p className="text-white mt-4 text-lg">Loading bill data...</p>
-        </div>
-      </>
-    );
-  }
+  // Skeleton helpers to avoid layout shift while loading
+  const FieldSkeleton = ({ width = 300 }) => (
+    <Skeleton
+      variant="rectangular"
+      height={56}
+      width={width}
+      sx={{ bgcolor: "#29282b", borderRadius: 1 }}
+    />
+  );
+
+  const ExpenseItemSkeleton = () => (
+    <div className="bg-[#1b1b1b] rounded-lg p-2 border border-gray-700 animate-pulse">
+      <div className="flex justify-between mb-2">
+        <Skeleton
+          variant="text"
+          width={90}
+          height={16}
+          sx={{ bgcolor: "#333" }}
+        />
+        <Skeleton
+          variant="text"
+          width={50}
+          height={16}
+          sx={{ bgcolor: "#333" }}
+        />
+      </div>
+      <Skeleton
+        variant="text"
+        width={120}
+        height={12}
+        sx={{ bgcolor: "#2d2d2d" }}
+      />
+      <Skeleton
+        variant="text"
+        width={100}
+        height={12}
+        sx={{ bgcolor: "#2d2d2d" }}
+      />
+      <Skeleton
+        variant="text"
+        width={80}
+        height={12}
+        sx={{ bgcolor: "#2d2d2d" }}
+      />
+    </div>
+  );
 
   if (loadError) {
     return (
@@ -1585,7 +1612,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                         >
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-1 min-w-0 pr-2">
-                              
                               <h5
                                 className="text-white font-medium text-xs truncate max-w-[140px]"
                                 title={expense.itemName}
