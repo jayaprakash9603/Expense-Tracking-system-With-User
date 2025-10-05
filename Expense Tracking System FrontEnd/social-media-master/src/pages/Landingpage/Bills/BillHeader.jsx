@@ -1,12 +1,12 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   IconButton,
   Popover,
   MenuList,
   MenuItem,
-  Typography
-} from '@mui/material';
+  Typography,
+} from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
   MoreVert as MoreVertIcon,
@@ -14,15 +14,16 @@ import {
   Upload as UploadIcon,
   Assessment as AssessmentIcon,
   CalendarToday as CalendarIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
-const BillHeader = ({ 
-  friendId, 
-  onBack, 
-  menuAnchorEl, 
-  onMenuClick, 
-  onMenuClose, 
-  onMenuItemClick 
+const BillHeader = ({
+  friendId,
+  onBack,
+  menuAnchorEl,
+  onMenuClick,
+  onMenuClose,
+  onMenuItemClick,
+  hasWriteAccess,
 }) => {
   const open = Boolean(menuAnchorEl);
 
@@ -74,12 +75,26 @@ const BillHeader = ({
           }}
         >
           <MenuList sx={{ py: 1 }}>
-            {[
-              { key: 'new', icon: AddIcon, label: 'New Bill' },
-              { key: 'upload', icon: UploadIcon, label: 'Upload Bill' },
-              { key: 'report', icon: AssessmentIcon, label: 'Bill Report' },
-              { key: 'calendar', icon: CalendarIcon, label: 'Bill Calendar' }
-            ].map(({ key, icon: Icon, label }) => (
+            {(hasWriteAccess
+              ? [
+                  { key: "new", icon: AddIcon, label: "New Bill" },
+                  { key: "upload", icon: UploadIcon, label: "Upload Bill" },
+                  { key: "report", icon: AssessmentIcon, label: "Bill Report" },
+                  {
+                    key: "calendar",
+                    icon: CalendarIcon,
+                    label: "Bill Calendar",
+                  },
+                ]
+              : [
+                  { key: "report", icon: AssessmentIcon, label: "Bill Report" },
+                  {
+                    key: "calendar",
+                    icon: CalendarIcon,
+                    label: "Bill Calendar",
+                  },
+                ]
+            ).map(({ key, icon: Icon, label }) => (
               <MenuItem
                 key={key}
                 onClick={() => onMenuItemClick(key)}

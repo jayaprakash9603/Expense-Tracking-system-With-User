@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { fetchCategoriesWithExpenses } from "../../Redux/Expenses/expense.action";
 import dayjs from "dayjs";
+import useFriendAccess from "../../hooks/useFriendAccess";
 import {
   IconButton,
   Skeleton,
@@ -300,6 +301,11 @@ const PaymentMethodFlow = () => {
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const { friendId } = useParams();
   const isFriendView = Boolean(friendId && friendId !== "undefined");
+  const currentUserId = useSelector(
+    (s) => s.auth?.user?.id || s.auth?.userId || null
+  );
+  // Centralized access hook
+  const { hasWriteAccess } = useFriendAccess(friendId);
   // friend data from store
   const {
     friendship,
@@ -310,6 +316,7 @@ const PaymentMethodFlow = () => {
   // Match CashFlow/CategoryFlow chart container heights: mobile 120, tablet 160, desktop 220
   const chartContainerHeight = isMobile ? 120 : isTablet ? 160 : 220;
   const pieSkeletonSize = isMobile ? 110 : isTablet ? 140 : 160;
+  // hasWriteAccess now supplied by hook
 
   // Fetch data from API with correct flowType (include friendId when in friend view)
   useEffect(() => {
@@ -1535,24 +1542,38 @@ const PaymentMethodFlow = () => {
               >
                 {[
                   {
-                    path: friendId ? `/category-flow/${friendId}` : "/category-flow",
+                    path: friendId
+                      ? `/category-flow/${friendId}`
+                      : "/category-flow",
                     icon: "category.png",
                     label: "Categories",
                   },
                   {
-                    path: friendId ? `/transactions/${friendId}` : "/transactions",
+                    path: friendId
+                      ? `/transactions/${friendId}`
+                      : "/transactions",
                     icon: "history.png",
                     label: "History",
                   },
 
                   {
-                    path: friendId ? `/payment-method/reports/${friendId}` : "/payment-method/reports",
+                    path: friendId
+                      ? `/payment-method/reports/${friendId}`
+                      : "/payment-method/reports",
                     icon: "report.png",
                     label: "Reports",
                   },
-                  { path: friendId ? `/budget/${friendId}` : "/budget", icon: "budget.png", label: "Budget" },
+                  {
+                    path: friendId ? `/budget/${friendId}` : "/budget",
+                    icon: "budget.png",
+                    label: "Budget",
+                  },
 
-                  { path: friendId ? `/bill/${friendId}` : "/bill", icon: "bill.png", label: "Bill" },
+                  {
+                    path: friendId ? `/bill/${friendId}` : "/bill",
+                    icon: "bill.png",
+                    label: "Bill",
+                  },
                 ].map(({ path, icon, label }) => (
                   <button
                     key={path}
@@ -1607,44 +1628,47 @@ const PaymentMethodFlow = () => {
                 }
                 .nav-button:active { transform: scale(0.98); }
               `}</style>
-              <IconButton
-                sx={{ color: "#5b7fff", ml: 1 }}
-                onClick={() =>
-                  friendId && friendId !== "undefined"
-                    ? navigate(`/payment-method/create/${friendId}`)
-                    : navigate("/payment-method/create")
-                }
-                aria-label="New Payment Method"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+              {hasWriteAccess && (
+                <IconButton
+                  sx={{ color: "#5b7fff", ml: 1 }}
+                  onClick={() =>
+                    friendId && friendId !== "undefined"
+                      ? navigate(`/payment-method/create/${friendId}`)
+                      : navigate("/payment-method/create")
+                  }
+                  aria-label="New Payment Method"
+                  title={hasWriteAccess ? "Create Payment Method" : "Read only"}
                 >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="#5b7fff"
-                    strokeWidth="2"
-                    fill="#23243a"
-                  />
-                  <path
-                    d="M12 8V16"
-                    stroke="#5b7fff"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M8 12H16"
-                    stroke="#5b7fff"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </IconButton>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="#5b7fff"
+                      strokeWidth="2"
+                      fill="#23243a"
+                    />
+                    <path
+                      d="M12 8V16"
+                      stroke="#5b7fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M8 12H16"
+                      stroke="#5b7fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </IconButton>
+              )}
             </div>
             {/* Sort Popover */}
             {popoverOpen &&
@@ -1851,30 +1875,32 @@ const PaymentMethodFlow = () => {
                       handlePaymentMethodDoubleClick(e, category)
                     }
                   >
-                    {/* Three-dot menu in the top right corner - Always visible with white color */}
-                    <div
-                      className="absolute top-2 right-2 transition-opacity"
-                      onClick={(e) => e.stopPropagation()} // Prevent card click
-                      style={{
-                        opacity: 0.9,
-                        zIndex: 10,
-                      }}
-                    >
-                      <IconButton
-                        size="small"
-                        sx={{
-                          color: "#ffffff",
-                          padding: "4px",
-                          backgroundColor: "#28282a80",
-                          "&:hover": {
-                            backgroundColor: `${category.color}22`,
-                          },
+                    {/* Three-dot menu - only for write/full access */}
+                    {hasWriteAccess && (
+                      <div
+                        className="absolute top-2 right-2 transition-opacity"
+                        onClick={(e) => e.stopPropagation()} // Prevent card click
+                        style={{
+                          opacity: 0.9,
+                          zIndex: 10,
                         }}
-                        onClick={(e) => handleMenuOpen(e, category)}
                       >
-                        <MoreVertIcon fontSize="small" />
-                      </IconButton>
-                    </div>
+                        <IconButton
+                          size="small"
+                          sx={{
+                            color: "#ffffff",
+                            padding: "4px",
+                            backgroundColor: "#28282a80",
+                            "&:hover": {
+                              backgroundColor: `${category.color}22`,
+                            },
+                          }}
+                          onClick={(e) => handleMenuOpen(e, category)}
+                        >
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
+                      </div>
+                    )}
                     {/* Card content remains the same */}
                     <div
                       className="flex flex-col gap-2"

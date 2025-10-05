@@ -37,6 +37,7 @@ import {
 } from "@mui/icons-material";
 import Modal from "./Modal";
 import ToastNotification from "./ToastNotification";
+import useFriendAccess from "../../hooks/useFriendAccess";
 
 const Budget = () => {
   const [pageIndex, setPageIndex] = useState(0);
@@ -56,6 +57,8 @@ const Budget = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { budgets, loading, error } = useSelector((state) => state.budgets);
+  // Centralized friend/permission access
+  const { hasWriteAccess } = useFriendAccess(friendId);
 
   useEffect(() => {
     dispatch(getBudgetData(friendId));
@@ -67,6 +70,15 @@ const Budget = () => {
       navigate(`/budget/create/${friendId}`);
     } else {
       navigate("/budget/create");
+    }
+  };
+
+  // Navigate to generic reports page (assumption: route exists). Adjust path if project uses different reports routing.
+  const handleNavigateReports = () => {
+    if (friendId && friendId !== "undefined") {
+      navigate(`/reports/friend/${friendId}`);
+    } else {
+      navigate(`/reports`);
     }
   };
 
@@ -146,117 +158,124 @@ const Budget = () => {
   // For small screens: only name, start date, end date and remaining (short headers)
   // For larger screens: include description, amount and action button.
   const columns = useMemo(() => {
-    if (isSmallScreen) {
-      return [
-        {
-          field: "name",
-          headerName: "Name",
-          flex: 2,
-          minWidth: 120,
-          maxWidth: 200,
-          sortable: true,
-          renderCell: (params) => params.value || "N/A",
-        },
-        {
-          field: "remainingAmount",
-          headerName: "Remaining",
-          flex: 1,
-          minWidth: 100,
-          maxWidth: 180,
-          sortable: true,
-          renderCell: (params) =>
-            `$${params.value ? params.value.toFixed(2) : "0.00"}`,
-        },
-        {
-          field: "actions",
-          headerName: "",
-          width: 40,
-          sortable: false,
-          renderCell: (params) => (
+    const baseSmall = [
+      {
+        field: "name",
+        headerName: "Name",
+        flex: 2,
+        minWidth: 120,
+        maxWidth: 200,
+        sortable: true,
+        renderCell: (params) => params.value || "N/A",
+      },
+      {
+        field: "remainingAmount",
+        headerName: "Remaining",
+        flex: 1,
+        minWidth: 100,
+        maxWidth: 180,
+        sortable: true,
+        renderCell: (params) =>
+          `$${params.value ? params.value.toFixed(2) : "0.00"}`,
+      },
+    ];
+    const baseLarge = [
+      {
+        field: "name",
+        headerName: "Name",
+        flex: 2,
+        minWidth: 120,
+        maxWidth: 300,
+        sortable: true,
+        renderCell: (params) => params.value || "N/A",
+      },
+      {
+        field: "description",
+        headerName: "Description",
+        flex: 3,
+        minWidth: 180,
+        maxWidth: 450,
+        sortable: true,
+        renderCell: (params) => params.value || "N/A",
+      },
+      {
+        field: "amount",
+        headerName: "Amount",
+        flex: 0.8,
+        minWidth: 90,
+        maxWidth: 150,
+        sortable: true,
+        renderCell: (params) =>
+          `$${params.value ? params.value.toFixed(2) : "0.00"}`,
+      },
+      {
+        field: "startDate",
+        headerName: "Start Date",
+        flex: 0.8,
+        minWidth: 90,
+        maxWidth: 150,
+        sortable: true,
+        renderCell: (params) => params.value || "N/A",
+      },
+      {
+        field: "endDate",
+        headerName: "End Date",
+        flex: 0.8,
+        minWidth: 90,
+        maxWidth: 150,
+        sortable: true,
+        renderCell: (params) => params.value || "N/A",
+      },
+      {
+        field: "remainingAmount",
+        headerName: "Remaining",
+        flex: 1,
+        minWidth: 100,
+        maxWidth: 180,
+        sortable: true,
+        renderCell: (params) =>
+          `$${params.value ? params.value.toFixed(2) : "0.00"}`,
+      },
+    ];
+
+    const actionCol = [
+      {
+        field: "actions",
+        headerName: "",
+        width: 40,
+        sortable: false,
+        renderCell: (params) =>
+          hasWriteAccess ? (
             <IconButton
               onClick={(e) => handleMenuClick(e, params.row.id)}
               sx={{ color: "#ffffff", "&:hover": { color: "#00dac6" } }}
             >
               <MoreVertIcon fontSize="small" />
             </IconButton>
-          ),
-        },
-      ];
-    } else {
-      return [
-        {
-          field: "name",
-          headerName: "Name",
-          flex: 2,
-          minWidth: 120,
-          maxWidth: 300,
-          sortable: true,
-          renderCell: (params) => params.value || "N/A",
-        },
-        {
-          field: "description",
-          headerName: "Description",
-          flex: 3,
-          minWidth: 180,
-          maxWidth: 450,
-          sortable: true,
-          renderCell: (params) => params.value || "N/A",
-        },
-        {
-          field: "amount",
-          headerName: "Amount",
-          flex: 0.8,
-          minWidth: 90,
-          maxWidth: 150,
-          sortable: true,
-          renderCell: (params) =>
-            `$${params.value ? params.value.toFixed(2) : "0.00"}`,
-        },
-        {
-          field: "startDate",
-          headerName: "Start Date",
-          flex: 0.8,
-          minWidth: 90,
-          maxWidth: 150,
-          sortable: true,
-          renderCell: (params) => params.value || "N/A",
-        },
-        {
-          field: "endDate",
-          headerName: "End Date",
-          flex: 0.8,
-          minWidth: 90,
-          maxWidth: 150,
-          sortable: true,
-          renderCell: (params) => params.value || "N/A",
-        },
-        {
-          field: "remainingAmount",
-          headerName: "Remaining",
-          flex: 1,
-          minWidth: 100,
-          maxWidth: 180,
-          sortable: true,
-          renderCell: (params) =>
-            `$${params.value ? params.value.toFixed(2) : "0.00"}`,
-        },
-        {
-          field: "actions",
-          headerName: "",
-          width: 40,
-          sortable: false,
-          renderCell: (params) => (
+          ) : (
             <IconButton
-              onClick={(e) => handleMenuClick(e, params.row.id)}
+              onClick={() => {
+                // Direct navigation to report for that budget
+                if (friendId && friendId !== "undefined") {
+                  navigate(
+                    `/budget/report/${params.row.id}/friend/${friendId}`
+                  );
+                } else {
+                  navigate(`/budget/report/${params.row.id}`);
+                }
+              }}
               sx={{ color: "#ffffff", "&:hover": { color: "#00dac6" } }}
             >
-              <MoreVertIcon fontSize="small" />
+              <ReportIcon fontSize="small" />
             </IconButton>
           ),
-        },
-      ];
-    }
-  }, [isSmallScreen]);
+      },
+    ];
+
+    return isSmallScreen
+      ? [...baseSmall, ...actionCol]
+      : [...baseLarge, ...actionCol];
+  }, [isSmallScreen, hasWriteAccess, friendId, navigate]);
 
   const rows = useMemo(
     () =>
@@ -376,35 +395,45 @@ const Budget = () => {
             Budgets
           </Typography>
           {isSmallScreen ? (
-            <IconButton
-              onClick={handleNewBudgetClick}
-              sx={{
-                color: "#ffffff",
-                bgcolor: "#00dac6",
-                borderRadius: "50%",
-                p: 1,
-              }}
-            >
-              <AddIcon fontSize="small" />
-            </IconButton>
+            hasWriteAccess ? (
+              <IconButton
+                onClick={handleNewBudgetClick}
+                sx={{
+                  color: "#ffffff",
+                  bgcolor: "#00dac6",
+                  borderRadius: "50%",
+                  p: 1,
+                }}
+              >
+                <AddIcon fontSize="small" />
+              </IconButton>
+            ) : (
+              <Box sx={{ width: 40 }} />
+            )
           ) : (
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <Button
-                variant="contained"
-                onClick={handleNewBudgetClick}
-                sx={{ textTransform: "none" }}
-              >
-                + New Budget
-              </Button>
-              <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
-                <FilterListIcon fontSize="small" />
-              </IconButton>
-              <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
-                <FilterListIcon fontSize="small" />
-              </IconButton>
-              <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
+              {hasWriteAccess ? (
+                <>
+                  <Button
+                    variant="contained"
+                    onClick={handleNewBudgetClick}
+                    sx={{ textTransform: "none" }}
+                  >
+                    + New Budget
+                  </Button>
+                  <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+                    <FilterListIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+                    <FilterListIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+                    <MoreVertIcon fontSize="small" />
+                  </IconButton>
+                </>
+              ) : (
+                <Box sx={{ width: 40 }} />
+              )}
             </Box>
           )}
         </Box>
@@ -481,59 +510,61 @@ const Budget = () => {
             />
           )}
         </Box>
-        <Menu
-          anchorEl={menuAnchor}
-          open={Boolean(menuAnchor)}
-          onClose={handleMenuClose}
-          PaperProps={{
-            sx: {
-              bgcolor: "#1b1b1b",
-              color: "#ffffff",
-              border: "1px solid #28282a",
-              borderRadius: "8px",
-              minWidth: "120px",
-            },
-          }}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          transformOrigin={{ vertical: "top", horizontal: "right" }}
-        >
-          <MenuItem
-            onClick={handleReport}
-            sx={{
-              color: "#2196f3",
-              "&:hover": { bgcolor: "#2a2a2a" },
-              display: "flex",
-              gap: 1,
+        {hasWriteAccess && (
+          <Menu
+            anchorEl={menuAnchor}
+            open={Boolean(menuAnchor)}
+            onClose={handleMenuClose}
+            PaperProps={{
+              sx: {
+                bgcolor: "#1b1b1b",
+                color: "#ffffff",
+                border: "1px solid #28282a",
+                borderRadius: "8px",
+                minWidth: "120px",
+              },
             }}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
-            <ReportIcon fontSize="small" />
-            Report
-          </MenuItem>
-          <MenuItem
-            onClick={handleEdit}
-            sx={{
-              color: "#4caf50",
-              "&:hover": { bgcolor: "#2a2a2a" },
-              display: "flex",
-              gap: 1,
-            }}
-          >
-            <EditIcon fontSize="small" />
-            Edit
-          </MenuItem>
-          <MenuItem
-            onClick={handleDelete}
-            sx={{
-              color: "#f44336",
-              "&:hover": { bgcolor: "#2a2a2a" },
-              display: "flex",
-              gap: 1,
-            }}
-          >
-            <DeleteIcon fontSize="small" />
-            Delete
-          </MenuItem>
-        </Menu>
+            <MenuItem
+              onClick={handleReport}
+              sx={{
+                color: "#2196f3",
+                "&:hover": { bgcolor: "#2a2a2a" },
+                display: "flex",
+                gap: 1,
+              }}
+            >
+              <ReportIcon fontSize="small" />
+              Report
+            </MenuItem>
+            <MenuItem
+              onClick={handleEdit}
+              sx={{
+                color: "#4caf50",
+                "&:hover": { bgcolor: "#2a2a2a" },
+                display: "flex",
+                gap: 1,
+              }}
+            >
+              <EditIcon fontSize="small" />
+              Edit
+            </MenuItem>
+            <MenuItem
+              onClick={handleDelete}
+              sx={{
+                color: "#f44336",
+                "&:hover": { bgcolor: "#2a2a2a" },
+                display: "flex",
+                gap: 1,
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+              Delete
+            </MenuItem>
+          </Menu>
+        )}
         <ToastNotification
           open={toast.open}
           message={toast.message}

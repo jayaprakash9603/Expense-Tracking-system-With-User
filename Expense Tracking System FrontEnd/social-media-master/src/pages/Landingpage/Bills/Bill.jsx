@@ -24,6 +24,7 @@ import BillSummary from "./BillSummary";
 import EmptyBillState from "./EmptyBillState";
 import Modal from "../../Landingpage/Modal";
 import BillAccordion from "./BillAccordian";
+import useFriendAccess from "../../../hooks/useFriendAccess";
 
 const Bill = () => {
   // Router hooks
@@ -58,6 +59,7 @@ const Bill = () => {
   const { filteredBills, billStats } = useBillFilters(billsData, activeTab);
   const { currentPage, totalPages, paginatedData, setCurrentPage } =
     usePagination(filteredBills, 4);
+  const { hasWriteAccess } = useFriendAccess(friendId);
 
   // Effects
   useEffect(() => {
@@ -218,6 +220,7 @@ const Bill = () => {
           onMenuClick={handleMenuClick}
           onMenuClose={handleMenuClose}
           onMenuItemClick={handleMenuItemClick}
+          hasWriteAccess={hasWriteAccess}
         />
 
         <Modal
@@ -299,10 +302,14 @@ const Bill = () => {
                 onBillActionClose={handleBillActionClose}
                 onEditBill={handleEditBill}
                 onDeleteBill={handleDeleteBill}
+                hasWriteAccess={hasWriteAccess}
               />
             ))
           ) : (
-            <EmptyBillState selectedDate={selectedDate} />
+            <EmptyBillState
+              selectedDate={selectedDate}
+              hasWriteAccess={hasWriteAccess}
+            />
           )}
         </Box>
 

@@ -27,6 +27,7 @@ import {
   deleteMultiExpenses,
 } from "../../Redux/Expenses/expense.action";
 import dayjs from "dayjs";
+import useFriendAccess from "../../hooks/useFriendAccess";
 import {
   IconButton,
   Skeleton,
@@ -56,6 +57,7 @@ import {
   fetchFriendship,
   fetchFriendsDetailed,
 } from "../../Redux/Friends/friendsActions";
+import { canWrite } from "../../utils/accessControl";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -231,6 +233,11 @@ const Cashflow = () => {
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const { friendId } = useParams();
   const isFriendView = Boolean(friendId && friendId !== "undefined");
+  // Current user id (adjust selectors if auth slice differs)
+  const currentUserId = useSelector(
+    (s) => s.auth?.user?.id || s.auth?.userId || null
+  );
+  const { hasWriteAccess } = useFriendAccess(friendId);
   // Compact number formatter: 1.2k, 3.4M, 1B
   const formatCompactNumber = (value) => {
     if (value === null || value === undefined || isNaN(value)) return "0";
@@ -801,7 +808,9 @@ const Cashflow = () => {
             getExpenseAction(expenseToDelete, friendId || "")
           );
           const bill = expensedata.bill
-            ? await dispatch(getBillByExpenseId(expenseToDelete, friendId || ""))
+            ? await dispatch(
+                getBillByExpenseId(expenseToDelete, friendId || "")
+              )
             : false;
           await dispatch(
             bill
@@ -1328,7 +1337,7 @@ const Cashflow = () => {
           }}
         >
           {/* Delete Selected Button (left of flow pills) - only visible if more than one selected */}
-          {selectedCardIdx.length > 1 && (
+          {selectedCardIdx.length > 1 && hasWriteAccess && (
             <button
               onClick={async () => {
                 setIsDeleteModalOpen(true);
@@ -1362,7 +1371,11 @@ const Cashflow = () => {
                 transition: "background 0.2s",
                 gap: 6,
               }}
-              title={`Delete ${selectedCardIdx.length} selected`}
+              title={
+                hasWriteAccess
+                  ? `Delete ${selectedCardIdx.length} selected`
+                  : "Read only"
+              }
             >
               <svg
                 width={isMobile ? 16 : 20}
@@ -1926,41 +1939,50 @@ const Cashflow = () => {
                 {!isMobile && <span>{label}</span>}
               </button>
             ))}
-            {/* Add New - Simplified button */}
-            <button
-              ref={setAddNewBtnRef}
-              onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                padding: isMobile ? "6px 8px" : "6px 8px",
-                backgroundColor: "#1b1b1b",
-                border: "1px solid #333",
-                borderRadius: "6px",
-                color: "#00DAC6",
-                fontSize: isMobile ? "11px" : "12px",
-                fontWeight: "500",
-                cursor: "pointer",
-                minWidth: "fit-content",
-              }}
-            >
-              <img
-                src={require("../../assests/add.png")}
-                alt="Add"
+            {/* Add New - only show if user has write/full access (or own view) */}
+            {hasWriteAccess && (
+              <button
+                ref={setAddNewBtnRef}
+                onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
                 style={{
-                  width: isMobile ? 14 : 16,
-                  height: isMobile ? 14 : 16,
-                  filter:
-                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                  transition: "filter 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: isMobile ? "6px 8px" : "6px 8px",
+                  backgroundColor: "#1b1b1b",
+                  border: "1px solid #333",
+                  borderRadius: "6px",
+                  color: "#00DAC6",
+                  fontSize: isMobile ? "11px" : "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  minWidth: "fit-content",
                 }}
-              />
-              {!isMobile && <span>Add New</span>}
-            </button>
+                disabled={!hasWriteAccess}
+                title={
+                  hasWriteAccess
+                    ? "Add expense, budget, category or upload file"
+                    : "You have read-only access"
+                }
+              >
+                <img
+                  src={require("../../assests/add.png")}
+                  alt="Add"
+                  style={{
+                    width: isMobile ? 14 : 16,
+                    height: isMobile ? 14 : 16,
+                    filter:
+                      "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                    transition: "filter 0.2s ease",
+                  }}
+                />
+                {!isMobile && <span>Add New</span>}
+              </button>
+            )}
 
             {/* Simplified Add New Popover */}
             {addNewPopoverOpen &&
+              hasWriteAccess &&
               addNewBtnRef &&
               createPortal(
                 <div
@@ -2449,84 +2471,88 @@ const Cashflow = () => {
                       {row.comments}
                     </div>
                   </div>
-                  {isSelected && selectedCardIdx.length === 1 && (
-                    <div
-                      className="absolute bottom-2 right-2 flex gap-2 opacity-90"
-                      style={{
-                        zIndex: 2,
-                        background: "#23243a",
-                        borderRadius: 8,
-                        boxShadow: "0 2px 8px #0002",
-                        padding: 4,
-                        display: "flex",
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <IconButton
-                        size="small"
-                        sx={{
-                          color: "#5b7fff",
-                          p: "4px",
+                  {isSelected &&
+                    selectedCardIdx.length === 1 &&
+                    hasWriteAccess && (
+                      <div
+                        className="absolute bottom-2 right-2 flex gap-2 opacity-90"
+                        style={{
+                          zIndex: 2,
                           background: "#23243a",
-                          borderRadius: 1,
-                          boxShadow: 1,
-                          "&:hover": {
-                            background: "#2e335a",
-                            color: "#fff",
-                          },
+                          borderRadius: 8,
+                          boxShadow: "0 2px 8px #0002",
+                          padding: 4,
+                          display: "flex",
                         }}
-                        onClick={async () => {
-                          dispatch(
-                            getListOfBudgetsByExpenseId({
-                              id: row.id || row.expenseId,
-                              date: dayjs().format("YYYY-MM-DD"),
-                              friendId: friendId || null
-                            })
-                          );
-                          const expensedata = await dispatch(
-                            getExpenseAction(row.id, friendId || "")
-                          );
-                          const bill = expensedata.bill
-                            ? await dispatch(getBillByExpenseId(row.id, friendId || ""))
-                            : false;
-                          if (expensedata.bill) {
-                            navigate(
-                              isFriendView
-                                ? `/bill/edit/${bill.id}/friend/${friendId}`
-                                : `/bill/edit/${bill.id}`
-                            );
-                          } else {
-                            navigate(
-                              isFriendView
-                                ? `/expenses/edit/${row.id}/friend/${friendId}`
-                                : `/expenses/edit/${row.id}`
-                            );
-                          }
-                        }}
-                        aria-label="Edit Expense"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        sx={{
-                          color: "#ff4d4f",
-                          p: "4px",
-                          background: "#23243a",
-                          borderRadius: 1,
-                          boxShadow: 1,
-                          "&:hover": {
-                            background: "#2e335a",
-                            color: "#fff",
-                          },
-                        }}
-                        onClick={() => handleDeleteClick(row, idx)}
-                        aria-label="Delete Expense"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </div>
-                  )}
+                        <IconButton
+                          size="small"
+                          sx={{
+                            color: "#5b7fff",
+                            p: "4px",
+                            background: "#23243a",
+                            borderRadius: 1,
+                            boxShadow: 1,
+                            "&:hover": {
+                              background: "#2e335a",
+                              color: "#fff",
+                            },
+                          }}
+                          onClick={async () => {
+                            dispatch(
+                              getListOfBudgetsByExpenseId({
+                                id: row.id || row.expenseId,
+                                date: dayjs().format("YYYY-MM-DD"),
+                                friendId: friendId || null,
+                              })
+                            );
+                            const expensedata = await dispatch(
+                              getExpenseAction(row.id, friendId || "")
+                            );
+                            const bill = expensedata.bill
+                              ? await dispatch(
+                                  getBillByExpenseId(row.id, friendId || "")
+                                )
+                              : false;
+                            if (expensedata.bill) {
+                              navigate(
+                                isFriendView
+                                  ? `/bill/edit/${bill.id}/friend/${friendId}`
+                                  : `/bill/edit/${bill.id}`
+                              );
+                            } else {
+                              navigate(
+                                isFriendView
+                                  ? `/expenses/edit/${row.id}/friend/${friendId}`
+                                  : `/expenses/edit/${row.id}`
+                              );
+                            }
+                          }}
+                          aria-label="Edit Expense"
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          sx={{
+                            color: "#ff4d4f",
+                            p: "4px",
+                            background: "#23243a",
+                            borderRadius: 1,
+                            boxShadow: 1,
+                            "&:hover": {
+                              background: "#2e335a",
+                              color: "#fff",
+                            },
+                          }}
+                          onClick={() => handleDeleteClick(row, idx)}
+                          aria-label="Delete Expense"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </div>
+                    )}
                 </div>
               );
             })

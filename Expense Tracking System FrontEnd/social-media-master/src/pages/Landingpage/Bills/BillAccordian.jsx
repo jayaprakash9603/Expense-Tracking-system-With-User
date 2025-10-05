@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -44,6 +44,7 @@ const BillAccordion = ({
   onBillActionClose,
   onEditBill,
   onDeleteBill,
+  hasWriteAccess,
 }) => {
   // Constants
   const COLORS = {
@@ -99,11 +100,7 @@ const BillAccordion = ({
       <Typography variant="body2" sx={{ color: COLORS.textSecondary }}>
         {label}:
       </Typography>
-      <Typography
-        variant="body2"
-        fontWeight={600}
-        sx={{ color: valueColor }}
-      >
+      <Typography variant="body2" fontWeight={600} sx={{ color: valueColor }}>
         {value}
       </Typography>
     </Box>
@@ -152,15 +149,22 @@ const BillAccordion = ({
         <MoneyIcon sx={{ mr: 1, color: COLORS.primary }} />
         Bill Summary
       </Typography>
-      
+
       {createSummaryRow("Total Amount", formatCurrency(bill.amount))}
-      {createSummaryRow("Net Amount", formatCurrency(bill.netAmount || bill.amount))}
-      {createSummaryRow("Credit Due", formatCurrency(bill.creditDue || 0), COLORS.error)}
-      
+      {createSummaryRow(
+        "Net Amount",
+        formatCurrency(bill.netAmount || bill.amount)
+      )}
+      {createSummaryRow(
+        "Credit Due",
+        formatCurrency(bill.creditDue || 0),
+        COLORS.error
+      )}
+
       <Divider sx={{ my: 1, backgroundColor: COLORS.primary }} />
-      
+
       {createSummaryRow("Date", formatDate(bill.date))}
-      
+
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Typography variant="body2" sx={{ color: COLORS.textSecondary }}>
           Type:
@@ -213,10 +217,7 @@ const BillAccordion = ({
           </Box>
         }
         secondary={
-          <Typography
-            variant="caption"
-            sx={{ color: COLORS.textSecondary }}
-          >
+          <Typography variant="caption" sx={{ color: COLORS.textSecondary }}>
             Qty: {expense.quantity || 1} ×{" "}
             {formatCurrency(expense.unitPrice || expense.amount || 0)}
           </Typography>
@@ -246,7 +247,7 @@ const BillAccordion = ({
         <ListIcon sx={{ mr: 1, color: COLORS.primary }} />
         Detailed Expenses
       </Typography>
-      
+
       <List dense>
         {bill.expenses && bill.expenses.length > 0 ? (
           bill.expenses.map((expense, index) => (
@@ -266,7 +267,9 @@ const BillAccordion = ({
 
   const ActionMenu = () => (
     <Popover
-      open={Boolean(billActionAnchorEl) && selectedBillForAction?.id === bill.id}
+      open={
+        Boolean(billActionAnchorEl) && selectedBillForAction?.id === bill.id
+      }
       anchorEl={billActionAnchorEl}
       onClose={onBillActionClose}
       anchorOrigin={{
@@ -289,7 +292,12 @@ const BillAccordion = ({
     >
       <MenuList sx={{ py: 1 }}>
         {createMenuItem(EditIcon, "Edit Bill", () => onEditBill(bill))}
-        {createMenuItem(DeleteIcon, "Delete Bill", () => onDeleteBill(bill), COLORS.error)}
+        {createMenuItem(
+          DeleteIcon,
+          "Delete Bill",
+          () => onDeleteBill(bill),
+          COLORS.error
+        )}
       </MenuList>
     </Popover>
   );
@@ -344,7 +352,7 @@ const BillAccordion = ({
           >
             <ReceiptIcon sx={{ fontSize: 22 }} />
           </Avatar>
-          
+
           <Box sx={{ flexGrow: 1 }}>
             <Typography
               variant="subtitle1"
@@ -359,7 +367,7 @@ const BillAccordion = ({
               {bill.description || "No description"}
             </Typography>
           </Box>
-          
+
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <TypeIcon sx={{ color: typeColor }} />
             <Typography
@@ -383,23 +391,25 @@ const BillAccordion = ({
                 fontSize: "0.8rem",
               }}
             />
-            
-            <Box sx={{ position: "relative" }}>
-              <IconButton
-                onClick={(event) => onBillActionClick(event, bill)}
-                sx={{
-                  color: COLORS.primary,
-                  "&:hover": {
-                    backgroundColor: COLORS.primaryHover,
-                  },
-                  ml: 1,
-                }}
-                size="small"
-              >
-                <MoreVertIcon />
-              </IconButton>
-              <ActionMenu />
-            </Box>
+
+            {hasWriteAccess && (
+              <Box sx={{ position: "relative" }}>
+                <IconButton
+                  onClick={(event) => onBillActionClick(event, bill)}
+                  sx={{
+                    color: COLORS.primary,
+                    "&:hover": {
+                      backgroundColor: COLORS.primaryHover,
+                    },
+                    ml: 1,
+                  }}
+                  size="small"
+                >
+                  <MoreVertIcon />
+                </IconButton>
+                <ActionMenu />
+              </Box>
+            )}
           </Box>
         </Box>
       </AccordionSummary>

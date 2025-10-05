@@ -1,17 +1,9 @@
-import React from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
-} from "@mui/material";
-import {
-  Receipt as ReceiptIcon,
-  Add as AddIcon,
-} from "@mui/icons-material";
+import React from "react";
+import { Box, Typography, Button, Paper } from "@mui/material";
+import { Receipt as ReceiptIcon, Add as AddIcon } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router";
 
-const EmptyBillState = ({ selectedDate }) => {
+const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
   const navigate = useNavigate();
   const { friendId } = useParams();
 
@@ -76,37 +68,41 @@ const EmptyBillState = ({ selectedDate }) => {
         You don't have any bills for {formatMonth(selectedDate)}.
       </Typography>
 
-      <Typography
-        variant="body2"
-        sx={{
-          color: "#888",
-          mb: 4,
-          maxWidth: 400,
-        }}
-      >
-        Start by creating your first bill to track your expenses and income.
-      </Typography>
+      {hasWriteAccess && (
+        <Typography
+          variant="body2"
+          sx={{
+            color: "#888",
+            mb: 4,
+            maxWidth: 400,
+          }}
+        >
+          Start by creating your first bill to track your expenses and income.
+        </Typography>
+      )}
 
-      <Button
-        variant="contained"
-        startIcon={<AddIcon />}
-        onClick={handleCreateBill}
-        sx={{
-          backgroundColor: "#14b8a6",
-          color: "white",
-          fontWeight: 600,
-          px: 4,
-          py: 1.5,
-          borderRadius: 2,
-          textTransform: "none",
-          fontSize: "1rem",
-          "&:hover": {
-            backgroundColor: "#0d9488",
-          },
-        }}
-      >
-        Create Your First Bill
-      </Button>
+      {hasWriteAccess && (
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleCreateBill}
+          sx={{
+            backgroundColor: "#14b8a6",
+            color: "white",
+            fontWeight: 600,
+            px: 4,
+            py: 1.5,
+            borderRadius: 2,
+            textTransform: "none",
+            fontSize: "1rem",
+            "&:hover": {
+              backgroundColor: "#0d9488",
+            },
+          }}
+        >
+          Create Your First Bill
+        </Button>
+      )}
     </Paper>
   );
 };
