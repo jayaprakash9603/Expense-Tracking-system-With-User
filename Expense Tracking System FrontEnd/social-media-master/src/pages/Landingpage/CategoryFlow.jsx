@@ -100,10 +100,11 @@ const yearMonths = [
   "Dec",
 ];
 
+// Flow types aligned with CashFlow naming + gradients handled inline
 const flowTypeCycle = [
-  { label: "All Expenses", value: "all", color: "bg-[#5b7fff] text-white" },
-  { label: "Income", value: "inflow", color: "bg-[#06D6A0] text-black" },
-  { label: "Expenses", value: "outflow", color: "bg-[#FF6B6B] text-white" },
+  { label: "Money In & Out", value: "all" },
+  { label: "Money In", value: "inflow" },
+  { label: "Money Out", value: "outflow" },
 ];
 
 const getRangeLabel = (range, offset, flowType) => {
@@ -284,6 +285,9 @@ const CategoryFlow = () => {
     direction: "desc",
   });
   const [showExpenseTable, setShowExpenseTable] = useState(false);
+  // Add New popover state (mirrors CashFlow pattern)
+  const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
+  const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const [selectedCategoryExpenses, setSelectedCategoryExpenses] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
@@ -291,6 +295,33 @@ const CategoryFlow = () => {
   // Add these state variables with your other state declarations
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [selectedMenuCategory, setSelectedMenuCategory] = useState(null);
+  // Flow toggle animation state (match CashFlow)
+  const [shrinkFlowBtn, setShrinkFlowBtn] = useState(false);
+
+  // Close Add New popover on outside click / ESC
+  useEffect(() => {
+    if (!addNewPopoverOpen) return;
+    const handleClick = (e) => {
+      const pop = document.querySelector('[data-popover="add-new"]');
+      // if click target is neither the trigger button nor inside the popover
+      if (
+        addNewBtnRef &&
+        !addNewBtnRef.contains(e.target) &&
+        (!pop || (pop && !pop.contains(e.target)))
+      ) {
+        setAddNewPopoverOpen(false);
+      }
+    };
+    const handleKey = (e) => {
+      if (e.key === "Escape") setAddNewPopoverOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [addNewPopoverOpen, addNewBtnRef]);
   const dispatch = useDispatch();
   const { categoryExpenses, loading } = useSelector((state) => state.expenses);
   const filterBtnRef = useRef(null);
@@ -449,6 +480,30 @@ const CategoryFlow = () => {
       maximumFractionDigits: 2,
     });
   };
+
+  // Totals (inflow/outflow) aggregated across all category expenses (mirrors CashFlow logic)
+  const totals = useMemo(() => {
+    let inflow = 0;
+    let outflow = 0;
+    if (categoryExpenses) {
+      Object.keys(categoryExpenses)
+        .filter((k) => k !== "summary")
+        .forEach((catName) => {
+          const cat = categoryExpenses[catName];
+          const expenses = Array.isArray(cat?.expenses) ? cat.expenses : [];
+          expenses.forEach((e) => {
+            if (!e) return;
+            const details = e.details || e;
+            const amt = Number(details.amount || e.amount || 0);
+            const type = (details.type || e.type || "").toLowerCase();
+            if (type === "gain" || type === "income" || type === "inflow")
+              inflow += amt;
+            else outflow += amt;
+          });
+        });
+    }
+    return { inflow, outflow, total: inflow + outflow };
+  }, [categoryExpenses]);
 
   // Generate a consistent color based on category name
   function getRandomColor(str) {
@@ -1230,7 +1285,8 @@ const CategoryFlow = () => {
           borderRadius: isMobile ? 0 : isTablet ? "8px" : "8px",
           boxSizing: "border-box",
           position: "relative",
-          padding: isMobile ? 4 : isTablet ? 8 : 16,
+          // Match CashFlow padding values (mobile 8, tablet 12, desktop 16)
+          padding: isMobile ? 8 : isTablet ? 12 : 16,
           minWidth: 0,
         }}
       >
@@ -1359,51 +1415,134 @@ const CategoryFlow = () => {
             top: 16,
             right: 16,
             display: "flex",
-            gap: 8,
+            gap: 10,
+            alignItems: "center",
+            zIndex: 5,
           }}
         >
           <button
-            onClick={handleFlowTabToggle}
-            className={`rounded-lg flex items-center justify-center animate-morph-flow-toggle-rect ${
-              flowTypeCycle.find((t) => t.value === flowTab)?.color ||
-              "bg-[#29282b] text-white"
-            }`}
+            onClick={() => {
+              setShrinkFlowBtn(true);
+              setTimeout(() => setShrinkFlowBtn(false), 220);
+              handleFlowTabToggle();
+            }}
+            aria-pressed={false}
+            className="rounded-lg flex items-center gap-3 justify-center"
             style={{
-              minWidth: isMobile ? 40 : 70,
-              minHeight: isMobile ? 32 : 38,
-              width: isMobile ? 40 : 70,
-              height: isMobile ? 32 : 38,
-              padding: 0,
+              minWidth: isMobile ? 48 : 110,
+              height: isMobile ? 36 : 40,
+              padding: "4px 8px",
               border: "none",
               outline: "none",
-              boxShadow: "0 2px 8px #0002",
-              position: "relative",
-              transition: "background 0.5s, color 0.5s, box-shadow 0.5s",
+              cursor: "pointer",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
+              transition:
+                "transform 200ms ease, width 200ms ease, background 300ms",
+              transform: shrinkFlowBtn ? "scale(0.88)" : "scale(1)",
+              background:
+                flowTab === "inflow"
+                  ? "linear-gradient(180deg,#06D6A0,#05b890)"
+                  : flowTab === "outflow"
+                  ? "linear-gradient(180deg,#ff6b6b,#ff4d4f)"
+                  : "linear-gradient(180deg,#5b7fff,#4563ff)",
+              color: "#fff",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 12,
             }}
           >
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-              }}
-            >
-              <img
-                src={require("../../assests/unfold.png")}
-                alt="Unfold"
-                style={{
-                  width: isMobile ? 20 : 25,
-                  height: isMobile ? 25 : 25,
-                  marginRight: isMobile ? 4 : 8,
-                  verticalAlign: "middle",
-                }}
-              />
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ display: "flex", alignItems: "center" }}>
+                {flowTab === "inflow" && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M12 19V5"
+                      stroke="#000"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M5 12l7-7 7 7"
+                      stroke="#000"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+                {flowTab === "outflow" && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M12 5v14"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M19 12l-7 7-7-7"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+                {flowTab === "all" && (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 3v6"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M9 6l3-3 3 3"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 21v-6"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M9 18l3 3 3-3"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </span>
+              {!isMobile && (
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>
+                    {flowTypeCycle.find((t) => t.value === flowTab)?.label}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.95 }}>
+                    {flowTab === "inflow"
+                      ? formatCompactNumber(totals.inflow)
+                      : flowTab === "outflow"
+                      ? formatCompactNumber(totals.outflow)
+                      : formatCompactNumber(totals.total)}
+                  </div>
+                </div>
+              )}
+            </div>
           </button>
         </div>
 
@@ -1512,40 +1651,31 @@ const CategoryFlow = () => {
               >
                 {[
                   {
-                    path: friendId
-                      ? `/transactions/${friendId}`
-                      : "/transactions",
+                    path: "/transactions",
                     icon: "history.png",
                     label: "History",
                   },
+                  { path: "/reports", icon: "report.png", label: "Reports" },
+                  { path: "/budget", icon: "budget.png", label: "Budget" },
                   {
-                    path: friendId
-                      ? `/category-flow/reports/${friendId}`
-                      : "/category-flow/reports",
-                    icon: "report.png",
-                    label: "Reports",
-                  },
-                  {
-                    path: friendId ? `/budget/${friendId}` : "/budget",
-                    icon: "budget.png",
-                    label: "Budget",
-                  },
-                  {
-                    path: friendId
-                      ? `/payment-method/${friendId}`
-                      : "/payment-method",
+                    path: "/payment-method",
                     icon: "payment-method.png",
                     label: "Payment Method",
                   },
                   {
-                    path: friendId ? `/bill/${friendId}` : "/bill",
+                    path: "/bill",
                     icon: "bill.png",
                     label: "Bill",
                   },
                 ].map(({ path, icon, label }) => (
                   <button
                     key={path}
-                    onClick={() => navigate(path)}
+                    onClick={() => {
+                      const target = isFriendView
+                        ? `${path}/${friendId}`
+                        : path;
+                      navigate(target);
+                    }}
                     className="nav-button"
                     style={{
                       display: "flex",
@@ -1557,7 +1687,7 @@ const CategoryFlow = () => {
                       borderRadius: "8px",
                       color: "#00DAC6",
                       fontSize: isMobile ? "12px" : "14px",
-                      fontWeight: 500,
+                      fontWeight: "500",
                       cursor: "pointer",
                       transition: "all 0.2s ease",
                       minWidth: "fit-content",
@@ -1577,6 +1707,122 @@ const CategoryFlow = () => {
                     {!isMobile && <span>{label}</span>}
                   </button>
                 ))}
+                {/* Add New - only show if user has write/full access (or own view) */}
+                {hasWriteAccess && (
+                  <button
+                    ref={setAddNewBtnRef}
+                    onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: isMobile ? "6px 8px" : "6px 8px",
+                      backgroundColor: "#1b1b1b",
+                      border: "1px solid #333",
+                      borderRadius: "6px",
+                      color: "#00DAC6",
+                      fontSize: isMobile ? "11px" : "12px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      minWidth: "fit-content",
+                    }}
+                    disabled={!hasWriteAccess}
+                    title={
+                      hasWriteAccess
+                        ? "Add Category, budget, category or upload file"
+                        : "You have read-only access"
+                    }
+                  >
+                    <img
+                      src={require("../../assests/add.png")}
+                      alt="Add"
+                      style={{
+                        width: isMobile ? 14 : 16,
+                        height: isMobile ? 14 : 16,
+                        filter:
+                          "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                        transition: "filter 0.2s ease",
+                      }}
+                    />
+                    {!isMobile && <span>Add New</span>}
+                  </button>
+                )}
+
+                {/* Simplified Add New Popover */}
+                {addNewPopoverOpen &&
+                  hasWriteAccess &&
+                  addNewBtnRef &&
+                  createPortal(
+                    <div
+                      data-popover="add-new"
+                      style={{
+                        position: "fixed",
+                        top:
+                          addNewBtnRef.getBoundingClientRect().bottom +
+                          4 +
+                          window.scrollY,
+                        left:
+                          addNewBtnRef.getBoundingClientRect().left +
+                          window.scrollX,
+                        zIndex: 1000,
+                        background: "#0b0b0b",
+                        border: "1px solid #333",
+                        borderRadius: 6,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                        minWidth: 140,
+                        padding: 4,
+                      }}
+                    >
+                      {[
+                        {
+                          label: "Add Category",
+                          route: isFriendView
+                            ? `/category-flow/create/${friendId}`
+                            : "/category-flow/create",
+                          color: "#00DAC6",
+                        },
+                        {
+                          label: "Upload File",
+                          route: isFriendView
+                            ? `/upload/categories${friendId}`
+                            : "/upload/categories",
+                          color: "#5b7fff",
+                        },
+                      ].map((item, idx) => (
+                        <button
+                          key={idx}
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            background: "transparent",
+                            color: item.color,
+                            border: "none",
+                            textAlign: "left",
+                            padding: "8px 10px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            borderRadius: 4,
+                          }}
+                          onClick={() => {
+                            navigate(item.route);
+                            setAddNewPopoverOpen(false);
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = item.color;
+                            e.target.style.color =
+                              item.color === "#FFC107" ? "#000" : "#fff";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = "transparent";
+                            e.target.style.color = item.color;
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>,
+                    document.body
+                  )}
               </div>
               <style>{`
                 .nav-button:hover {
@@ -1596,48 +1842,8 @@ const CategoryFlow = () => {
                 }
                 .nav-button:active { transform: scale(0.98); }
               `}</style>
-              {hasWriteAccess && (
-                <IconButton
-                  sx={{ color: "#5b7fff", ml: 1 }}
-                  onClick={() =>
-                    friendId && friendId !== "undefined"
-                      ? navigate(`/category-flow/create/${friendId}`)
-                      : navigate("/category-flow/create")
-                  }
-                  aria-label="New Category"
-                  title={hasWriteAccess ? "Create Category" : "Read only"}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="#5b7fff"
-                      strokeWidth="2"
-                      fill="#23243a"
-                    />
-                    <path
-                      d="M12 8V16"
-                      stroke="#5b7fff"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M8 12H16"
-                      stroke="#5b7fff"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </IconButton>
-              )}
             </div>
+
             {/* Sort Popover */}
             {popoverOpen &&
               filterBtnRef.current &&
@@ -1825,7 +2031,13 @@ const CategoryFlow = () => {
                     key={idx}
                     className={`bg-[#1b1b1b] rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200 ${
                       selectedCategory?.categoryId === category.categoryId
-                        ? "ring-2 ring-[#5b7fff]"
+                        ? `ring-2 ${
+                            flowTab === "outflow"
+                              ? "ring-[#ff4d4f]"
+                              : flowTab === "inflow"
+                              ? "ring-[#06d6a0]"
+                              : "ring-[#5b7fff]"
+                          }`
                         : ""
                     }`}
                     style={{

@@ -2015,7 +2015,7 @@ const Cashflow = () => {
                     },
                     {
                       label: "Upload File",
-                      route: isFriendView ? `/upload/${friendId}` : "/upload",
+                      route: isFriendView ? `/upload/expenses/${friendId}` : "/upload/expenses",
                       color: "#5b7fff",
                     },
                     {

@@ -287,6 +287,9 @@ const PaymentMethodFlow = () => {
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [selectedMenuPaymentMethod, setSelectedMenuPaymentMethod] =
     useState(null);
+  // Add New popover state (mirrors CashFlow / CategoryFlow)
+  const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
+  const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const dispatch = useDispatch();
   const { paymentMethodExpenses, loading } = useSelector(
     (state) => state.paymentMethod
@@ -304,6 +307,7 @@ const PaymentMethodFlow = () => {
   const currentUserId = useSelector(
     (s) => s.auth?.user?.id || s.auth?.userId || null
   );
+
   // Centralized access hook
   const { hasWriteAccess } = useFriendAccess(friendId);
   // friend data from store
@@ -330,6 +334,30 @@ const PaymentMethodFlow = () => {
     );
   }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView]);
 
+  // Close Add New popover on outside click / ESC
+  useEffect(() => {
+    if (!addNewPopoverOpen) return;
+    const handleClick = (e) => {
+      const pop = document.querySelector('[data-popover="add-new"]');
+      // if click target is neither the trigger button nor inside the popover
+      if (
+        addNewBtnRef &&
+        !addNewBtnRef.contains(e.target) &&
+        (!pop || (pop && !pop.contains(e.target)))
+      ) {
+        setAddNewPopoverOpen(false);
+      }
+    };
+    const handleKey = (e) => {
+      if (e.key === "Escape") setAddNewPopoverOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [addNewPopoverOpen, addNewBtnRef]);
   // Load friendship + friends list if in friend view
   useEffect(() => {
     if (isFriendView) {
@@ -1542,42 +1570,31 @@ const PaymentMethodFlow = () => {
               >
                 {[
                   {
-                    path: friendId
-                      ? `/category-flow/${friendId}`
-                      : "/category-flow",
+                    path: "/transactions",
+                    icon: "history.png",
+                    label: "History",
+                  },
+                  { path: "/reports", icon: "report.png", label: "Reports" },
+                  { path: "/budget", icon: "budget.png", label: "Budget" },
+                  {
+                    path: "/category-flow",
                     icon: "category.png",
                     label: "Categories",
                   },
                   {
-                    path: friendId
-                      ? `/transactions/${friendId}`
-                      : "/transactions",
-                    icon: "history.png",
-                    label: "History",
-                  },
-
-                  {
-                    path: friendId
-                      ? `/payment-method/reports/${friendId}`
-                      : "/payment-method/reports",
-                    icon: "report.png",
-                    label: "Reports",
-                  },
-                  {
-                    path: friendId ? `/budget/${friendId}` : "/budget",
-                    icon: "budget.png",
-                    label: "Budget",
-                  },
-
-                  {
-                    path: friendId ? `/bill/${friendId}` : "/bill",
+                    path: "/bill",
                     icon: "bill.png",
                     label: "Bill",
                   },
                 ].map(({ path, icon, label }) => (
                   <button
                     key={path}
-                    onClick={() => navigate(path)}
+                    onClick={() => {
+                      const target = isFriendView
+                        ? `${path}/${friendId}`
+                        : path;
+                      navigate(target);
+                    }}
                     className="nav-button"
                     style={{
                       display: "flex",
@@ -1589,7 +1606,7 @@ const PaymentMethodFlow = () => {
                       borderRadius: "8px",
                       color: "#00DAC6",
                       fontSize: isMobile ? "12px" : "14px",
-                      fontWeight: 500,
+                      fontWeight: "500",
                       cursor: "pointer",
                       transition: "all 0.2s ease",
                       minWidth: "fit-content",
@@ -1609,6 +1626,122 @@ const PaymentMethodFlow = () => {
                     {!isMobile && <span>{label}</span>}
                   </button>
                 ))}
+                {/* Add New - only show if user has write/full access (or own view) */}
+                {hasWriteAccess && (
+                  <button
+                    ref={setAddNewBtnRef}
+                    onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: isMobile ? "6px 8px" : "6px 8px",
+                      backgroundColor: "#1b1b1b",
+                      border: "1px solid #333",
+                      borderRadius: "6px",
+                      color: "#00DAC6",
+                      fontSize: isMobile ? "11px" : "12px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      minWidth: "fit-content",
+                    }}
+                    disabled={!hasWriteAccess}
+                    title={
+                      hasWriteAccess
+                        ? "Add Payment Method, budget, category or upload file"
+                        : "You have read-only access"
+                    }
+                  >
+                    <img
+                      src={require("../../assests/add.png")}
+                      alt="Add"
+                      style={{
+                        width: isMobile ? 14 : 16,
+                        height: isMobile ? 14 : 16,
+                        filter:
+                          "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                        transition: "filter 0.2s ease",
+                      }}
+                    />
+                    {!isMobile && <span>Add New</span>}
+                  </button>
+                )}
+
+                {/* Simplified Add New Popover */}
+                {addNewPopoverOpen &&
+                  hasWriteAccess &&
+                  addNewBtnRef &&
+                  createPortal(
+                    <div
+                      data-popover="add-new"
+                      style={{
+                        position: "fixed",
+                        top:
+                          addNewBtnRef.getBoundingClientRect().bottom +
+                          4 +
+                          window.scrollY,
+                        left:
+                          addNewBtnRef.getBoundingClientRect().left +
+                          window.scrollX,
+                        zIndex: 1000,
+                        background: "#0b0b0b",
+                        border: "1px solid #333",
+                        borderRadius: 6,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                        minWidth: 140,
+                        padding: 4,
+                      }}
+                    >
+                      {[
+                        {
+                          label: "Add Payment Method",
+                          route: isFriendView
+                            ? `/payment-method/create/${friendId}`
+                            : "/payment-method/create",
+                          color: "#00DAC6",
+                        },
+                        {
+                          label: "Upload File",
+                          route: isFriendView
+                            ? `/upload/payments/${friendId}`
+                            : "/upload/payments",
+                          color: "#5b7fff",
+                        },
+                      ].map((item, idx) => (
+                        <button
+                          key={idx}
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            background: "transparent",
+                            color: item.color,
+                            border: "none",
+                            textAlign: "left",
+                            padding: "8px 10px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            borderRadius: 4,
+                          }}
+                          onClick={() => {
+                            navigate(item.route);
+                            setAddNewPopoverOpen(false);
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = item.color;
+                            e.target.style.color =
+                              item.color === "#FFC107" ? "#000" : "#fff";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = "transparent";
+                            e.target.style.color = item.color;
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>,
+                    document.body
+                  )}
               </div>
               <style>{`
                 .nav-button:hover {
@@ -1628,47 +1761,6 @@ const PaymentMethodFlow = () => {
                 }
                 .nav-button:active { transform: scale(0.98); }
               `}</style>
-              {hasWriteAccess && (
-                <IconButton
-                  sx={{ color: "#5b7fff", ml: 1 }}
-                  onClick={() =>
-                    friendId && friendId !== "undefined"
-                      ? navigate(`/payment-method/create/${friendId}`)
-                      : navigate("/payment-method/create")
-                  }
-                  aria-label="New Payment Method"
-                  title={hasWriteAccess ? "Create Payment Method" : "Read only"}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="#5b7fff"
-                      strokeWidth="2"
-                      fill="#23243a"
-                    />
-                    <path
-                      d="M12 8V16"
-                      stroke="#5b7fff"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M8 12H16"
-                      stroke="#5b7fff"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </IconButton>
-              )}
             </div>
             {/* Sort Popover */}
             {popoverOpen &&

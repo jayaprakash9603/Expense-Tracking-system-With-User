@@ -154,8 +154,12 @@ function App() {
             <Route path="all" element={<Utilities />} />
 
             <Route path="upload">
-              <Route index element={<Upload />} />
-              <Route path=":friendId" element={<Upload />} />
+              <Route path="expenses" element={<Upload />} />
+              <Route path="categories" element={<Upload />} />
+              <Route path="categories/:friendId" element={<Upload />} />
+              <Route path="payments" element={<Upload />} />
+              <Route path="payments/:friendId" element={<Upload />} />
+              <Route path="expenses/:friendId" element={<Upload />} />
             </Route>
             {/* Nested expenses route */}
             <Route path="expenses">

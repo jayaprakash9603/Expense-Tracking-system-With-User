@@ -53,6 +53,14 @@ const Upload = () => {
     defaultPath: "/friends/expenses",
   });
 
+  // Determine which upload action to show based on route
+  const currentPath = (location?.pathname || "").toLowerCase();
+  const showExpensesUploadBtn = currentPath.includes("expenses");
+  const showCategoriesUploadBtn = currentPath.includes("categories");
+  const showPaymentMethodsUploadBtn =
+    currentPath.includes("payment") || currentPath.includes("payment-method");
+  const showBudgetsUploadBtn = currentPath.includes("budget");
+
   const {
     success = false,
     data = [],
@@ -209,6 +217,19 @@ const Upload = () => {
     );
   }, [uploadedCategories, categorySearchText]);
 
+  // Fallback: if expenses already exist in redux slice (e.g., returning to page) auto-show table.
+  useEffect(() => {
+    if (
+      !isTableVisible &&
+      !uploadedData.length &&
+      Array.isArray(data) &&
+      data.length
+    ) {
+      setUploadedData(data);
+      setIsTableVisible(true);
+    }
+  }, [data, isTableVisible, uploadedData.length]);
+
   // (Manual redirect effect removed; handled by generic hook)
 
   return (
@@ -270,7 +291,7 @@ const Upload = () => {
             </Alert>
           )}
 
-          {isTableVisible && uploadedData.length > 0 ? (
+          {uploadedData.length > 0 ? (
             <div className="relative mt-[50px]">
               <ExpensesTable expenses={filteredExpenses} />
 
@@ -407,18 +428,76 @@ const Upload = () => {
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   {hasWriteAccess && (
                     <div className="flex flex-col gap-3 items-center">
-                      <button
-                        className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
-                        onClick={openModal}
-                      >
-                        Upload Expenses
-                      </button>
-                      <button
-                        className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
-                        onClick={openCategoryFilePicker}
-                      >
-                        Upload Categories
-                      </button>
+                      {/* If no specific segment (expenses/categories/payments/budgets) present, show all four */}
+                      {!showExpensesUploadBtn &&
+                        !showCategoriesUploadBtn &&
+                        !showPaymentMethodsUploadBtn &&
+                        !showBudgetsUploadBtn && (
+                          <>
+                            <button
+                              className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
+                              onClick={openModal}
+                            >
+                              Upload Expenses
+                            </button>
+                            <button
+                              className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
+                              onClick={openCategoryFilePicker}
+                            >
+                              Upload Categories
+                            </button>
+                            <button
+                              className="bg-indigo-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-indigo-700"
+                              onClick={() => openModal("payment-methods")}
+                            >
+                              Upload Payment Methods
+                            </button>
+                            <button
+                              className="bg-fuchsia-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-fuchsia-700"
+                              onClick={() => openModal("budgets")}
+                            >
+                              Upload Budgets
+                            </button>
+                          </>
+                        )}
+                      {showExpensesUploadBtn && (
+                        <button
+                          className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
+                          onClick={openModal}
+                        >
+                          Upload Expenses
+                        </button>
+                      )}
+                      {showCategoriesUploadBtn && (
+                        <button
+                          className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
+                          onClick={openCategoryFilePicker}
+                        >
+                          Upload Categories
+                        </button>
+                      )}
+                      {showPaymentMethodsUploadBtn &&
+                        !showExpensesUploadBtn &&
+                        !showCategoriesUploadBtn &&
+                        !showBudgetsUploadBtn && (
+                          <button
+                            className="bg-indigo-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-indigo-700"
+                            onClick={() => openModal("payment-methods")}
+                          >
+                            Upload Payment Methods
+                          </button>
+                        )}
+                      {showBudgetsUploadBtn &&
+                        !showExpensesUploadBtn &&
+                        !showCategoriesUploadBtn &&
+                        !showPaymentMethodsUploadBtn && (
+                          <button
+                            className="bg-fuchsia-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-fuchsia-700"
+                            onClick={() => openModal("budgets")}
+                          >
+                            Upload Budgets
+                          </button>
+                        )}
                     </div>
                   )}
                 </div>
@@ -462,7 +541,7 @@ const Upload = () => {
         aria-label={loadingMessage || "Processing"}
       >
         {/* Show pulse loader for file upload phase (before table visible); show percentage only during save */}
-        {!isTableVisible ? (
+        {uploadedData.length === 0 ? (
           <PulseLoader message={loadingMessage || "Processing file..."} />
         ) : (
           <Box
