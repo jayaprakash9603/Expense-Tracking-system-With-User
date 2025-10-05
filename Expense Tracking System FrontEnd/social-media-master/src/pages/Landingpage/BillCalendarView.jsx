@@ -177,7 +177,7 @@ const BillCalendarView = () => {
           }}
           onClick={() =>
             friendId && friendId !== "undefined"
-              ? navigate(`/friends/bill/${friendId}`)
+              ? navigate(`/bill/${friendId}`)
               : navigate("/bill")
           }
           aria-label="Back"

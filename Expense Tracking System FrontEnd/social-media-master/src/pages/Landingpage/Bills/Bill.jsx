@@ -65,8 +65,8 @@ const Bill = () => {
   useEffect(() => {
     const month = selectedDate.month() + 1;
     const year = selectedDate.year();
-    fetchBillsData(month, year);
-  }, [selectedDate, fetchBillsData]);
+    fetchBillsData(month, year, friendId || "");
+  }, [selectedDate, fetchBillsData, friendId]);
 
   // Event handlers
   const handleBack = () => {
@@ -160,12 +160,12 @@ const Bill = () => {
 
     try {
       setIsDeleting(true);
-      await deleteBillData(billToDelete.id);
+      await deleteBillData(billToDelete.id,friendId || "");
 
       // Refresh bills data
       const month = selectedDate.month() + 1;
       const year = selectedDate.year();
-      await fetchBillsData(month, year);
+      await fetchBillsData(month, year, friendId || "");
 
       setSnackbar({
         open: true,

@@ -135,6 +135,7 @@ function App() {
               <Route index element={<Bill />} />
               <Route path=":friendId" element={<Bill />} />
               <Route path="report" element={<ExpenseReport />} />
+              <Route path="report/:friendId" element={<ExpenseReport />} />
               <Route path="upload" element={<UploadBills />} />
               <Route path="upload/:friendId" element={<UploadBills />} />
               <Route path="create" element={<CreateBill />} />
@@ -233,6 +234,7 @@ function App() {
             </Route>
             <Route path="/bill-day-view">
               <Route path=":date" element={<DayBillsView />} />
+              <Route path=":date/friend/:friendId" element={<DayBillsView />} />
             </Route>
           </Route>
 

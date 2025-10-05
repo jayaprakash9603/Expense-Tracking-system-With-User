@@ -9,7 +9,7 @@ export const useBillData = (friendId) => {
   const [error, setError] = useState(null);
   const dispatch = useDispatch();
 
-  const fetchBillsData = useCallback(async (month, year) => {
+  const fetchBillsData = useCallback(async (month, year, targetId) => {
     try {
       setLoading(true);
       setError(null);

@@ -1154,9 +1154,9 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             ×
           </button>
         </div>
-        <hr className="border-t border-gray-600 w-full mt-[-4px]" />
+        <hr className="border-t border-gray-600 w-full mt-[-4px] mb-0" style={{ marginBottom: 0 }} />
 
-        <div className="flex flex-col gap-4 mt-4">
+        <div className="flex flex-col gap-4 mt-2">
           <div className="flex flex-1 gap-4 items-center">
             {renderNameInput()}
             {renderDescriptionInput()}

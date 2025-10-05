@@ -19,6 +19,7 @@ import {
   getBillByExpenseId,
   getBillsByParticularDate,
 } from "../../Redux/Bill/bill.action";
+import useFriendAccess from "../../hooks/useFriendAccess";
 
 const DayBillsView = () => {
   const [selectedCardIdx, setSelectedCardIdx] = useState(null);
@@ -31,6 +32,7 @@ const DayBillsView = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { date, friendId } = useParams(); // date in YYYY-MM-DD
+  const { hasWriteAccess } = useFriendAccess(friendId);
   const { particularDateBills = [], loading } = useSelector(
     (state) => state.bill
   );
@@ -197,7 +199,7 @@ const DayBillsView = () => {
           }}
           onClick={() => {
             if (friendId && friendId !== "undefined") {
-              navigate(`/bill/calendar${friendId}`);
+              navigate(`/bill/calendar/${friendId}`);
             } else {
               navigate("/bill/calendar");
             }
@@ -546,9 +548,11 @@ const DayBillsView = () => {
             <Typography variant="h6" color="#fff" fontWeight={700}>
               No transactions!
             </Typography>
-            <Typography variant="body2" color="#b0b6c3" sx={{ mt: 0.5 }}>
-              Click + to add one.
-            </Typography>
+            {hasWriteAccess && (
+              <Typography variant="body2" color="#b0b6c3" sx={{ mt: 0.5 }}>
+                Click + to add one.
+              </Typography>
+            )}
           </Box>
         ) : (
           <Box
@@ -775,67 +779,71 @@ const DayBillsView = () => {
           </Box>
         )}
         {/* Global floating + button at bottom right */}
-        <IconButton
-          sx={{
-            position: "fixed",
-            right: 60,
-            bottom: 100, // Move the button further up from the bottom
-            background: "#23243a",
-            color: "#5b7fff",
-            borderRadius: "50%",
-            width: 56,
-            height: 56,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: 4,
-            transition: "background 0.2s, color 0.2s",
-            "&:hover": {
-              background: "#2e335a",
-              color: "#fff",
-            },
-          }}
-          onClick={() =>
-            friendId && friendId !== "undefined"
-              ? navigate(
-                  `/bill/create/${friendId}?date=${currentDay.format(
-                    "YYYY-MM-DD"
-                  )}`
-                )
-              : navigate(`/bill/create?date=${currentDay.format("YYYY-MM-DD")}`)
-          }
-          aria-label="Add Expense"
-        >
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+        {hasWriteAccess && (
+          <IconButton
+            sx={{
+              position: "fixed",
+              right: 60,
+              bottom: 100, // Move the button further up from the bottom
+              background: "#23243a",
+              color: "#5b7fff",
+              borderRadius: "50%",
+              width: 56,
+              height: 56,
+              zIndex: 9999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: 4,
+              transition: "background 0.2s, color 0.2s",
+              "&:hover": {
+                background: "#2e335a",
+                color: "#fff",
+              },
+            }}
+            onClick={() =>
+              friendId && friendId !== "undefined"
+                ? navigate(
+                    `/bill/create/${friendId}?date=${currentDay.format(
+                      "YYYY-MM-DD"
+                    )}`
+                  )
+                : navigate(
+                    `/bill/create?date=${currentDay.format("YYYY-MM-DD")}`
+                  )
+            }
+            aria-label="Add Expense"
           >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="#5b7fff"
-              strokeWidth="2"
-              fill="#23243a"
-            />
-            <path
-              d="M12 8V16"
-              stroke="#5b7fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M8 12H16"
-              stroke="#5b7fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </IconButton>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="#5b7fff"
+                strokeWidth="2"
+                fill="#23243a"
+              />
+              <path
+                d="M12 8V16"
+                stroke="#5b7fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M8 12H16"
+                stroke="#5b7fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </IconButton>
+        )}
         {/* Modal for expense details */}
         <Modal
           isOpen={isModalOpen}
