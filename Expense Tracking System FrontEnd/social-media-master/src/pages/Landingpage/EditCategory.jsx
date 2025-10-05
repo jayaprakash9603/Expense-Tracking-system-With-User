@@ -15,13 +15,17 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import CategoryIcon from "@mui/icons-material/Category";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
+import CategoryEditSkeleton from "../../components/Loaders/CategoryEditSkeleton";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -273,6 +277,15 @@ const EditCategory = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id, friendId } = useParams(); // Get category ID from URL
+  const location = useLocation();
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  const isCategoryFlow = location.pathname.startsWith("/category-flow");
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) =>
+      isCategoryFlow ? `/category-flow/${fid}` : `/friends/expenses/${fid}`,
+    selfPath: isCategoryFlow ? "/category-flow" : "/friends/expenses",
+    defaultPath: isCategoryFlow ? "/category-flow" : "/friends/expenses",
+  });
 
   const [categoryData, setCategoryData] = useState({
     name: "",
@@ -397,6 +410,7 @@ const EditCategory = () => {
 
   const handleCategorySubmit = (e) => {
     e.preventDefault();
+    if (!hasWriteAccess) return; // safety
 
     if (!validateForm()) {
       return;
@@ -525,25 +539,10 @@ const EditCategory = () => {
   const currentTabIcons =
     ICON_CATEGORIES[iconCategoryNames[currentIconTab]] || [];
 
-  if (initialLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "#1b1b1b",
-        }}
-      >
-        <CircularProgress sx={{ color: categoryData.color || "#1976d2" }} />
-      </Box>
-    );
-  }
+  if (initialLoading) return <CategoryEditSkeleton />;
 
   return (
     <div className="bg-[#1b1b1b]">
-      {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
         style={{
@@ -554,6 +553,7 @@ const EditCategory = () => {
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
           border: "1px solid rgb(0, 0, 0)",
           opacity: 1,
+          marginRight: "20px",
           padding: "16px",
         }}
       >
@@ -1039,21 +1039,23 @@ const EditCategory = () => {
                 gap: 2,
               }}
             >
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isSubmitting}
-                sx={{
-                  bgcolor: categoryData.color,
-                  color: "black",
-                  "&:hover": {
+              {hasWriteAccess && (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isSubmitting}
+                  sx={{
                     bgcolor: categoryData.color,
-                    opacity: 0.9,
-                  },
-                }}
-              >
-                {isSubmitting ? "Updating..." : "Update Category"}
-              </Button>
+                    color: "black",
+                    "&:hover": {
+                      bgcolor: categoryData.color,
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  {isSubmitting ? "Updating..." : "Update Category"}
+                </Button>
+              )}
             </Box>
           </Box>
         </div>

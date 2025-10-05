@@ -22,6 +22,8 @@ import {
 } from "@mui/icons-material";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+import useFriendAccess from "../../hooks/useFriendAccess"; // still used for hasWriteAccess gating below
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { createBill } from "../../Redux/Bill/bill.action";
 import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
@@ -43,6 +45,13 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const today = new Date().toISOString().split("T")[0];
   const dispatch = useDispatch();
   const { friendId } = useParams();
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  // DRY redirect guard
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) => `/bill/${fid}`,
+    selfPath: "/bill",
+    defaultPath: "/bill",
+  });
   const lastRowRef = useRef(null);
   const {
     budgets,
@@ -1704,7 +1713,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
                         >
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-1 min-w-0 pr-2">
-                              
                               <h5
                                 className="text-white font-medium text-xs truncate max-w-[140px]"
                                 title={expense.itemName}
@@ -1772,19 +1780,21 @@ const CreateBill = ({ onClose, onSuccess }) => {
             </div>
           </div>
         )}
-        <div className="w-full flex justify-end mt-4 sm:mt-8">
-          <button
-            onClick={handleSubmit}
-            disabled={billLoading}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {billLoading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              "Submit"
-            )}
-          </button>
-        </div>
+        {hasWriteAccess && (
+          <div className="w-full flex justify-end mt-4 sm:mt-8">
+            <button
+              onClick={handleSubmit}
+              disabled={billLoading}
+              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {billLoading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Submit"
+              )}
+            </button>
+          </div>
+        )}
 
         <style>
           {`

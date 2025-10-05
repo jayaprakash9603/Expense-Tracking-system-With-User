@@ -2028,7 +2028,7 @@ const Cashflow = () => {
                     {
                       label: "Add Category",
                       route: isFriendView
-                        ? `/categories/create/${friendId}`
+                        ? `/category-flow/create/${friendId}`
                         : "/category-flow/create",
                       color: "#ff6b6b",
                     },

@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
+import useFriendAccess from "../../hooks/useFriendAccess";
 import ExpenseFormLogic from "./ExpenseFormLogic";
 import { useDispatch } from "react-redux";
 import {
@@ -16,6 +17,8 @@ function CreateExpenses() {
   // Get date from query param if present
   const searchParams = new URLSearchParams(location.search);
   const dateFromQuery = searchParams.get("date");
+  const { friendId } = useParams();
+  const { hasWriteAccess } = useFriendAccess(friendId);
 
   const initialState = {
     expenseName: "",
@@ -143,6 +146,7 @@ function CreateExpenses() {
 
     // Send the request to the backend
     try {
+      if (!hasWriteAccess) return; // safety no-op
       dispatch(
         createExpenseAction({
           date,
@@ -152,7 +156,7 @@ function CreateExpenses() {
 
       dispatch(fetchPreviousExpenses(expenseName, date));
 
-      navigate("/"); // Navigate to the appropriate page after submission
+      navigate("/"); // Navigate after submission
       dispatch(getExpensesAction());
     } catch (error) {
       console.error(
@@ -288,6 +292,19 @@ function CreateExpenses() {
       e.preventDefault(); // Prevent form submission on Enter
     }
   };
+  // Redirect guard for read-only users accessing create expense directly
+  useEffect(() => {
+    if (hasWriteAccess) return;
+    const from = location?.state?.from;
+    if (from) {
+      navigate(from, { replace: true });
+    } else if (friendId) {
+      navigate(`/bill/${friendId}`, { replace: true });
+    } else {
+      navigate("/bill", { replace: true });
+    }
+  }, [hasWriteAccess, navigate, location, friendId]);
+
   return (
     <div className="d-flex w-100 vh-100 justify-content-center align-items-center bg-light">
       <div className="w-50 border bg-white shadow px-5 pt-3 pb-5 rounded">
@@ -423,9 +440,11 @@ function CreateExpenses() {
           </div>
           {error && <div className="alert alert-danger">{error}</div>}
           <div className="d-flex justify-content-between mb-3">
-            <button className="btn btn-success" type="submit">
-              Add Expense
-            </button>
+            {hasWriteAccess && (
+              <button className="btn btn-success" type="submit">
+                Add Expense
+              </button>
+            )}
             <Link to="/" className="btn btn-primary ms-3">
               Back
             </Link>

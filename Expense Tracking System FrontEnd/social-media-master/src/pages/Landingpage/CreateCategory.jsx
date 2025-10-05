@@ -23,7 +23,9 @@ import AddIcon from "@mui/icons-material/Add";
 import CategoryIcon from "@mui/icons-material/Category";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -270,6 +272,19 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { friendId } = useParams();
+  const location = useLocation();
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  // Determine if we are in category-flow (starts with /category-flow)
+  const isCategoryFlow = location.pathname.startsWith("/category-flow");
+  // Redirect rules:
+  // If in category-flow and read-only: /category-flow/:friendId else /category-flow
+  // Else fallback to expenses listing pattern used elsewhere
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) =>
+      isCategoryFlow ? `/category-flow/${fid}` : `/friends/expenses/${fid}`,
+    selfPath: isCategoryFlow ? "/category-flow" : "/friends/expenses",
+    defaultPath: isCategoryFlow ? "/category-flow" : "/friends/expenses",
+  });
   const [categoryData, setCategoryData] = useState({
     name: "",
     description: "",
@@ -354,6 +369,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
 
   const handleCategorySubmit = (e) => {
     e.preventDefault();
+    if (!hasWriteAccess) return; // safety block
 
     if (!validateForm()) {
       return;
@@ -461,6 +477,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
           border: "1px solid rgb(0, 0, 0)",
           opacity: 1,
+          marginRight: "20px",
           padding: "16px",
         }}
       >
@@ -938,21 +955,23 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                 gap: 2,
               }}
             >
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isSubmitting}
-                sx={{
-                  bgcolor: categoryData.color,
-                  color: "black",
-                  "&:hover": {
+              {hasWriteAccess && (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isSubmitting}
+                  sx={{
                     bgcolor: categoryData.color,
-                    opacity: 0.9,
-                  },
-                }}
-              >
-                {isSubmitting ? "Creating..." : "Create Category"}
-              </Button>
+                    color: "black",
+                    "&:hover": {
+                      bgcolor: categoryData.color,
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  {isSubmitting ? "Creating..." : "Create Category"}
+                </Button>
+              )}
             </Box>
           </Box>
         </div>

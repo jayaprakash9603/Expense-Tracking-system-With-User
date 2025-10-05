@@ -22,6 +22,8 @@ import {
 } from "@mui/icons-material";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+import useFriendAccess from "../../hooks/useFriendAccess"; // retains gating
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { updateBill, getBillById } from "../../Redux/Bill/bill.action";
 import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
@@ -39,8 +41,16 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { id, friendId } = useParams();
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) => `/bill/${fid}`,
+    selfPath: "/bill",
+    defaultPath: "/bill",
+  });
   const lastRowRef = useRef(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // (redirect handled by hook)
 
   const currentBillId = billId || id;
 
@@ -1678,19 +1688,21 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           </div>
         )}
 
-        <div className="w-full flex justify-end mt-4 sm:mt-8">
-          <button
-            onClick={handleSubmit}
-            disabled={billLoading}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {billLoading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              "Update"
-            )}
-          </button>
-        </div>
+        {hasWriteAccess && (
+          <div className="w-full flex justify-end mt-4 sm:mt-8">
+            <button
+              onClick={handleSubmit}
+              disabled={billLoading}
+              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {billLoading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Update"
+              )}
+            </button>
+          </div>
+        )}
 
         <style>
           {`

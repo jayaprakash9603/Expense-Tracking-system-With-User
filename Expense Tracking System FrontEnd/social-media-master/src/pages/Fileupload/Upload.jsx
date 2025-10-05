@@ -18,7 +18,9 @@ import {
   uploadCategoriesFile,
 } from "../../Redux/Expenses/expense.action";
 import ExpensesTable from "../Landingpage/ExpensesTable";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, useLocation } from "react-router";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import PercentageLoader from "../../components/Loaders/PercentageLoader";
 import PulseLoader from "../../components/Loaders/Loader"; // added
 import { api, API_BASE_URL } from "../../config/api";
@@ -43,6 +45,13 @@ const Upload = () => {
   const navigate = useNavigate();
 
   const { friendId } = useParams();
+  const location = useLocation();
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) => `/friends/expenses/${fid}`,
+    selfPath: "/friends/expenses",
+    defaultPath: "/friends/expenses",
+  });
 
   const {
     success = false,
@@ -51,6 +60,7 @@ const Upload = () => {
   } = useSelector((state) => state.fileUpload || {});
 
   const openModal = (mode = "expenses") => {
+    if (!hasWriteAccess) return; // safety
     setModalMode(mode);
     setModalOpen(true);
     setIsLoading(false);
@@ -78,6 +88,7 @@ const Upload = () => {
   };
 
   const handleSave = async () => {
+    if (!hasWriteAccess) return; // safety
     setIsLoading(true);
     setLoadingMessage("Saving expenses...");
     setSaveProgress(0);
@@ -141,6 +152,7 @@ const Upload = () => {
   };
 
   const handleUploadStart = () => {
+    if (!hasWriteAccess) return; // safety
     setIsLoading(true);
     setUploadProgress(0);
     setLoadingMessage("Processing file...");
@@ -157,7 +169,8 @@ const Upload = () => {
     }, 1000);
   };
 
-  const openCategoryFilePicker = () => openModal("categories");
+  const openCategoryFilePicker = () =>
+    hasWriteAccess && openModal("categories");
 
   useEffect(() => {
     if (success && data?.length) {
@@ -195,6 +208,8 @@ const Upload = () => {
       (c?.name || "").toLowerCase().includes(categorySearchText.toLowerCase())
     );
   }, [uploadedCategories, categorySearchText]);
+
+  // (Manual redirect effect removed; handled by generic hook)
 
   return (
     <>
@@ -258,22 +273,24 @@ const Upload = () => {
             <div className="relative">
               <ExpensesTable expenses={filteredExpenses} />
 
-              <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">
-                <button
-                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 z-10"
-                  onClick={hideTable}
-                  title="Close Table"
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 z-10"
-                  onClick={handleSave}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Saving..." : "Save"}
-                </button>
-              </div>
+              {hasWriteAccess && (
+                <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">
+                  <button
+                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 z-10"
+                    onClick={hideTable}
+                    title="Close Table"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 z-10"
+                    onClick={handleSave}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              )}
             </div>
           ) : isCatTableVisible && uploadedCategories.length > 0 ? (
             <PreviewDataGrid
@@ -387,20 +404,22 @@ const Upload = () => {
             <div className="flex justify-center items-center h-full">
               <div className="relative w-full h-[60vh] sm:h-[80vh]">
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <div className="flex flex-col gap-3 items-center">
-                    <button
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
-                      onClick={openModal}
-                    >
-                      Upload Expenses
-                    </button>
-                    <button
-                      className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
-                      onClick={openCategoryFilePicker}
-                    >
-                      Upload Categories
-                    </button>
-                  </div>
+                  {hasWriteAccess && (
+                    <div className="flex flex-col gap-3 items-center">
+                      <button
+                        className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
+                        onClick={openModal}
+                      >
+                        Upload Expenses
+                      </button>
+                      <button
+                        className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
+                        onClick={openCategoryFilePicker}
+                      >
+                        Upload Categories
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -422,7 +441,7 @@ const Upload = () => {
           />
         </div>
 
-        <div className="w-full sm:w-[calc(100vw-400px)] h-[50px] bg-[#1b1b1b] mx-auto"></div>
+        {/* <div className="w-full sm:w-[calc(100vw-400px)] h-[50px] bg-[#1b1b1b] mx-auto"></div> */}
       </div>
 
       {/* Full Screen Loading Overlay */}

@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { Snackbar } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
 import {
@@ -62,9 +64,17 @@ const paymentMethodLabelFromKey = (key) => {
 };
 
 const EditExpense = ({}) => {
+  const location = useLocation();
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
   const { id, friendId } = useParams();
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  // Updated redirect base paths to /friends/expenses*
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) => `/friends/expenses/${fid}`,
+    selfPath: "/friends/expenses",
+    defaultPath: "/friends/expenses",
+  });
   const { expense } = useSelector((state) => state.expenses || {});
   const { budgets, error: budgetError } = useSelector(
     (state) => state.budgets || {}
@@ -242,6 +252,7 @@ const EditExpense = ({}) => {
       const amt = parseFloat(expenseData.amount) || 0;
       const derivedCreditDue = normalizedPm === "creditNeedToPaid" ? amt : 0;
 
+      if (!hasWriteAccess) return; // safety
       await dispatch(
         editExpenseAction(
           id,
@@ -872,6 +883,8 @@ const EditExpense = ({}) => {
     </div>
   );
 
+  // (Manual redirect effect removed; handled by generic hook)
+
   return (
     <>
       {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
@@ -882,7 +895,7 @@ const EditExpense = ({}) => {
           height: "calc(100vh - 100px)",
           backgroundColor: "rgb(11, 11, 11)",
           borderRadius: "8px",
-           marginRight: "20px",
+          marginRight: "20px",
           border: "1px solid rgb(0, 0, 0)",
           padding: "20px",
         }}
@@ -1262,12 +1275,14 @@ const EditExpense = ({}) => {
         )}
 
         <div className="w-full flex justify-end mt-4 sm:mt-8">
-          <button
-            onClick={handleSubmit}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px]"
-          >
-            Submit
-          </button>
+          {hasWriteAccess && (
+            <button
+              onClick={handleSubmit}
+              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px]"
+            >
+              Submit
+            </button>
+          )}
         </div>
 
         <style>
