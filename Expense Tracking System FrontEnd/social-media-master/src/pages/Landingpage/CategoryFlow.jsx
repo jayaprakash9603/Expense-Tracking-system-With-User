@@ -1209,19 +1209,6 @@ const CategoryFlow = () => {
 
   return (
     <>
-      {/* {friendId && friendId !== "undefined" ? (
-        <FriendInfoBar
-          friendship={friendship}
-          friendId={friendId}
-          friends={friends || []}
-          loading={loading}
-          onRouteChange={handleRouteChange}
-          refreshData={refreshData}
-          showInfoBar={showFriendInfo}
-        />
-      ) : (
-        <div className="h-[50px]"></div>
-      )} */}
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{
@@ -1239,38 +1226,6 @@ const CategoryFlow = () => {
           minWidth: 0,
         }}
       >
-        {/* <IconButton
-        sx={{
-          position: "absolute",
-          top: 16,
-          left: 16,
-          color: "#00DAC6",
-          backgroundColor: "#1b1b1b",
-          "&:hover": {
-            backgroundColor: "#28282a",
-          },
-          zIndex: 10,
-        }}
-        onClick={() => navigate(-1)}
-        aria-label="Back"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M15 18L9 12L15 6"
-            stroke="#00DAC6"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </IconButton> */}
-
         <Box
           sx={{
             display: "flex",
@@ -1549,22 +1504,36 @@ const CategoryFlow = () => {
               >
                 {[
                   {
-                    path: "/transactions",
+                    path: friendId
+                      ? `/transactions/${friendId}`
+                      : "/transactions",
                     icon: "history.png",
                     label: "History",
                   },
                   {
-                    path: "/category-flow/reports",
+                    path: friendId
+                      ? `/category-flow/reports/${friendId}`
+                      : "/category-flow/reports",
                     icon: "report.png",
                     label: "Reports",
                   },
-                  { path: "/budget", icon: "budget.png", label: "Budget" },
                   {
-                    path: "/payment-method",
+                    path: friendId ? `/budget/${friendId}` : "/budget",
+                    icon: "budget.png",
+                    label: "Budget",
+                  },
+                  {
+                    path: friendId
+                      ? `/payment-method/${friendId}`
+                      : "/payment-method",
                     icon: "payment-method.png",
                     label: "Payment Method",
                   },
-                  { path: "/bill", icon: "bill.png", label: "Bill" },
+                  {
+                    path: friendId ? `/bill/${friendId}` : "/bill",
+                    icon: "bill.png",
+                    label: "Bill",
+                  },
                 ].map(({ path, icon, label }) => (
                   <button
                     key={path}

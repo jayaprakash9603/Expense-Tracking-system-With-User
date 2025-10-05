@@ -36,7 +36,7 @@
   /* Sticky header within the scrollable report container */
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 10;
   background: #0f0f0f;
 }
 

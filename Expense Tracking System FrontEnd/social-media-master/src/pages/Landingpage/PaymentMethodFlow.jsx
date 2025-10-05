@@ -1188,20 +1188,6 @@ const PaymentMethodFlow = () => {
 
   return (
     <>
-      {/* {isFriendView ? (
-        <FriendInfoBar
-          friendship={friendship}
-          friendId={friendId}
-          friends={friends || []}
-          loading={friendsLoading}
-          onRouteChange={handleRouteChange}
-          refreshData={refreshData}
-          showInfoBar={showFriendInfo}
-        />
-      ) : (
-        <div className="h-[50px]"></div>
-      )} */}
-
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{
@@ -1549,24 +1535,24 @@ const PaymentMethodFlow = () => {
               >
                 {[
                   {
-                    path: "/category-flow",
+                    path: friendId ? `/category-flow/${friendId}` : "/category-flow",
                     icon: "category.png",
                     label: "Categories",
                   },
                   {
-                    path: "/transactions",
+                    path: friendId ? `/transactions/${friendId}` : "/transactions",
                     icon: "history.png",
                     label: "History",
                   },
 
                   {
-                    path: "/payment-method/reports",
+                    path: friendId ? `/payment-method/reports/${friendId}` : "/payment-method/reports",
                     icon: "report.png",
                     label: "Reports",
                   },
-                  { path: "/budget", icon: "budget.png", label: "Budget" },
+                  { path: friendId ? `/budget/${friendId}` : "/budget", icon: "budget.png", label: "Budget" },
 
-                  { path: "/bill", icon: "bill.png", label: "Bill" },
+                  { path: friendId ? `/bill/${friendId}` : "/bill", icon: "bill.png", label: "Bill" },
                 ].map(({ path, icon, label }) => (
                   <button
                     key={path}

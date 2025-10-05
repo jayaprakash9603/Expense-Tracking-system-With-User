@@ -252,14 +252,19 @@ const PaymentMethodsHeader = ({
 );
 
 // Payment Methods Overview Cards
-const PaymentOverviewCards = ({ data }) => {
-  const totalAmount = data.reduce((sum, item) => sum + item.totalAmount, 0);
-  const totalTransactions = data.reduce(
-    (sum, item) => sum + item.transactions,
+const PaymentOverviewCards = ({ data = [] }) => {
+  const safe = Array.isArray(data) ? data : [];
+  const totalAmount = safe.reduce(
+    (sum, item) => sum + Number(item?.totalAmount || 0),
     0
   );
-  const topMethod = data[0];
-  const avgTransactionValue = totalAmount / totalTransactions;
+  const totalTransactions = safe.reduce(
+    (sum, item) => sum + Number(item?.transactions || 0),
+    0
+  );
+  const topMethod = safe[0] || { method: "-", totalAmount: 0, percentage: 0 };
+  const avgTransactionValue =
+    totalTransactions > 0 ? totalAmount / totalTransactions : 0;
 
   return (
     <div className="payment-overview-cards">
@@ -278,7 +283,8 @@ const PaymentOverviewCards = ({ data }) => {
           <h3>Top Payment Method</h3>
           <div className="card-value">{topMethod.method}</div>
           <div className="card-change">
-            ₹{topMethod.totalAmount.toLocaleString()} ({topMethod.percentage}%)
+            ₹{Number(topMethod.totalAmount || 0).toLocaleString()} (
+            {Number(topMethod.percentage || 0)}%)
           </div>
         </div>
       </div>
@@ -854,8 +860,7 @@ const PaymentMethodsReport = () => {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [friendId]);
 
   const handleFilter = () => {
     console.log("Opening payment methods filters...");

@@ -797,12 +797,16 @@ const Cashflow = () => {
         }
       } else {
         try {
-          const expensedata = await dispatch(getExpenseAction(expenseToDelete));
+          const expensedata = await dispatch(
+            getExpenseAction(expenseToDelete, friendId || "")
+          );
           const bill = expensedata.bill
-            ? await dispatch(getBillByExpenseId(expenseToDelete))
+            ? await dispatch(getBillByExpenseId(expenseToDelete, friendId || ""))
             : false;
           await dispatch(
-            bill ? deleteBill(bill.id) : deleteExpenseAction(expenseToDelete)
+            bill
+              ? deleteBill(bill.id, friendId || "")
+              : deleteExpenseAction(expenseToDelete, friendId || "")
           );
           dispatch(
             fetchCashflowExpenses(
@@ -2476,13 +2480,14 @@ const Cashflow = () => {
                             getListOfBudgetsByExpenseId({
                               id: row.id || row.expenseId,
                               date: dayjs().format("YYYY-MM-DD"),
+                              friendId: friendId || null
                             })
                           );
                           const expensedata = await dispatch(
-                            getExpenseAction(row.id)
+                            getExpenseAction(row.id, friendId || "")
                           );
                           const bill = expensedata.bill
-                            ? await dispatch(getBillByExpenseId(row.id))
+                            ? await dispatch(getBillByExpenseId(row.id, friendId || ""))
                             : false;
                           if (expensedata.bill) {
                             navigate(

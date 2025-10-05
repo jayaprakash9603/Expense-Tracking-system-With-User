@@ -87,7 +87,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
   // Fetch budgets on component mount
   useEffect(() => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
-  }, [dispatch, today]);
+  }, [dispatch, today, friendId]);
 
   // Update checkbox states when budgets change
   useEffect(() => {
@@ -97,12 +97,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
   // Fetch expenses suggestions
   useEffect(() => {
     dispatch(getExpensesSuggestions(friendId || ""));
-  }, [dispatch]);
+  }, [dispatch, friendId]);
 
   // Fetch categories on component mount
   useEffect(() => {
     dispatch(fetchCategories(friendId || ""));
-  }, [dispatch]);
+  }, [dispatch, friendId]);
 
   // Ensure unique categories strictly by name (case-insensitive, trimmed)
   const uniqueCategories = useMemo(() => {

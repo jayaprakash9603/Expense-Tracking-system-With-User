@@ -196,7 +196,7 @@ const CreditDueContent = () => {
     };
 
     fetchData();
-  }, [token]);
+  }, [token,friendId]);
 
   // Remove legend for all screens
   const chartOptions = {

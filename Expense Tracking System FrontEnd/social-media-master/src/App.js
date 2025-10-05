@@ -115,6 +115,10 @@ function App() {
               <Route index element={<PaymentMethodFlow />} />
               <Route path=":friendId" element={<PaymentMethodFlow />} />
               <Route path="reports" element={<PaymentMethodsReport />} />
+              <Route
+                path="reports/:friendId"
+                element={<PaymentMethodsReport />}
+              />
               <Route path="create" element={<CreatePaymentMethod />} />
               <Route
                 path="create/:friendId"
@@ -169,6 +173,7 @@ function App() {
               <Route path="create" element={<CreateCategory />} />
               <Route path="create/:friendId" element={<CreateCategory />} />
               <Route path="reports" element={<CategoryReport />} />
+              <Route path="reports/:friendId" element={<CategoryReport />} />
               <Route path="edit/:id" element={<EditCategory />} />
               <Route
                 path="edit/:id/friend/:friendId"
