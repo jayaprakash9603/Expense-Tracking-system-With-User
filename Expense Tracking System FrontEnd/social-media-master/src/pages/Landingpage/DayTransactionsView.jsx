@@ -15,6 +15,7 @@ import ToastNotification from "./ToastNotification";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import useFriendAccess from "../../hooks/useFriendAccess";
+import DayViewSkeleton from "../../components/DayViewSkeleton";
 
 const DayTransactionsView = () => {
   const [selectedCardIdx, setSelectedCardIdx] = useState(null);
@@ -37,7 +38,7 @@ const DayTransactionsView = () => {
     if (date) {
       dispatch(getExpensesByParticularDate(date, friendId || ""));
     }
-  }, [dispatch, date]);
+  }, [dispatch, date, friendId]);
 
   // Get all transactions for this day
   const transactions = useMemo(() => {
@@ -510,41 +511,15 @@ const DayTransactionsView = () => {
         }}
       >
         {loading ? (
-          <Typography color="#b0b6c3" sx={{ textAlign: "center", mt: 4 }}>
-            Loading...
-          </Typography>
+          <DayViewSkeleton loading={true} isEmpty={false} showAddHint={false} />
         ) : transactions.length === 0 ? (
-          <Box
-            sx={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              py: 4,
-              position: "relative",
-            }}
-          >
-            <img
-              src={require("../../assests/card-payment.png")}
-              alt="No transactions"
-              style={{
-                width: 120,
-                height: 120,
-                marginBottom: 16,
-                objectFit: "contain",
-              }}
-            />
-            <Typography variant="h6" color="#fff" fontWeight={700}>
-              No transactions!
-            </Typography>
-            {hasWriteAccess && (
-              <Typography variant="body2" color="#b0b6c3" sx={{ mt: 0.5 }}>
-                Click + to add one.
-              </Typography>
-            )}
-          </Box>
+          <DayViewSkeleton
+            loading={false}
+            isEmpty={true}
+            showAddHint={hasWriteAccess}
+            emptyTitle="No transactions!"
+            iconSrc={require("../../assests/card-payment.png")}
+          />
         ) : (
           <Box
             sx={{
@@ -732,7 +707,7 @@ const DayTransactionsView = () => {
                     {item.expense?.comments || ""}
                   </Typography>
                   {/* Edit/Delete actions on highlight */}
-                  {isSelected && (
+                  {isSelected && hasWriteAccess && (
                     <Box
                       sx={{
                         position: "absolute",

@@ -20,6 +20,7 @@ import {
   getBillsByParticularDate,
 } from "../../Redux/Bill/bill.action";
 import useFriendAccess from "../../hooks/useFriendAccess";
+import DayViewSkeleton from "../../components/DayViewSkeleton";
 
 const DayBillsView = () => {
   const [selectedCardIdx, setSelectedCardIdx] = useState(null);
@@ -86,7 +87,7 @@ const DayBillsView = () => {
   // Update handlers to receive the item
   const handleEdit = async (item) => {
     const id = item.id || item.expense?.id || item.expenseId;
-    const bill = await dispatch(getBillByExpenseId(id));
+    const bill = await dispatch(getBillByExpenseId(id, friendId || ""));
 
     console.log("bill", bill);
     if (id) {
@@ -110,7 +111,7 @@ const DayBillsView = () => {
       expenseToDelete.expense?.id ||
       expenseToDelete.expenseId;
     if (!id) return;
-    const bill = await dispatch(getBillByExpenseId(id));
+    const bill = await dispatch(getBillByExpenseId(id, friendId || ""));
     dispatch(deleteBill(bill.id, friendId || ""))
       .then(() => {
         setToastMessage("Expense deleted successfully.");
@@ -519,41 +520,15 @@ const DayBillsView = () => {
         }}
       >
         {loading ? (
-          <Typography color="#b0b6c3" sx={{ textAlign: "center", mt: 4 }}>
-            Loading...
-          </Typography>
+          <DayViewSkeleton loading={true} isEmpty={false} showAddHint={false} />
         ) : transactions.length === 0 ? (
-          <Box
-            sx={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              py: 4,
-              position: "relative",
-            }}
-          >
-            <img
-              src={require("../../assests/card-payment.png")}
-              alt="No transactions"
-              style={{
-                width: 120,
-                height: 120,
-                marginBottom: 16,
-                objectFit: "contain",
-              }}
-            />
-            <Typography variant="h6" color="#fff" fontWeight={700}>
-              No transactions!
-            </Typography>
-            {hasWriteAccess && (
-              <Typography variant="body2" color="#b0b6c3" sx={{ mt: 0.5 }}>
-                Click + to add one.
-              </Typography>
-            )}
-          </Box>
+          <DayViewSkeleton
+            loading={false}
+            isEmpty={true}
+            showAddHint={hasWriteAccess}
+            emptyTitle="No transactions!"
+            iconSrc={require("../../assests/card-payment.png")}
+          />
         ) : (
           <Box
             sx={{
@@ -741,7 +716,7 @@ const DayBillsView = () => {
                     {item.expense?.comments || ""}
                   </Typography>
                   {/* Edit/Delete actions on highlight */}
-                  {isSelected && (
+                  {isSelected && hasWriteAccess && (
                     <Box
                       sx={{
                         position: "absolute",

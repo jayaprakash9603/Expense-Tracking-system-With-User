@@ -43,23 +43,23 @@ public class BillController {
     private final ExcelExportService excelExportService;
 
 
+    // Helper requiring MODIFY (write) permission
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser) throws Exception {
-        if (targetId == null) {
-            return reqUser;
-        }
-
+        if (targetId == null) return reqUser;
         UserDto targetUser = helper.validateUser(targetId);
-        if (targetUser == null) {
-            throw new Exception("Target user not found");
-        }
-
+        if (targetUser == null) throw new Exception("Target user not found");
         boolean hasAccess = friendshipService.canUserModifyExpenses(targetId, reqUser.getId());
+        if (!hasAccess) throw new Exception("You don't have permission to modify this user's expenses");
+        return targetUser;
+    }
 
-        if (!hasAccess) {
-            String action = "modify";
-            throw new Exception("You don't have permission to " + action + " this user's expenses");
-        }
-
+    // New helper requiring only READ (view) permission
+    private UserDto getTargetUserWithReadAccess(Integer targetId, UserDto reqUser) throws Exception {
+        if (targetId == null) return reqUser;
+        UserDto targetUser = helper.validateUser(targetId);
+        if (targetUser == null) throw new Exception("Target user not found");
+        boolean canView = friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
+        if (!canView) throw new Exception("You don't have permission to view this user's expenses");
         return targetUser;
     }
 
@@ -126,7 +126,7 @@ public class BillController {
     public ResponseEntity<Bill> getBillById(@PathVariable Integer id, @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) {
         try {
             UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser); // read access only
             Bill bill = billService.getByBillId(id, targetUser.getId());
             return ResponseEntity.ok(bill);
         } catch (Exception e) {
@@ -171,7 +171,7 @@ public class BillController {
     public ResponseEntity<Bill> getExpenseIdByBillId( @RequestHeader("Authorization") String jwt,@PathVariable Integer expenseId, @RequestParam(required = false) Integer targetId) {
         try {
             UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser); // read access only
             Bill bill=billService.getBillIdByExpenseId( targetUser.getId(),expenseId);
             return new ResponseEntity<>(bill,HttpStatus.OK);
         } catch (Exception e) {
@@ -196,7 +196,7 @@ public class BillController {
     ) throws Exception {
         try {
             UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser); // listing -> read access
             List<Bill> bills;
 
 
@@ -232,7 +232,7 @@ public class BillController {
     public ResponseEntity<List<String>> getAllUniqueItemNames(@RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId) throws Exception {
 
             UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser); // read access only
          List<String> resp = billService.getUserAndBackupItems(targetUser.getId());
             return ResponseEntity.ok(resp);
 

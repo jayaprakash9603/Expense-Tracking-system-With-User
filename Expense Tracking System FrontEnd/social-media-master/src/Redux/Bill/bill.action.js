@@ -236,6 +236,7 @@ export const getBillsByParticularDate =
       const config = {
         params: {
           expenseDate,
+          targetId: friendId || "",
         },
       };
 
