@@ -23,6 +23,8 @@ import "./ExpenseReport.css";
 import { fetchAllBills } from "../../Redux/Bill/bill.action";
 import { IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { useParams } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -104,6 +106,7 @@ const ReportHeader = ({
   reportActionAnchorEl,
   handleReportActionClose,
   handleReportMenuItemClick,
+  onBack,
 }) => (
   <div className="expense-report-header">
     <div
@@ -118,11 +121,7 @@ const ReportHeader = ({
           zIndex: 10,
           transform: "translateY(-15px)",
         }}
-        onClick={() =>
-          window.history.length > 1
-            ? window.history.back()
-            : (window.location.href = "/expenses")
-        }
+        onClick={onBack}
         aria-label="Back"
       >
         <svg
@@ -728,10 +727,21 @@ const ExpenseReport = () => {
   const dispatch = useDispatch();
   const allBills = useSelector((state) => state.bill.bills) || [];
   const loading = useSelector((state) => state.bill.loading);
+  const { friendId } = useParams();
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    // Always go to bill root of current context
+    if (friendId) {
+      navigate(`/bill/${friendId}`);
+    } else {
+      navigate(`/bill`);
+    }
+  };
 
   useEffect(() => {
-    dispatch(fetchAllBills());
-  }, [dispatch]);
+    dispatch(fetchAllBills(friendId ? friendId : null));
+  }, [dispatch, friendId]);
 
   const handleReportActionClick = (event) => {
     setReportActionAnchorEl(event.currentTarget);
@@ -745,7 +755,7 @@ const ExpenseReport = () => {
   const handleReportMenuItemClick = (action) => {
     setSelectedReportAction(action);
     if (action === "refresh") {
-      dispatch(fetchAllBills());
+      dispatch(fetchAllBills(friendId || ""));
     } else if (action === "export") {
       console.log("Export CSV requested");
     } else if (action === "pdf") {
@@ -1093,6 +1103,7 @@ const ExpenseReport = () => {
         reportActionAnchorEl={reportActionAnchorEl}
         handleReportActionClose={handleReportActionClose}
         handleReportMenuItemClick={handleReportMenuItemClick}
+        onBack={handleBack}
       />
 
       <FilterInfo
