@@ -10,25 +10,29 @@ import {
 } from "../../Redux/Auth/auth.action";
 import axios from "axios";
 import { API_BASE_URL } from "../../config/api";
+import ToastNotification from "../Landingpage/ToastNotification";
 
 const ForgotPassword = ({ onBack }) => {
   const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: New Password
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
   const handleSendOtp = async (values) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/send-otp`, {
+  const response = await axios.post(`${API_BASE_URL}/auth/send-otp`, {
         email: values.email,
       });
       setEmail(values.email);
       setStep(2);
+  setToast({ open: true, message: "OTP sent successfully", severity: "success" });
     } catch (err) {
       setError(
         err.response?.data?.error || "Failed to send OTP. Please try again."
       );
+  setToast({ open: true, message: "Failed to send OTP", severity: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +93,7 @@ const ForgotPassword = ({ onBack }) => {
   });
 
   return (
+    <>
     <div className="space-y-4">
       {step === 1 && (
         <Formik
@@ -98,27 +103,37 @@ const ForgotPassword = ({ onBack }) => {
         >
           <Form>
             <div className="min-h-[80px]">
-              <Field
-                as={TextField}
-                name="email"
-                placeholder="Enter your email"
-                type="email"
-                variant="outlined"
-                fullWidth
-                InputProps={{
-                  style: {
-                    backgroundColor: "rgb(56, 56, 56)",
-                    color: "#d8fffb",
-                    borderRadius: "8px",
-                  },
+              <Field name="email">
+                {({ field, form }) => {
+                  const showError = form.touched.email && form.errors.email; // validation state
+                  return (
+                    <TextField
+                      {...field}
+                      placeholder="Enter your email"
+                      type="email"
+                      variant="outlined"
+                      fullWidth
+                      error={!!showError}
+                      InputProps={{
+                        style: {
+                          backgroundColor: "rgb(56, 56, 56)",
+                          color: "#d8fffb",
+                          borderRadius: "8px",
+                        },
+                      }}
+                      InputLabelProps={{ style: { color: "#d8fffb" } }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#f44336'
+                          }
+                        }
+                      }}
+                    />
+                  );
                 }}
-                InputLabelProps={{ style: { color: "#d8fffb" } }}
-              />
-              <ErrorMessage
-                name="email"
-                component="div"
-                className="text-red-500 text-sm mt-1 min-h-[20px]"
-              />
+              </Field>
+              {/* Removed validation text on purpose as per requirement */}
               {error && (
                 <div className="text-red-500 text-sm mt-1 min-h-[20px]">
                   {error}
@@ -291,7 +306,15 @@ const ForgotPassword = ({ onBack }) => {
           </Form>
         </Formik>
       )}
-    </div>
+  </div>
+  <ToastNotification
+      open={toast.open}
+      message={toast.message}
+      severity={toast.severity}
+      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      onClose={() => setToast({ ...toast, open: false })}
+  />
+  </>
   );
 };
 

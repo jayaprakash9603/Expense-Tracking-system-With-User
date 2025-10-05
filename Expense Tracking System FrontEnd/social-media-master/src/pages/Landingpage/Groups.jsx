@@ -210,7 +210,7 @@ const Groups = () => {
       style={{
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
-        marginTop: "50px",
+        // marginTop: "50px",
         marginRight: "20px",
         backgroundColor: "#0b0b0b",
       }}

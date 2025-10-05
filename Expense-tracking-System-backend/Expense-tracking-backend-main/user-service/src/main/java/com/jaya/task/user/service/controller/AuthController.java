@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -81,39 +82,40 @@ public class AuthController {
     public ResponseEntity<AuthResponse> signin(@RequestBody LoginRequest loginRequest) {
         String username = loginRequest.getEmail();
         String password = loginRequest.getPassword();
+        try {
+            Authentication authentication = authenticate(username, password);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        Authentication authentication = authenticate(username, password);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = JwtProvider.generateToken(authentication);
 
+            AuthResponse authResponse = new AuthResponse();
+            authResponse.setStatus(true);
+            authResponse.setMessage("Login Success");
+            authResponse.setJwt(token);
 
-        String token = JwtProvider.generateToken(authentication);
-
-        AuthResponse authResponse = new AuthResponse();
-        authResponse.setStatus(true);
-        authResponse.setMessage("Login Success");
-        authResponse.setJwt(token);
-
-        return new ResponseEntity<>(authResponse, HttpStatus.OK);
+            return new ResponseEntity<>(authResponse, HttpStatus.OK);
+        } catch (BadCredentialsException ex) {
+            AuthResponse authResponse = new AuthResponse();
+            authResponse.setStatus(false);
+            authResponse.setMessage("Invalid Username or Password");
+            return new ResponseEntity<>(authResponse, HttpStatus.UNAUTHORIZED);
+        }
     }
 
     private Authentication authenticate(String username, String password) {
-        UserDetails userDetails = customUserService.loadUserByUsername(username);
-
-        if (userDetails == null) {
-            throw new BadCredentialsException("Invalid username or password");
+        try {
+            UserDetails userDetails = customUserService.loadUserByUsername(username);
+            if (userDetails == null || !passwordEncoder.matches(password, userDetails.getPassword())) {
+                throw new BadCredentialsException("Invalid Username or Password");
+            }
+            return new UsernamePasswordAuthenticationToken(
+                    userDetails.getUsername(),
+                    null,
+                    userDetails.getAuthorities()
+            );
+        } catch (UsernameNotFoundException e) {
+            throw new BadCredentialsException("Invalid Username or Password");
         }
-
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException("Invalid username or password");
-        }
-
-        return new UsernamePasswordAuthenticationToken(
-                userDetails.getUsername(),
-                null,
-                userDetails.getAuthorities()
-        );
-
-
     }
 
     @PostMapping("/refresh-token")
@@ -197,7 +199,6 @@ public class AuthController {
             String otp = otpService.generateAndSendOtp(email);
             Map<String, String> response = new HashMap<>();
             response.put("message", "OTP sent successfully");
-            response.put("otp", otp); // Include OTP in response for testing
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

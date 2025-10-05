@@ -874,7 +874,7 @@ const CategoryReport = () => {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [friendId]);
 
   const handleFilter = () => {
     console.log("Opening category filters...");

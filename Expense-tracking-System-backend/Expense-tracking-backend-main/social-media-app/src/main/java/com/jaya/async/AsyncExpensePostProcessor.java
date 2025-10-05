@@ -1,4 +1,4 @@
-// Java
+
 package com.jaya.async;
 
 import com.jaya.dto.User;

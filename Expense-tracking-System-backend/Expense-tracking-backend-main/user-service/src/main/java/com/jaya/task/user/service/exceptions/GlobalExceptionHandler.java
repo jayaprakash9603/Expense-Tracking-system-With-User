@@ -113,7 +113,7 @@ public class GlobalExceptionHandler {
 
         Map<String, Object> errorResponse = createErrorResponse(
                 HttpStatus.UNAUTHORIZED,
-                "Authentication failed: " + ex.getMessage(),
+                ex.getMessage(),
                 request.getDescription(false)
         );
 
@@ -126,7 +126,7 @@ public class GlobalExceptionHandler {
 
         Map<String, Object> errorResponse = createErrorResponse(
                 HttpStatus.UNAUTHORIZED,
-                "Invalid credentials provided.",
+                "Invalid Username or Password",
                 request.getDescription(false)
         );
 

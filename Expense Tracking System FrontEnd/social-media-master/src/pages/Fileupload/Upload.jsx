@@ -18,8 +18,11 @@ import {
   uploadCategoriesFile,
 } from "../../Redux/Expenses/expense.action";
 import ExpensesTable from "../Landingpage/ExpensesTable";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, useLocation } from "react-router";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import PercentageLoader from "../../components/Loaders/PercentageLoader";
+import PulseLoader from "../../components/Loaders/Loader"; // added
 import { api, API_BASE_URL } from "../../config/api";
 
 const Upload = () => {
@@ -42,6 +45,21 @@ const Upload = () => {
   const navigate = useNavigate();
 
   const { friendId } = useParams();
+  const location = useLocation();
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) => `/friends/expenses/${fid}`,
+    selfPath: "/friends/expenses",
+    defaultPath: "/friends/expenses",
+  });
+
+  // Determine which upload action to show based on route
+  const currentPath = (location?.pathname || "").toLowerCase();
+  const showExpensesUploadBtn = currentPath.includes("expenses");
+  const showCategoriesUploadBtn = currentPath.includes("categories");
+  const showPaymentMethodsUploadBtn =
+    currentPath.includes("payment") || currentPath.includes("payment-method");
+  const showBudgetsUploadBtn = currentPath.includes("budget");
 
   const {
     success = false,
@@ -50,6 +68,7 @@ const Upload = () => {
   } = useSelector((state) => state.fileUpload || {});
 
   const openModal = (mode = "expenses") => {
+    if (!hasWriteAccess) return; // safety
     setModalMode(mode);
     setModalOpen(true);
     setIsLoading(false);
@@ -77,6 +96,7 @@ const Upload = () => {
   };
 
   const handleSave = async () => {
+    if (!hasWriteAccess) return; // safety
     setIsLoading(true);
     setLoadingMessage("Saving expenses...");
     setSaveProgress(0);
@@ -140,6 +160,7 @@ const Upload = () => {
   };
 
   const handleUploadStart = () => {
+    if (!hasWriteAccess) return; // safety
     setIsLoading(true);
     setUploadProgress(0);
     setLoadingMessage("Processing file...");
@@ -156,7 +177,8 @@ const Upload = () => {
     }, 1000);
   };
 
-  const openCategoryFilePicker = () => openModal("categories");
+  const openCategoryFilePicker = () =>
+    hasWriteAccess && openModal("categories");
 
   useEffect(() => {
     if (success && data?.length) {
@@ -195,21 +217,37 @@ const Upload = () => {
     );
   }, [uploadedCategories, categorySearchText]);
 
+  // Fallback: if expenses already exist in redux slice (e.g., returning to page) auto-show table.
+  useEffect(() => {
+    if (
+      !isTableVisible &&
+      !uploadedData.length &&
+      Array.isArray(data) &&
+      data.length
+    ) {
+      setUploadedData(data);
+      setIsTableVisible(true);
+    }
+  }, [data, isTableVisible, uploadedData.length]);
+
+  // (Manual redirect effect removed; handled by generic hook)
+
   return (
     <>
-      <div className="min-h-screen flex flex-col bg-[#1b1b1b] sm:px-0">
-        <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b] "></div>
-
+      <div className=" bg-[#1b1b1b]">
         <div
-          className="flex flex-col flex-grow sm:p-6 w-full sm:w-[calc(100vw-370px)]"
+          className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
           style={{
-            position: "relative",
-            height: "calc(100vh - 100px)",
+            height: "auto",
+            minHeight: "calc(100vh - 100px)",
             backgroundColor: "rgb(11, 11, 11)",
             borderRadius: "8px",
             boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
             border: "1px solid rgb(0, 0, 0)",
             opacity: 1,
+            position: "relative",
+            marginRight: "20px",
+            padding: "16px",
           }}
         >
           {/* Back button - same behaviour as Bill component */}
@@ -253,26 +291,28 @@ const Upload = () => {
             </Alert>
           )}
 
-          {isTableVisible && uploadedData.length > 0 ? (
-            <div className="relative">
+          {uploadedData.length > 0 ? (
+            <div className="relative mt-[50px]">
               <ExpensesTable expenses={filteredExpenses} />
 
-              <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">
-                <button
-                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 z-10"
-                  onClick={hideTable}
-                  title="Close Table"
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 z-10"
-                  onClick={handleSave}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Saving..." : "Save"}
-                </button>
-              </div>
+              {hasWriteAccess && (
+                <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">
+                  <button
+                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 z-10"
+                    onClick={hideTable}
+                    title="Close Table"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 z-10"
+                    onClick={handleSave}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              )}
             </div>
           ) : isCatTableVisible && uploadedCategories.length > 0 ? (
             <PreviewDataGrid
@@ -386,20 +426,80 @@ const Upload = () => {
             <div className="flex justify-center items-center h-full">
               <div className="relative w-full h-[60vh] sm:h-[80vh]">
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <div className="flex flex-col gap-3 items-center">
-                    <button
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
-                      onClick={openModal}
-                    >
-                      Upload Expenses
-                    </button>
-                    <button
-                      className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
-                      onClick={openCategoryFilePicker}
-                    >
-                      Upload Categories
-                    </button>
-                  </div>
+                  {hasWriteAccess && (
+                    <div className="flex flex-col gap-3 items-center">
+                      {/* If no specific segment (expenses/categories/payments/budgets) present, show all four */}
+                      {!showExpensesUploadBtn &&
+                        !showCategoriesUploadBtn &&
+                        !showPaymentMethodsUploadBtn &&
+                        !showBudgetsUploadBtn && (
+                          <>
+                            <button
+                              className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
+                              onClick={openModal}
+                            >
+                              Upload Expenses
+                            </button>
+                            <button
+                              className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
+                              onClick={openCategoryFilePicker}
+                            >
+                              Upload Categories
+                            </button>
+                            <button
+                              className="bg-indigo-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-indigo-700"
+                              onClick={() => openModal("payment-methods")}
+                            >
+                              Upload Payment Methods
+                            </button>
+                            <button
+                              className="bg-fuchsia-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-fuchsia-700"
+                              onClick={() => openModal("budgets")}
+                            >
+                              Upload Budgets
+                            </button>
+                          </>
+                        )}
+                      {showExpensesUploadBtn && (
+                        <button
+                          className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
+                          onClick={openModal}
+                        >
+                          Upload Expenses
+                        </button>
+                      )}
+                      {showCategoriesUploadBtn && (
+                        <button
+                          className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
+                          onClick={openCategoryFilePicker}
+                        >
+                          Upload Categories
+                        </button>
+                      )}
+                      {showPaymentMethodsUploadBtn &&
+                        !showExpensesUploadBtn &&
+                        !showCategoriesUploadBtn &&
+                        !showBudgetsUploadBtn && (
+                          <button
+                            className="bg-indigo-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-indigo-700"
+                            onClick={() => openModal("payment-methods")}
+                          >
+                            Upload Payment Methods
+                          </button>
+                        )}
+                      {showBudgetsUploadBtn &&
+                        !showExpensesUploadBtn &&
+                        !showCategoriesUploadBtn &&
+                        !showPaymentMethodsUploadBtn && (
+                          <button
+                            className="bg-fuchsia-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-fuchsia-700"
+                            onClick={() => openModal("budgets")}
+                          >
+                            Upload Budgets
+                          </button>
+                        )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -420,8 +520,6 @@ const Upload = () => {
             }}
           />
         </div>
-
-        <div className="w-full sm:w-[calc(100vw-400px)] h-[50px] bg-[#1b1b1b] mx-auto"></div>
       </div>
 
       {/* Full Screen Loading Overlay */}
@@ -429,56 +527,74 @@ const Upload = () => {
       <Backdrop
         sx={{
           color: "#fff",
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          zIndex: (theme) => theme.zIndex.drawer + 1400,
+          backgroundColor: "rgba(0, 0, 0, 0.78)",
           backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          p: 2,
         }}
         open={isLoading}
+        role="alert"
+        aria-live="assertive"
+        aria-label={loadingMessage || "Processing"}
       >
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 3,
-            textAlign: "center",
-          }}
-        >
-          <PercentageLoader
-            percentage={isTableVisible ? saveProgress : uploadProgress}
-            size="xl"
-            trackColor="#2a2a2a"
-            progressColor="#14b8a6"
-            textColor="#fff"
-            showPercentage={true}
-            processed={isTableVisible ? saveProcessed : null}
-            total={isTableVisible ? saveTotal : null}
-          />
-
-          {loadingMessage && (
-            <Box
-              sx={{
-                color: "#fff",
-                fontSize: "1.2rem",
-                fontWeight: "500",
-                textShadow: "0 2px 4px rgba(0,0,0,0.5)",
-              }}
-            >
-              {loadingMessage}
-            </Box>
-          )}
-
+        {/* Show pulse loader for file upload phase (before table visible); show percentage only during save */}
+        {uploadedData.length === 0 ? (
+          <PulseLoader message={loadingMessage || "Processing file..."} />
+        ) : (
           <Box
             sx={{
-              color: "#a0a0a0",
-              fontSize: "0.9rem",
-              maxWidth: "300px",
-              lineHeight: 1.5,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 3,
+              textAlign: "center",
+              width: "100%",
+              maxWidth: 420,
+              mx: "auto",
             }}
           >
-            Please wait while we process your request...
+            <PercentageLoader
+              percentage={saveProgress}
+              size="xl"
+              trackColor="#2a2a2a"
+              progressColor="#14b8a6"
+              textColor="#fff"
+              showPercentage={true}
+              processed={saveProcessed}
+              total={saveTotal}
+            />
+            {saveTotal > 0 && (
+              <Box sx={{ color: "#9ca3af", fontSize: "0.8rem" }}>
+                {saveProcessed} / {saveTotal} items saved
+              </Box>
+            )}
+            {loadingMessage && (
+              <Box
+                sx={{
+                  color: "#fff",
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                }}
+              >
+                {loadingMessage}
+              </Box>
+            )}
+            <Box
+              sx={{
+                color: "#a0a0a0",
+                fontSize: "0.85rem",
+                maxWidth: 340,
+                lineHeight: 1.5,
+              }}
+            >
+              Please wait while we process your request...
+            </Box>
           </Box>
-        </Box>
+        )}
       </Backdrop>
     </>
   );

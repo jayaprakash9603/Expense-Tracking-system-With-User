@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { fetchCategoriesWithExpenses } from "../../Redux/Expenses/expense.action";
 import dayjs from "dayjs";
+import useFriendAccess from "../../hooks/useFriendAccess";
 import {
   IconButton,
   Skeleton,
@@ -50,6 +51,12 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import recentPng from "../../assests/recent.png";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+// Friend related imports (aligned with CashFlow & CategoryFlow)
+import FriendInfoBar from "./FriendInfoBar";
+import {
+  fetchFriendship,
+  fetchFriendsDetailed,
+} from "../../Redux/Friends/friendsActions";
 import ToastNotification from "./ToastNotification";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -64,6 +71,7 @@ import {
   fetchPaymentMethodsWithExpenses,
 } from "../../Redux/Payment Method/paymentMethod.action";
 import CreatePaymentMethod from "./CreatePaymentMethod";
+import NoDataPlaceholder from "../../components/NoDataPlaceholder";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -279,6 +287,9 @@ const PaymentMethodFlow = () => {
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [selectedMenuPaymentMethod, setSelectedMenuPaymentMethod] =
     useState(null);
+  // Add New popover state (mirrors CashFlow / CategoryFlow)
+  const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
+  const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const dispatch = useDispatch();
   const { paymentMethodExpenses, loading } = useSelector(
     (state) => state.paymentMethod
@@ -292,16 +303,68 @@ const PaymentMethodFlow = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const { friendId } = useParams();
+  const isFriendView = Boolean(friendId && friendId !== "undefined");
+  const currentUserId = useSelector(
+    (s) => s.auth?.user?.id || s.auth?.userId || null
+  );
+
+  // Centralized access hook
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  // friend data from store
+  const {
+    friendship,
+    friends,
+    loading: friendsLoading,
+  } = useSelector((state) => state.friends || {});
+  const [showFriendInfo, setShowFriendInfo] = useState(true);
   // Match CashFlow/CategoryFlow chart container heights: mobile 120, tablet 160, desktop 220
   const chartContainerHeight = isMobile ? 120 : isTablet ? 160 : 220;
   const pieSkeletonSize = isMobile ? 110 : isTablet ? 140 : 160;
+  // hasWriteAccess now supplied by hook
 
-  // Fetch data from API with correct flowType
+  // Fetch data from API with correct flowType (include friendId when in friend view)
   useEffect(() => {
     dispatch(
-      fetchPaymentMethodsWithExpenses(activeRange, offset, flowTab, friendId)
+      fetchPaymentMethodsWithExpenses(
+        activeRange,
+        offset,
+        flowTab,
+        isFriendView ? friendId : null
+      )
     );
-  }, [activeRange, offset, flowTab, dispatch, friendId]);
+  }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView]);
+
+  // Close Add New popover on outside click / ESC
+  useEffect(() => {
+    if (!addNewPopoverOpen) return;
+    const handleClick = (e) => {
+      const pop = document.querySelector('[data-popover="add-new"]');
+      // if click target is neither the trigger button nor inside the popover
+      if (
+        addNewBtnRef &&
+        !addNewBtnRef.contains(e.target) &&
+        (!pop || (pop && !pop.contains(e.target)))
+      ) {
+        setAddNewPopoverOpen(false);
+      }
+    };
+    const handleKey = (e) => {
+      if (e.key === "Escape") setAddNewPopoverOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [addNewPopoverOpen, addNewBtnRef]);
+  // Load friendship + friends list if in friend view
+  useEffect(() => {
+    if (isFriendView) {
+      if (friendId) dispatch(fetchFriendship(friendId));
+      dispatch(fetchFriendsDetailed());
+    }
+  }, [dispatch, friendId, isFriendView]);
 
   useEffect(() => {
     setOffset(0);
@@ -375,6 +438,22 @@ const PaymentMethodFlow = () => {
   };
 
   const rangeLabel = getRangeLabel(activeRange, offset, flowTab);
+
+  // Route change handler for FriendInfoBar (switching friends)
+  const handleRouteChange = async (newFriendId) => {
+    if (!newFriendId) return;
+    // Navigate to the same payment-method base with new friend id
+    navigate(`/payment-method/${newFriendId}`);
+    // After navigation, refresh data
+    await refreshData(newFriendId);
+  };
+
+  // Refresh function used by FriendInfoBar
+  const refreshData = async (newFriendId) => {
+    const id = newFriendId || friendId;
+    if (!id) return;
+    dispatch(fetchPaymentMethodsWithExpenses(activeRange, offset, flowTab, id));
+  };
 
   function getRandomColor(str) {
     // Predefined colors that work well with dark theme
@@ -703,7 +782,9 @@ const PaymentMethodFlow = () => {
     if (abs >= 1e9) return `${sign}${(abs / 1e9).toFixed(1)}B`;
     if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(1)}M`;
     if (abs >= 1e3) return `${sign}${(abs / 1e3).toFixed(1)}k`;
-    return value % 1 === 0 ? `${sign}${Math.round(abs)}` : `${sign}${abs.toFixed(2)}`;
+    return value % 1 === 0
+      ? `${sign}${Math.round(abs)}`
+      : `${sign}${abs.toFixed(2)}`;
   };
 
   // Build stacked multi-bar data (per day for month, per weekday for week, per month for year)
@@ -715,7 +796,10 @@ const PaymentMethodFlow = () => {
     }));
 
     const baseNow = dayjs();
-    let baseStart, bucketCount, labels, xKey = "slot";
+    let baseStart,
+      bucketCount,
+      labels,
+      xKey = "slot";
     if (activeRange === "week") {
       baseStart = baseNow.startOf("week").add(offset, "week");
       bucketCount = 7;
@@ -731,7 +815,9 @@ const PaymentMethodFlow = () => {
       labels = yearMonths;
     }
 
-    const data = Array.from({ length: bucketCount }, (_, i) => ({ [xKey]: labels[i] }));
+    const data = Array.from({ length: bucketCount }, (_, i) => ({
+      [xKey]: labels[i],
+    }));
 
     const addAmt = (idx, key, amt) => {
       if (idx < 0 || idx >= data.length) return;
@@ -745,7 +831,11 @@ const PaymentMethodFlow = () => {
           const pm = paymentMethodExpenses[pmName];
           const key = `pm_${pmName.replace(/[^a-zA-Z0-9_]/g, "_")}`;
           if (!segments.find((s) => s.key === key)) {
-            segments.push({ label: pmName, key, color: pm.color || getRandomColor(pmName) });
+            segments.push({
+              label: pmName,
+              key,
+              color: pm.color || getRandomColor(pmName),
+            });
           }
           const expenses = Array.isArray(pm.expenses) ? pm.expenses : [];
           expenses.forEach((e) => {
@@ -753,10 +843,15 @@ const PaymentMethodFlow = () => {
             const d = dayjs(e.date);
             let idx = -1;
             if (activeRange === "week") {
-              const diff = d.startOf("day").diff(baseStart.startOf("day"), "day");
+              const diff = d
+                .startOf("day")
+                .diff(baseStart.startOf("day"), "day");
               idx = diff;
             } else if (activeRange === "month") {
-              if (d.year() === baseStart.year() && d.month() === baseStart.month()) {
+              if (
+                d.year() === baseStart.year() &&
+                d.month() === baseStart.month()
+              ) {
                 idx = d.date() - 1;
               }
             } else {
@@ -845,13 +940,23 @@ const PaymentMethodFlow = () => {
         }}
       >
         {label && (
-          <div style={{ color: "#00DAC6", fontWeight: 700, marginBottom: 8, fontSize: 12 }}>
+          <div
+            style={{
+              color: "#00DAC6",
+              fontWeight: 700,
+              marginBottom: 8,
+              fontSize: 12,
+            }}
+          >
             {label}
           </div>
         )}
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {items.map((item, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div
+              key={idx}
+              style={{ display: "flex", alignItems: "center", gap: 8 }}
+            >
               <span
                 style={{
                   width: 8,
@@ -861,7 +966,15 @@ const PaymentMethodFlow = () => {
                   flexShrink: 0,
                 }}
               />
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  width: "100%",
+                }}
+              >
                 <div
                   title={item?.name}
                   style={{
@@ -875,7 +988,9 @@ const PaymentMethodFlow = () => {
                 >
                   {item?.name}
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 12, color: "#ffffff" }}>
+                <div
+                  style={{ fontWeight: 800, fontSize: 12, color: "#ffffff" }}
+                >
                   ₹{formatCompactNumber(item?.value || 0)}
                 </div>
               </div>
@@ -1108,7 +1223,6 @@ const PaymentMethodFlow = () => {
 
   return (
     <>
-      <div className="h-[50px]"></div>
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{
@@ -1346,54 +1460,71 @@ const PaymentMethodFlow = () => {
           }}
         >
           {loading ? (
-            <Skeleton variant="rectangular" width="100%" height={isMobile ? 100 : isTablet ? 130 : 160} animation="wave" sx={{ bgcolor: "#23243a", borderRadius: 2 }} />
+            <Skeleton
+              variant="rectangular"
+              width="100%"
+              height={isMobile ? 100 : isTablet ? 130 : 160}
+              animation="wave"
+              sx={{ bgcolor: "#23243a", borderRadius: 2 }}
+            />
           ) : pieData.length === 0 ? (
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#1b1b1b",
-                borderRadius: 8,
-                border: "1px solid #23243a",
-                position: "relative",
-                minWidth: 0,
-                boxSizing: "border-box",
-              }}
-            >
-              <span
-                style={{
-                  color: "#5b7fff",
-                  fontWeight: 600,
-                  fontSize: isMobile ? "14px" : "18px",
-                  width: "100%",
-                  textAlign: "center",
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  pointerEvents: "none",
-                }}
-              >
-                No payment method data to display
-              </span>
-            </div>
+            <NoDataPlaceholder
+              size={isMobile ? "md" : "lg"}
+              fullWidth
+              message="No data to display"
+              subMessage="Try adjusting filters or date range"
+            />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stackedChartData} margin={{ top: 4, right: isMobile ? 8 : 24, left: 8, bottom: 0 }}>
+              <BarChart
+                data={stackedChartData}
+                margin={{
+                  top: 4,
+                  right: isMobile ? 8 : 24,
+                  left: 8,
+                  bottom: 0,
+                }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
-                <XAxis dataKey={xAxisKey} stroke="#b0b6c3" tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }} tickLine={false} axisLine={{ stroke: "#33384e" }} />
-                <YAxis stroke="#b0b6c3" tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }} axisLine={{ stroke: "#33384e" }} tickLine={false} width={80} tickFormatter={(v) => formatCompactNumber(v)} />
-                <Tooltip cursor={{ fill: "#23243a22" }} content={<PaymentStackTooltip />} wrapperStyle={{ zIndex: 9999 }} allowEscapeViewBox={{ x: true, y: true }} />
+                <XAxis
+                  dataKey={xAxisKey}
+                  stroke="#b0b6c3"
+                  tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
+                  tickLine={false}
+                  axisLine={{ stroke: "#33384e" }}
+                />
+                <YAxis
+                  stroke="#b0b6c3"
+                  tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
+                  axisLine={{ stroke: "#33384e" }}
+                  tickLine={false}
+                  width={80}
+                  tickFormatter={(v) => formatCompactNumber(v)}
+                />
+                <Tooltip
+                  cursor={{ fill: "#23243a22" }}
+                  content={<PaymentStackTooltip />}
+                  wrapperStyle={{ zIndex: 9999 }}
+                  allowEscapeViewBox={{ x: true, y: true }}
+                />
                 {barSegments.map((seg, i) => {
                   const isTopOfStack = i === barSegments.length - 1;
                   return (
-                    <Bar key={seg.key} dataKey={seg.key} name={seg.label} stackId="total" fill={seg.color} radius={isTopOfStack ? [6, 6, 0, 0] : [0, 0, 0, 0]} maxBarSize={48}>
+                    <Bar
+                      key={seg.key}
+                      dataKey={seg.key}
+                      name={seg.label}
+                      stackId="total"
+                      fill={seg.color}
+                      radius={isTopOfStack ? [6, 6, 0, 0] : [0, 0, 0, 0]}
+                      maxBarSize={48}
+                    >
                       {stackedChartData.map((entry, idx) => (
-                        <Cell key={`${seg.key}-${idx}`} cursor="pointer" onClick={() => handleBarSegmentClick(seg, idx)} />
+                        <Cell
+                          key={`${seg.key}-${idx}`}
+                          cursor="pointer"
+                          onClick={() => handleBarSegmentClick(seg, idx)}
+                        />
                       ))}
                     </Bar>
                   );
@@ -1414,7 +1545,7 @@ const PaymentMethodFlow = () => {
               className="flex justify-start mt-2 mb-2"
               style={{
                 flexDirection: isMobile ? "column" : "row",
-                gap: isMobile ? 4 : 8,
+                gap: isMobile ? 8 : 0,
                 flexWrap: "wrap",
               }}
             >
@@ -1439,38 +1570,31 @@ const PaymentMethodFlow = () => {
               >
                 {[
                   {
+                    path: "/transactions",
+                    icon: "history.png",
+                    label: "History",
+                  },
+                  { path: "/reports", icon: "report.png", label: "Reports" },
+                  { path: "/budget", icon: "budget.png", label: "Budget" },
+                  {
                     path: "/category-flow",
                     icon: "category.png",
                     label: "Categories",
                   },
                   {
-                    path: "/transactions",
-                    icon: "history.png",
-                    label: "History",
-                  },
-                  { path: "/insights", icon: "insight.png", label: "Insights" },
-                  {
-                    path: "/payment-method/reports",
-                    icon: "report.png",
-                    label: "Reports",
-                  },
-                  { path: "/cashflow", icon: "list.png", label: "Expenses" },
-                  { path: "/budget", icon: "budget.png", label: "Budget" },
-                  {
-                    path: "/payment-method",
-                    icon: "payment-method.png",
-                    label: "Payment Method",
-                  },
-                  { path: "/bill", icon: "bill.png", label: "Bill" },
-                  {
-                    path: "/calendar-view",
-                    icon: "calendar.png",
-                    label: "Calendar",
+                    path: "/bill",
+                    icon: "bill.png",
+                    label: "Bill",
                   },
                 ].map(({ path, icon, label }) => (
                   <button
                     key={path}
-                    onClick={() => navigate(path)}
+                    onClick={() => {
+                      const target = isFriendView
+                        ? `${path}/${friendId}`
+                        : path;
+                      navigate(target);
+                    }}
                     className="nav-button"
                     style={{
                       display: "flex",
@@ -1482,7 +1606,7 @@ const PaymentMethodFlow = () => {
                       borderRadius: "8px",
                       color: "#00DAC6",
                       fontSize: isMobile ? "12px" : "14px",
-                      fontWeight: 500,
+                      fontWeight: "500",
                       cursor: "pointer",
                       transition: "all 0.2s ease",
                       minWidth: "fit-content",
@@ -1502,6 +1626,122 @@ const PaymentMethodFlow = () => {
                     {!isMobile && <span>{label}</span>}
                   </button>
                 ))}
+                {/* Add New - only show if user has write/full access (or own view) */}
+                {hasWriteAccess && (
+                  <button
+                    ref={setAddNewBtnRef}
+                    onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: isMobile ? "6px 8px" : "6px 8px",
+                      backgroundColor: "#1b1b1b",
+                      border: "1px solid #333",
+                      borderRadius: "6px",
+                      color: "#00DAC6",
+                      fontSize: isMobile ? "11px" : "12px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      minWidth: "fit-content",
+                    }}
+                    disabled={!hasWriteAccess}
+                    title={
+                      hasWriteAccess
+                        ? "Add Payment Method, budget, category or upload file"
+                        : "You have read-only access"
+                    }
+                  >
+                    <img
+                      src={require("../../assests/add.png")}
+                      alt="Add"
+                      style={{
+                        width: isMobile ? 14 : 16,
+                        height: isMobile ? 14 : 16,
+                        filter:
+                          "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                        transition: "filter 0.2s ease",
+                      }}
+                    />
+                    {!isMobile && <span>Add New</span>}
+                  </button>
+                )}
+
+                {/* Simplified Add New Popover */}
+                {addNewPopoverOpen &&
+                  hasWriteAccess &&
+                  addNewBtnRef &&
+                  createPortal(
+                    <div
+                      data-popover="add-new"
+                      style={{
+                        position: "fixed",
+                        top:
+                          addNewBtnRef.getBoundingClientRect().bottom +
+                          4 +
+                          window.scrollY,
+                        left:
+                          addNewBtnRef.getBoundingClientRect().left +
+                          window.scrollX,
+                        zIndex: 1000,
+                        background: "#0b0b0b",
+                        border: "1px solid #333",
+                        borderRadius: 6,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                        minWidth: 140,
+                        padding: 4,
+                      }}
+                    >
+                      {[
+                        {
+                          label: "Add Payment Method",
+                          route: isFriendView
+                            ? `/payment-method/create/${friendId}`
+                            : "/payment-method/create",
+                          color: "#00DAC6",
+                        },
+                        {
+                          label: "Upload File",
+                          route: isFriendView
+                            ? `/upload/payments/${friendId}`
+                            : "/upload/payments",
+                          color: "#5b7fff",
+                        },
+                      ].map((item, idx) => (
+                        <button
+                          key={idx}
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            background: "transparent",
+                            color: item.color,
+                            border: "none",
+                            textAlign: "left",
+                            padding: "8px 10px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            borderRadius: 4,
+                          }}
+                          onClick={() => {
+                            navigate(item.route);
+                            setAddNewPopoverOpen(false);
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = item.color;
+                            e.target.style.color =
+                              item.color === "#FFC107" ? "#000" : "#fff";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = "transparent";
+                            e.target.style.color = item.color;
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>,
+                    document.body
+                  )}
               </div>
               <style>{`
                 .nav-button:hover {
@@ -1521,44 +1761,6 @@ const PaymentMethodFlow = () => {
                 }
                 .nav-button:active { transform: scale(0.98); }
               `}</style>
-              <IconButton
-                sx={{ color: "#5b7fff", ml: 1 }}
-                onClick={() =>
-                  friendId && friendId !== "undefined"
-                    ? navigate(`/payment-method/create/${friendId}`)
-                    : navigate("/payment-method/create")
-                }
-                aria-label="New Payment Method"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="#5b7fff"
-                    strokeWidth="2"
-                    fill="#23243a"
-                  />
-                  <path
-                    d="M12 8V16"
-                    stroke="#5b7fff"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M8 12H16"
-                    stroke="#5b7fff"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </IconButton>
             </div>
             {/* Sort Popover */}
             {popoverOpen &&
@@ -1727,18 +1929,18 @@ const PaymentMethodFlow = () => {
                   />
                 ))
               ) : sortedPaymentMethodCards.length === 0 ? (
-                <div
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <div className="text-center text-gray-400 py-4">
-                    No payment methods found
-                  </div>
-                </div>
+                <NoDataPlaceholder
+                  size={isMobile ? "lg" : "fill"}
+                  fullWidth
+                  iconSize={isMobile ? 54 : 72}
+                  style={{ minHeight: isMobile ? 260 : 340 }}
+                  message={search ? "No matches" : "No data found"}
+                  subMessage={
+                    search
+                      ? "Try a different search term"
+                      : "Adjust filters or change the period"
+                  }
+                />
               ) : (
                 sortedPaymentMethodCards.map((category, idx) => (
                   <div
@@ -1765,30 +1967,32 @@ const PaymentMethodFlow = () => {
                       handlePaymentMethodDoubleClick(e, category)
                     }
                   >
-                    {/* Three-dot menu in the top right corner - Always visible with white color */}
-                    <div
-                      className="absolute top-2 right-2 transition-opacity"
-                      onClick={(e) => e.stopPropagation()} // Prevent card click
-                      style={{
-                        opacity: 0.9,
-                        zIndex: 10,
-                      }}
-                    >
-                      <IconButton
-                        size="small"
-                        sx={{
-                          color: "#ffffff",
-                          padding: "4px",
-                          backgroundColor: "#28282a80",
-                          "&:hover": {
-                            backgroundColor: `${category.color}22`,
-                          },
+                    {/* Three-dot menu - only for write/full access */}
+                    {hasWriteAccess && (
+                      <div
+                        className="absolute top-2 right-2 transition-opacity"
+                        onClick={(e) => e.stopPropagation()} // Prevent card click
+                        style={{
+                          opacity: 0.9,
+                          zIndex: 10,
                         }}
-                        onClick={(e) => handleMenuOpen(e, category)}
                       >
-                        <MoreVertIcon fontSize="small" />
-                      </IconButton>
-                    </div>
+                        <IconButton
+                          size="small"
+                          sx={{
+                            color: "#ffffff",
+                            padding: "4px",
+                            backgroundColor: "#28282a80",
+                            "&:hover": {
+                              backgroundColor: `${category.color}22`,
+                            },
+                          }}
+                          onClick={(e) => handleMenuOpen(e, category)}
+                        >
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
+                      </div>
+                    )}
                     {/* Card content remains the same */}
                     <div
                       className="flex flex-col gap-2"

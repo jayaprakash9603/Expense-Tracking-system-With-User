@@ -196,7 +196,7 @@ const CreditDueContent = () => {
     };
 
     fetchData();
-  }, [token]);
+  }, [token,friendId]);
 
   // Remove legend for all screens
   const chartOptions = {
@@ -274,7 +274,7 @@ const CreditDueContent = () => {
 
   return (
     <>
-      <div style={headerStyle}></div>
+      {/* <div style={headerStyle}></div> */}
 
       <div className="flex flex-col p-4" style={containerStyle}>
         <Box

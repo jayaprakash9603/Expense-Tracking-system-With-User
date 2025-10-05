@@ -8,6 +8,8 @@ import { fetchExpenses } from "../../Redux/Expenses/expense.action";
 import { createBudgetAction } from "../../Redux/Budget/budget.action";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
+import useFriendAccess from "../../hooks/useFriendAccess";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box, TextField, useMediaQuery } from "@mui/material";
 import ToastNotification from "./ToastNotification";
@@ -34,6 +36,13 @@ const NewBudget = () => {
 
   const dispatch = useDispatch();
   const { friendId } = useParams();
+
+  // Permission & redirect: if read-only, auto-redirect to appropriate list route
+  const { hasWriteAccess } = useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) => `/budget/${fid}`,
+    selfPath: "/budget",
+    defaultPath: "/budget",
+  });
 
   const fieldStyles =
     "px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[350px] max-w-[250px]";
@@ -73,6 +82,7 @@ const NewBudget = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!hasWriteAccess) return; // safety guard
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required.";
     if (!formData.description.trim())
@@ -314,7 +324,7 @@ const NewBudget = () => {
 
   return (
     <div className="bg-[#1b1b1b]">
-      <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
         style={{
@@ -484,46 +494,48 @@ const NewBudget = () => {
             </div>
           )}
         </div>
-        <div className="w-full flex justify-end mt-4 sm:mt-8">
-          <button
-            onClick={handleSubmit}
-            className={`py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] transition-all duration-200 w-full sm:w-[120px] ${
-              isSubmitting ? "sm:w-[180px]" : ""
-            }`}
-            disabled={isSubmitting}
-            style={{
-              position: "relative",
-              opacity: isSubmitting ? 0.7 : 1,
-              minWidth: isSubmitting ? 180 : 120,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1rem",
-              gap: isSubmitting ? 10 : 0,
-            }}
-          >
-            {isSubmitting ? (
-              <>
-                <span
-                  className="loader"
-                  style={{
-                    width: 20,
-                    height: 20,
-                    border: "3px solid #fff",
-                    borderTop: "3px solid #00DAC6",
-                    borderRadius: "50%",
-                    animation: "spin 1s linear infinite",
-                    display: "inline-block",
-                    marginRight: 10,
-                  }}
-                ></span>
-                <span>Submitting...</span>
-              </>
-            ) : (
-              "Submit"
-            )}
-          </button>
-        </div>
+        {hasWriteAccess && (
+          <div className="w-full flex justify-end mt-4 sm:mt-8">
+            <button
+              onClick={handleSubmit}
+              className={`py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] transition-all duration-200 w-full sm:w-[120px] ${
+                isSubmitting ? "sm:w-[180px]" : ""
+              }`}
+              disabled={isSubmitting || !hasWriteAccess}
+              style={{
+                position: "relative",
+                opacity: isSubmitting ? 0.7 : 1,
+                minWidth: isSubmitting ? 180 : 120,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1rem",
+                gap: isSubmitting ? 10 : 0,
+              }}
+            >
+              {isSubmitting ? (
+                <>
+                  <span
+                    className="loader"
+                    style={{
+                      width: 20,
+                      height: 20,
+                      border: "3px solid #fff",
+                      borderTop: "3px solid #00DAC6",
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                      display: "inline-block",
+                      marginRight: 10,
+                    }}
+                  ></span>
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                "Submit"
+              )}
+            </button>
+          </div>
+        )}
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }

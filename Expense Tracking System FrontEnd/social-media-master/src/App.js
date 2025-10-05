@@ -31,13 +31,12 @@ import CreateCategory from "./pages/Landingpage/CreateCategory";
 import EditCategory from "./pages/Landingpage/EditCategory";
 import Utilities from "./pages/Landingpage/Utilities";
 import Friends from "./pages/Landingpage/Friends";
-import FriendExpenses from "./pages/Landingpage/FriendsExpenses";
 import ExpensesView from "./pages/Landingpage/ExpensesView";
 
 import PaymentMethodFlow from "./pages/Landingpage/PaymentMethodFlow";
 import CreatePaymentMethod from "./pages/Landingpage/CreatePaymentMethod";
 import EditPaymentMethod from "./pages/Landingpage/EditPaymentMethod";
-import Bill from "./pages/Landingpage/Bill";
+
 import CreateBill from "./pages/Landingpage/CreateBill";
 import EditBill from "./pages/Landingpage/EditBill";
 import BillCalendarView from "./pages/Landingpage/BillCalendarView";
@@ -56,6 +55,9 @@ import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentRepo
 import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
 import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard/AdminDashboard";
 import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
+import Bill from "./pages/Landingpage/Bills/Bill";
+import BudgetDashboard from "./pages/Landingpage/Budget/BudgetDashboard";
+// import Bill from "./pages/Landingpage/Bills/Bill";
 function App() {
   const { auth } = useSelector((store) => store);
   const dispatch = useDispatch();
@@ -98,7 +100,10 @@ function App() {
             <Route path="/component1" element={<AdminDashboard />} />
             <Route path="/component2" element={<InvestmentDashboard />} />
             {/* <Route path="home" element={<HomeContent />} /> */}
+
             <Route path="home" element={<ExpenseDashboard />} />
+
+            {/* <Route path="home" element={<Loader />} /> */}
             <Route path="groups">
               <Route index element={<Groups />} />
               <Route path="create" element={<CreateGroup />} />
@@ -110,6 +115,10 @@ function App() {
               <Route index element={<PaymentMethodFlow />} />
               <Route path=":friendId" element={<PaymentMethodFlow />} />
               <Route path="reports" element={<PaymentMethodsReport />} />
+              <Route
+                path="reports/:friendId"
+                element={<PaymentMethodsReport />}
+              />
               <Route path="create" element={<CreatePaymentMethod />} />
               <Route
                 path="create/:friendId"
@@ -126,6 +135,7 @@ function App() {
               <Route index element={<Bill />} />
               <Route path=":friendId" element={<Bill />} />
               <Route path="report" element={<ExpenseReport />} />
+              <Route path="report/:friendId" element={<ExpenseReport />} />
               <Route path="upload" element={<UploadBills />} />
               <Route path="upload/:friendId" element={<UploadBills />} />
               <Route path="create" element={<CreateBill />} />
@@ -138,13 +148,18 @@ function App() {
 
             <Route path="friends">
               <Route index element={<Friends />} />
-              <Route path="expenses/:friendId" element={<FriendExpenses />} />
+              {/* Use unified Cashflow component for friend expenses */}
+              <Route path="expenses/:friendId" element={<Cashflow />} />
             </Route>
             <Route path="all" element={<Utilities />} />
 
             <Route path="upload">
-              <Route index element={<Upload />} />
-              <Route path=":friendId" element={<Upload />} />
+              <Route path="expenses" element={<Upload />} />
+              <Route path="categories" element={<Upload />} />
+              <Route path="categories/:friendId" element={<Upload />} />
+              <Route path="payments" element={<Upload />} />
+              <Route path="payments/:friendId" element={<Upload />} />
+              <Route path="expenses/:friendId" element={<Upload />} />
             </Route>
             {/* Nested expenses route */}
             <Route path="expenses">
@@ -163,6 +178,7 @@ function App() {
               <Route path="create" element={<CreateCategory />} />
               <Route path="create/:friendId" element={<CreateCategory />} />
               <Route path="reports" element={<CategoryReport />} />
+              <Route path="reports/:friendId" element={<CategoryReport />} />
               <Route path="edit/:id" element={<EditCategory />} />
               <Route
                 path="edit/:id/friend/:friendId"
@@ -187,11 +203,13 @@ function App() {
               <Route path=":friendId" element={<Reports />} />
             </Route>
             <Route path="cashflow">
+              {/* Directly render Cashflow for both self and friend contexts */}
               <Route index element={<ExpensesView />} />
               <Route path=":friendId" element={<ExpensesView />} />
             </Route>
             <Route path="budget">
-              <Route index element={<Budget />} />
+              {/* <Route index element={<Budget />} /> */}
+              <Route index element={<BudgetDashboard />} />
               <Route path=":friendId" element={<Budget />} />
               <Route path="create" element={<NewBudget />} />
               <Route path="create/:friendId" element={<NewBudget />} />
@@ -220,6 +238,7 @@ function App() {
             </Route>
             <Route path="/bill-day-view">
               <Route path=":date" element={<DayBillsView />} />
+              <Route path=":date/friend/:friendId" element={<DayBillsView />} />
             </Route>
           </Route>
 

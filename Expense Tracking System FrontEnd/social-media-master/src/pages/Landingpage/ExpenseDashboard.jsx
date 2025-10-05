@@ -17,7 +17,14 @@ import {
   AreaChart,
   ComposedChart,
 } from "recharts";
-import { IconButton, useMediaQuery } from "@mui/material";
+import {
+  IconButton,
+  useMediaQuery,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 import "./ExpenseDashboard.css";
 import {
   CreditCard,
@@ -61,12 +68,14 @@ const MetricCardSkeleton = () => (
   </div>
 );
 
-const ChartSkeleton = ({ height = 300, variant = "bar" }) => (
+const ChartSkeleton = ({ height = 300, variant = "bar", noHeader = false }) => (
   <div className="chart-skeleton" style={{ height }}>
-    <div className="skeleton-chart-header">
-      <div className="skeleton-title"></div>
-      <div className="skeleton-actions"></div>
-    </div>
+    {!noHeader && (
+      <div className="skeleton-chart-header">
+        <div className="skeleton-title"></div>
+        <div className="skeleton-actions"></div>
+      </div>
+    )}
     <div className="skeleton-chart-body">
       {variant === "line" ? (
         <div className="skeleton-line-body">
@@ -149,31 +158,70 @@ const ChartSkeleton = ({ height = 300, variant = "bar" }) => (
   </div>
 );
 
-// Enhanced Header Component
-const DashboardHeader = ({ onRefresh, onExport, onFilter }) => (
-  <div className="dashboard-header">
-    <div className="header-left">
-      <div className="header-title">
-        <h1>💰 Financial Dashboard</h1>
-        <p>Real-time insights into your financial health</p>
+// Enhanced Header Component with MUI Menu popover
+const DashboardHeader = ({ onRefresh, onExport, onFilter }) => {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+  const handleAndClose = (cb) => () => {
+    handleClose();
+    cb && cb();
+  };
+  return (
+    <div className="dashboard-header">
+      <div className="header-left">
+        <div className="header-title">
+          <h1>💰 Financial Dashboard</h1>
+          <p>Real-time insights into your financial health</p>
+        </div>
+      </div>
+      <div className="header-actions">
+        <IconButton
+          className="action-btn no-lift"
+          aria-label="More actions"
+          aria-controls={open ? "dashboard-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? "true" : undefined}
+          onClick={handleMenuOpen}
+        >
+          <MoreVert />
+        </IconButton>
+        <Menu
+          id="dashboard-menu"
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          MenuListProps={{ "aria-labelledby": "dashboard-menu" }}
+          PaperProps={{
+            sx: {
+              backgroundColor: "#1e1e1e",
+              color: "#fff",
+              border: "1px solid #2a2a2a",
+              minWidth: 220,
+            },
+          }}
+        >
+          <MenuItem onClick={handleAndClose(onRefresh)}>
+            <ListItemIcon sx={{ color: "#14b8a6" }}>
+              <Refresh fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Refresh" secondary="Reload dashboard data" />
+          </MenuItem>
+          <MenuItem onClick={handleAndClose(onExport)}>
+            <ListItemIcon sx={{ color: "#14b8a6" }}>
+              <Download fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Export Reports"
+              secondary="Download Excel summaries"
+            />
+          </MenuItem>
+        </Menu>
       </div>
     </div>
-    <div className="header-actions">
-      <IconButton onClick={onFilter} className="action-btn">
-        <Filter />
-      </IconButton>
-      <IconButton onClick={onRefresh} className="action-btn">
-        <Refresh />
-      </IconButton>
-      <IconButton onClick={onExport} className="action-btn">
-        <Download />
-      </IconButton>
-      <IconButton className="action-btn">
-        <MoreVert />
-      </IconButton>
-    </div>
-  </div>
-);
+  );
+};
 
 // Enhanced Metric Cards
 const MetricCard = ({
@@ -246,6 +294,10 @@ const DailySpendingChart = ({
   const isTablet = useMediaQuery("(max-width:1024px)");
   const chartHeight = isMobile ? 220 : isTablet ? 260 : 300;
   const hideXAxis = timeframe === "last_3_months" || isMobile;
+  // animation: create a changing key when core inputs change to retrigger mount animation
+  const animationKey = `${timeframe}-${selectedType}-${
+    Array.isArray(data) ? data.length : 0
+  }`;
   // Protect against non-array `data` (e.g. a Promise or object) which causes
   // "data.map is not a function". Use an empty array fallback.
   const safeData = Array.isArray(data) ? data : [];
@@ -267,7 +319,7 @@ const DailySpendingChart = ({
   const gradId = `spendingGradient-${selType}`;
 
   return (
-    <div className="chart-container daily-spending-chart">
+    <div className="chart-container daily-spending-chart fade-in">
       <div className="chart-header">
         <h3>📊 Daily Spending Pattern</h3>
         <div className="chart-controls">
@@ -308,7 +360,7 @@ const DailySpendingChart = ({
         </div>
       </div>
       <ResponsiveContainer width="100%" height={chartHeight}>
-        <AreaChart data={chartData}>
+        <AreaChart data={chartData} key={animationKey}>
           <defs>
             <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={color} stopOpacity={0.8} />
@@ -376,6 +428,10 @@ const DailySpendingChart = ({
             fillOpacity={0.3}
             fill={`url(#${gradId})`}
             strokeWidth={2}
+            isAnimationActive={true}
+            animationBegin={0}
+            animationDuration={900}
+            animationEasing="ease-out"
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -972,7 +1028,19 @@ const RecentTransactions = ({ transactions }) => (
     <div className="transactions-list">
       {(Array.isArray(transactions) ? transactions.slice(0, 10) : []).map(
         (transaction, index) => (
-          <div key={transaction.id} className="transaction-item">
+          <div
+            key={transaction.id}
+            className="transaction-item"
+            style={{
+              backgroundColor:
+                transaction.expense.type === "loss"
+                  ? "rgba(255,0,0,0.08)"
+                  : transaction.expense.type === "gain"
+                  ? "rgba(0,255,0,0.08)"
+                  : "transparent",
+              transition: "background-color 0.3s ease",
+            }}
+          >
             <div className="transaction-icon">
               {transaction.expense.type === "loss" ? "💸" : "💰"}
             </div>
@@ -1000,9 +1068,10 @@ const RecentTransactions = ({ transactions }) => (
 
 // Budget Overview
 const BudgetOverview = ({ remainingBudget, totalLosses }) => {
-  const budgetUsed =
-    (Math.abs(remainingBudget) / (totalLosses + Math.abs(remainingBudget))) *
-    100;
+  const absRemain = Math.abs(remainingBudget || 0);
+  const losses = Math.abs(totalLosses || 0);
+  const denominator = losses + absRemain;
+  const budgetUsed = denominator > 0 ? (absRemain / denominator) * 100 : 0;
 
   return (
     <div className="budget-overview">
@@ -1040,7 +1109,7 @@ const BudgetOverview = ({ remainingBudget, totalLosses }) => {
 const DashboardDataRefetcher = ({
   trigger,
   timeframe,
-  selectedType,
+  // removed selectedType to avoid global refetch on daily type toggle
   categoryTimeframe,
   categoryFlowType,
   trendYear,
@@ -1089,7 +1158,7 @@ const DashboardDataRefetcher = ({
           params.fromDate = start.toISOString().split("T")[0];
           params.toDate = end.toISOString().split("T")[0];
         }
-        if (selectedType) params.type = selectedType;
+        // daily type filtering handled by dedicated hook in main component
         const res = await fetchDailySpending(params);
         setDailySpendingData(Array.isArray(res) ? res : []);
       } catch (e) {
@@ -1173,7 +1242,7 @@ const DashboardDataRefetcher = ({
           params.fromDate = start.toISOString().split("T")[0];
           params.toDate = end.toISOString().split("T")[0];
         }
-        if (selectedType) params.type = selectedType;
+        // omit type so summary isn't refetched on daily gain/loss toggle
         const res = await fetchExpenseSummary(params);
         setAnalyticsSummary(res && typeof res === "object" ? res : null);
       } catch (e) {
@@ -1188,7 +1257,7 @@ const DashboardDataRefetcher = ({
       setMonthlyTrendLoading(true);
       try {
         const params = { year: trendYear };
-        if (selectedType) params.type = selectedType;
+        // omit type to decouple monthly trend from daily toggle
         const res = await fetchMonthlyExpenses(params);
         const MONTHS = [
           "Jan",
@@ -1372,7 +1441,8 @@ const ExpenseDashboard = () => {
   const [timeframe, setTimeframe] = useState("this_month"); // daily spending timeframe
   const [categoryTimeframe, setCategoryTimeframe] = useState("this_month"); // category breakdown timeframe
   const [categoryFlowType, setCategoryFlowType] = useState("loss"); // category breakdown gain/loss
-  const [selectedType, setSelectedType] = useState("loss");
+  // Separate type state for daily spending to avoid triggering other API calls
+  const [dailyType, setDailyType] = useState("loss");
   // hold fetched daily spending; initialize with sample so chart shows something
   const [dailySpendingData, setDailySpendingData] = useState(
     // dashboardData is declared below; for now we'll set to an empty array and
@@ -1430,6 +1500,7 @@ const ExpenseDashboard = () => {
     console.log("Opening filter options...");
   };
 
+  // Daily spending effect reacts to timeframe or its own type only
   useEffect(() => {
     // indicate loading while fetching daily spending
     setDailyLoading(true);
@@ -1455,7 +1526,7 @@ const ExpenseDashboard = () => {
           params.toDate = end.toISOString().split("T")[0];
         }
         // include transaction type (loss/gain) if provided
-        if (selectedType) params.type = selectedType;
+        if (dailyType) params.type = dailyType;
 
         const res = await fetchDailySpending(params);
         if (mounted) {
@@ -1476,7 +1547,7 @@ const ExpenseDashboard = () => {
     return () => {
       mounted = false;
     };
-  }, [timeframe, selectedType]);
+  }, [timeframe, dailyType]);
 
   // Load category distribution from backend in the new shape (uses independent categoryTimeframe and flow type)
   useEffect(() => {
@@ -1581,7 +1652,6 @@ const ExpenseDashboard = () => {
           params.fromDate = start.toISOString().split("T")[0];
           params.toDate = end.toISOString().split("T")[0];
         }
-        if (selectedType) params.type = selectedType;
 
         const res = await fetchExpenseSummary(params);
         if (mounted) {
@@ -1601,7 +1671,7 @@ const ExpenseDashboard = () => {
     return () => {
       mounted = false;
     };
-  }, [timeframe, selectedType]);
+  }, [timeframe]);
 
   // Load monthly expenses from backend to replace static monthlyTrend
   useEffect(() => {
@@ -1610,7 +1680,6 @@ const ExpenseDashboard = () => {
       setMonthlyTrendLoading(true);
       try {
         const params = { year: trendYear };
-        if (selectedType) params.type = selectedType;
 
         const res = await fetchMonthlyExpenses(params);
 
@@ -1697,7 +1766,7 @@ const ExpenseDashboard = () => {
       mounted = false;
     };
     // Re-fetch when type or year changes
-  }, [selectedType, trendYear]);
+  }, [trendYear]);
 
   // Load payment methods distribution from backend (replaces static sample)
   useEffect(() => {
@@ -1815,7 +1884,6 @@ const ExpenseDashboard = () => {
       <DashboardDataRefetcher
         trigger={refreshKey}
         timeframe={timeframe}
-        selectedType={selectedType}
         categoryTimeframe={categoryTimeframe}
         categoryFlowType={categoryFlowType}
         trendYear={trendYear}
@@ -1946,26 +2014,35 @@ const ExpenseDashboard = () => {
       <div className="charts-grid">
         <div className="chart-row">
           {dailyLoading ? (
-            <div className="chart-container daily-spending-chart">
-              <div className="chart-header">
-                <h3>📊 Daily Spending Pattern</h3>
-                <div className="chart-controls">
-                  <div className="time-selector skeleton-pill" />
-                  <div className="type-toggle">
-                    <div className="toggle-btn loss skeleton-pill" />
-                    <div className="toggle-btn gain skeleton-pill" />
+            (() => {
+              const dailySkeletonHeight = isMobile ? 220 : isTablet ? 260 : 200;
+              return (
+                <div className="chart-container daily-spending-chart">
+                  <div className="chart-header">
+                    <h3>📊 Daily Spending Pattern</h3>
+                    <div className="chart-controls">
+                      <div className="time-selector skeleton-pill" />
+                      <div className="type-toggle">
+                        <div className="toggle-btn loss skeleton-pill" />
+                        <div className="toggle-btn gain skeleton-pill" />
+                      </div>
+                    </div>
                   </div>
+                  <ChartSkeleton
+                    height={dailySkeletonHeight}
+                    variant="line"
+                    noHeader
+                  />
                 </div>
-              </div>
-              <ChartSkeleton height={300} variant="line" />
-            </div>
+              );
+            })()
           ) : (
             <DailySpendingChart
               data={dailySpendingData}
               timeframe={timeframe}
               onTimeframeChange={(val) => setTimeframe(val)}
-              selectedType={selectedType}
-              onTypeToggle={(type) => setSelectedType(type)}
+              selectedType={dailyType}
+              onTypeToggle={(type) => setDailyType(type)}
             />
           )}
 
@@ -2075,7 +2152,7 @@ const ExpenseDashboard = () => {
         ) : (
           <>
             <RecentTransactions
-              transactions={analyticsSummary?.lastFiveExpenses ?? []}
+              transactions={analyticsSummary?.lastTenExpenses ?? []}
             />
             <BudgetOverview
               remainingBudget={analyticsSummary?.remainingBudget ?? 0}

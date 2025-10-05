@@ -298,7 +298,7 @@ const BudgetReport = () => {
   if (budgetError || expensesError) {
     return (
       <div className="bg-[#1b1b1b]">
-        <div className="w-[calc(100vw-370px)] h-[50px] bg-[#1b1b1b]"></div>
+        {/* <div className="w-[calc(100vw-370px)]  bg-[#1b1b1b]"></div> */}
         <div
           className="flex flex-col justify-start items-start flex-shrink-1 flex-grow-1 align-self-stretch"
           style={{
@@ -337,7 +337,7 @@ const BudgetReport = () => {
   if (isBudgetLoading || isExpensesLoading) {
     return (
       <div className="bg-[#1b1b1b]">
-        <div className="w-[calc(100vw-370px)] h-[50px] bg-[#1b1b1b]"></div>
+        {/* <div className="w-[calc(100vw-370px)] h-[50px] bg-[#1b1b1b]"></div> */}
         <div
           className="flex flex-col justify-start items-start flex-shrink-1 flex-grow-1 align-self-stretch"
           style={{
@@ -363,7 +363,7 @@ const BudgetReport = () => {
 
   return (
     <div className="bg-[#1b1b1b]">
-      <div className="w-[calc(100vw-370px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-[calc(100vw-370px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex flex-col justify-start items-start flex-shrink-1 flex-grow-1 align-self-stretch"
         style={{

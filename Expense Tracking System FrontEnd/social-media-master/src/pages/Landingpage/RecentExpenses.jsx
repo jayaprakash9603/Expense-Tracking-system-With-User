@@ -13,7 +13,7 @@ const shimmerKeyframes = {
 const RecentExpenses = () => {
   const dispatch = useDispatch();
   const { summary, loading } = useSelector((state) => state.expenses || {});
-  const lastFiveExpenses = summary?.lastFiveExpenses || [];
+  const lastFiveExpenses = summary?.lastTenExpenses || [];
   const [hoveredId, setHoveredId] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -179,7 +179,14 @@ const RecentExpenses = () => {
                   cursor: "pointer",
                   transition: "all 0.3s ease",
                   height: hoveredId === id ? "60px" : "50px",
-                  backgroundColor: hoveredId === id ? "#29282b" : "transparent",
+                  backgroundColor:
+                    hoveredId === id
+                      ? "#29282b"
+                      : expense?.type === "loss"
+                      ? "rgba(255,0,0,0.08)"
+                      : expense?.type === "gain"
+                      ? "rgba(0,255,0,0.08)"
+                      : "transparent",
                   boxSizing: "border-box",
                   alignItems: "center",
                 }}

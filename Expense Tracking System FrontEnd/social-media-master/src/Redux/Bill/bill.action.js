@@ -62,11 +62,10 @@ export const fetchAllBills =
     dispatch({ type: FETCH_BILLS_REQUEST });
     try {
       const config = {
-        params: targetId,
+        params: targetId ? { targetId } : {},
       };
-
       const response = await api.get(`api/bills`, config);
-      console.log("Fetched Bills:", response.data); // Debugging log
+      console.log("Fetched Bills:", response.data); // Debug log
       dispatch({
         type: FETCH_BILLS_SUCCESS,
         payload: response.data,
@@ -236,6 +235,7 @@ export const getBillsByParticularDate =
       const config = {
         params: {
           expenseDate,
+          targetId: friendId || "",
         },
       };
 

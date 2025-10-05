@@ -19,6 +19,8 @@ import {
   getBillByExpenseId,
   getBillsByParticularDate,
 } from "../../Redux/Bill/bill.action";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import DayViewSkeleton from "../../components/DayViewSkeleton";
 
 const DayBillsView = () => {
   const [selectedCardIdx, setSelectedCardIdx] = useState(null);
@@ -31,6 +33,7 @@ const DayBillsView = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { date, friendId } = useParams(); // date in YYYY-MM-DD
+  const { hasWriteAccess } = useFriendAccess(friendId);
   const { particularDateBills = [], loading } = useSelector(
     (state) => state.bill
   );
@@ -84,7 +87,7 @@ const DayBillsView = () => {
   // Update handlers to receive the item
   const handleEdit = async (item) => {
     const id = item.id || item.expense?.id || item.expenseId;
-    const bill = await dispatch(getBillByExpenseId(id));
+    const bill = await dispatch(getBillByExpenseId(id, friendId || ""));
 
     console.log("bill", bill);
     if (id) {
@@ -108,7 +111,7 @@ const DayBillsView = () => {
       expenseToDelete.expense?.id ||
       expenseToDelete.expenseId;
     if (!id) return;
-    const bill = await dispatch(getBillByExpenseId(id));
+    const bill = await dispatch(getBillByExpenseId(id, friendId || ""));
     dispatch(deleteBill(bill.id, friendId || ""))
       .then(() => {
         setToastMessage("Expense deleted successfully.");
@@ -160,7 +163,7 @@ const DayBillsView = () => {
 
   return (
     <div
-      className="bg-[#0b0b0b] p-4 rounded-lg mt-[50px]"
+      className="bg-[#0b0b0b] p-4 rounded-lg"
       style={{
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
@@ -197,7 +200,7 @@ const DayBillsView = () => {
           }}
           onClick={() => {
             if (friendId && friendId !== "undefined") {
-              navigate(`/bill/calendar${friendId}`);
+              navigate(`/bill/calendar/${friendId}`);
             } else {
               navigate("/bill/calendar");
             }
@@ -517,39 +520,15 @@ const DayBillsView = () => {
         }}
       >
         {loading ? (
-          <Typography color="#b0b6c3" sx={{ textAlign: "center", mt: 4 }}>
-            Loading...
-          </Typography>
+          <DayViewSkeleton loading={true} isEmpty={false} showAddHint={false} />
         ) : transactions.length === 0 ? (
-          <Box
-            sx={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              py: 4,
-              position: "relative",
-            }}
-          >
-            <img
-              src={require("../../assests/card-payment.png")}
-              alt="No transactions"
-              style={{
-                width: 120,
-                height: 120,
-                marginBottom: 16,
-                objectFit: "contain",
-              }}
-            />
-            <Typography variant="h6" color="#fff" fontWeight={700}>
-              No transactions!
-            </Typography>
-            <Typography variant="body2" color="#b0b6c3" sx={{ mt: 0.5 }}>
-              Click + to add one.
-            </Typography>
-          </Box>
+          <DayViewSkeleton
+            loading={false}
+            isEmpty={true}
+            showAddHint={hasWriteAccess}
+            emptyTitle="No transactions!"
+            iconSrc={require("../../assests/card-payment.png")}
+          />
         ) : (
           <Box
             sx={{
@@ -737,7 +716,7 @@ const DayBillsView = () => {
                     {item.expense?.comments || ""}
                   </Typography>
                   {/* Edit/Delete actions on highlight */}
-                  {isSelected && (
+                  {isSelected && hasWriteAccess && (
                     <Box
                       sx={{
                         position: "absolute",
@@ -775,67 +754,71 @@ const DayBillsView = () => {
           </Box>
         )}
         {/* Global floating + button at bottom right */}
-        <IconButton
-          sx={{
-            position: "fixed",
-            right: 60,
-            bottom: 100, // Move the button further up from the bottom
-            background: "#23243a",
-            color: "#5b7fff",
-            borderRadius: "50%",
-            width: 56,
-            height: 56,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: 4,
-            transition: "background 0.2s, color 0.2s",
-            "&:hover": {
-              background: "#2e335a",
-              color: "#fff",
-            },
-          }}
-          onClick={() =>
-            friendId && friendId !== "undefined"
-              ? navigate(
-                  `/bill/create/${friendId}?date=${currentDay.format(
-                    "YYYY-MM-DD"
-                  )}`
-                )
-              : navigate(`/bill/create?date=${currentDay.format("YYYY-MM-DD")}`)
-          }
-          aria-label="Add Expense"
-        >
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+        {hasWriteAccess && (
+          <IconButton
+            sx={{
+              position: "fixed",
+              right: 60,
+              bottom: 100, // Move the button further up from the bottom
+              background: "#23243a",
+              color: "#5b7fff",
+              borderRadius: "50%",
+              width: 56,
+              height: 56,
+              zIndex: 9999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: 4,
+              transition: "background 0.2s, color 0.2s",
+              "&:hover": {
+                background: "#2e335a",
+                color: "#fff",
+              },
+            }}
+            onClick={() =>
+              friendId && friendId !== "undefined"
+                ? navigate(
+                    `/bill/create/${friendId}?date=${currentDay.format(
+                      "YYYY-MM-DD"
+                    )}`
+                  )
+                : navigate(
+                    `/bill/create?date=${currentDay.format("YYYY-MM-DD")}`
+                  )
+            }
+            aria-label="Add Expense"
           >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="#5b7fff"
-              strokeWidth="2"
-              fill="#23243a"
-            />
-            <path
-              d="M12 8V16"
-              stroke="#5b7fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M8 12H16"
-              stroke="#5b7fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </IconButton>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="#5b7fff"
+                strokeWidth="2"
+                fill="#23243a"
+              />
+              <path
+                d="M12 8V16"
+                stroke="#5b7fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M8 12H16"
+                stroke="#5b7fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </IconButton>
+        )}
         {/* Modal for expense details */}
         <Modal
           isOpen={isModalOpen}

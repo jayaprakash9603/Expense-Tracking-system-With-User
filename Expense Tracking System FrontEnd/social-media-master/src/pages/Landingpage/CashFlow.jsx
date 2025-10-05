@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   BarChart,
@@ -12,6 +18,7 @@ import {
   ReferenceLine,
   Label,
   LabelList,
+  Customized,
 } from "recharts";
 import {
   fetchCashflowExpenses,
@@ -20,7 +27,14 @@ import {
   deleteMultiExpenses,
 } from "../../Redux/Expenses/expense.action";
 import dayjs from "dayjs";
-import { IconButton, Skeleton, useTheme, useMediaQuery } from "@mui/material";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import {
+  IconButton,
+  Skeleton,
+  useTheme,
+  useMediaQuery,
+  Button,
+} from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import { createPortal } from "react-dom";
@@ -28,7 +42,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import recentPng from "../../assests/recent.png";
 import CalendarViewMonthIcon from "@mui/icons-material/CalendarViewMonth";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import ToastNotification from "./ToastNotification";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -36,6 +50,14 @@ import Modal from "./Modal";
 // removed image imports for flow icons to use inline SVGs for cleaner, scalable UI
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
+import NoDataPlaceholder from "../../components/NoDataPlaceholder";
+// Friend related imports
+import FriendInfoBar from "./FriendInfoBar";
+import {
+  fetchFriendship,
+  fetchFriendsDetailed,
+} from "../../Redux/Friends/friendsActions";
+import { canWrite } from "../../utils/accessControl";
 
 const rangeTypes = [
   { label: "Week", value: "week" },
@@ -60,41 +82,32 @@ const yearMonths = [
   "Dec",
 ];
 
-const getRangeLabel = (range, offset, flowType) => {
-  const now = dayjs();
-  let start, end, label;
-  if (range === "week") {
-    start = now.startOf("week").add(offset, "week");
-    end = now.endOf("week").add(offset, "week");
+// Format range label per new requirements (month: full date range, week: week range, year: year only)
+const getRangeLabel = (range, offset) => {
+  const base = dayjs();
+  if (range === "month") {
+    const start = base.startOf("month").add(offset, "month");
+    const end = base.endOf("month").add(offset, "month");
     if (offset === 0) {
-      label = `${flowType === "outflow" ? "Debited" : "Credited"} this week`;
-    } else {
-      label = `${
-        flowType === "outflow" ? "Debited" : "Credited"
-      } ${start.format("D MMM")} - ${end.format("D MMM, YYYY")}`;
+      // Current month label format: This Month (Sep 25)
+      return `This Month (${base.format("MMM YY")})`;
     }
-  } else if (range === "month") {
-    start = now.startOf("month").add(offset, "month");
-    end = now.endOf("month").add(offset, "month");
-    if (offset === 0) {
-      label = `${flowType === "outflow" ? "Debited" : "Credited"} this month`;
-    } else {
-      label = `${
-        flowType === "outflow" ? "Debited" : "Credited"
-      } ${start.format("D MMM")} - ${end.format("D MMM, YYYY")}`;
-    }
-  } else if (range === "year") {
-    start = now.startOf("year").add(offset, "year");
-    end = now.endOf("year").add(offset, "year");
-    if (offset === 0) {
-      label = `${flowType === "outflow" ? "Debited" : "Credited"} this year`;
-    } else {
-      label = `${
-        flowType === "outflow" ? "Debited" : "Credited"
-      } ${start.format("D MMM")} - ${end.format("D MMM, YYYY")}`;
-    }
+    return `${start.format("D MMM YYYY")} - ${end.format("D MMM YYYY")}`;
   }
-  return label;
+  if (range === "week") {
+    const start = base.startOf("week").add(offset, "week");
+    const end = base.endOf("week").add(offset, "week");
+    // Show concise range without redundant year if same year
+    if (start.year() === end.year()) {
+      return `${start.format("D MMM")} - ${end.format("D MMM YYYY")}`;
+    }
+    return `${start.format("D MMM YYYY")} - ${end.format("D MMM YYYY")}`;
+  }
+  if (range === "year") {
+    const year = base.startOf("year").add(offset, "year").year();
+    return `${year}`;
+  }
+  return "";
 };
 
 const CashflowSearchToolbar = ({
@@ -147,21 +160,69 @@ const flowTypeCycle = [
   { label: "Money Out", value: "outflow", color: "bg-[#FF6B6B] text-white" },
 ];
 
+// Small pill for selection summary values (basic pill reused inside enhanced bar)
+const SummaryPill = ({ label, value, icon }) => (
+  <span
+    style={{
+      background: "#1b1b1b",
+      border: "1px solid #262626",
+      borderRadius: 8,
+      padding: "6px 10px",
+      fontSize: 11,
+      fontWeight: 600,
+      color: "#cfd3d8",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      lineHeight: 1.15,
+      position: "relative",
+      minHeight: 30,
+      boxShadow:
+        "0 2px 4px -1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.03)",
+    }}
+  >
+    {icon && (
+      <span
+        style={{
+          fontSize: 13,
+          opacity: 0.9,
+          display: "inline-flex",
+          alignItems: "center",
+        }}
+      >
+        {icon}
+      </span>
+    )}
+    <span style={{ opacity: 0.55, fontWeight: 500 }}>{label}</span>
+    <span style={{ color: "#00dac6", fontVariantNumeric: "tabular-nums" }}>
+      {value}
+    </span>
+  </span>
+);
+
 const Cashflow = () => {
   const [activeRange, setActiveRange] = useState("month"); // Default to month on mount
   const [offset, setOffset] = useState(0);
   const [flowTab, setFlowTab] = useState("all"); // Start with 'all'
   const [search, setSearch] = useState("");
-  const [selectedBar, setSelectedBar] = useState(null); // For bar chart filtering
+  // Legacy single selection kept for compatibility; new multi-select uses selectedBars
+  const [selectedBar, setSelectedBar] = useState(null); // last clicked (primary) bar
+  const [selectedBars, setSelectedBars] = useState([]); // array of { idx, data }
+  const [lastBarSelectedIdx, setLastBarSelectedIdx] = useState(null); // anchor for shift selection
+  // Track which bar user is hovering (via activeTooltipIndex) so even tiny bars can be clicked
+  const [hoverBarIndex, setHoverBarIndex] = useState(null);
   const [selectedCardIdx, setSelectedCardIdx] = useState([]); // Change from null to an array
   const [lastSelectedIdx, setLastSelectedIdx] = useState(null); // For shift selection
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sortType, setSortType] = useState("recent");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
+  // Enhanced summary bar toggle (collapsed by default on very small screens)
+  const [summaryExpanded, setSummaryExpanded] = useState(true);
   const [expenseData, setExpenseData] = useState({});
   const dispatch = useDispatch();
   const { cashflowExpenses, loading } = useSelector((state) => state.expenses);
+  const { friendship, friends } = useSelector((state) => state.friends || {});
   const filterBtnRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -170,6 +231,13 @@ const Cashflow = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const { friendId } = useParams();
+  const isFriendView = Boolean(friendId && friendId !== "undefined");
+  // Current user id (adjust selectors if auth slice differs)
+  const currentUserId = useSelector(
+    (s) => s.auth?.user?.id || s.auth?.userId || null
+  );
+  const { hasWriteAccess } = useFriendAccess(friendId);
   // Compact number formatter: 1.2k, 3.4M, 1B
   const formatCompactNumber = (value) => {
     if (value === null || value === undefined || isNaN(value)) return "0";
@@ -236,20 +304,25 @@ const Cashflow = () => {
 
   // Fetch data on range/offset/flow changes; search is client-side only
   useEffect(() => {
-    console.log("Fetching expenses with filters:", {
-      range: activeRange,
-      offset: offset,
-      flowType: flowTab === "all" ? null : flowTab,
-    });
+    // Friend view adds friendId param, category filter still derived from search client-side
     dispatch(
       fetchCashflowExpenses(
         activeRange,
         offset,
         flowTab === "all" ? null : flowTab,
-        null
+        null,
+        isFriendView ? friendId : null
       )
     );
-  }, [activeRange, offset, flowTab, dispatch]);
+  }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView]);
+
+  // Load friendship + friends list if in friend view
+  useEffect(() => {
+    if (isFriendView) {
+      if (friendId) dispatch(fetchFriendship(friendId));
+      dispatch(fetchFriendsDetailed());
+    }
+  }, [dispatch, friendId, isFriendView]);
 
   // Add this to your component to debug the category selection
   useEffect(() => {
@@ -266,9 +339,10 @@ const Cashflow = () => {
     setOffset(0);
   }, [activeRange]);
 
-  // Reset selectedBar when main view changes
+  // Reset selections when main view changes
   useEffect(() => {
     setSelectedBar(null);
+    setSelectedBars([]);
     setSelectedCardIdx([]); // Deselect card when range or offset changes
   }, [activeRange, offset, flowTab]);
 
@@ -295,7 +369,7 @@ const Cashflow = () => {
     setPopoverOpen(false);
   };
 
-  const rangeLabel = getRangeLabel(activeRange, offset, flowTab);
+  const rangeLabel = getRangeLabel(activeRange, offset);
 
   // Adjust bar chart styles based on screen size
   const barChartStyles = {
@@ -436,23 +510,25 @@ const Cashflow = () => {
   const xKey =
     activeRange === "week" ? "day" : activeRange === "month" ? "day" : "month";
 
-  // Filter cardData by selectedBar (search already applied above)
+  // Filter cardData by multi-selection (union). If none selected, show all.
   const filteredCardData = useMemo(() => {
-    let filtered = cardData;
-    if (selectedBar) {
-      // Filter by bar (day or month)
-      if (activeRange === "week") {
-        filtered = filtered.filter((row) => row.day === selectedBar.data.day);
-      } else if (activeRange === "month") {
-        filtered = filtered.filter((row) => row.day === selectedBar.data.day);
+    if (!selectedBars.length) return cardData;
+    const keys = new Set();
+    selectedBars.forEach((b) => {
+      if (activeRange === "week" || activeRange === "month") {
+        keys.add(`${b.data.day}`);
       } else if (activeRange === "year") {
-        filtered = filtered.filter(
-          (row) => row.month === selectedBar.data.month
-        );
+        keys.add(`${b.data.month}`);
       }
-    }
-    return filtered;
-  }, [cardData, selectedBar, activeRange]);
+    });
+    return cardData.filter((row) => {
+      if (activeRange === "week" || activeRange === "month") {
+        return keys.has(String(row.day));
+      }
+      if (activeRange === "year") return keys.has(String(row.month));
+      return true;
+    });
+  }, [cardData, selectedBars, activeRange]);
 
   // Sort filteredCardData based on sortType
   const sortedCardData = useMemo(() => {
@@ -471,15 +547,51 @@ const Cashflow = () => {
     return data;
   }, [filteredCardData, sortType]);
 
-  // Handler for bar click (filters cards)
-  const handleBarClick = (data, idx) => {
-    // Toggle selection: if already selected, deselect
-    if (selectedBar && selectedBar.idx === idx) {
-      setSelectedBar(null);
-    } else {
-      setSelectedBar({ data, idx });
-    }
+  // Handler for bar click (supports single, ctrl/cmd multi, and shift range)
+  const handleBarClick = (data, idx, multi = false, rangeSelect = false) => {
     setSelectedCardIdx([]);
+    if (
+      rangeSelect &&
+      lastBarSelectedIdx !== null &&
+      lastBarSelectedIdx !== undefined
+    ) {
+      const start = Math.min(lastBarSelectedIdx, idx);
+      const end = Math.max(lastBarSelectedIdx, idx);
+      const range = [];
+      for (let i = start; i <= end; i++) {
+        if (chartData[i]) range.push({ data: chartData[i], idx: i });
+      }
+      setSelectedBars(range);
+      setSelectedBar(range[range.length - 1] || null);
+      return;
+    }
+    if (!multi) {
+      setSelectedBar((prev) =>
+        prev && prev.idx === idx ? null : { data, idx }
+      );
+      setSelectedBars((prev) => {
+        if (prev.length === 1 && prev[0].idx === idx) {
+          setLastBarSelectedIdx(null);
+          return [];
+        }
+        setLastBarSelectedIdx(idx);
+        return [{ data, idx }];
+      });
+      return;
+    }
+    // ctrl/cmd multi toggle
+    setSelectedBars((prev) => {
+      const exists = prev.find((p) => p.idx === idx);
+      let next;
+      if (exists) {
+        next = prev.filter((p) => p.idx !== idx);
+      } else {
+        next = [...prev, { data, idx }];
+        setLastBarSelectedIdx(idx);
+      }
+      setSelectedBar(next.length ? next[next.length - 1] : null);
+      return next;
+    });
   };
 
   // Modify the handleCardClick function to support Shift+Click and prevent text selection
@@ -553,6 +665,43 @@ const Cashflow = () => {
     return { inflow, outflow, total: inflow + outflow };
   }, [filteredExpensesForView]);
 
+  // Selection statistics (bars). If none selected, fallback to whole chartData.
+  const selectionStats = useMemo(() => {
+    const base = selectedBars.length ? selectedBars.map((b) => b.data) : [];
+    if (!base.length) return null;
+    const amounts = base.map((d) => d.amount || 0);
+    const count = amounts.length;
+    const total = amounts.reduce((a, b) => a + b, 0);
+    const avg = count ? total / count : 0;
+    let min = Infinity,
+      max = -Infinity,
+      minIdx = -1,
+      maxIdx = -1;
+    amounts.forEach((v, i) => {
+      if (v < min) {
+        min = v;
+        minIdx = i;
+      }
+      if (v > max) {
+        max = v;
+        maxIdx = i;
+      }
+    });
+    return {
+      count,
+      total,
+      avg,
+      min: min === Infinity ? 0 : min,
+      max: max === -Infinity ? 0 : max,
+    };
+  }, [selectedBars]);
+
+  const clearSelection = () => {
+    setSelectedBars([]);
+    setSelectedBar(null);
+    setLastBarSelectedIdx(null);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -624,8 +773,21 @@ const Cashflow = () => {
       setIsDeleting(true);
       if (Array.isArray(expenseToDelete)) {
         try {
-          await dispatch(deleteMultiExpenses(expenseToDelete));
-          dispatch(fetchCashflowExpenses(activeRange, offset, flowTab));
+          await dispatch(
+            deleteMultiExpenses(
+              expenseToDelete,
+              isFriendView ? friendId : undefined
+            )
+          );
+          dispatch(
+            fetchCashflowExpenses(
+              activeRange,
+              offset,
+              flowTab === "all" ? null : flowTab,
+              null,
+              isFriendView ? friendId : null
+            )
+          );
           setToastMessage("Selected expenses deleted successfully.");
           setToastOpen(true);
         } catch (err) {
@@ -642,14 +804,28 @@ const Cashflow = () => {
         }
       } else {
         try {
-          const expensedata = await dispatch(getExpenseAction(expenseToDelete));
+          const expensedata = await dispatch(
+            getExpenseAction(expenseToDelete, friendId || "")
+          );
           const bill = expensedata.bill
-            ? await dispatch(getBillByExpenseId(expenseToDelete))
+            ? await dispatch(
+                getBillByExpenseId(expenseToDelete, friendId || "")
+              )
             : false;
           await dispatch(
-            bill ? deleteBill(bill.id) : deleteExpenseAction(expenseToDelete)
+            bill
+              ? deleteBill(bill.id, friendId || "")
+              : deleteExpenseAction(expenseToDelete, friendId || "")
           );
-          dispatch(fetchCashflowExpenses(activeRange, offset, flowTab));
+          dispatch(
+            fetchCashflowExpenses(
+              activeRange,
+              offset,
+              flowTab === "all" ? null : flowTab,
+              null,
+              isFriendView ? friendId : null
+            )
+          );
           setToastMessage(
             bill ? "Bill deleted successfully" : "Expense deleted successfully."
           );
@@ -676,24 +852,88 @@ const Cashflow = () => {
 
   // Render bar chart
   const renderBarChart = () => (
-    <ResponsiveContainer
-      width="100%"
-      height={isMobile ? "100%" : "100%"} // Ensure full width and height for small screens
-    >
+    <ResponsiveContainer width="100%" height={isMobile ? "100%" : "100%"}>
       <BarChart
         data={chartData}
         barWidth={barChartStyles.barWidth}
         hideNumbers={barChartStyles.hideNumbers}
-        onBarClick={handleBarClick}
-        margin={{ right: isMobile ? 0 : 40 }} // Remove right margin for small screens
+        margin={{ right: isMobile ? 0 : 40 }}
+        // Use mouse move to capture activeTooltipIndex (works even if bar value ~0)
+        onMouseMove={(state) => {
+          if (state && typeof state.activeTooltipIndex === "number") {
+            setHoverBarIndex(state.activeTooltipIndex);
+          } else {
+            setHoverBarIndex(null);
+          }
+        }}
+        onMouseLeave={() => setHoverBarIndex(null)}
+        // Chart-level click: if we have a hovered index, select that bar
+        onClick={(e) => {
+          if (hoverBarIndex !== null && chartData[hoverBarIndex]) {
+            const multi = e && (e.ctrlKey || e.metaKey);
+            const rangeSel = e && e.shiftKey;
+            handleBarClick(
+              chartData[hoverBarIndex],
+              hoverBarIndex,
+              multi,
+              rangeSel
+            );
+          }
+        }}
+        style={{ cursor: hoverBarIndex !== null ? "pointer" : "default" }}
       >
         <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
+        {/** Custom clickable X axis tick so user can click anywhere on the date label area (not just the bar). */}
         <XAxis
           dataKey={xKey}
           stroke="#b0b6c3"
-          tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
           tickLine={false}
           axisLine={{ stroke: "#33384e" }}
+          height={50}
+          tick={(props) => {
+            const { x, y, payload, index } = props; // index corresponds to data index
+            const isSelected = selectedBars.some((b) => b.idx === index);
+            // Approximate band width for clickable rect (safer than relying on internals)
+            const band = barChartStyles.barWidth + (isMobile ? 8 : 12);
+            const selectedColor =
+              flowTab === "outflow"
+                ? "#ff4d4f"
+                : flowTab === "inflow"
+                ? "#06d6a0"
+                : "#5b7fff";
+            return (
+              <g
+                transform={`translate(${x},${y})`}
+                style={{ cursor: "pointer" }}
+                onClick={(e) => {
+                  const multi = e && (e.ctrlKey || e.metaKey);
+                  const rangeSel = e && e.shiftKey;
+                  if (chartData[index]) {
+                    handleBarClick(chartData[index], index, multi, rangeSel);
+                  }
+                  e.stopPropagation();
+                }}
+              >
+                {/* Invisible rectangle expands the hit area for easier clicking */}
+                <rect
+                  x={-band / 2}
+                  y={-(isMobile ? 26 : 30)}
+                  width={band}
+                  height={isMobile ? 34 : 40}
+                  fill="transparent"
+                />
+                <text
+                  dy={10}
+                  fill={isSelected ? selectedColor : "#b0b6c3"}
+                  fontSize={13}
+                  fontWeight={isSelected ? 800 : 600}
+                  textAnchor="middle"
+                >
+                  {payload?.value}
+                </text>
+              </g>
+            );
+          }}
           label={
             barChartStyles.hideAxisLabels
               ? null
@@ -713,7 +953,6 @@ const Cashflow = () => {
                   dx: 30,
                 }
           }
-          height={50}
         />
         <YAxis
           stroke="#b0b6c3"
@@ -737,7 +976,7 @@ const Cashflow = () => {
           width={80} // Increase Y axis width for more space
         />
         <Tooltip
-          cursor={{ fill: "#23243a22" }}
+          cursor={false}
           contentStyle={{
             background: "#23243a",
             border: "1px solid #00dac6",
@@ -774,17 +1013,18 @@ const Cashflow = () => {
               } else if (activeRange === "week") {
                 const idx = weekDays.indexOf(String(label));
                 if (idx >= 0) {
-                  // Align to Monday as first day to match weekDays [Mon..Sun]
-                  const mondayStart = dayjs()
-                    .startOf("week")
-                    .add(offset, "week")
-                    .day(1); // set to Monday of that week
-                  const date = mondayStart.add(idx, "day");
+                  // Compute Monday of the CURRENT week explicitly (independent of startOf('week') which is Sunday)
+                  // then apply the offset in weeks. This avoids accidental +1 week drift.
+                  const today = dayjs();
+                  const daysSinceMonday = (today.day() + 6) % 7; // 0 if Monday, 6 if Sunday
+                  const currentMonday = today.subtract(daysSinceMonday, "day");
+                  const monday = currentMonday.add(offset, "week");
+                  const date = monday.add(idx, "day");
                   return `${date.format("ddd")}, ${date.format("D MMM")}`;
                 }
               }
             } catch (e) {
-              // no-op fallback
+              // silent fallback
             }
             return label;
           }}
@@ -868,24 +1108,34 @@ const Cashflow = () => {
           radius={[6, 6, 0, 0]}
           maxBarSize={32}
         >
-          {chartData.map((entry, idx) => (
-            <Cell
-              key={idx}
-              fill={
-                selectedBar && selectedBar.idx === idx
-                  ? flowTab === "outflow"
-                    ? "#ff4d4f"
-                    : "#06d6a0"
-                  : "#5b7fff"
-              }
-              cursor={chartData.length > 0 ? "pointer" : "default"}
-              onClick={
-                chartData.length > 0
-                  ? () => handleBarClick(entry, idx)
-                  : undefined
-              }
-            />
-          ))}
+          {chartData.map((entry, idx) => {
+            const isSelected = selectedBars.some((b) => b.idx === idx);
+            const isHover = hoverBarIndex === idx && !isSelected;
+            return (
+              <Cell
+                key={idx}
+                fill={
+                  isSelected
+                    ? flowTab === "outflow"
+                      ? "#ff4d4f"
+                      : flowTab === "inflow"
+                      ? "#06d6a0"
+                      : "#5b7fff"
+                    : isHover
+                    ? "#7895ff"
+                    : "#5b7fff"
+                }
+                cursor={chartData.length > 0 ? "pointer" : "default"}
+                onClick={(e) => {
+                  if (!chartData.length) return;
+                  const multi = e && (e.ctrlKey || e.metaKey);
+                  const rangeSel = e && e.shiftKey;
+                  handleBarClick(entry, idx, multi, rangeSel);
+                  e.stopPropagation();
+                }}
+              />
+            );
+          })}
           {/* Add value labels on top of bars */}
           {!barChartStyles.hideNumbers && (
             <LabelList
@@ -909,13 +1159,108 @@ const Cashflow = () => {
             />
           )}
         </Bar>
+        {/* Transparent full-height clickable columns so user can click empty vertical space above tiny bars */}
+        <Customized
+          component={(props) => {
+            const { xAxisMap, offset } = props || {};
+            if (!xAxisMap || !chartData?.length) return null;
+            const axisKey = Object.keys(xAxisMap)[0];
+            const xAxisCfg = xAxisMap[axisKey];
+            const scale = xAxisCfg && xAxisCfg.scale;
+            if (!scale || typeof scale.bandwidth !== "function") return null;
+            const bandW = scale.bandwidth();
+            return (
+              <g>
+                {chartData.map((entry, idx) => {
+                  const xPos = scale(entry[xKey]);
+                  if (typeof xPos !== "number" || isNaN(xPos)) return null;
+                  const isSelected = selectedBars.some((b) => b.idx === idx);
+                  const isHover = hoverBarIndex === idx && !isSelected;
+                  return (
+                    <g key={`col-hit-${idx}`}>
+                      <rect
+                        x={xPos}
+                        y={offset.top}
+                        width={bandW}
+                        height={offset.height}
+                        fill={(function () {
+                          const base =
+                            flowTab === "outflow"
+                              ? "255,77,79"
+                              : flowTab === "inflow"
+                              ? "6,214,160"
+                              : "91,127,255";
+                          if (isSelected) return `rgba(${base},0.18)`;
+                          if (isHover) return `rgba(${base},0.12)`;
+                          return "transparent";
+                        })()}
+                        style={{
+                          cursor: "pointer",
+                          transition: "fill 100ms linear",
+                        }}
+                        onMouseEnter={() => setHoverBarIndex(idx)}
+                        onMouseLeave={() => setHoverBarIndex(null)}
+                        onClick={(e) => {
+                          const multi = e && (e.ctrlKey || e.metaKey);
+                          const rangeSel = e && e.shiftKey;
+                          handleBarClick(entry, idx, multi, rangeSel);
+                          e.stopPropagation();
+                        }}
+                      />
+                    </g>
+                  );
+                })}
+              </g>
+            );
+          }}
+        />
       </BarChart>
     </ResponsiveContainer>
   );
 
+  // Friend switching helper
+  const handleRouteChange = async (newFriendId) => {
+    navigate(`/friends/expenses/${newFriendId}`);
+  };
+
+  const refreshData = async (newFriendId) => {
+    const targetId = newFriendId || friendId;
+    if (!targetId) return;
+    await Promise.all([
+      dispatch(fetchFriendship(targetId)),
+      dispatch(fetchFriendsDetailed()),
+      dispatch(
+        fetchCashflowExpenses(
+          activeRange,
+          offset,
+          flowTab === "all" ? null : flowTab,
+          null,
+          targetId
+        )
+      ),
+    ]);
+    setSelectedBar(null);
+    setSelectedBars([]);
+    setSelectedCardIdx([]);
+  };
+
   return (
     <>
-      <div className={isMobile ? "h-[34px]" : "h-[50px]"}></div>
+      {/* Friend info bar if in friend view */}
+      {/* {isFriendView && (
+        <FriendInfoBar
+          friendship={friendship}
+          friendId={friendId}
+          friends={friends || []}
+          loading={loading}
+          onRouteChange={handleRouteChange}
+          refreshData={refreshData}
+          showInfoBar={true}
+        />
+      )}
+      {!isFriendView && (
+        <div className={isMobile ? "h-[34px]" : "h-[50px]"}></div>
+      )} */}
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{
@@ -992,7 +1337,7 @@ const Cashflow = () => {
           }}
         >
           {/* Delete Selected Button (left of flow pills) - only visible if more than one selected */}
-          {selectedCardIdx.length > 1 && (
+          {selectedCardIdx.length > 1 && hasWriteAccess && (
             <button
               onClick={async () => {
                 setIsDeleteModalOpen(true);
@@ -1026,7 +1371,11 @@ const Cashflow = () => {
                 transition: "background 0.2s",
                 gap: 6,
               }}
-              title={`Delete ${selectedCardIdx.length} selected`}
+              title={
+                hasWriteAccess
+                  ? `Delete ${selectedCardIdx.length} selected`
+                  : "Read only"
+              }
             >
               <svg
                 width={isMobile ? 16 : 20}
@@ -1060,6 +1409,7 @@ const Cashflow = () => {
                 const next = flowTypeCycle[(idx + 1) % flowTypeCycle.length];
                 setFlowTab(next.value);
                 setSelectedBar(null);
+                setSelectedBars([]);
                 setSelectedCardIdx([]);
               }}
               aria-pressed={false}
@@ -1203,14 +1553,226 @@ const Cashflow = () => {
           }
         `}</style>
         </div>
+        {/* Enhanced Selection Summary Bar */}
+        {selectionStats && selectionStats.count > 1 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 14,
+              left: "50%",
+              // Shift 50px to the right from centered position
+              transform: "translateX(calc(-50% + 50px))",
+              zIndex: 7,
+              maxWidth: isMobile ? "94%" : 840,
+              width: "max-content",
+              pointerEvents: "auto",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "stretch",
+                  gap: 8,
+                  background: "#1b1b1b",
+                  backdropFilter: "blur(10px) saturate(140%)",
+                  WebkitBackdropFilter: "blur(10px) saturate(140%)",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                  boxShadow:
+                    "0 4px 18px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.6)",
+                  borderRadius: 14,
+                  padding: "10px 14px 10px 14px",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Decorative gradient shimmer */}
+                {/* Removed decorative gradient overlays per solid background request */}
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    paddingRight: summaryExpanded ? 8 : 0,
+                  }}
+                >
+                  <button
+                    onClick={() => setSummaryExpanded((e) => !e)}
+                    aria-label={
+                      summaryExpanded
+                        ? "Collapse selection stats"
+                        : "Expand selection stats"
+                    }
+                    style={{
+                      background: "#1b1b1b",
+                      border: "1px solid #303030",
+                      color: "#00dac6",
+                      width: 34,
+                      height: 34,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: 10,
+                      cursor: "pointer",
+                      fontSize: 16,
+                      fontWeight: 600,
+                      boxShadow:
+                        "0 2px 6px -2px #0009, inset 0 0 0 1px rgba(255,255,255,0.03)",
+                      transition: "all .35s cubic-bezier(.4,0,.2,1)",
+                    }}
+                    title={summaryExpanded ? "Hide stats" : "Show stats"}
+                  >
+                    {summaryExpanded ? "−" : "+"}
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    paddingLeft: 4,
+                    paddingRight: 4,
+                    maxWidth: summaryExpanded
+                      ? isMobile
+                        ? "66vw"
+                        : "600px"
+                      : 0,
+                    overflow: "hidden",
+                    transition: "max-width .45s cubic-bezier(.4,0,.2,1)",
+                  }}
+                >
+                  {summaryExpanded && (
+                    <>
+                      <SummaryPill
+                        icon=""
+                        label="Expenses"
+                        value={selectedBars.length ? sortedCardData.length : 0}
+                      />
+                      <SummaryPill
+                        icon="💰"
+                        label="Total"
+                        value={formatNumberFull(selectionStats.total)}
+                      />
+                      <SummaryPill
+                        icon="📊"
+                        label="Avg"
+                        value={formatNumberFull(Math.trunc(selectionStats.avg))}
+                      />
+                      <SummaryPill
+                        icon="⬇"
+                        label="Min"
+                        value={formatNumberFull(selectionStats.min)}
+                      />
+                      <SummaryPill
+                        icon="⬆"
+                        label="Max"
+                        value={formatNumberFull(selectionStats.max)}
+                      />
+                    </>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginLeft: 4,
+                  }}
+                >
+                  <button
+                    onClick={clearSelection}
+                    style={{
+                      background: "#2a1313",
+                      border: "1px solid #4b1d1d",
+                      color: "#ff6b6b",
+                      fontSize: 12,
+                      padding: "8px 12px",
+                      borderRadius: 10,
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      lineHeight: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      boxShadow:
+                        "0 2px 6px -2px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.04)",
+                      transition: "background .35s, transform .25s",
+                    }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    title="Clear selection"
+                  >
+                    <span style={{ fontSize: 14 }}>✕</span>
+                    <span style={{ letterSpacing: 0.5 }}>Clear</span>
+                  </button>
+                </div>
+              </div>
+              {/* Keyboard hint (appears when expanded)
+              {summaryExpanded && (
+                <div style={{ textAlign: 'center', fontSize: 10, color: '#8a8f95', fontWeight: 500, letterSpacing: 0.5 }}>
+                  Ctrl / Cmd to toggle • Shift for range • Click Clear to reset
+                </div>
+              )} */}
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-4 mb-4">
+          {isFriendView && (
+            <Button
+              variant="contained"
+              onClick={() =>
+                friendId && friendId !== "undefined"
+                  ? navigate(`/friends`)
+                  : navigate("/expenses")
+              }
+              sx={{
+                backgroundColor: "#1b1b1b",
+                borderRadius: "8px",
+                color: "#00DAC6",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                px: 1.5,
+                py: 0.75,
+                textTransform: "none",
+                fontSize: "0.8rem",
+                "&:hover": { backgroundColor: "#28282a" },
+              }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 18L9 12L15 6"
+                  stroke="#00DAC6"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Back
+            </Button>
+          )}
           {rangeTypes.map((tab) => (
             <button
               key={tab.value}
               onClick={() => {
                 if (activeRange === tab.value) {
                   setSelectedBar(null); // Reset bar selection if clicking the same tab
+                  setSelectedBars([]);
                 }
                 setActiveRange(tab.value);
               }}
@@ -1270,40 +1832,12 @@ const Cashflow = () => {
               sx={{ bgcolor: "#23243a", borderRadius: 2 }}
             />
           ) : chartData.length === 0 ? (
-            <div
-              style={{
-                width: "100%",
-                height: isMobile ? "80px" : "150px", // Adjust height for small screens
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#1b1b1b",
-                borderRadius: 8,
-                border: "1px solid #23243a",
-                position: "relative",
-                minWidth: 0,
-                boxSizing: "border-box",
-                padding: isMobile ? "5px" : "16px", // Add padding for small screens
-              }}
-            >
-              <span
-                style={{
-                  color: "#5b7fff",
-                  fontWeight: 600,
-                  fontSize: isMobile ? "14px" : "18px", // Adjust font size for small screens
-                  width: "100%",
-                  textAlign: "center",
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  pointerEvents: "none",
-                }}
-              >
-                No data to display
-              </span>
-            </div>
+            <NoDataPlaceholder
+              size={isMobile ? "md" : "lg"}
+              fullWidth
+              message="No data to display"
+              subMessage="Try adjusting filters or date range"
+            />
           ) : (
             renderBarChart()
           )}
@@ -1342,6 +1876,7 @@ const Cashflow = () => {
           >
             {[
               {
+                // Use base path; friendId appended later to avoid duplicate /id/id
                 path: "/category-flow",
                 icon: "category.png",
                 label: "Categories",
@@ -1369,7 +1904,10 @@ const Cashflow = () => {
             ].map(({ path, icon, label }) => (
               <button
                 key={path}
-                onClick={() => navigate(path)}
+                onClick={() => {
+                  const target = isFriendView ? `${path}/${friendId}` : path;
+                  navigate(target);
+                }}
                 className="nav-button"
                 style={{
                   display: "flex",
@@ -1401,41 +1939,50 @@ const Cashflow = () => {
                 {!isMobile && <span>{label}</span>}
               </button>
             ))}
-            {/* Add New - Simplified button */}
-            <button
-              ref={setAddNewBtnRef}
-              onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                padding: isMobile ? "6px 8px" : "6px 8px",
-                backgroundColor: "#1b1b1b",
-                border: "1px solid #333",
-                borderRadius: "6px",
-                color: "#00DAC6",
-                fontSize: isMobile ? "11px" : "12px",
-                fontWeight: "500",
-                cursor: "pointer",
-                minWidth: "fit-content",
-              }}
-            >
-              <img
-                src={require("../../assests/add.png")}
-                alt="Add"
+            {/* Add New - only show if user has write/full access (or own view) */}
+            {hasWriteAccess && (
+              <button
+                ref={setAddNewBtnRef}
+                onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
                 style={{
-                  width: isMobile ? 14 : 16,
-                  height: isMobile ? 14 : 16,
-                  filter:
-                    "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                  transition: "filter 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: isMobile ? "6px 8px" : "6px 8px",
+                  backgroundColor: "#1b1b1b",
+                  border: "1px solid #333",
+                  borderRadius: "6px",
+                  color: "#00DAC6",
+                  fontSize: isMobile ? "11px" : "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  minWidth: "fit-content",
                 }}
-              />
-              {!isMobile && <span>Add New</span>}
-            </button>
+                disabled={!hasWriteAccess}
+                title={
+                  hasWriteAccess
+                    ? "Add expense, budget, category or upload file"
+                    : "You have read-only access"
+                }
+              >
+                <img
+                  src={require("../../assests/add.png")}
+                  alt="Add"
+                  style={{
+                    width: isMobile ? 14 : 16,
+                    height: isMobile ? 14 : 16,
+                    filter:
+                      "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                    transition: "filter 0.2s ease",
+                  }}
+                />
+                {!isMobile && <span>Add New</span>}
+              </button>
+            )}
 
             {/* Simplified Add New Popover */}
             {addNewPopoverOpen &&
+              hasWriteAccess &&
               addNewBtnRef &&
               createPortal(
                 <div
@@ -1461,22 +2008,28 @@ const Cashflow = () => {
                   {[
                     {
                       label: "Add Expense",
-                      route: "/expenses/create",
+                      route: isFriendView
+                        ? `/expenses/create/${friendId}`
+                        : "/expenses/create",
                       color: "#00DAC6",
                     },
                     {
                       label: "Upload File",
-                      route: "/upload",
+                      route: isFriendView ? `/upload/expenses/${friendId}` : "/upload/expenses",
                       color: "#5b7fff",
                     },
                     {
                       label: "Add Budget",
-                      route: "/budget/create",
+                      route: isFriendView
+                        ? `/budget/create/${friendId}`
+                        : "/budget/create",
                       color: "#FFC107",
                     },
                     {
                       label: "Add Category",
-                      route: "/category-flow/create",
+                      route: isFriendView
+                        ? `/category-flow/create/${friendId}`
+                        : "/category-flow/create",
                       color: "#ff6b6b",
                     },
                   ].map((item, idx) => (
@@ -1717,18 +2270,18 @@ const Cashflow = () => {
               />
             ))
           ) : sortedCardData.length === 0 ? (
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <div className="col-span-full text-center text-gray-400 py-4">
-                No data found
-              </div>
-            </div>
+            <NoDataPlaceholder
+              size={isMobile ? "lg" : "fill"}
+              fullWidth
+              iconSize={isMobile ? 54 : 72}
+              style={{ minHeight: isMobile ? 260 : 340 }}
+              message={search ? "No matches" : "No data found"}
+              subMessage={
+                search
+                  ? "Try a different search term"
+                  : "Adjust filters or change the period"
+              }
+            />
           ) : (
             sortedCardData.map((row, idx) => {
               const isSelected = selectedCardIdx.includes(idx);
@@ -1918,74 +2471,88 @@ const Cashflow = () => {
                       {row.comments}
                     </div>
                   </div>
-                  {isSelected && selectedCardIdx.length === 1 && (
-                    <div
-                      className="absolute bottom-2 right-2 flex gap-2 opacity-90"
-                      style={{
-                        zIndex: 2,
-                        background: "#23243a",
-                        borderRadius: 8,
-                        boxShadow: "0 2px 8px #0002",
-                        padding: 4,
-                        display: "flex",
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <IconButton
-                        size="small"
-                        sx={{
-                          color: "#5b7fff",
-                          p: "4px",
+                  {isSelected &&
+                    selectedCardIdx.length === 1 &&
+                    hasWriteAccess && (
+                      <div
+                        className="absolute bottom-2 right-2 flex gap-2 opacity-90"
+                        style={{
+                          zIndex: 2,
                           background: "#23243a",
-                          borderRadius: 1,
-                          boxShadow: 1,
-                          "&:hover": {
-                            background: "#2e335a",
-                            color: "#fff",
-                          },
+                          borderRadius: 8,
+                          boxShadow: "0 2px 8px #0002",
+                          padding: 4,
+                          display: "flex",
                         }}
-                        onClick={async () => {
-                          dispatch(
-                            getListOfBudgetsByExpenseId({
-                              id: row.id || row.expenseId,
-                              date: dayjs().format("YYYY-MM-DD"),
-                            })
-                          );
-
-                          const expensedata = await dispatch(
-                            getExpenseAction(row.id)
-                          );
-                          const bill = expensedata.bill
-                            ? await dispatch(getBillByExpenseId(row.id))
-                            : false;
-                          expensedata.bill
-                            ? navigate(`/bill/edit/${bill.id}`)
-                            : navigate(`/expenses/edit/${row.id}`);
-                        }}
-                        aria-label="Edit Expense"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        sx={{
-                          color: "#ff4d4f",
-                          p: "4px",
-                          background: "#23243a",
-                          borderRadius: 1,
-                          boxShadow: 1,
-                          "&:hover": {
-                            background: "#2e335a",
-                            color: "#fff",
-                          },
-                        }}
-                        onClick={() => handleDeleteClick(row, idx)}
-                        aria-label="Delete Expense"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </div>
-                  )}
+                        <IconButton
+                          size="small"
+                          sx={{
+                            color: "#5b7fff",
+                            p: "4px",
+                            background: "#23243a",
+                            borderRadius: 1,
+                            boxShadow: 1,
+                            "&:hover": {
+                              background: "#2e335a",
+                              color: "#fff",
+                            },
+                          }}
+                          onClick={async () => {
+                            dispatch(
+                              getListOfBudgetsByExpenseId({
+                                id: row.id || row.expenseId,
+                                date: dayjs().format("YYYY-MM-DD"),
+                                friendId: friendId || null,
+                              })
+                            );
+                            const expensedata = await dispatch(
+                              getExpenseAction(row.id, friendId || "")
+                            );
+                            const bill = expensedata.bill
+                              ? await dispatch(
+                                  getBillByExpenseId(row.id, friendId || "")
+                                )
+                              : false;
+                            if (expensedata.bill) {
+                              navigate(
+                                isFriendView
+                                  ? `/bill/edit/${bill.id}/friend/${friendId}`
+                                  : `/bill/edit/${bill.id}`
+                              );
+                            } else {
+                              navigate(
+                                isFriendView
+                                  ? `/expenses/edit/${row.id}/friend/${friendId}`
+                                  : `/expenses/edit/${row.id}`
+                              );
+                            }
+                          }}
+                          aria-label="Edit Expense"
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          sx={{
+                            color: "#ff4d4f",
+                            p: "4px",
+                            background: "#23243a",
+                            borderRadius: 1,
+                            boxShadow: 1,
+                            "&:hover": {
+                              background: "#2e335a",
+                              color: "#fff",
+                            },
+                          }}
+                          onClick={() => handleDeleteClick(row, idx)}
+                          aria-label="Delete Expense"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </div>
+                    )}
                 </div>
               );
             })

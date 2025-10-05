@@ -17,11 +17,17 @@ import ForgotPassword from "./ForgotPassword";
 
 const initialValues = { email: "", password: "" };
 
+// Updated: restrict final TLD to 2-9 letters
+const STRICT_EMAIL_REGEX = /^(?!.*\.\.)[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@(?!(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)(?!-)(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,9}$/;
+
 const validationSchema = Yup.object({
-  email: Yup.string().email("Invalid email").required("Email is required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
+  email: Yup.string()
+    .required("Email is required")
+    .test("strict-email", "Enter a valid email", (value) => {
+      if (!value) return false;
+      return STRICT_EMAIL_REGEX.test(value.trim());
+    }),
+  password: Yup.string().required("Password is required"),
 });
 
 const Login = () => {
@@ -56,17 +62,17 @@ const Login = () => {
 
   // Function to get the first error message in priority order
   const getFirstError = (errors, touched) => {
-    // Priority order: email, password, then login error
-    if (touched.email && errors.email) {
-      return errors.email;
+    // If both fields are touched (formik does this on submit) & both have errors -> show unified message
+    if (
+      touched.email && touched.password &&
+      errors.email && errors.password
+    ) {
+      return "Enter all the mandatory fields";
     }
-    if (touched.password && errors.password) {
-      return errors.password;
-    }
-    if (error) {
-      return error;
-    }
-
+    // Priority order: email, password, then login/server error
+    if (touched.email && errors.email) return errors.email;
+    if (touched.password && errors.password) return errors.password;
+    if (error) return error;
     return null;
   };
 
@@ -82,7 +88,7 @@ const Login = () => {
             const currentError = getFirstError(errors, touched);
 
             return (
-              <Form className="space-y-4">
+              <Form className="space-y-4" noValidate>
                 {/* Further Reduced Height Error Message Container */}
                 <div className="min-h-[10px] mb-1">
                   {currentError && (
@@ -101,35 +107,47 @@ const Login = () => {
                   )}
                 </div>
 
-                {/* Email Field */}
+                {/* Email Field (clears server error on edit) */}
                 <div>
-                  <Field
-                    as={TextField}
-                    name="email"
-                    placeholder="Email"
-                    type="email"
-                    variant="outlined"
-                    fullWidth
-                    error={touched.email && !!errors.email && !values.email}
-                    InputProps={{
-                      style: {
-                        backgroundColor: "rgb(56, 56, 56)",
-                        color: "#d8fffb",
-                        borderRadius: "8px",
-                      },
-                    }}
-                    InputLabelProps={{ style: { color: "#d8fffb" } }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-error .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#f44336",
-                        },
-                      },
-                    }}
-                  />
+                  <Field name="email">
+                    {({ field, form }) => (
+                      <TextField
+                        {...field}
+                        placeholder="Email"
+                        type="text" /* use text to suppress native email tooltip */
+                        variant="outlined"
+                        fullWidth
+                        error={touched.email && !!errors.email}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (error) setError("");
+                        }}
+                        onFocus={() => {
+                          if (error) setError("");
+                        }}
+                        inputMode="email"
+                        autoComplete="email"
+                        InputProps={{
+                          style: {
+                            backgroundColor: "rgb(56, 56, 56)",
+                            color: "#d8fffb",
+                            borderRadius: "8px",
+                          },
+                        }}
+                        InputLabelProps={{ style: { color: "#d8fffb" } }}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "#f44336",
+                            },
+                          },
+                        }}
+                      />
+                    )}
+                  </Field>
                 </div>
 
-                {/* Password Field */}
+                {/* Password Field (clears server error on edit) */}
                 <div>
                   <Field name="password">
                     {({ field }) => (
@@ -139,11 +157,14 @@ const Login = () => {
                         type={showPassword ? "text" : "password"}
                         variant="outlined"
                         fullWidth
-                        error={
-                          touched.password &&
-                          !!errors.password &&
-                          !values.password
-                        }
+                        error={touched.password && !!errors.password}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (error) setError("");
+                        }}
+                        onFocus={() => {
+                          if (error) setError("");
+                        }}
                         InputProps={{
                           style: {
                             backgroundColor: "rgb(56, 56, 56)",
@@ -157,11 +178,7 @@ const Login = () => {
                                 edge="end"
                                 style={{ color: "#14b8a6" }}
                               >
-                                {showPassword ? (
-                                  <VisibilityOff />
-                                ) : (
-                                  <Visibility />
-                                )}
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
                               </IconButton>
                             </InputAdornment>
                           ),

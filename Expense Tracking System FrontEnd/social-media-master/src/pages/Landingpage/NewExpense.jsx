@@ -13,6 +13,8 @@ import {
 } from "@tanstack/react-table";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
@@ -81,13 +83,20 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const [pageSize, setPageSize] = useState(5);
   const [checkboxStates, setCheckboxStates] = useState([]);
   const { friendId } = useParams();
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  // Updated redirect base paths to /friends/expenses*
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) => `/friends/expenses/${fid}`,
+    selfPath: "/friends/expenses",
+    defaultPath: "/friends/expenses",
+  });
 
   console.log("FriendId ", friendId);
 
   // Fetch budgets on component mount
   useEffect(() => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
-  }, [dispatch, today]);
+  }, [dispatch, today, friendId]);
 
   // Update checkbox states when budgets change
   useEffect(() => {
@@ -97,12 +106,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
   // Fetch expenses suggestions
   useEffect(() => {
     dispatch(getExpensesSuggestions(friendId || ""));
-  }, [dispatch]);
+  }, [dispatch, friendId]);
 
   // Fetch categories on component mount
   useEffect(() => {
     dispatch(fetchCategories(friendId || ""));
-  }, [dispatch]);
+  }, [dispatch, friendId]);
 
   // Ensure unique categories strictly by name (case-insensitive, trimmed)
   const uniqueCategories = useMemo(() => {
@@ -208,6 +217,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!hasWriteAccess) return; // safety: block submit if no write
     const newErrors = {};
     if (!expenseData.expenseName) newErrors.expenseName = true;
     if (!expenseData.amount) newErrors.amount = true;
@@ -955,9 +965,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
     setPageIndex(0);
   };
 
+  // (Manual redirect effect removed in favor of generic hook)
+
   return (
     <>
-      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex flex-col relative new-expense-container"
         style={{
@@ -965,6 +977,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           height: "calc(100vh - 100px)",
           backgroundColor: "rgb(11, 11, 11)",
           borderRadius: "8px",
+          marginRight: "20px",
           border: "1px solid rgb(0, 0, 0)",
           padding: "20px",
         }}
@@ -1127,12 +1140,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
         )}
 
         <div className="w-full flex justify-end mt-4 sm:mt-8">
-          <button
-            onClick={handleSubmit}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px]"
-          >
-            Submit
-          </button>
+          {hasWriteAccess && (
+            <button
+              onClick={handleSubmit}
+              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px]"
+            >
+              Submit
+            </button>
+          )}
         </div>
 
         <style>

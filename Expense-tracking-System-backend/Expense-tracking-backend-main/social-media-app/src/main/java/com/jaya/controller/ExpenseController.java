@@ -2548,6 +2548,77 @@ public class ExpenseController {
         return ResponseEntity.ok(result);
     }
 
+    // Filtered payment method distribution: supports explicit date range OR dynamic rangeType+offset (week|month|year)
+    @GetMapping("/payment-methods/filtered")
+    public ResponseEntity<?> getPaymentMethodDistributionFiltered(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String rangeType,
+            @RequestParam(required = false, defaultValue = "0") int offset,
+            @RequestParam(required = false) String flowType,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+
+        User reqUser = userService.findUserByJwt(jwt);
+        if (reqUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid or expired token"));
+        }
+
+        User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+
+        // Validate flowType parameter
+        if (flowType != null && !flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Invalid flowType. Must be 'inflow' or 'outflow'"));
+        }
+        // Validate type parameter
+        if (type != null && !type.equalsIgnoreCase("loss") && !type.equalsIgnoreCase("gain")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Invalid type. Must be 'loss' or 'gain'"));
+        }
+
+        Map<String, Object> result;
+
+        if (fromDate != null && toDate != null) {
+            if (toDate.isBefore(fromDate)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "End date cannot be before start date"));
+            }
+            result = expenseService.getPaymentMethodDistributionByDateRange(
+                    targetUser.getId(), fromDate, toDate, flowType, type);
+        } else if (rangeType != null) {
+            LocalDate now = LocalDate.now();
+            LocalDate start;
+            LocalDate end;
+            switch (rangeType.toLowerCase()) {
+                case "week":
+                    start = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
+                    end = start.plusDays(6);
+                    break;
+                case "month":
+                    start = now.withDayOfMonth(1).plusMonths(offset);
+                    end = start.plusMonths(1).minusDays(1);
+                    break;
+                case "year":
+                    start = now.withDayOfMonth(1).withMonth(1).plusYears(offset);
+                    end = start.plusYears(1).minusDays(1);
+                    break;
+                default:
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("error", "Invalid rangeType. Use week, month, or year."));
+            }
+            result = expenseService.getPaymentMethodDistributionByDateRange(
+                    targetUser.getId(), start, end, flowType, type);
+        } else {
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", "Provide fromDate & toDate or rangeType"));
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/cumulative")
     public ResponseEntity<Map<String, Object>> getCumulativeExpenses(
             @RequestHeader("Authorization") String jwt,

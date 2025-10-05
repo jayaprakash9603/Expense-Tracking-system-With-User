@@ -166,7 +166,11 @@ public class ExpenseServiceHelper {
         if (!targetId.equals(reqUser.getId())) {
             // Add your admin/permission check logic here
             try {
-                return userService.findUserById(targetId);
+                User fetched = userService.findUserById(targetId);
+                if (fetched == null) {
+                    throw new RuntimeException("Target user not found with ID: " + targetId);
+                }
+                return fetched;
             } catch (Exception e) {
                 throw new RuntimeException("Target user not found with ID: " + targetId);
             }
@@ -187,6 +191,9 @@ public class ExpenseServiceHelper {
             targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         } catch (RuntimeException e) {
             return handleRuntimeException(e);
+        }
+        if (targetUser == null) {
+            return handleRuntimeException(new RuntimeException("Target user not found with ID: " + targetId));
         }
 
         String auditMessage = createAuditMessage(auditMessageTemplate, targetId, reqUser.getId(), params);
@@ -210,6 +217,9 @@ public class ExpenseServiceHelper {
             targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         } catch (RuntimeException e) {
             return handleRuntimeException(e);
+        }
+        if (targetUser == null) {
+            return handleRuntimeException(new RuntimeException("Target user not found with ID: " + targetId));
         }
 
         return ResponseEntity.ok(new EmailReportContext(reqUser, targetUser, email, reportType));

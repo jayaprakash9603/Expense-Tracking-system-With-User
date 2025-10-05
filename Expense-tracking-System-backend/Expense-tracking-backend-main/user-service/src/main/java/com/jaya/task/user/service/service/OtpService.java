@@ -18,8 +18,8 @@ public class OtpService {
     @Autowired
     private OtpRepository otpRepository;
 
-    @Autowired
-    private EmailService emailService;
+        @Autowired
+        private EmailService emailService;
 
     private static final int OTP_LENGTH = 6;
     private static final int OTP_VALIDITY_MINUTES = 5;
@@ -50,7 +50,7 @@ public class OtpService {
         // Send OTP via email (currently logged)
         emailService.sendOtpEmail(email, otp);
 
-        return otp; // Return OTP for response
+        return "Otp Send Successfull"; // Return OTP for response
     }
 
     @Transactional

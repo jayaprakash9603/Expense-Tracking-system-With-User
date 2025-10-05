@@ -53,15 +53,17 @@ export async function fetchMonthlyExpenses(params = {}) {
 }
 
 /**
- * Fetch payment method distribution from backend.
- * Endpoint: GET /api/expenses/payment-methods
- * Optional params forwarded as query string (e.g., { year, month, fromDate, toDate }).
- * Returns raw response body; caller can shape as needed.
+ * Fetch payment method distribution (supports date range OR dynamic rangeType/offset).
+ * New endpoint: GET /api/expenses/payment-methods/filtered
+ * Params options:
+ *  - { fromDate, toDate, flowType, type }
+ *  - OR { rangeType: 'week'|'month'|'year', offset, flowType, type }
+ * The backend returns a map/object; we just pass it through.
  */
 export async function fetchPaymentMethods(params = {}) {
   try {
-    const res = await api.get("/api/expenses/payment-methods", { params });
-    return res.data ?? [];
+    const res = await api.get("/api/expenses/payment-methods/filtered", { params });
+    return res.data ?? {};
   } catch (err) {
     throw err;
   }

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import useFriendInfoBar from "./useFriendInfoBar";
 import {
@@ -38,6 +39,7 @@ const FriendInfoBar = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredFriends, setFilteredFriends] = useState([]);
   const friendDropdownRef = useRef(null);
+  const portalDropdownRef = useRef(null); // ref to portal dropdown
   const searchInputRef = useRef(null);
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
@@ -70,23 +72,21 @@ const FriendInfoBar = ({
     setFilteredFriends(filtered);
   }, [friends, searchTerm]);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (account for portal element)
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        friendDropdownRef.current &&
-        !friendDropdownRef.current.contains(event.target)
-      ) {
+    const handleClickOutside = (event) => {
+      const inButton = friendDropdownRef.current?.contains(event.target);
+      const inPortal = portalDropdownRef.current?.contains(event.target);
+      if (!inButton && !inPortal) {
         setShowFriendDropdown(false);
-        setSearchTerm(""); // Clear search when closing
+        setSearchTerm("");
       }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+    if (showFriendDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showFriendDropdown]);
 
   // Focus search input when dropdown opens
   useEffect(() => {
@@ -584,352 +584,368 @@ const FriendInfoBar = ({
               Switch Friend
             </Button>
 
-            {/* Enhanced Friend Dropdown with Search */}
-            {showFriendDropdown && (
-              <Paper
-                elevation={3}
-                sx={{
-                  position: "absolute",
-                  right: 0,
-                  mt: 1,
-                  width: 320, // Increased width for better search experience
-                  backgroundColor: "#1b1b1b",
-                  borderRadius: 2,
-                  border: "1px solid #333",
-                  overflow: "hidden",
-                  zIndex: 50,
-                  animation: "dropdownFadeIn 0.2s ease-out forwards",
-                  maxHeight: 500, // Increased max height
-                }}
-              >
-                {/* Header with search */}
-                <Box
+            {/* Enhanced Friend Dropdown with Search via Portal */}
+            {showFriendDropdown &&
+              createPortal(
+                <Paper
+                  ref={portalDropdownRef}
+                  elevation={6}
                   sx={{
-                    p: 2,
-                    borderBottom: "1px solid #333",
-                    backgroundColor: "#23243a",
+                    position: "fixed",
+                    top: (() => {
+                      const btn = friendDropdownRef.current;
+                      if (!btn) return 80;
+                      const rect = btn.getBoundingClientRect();
+                      return rect.bottom + 8;
+                    })(),
+                    left: (() => {
+                      const btn = friendDropdownRef.current;
+                      if (!btn) return 0;
+                      const rect = btn.getBoundingClientRect();
+                      return Math.max(8, rect.right - 320); // keep inside viewport
+                    })(),
+                    width: 320, // Increased width for better search experience
+                    backgroundColor: "#1b1b1b",
+                    borderRadius: 2,
+                    border: "1px solid #333",
+                    overflow: "hidden",
+                    zIndex: 1600,
+                    animation: "dropdownFadeIn 0.18s ease-out forwards",
+                    maxHeight: 500, // Increased max height
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                   }}
                 >
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: "#00DAC6",
-                      fontWeight: 500,
-                      display: "block",
-                      mb: 1,
-                    }}
-                  >
-                    Select a friend ({friends.length} total)
-                  </Typography>
-                  {/* Search Input */}
-                  <TextField
-                    ref={searchInputRef}
-                    fullWidth
-                    size="small"
-                    placeholder="Search friends..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon sx={{ color: "#5b7fff", fontSize: 18 }} />
-                        </InputAdornment>
-                      ),
-                      endAdornment: searchTerm && (
-                        <InputAdornment position="end">
-                          <Button
-                            size="small"
-                            onClick={handleSearchClear}
-                            sx={{
-                              minWidth: "auto",
-                              p: 0.5,
-                              color: "#999",
-                              "&:hover": {
-                                color: "#ff4d4f",
-                                backgroundColor: "transparent",
-                              },
-                            }}
-                          >
-                            <ClearIcon sx={{ fontSize: 16 }} />
-                          </Button>
-                        </InputAdornment>
-                      ),
-                      sx: {
-                        backgroundColor: "#1b1b1b",
-                        borderRadius: 1,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#333",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#5b7fff",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#00DAC6",
-                        },
-                        "& input": {
-                          color: "#fff",
-                          fontSize: "0.875rem",
-                          padding: "8px 0",
-                        },
-                        "& input::placeholder": {
-                          color: "#999",
-                          opacity: 1,
-                        },
-                      },
-                    }}
-                  />
-                </Box>
-
-                {/* Friends List with Scrollbar */}
-                {friends.length === 0 ? (
-                  <Box sx={{ p: 3, textAlign: "center" }}>
-                    <CircularProgress size={24} sx={{ color: "#5b7fff" }} />
-                    <Typography
-                      variant="body2"
-                      sx={{ display: "block", mt: 2, color: "#999" }}
-                    >
-                      Loading friends...
-                    </Typography>
-                  </Box>
-                ) : filteredFriends.length === 0 ? (
-                  <Box sx={{ p: 3, textAlign: "center" }}>
-                    <Typography variant="body2" sx={{ color: "#999", mb: 1 }}>
-                      {searchTerm
-                        ? "No friends found matching your search"
-                        : "No friends available"}
-                    </Typography>
-                    {searchTerm && (
-                      <Button
-                        size="small"
-                        onClick={handleSearchClear}
-                        sx={{
-                          color: "#5b7fff",
-                          fontSize: "0.75rem",
-                          textTransform: "none",
-                        }}
-                      >
-                        Clear search
-                      </Button>
-                    )}
-                  </Box>
-                ) : (
+                  {/* Header with search */}
                   <Box
                     sx={{
-                      maxHeight: 350, // Fixed height for scrolling
-                      overflowY: "auto",
-                      overflowX: "hidden",
+                      p: 2,
+                      borderBottom: "1px solid #333",
+                      backgroundColor: "#23243a",
                     }}
-                    className="custom-scrollbar"
                   >
-                    <List sx={{ py: 0 }}>
-                      {filteredFriends.map((friend, index) => {
-                        // Use the data directly from the friendship detailed response
-                        const friendName = friend.name || "";
-                        const friendEmail = friend.email || "";
-                        const isSelected = friendId === friend.id.toString();
-
-                        return (
-                          <ListItem
-                            key={`${friend.id}-${index}`}
-                            button
-                            selected={isSelected}
-                            onClick={() => handleFriendSelect(friend.id)}
-                            sx={{
-                              py: 1.5,
-                              px: 2,
-                              borderBottom: "1px solid #2a2a2a",
-                              cursor: "pointer", // Added pointer cursor
-                              "&.Mui-selected": {
-                                backgroundColor: "#23243a",
-                                borderLeft: "3px solid #00DAC6",
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#00DAC6",
+                        fontWeight: 500,
+                        display: "block",
+                        mb: 1,
+                      }}
+                    >
+                      Select a friend ({friends.length} total)
+                    </Typography>
+                    {/* Search Input */}
+                    <TextField
+                      ref={searchInputRef}
+                      fullWidth
+                      size="small"
+                      placeholder="Search friends..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon
+                              sx={{ color: "#5b7fff", fontSize: 18 }}
+                            />
+                          </InputAdornment>
+                        ),
+                        endAdornment: searchTerm && (
+                          <InputAdornment position="end">
+                            <Button
+                              size="small"
+                              onClick={handleSearchClear}
+                              sx={{
+                                minWidth: "auto",
+                                p: 0.5,
+                                color: "#999",
                                 "&:hover": {
-                                  backgroundColor: "#2a2b45",
-                                  cursor: "pointer", // Maintain pointer on selected hover
+                                  color: "#ff4d4f",
+                                  backgroundColor: "transparent",
                                 },
-                              },
-                              "&:hover": {
-                                backgroundColor: "#23243a",
-                                cursor: "pointer", // Added pointer cursor on hover
-                              },
-                              "&:last-child": {
-                                borderBottom: "none",
-                              },
-                            }}
-                          >
-                            <ListItemAvatar sx={{ minWidth: 40 }}>
-                              <Avatar
-                                src={friend.image}
-                                sx={{
-                                  width: 32,
-                                  height: 32,
-                                  bgcolor: friend.color || "#5b7fff",
-                                  fontSize: "12px",
-                                  border: isSelected
-                                    ? "2px solid #00DAC6"
-                                    : "none",
-                                }}
-                              >
-                                {friendName
-                                  .split(" ")[0]
-                                  ?.charAt(0)
-                                  ?.toUpperCase()}
-                              </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText
-                              primary={
-                                <Typography
-                                  variant="body2"
+                              }}
+                            >
+                              <ClearIcon sx={{ fontSize: 16 }} />
+                            </Button>
+                          </InputAdornment>
+                        ),
+                        sx: {
+                          backgroundColor: "#1b1b1b",
+                          borderRadius: 1,
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#333",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#5b7fff",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#00DAC6",
+                          },
+                          "& input": {
+                            color: "#fff",
+                            fontSize: "0.875rem",
+                            padding: "8px 0",
+                          },
+                          "& input::placeholder": {
+                            color: "#999",
+                            opacity: 1,
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
+
+                  {/* Friends List with Scrollbar */}
+                  {friends.length === 0 ? (
+                    <Box sx={{ p: 3, textAlign: "center" }}>
+                      <CircularProgress size={24} sx={{ color: "#5b7fff" }} />
+                      <Typography
+                        variant="body2"
+                        sx={{ display: "block", mt: 2, color: "#999" }}
+                      >
+                        Loading friends...
+                      </Typography>
+                    </Box>
+                  ) : filteredFriends.length === 0 ? (
+                    <Box sx={{ p: 3, textAlign: "center" }}>
+                      <Typography variant="body2" sx={{ color: "#999", mb: 1 }}>
+                        {searchTerm
+                          ? "No friends found matching your search"
+                          : "No friends available"}
+                      </Typography>
+                      {searchTerm && (
+                        <Button
+                          size="small"
+                          onClick={handleSearchClear}
+                          sx={{
+                            color: "#5b7fff",
+                            fontSize: "0.75rem",
+                            textTransform: "none",
+                          }}
+                        >
+                          Clear search
+                        </Button>
+                      )}
+                    </Box>
+                  ) : (
+                    <Box
+                      sx={{
+                        maxHeight: 350, // Fixed height for scrolling
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                      }}
+                      className="custom-scrollbar"
+                    >
+                      <List sx={{ py: 0 }}>
+                        {filteredFriends.map((friend, index) => {
+                          // Use the data directly from the friendship detailed response
+                          const friendName = friend.name || "";
+                          const friendEmail = friend.email || "";
+                          const isSelected = friendId === friend.id.toString();
+
+                          return (
+                            <ListItem
+                              key={`${friend.id}-${index}`}
+                              button
+                              selected={isSelected}
+                              onClick={() => handleFriendSelect(friend.id)}
+                              sx={{
+                                py: 1.5,
+                                px: 2,
+                                borderBottom: "1px solid #2a2a2a",
+                                cursor: "pointer", // Added pointer cursor
+                                "&.Mui-selected": {
+                                  backgroundColor: "#23243a",
+                                  borderLeft: "3px solid #00DAC6",
+                                  "&:hover": {
+                                    backgroundColor: "#2a2b45",
+                                    cursor: "pointer", // Maintain pointer on selected hover
+                                  },
+                                },
+                                "&:hover": {
+                                  backgroundColor: "#23243a",
+                                  cursor: "pointer", // Added pointer cursor on hover
+                                },
+                                "&:last-child": {
+                                  borderBottom: "none",
+                                },
+                              }}
+                            >
+                              <ListItemAvatar sx={{ minWidth: 40 }}>
+                                <Avatar
+                                  src={friend.image}
                                   sx={{
-                                    color: "#fff",
-                                    fontSize: "0.875rem",
-                                    fontWeight: isSelected ? 600 : 500,
+                                    width: 32,
+                                    height: 32,
+                                    bgcolor: friend.color || "#5b7fff",
+                                    fontSize: "12px",
+                                    border: isSelected
+                                      ? "2px solid #00DAC6"
+                                      : "none",
                                   }}
                                 >
-                                  {friendName}
-                                </Typography>
-                              }
-                              secondary={
-                                <Box sx={{ mt: 0.5 }}>
+                                  {friendName
+                                    .split(" ")[0]
+                                    ?.charAt(0)
+                                    ?.toUpperCase()}
+                                </Avatar>
+                              </ListItemAvatar>
+                              <ListItemText
+                                primary={
                                   <Typography
-                                    variant="caption"
+                                    variant="body2"
                                     sx={{
-                                      color: "#999",
-                                      fontSize: "0.75rem",
-                                      display: "block",
+                                      color: "#fff",
+                                      fontSize: "0.875rem",
+                                      fontWeight: isSelected ? 600 : 500,
                                     }}
                                   >
-                                    {friendEmail}
+                                    {friendName}
                                   </Typography>
-                                  <Box
-                                    sx={{ display: "flex", gap: 1, mt: 0.5 }}
-                                  >
+                                }
+                                secondary={
+                                  <Box sx={{ mt: 0.5 }}>
                                     <Typography
                                       variant="caption"
                                       sx={{
-                                        color:
-                                          friend.status === "ACCEPTED"
-                                            ? "#00DAC6"
-                                            : friend.status === "PENDING"
-                                            ? "#FFC107"
-                                            : "#ff4d4f",
-                                        fontSize: "0.625rem",
-                                        backgroundColor:
-                                          "rgba(35, 36, 58, 0.8)",
-                                        padding: "2px 6px",
-                                        borderRadius: "4px",
+                                        color: "#999",
+                                        fontSize: "0.75rem",
+                                        display: "block",
                                       }}
                                     >
-                                      {friend.status || "ACCEPTED"}
+                                      {friendEmail}
                                     </Typography>
+                                    <Box
+                                      sx={{ display: "flex", gap: 1, mt: 0.5 }}
+                                    >
+                                      <Typography
+                                        variant="caption"
+                                        sx={{
+                                          color:
+                                            friend.status === "ACCEPTED"
+                                              ? "#00DAC6"
+                                              : friend.status === "PENDING"
+                                              ? "#FFC107"
+                                              : "#ff4d4f",
+                                          fontSize: "0.625rem",
+                                          backgroundColor:
+                                            "rgba(35, 36, 58, 0.8)",
+                                          padding: "2px 6px",
+                                          borderRadius: "4px",
+                                        }}
+                                      >
+                                        {friend.status || "ACCEPTED"}
+                                      </Typography>
 
-                                    <Typography
-                                      variant="caption"
-                                      sx={{
-                                        color: (() => {
+                                      <Typography
+                                        variant="caption"
+                                        sx={{
+                                          color: (() => {
+                                            // Determine the current user's access level to this friend's data
+                                            const access =
+                                              friend.requesterUserId === user.id
+                                                ? friend.requesterAccess
+                                                : friend.recipientAccess;
+
+                                            return access === "ADMIN" ||
+                                              access === "FULL"
+                                              ? "#00DAC6"
+                                              : access === "EDITOR" ||
+                                                access === "WRITE" ||
+                                                access === "READ_WRITE"
+                                              ? "#5b7fff"
+                                              : "#FFC107";
+                                          })(),
+                                          fontSize: "0.625rem",
+                                          backgroundColor:
+                                            "rgba(35, 36, 58, 0.8)",
+                                          padding: "2px 6px",
+                                          borderRadius: "4px",
+                                        }}
+                                      >
+                                        {(() => {
                                           // Determine the current user's access level to this friend's data
                                           const access =
                                             friend.requesterUserId === user.id
                                               ? friend.requesterAccess
                                               : friend.recipientAccess;
-
-                                          return access === "ADMIN" ||
-                                            access === "FULL"
-                                            ? "#00DAC6"
-                                            : access === "EDITOR" ||
-                                              access === "WRITE" ||
-                                              access === "READ_WRITE"
-                                            ? "#5b7fff"
-                                            : "#FFC107";
-                                        })(),
-                                        fontSize: "0.625rem",
-                                        backgroundColor:
-                                          "rgba(35, 36, 58, 0.8)",
-                                        padding: "2px 6px",
-                                        borderRadius: "4px",
-                                      }}
-                                    >
-                                      {(() => {
-                                        // Determine the current user's access level to this friend's data
-                                        const access =
-                                          friend.requesterUserId === user.id
-                                            ? friend.requesterAccess
-                                            : friend.recipientAccess;
-                                        return access || "VIEWER";
-                                      })()}
-                                    </Typography>
+                                          return access || "VIEWER";
+                                        })()}
+                                      </Typography>
+                                    </Box>
                                   </Box>
+                                }
+                                sx={{ margin: 0 }}
+                              />
+                              {isSelected && (
+                                <Box sx={{ ml: 1 }}>
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      d="M5 12L10 17L19 8"
+                                      stroke="#00DAC6"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
                                 </Box>
-                              }
-                              sx={{ margin: 0 }}
-                            />
-                            {isSelected && (
-                              <Box sx={{ ml: 1 }}>
-                                <svg
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    d="M5 12L10 17L19 8"
-                                    stroke="#00DAC6"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </Box>
-                            )}
-                          </ListItem>
-                        );
-                      })}
-                    </List>
-                  </Box>
-                )}
+                              )}
+                            </ListItem>
+                          );
+                        })}
+                      </List>
+                    </Box>
+                  )}
 
-                {/* Footer */}
-                <Box
-                  sx={{
-                    p: 1.5,
-                    borderTop: "1px solid #333",
-                    backgroundColor: "#23243a",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    sx={{ color: "#999", fontSize: "0.75rem" }}
-                  >
-                    {searchTerm
-                      ? `${filteredFriends.length} of ${friends.length} friends`
-                      : `${friends.length} friends total`}
-                  </Typography>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      navigate("/friends");
-                      setShowFriendDropdown(false);
-                      setSearchTerm("");
-                    }}
+                  {/* Footer */}
+                  <Box
                     sx={{
-                      color: "#5b7fff",
-                      fontSize: "0.75rem",
-                      textTransform: "none",
-                      "&:hover": {
-                        backgroundColor: "transparent",
-                        color: "#00DAC6",
-                        cursor: "pointer", // Added pointer cursor
-                      },
+                      p: 1.5,
+                      borderTop: "1px solid #333",
+                      backgroundColor: "#23243a",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    Manage Friends
-                  </Button>
-                </Box>
-              </Paper>
-            )}
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "#999", fontSize: "0.75rem" }}
+                    >
+                      {searchTerm
+                        ? `${filteredFriends.length} of ${friends.length} friends`
+                        : `${friends.length} friends total`}
+                    </Typography>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        navigate("/friends");
+                        setShowFriendDropdown(false);
+                        setSearchTerm("");
+                      }}
+                      sx={{
+                        color: "#5b7fff",
+                        fontSize: "0.75rem",
+                        textTransform: "none",
+                        "&:hover": {
+                          backgroundColor: "transparent",
+                          color: "#00DAC6",
+                          cursor: "pointer", // Added pointer cursor
+                        },
+                      }}
+                    >
+                      Manage Friends
+                    </Button>
+                  </Box>
+                </Paper>,
+                document.body
+              )}
           </div>
         </div>
       </div>

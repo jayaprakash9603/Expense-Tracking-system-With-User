@@ -26,10 +26,10 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
   mail:
-    host: smtp.gmail.com
+    host: smtp-relay.brevo.com
     port: 587
-    username: jjayaprakash2002@gmail.com
-    password: pgge ffhr txqm sxny
+    username: 968896001@smtp-brevo.com
+    password: XTO3GCtx0dLW5pKr
     properties:
       mail:
         smtp:

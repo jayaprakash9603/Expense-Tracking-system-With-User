@@ -117,9 +117,9 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             calculator.processExpense(expense, currentPeriod);
         }
 
-        List<Expense> lastFiveExpenses = getLastNExpenses(expenses, 5);
+    List<Expense> lastTenExpenses = getLastNExpenses(expenses, 10);
 
-        return calculator.buildSummaryResponse(lastFiveExpenses);
+    return calculator.buildSummaryResponse(lastTenExpenses);
     }
 
     @Override
@@ -712,7 +712,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             return comparison;
         }
 
-        public Map<String, Object> buildSummaryResponse(List<Expense> lastFiveExpenses) {
+    public Map<String, Object> buildSummaryResponse(List<Expense> recentExpenses) {
             double remainingBudget = totalGains - totalLosses - totalCreditPaid;
 
             Map<String, Object> response = new HashMap<>();
@@ -721,7 +721,9 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             response.put("totalCreditDue", totalCreditDue);
             response.put("totalCreditPaid", totalCreditPaid);
             response.put("lossesByPaymentMethod", lossesByPaymentMethod);
-            response.put("lastFiveExpenses", lastFiveExpenses);
+           
+           
+            response.put("lastTenExpenses", recentExpenses);
             response.put("todayExpenses", todayExpenses);
             response.put("remainingBudget", remainingBudget);
             response.put("currentMonthLosses", currentMonthLosses);

@@ -15,12 +15,21 @@ import {
 } from "../../Redux/Budget/budget.action";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
+import useFriendAccess from "../../hooks/useFriendAccess";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 
 const EditBudget = () => {
   const navigate = useNavigate();
   const { id, friendId } = useParams(); // Get budget ID from URL
+
+  // Permission & redirect enforcement
+  const { hasWriteAccess } = useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) => `/budget/${fid}`,
+    selfPath: "/budget",
+    defaultPath: "/budget",
+  });
   const today = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     name: "",
@@ -33,9 +42,18 @@ const EditBudget = () => {
   const [showTable, setShowTable] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
-  const { expenses, error: expenseError } = useSelector(
-    (state) => state.expenses
-  );
+  const rawExpenses = useSelector((state) => state.expenses.expenses);
+  // Defensive: some responses may return an object keyed by date or null; normalize to flat array
+  const expenses = useMemo(() => {
+    if (Array.isArray(rawExpenses)) return rawExpenses;
+    if (rawExpenses && typeof rawExpenses === "object") {
+      // If shape is { '2025-10-02': [ ... ], '2025-10-03': [ ... ] }
+      const all = Object.values(rawExpenses).filter(Array.isArray).flat();
+      return all;
+    }
+    return [];
+  }, [rawExpenses]);
+  const expenseError = useSelector((state) => state.expenses.error);
   const { budget, error: budgetError } = useSelector((state) => state.budgets);
   const [checkboxStates, setCheckboxStates] = useState([]);
 
@@ -104,6 +122,7 @@ const EditBudget = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!hasWriteAccess) return; // block if read-only
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required.";
     if (!formData.description.trim())
@@ -357,7 +376,7 @@ const EditBudget = () => {
 
   return (
     <div className="bg-[#1b1b1b]">
-      <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
         style={{
@@ -368,6 +387,7 @@ const EditBudget = () => {
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
           border: "1px solid rgb(0, 0, 0)",
           opacity: 1,
+          marginRight: "20px",
           padding: "16px",
         }}
       >
@@ -525,46 +545,48 @@ const EditBudget = () => {
             </div>
           )}
         </div>
-        <div className="w-full flex justify-end mt-4 sm:mt-8">
-          <button
-            onClick={handleSubmit}
-            className={`py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] transition-all duration-200 w-full sm:w-[120px] ${
-              isSubmitting ? "sm:w-[180px]" : ""
-            }`}
-            disabled={isSubmitting}
-            style={{
-              position: "relative",
-              opacity: isSubmitting ? 0.7 : 1,
-              minWidth: isSubmitting ? 180 : 120,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1rem",
-              gap: isSubmitting ? 10 : 0,
-            }}
-          >
-            {isSubmitting ? (
-              <>
-                <span
-                  className="loader"
-                  style={{
-                    width: 20,
-                    height: 20,
-                    border: "3px solid #fff",
-                    borderTop: "3px solid #00DAC6",
-                    borderRadius: "50%",
-                    animation: "spin 1s linear infinite",
-                    display: "inline-block",
-                    marginRight: 10,
-                  }}
-                ></span>
-                <span>Submitting...</span>
-              </>
-            ) : (
-              "Submit"
-            )}
-          </button>
-        </div>
+        {hasWriteAccess && (
+          <div className="w-full flex justify-end mt-4 sm:mt-8">
+            <button
+              onClick={handleSubmit}
+              className={`py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] transition-all duration-200 w-full sm:w-[120px] ${
+                isSubmitting ? "sm:w-[180px]" : ""
+              }`}
+              disabled={isSubmitting || !hasWriteAccess}
+              style={{
+                position: "relative",
+                opacity: isSubmitting ? 0.7 : 1,
+                minWidth: isSubmitting ? 180 : 120,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1rem",
+                gap: isSubmitting ? 10 : 0,
+              }}
+            >
+              {isSubmitting ? (
+                <>
+                  <span
+                    className="loader"
+                    style={{
+                      width: 20,
+                      height: 20,
+                      border: "3px solid #fff",
+                      borderTop: "3px solid #00DAC6",
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                      display: "inline-block",
+                      marginRight: 10,
+                    }}
+                  ></span>
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                "Submit"
+              )}
+            </button>
+          </div>
+        )}
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
