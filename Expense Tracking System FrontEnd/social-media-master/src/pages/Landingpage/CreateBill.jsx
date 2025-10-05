@@ -1700,59 +1700,50 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       {expenses.map((expense, index) => (
                         <div
                           key={index}
-                          className="bg-[#1b1b1b] rounded-lg p-3 border border-gray-700 hover:border-gray-600 transition-colors"
+                          className="bg-[#1b1b1b] rounded-lg p-2 border border-gray-700 hover:border-gray-600 transition-colors"
                         >
-                          {/* Item header with name and total */}
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-1 min-w-0 pr-2">
+                              
                               <h5
-                                className="text-white font-medium text-sm mb-1 truncate"
+                                className="text-white font-medium text-xs truncate max-w-[140px]"
                                 title={expense.itemName}
                               >
                                 {expense.itemName}
                               </h5>
-                              <div className="text-[#00dac6] font-semibold text-sm">
-                                ₹{expense.totalPrice.toFixed(2)}
-                              </div>
                             </div>
-                            <div className="text-gray-400 text-xs ml-2 flex-shrink-0">
-                              #{index + 1}
+                            <div className="text-[#00dac6] font-semibold text-xs whitespace-nowrap">
+                              ₹{expense.totalPrice.toFixed(2)}
                             </div>
                           </div>
-
-                          {/* Item details - Stacked layout for better fit */}
-                          <div className="space-y-2 text-xs">
+                          <div className="space-y-1 text-[10px]">
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Quantity:</span>
+                              <span className="text-gray-400">Qty</span>
                               <span className="text-white font-medium">
                                 {expense.quantity}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Unit Price:</span>
+                              <span className="text-gray-400">Unit</span>
                               <span className="text-white font-medium">
                                 ₹{parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">
-                                Calculation:
-                              </span>
-                              <span className="text-gray-300 text-xs">
+                              <span className="text-gray-400">Calc</span>
+                              <span className="text-gray-300">
                                 {expense.quantity} × ₹
                                 {parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
                             </div>
                           </div>
-
-                          {/* Comments section (if exists) */}
                           {expense.comments &&
                             expense.comments.trim() !== "" && (
-                              <div className="mt-2 pt-2 border-t border-gray-700">
-                                <div className="text-gray-400 text-xs mb-1">
-                                  Comments:
+                              <div className="mt-1 pt-1 border-t border-gray-700">
+                                <div className="text-gray-500 text-[10px] mb-0.5">
+                                  Comments
                                 </div>
-                                <div className="text-gray-300 text-xs bg-[#29282b] p-2 rounded border border-gray-600 break-words">
+                                <div className="text-gray-300 text-[10px] bg-[#29282b] p-1 rounded border border-gray-600 break-words max-h-16 overflow-auto">
                                   {expense.comments}
                                 </div>
                               </div>
