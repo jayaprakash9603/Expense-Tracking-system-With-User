@@ -213,19 +213,20 @@ const Upload = () => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col bg-[#1b1b1b] sm:px-0">
-        {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b] "></div> */}
-
+      <div className=" bg-[#1b1b1b]">
         <div
-          className="flex flex-col flex-grow sm:p-6 w-full sm:w-[calc(100vw-370px)]"
+          className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
           style={{
-            position: "relative",
-            height: "calc(100vh - 100px)",
+            height: "auto",
+            minHeight: "calc(100vh - 100px)",
             backgroundColor: "rgb(11, 11, 11)",
             borderRadius: "8px",
             boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
             border: "1px solid rgb(0, 0, 0)",
             opacity: 1,
+            position: "relative",
+            marginRight: "20px",
+            padding: "16px",
           }}
         >
           {/* Back button - same behaviour as Bill component */}
@@ -270,7 +271,7 @@ const Upload = () => {
           )}
 
           {isTableVisible && uploadedData.length > 0 ? (
-            <div className="relative">
+            <div className="relative mt-[50px]">
               <ExpensesTable expenses={filteredExpenses} />
 
               {hasWriteAccess && (
@@ -440,8 +441,6 @@ const Upload = () => {
             }}
           />
         </div>
-
-        {/* <div className="w-full sm:w-[calc(100vw-400px)] h-[50px] bg-[#1b1b1b] mx-auto"></div> */}
       </div>
 
       {/* Full Screen Loading Overlay */}
