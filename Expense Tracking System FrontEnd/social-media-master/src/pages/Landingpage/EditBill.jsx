@@ -626,7 +626,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   if (isLoading) {
     return (
       <>
-        <div className="w-[calc(100vw-350px)]  bg-[#1b1b1b]"></div>
+        {/* <div className="w-[calc(100vw-350px)]  bg-[#1b1b1b]"></div> */}
         <div
           className="flex flex-col items-center justify-center"
           style={{
@@ -647,7 +647,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   if (loadError) {
     return (
       <>
-        <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+        {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
         <div
           className="flex flex-col items-center justify-center"
           style={{
@@ -1124,7 +1124,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
 
   return (
     <>
-      <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex flex-col relative edit-bill-container"
         style={{
@@ -1132,6 +1132,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           height: "calc(100vh - 100px)",
           backgroundColor: "rgb(11, 11, 11)",
           borderRadius: "8px",
+          marginRight: "20px",
           border: "1px solid rgb(0, 0, 0)",
           padding: "20px",
           overflowY: "auto",
