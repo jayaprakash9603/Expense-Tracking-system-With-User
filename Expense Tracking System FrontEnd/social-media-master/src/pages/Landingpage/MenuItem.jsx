@@ -10,10 +10,9 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
   const handleClick = () => {
     if (onClick) {
       onClick(); // Custom action (e.g., logout)
-    } else if (path === "/cashflow") {
-      navigate(path, { state: { fromMenu: true } });
     } else {
-      navigate(path);
+      // Always pass fromSidebar state so target pages know origin
+      navigate(path, { state: { fromSidebar: true } });
     }
     setIsSidebarOpen(false); // Close sidebar on mobile
   };

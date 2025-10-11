@@ -24,25 +24,28 @@ const BillHeader = ({
   onMenuClose,
   onMenuItemClick,
   hasWriteAccess,
+  hideBackButton = false,
 }) => {
   const open = Boolean(menuAnchorEl);
 
   return (
     <>
-      <Box sx={{ position: "absolute", top: 16, left: 16, zIndex: 10 }}>
-        <IconButton
-          sx={{
-            color: "#00DAC6",
-            backgroundColor: "#1b1b1b",
-            "&:hover": { backgroundColor: "#28282a" },
-            zIndex: 10,
-          }}
-          onClick={onBack}
-          aria-label="Back"
-        >
-          <ArrowBackIcon />
-        </IconButton>
-      </Box>
+      {!hideBackButton && (
+        <Box sx={{ position: "absolute", top: 16, left: 16, zIndex: 10 }}>
+          <IconButton
+            sx={{
+              color: "#00DAC6",
+              backgroundColor: "#1b1b1b",
+              "&:hover": { backgroundColor: "#28282a" },
+              zIndex: 10,
+            }}
+            onClick={onBack}
+            aria-label="Back"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+        </Box>
+      )}
 
       <Box sx={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
         <IconButton

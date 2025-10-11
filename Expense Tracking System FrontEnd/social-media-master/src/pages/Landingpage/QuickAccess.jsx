@@ -85,7 +85,7 @@ const QuickAccess = () => {
 
         <button
           className="qa-box"
-          onClick={() => handleClick("/category/create")}
+          onClick={() => handleClick("/category-flow/create")}
         >
           <div className="qa-icon qa-icon-category">
             <CategoryIcon className="qa-svg" />

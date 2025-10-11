@@ -327,6 +327,8 @@ const CategoryFlow = () => {
   const filterBtnRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  // If page opened directly from sidebar we suppress any contextual back button.
+  const hideBackButton = location?.state?.fromSidebar === true;
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const theme = useTheme();
@@ -816,7 +818,7 @@ const CategoryFlow = () => {
 
   // Navigate to CashFlow with category filter
   const navigateToCashFlow = (category) => {
-    navigate("/expenses", {
+    navigate("/category-flow", {
       state: {
         selectedCategory: category.name,
         rangeType: activeRange,
@@ -1299,43 +1301,45 @@ const CategoryFlow = () => {
           }}
         >
           <div className="flex  flex-start gap-4">
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "#1b1b1b",
-                borderRadius: "8px",
-                color: "#00DAC6",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px", // Adds spacing between the icon and text
-                padding: "8px 8px", // Adjusts padding for better appearance
-                "&:hover": {
-                  backgroundColor: "#28282a",
-                },
-              }}
-              onClick={() =>
-                friendId && friendId !== "undefined"
-                  ? navigate(`/friends/expenses/${friendId}`)
-                  : navigate("/expenses")
-              }
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+            {!hideBackButton && (
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: "#1b1b1b",
+                  borderRadius: "8px",
+                  color: "#00DAC6",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px", // Adds spacing between the icon and text
+                  padding: "8px 8px", // Adjusts padding for better appearance
+                  "&:hover": {
+                    backgroundColor: "#28282a",
+                  },
+                }}
+                onClick={() =>
+                  friendId && friendId !== "undefined"
+                    ? navigate(`/friends/expenses/${friendId}`)
+                    : navigate(-1)
+                }
               >
-                <path
-                  d="M15 18L9 12L15 6"
-                  stroke="#00DAC6"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Back
-            </Button>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke="#00DAC6"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Back
+              </Button>
+            )}
             {rangeTypes.map((tab) => (
               <button
                 key={tab.value}
@@ -1607,7 +1611,7 @@ const CategoryFlow = () => {
             <NoDataPlaceholder
               size={isMobile ? "md" : "lg"}
               fullWidth
-              message="No data to display"
+              message="No Category data to display"
               subMessage="Try adjusting filters or date range"
             />
           ) : (
@@ -1650,12 +1654,16 @@ const CategoryFlow = () => {
                 }}
               >
                 {[
+                  // {
+                  //   path: "/transactions",
+                  //   icon: "history.png",
+                  //   label: "History",
+                  // },
                   {
-                    path: "/transactions",
-                    icon: "history.png",
-                    label: "History",
+                    path: "/category-flow/reports",
+                    icon: "report.png",
+                    label: "Reports",
                   },
-                  { path: "/reports", icon: "report.png", label: "Reports" },
                   { path: "/budget", icon: "budget.png", label: "Budget" },
                   {
                     path: "/payment-method",
