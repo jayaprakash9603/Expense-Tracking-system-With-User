@@ -626,7 +626,7 @@ const PaymentMethodFlow = () => {
 
   // Navigate to CashFlow with category filter
   const navigateToCashFlow = (category) => {
-    navigate("/expenses", {
+    navigate("/payment-method", {
       state: {
         selectedPaymentMethod: category.name,
         rangeType: activeRange,
@@ -1269,7 +1269,7 @@ const PaymentMethodFlow = () => {
                 onClick={() =>
                   friendId && friendId !== "undefined"
                     ? navigate(`/friends/expenses/${friendId}`)
-                    : navigate("/expenses")
+                    : navigate(-1)
                 }
               >
                 <svg

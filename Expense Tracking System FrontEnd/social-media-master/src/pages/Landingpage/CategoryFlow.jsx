@@ -818,7 +818,7 @@ const CategoryFlow = () => {
 
   // Navigate to CashFlow with category filter
   const navigateToCashFlow = (category) => {
-    navigate("/expenses", {
+    navigate("/category-flow", {
       state: {
         selectedCategory: category.name,
         rangeType: activeRange,
@@ -1319,7 +1319,7 @@ const CategoryFlow = () => {
                 onClick={() =>
                   friendId && friendId !== "undefined"
                     ? navigate(`/friends/expenses/${friendId}`)
-                    : navigate("/expenses")
+                    : navigate(-1)
                 }
               >
                 <svg
