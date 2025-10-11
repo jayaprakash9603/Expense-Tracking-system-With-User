@@ -297,6 +297,8 @@ const PaymentMethodFlow = () => {
   const filterBtnRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  // Suppress contextual back button if opened directly via sidebar menu
+  const hideBackButton = location?.state?.fromSidebar === true;
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const theme = useTheme();
@@ -1249,43 +1251,45 @@ const PaymentMethodFlow = () => {
           }}
         >
           <div className="flex  flex-start gap-4">
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "#1b1b1b",
-                borderRadius: "8px",
-                color: "#00DAC6",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px", // Adds spacing between the icon and text
-                padding: "8px 8px", // Adjusts padding for better appearance
-                "&:hover": {
-                  backgroundColor: "#28282a",
-                },
-              }}
-              onClick={() =>
-                friendId && friendId !== "undefined"
-                  ? navigate(`/friends/expenses/${friendId}`)
-                  : navigate("/expenses")
-              }
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+            {!hideBackButton && (
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: "#1b1b1b",
+                  borderRadius: "8px",
+                  color: "#00DAC6",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px 8px",
+                  "&:hover": {
+                    backgroundColor: "#28282a",
+                  },
+                }}
+                onClick={() =>
+                  friendId && friendId !== "undefined"
+                    ? navigate(`/friends/expenses/${friendId}`)
+                    : navigate("/expenses")
+                }
               >
-                <path
-                  d="M15 18L9 12L15 6"
-                  stroke="#00DAC6"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Back
-            </Button>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke="#00DAC6"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Back
+              </Button>
+            )}
             {rangeTypes.map((tab) => (
               <button
                 key={tab.value}

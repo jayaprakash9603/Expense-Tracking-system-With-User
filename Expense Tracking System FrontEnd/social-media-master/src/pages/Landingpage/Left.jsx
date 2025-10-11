@@ -118,16 +118,34 @@ const Left = () => {
             />
 
             <MenuItem
-              name="Profile"
-              path="/profile"
-              icon="https://cdn-icons-png.flaticon.com/128/456/456283.png"
+              name="Categories"
+              path="/category-flow"
+              icon={require("../../assests/category.png")}
               setIsSidebarOpen={setIsSidebarOpen}
             />
 
             <MenuItem
+              name="Payments"
+              path="/payment-method"
+              icon={require("../../assests/payment-method.png")}
+              setIsSidebarOpen={setIsSidebarOpen}
+            />
+            <MenuItem
+              name="Bill"
+              path="/bill"
+              icon={require("../../assests/bill.png")}
+              setIsSidebarOpen={setIsSidebarOpen}
+            />
+            <MenuItem
               name="Friends"
               path="/friends"
               icon={require("../../assests/friends.png")}
+              setIsSidebarOpen={setIsSidebarOpen}
+            />
+            <MenuItem
+              name="Budgets"
+              path="/budget"
+              icon={require("../../assests/budget.png")}
               setIsSidebarOpen={setIsSidebarOpen}
             />
             {/* <MenuItem
@@ -148,7 +166,6 @@ const Left = () => {
               icon={require("../../assests/more.png")}
               setIsSidebarOpen={setIsSidebarOpen}
             /> */}
-
             <MenuItem
               name="Logout"
               path="/login"

@@ -208,8 +208,8 @@ function App() {
               <Route path=":friendId" element={<ExpensesView />} />
             </Route>
             <Route path="budget">
-              {/* <Route index element={<Budget />} /> */}
-              <Route index element={<BudgetDashboard />} />
+              <Route index element={<Budget />} />
+              {/* <Route index element={<BudgetDashboard />} /> */}
               <Route path=":friendId" element={<Budget />} />
               <Route path="create" element={<NewBudget />} />
               <Route path="create/:friendId" element={<NewBudget />} />

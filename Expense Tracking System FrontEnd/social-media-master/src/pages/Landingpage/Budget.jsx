@@ -6,7 +6,7 @@ import {
   getBudgetById,
   getBudgetReportById,
 } from "../../Redux/Budget/budget.action";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   getExpensesAction,
   getExpensesByBudgetId,
@@ -52,6 +52,8 @@ const Budget = () => {
   const [toast, setToast] = useState({ open: false, message: "" });
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const { friendId } = useParams(); // Assuming you might have a friendId in params for filtering expenses
+  const location = useLocation();
+  const hideBackButton = location?.state?.fromSidebar === true;
   const isFriendView = Boolean(friendId);
 
   const dispatch = useDispatch();
@@ -352,38 +354,40 @@ const Budget = () => {
             mb: 1,
           }}
         >
-          <IconButton
-            sx={{
-              color: "#00DAC6",
-              backgroundColor: "#1b1b1b",
-              "&:hover": {
-                backgroundColor: "#28282a",
-              },
-              zIndex: 10,
-            }}
-            onClick={() =>
-              friendId && friendId !== "undefined"
-                ? navigate(`/friends/expenses/${friendId}`)
-                : navigate("/expenses")
-            }
-            aria-label="Back"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          {!hideBackButton && (
+            <IconButton
+              sx={{
+                color: "#00DAC6",
+                backgroundColor: "#1b1b1b",
+                "&:hover": {
+                  backgroundColor: "#28282a",
+                },
+                zIndex: 10,
+              }}
+              onClick={() =>
+                friendId && friendId !== "undefined"
+                  ? navigate(`/friends/expenses/${friendId}`)
+                  : navigate("/expenses")
+              }
+              aria-label="Back"
             >
-              <path
-                d="M15 18L9 12L15 6"
-                stroke="#00DAC6"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </IconButton>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 18L9 12L15 6"
+                  stroke="#00DAC6"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </IconButton>
+          )}
           <Typography
             variant="h3"
             sx={{

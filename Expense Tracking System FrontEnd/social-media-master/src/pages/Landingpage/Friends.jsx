@@ -920,7 +920,7 @@ const Friends = () => {
                     className="my-4 pr-2 custom-scrollbar"
                     style={{ maxHeight: "calc(100vh - 300px)" }}
                   >
-                    <ListSkeleton count={3} variant="user" />
+                    <ListSkeleton count={4} variant="user" />
                   </div>
                 )}
 

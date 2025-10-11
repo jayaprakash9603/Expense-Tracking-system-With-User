@@ -8,7 +8,7 @@ import {
   Pagination,
 } from "@mui/material";
 import dayjs from "dayjs";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, useLocation } from "react-router";
 
 // Custom hooks
 import { useBillData } from "./useBillData";
@@ -30,6 +30,8 @@ const Bill = () => {
   // Router hooks
   const navigate = useNavigate();
   const { friendId } = useParams();
+  const location = useLocation();
+  const hideBackButton = location?.state?.fromSidebar === true;
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -160,7 +162,7 @@ const Bill = () => {
 
     try {
       setIsDeleting(true);
-      await deleteBillData(billToDelete.id,friendId || "");
+      await deleteBillData(billToDelete.id, friendId || "");
 
       // Refresh bills data
       const month = selectedDate.month() + 1;
@@ -221,6 +223,7 @@ const Bill = () => {
           onMenuClose={handleMenuClose}
           onMenuItemClick={handleMenuItemClick}
           hasWriteAccess={hasWriteAccess}
+          hideBackButton={hideBackButton}
         />
 
         <Modal
