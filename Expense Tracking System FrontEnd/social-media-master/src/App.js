@@ -95,13 +95,13 @@ function App() {
           {/* Other Routes */}
 
           <Route path="/" element={<Home />}>
-            <Route index element={<Navigate to="/home" />} />
+            <Route index element={<Navigate to="/dashboard" />} />
             <Route path="/chats" element={<Chat />} />
             <Route path="/component1" element={<AdminDashboard />} />
             <Route path="/component2" element={<InvestmentDashboard />} />
             {/* <Route path="home" element={<HomeContent />} /> */}
 
-            <Route path="home" element={<ExpenseDashboard />} />
+            <Route path="dashboard" element={<ExpenseDashboard />} />
 
             {/* <Route path="home" element={<Loader />} /> */}
             <Route path="groups">

@@ -106,7 +106,7 @@ const Left = () => {
           <div className="flex flex-col items-center w-full max-w-[360px] space-y-2">
             <MenuItem
               name="Home"
-              path="/home"
+              path="/dashboard"
               icon="https://cdn-icons-png.flaticon.com/128/25/25694.png"
               setIsSidebarOpen={setIsSidebarOpen}
             />
@@ -130,7 +130,7 @@ const Left = () => {
               icon={require("../../assests/friends.png")}
               setIsSidebarOpen={setIsSidebarOpen}
             />
-            <MenuItem
+            {/* <MenuItem
               name="Groups"
               path="/groups"
               icon={require("../../assests/group.png")}
@@ -147,7 +147,7 @@ const Left = () => {
               path="/all"
               icon={require("../../assests/more.png")}
               setIsSidebarOpen={setIsSidebarOpen}
-            />
+            /> */}
 
             <MenuItem
               name="Logout"
