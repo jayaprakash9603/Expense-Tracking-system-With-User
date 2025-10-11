@@ -1573,12 +1573,16 @@ const PaymentMethodFlow = () => {
                 }}
               >
                 {[
+                  // {
+                  //   path: "/transactions",
+                  //   icon: "history.png",
+                  //   label: "History",
+                  // },
                   {
-                    path: "/transactions",
-                    icon: "history.png",
-                    label: "History",
+                    path: "/payment-method/reports",
+                    icon: "report.png",
+                    label: "Reports",
                   },
-                  { path: "/reports", icon: "report.png", label: "Reports" },
                   { path: "/budget", icon: "budget.png", label: "Budget" },
                   {
                     path: "/category-flow",

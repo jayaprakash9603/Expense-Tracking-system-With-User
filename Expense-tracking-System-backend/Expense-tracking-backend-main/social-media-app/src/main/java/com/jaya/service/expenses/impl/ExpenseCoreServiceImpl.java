@@ -10,6 +10,7 @@ import com.jaya.events.BudgetExpenseEvent;
 import com.jaya.events.CategoryExpenseEvent;
 import com.jaya.exceptions.UserException;
 import com.jaya.kafka.BudgetExpenseKafkaProducerService;
+import com.jaya.kafka.AuditEventProducer;
 import com.jaya.kafka.CategoryExpenseKafkaProducerService;
 import com.jaya.kafka.PaymentMethodKafkaProducerService;
 import com.jaya.models.*;
@@ -22,6 +23,7 @@ import com.jaya.util.ServiceHelper;
 import com.jaya.util.BulkProgressTracker;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.persistence.FlushModeType;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -100,6 +103,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     @Autowired
     private BulkProgressTracker progressTracker;
 
+    @Autowired
+    private AuditEventProducer auditEventProducer;
+
     public ExpenseCoreServiceImpl(ExpenseRepository expenseRepository, ExpenseReportRepository expenseReportRepository) {
         this.expenseRepository = expenseRepository;
         this.expenseReportRepository = expenseReportRepository;
@@ -151,6 +157,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         updateBudgetExpenseLinks(savedExpense, validBudgetIds, user);
 
         updateExpenseCache(savedExpense, user.getId());
+
+    publishExpenseAuditEvent("CREATE", savedExpense, user, null, expenseToMap(savedExpense), "Expense created", "SUCCESS");
         return savedExpense;
     }
 
@@ -205,6 +213,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         if (existingExpense.isBill()) {
             throw new RuntimeException("Cannot update a bill expense. Please use the Bill Id for updates.");
         }
+    Map<String,Object> oldValues = expenseToMap(existingExpense);
+    User user = helper.validateUser(userId);
         Expense savedExpense = updateExpenseInternal(existingExpense, updatedExpense, userId);
 
         // Update cache - first remove old expense, then add updated one
@@ -235,7 +245,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             cache.put(savedExpense.getId(), savedExpense);
         }
 
-        return savedExpense;
+    publishExpenseAuditEvent("UPDATE", savedExpense, user, oldValues, expenseToMap(savedExpense), "Expense updated", "SUCCESS");
+    return savedExpense;
     }
 
     @Override
@@ -245,7 +256,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         if (existingExpense == null) {
             throw new RuntimeException("Expense not found with ID: " + id);
         }
-        return updateExpenseInternal(existingExpense, updatedExpense, userId);
+    Map<String,Object> oldValues = expenseToMap(existingExpense);
+    User user = helper.validateUser(userId);
+    Expense saved = updateExpenseInternal(existingExpense, updatedExpense, userId);
+    publishExpenseAuditEvent("UPDATE", saved, user, oldValues, expenseToMap(saved), "Expense (bill service) updated", "SUCCESS");
+    return saved;
     }
 
     @Override
@@ -353,10 +368,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             paymentMethodCache.evict(userId);
         }
 
-        String expenseJson = jsonConverter.toJson(getExpenseById(id, userId));
-
-
-        expenseRepository.deleteById(id);
+    Map<String,Object> oldValues = expenseToMap(expense);
+    User user = helper.validateUser(userId);
+    String expenseJson = jsonConverter.toJson(getExpenseById(id, userId));
+    expenseRepository.deleteById(id);
+    publishExpenseAuditEvent("DELETE", expense, user, oldValues, null, "Expense deleted", "SUCCESS");
     }
 
     @Override
@@ -1245,7 +1261,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Override
     public List<Expense> getExpensesByUserAndSort(Integer userId, String sort) throws UserException {
-        System.out.println("Fetching expenses for user: " + userId + " with sort order: " + sort);
+
 
         // Try to get from cache first
         List<Expense> expenses = getCachedExpenses(userId);
@@ -1839,9 +1855,136 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         int index = Math.abs(hash % colorArray.length);
         return colorArray[index];
     }
+    /* ===================== AUDIT HELPERS (DRY) ===================== */
+    private Map<String,Object> expenseToMap(Expense e) {
+        if (e == null) return Collections.emptyMap();
+        Map<String,Object> map = new HashMap<>();
+        map.put("id", e.getId());
+        map.put("userId", e.getUserId());
+        map.put("categoryId", e.getCategoryId());
+        map.put("categoryName", e.getCategoryName());
+        map.put("date", e.getDate());
+        map.put("includeInBudget", e.isIncludeInBudget());
+        if (e.getBudgetIds() != null) map.put("budgetIds", e.getBudgetIds());
+        if (e.getExpense() != null) {
+            ExpenseDetails d = e.getExpense();
+            map.put("amount", d.getAmount());
+            map.put("type", d.getType());
+            map.put("paymentMethod", d.getPaymentMethod());
+            map.put("expenseName", d.getExpenseName());
+            map.put("netAmount", d.getNetAmount());
+            map.put("comments", d.getComments());
+            map.put("creditDue", d.getCreditDue());
+        }
+        return map;
+    }
+
+    private void publishExpenseAuditEvent(String actionType,
+                                          Expense expense,
+                                          User user,
+                                          Map<String,Object> oldValues,
+                                          Map<String,Object> newValues,
+                                          String details,
+                                          String status) {
+        if (expense == null || user == null) return;
+        try {
+            // Attempt to pull request scoped metadata if running in web request thread
+            String ip = null;
+            String userAgent = null;
+            String method = null;
+            String endpoint = null;
+            String correlationId = null;
+            Long executionTime = null;
+            try {
+                HttpServletRequest req = getCurrentHttpRequest();
+                if (req != null) {
+                    ip = req.getRemoteAddr();
+                    userAgent = req.getHeader("User-Agent");
+                    method = req.getMethod();
+                    endpoint = req.getRequestURI();
+                    Object cidAttr = req.getAttribute("correlationId");
+                    if (cidAttr != null) correlationId = cidAttr.toString();
+                    Object start = req.getAttribute("requestStartTime");
+                    if (start instanceof Long) {
+                        executionTime = System.currentTimeMillis() - (Long) start;
+                    }
+                }
+            } catch (Exception ignored) {}
+
+        AuditEvent event = AuditEvent.builder()
+                    .userId(user.getId())
+                    .username(user.getFirstName())
+                    .userRole(user.getRoles().toString()) // can be populated if User contains role accessor
+                    .entityId(String.valueOf(expense.getId()))
+                    .entityType("EXPENSE")
+                    .actionType(actionType)
+                    .details(details)
+                    .description(expense.getExpense() != null ? expense.getExpense().getExpenseName() : null)
+                    .oldValues(oldValues)
+                    .newValues(newValues)
+                    .status(status)
+                    .source("EXPENSE-SERVICE")
+                    .ipAddress(ip)
+                    .createdBy(user.getUsername())
+                    .userAgent(userAgent)
+                    .method(method)
+                    .endpoint(endpoint)
+                    .correlationId(correlationId)
+                    .executionTimeMs(executionTime)
+                    .build();
+
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        auditEventProducer.publishAuditEvent(event);
+                    }
+                });
+            } else {
+                auditEventProducer.publishAuditEvent(event);
+            }
+            logger.info("Audit published {}", event);
+        } catch (Exception ex) {
+            logger.warn("Audit publish failed (action={} expenseId={}): {}", actionType, expense.getId(), ex.getMessage());
+        }
+    }
+
+    private void publishBulkSummaryAudit(String actionType, List<Expense> expenses, User user, String details) {
+        if (expenses == null || expenses.isEmpty() || user == null) return;
+        try {
+            com.jaya.models.AuditEvent bulk = com.jaya.models.AuditEvent.builder()
+                    .userId(user.getId())
+                    .username(user.getUsername())
+                    .entityId("bulk:" + expenses.size())
+                    .entityType("EXPENSE")
+                    .actionType(actionType)
+                    .details(details)
+                    .status("SUCCESS")
+                    .source("SERVICE")
+                    .build();
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override public void afterCommit() { auditEventProducer.publishAuditEvent(bulk); }
+                });
+            } else {
+                auditEventProducer.publishAuditEvent(bulk);
+            }
+        } catch (Exception ex) {
+            logger.warn("Bulk audit publish failed (action={} count={}): {}", actionType, expenses.size(), ex.getMessage());
+        }
+    }
 
 
-
+    // Attempt to obtain current HttpServletRequest without hard dependency (optional enrichment)
+    private HttpServletRequest getCurrentHttpRequest() {
+        try {
+            RequestAttributes attrs = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+            if (attrs instanceof org.springframework.web.context.request.ServletRequestAttributes) {
+                return ((org.springframework.web.context.request.ServletRequestAttributes) attrs).getRequest();
+            }
+        } catch (Exception ignored) { }
+        return null;
+    }
 
 
 }

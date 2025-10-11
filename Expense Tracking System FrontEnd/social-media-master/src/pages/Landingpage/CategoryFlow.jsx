@@ -1654,12 +1654,16 @@ const CategoryFlow = () => {
                 }}
               >
                 {[
+                  // {
+                  //   path: "/transactions",
+                  //   icon: "history.png",
+                  //   label: "History",
+                  // },
                   {
-                    path: "/transactions",
-                    icon: "history.png",
-                    label: "History",
+                    path: "/category-flow/reports",
+                    icon: "report.png",
+                    label: "Reports",
                   },
-                  { path: "/reports", icon: "report.png", label: "Reports" },
                   { path: "/budget", icon: "budget.png", label: "Budget" },
                   {
                     path: "/payment-method",
