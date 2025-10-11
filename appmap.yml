@@ -1,5 +1,0 @@
-language: "java"
-name: "Expense-Tracking-system-With-User"
-appmap_dir: "tmp/appmap"
-packages:
-- path: "com.jaya"
