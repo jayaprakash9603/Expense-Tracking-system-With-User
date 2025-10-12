@@ -1,0 +1,62 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+.env
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+build/
+out/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+*.sqlite3
+.env
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Dependency directories
+vendor/
+bower_components/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.swp
+*.bak
+*.tmp
+*.orig
+*.rej
+
+# Git
+*.orig
+*.patch
+*.un~

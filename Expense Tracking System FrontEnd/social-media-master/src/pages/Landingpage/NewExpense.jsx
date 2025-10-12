@@ -16,6 +16,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
+import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -33,16 +34,42 @@ const inputWrapper = {
   alignItems: "center",
 };
 
-// Normalize UI labels to backend keys
-const normalizePaymentMethod = (pm) => {
-  if (!pm) return "cash";
-  const s = String(pm).toLowerCase().trim();
-  // Support both old label "Credit Need to Paid" and new UI label "Credit Due"
-  if (s.startsWith("credit need") || s.startsWith("credit due"))
-    return "creditNeedToPaid";
-  if (s.startsWith("credit paid")) return "creditPaid";
-  if (s === "cash") return "cash";
-  return pm; // fallback
+// Helpers replicated (simplified) from CreateBill for consistency
+const formatPaymentMethodName = (name) => {
+  const n = String(name || "")
+    .toLowerCase()
+    .trim();
+  if (n === "cash" || n === "cash ") return "Cash";
+  // Treat all variations of credit due / need to paid the same
+  if (
+    n === "creditneedtopaid" ||
+    n === "credit due" ||
+    n === "credit need to paid" ||
+    n === "credit need to pay" ||
+    n === "creditneedtopay"
+  )
+    return "Credit Due";
+  if (n === "creditpaid" || n === "credit paid") return "Credit Paid";
+  return String(name || "")
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (str) => str.toUpperCase())
+    .trim();
+};
+
+const normalizePaymentMethod = (name) => {
+  const raw = String(name || "").trim();
+  const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
+  switch (key) {
+    case "creditneedtopaid":
+    case "creditdue":
+      return "creditNeedToPaid";
+    case "creditpaid":
+      return "creditPaid";
+    case "cash":
+      return "cash";
+    default:
+      return raw; // custom names as-is
+  }
 };
 
 const NewExpense = ({ onClose, onSuccess }) => {
@@ -75,6 +102,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
     date: dateFromQuery || today,
     creditDue: "",
   });
+  // Local payment method dynamic state
+  const [localPaymentMethods, setLocalPaymentMethods] = useState([]);
+  const [localPaymentMethodsLoading, setLocalPaymentMethodsLoading] =
+    useState(false);
+  const [localPaymentMethodsError, setLocalPaymentMethodsError] =
+    useState(null);
   const [errors, setErrors] = useState({});
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -112,6 +145,106 @@ const NewExpense = ({ onClose, onSuccess }) => {
   useEffect(() => {
     dispatch(fetchCategories(friendId || ""));
   }, [dispatch, friendId]);
+
+  // Fetch payment methods (dynamic dropdown) similar to CreateBill
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        setLocalPaymentMethodsLoading(true);
+        setLocalPaymentMethodsError(null);
+        const result = await dispatch(fetchAllPaymentMethods(friendId || ""));
+        if (result && Array.isArray(result)) {
+          setLocalPaymentMethods(result);
+        } else if (result?.payload && Array.isArray(result.payload)) {
+          setLocalPaymentMethods(result.payload);
+        } else {
+          // Fallback to empty; reducer may still populate via selector if needed
+          setLocalPaymentMethods([]);
+        }
+      } catch (err) {
+        setLocalPaymentMethodsError(
+          err?.message || "Failed to fetch payment methods"
+        );
+      } finally {
+        setLocalPaymentMethodsLoading(false);
+      }
+    };
+    fetchPaymentMethods();
+  }, [dispatch, friendId]);
+
+  // Default methods used as fallback when API returns none
+  const defaultPaymentMethods = [
+    { name: "cash", label: "Cash", type: "expense" },
+    { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
+    { name: "creditPaid", label: "Credit Paid", type: "expense" },
+    { name: "cash", label: "Cash", type: "income" },
+    { name: "creditPaid", label: "Credit Paid", type: "income" },
+    { name: "creditNeedToPaid", label: "Credit Due", type: "income" },
+  ];
+
+  // Processed & filtered according to transactionType (gain/loss ~ income/expense)
+  const processedPaymentMethods = useMemo(() => {
+    // Normalize to lowercase like CreateBill implementation does
+    const txType = String(expenseData.transactionType || "loss").toLowerCase();
+    const flow = txType === "gain" ? "income" : "expense";
+    let available = [];
+
+    if (Array.isArray(localPaymentMethods) && localPaymentMethods.length > 0) {
+      const filtered = localPaymentMethods.filter((pm) => {
+        const pmType = String(
+          pm.type || pm.flowType || pm.category || ""
+        ).toLowerCase();
+        if (!pmType) return true; // if backend didn't tag, keep it visible
+        if (flow === "expense") {
+          return ["expense", "loss", "debit"].includes(pmType);
+        }
+        return ["income", "gain", "credit"].includes(pmType);
+      });
+      available = filtered.map((pm) => ({
+        value: normalizePaymentMethod(pm.name),
+        label: formatPaymentMethodName(pm.name),
+        ...pm,
+      }));
+    }
+
+    // Dedupe by normalized value (avoid Credit Due duplicates)
+    const dedupMap = new Map();
+    for (const pm of available) {
+      if (!dedupMap.has(pm.value)) dedupMap.set(pm.value, pm);
+    }
+    available = Array.from(dedupMap.values());
+
+    if (available.length === 0) {
+      const defaults = defaultPaymentMethods.filter((pm) => pm.type === flow);
+      available = defaults.map((pm) => ({
+        value: normalizePaymentMethod(pm.name),
+        label: pm.label,
+        type: pm.type,
+      }));
+    }
+    // Final dedupe including defaults
+    const finalMap = new Map();
+    for (const pm of available) {
+      if (!finalMap.has(pm.value)) finalMap.set(pm.value, pm);
+    }
+    available = Array.from(finalMap.values());
+    return available;
+  }, [localPaymentMethods, expenseData.transactionType]);
+
+  // Ensure selected payment method remains valid after type (transactionType) change
+  useEffect(() => {
+    if (processedPaymentMethods.length > 0) {
+      const currentValid = processedPaymentMethods.some(
+        (pm) => pm.value === expenseData.paymentMethod
+      );
+      if (!currentValid) {
+        setExpenseData((prev) => ({
+          ...prev,
+          paymentMethod: processedPaymentMethods[0].value || "cash",
+        }));
+      }
+    }
+  }, [processedPaymentMethods, expenseData.paymentMethod]);
 
   // Ensure unique categories strictly by name (case-insensitive, trimmed)
   const uniqueCategories = useMemo(() => {
@@ -696,16 +829,27 @@ const NewExpense = ({ onClose, onSuccess }) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={["Cash", "Credit Due", "Credit Paid"]}
-          getOptionLabel={(option) => option}
-          value={expenseData.paymentMethod || ""}
-          onInputChange={(event, newValue) => {
-            setExpenseData((prev) => ({ ...prev, paymentMethod: newValue }));
-          }}
+          options={processedPaymentMethods}
+          getOptionLabel={(option) => option.label || option}
+          value={
+            processedPaymentMethods.find(
+              (pm) => pm.value === expenseData.paymentMethod
+            ) || null
+          }
           onChange={(event, newValue) => {
-            setExpenseData((prev) => ({ ...prev, paymentMethod: newValue }));
+            setExpenseData((prev) => ({
+              ...prev,
+              paymentMethod: newValue ? newValue.value : "cash",
+            }));
           }}
-          noOptionsText="No options found"
+          loading={localPaymentMethodsLoading}
+          noOptionsText={
+            expenseData.transactionType
+              ? `No ${(
+                  expenseData.transactionType || ""
+                ).toLowerCase()} payment methods`
+              : "No payment methods"
+          }
           renderInput={(params) => (
             <TextField
               {...params}
@@ -714,6 +858,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
               InputProps={{
                 ...params.InputProps,
                 className: fieldStyles,
+                endAdornment: (
+                  <>
+                    {localPaymentMethodsLoading ? (
+                      <CircularProgress color="inherit" size={20} />
+                    ) : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
               }}
             />
           )}
@@ -729,9 +881,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 textOverflow: "ellipsis",
                 maxWidth: 300,
               }}
-              title={option}
+              title={option.label}
             >
-              {highlightText(option, inputValue)}
+              {highlightText(option.label, inputValue)}
             </li>
           )}
           sx={{
@@ -745,6 +897,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
           }}
         />
       </div>
+      {localPaymentMethodsError && (
+        <div className="text-red-400 text-xs mt-1">
+          Error: {localPaymentMethodsError}
+        </div>
+      )}
       {errors.paymentMethod && (
         <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
           {errors.paymentMethod}
@@ -752,6 +909,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
       )}
     </div>
   );
+  // Use lowercase internal values for consistency (gain/loss)
+  const typeOptions = ["gain", "loss"];
+
   const renderTransactionTypeAutocomplete = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
@@ -764,11 +924,16 @@ const NewExpense = ({ onClose, onSuccess }) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={["Gain", "Loss"]}
-          getOptionLabel={(option) => option}
-          value={expenseData.transactionType || ""}
+          options={typeOptions}
+          getOptionLabel={(option) =>
+            option.charAt(0).toUpperCase() + option.slice(1)
+          }
+          value={(expenseData.transactionType || "loss").toLowerCase()}
           onInputChange={(event, newValue) => {
-            setExpenseData((prev) => ({ ...prev, transactionType: newValue }));
+            setExpenseData((prev) => ({
+              ...prev,
+              transactionType: (newValue || "").toLowerCase(),
+            }));
 
             // Clear the error when the user types
             if (errors.transactionType) {
@@ -776,7 +941,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
             }
           }}
           onChange={(event, newValue) => {
-            setExpenseData((prev) => ({ ...prev, transactionType: newValue }));
+            setExpenseData((prev) => ({
+              ...prev,
+              transactionType: (newValue || "").toLowerCase(),
+            }));
 
             // Clear the error when the user selects a value
             if (errors.transactionType) {
