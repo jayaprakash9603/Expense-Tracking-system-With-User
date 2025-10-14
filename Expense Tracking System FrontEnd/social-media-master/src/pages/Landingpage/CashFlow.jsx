@@ -1883,7 +1883,7 @@ const Cashflow = () => {
               },
               // { path: "/transactions", icon: "history.png", label: "History" },
               // { path: "/insights", icon: "insight.png", label: "Insights" },
-              // { path: "/reports", icon: "report.png", label: "Reports" },
+              { path: "/expenses/reports", icon: "report.png", label: "Reports" },
               // { path: "/cashflow", icon: "list.png", label: "Expenses" },
               { path: "/budget", icon: "budget.png", label: "Budget" },
               {
