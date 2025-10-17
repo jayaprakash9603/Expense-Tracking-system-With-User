@@ -49,6 +49,7 @@ import {
 } from "lucide-react";
 import "./PaymentReport.css";
 import { fetchPaymentSummary } from "../../../utils/Api";
+import PaymentMethodAccordionGroup from "../../../components/PaymentMethodAccordion";
 
 // Skeleton Components
 const HeaderSkeleton = () => (
@@ -589,71 +590,7 @@ const CategoryPaymentBreakdown = ({ data, methodsColors = [] }) => {
   );
 };
 
-// Payment Methods Performance Table
-const PaymentPerformanceTable = ({ data }) => (
-  <div className="chart-container">
-    <div className="chart-header">
-      <h3>📋 Payment Methods Performance Summary</h3>
-      <div className="chart-subtitle">
-        Detailed metrics for each payment method
-      </div>
-    </div>
-    <div className="performance-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Payment Method</th>
-            <th>Total Amount</th>
-            <th>% of Total</th>
-            <th>Transactions</th>
-            <th>Avg/Transaction</th>
-            <th>Trend</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item, index) => (
-            <tr key={index}>
-              <td>
-                <div className="payment-method-cell">
-                  <span className="method-icon">{item.icon}</span>
-                  <div
-                    className="method-color"
-                    style={{ backgroundColor: item.color }}
-                  ></div>
-                  {item.method}
-                </div>
-              </td>
-              <td>₹{item.totalAmount.toLocaleString()}</td>
-              <td>{item.percentage}%</td>
-              <td>{item.transactions}</td>
-              <td>₹{item.avgPerTransaction}</td>
-              <td>
-                <div className={`trend ${item.trend > 0 ? "up" : "down"}`}>
-                  {item.trend > 0 ? (
-                    <TrendingUp size={16} />
-                  ) : (
-                    <TrendingDown size={16} />
-                  )}
-                  {Math.abs(item.trend)}%
-                </div>
-              </td>
-              <td>
-                <span
-                  className={`status ${
-                    item.trend > 0 ? "active" : "declining"
-                  }`}
-                >
-                  {item.trend > 0 ? "Growing" : "Declining"}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-);
+// (Replaced performance summary table with generic PaymentMethodAccordionGroup)
 
 // Main Payment Methods Report Component
 const PaymentMethodsReport = () => {
@@ -945,9 +882,17 @@ const PaymentMethodsReport = () => {
           </div>
         ) : null}
 
-        {/* Row 4: Performance Table */}
+        {/* Row 4: Payment Method Detailed Expenses (Accordion) */}
         <div className="chart-row full-width">
-          <PaymentPerformanceTable data={methodsData} />
+          <div className="chart-container">
+            <div className="chart-header">
+              <h3>📂 Payment Method Expenses</h3>
+              <div className="chart-subtitle">
+                Expand a method to view individual expenses (Loss / Gain tabs)
+              </div>
+            </div>
+            <PaymentMethodAccordionGroup methods={methodsData} />
+          </div>
         </div>
       </div>
     </div>
