@@ -30,6 +30,7 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
+import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 
 // Use the same fieldStyles, labelStyle, formRow, firstFormRow, inputWrapper as NewExpense
 const fieldStyles =
@@ -40,28 +41,45 @@ const firstFormRow =
   "mt-2 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
 const inputWrapper = { width: "150px" };
 
-// Helpers to normalize between UI labels and backend keys
-const normalizePaymentMethod = (pm) => {
-  if (!pm) return "cash";
-  const s = String(pm).toLowerCase().trim();
-  if (s.startsWith("credit due") || s.startsWith("credit need"))
-    return "creditNeedToPaid";
-  if (s.startsWith("credit paid")) return "creditPaid";
-  if (s === "cash" || s === "cash".toLowerCase()) return "cash";
-  return pm; // fallback
+// Payment method helpers (harmonized with CreateBill/NewExpense)
+const formatPaymentMethodName = (name) => {
+  const n = String(name || "")
+    .toLowerCase()
+    .trim();
+  if (n === "cash") return "Cash";
+  if (
+    n === "creditneedtopaid" ||
+    n === "credit due" ||
+    n === "credit need to paid" ||
+    n === "credit need to pay" ||
+    n === "creditneedtopay"
+  )
+    return "Credit Due";
+  if (n === "creditpaid" || n === "credit paid") return "Credit Paid";
+  return String(name || "")
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (str) => str.toUpperCase())
+    .trim();
 };
 
-const paymentMethodLabelFromKey = (key) => {
-  const s = String(key || "").toLowerCase();
-  if (s === "creditneedtopaid") return "Credit Due";
-  if (s === "creditpaid") return "Credit Paid";
-  if (s === "cash") return "Cash";
-  // if already a label, return capitalized version
-  if (s.startsWith("credit due")) return "Credit Due";
-  if (s.startsWith("credit need")) return "Credit Due";
-  if (s.startsWith("credit paid")) return "Credit Paid";
-  return key || "Cash";
+const normalizePaymentMethod = (name) => {
+  const raw = String(name || "").trim();
+  const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
+  switch (key) {
+    case "creditneedtopaid":
+    case "creditdue":
+    case "creditneedtopay":
+      return "creditNeedToPaid";
+    case "creditpaid":
+      return "creditPaid";
+    case "cash":
+      return "cash";
+    default:
+      return raw;
+  }
 };
+
+const paymentMethodLabelFromKey = (key) => formatPaymentMethodName(key);
 
 const EditExpense = ({}) => {
   const location = useLocation();
@@ -118,6 +136,12 @@ const EditExpense = ({}) => {
   const [checkboxStates, setCheckboxStates] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  // Dynamic payment methods
+  const [localPaymentMethods, setLocalPaymentMethods] = useState([]);
+  const [localPaymentMethodsLoading, setLocalPaymentMethodsLoading] =
+    useState(false);
+  const [localPaymentMethodsError, setLocalPaymentMethodsError] =
+    useState(null);
 
   // Get topExpenses from Redux, just like NewExpense
   const { topExpenses, loading: loadingTopExpenses } = useSelector(
@@ -148,6 +172,93 @@ const EditExpense = ({}) => {
     dispatch(fetchCategories(friendId || ""));
   }, [dispatch, friendId]);
 
+  // Fetch payment methods (dynamic) similar to other components
+  useEffect(() => {
+    const run = async () => {
+      try {
+        setLocalPaymentMethodsLoading(true);
+        setLocalPaymentMethodsError(null);
+        const res = await dispatch(fetchAllPaymentMethods(friendId || ""));
+        if (res && Array.isArray(res)) {
+          setLocalPaymentMethods(res);
+        } else if (res?.payload && Array.isArray(res.payload)) {
+          setLocalPaymentMethods(res.payload);
+        } else {
+          setLocalPaymentMethods([]);
+        }
+      } catch (e) {
+        setLocalPaymentMethodsError(
+          e?.message || "Failed to fetch payment methods"
+        );
+      } finally {
+        setLocalPaymentMethodsLoading(false);
+      }
+    };
+    run();
+  }, [dispatch, friendId]);
+
+  const defaultPaymentMethods = [
+    { name: "cash", label: "Cash", type: "expense" },
+    { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
+    { name: "creditPaid", label: "Credit Paid", type: "expense" },
+    { name: "cash", label: "Cash", type: "income" },
+    { name: "creditPaid", label: "Credit Paid", type: "income" },
+    { name: "creditNeedToPaid", label: "Credit Due", type: "income" },
+  ];
+
+  const processedPaymentMethods = useMemo(() => {
+    const txType = String(expenseData.transactionType || "loss").toLowerCase();
+    const flow = txType === "gain" ? "income" : "expense";
+    let available = [];
+    if (Array.isArray(localPaymentMethods) && localPaymentMethods.length > 0) {
+      const filtered = localPaymentMethods.filter((pm) => {
+        const pmType = String(
+          pm.type || pm.flowType || pm.category || ""
+        ).toLowerCase();
+        if (!pmType) return true; // show if unspecified
+        if (flow === "expense")
+          return ["expense", "loss", "debit"].includes(pmType);
+        return ["income", "gain", "credit"].includes(pmType);
+      });
+      available = filtered.map((pm) => ({
+        value: normalizePaymentMethod(pm.name),
+        label: formatPaymentMethodName(pm.name),
+        ...pm,
+      }));
+    }
+    // Dedupe before fallback
+    const map = new Map();
+    for (const pm of available) if (!map.has(pm.value)) map.set(pm.value, pm);
+    available = Array.from(map.values());
+    if (available.length === 0) {
+      const defaults = defaultPaymentMethods.filter((pm) => pm.type === flow);
+      available = defaults.map((pm) => ({
+        value: normalizePaymentMethod(pm.name),
+        label: pm.label,
+        type: pm.type,
+      }));
+    }
+    const finalMap = new Map();
+    for (const pm of available)
+      if (!finalMap.has(pm.value)) finalMap.set(pm.value, pm);
+    return Array.from(finalMap.values());
+  }, [localPaymentMethods, expenseData.transactionType]);
+
+  // Keep selected method valid
+  useEffect(() => {
+    if (processedPaymentMethods.length > 0) {
+      const valid = processedPaymentMethods.some(
+        (pm) => pm.value === normalizePaymentMethod(expenseData.paymentMethod)
+      );
+      if (!valid) {
+        setExpenseData((prev) => ({
+          ...prev,
+          paymentMethod: processedPaymentMethods[0].value,
+        }));
+      }
+    }
+  }, [processedPaymentMethods, expenseData.paymentMethod]);
+
   // Fetch expense name suggestions (same as NewExpense)
   useEffect(() => {
     dispatch(getExpensesSuggestions(friendId || ""));
@@ -167,7 +278,7 @@ const EditExpense = ({}) => {
         expenseName: expense.expense.expenseName || "",
         amount: expense.expense.amount || "",
         netAmount: expense.expense.netAmount || "",
-        paymentMethod: paymentMethodLabelFromKey(
+        paymentMethod: normalizePaymentMethod(
           expense.expense.paymentMethod || "cash"
         ),
         transactionType: expense.expense.type || "loss",
@@ -590,16 +701,28 @@ const EditExpense = ({}) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={["Cash", "Credit Due", "Credit Paid"]}
-          getOptionLabel={(option) => option}
-          value={expenseData.paymentMethod || ""}
-          onInputChange={(event, newValue) => {
-            setExpenseData((prev) => ({ ...prev, paymentMethod: newValue }));
-          }}
+          options={processedPaymentMethods}
+          getOptionLabel={(option) => option.label || option}
+          value={
+            processedPaymentMethods.find(
+              (pm) =>
+                pm.value === normalizePaymentMethod(expenseData.paymentMethod)
+            ) || null
+          }
           onChange={(event, newValue) => {
-            setExpenseData((prev) => ({ ...prev, paymentMethod: newValue }));
+            setExpenseData((prev) => ({
+              ...prev,
+              paymentMethod: newValue ? newValue.value : "cash",
+            }));
           }}
-          noOptionsText="No options found"
+          loading={localPaymentMethodsLoading}
+          noOptionsText={
+            expenseData.transactionType
+              ? `No ${(
+                  expenseData.transactionType || ""
+                ).toLowerCase()} payment methods`
+              : "No payment methods"
+          }
           renderInput={(params) => (
             <TextField
               {...params}
@@ -608,6 +731,14 @@ const EditExpense = ({}) => {
               InputProps={{
                 ...params.InputProps,
                 className: fieldStyles,
+                endAdornment: (
+                  <>
+                    {localPaymentMethodsLoading ? (
+                      <CircularProgress color="inherit" size={20} />
+                    ) : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
               }}
             />
           )}
@@ -623,14 +754,19 @@ const EditExpense = ({}) => {
                 textOverflow: "ellipsis",
                 maxWidth: 300,
               }}
-              title={option}
+              title={option.label}
             >
-              {highlightText(option, inputValue)}
+              {highlightText(option.label, inputValue)}
             </li>
           )}
           sx={{ width: "100%", maxWidth: "300px" }}
         />
       </div>
+      {localPaymentMethodsError && (
+        <div className="text-red-400 text-xs mt-1">
+          Error: {localPaymentMethodsError}
+        </div>
+      )}
       {errors.paymentMethod && (
         <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
           {errors.paymentMethod}
