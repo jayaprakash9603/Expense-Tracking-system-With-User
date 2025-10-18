@@ -102,22 +102,24 @@ const CreateBill = ({ onClose, onSuccess }) => {
     useState(null);
 
   const formatPaymentMethodName = (name) => {
-    const n = String(name || "").toLowerCase();
-    switch (n) {
-      case "cash":
-        return "Cash";
-      case "creditneedtopaid":
-      case "credit due":
-        return "Credit Due";
-      case "creditpaid":
-        return "Credit Paid";
-      default:
-        // For other payment methods, convert to title case
-        return String(name || "")
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (str) => str.toUpperCase())
-          .trim();
-    }
+    const n = String(name || "")
+      .toLowerCase()
+      .trim();
+    if (n === "cash") return "Cash";
+    if (
+      n === "creditneedtopaid" ||
+      n === "credit due" ||
+      n === "credit need to paid" ||
+      n === "credit need to pay" ||
+      n === "creditneedtopay"
+    )
+      return "Credit Due";
+    if (n === "creditpaid" || n === "credit paid") return "Credit Paid";
+    // For other payment methods, convert to title case
+    return String(name || "")
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim();
   };
 
   // Normalize any payment method label/value into backend-friendly keys
@@ -159,16 +161,12 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
     // If we have valid payment methods from local state
     if (Array.isArray(localPaymentMethods) && localPaymentMethods.length > 0) {
-      // Filter payment methods based on bill type
       const filteredMethods = localPaymentMethods.filter((pm) => {
         if (billData.type === "loss") {
-          // Show payment methods with type "expense"
           return pm.type && pm.type.toLowerCase() === "expense";
         } else if (billData.type === "gain") {
-          // Show payment methods with type "income"
           return pm.type && pm.type.toLowerCase() === "income";
         }
-        // If no type is selected, show all
         return true;
       });
 
@@ -177,6 +175,15 @@ const CreateBill = ({ onClose, onSuccess }) => {
         label: formatPaymentMethodName(pm.name),
         ...pm,
       }));
+    }
+
+    // Dedupe by value (avoid Credit Due duplicates from variations)
+    if (availablePaymentMethods.length > 0) {
+      const map = new Map();
+      for (const pm of availablePaymentMethods) {
+        if (!map.has(pm.value)) map.set(pm.value, pm);
+      }
+      availablePaymentMethods = Array.from(map.values());
     }
 
     // If no filtered methods available, use default fallback based on type
@@ -201,8 +208,17 @@ const CreateBill = ({ onClose, onSuccess }) => {
       availablePaymentMethods = defaultMethodsForType.map((pm) => ({
         value: normalizePaymentMethod(pm.name),
         label: pm.label,
-        type: pm.type, // Include type in the mapped object
+        type: pm.type,
       }));
+    }
+
+    // Final dedupe including defaults
+    if (availablePaymentMethods.length > 0) {
+      const final = new Map();
+      for (const pm of availablePaymentMethods) {
+        if (!final.has(pm.value)) final.set(pm.value, pm);
+      }
+      availablePaymentMethods = Array.from(final.values());
     }
 
     console.log("Final available payment methods:", availablePaymentMethods);

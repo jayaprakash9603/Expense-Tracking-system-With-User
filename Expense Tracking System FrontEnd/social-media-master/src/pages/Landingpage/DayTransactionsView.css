@@ -1,0 +1,19 @@
+.day-transactions-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb-color, #14b8a6) #101010;
+}
+.day-transactions-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.day-transactions-scroll::-webkit-scrollbar-track {
+  background: #101010;
+  border-radius: 10px;
+}
+.day-transactions-scroll::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb-bg, #14b8a6);
+  border-radius: 10px;
+  border: 2px solid #101010;
+}
+.day-transactions-scroll::-webkit-scrollbar-thumb:hover {
+  filter: brightness(1.1);
+}

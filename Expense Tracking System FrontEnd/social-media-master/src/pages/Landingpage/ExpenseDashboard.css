@@ -2025,3 +2025,35 @@
     width: 2px;
   }
 }
+
+/* ===================== Font Size Overrides (Top Metrics Only) ===================== */
+/* Increase title and value font sizes ONLY for the primary metric cards in the top metrics grid */
+.metrics-grid .metric-card.primary .metric-content h3,
+.metrics-grid .metric-card.expense .metric-content h3,
+.metrics-grid .metric-card.credit .metric-content h3,
+.metrics-grid .metric-card.budget .metric-content h3 {
+  font-size: 0.95rem; /* previously 0.8rem default */
+  letter-spacing: 0.04em; /* slight adjust for readability */
+}
+
+.metrics-grid .metric-card.primary .metric-value,
+.metrics-grid .metric-card.expense .metric-value,
+.metrics-grid .metric-card.credit .metric-value,
+.metrics-grid .metric-card.budget .metric-value {
+  font-size: 2.05rem; /* previously 1.75rem */
+}
+
+@media (max-width: 640px) {
+  .metrics-grid .metric-card.primary .metric-content h3,
+  .metrics-grid .metric-card.expense .metric-content h3,
+  .metrics-grid .metric-card.credit .metric-content h3,
+  .metrics-grid .metric-card.budget .metric-content h3 {
+    font-size: 0.9rem;
+  }
+  .metrics-grid .metric-card.primary .metric-value,
+  .metrics-grid .metric-card.expense .metric-value,
+  .metrics-grid .metric-card.credit .metric-value,
+  .metrics-grid .metric-card.budget .metric-value {
+    font-size: 1.9rem;
+  }
+}
