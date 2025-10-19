@@ -6,6 +6,7 @@ import {
   getExpensesSuggestions,
 } from "../../Redux/Expenses/expense.action";
 import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
+import NameAutocomplete from "../../components/NameAutocomplete";
 import {
   useReactTable,
   getCoreRowModel,
@@ -109,8 +110,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const [localPaymentMethodsError, setLocalPaymentMethodsError] =
     useState(null);
   const [errors, setErrors] = useState({});
-  const [suggestions, setSuggestions] = useState([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
@@ -281,47 +281,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
       }
     }
   }, [dateFromQuery]);
-
-  const fetchSuggestions = (query) => {
-    const list = Array.isArray(topExpenses) ? topExpenses : [];
-    if (!query || !query.trim()) {
-      // Show a capped list on focus with no query
-      setSuggestions(list.slice(0, 50));
-      setLoadingSuggestions(false);
-      return;
-    }
-
-    setLoadingSuggestions(true);
-    const filtered = list.filter((item) =>
-      String(item).toLowerCase().includes(query.toLowerCase())
-    );
-    setSuggestions(filtered);
-    setLoadingSuggestions(false);
-  };
-
-  const highlightText = (text, inputValue) => {
-    if (!inputValue) return text;
-    const safe = inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(`(${safe})`, "gi");
-    const parts = String(text).split(regex);
-    return parts.map((part, i) =>
-      regex.test(part) ? (
-        <mark
-          key={i}
-          style={{
-            background: "none",
-            color: "#00dac6",
-            fontWeight: 700,
-            padding: 0,
-          }}
-        >
-          {part}
-        </mark>
-      ) : (
-        <span key={i}>{part}</span>
-      )
-    );
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -630,86 +589,16 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           Expense Name<span className="text-red-500"> *</span>
         </label>
-        <Autocomplete
-          freeSolo
-          autoHighlight
-          options={suggestions}
-          loading={loadingSuggestions}
-          loadingText="Loading"
-          noOptionsText="No options found"
-          value={expenseData?.expenseName || ""}
-          onOpen={() => fetchSuggestions(expenseData?.expenseName || "")}
-          onInputChange={(event, newValue) => {
-            setExpenseData((prev) => ({ ...prev, expenseName: newValue }));
-            fetchSuggestions(newValue);
-
-            // Clear the error when the user types
-            if (errors.expenseName) {
-              setErrors({ ...errors, expenseName: false });
-            }
+        <NameAutocomplete
+          value={expenseData.expenseName}
+          onChange={(val) => {
+            setExpenseData((prev) => ({ ...prev, expenseName: val }));
+            if (errors.expenseName && val)
+              setErrors((prev) => ({ ...prev, expenseName: false }));
           }}
-          onChange={(event, newValue) => {
-            setExpenseData((prev) => ({ ...prev, expenseName: newValue }));
-          }}
-          openOnFocus
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiAutocomplete-option": {
-              fontSize: "0.92rem",
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: errors.expenseName ? "#ff4d4f" : "rgb(75, 85, 99)",
-                borderWidth: errors.expenseName ? "2px" : "1px",
-              },
-              "&:hover fieldset": {
-                borderColor: errors.expenseName ? "#ff4d4f" : "rgb(75, 85, 99)",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: errors.expenseName ? "#ff4d4f" : "#00dac6",
-              },
-            },
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Enter expense name"
-              variant="outlined"
-              error={errors.expenseName}
-              InputProps={{
-                ...params.InputProps,
-                className: fieldStyles,
-                endAdornment: (
-                  <>
-                    {loadingSuggestions ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
-                fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
-              }}
-              title={option}
-            >
-              {highlightText(option, inputValue)}
-            </li>
-          )}
+          placeholder="Enter expense name"
+          error={errors.expenseName}
+          size="medium"
         />
       </div>
     </div>
@@ -1071,6 +960,31 @@ const NewExpense = ({ onClose, onSuccess }) => {
     ],
     [checkboxStates]
   );
+
+  // Highlight utility (used in renderOption functions)
+  const highlightText = (text, needle) => {
+    if (!needle) return text;
+    const safe = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${safe})`, "gi");
+    const parts = String(text).split(regex);
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <mark
+          key={i}
+          style={{
+            background: "none",
+            color: "#00dac6",
+            fontWeight: 700,
+            padding: 0,
+          }}
+        >
+          {part}
+        </mark>
+      ) : (
+        <span key={i}>{part}</span>
+      )
+    );
+  };
 
   // DataGrid columns for budgets
   const dataGridColumns = [

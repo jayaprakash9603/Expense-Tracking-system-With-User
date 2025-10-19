@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ItemNameAutocomplete from "./ItemNameAutocomplete";
+import NameAutocomplete from "../../components/NameAutocomplete";
 import {
   Autocomplete,
   TextField,
@@ -737,42 +738,19 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         <label htmlFor="name" className={labelStyle} style={inputWrapper}>
           Name<span className="text-red-500"> *</span>
         </label>
-        <TextField
-          id="name"
-          name="name"
-          value={billData.name}
-          onChange={handleInputChange}
-          placeholder="Enter name"
-          variant="outlined"
-          error={errors.name}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiInputBase-root": {
-              backgroundColor: "#29282b",
-              color: "#fff",
-              height: "56px",
-              fontSize: "16px",
-            },
-            "& .MuiInputBase-input": {
-              color: "#fff",
-              "&::placeholder": { color: "#9ca3af", opacity: 1 },
-            },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: errors.name ? "#ff4d4f" : "rgb(75, 85, 99)",
-                borderWidth: "1px",
-              },
-              "&:hover fieldset": {
-                borderColor: errors.name ? "#ff4d4f" : "rgb(75, 85, 99)",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: errors.name ? "#ff4d4f" : "#00dac6",
-                borderWidth: "2px",
-              },
-            },
-          }}
-        />
+        <div style={{ width: "100%", maxWidth: 300 }}>
+          <NameAutocomplete
+            value={billData.name}
+            onChange={(val) => {
+              setBillData((prev) => ({ ...prev, name: val }));
+              if (errors.name) {
+                setErrors((prev) => ({ ...prev, name: false }));
+              }
+            }}
+            placeholder="Enter name"
+            error={errors.name}
+          />
+        </div>
       </div>
     </div>
   );
