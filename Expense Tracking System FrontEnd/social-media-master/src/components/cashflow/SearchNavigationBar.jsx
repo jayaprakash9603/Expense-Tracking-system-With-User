@@ -20,6 +20,7 @@ const SearchNavigationBar = ({
   navigate,
   addNewOptions = [],
   placeholder = "Search expenses...",
+  currentFlow,
 }) => {
   return (
     <div
@@ -49,6 +50,7 @@ const SearchNavigationBar = ({
         navigate={navigate}
         addNewOptions={addNewOptions}
         isMobile={isMobile}
+        currentFlow={currentFlow}
       />
 
       <style>{`

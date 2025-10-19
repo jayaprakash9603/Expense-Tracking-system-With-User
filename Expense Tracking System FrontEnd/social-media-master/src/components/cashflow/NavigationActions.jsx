@@ -43,6 +43,7 @@ const NavigationActions = ({
   addNewOptions = [],
   isMobile,
   addIcon,
+  currentFlow, // e.g. 'category-flow', 'payment-method', 'cashflow'
 }) => {
   const { open, setOpen, btnRef } = useAddNewPopover();
 
@@ -62,7 +63,12 @@ const NavigationActions = ({
         return (
           <button
             key={path}
-            onClick={() => navigate(target)}
+            onClick={() => {
+              // Pass origin flow so destination can render back button returning here
+              navigate(target, {
+                state: { fromFlow: currentFlow, fromNav: true },
+              });
+            }}
             className="nav-button"
             style={{
               display: "flex",
@@ -172,7 +178,9 @@ const NavigationActions = ({
                   borderRadius: 4,
                 }}
                 onClick={() => {
-                  navigate(item.route);
+                  navigate(item.route, {
+                    state: { fromFlow: currentFlow, fromNav: true },
+                  });
                   setOpen(false);
                 }}
                 onMouseEnter={(e) => {

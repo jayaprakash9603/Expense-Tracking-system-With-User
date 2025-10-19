@@ -93,6 +93,25 @@ const Cashflow = () => {
   const filterBtnRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  // Back button logic replicating Bill component behavior
+  // Back button logic:
+  // Show when: friend view OR (arrived from another flow and NOT from nav bar) OR (direct deep link without fromNav)
+  const originFlow = location?.state?.fromFlow;
+  const arrivedFromNav = location?.state?.fromNav === true;
+  const showBackButton =
+    isFriendView ||
+    (!!originFlow && !arrivedFromNav) ||
+    (!arrivedFromNav && !originFlow);
+  const handlePageBack = () => {
+    // If originFlow exists and not friend context, go back to that flow; else go to expenses (or friend expenses)
+    if (!isFriendView && originFlow && !arrivedFromNav) {
+      navigate(`/${originFlow}`);
+      return;
+    }
+    if (friendId && friendId !== "undefined")
+      navigate(`/friends/expenses/${friendId}`);
+    else navigate("/expenses");
+  };
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
@@ -279,6 +298,8 @@ const Cashflow = () => {
           { path: "/bill", icon: "bill.png", label: "Bill" },
           { path: "/calendar-view", icon: "calendar.png", label: "Calendar" },
         ],
+        showBackButton,
+        onPageBack: handlePageBack,
       }}
       components={{
         ChartComponent: CashFlowChart,

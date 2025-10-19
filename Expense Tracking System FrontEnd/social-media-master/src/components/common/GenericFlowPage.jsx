@@ -38,6 +38,8 @@ const GenericFlowPage = ({
   onDeleteAction, // async (entityId, friendId) => Promise
   onRefresh, // () => void
   navigate,
+  showBackButton = false,
+  onPageBack,
 }) => {
   const {
     activeRange,
@@ -187,9 +189,8 @@ const GenericFlowPage = ({
       }}
     >
       <RangePeriodNavigator
-        isFriendView={!!friendId && friendId !== "undefined"}
-        friendId={friendId}
-        navigate={navigate}
+        showBackButton={showBackButton}
+        onBackNavigate={onPageBack}
         rangeTypes={rangeTypes}
         activeRange={activeRange}
         setActiveRange={setActiveRange}
@@ -323,6 +324,7 @@ const GenericFlowPage = ({
             hasWriteAccess={hasWriteAccess}
             navigate={navigate}
             addNewOptions={addNewOptions}
+            currentFlow={routeBase}
           />
           <SortPopover
             open={popoverOpen}

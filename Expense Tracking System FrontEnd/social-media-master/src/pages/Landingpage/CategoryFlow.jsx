@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useCategoryFlowData from "../../hooks/useCategoryFlowData";
 import { deleteCategory } from "../../Redux/Category/categoryActions";
@@ -36,6 +36,19 @@ const CategoryFlow = () => {
   } = useCategoryFlowData({ friendId, isFriendView, search });
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Back button appears if navigated from another flow (location.state.fromFlow) or in friend view.
+  const originFlow = location?.state?.fromFlow;
+  const showBackButton = isFriendView || Boolean(originFlow);
+  const handlePageBack = () => {
+    if (originFlow) {
+      navigate(`/${originFlow}`);
+      return;
+    }
+    if (friendId && friendId !== "undefined")
+      navigate(`/friends/expenses/${friendId}`);
+    else navigate("/expenses");
+  };
   const { hasWriteAccess } = useFriendAccess(friendId);
   const [createCategoryModalOpen, setCreateCategoryModalOpen] = useState(false);
 
@@ -95,6 +108,7 @@ const CategoryFlow = () => {
             label: "Reports",
           },
           { path: "/budget", icon: "budget.png", label: "Budget" },
+          { path: "/expenses", icon: "save-money.png", label: "Expenses" },
           {
             path: "/payment-method",
             icon: "payment-method.png",
@@ -119,6 +133,8 @@ const CategoryFlow = () => {
       onDeleteAction={(id, frId) => dispatch(deleteCategory(id, frId))}
       onRefresh={onRefresh}
       navigate={navigate}
+      showBackButton={showBackButton}
+      onPageBack={handlePageBack}
     />
   );
 };

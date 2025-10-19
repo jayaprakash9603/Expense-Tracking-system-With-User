@@ -9,9 +9,8 @@ import { Button } from "@mui/material";
  *  - Previous / Next navigation with current range label
  *
  * Props:
- *  isFriendView: boolean -> show back button if true
- *  friendId: string | undefined -> used for back navigation
- *  navigate: function -> navigation handler
+ *  showBackButton: boolean -> whether to render the back button
+ *  onBackNavigate: function -> invoked when back button clicked
  *  rangeTypes: array [{ value, label }]
  *  activeRange: current range value
  *  setActiveRange: fn(newValue)
@@ -25,9 +24,8 @@ import { Button } from "@mui/material";
  *  isMobile: boolean to tweak sizing
  */
 const RangePeriodNavigator = ({
-  isFriendView,
-  friendId,
-  navigate,
+  showBackButton = false,
+  onBackNavigate,
   rangeTypes,
   activeRange,
   setActiveRange,
@@ -42,15 +40,14 @@ const RangePeriodNavigator = ({
 }) => {
   return (
     <>
-      <div className="flex gap-4 mb-4">
-        {isFriendView && (
+      <div
+        className="flex items-center mb-4"
+        style={{ gap: showBackButton ? 12 : 16 }}
+      >
+        {showBackButton && (
           <Button
             variant="contained"
-            onClick={() =>
-              friendId && friendId !== "undefined"
-                ? navigate(`/friends`)
-                : navigate(-1)
-            }
+            onClick={() => onBackNavigate && onBackNavigate()}
             sx={{
               backgroundColor: "#1b1b1b",
               borderRadius: "8px",
@@ -61,13 +58,14 @@ const RangePeriodNavigator = ({
               px: 1.5,
               py: 0.75,
               textTransform: "none",
-              fontSize: "0.8rem",
+              fontSize: isMobile ? "0.7rem" : "0.8rem",
+              minHeight: 36,
               "&:hover": { backgroundColor: "#28282a" },
             }}
           >
             <svg
-              width="24"
-              height="24"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -83,24 +81,30 @@ const RangePeriodNavigator = ({
             Back
           </Button>
         )}
-        {rangeTypes.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => {
-              if (activeRange === tab.value) {
-                onResetSelection && onResetSelection();
-              }
-              setActiveRange(tab.value);
-            }}
-            className={`px-4 py-2 rounded font-semibold flex items-center gap-2 ${
-              activeRange === tab.value
-                ? "bg-[#00DAC6] text-black"
-                : "bg-[#29282b] text-white"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        <div
+          className="flex items-center"
+          style={{ gap: 12, marginLeft: showBackButton ? 4 : 0 }}
+        >
+          {rangeTypes.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => {
+                if (activeRange === tab.value) {
+                  onResetSelection && onResetSelection();
+                }
+                setActiveRange(tab.value);
+              }}
+              className={`px-4 py-2 rounded font-semibold flex items-center gap-2 ${
+                activeRange === tab.value
+                  ? "bg-[#00DAC6] text-black"
+                  : "bg-[#29282b] text-white"
+              }`}
+              style={{ transition: "background-color 0.2s" }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="flex justify-between items-center mb-2">
         <button

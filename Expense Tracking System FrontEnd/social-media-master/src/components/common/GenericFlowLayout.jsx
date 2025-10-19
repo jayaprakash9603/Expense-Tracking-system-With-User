@@ -65,6 +65,8 @@ const GenericFlowLayout = ({
     isFriendView,
     addNewOptions,
     navItems,
+    showBackButton,
+    onPageBack,
   },
   components: {
     ChartComponent,
@@ -146,9 +148,8 @@ const GenericFlowLayout = ({
         clearSelection={clearSelection}
       />
       <RangePeriodNavigator
-        isFriendView={isFriendView}
-        friendId={friendId}
-        navigate={navigate}
+        showBackButton={showBackButton}
+        onBackNavigate={onPageBack}
         rangeTypes={rangeTypes}
         activeRange={activeRange}
         setActiveRange={setActiveRange}
@@ -221,6 +222,8 @@ const GenericFlowLayout = ({
         navigate={navigate}
         addNewOptions={addNewOptions}
         placeholder="Search expenses..."
+        // Use 'expenses' as origin so other flows back button returns to the main expenses view
+        currentFlow="expenses"
       />
       <SortPopover
         open={popoverOpen}

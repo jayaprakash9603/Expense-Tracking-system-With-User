@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import usePaymentMethodFlowData from "../../hooks/usePaymentMethodFlowData";
 import {
@@ -35,6 +35,20 @@ const PaymentMethodFlow = () => {
   } = usePaymentMethodFlowData({ friendId, isFriendView, search });
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Back button appears if navigated from another flow (location.state.fromFlow) or in friend view.
+  const originFlow = location?.state?.fromFlow;
+  const showBackButton = isFriendView || Boolean(originFlow);
+  const handlePageBack = () => {
+    if (originFlow) {
+      // Navigate back to the originating flow route
+      navigate(`/${originFlow}`);
+      return;
+    }
+    if (friendId && friendId !== "undefined")
+      navigate(`/friends/expenses/${friendId}`);
+    else navigate("/expenses");
+  };
   const { hasWriteAccess } = useFriendAccess(friendId);
   const [createPaymentMethodModalOpen, setCreatePaymentMethodModalOpen] =
     useState(false);
@@ -116,6 +130,8 @@ const PaymentMethodFlow = () => {
       onDeleteAction={(id, frId) => dispatch(deletePaymentMethod(id, frId))}
       onRefresh={onRefresh}
       navigate={navigate}
+      showBackButton={showBackButton}
+      onPageBack={handlePageBack}
     />
   );
 };
