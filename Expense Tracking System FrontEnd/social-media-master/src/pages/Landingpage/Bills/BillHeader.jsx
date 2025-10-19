@@ -6,6 +6,7 @@ import {
   MenuList,
   MenuItem,
   Typography,
+  Button,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -28,6 +29,11 @@ const BillHeader = ({
 }) => {
   const open = Boolean(menuAnchorEl);
 
+  const handleDirectCreateBill = () => {
+    // Utilize existing menu routing logic by calling onMenuItemClick with 'new'
+    onMenuItemClick("new");
+  };
+
   return (
     <>
       {!hideBackButton && (
@@ -47,7 +53,40 @@ const BillHeader = ({
         </Box>
       )}
 
-      <Box sx={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        {hasWriteAccess && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleDirectCreateBill}
+            sx={{
+              backgroundColor: "#14b8a6",
+              color: "white",
+              fontWeight: 600,
+              px: 2.5,
+              py: 1,
+              borderRadius: 2,
+              textTransform: "none",
+              fontSize: "0.85rem",
+              minHeight: "40px",
+              boxShadow: "none",
+              "&:hover": { backgroundColor: "#0d9488" },
+              "@media (max-width:600px)": { display: "none" },
+            }}
+          >
+            Create Bill
+          </Button>
+        )}
         <IconButton
           sx={{
             color: "#00DAC6",
