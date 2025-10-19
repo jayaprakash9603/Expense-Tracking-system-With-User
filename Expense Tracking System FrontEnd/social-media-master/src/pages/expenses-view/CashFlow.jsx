@@ -32,6 +32,7 @@ import {
   formatNumberFull,
 } from "../../utils/numberFormatters";
 
+// Relocated Cashflow component (was in pages/Landingpage). Functionality unchanged.
 const Cashflow = () => {
   const [search, setSearch] = useState("");
   const [popoverOpen, setPopoverOpen] = useState(false);
