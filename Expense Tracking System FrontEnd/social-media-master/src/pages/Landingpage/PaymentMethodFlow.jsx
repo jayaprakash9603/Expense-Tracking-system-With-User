@@ -36,7 +36,6 @@ import {
   DialogTitle,
   Button,
   Fab,
-  CircularProgress,
   Box,
 } from "@mui/material";
 
@@ -45,8 +44,16 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import FilterListIcon from "@mui/icons-material/FilterList";
+import FilterListIcon from "@mui/icons-material/FilterList"; // retained for other usage if any
+import SearchNavigationBar from "../../components/cashflow/SearchNavigationBar";
 import { createPortal } from "react-dom";
+import {
+  rangeTypes,
+  flowTypeCyclePaymentMethod as flowTypeCycle,
+  yearMonths,
+  getRangeLabel,
+} from "../../utils/flowDateUtils";
+import RangePeriodNavigator from "../../components/common/RangePeriodNavigator";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import recentPng from "../../assests/recent.png";
@@ -57,124 +64,21 @@ import {
   fetchFriendship,
   fetchFriendsDetailed,
 } from "../../Redux/Friends/friendsActions";
-import ToastNotification from "./ToastNotification";
+import DeletionConfirmationWithToast from "../../components/common/DeletionConfirmationWithToast";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 import SortIcon from "@mui/icons-material/Sort";
 import AddIcon from "@mui/icons-material/Add";
-import ReportIcon from "@mui/icons-material/Report";
+// ReportIcon removed (unused)
 import { DataGrid } from "@mui/x-data-grid";
-import Modal from "./Modal";
+// Modal now provided via DeletionConfirmationWithToast
 import {
   deletePaymentMethod,
   fetchPaymentMethodsWithExpenses,
 } from "../../Redux/Payment Method/paymentMethod.action";
 import CreatePaymentMethod from "./CreatePaymentMethod";
 import NoDataPlaceholder from "../../components/NoDataPlaceholder";
-
-const rangeTypes = [
-  { label: "Week", value: "week" },
-  { label: "Month", value: "month" },
-  { label: "Year", value: "year" },
-];
-
-const flowTypeCycle = [
-  { label: "All Expenses", value: "all", color: "bg-[#5b7fff] text-white" },
-  { label: "Income", value: "inflow", color: "bg-[#06D6A0] text-black" },
-  { label: "Expenses", value: "outflow", color: "bg-[#FF6B6B] text-white" },
-];
-
-const getRangeLabel = (range, offset, flowType) => {
-  const now = dayjs();
-  let start, end, label;
-  if (range === "week") {
-    start = now.startOf("week").add(offset, "week");
-    end = now.endOf("week").add(offset, "week");
-    if (offset === 0) {
-      label = `Payment Methods this week`;
-    } else {
-      label = `${start.format("D MMM")} - ${end.format("D MMM, YYYY")}`;
-    }
-  } else if (range === "month") {
-    start = now.startOf("month").add(offset, "month");
-    end = now.endOf("month").add(offset, "month");
-    if (offset === 0) {
-      label = `Payment Methods this month`;
-    } else {
-      label = `${start.format("MMM YYYY")}`;
-    }
-  } else if (range === "year") {
-    start = now.startOf("year").add(offset, "year");
-    end = now.endOf("year").add(offset, "year");
-    if (offset === 0) {
-      label = `Payment Methods this year`;
-    } else {
-      label = `${start.format("YYYY")}`;
-    }
-  }
-  return label;
-};
-
-// Period labels (optional; we dynamically build labels per range)
-const yearMonths = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-const PaymentMethodSearchToolbar = ({
-  search,
-  setSearch,
-  onFilterClick,
-  filterRef,
-  isMobile,
-  isTablet,
-}) => (
-  <div
-    style={{
-      display: "flex",
-      gap: 8,
-      padding: isMobile ? 6 : 8,
-      alignItems: "center",
-      width: "100%",
-      maxWidth: isMobile ? "220px" : isTablet ? "280px" : "320px",
-    }}
-  >
-    <input
-      type="text"
-      placeholder="Search Payment Method..."
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      style={{
-        backgroundColor: "#1b1b1b",
-        color: "#ffffff",
-        borderRadius: 8,
-        fontSize: isMobile ? "0.7rem" : "0.75rem",
-        border: "1px solid #00dac6",
-        padding: isMobile ? "6px 10px" : "8px 16px",
-        width: "100%",
-        outline: "none",
-      }}
-    />
-    <IconButton
-      sx={{ color: "#00dac6", flexShrink: 0, p: isMobile ? 0.5 : 1 }}
-      onClick={onFilterClick}
-      ref={filterRef}
-    >
-      <FilterListIcon fontSize={isMobile ? "small" : "small"} />
-    </IconButton>
-  </div>
-);
 
 // Custom active shape for pie chart
 const renderActiveShape = (props) => {
@@ -287,9 +191,6 @@ const PaymentMethodFlow = () => {
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [selectedMenuPaymentMethod, setSelectedMenuPaymentMethod] =
     useState(null);
-  // Add New popover state (mirrors CashFlow / CategoryFlow)
-  const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
-  const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const dispatch = useDispatch();
   const { paymentMethodExpenses, loading } = useSelector(
     (state) => state.paymentMethod
@@ -336,30 +237,6 @@ const PaymentMethodFlow = () => {
     );
   }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView]);
 
-  // Close Add New popover on outside click / ESC
-  useEffect(() => {
-    if (!addNewPopoverOpen) return;
-    const handleClick = (e) => {
-      const pop = document.querySelector('[data-popover="add-new"]');
-      // if click target is neither the trigger button nor inside the popover
-      if (
-        addNewBtnRef &&
-        !addNewBtnRef.contains(e.target) &&
-        (!pop || (pop && !pop.contains(e.target)))
-      ) {
-        setAddNewPopoverOpen(false);
-      }
-    };
-    const handleKey = (e) => {
-      if (e.key === "Escape") setAddNewPopoverOpen(false);
-    };
-    document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, [addNewPopoverOpen, addNewBtnRef]);
   // Load friendship + friends list if in friend view
   useEffect(() => {
     if (isFriendView) {
@@ -439,7 +316,7 @@ const PaymentMethodFlow = () => {
     setPopoverOpen(false);
   };
 
-  const rangeLabel = getRangeLabel(activeRange, offset, flowTab);
+  const rangeLabel = getRangeLabel(activeRange, offset, "paymentMethod");
 
   // Route change handler for FriendInfoBar (switching friends)
   const handleRouteChange = async (newFriendId) => {
@@ -1242,89 +1119,32 @@ const PaymentMethodFlow = () => {
           minWidth: 0,
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mb: 2,
-          }}
-        >
-          <div className="flex  flex-start gap-4">
-            {!hideBackButton && (
-              <Button
-                variant="contained"
-                sx={{
-                  backgroundColor: "#1b1b1b",
-                  borderRadius: "8px",
-                  color: "#00DAC6",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  padding: "8px 8px",
-                  "&:hover": {
-                    backgroundColor: "#28282a",
-                  },
-                }}
-                onClick={() =>
-                  friendId && friendId !== "undefined"
-                    ? navigate(`/friends/expenses/${friendId}`)
-                    : navigate(-1)
-                }
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15 18L9 12L15 6"
-                    stroke="#00DAC6"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                Back
-              </Button>
-            )}
-            {rangeTypes.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => {
-                  setActiveRange(tab.value);
-                }}
-                className={`px-4 py-2 rounded font-semibold flex items-center gap-2 ${
-                  activeRange === tab.value
-                    ? "bg-[#00DAC6] text-black"
-                    : "bg-[#29282b] text-white"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </Box>
-        <ToastNotification
-          open={toastOpen}
-          message={toastMessage}
-          onClose={handleToastClose}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-          autoHideDuration={5000}
+        <RangePeriodNavigator
+          isFriendView={!hideBackButton}
+          friendId={friendId}
+          navigate={navigate}
+          rangeTypes={rangeTypes}
+          activeRange={activeRange}
+          setActiveRange={setActiveRange}
+          offset={offset}
+          handleBack={() => setOffset((p) => p - 1)}
+          handleNext={() => setOffset((p) => p + 1)}
+          rangeLabel={rangeLabel}
+          disablePrevAt={-52}
+          disableNextAt={0}
+          isMobile={isMobile}
         />
-
-        {/* Delete Confirmation Dialog */}
-        <Modal
-          isOpen={deleteDialogOpen}
-          onClose={handleDeleteCancelModal}
-          title="Delete Payment Method"
-          confirmationText="Are you sure you want to delete this payment method?"
+        <DeletionConfirmationWithToast
+          toastOpen={toastOpen}
+          toastMessage={toastMessage}
+          onToastClose={handleToastClose}
+          isDeleteModalOpen={deleteDialogOpen}
+          isDeleting={isDeleting}
           onApprove={handleDeleteConfirm}
           onDecline={handleDeleteCancelModal}
           approveText="Delete"
           declineText="Cancel"
+          confirmationText="Are you sure you want to delete this payment method?"
         />
 
         {/* Create Payment Method Dialog */}
@@ -1422,34 +1242,7 @@ const PaymentMethodFlow = () => {
         
       </div> */}
 
-        {/* Navigation Controls */}
-        <div className="flex justify-between items-center mt-4 mb-2">
-          <button
-            onClick={handleBack}
-            disabled={offset <= -52}
-            className={`px-3 py-1 rounded text-lg flex items-center ${
-              offset <= -52
-                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                : "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-            }`}
-            aria-label="Previous"
-          >
-            &#8592;
-          </button>
-          <span className="text-white text-sm">{rangeLabel}</span>
-          <button
-            onClick={handleNext}
-            disabled={offset >= 0}
-            className={`px-3 py-1 rounded text-lg flex items-center ${
-              offset >= 0
-                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                : "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-            }`}
-            aria-label="Next"
-          >
-            &#8594;
-          </button>
-        </div>
+        {/* Navigation handled inside RangePeriodNavigator */}
 
         {/* Payment Method distribution as a multi-bar stacked chart (replaces Pie) */}
         <div
@@ -1544,232 +1337,49 @@ const PaymentMethodFlow = () => {
         {/* Only show search bar and payment method cards when not showing expense table */}
         {!showExpenseTable && (
           <>
-            {/* Search Bar */}
-            <div
-              className="flex justify-start mt-2 mb-2"
-              style={{
-                flexDirection: isMobile ? "column" : "row",
-                gap: isMobile ? 8 : 0,
-                flexWrap: "wrap",
-              }}
-            >
-              <PaymentMethodSearchToolbar
-                search={search}
-                setSearch={setSearch}
-                onFilterClick={() => setPopoverOpen((v) => !v)}
-                filterRef={filterBtnRef}
-                isMobile={isMobile}
-                isTablet={isTablet}
-              />
-              {/* Navigation Buttons to match CashFlow */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginLeft: isMobile ? 0 : "8px",
-                  flexShrink: 0,
-                  gap: isMobile ? "6px" : "8px",
-                  flexWrap: isMobile ? "wrap" : "nowrap",
-                }}
-              >
-                {[
-                  // {
-                  //   path: "/transactions",
-                  //   icon: "history.png",
-                  //   label: "History",
-                  // },
-                  {
-                    path: "/payment-method/reports",
-                    icon: "report.png",
-                    label: "Reports",
-                  },
-                  { path: "/budget", icon: "budget.png", label: "Budget" },
-                  {
-                    path: "/category-flow",
-                    icon: "category.png",
-                    label: "Categories",
-                  },
-                  {
-                    path: "/bill",
-                    icon: "bill.png",
-                    label: "Bill",
-                  },
-                ].map(({ path, icon, label }) => (
-                  <button
-                    key={path}
-                    onClick={() => {
-                      const target = isFriendView
-                        ? `${path}/${friendId}`
-                        : path;
-                      navigate(target);
-                    }}
-                    className="nav-button"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: isMobile ? "6px" : "6px",
-                      padding: isMobile ? "6px 8px" : "8px 10px",
-                      backgroundColor: "#1b1b1b",
-                      border: "1px solid #333",
-                      borderRadius: "8px",
-                      color: "#00DAC6",
-                      fontSize: isMobile ? "12px" : "14px",
-                      fontWeight: "500",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      minWidth: "fit-content",
-                    }}
-                  >
-                    <img
-                      src={require(`../../assests/${icon}`)}
-                      alt={label}
-                      style={{
-                        width: isMobile ? 16 : 18,
-                        height: isMobile ? 16 : 18,
-                        filter:
-                          "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                        transition: "filter 0.2s ease",
-                      }}
-                    />
-                    {!isMobile && <span>{label}</span>}
-                  </button>
-                ))}
-                {/* Add New - only show if user has write/full access (or own view) */}
-                {hasWriteAccess && (
-                  <button
-                    ref={setAddNewBtnRef}
-                    onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                      padding: isMobile ? "6px 8px" : "6px 8px",
-                      backgroundColor: "#1b1b1b",
-                      border: "1px solid #333",
-                      borderRadius: "6px",
-                      color: "#00DAC6",
-                      fontSize: isMobile ? "11px" : "12px",
-                      fontWeight: "500",
-                      cursor: "pointer",
-                      minWidth: "fit-content",
-                    }}
-                    disabled={!hasWriteAccess}
-                    title={
-                      hasWriteAccess
-                        ? "Add Payment Method, budget, category or upload file"
-                        : "You have read-only access"
-                    }
-                  >
-                    <img
-                      src={require("../../assests/add.png")}
-                      alt="Add"
-                      style={{
-                        width: isMobile ? 14 : 16,
-                        height: isMobile ? 14 : 16,
-                        filter:
-                          "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                        transition: "filter 0.2s ease",
-                      }}
-                    />
-                    {!isMobile && <span>Add New</span>}
-                  </button>
-                )}
-
-                {/* Simplified Add New Popover */}
-                {addNewPopoverOpen &&
-                  hasWriteAccess &&
-                  addNewBtnRef &&
-                  createPortal(
-                    <div
-                      data-popover="add-new"
-                      style={{
-                        position: "fixed",
-                        top:
-                          addNewBtnRef.getBoundingClientRect().bottom +
-                          4 +
-                          window.scrollY,
-                        left:
-                          addNewBtnRef.getBoundingClientRect().left +
-                          window.scrollX,
-                        zIndex: 1000,
-                        background: "#0b0b0b",
-                        border: "1px solid #333",
-                        borderRadius: 6,
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                        minWidth: 140,
-                        padding: 4,
-                      }}
-                    >
-                      {[
-                        {
-                          label: "Add Payment Method",
-                          route: isFriendView
-                            ? `/payment-method/create/${friendId}`
-                            : "/payment-method/create",
-                          color: "#00DAC6",
-                        },
-                        {
-                          label: "Upload File",
-                          route: isFriendView
-                            ? `/upload/payments/${friendId}`
-                            : "/upload/payments",
-                          color: "#5b7fff",
-                        },
-                      ].map((item, idx) => (
-                        <button
-                          key={idx}
-                          style={{
-                            display: "block",
-                            width: "100%",
-                            background: "transparent",
-                            color: item.color,
-                            border: "none",
-                            textAlign: "left",
-                            padding: "8px 10px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                            borderRadius: 4,
-                          }}
-                          onClick={() => {
-                            navigate(item.route);
-                            setAddNewPopoverOpen(false);
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background = item.color;
-                            e.target.style.color =
-                              item.color === "#FFC107" ? "#000" : "#fff";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = "transparent";
-                            e.target.style.color = item.color;
-                          }}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>,
-                    document.body
-                  )}
-              </div>
-              <style>{`
-                .nav-button:hover {
-                  background-color: #00dac6 !important;
-                  color: #000 !important;
-                  border-color: #00dac6 !important;
-                }
-                .nav-button:hover img {
-                  filter: brightness(0) saturate(100%) invert(0%) !important;
-                }
-                .nav-button:hover svg circle,
-                .nav-button:hover svg path {
-                  stroke: #000 !important;
-                }
-                .nav-button:hover span {
-                  color: #000 !important;
-                }
-                .nav-button:active { transform: scale(0.98); }
-              `}</style>
-            </div>
+            <SearchNavigationBar
+              search={search}
+              setSearch={setSearch}
+              onFilterToggle={() => setPopoverOpen((v) => !v)}
+              filterRef={filterBtnRef}
+              isMobile={isMobile}
+              isTablet={isTablet}
+              placeholder="Search Payment Method..."
+              navItems={[
+                {
+                  path: "/payment-method/reports",
+                  icon: "report.png",
+                  label: "Reports",
+                },
+                { path: "/budget", icon: "budget.png", label: "Budget" },
+                {
+                  path: "/category-flow",
+                  icon: "category.png",
+                  label: "Categories",
+                },
+                { path: "/bill", icon: "bill.png", label: "Bill" },
+              ]}
+              friendId={friendId}
+              isFriendView={isFriendView}
+              hasWriteAccess={hasWriteAccess}
+              navigate={navigate}
+              addNewOptions={[
+                {
+                  label: "Add Payment Method",
+                  route: isFriendView
+                    ? `/payment-method/create/${friendId}`
+                    : "/payment-method/create",
+                  color: "#00DAC6",
+                },
+                {
+                  label: "Upload File",
+                  route: isFriendView
+                    ? `/upload/payments/${friendId}`
+                    : "/upload/payments",
+                  color: "#5b7fff",
+                },
+              ]}
+            />
             {/* Sort Popover */}
             {popoverOpen &&
               filterBtnRef.current &&
@@ -2097,12 +1707,7 @@ const PaymentMethodFlow = () => {
               </MenuItem>
             </Menu>
 
-            {/* Loader Overlay */}
-            {isDeleting && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <CircularProgress sx={{ color: "#00dac6" }} />
-              </div>
-            )}
+            {/* Loader overlay removed; spinner now handled in approve button */}
           </>
         )}
 

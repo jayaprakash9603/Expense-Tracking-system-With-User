@@ -6,20 +6,8 @@ import React, {
   useCallback,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  ReferenceLine,
-  Label,
-  LabelList,
-  Customized,
-} from "recharts";
+// Recharts usage moved entirely into CashFlowChart component
+import CashFlowChart from "../../components/CashFlowChart";
 import {
   fetchCashflowExpenses,
   deleteExpenseAction,
@@ -43,14 +31,28 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import recentPng from "../../assests/recent.png";
 import CalendarViewMonthIcon from "@mui/icons-material/CalendarViewMonth";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import ToastNotification from "./ToastNotification";
+import ToastNotification from "./ToastNotification"; // kept for other potential usages
+import DeletionConfirmationWithToast from "../../components/common/DeletionConfirmationWithToast";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Modal from "./Modal";
 // removed image imports for flow icons to use inline SVGs for cleaner, scalable UI
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
+import {
+  rangeTypes,
+  flowTypeCycleDefault as flowTypeCycle,
+  weekDays,
+  monthDays,
+  yearMonths,
+  getRangeLabel,
+} from "../../utils/flowDateUtils";
+import RangePeriodNavigator from "../../components/common/RangePeriodNavigator";
 import NoDataPlaceholder from "../../components/NoDataPlaceholder";
+import CashFlowExpenseCards from "../../components/cashflow/CashFlowExpenseCards";
+import QuickNavBar from "../../components/cashflow/QuickNavBar";
+import SummaryPill from "../../components/cashflow/SummaryPill";
+import SearchToolbar from "../../components/common/SearchToolbar";
 // Friend related imports
 import FriendInfoBar from "./FriendInfoBar";
 import {
@@ -58,166 +60,26 @@ import {
   fetchFriendsDetailed,
 } from "../../Redux/Friends/friendsActions";
 import { canWrite } from "../../utils/accessControl";
+import SortPopover from "../../components/cashflow/SortPopover";
+import NavigationActions from "../../components/cashflow/NavigationActions";
+import SearchNavigationBar from "../../components/cashflow/SearchNavigationBar";
 
-const rangeTypes = [
-  { label: "Week", value: "week" },
-  { label: "Month", value: "month" },
-  { label: "Year", value: "year" },
-];
-
-const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const monthDays = Array.from({ length: 31 }, (_, i) => `${i + 1}`);
-const yearMonths = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-// Format range label per new requirements (month: full date range, week: week range, year: year only)
-const getRangeLabel = (range, offset) => {
-  const base = dayjs();
-  if (range === "month") {
-    const start = base.startOf("month").add(offset, "month");
-    const end = base.endOf("month").add(offset, "month");
-    if (offset === 0) {
-      // Current month label format: This Month (Sep 25)
-      return `This Month (${base.format("MMM YY")})`;
-    }
-    return `${start.format("D MMM YYYY")} - ${end.format("D MMM YYYY")}`;
-  }
-  if (range === "week") {
-    const start = base.startOf("week").add(offset, "week");
-    const end = base.endOf("week").add(offset, "week");
-    // Show concise range without redundant year if same year
-    if (start.year() === end.year()) {
-      return `${start.format("D MMM")} - ${end.format("D MMM YYYY")}`;
-    }
-    return `${start.format("D MMM YYYY")} - ${end.format("D MMM YYYY")}`;
-  }
-  if (range === "year") {
-    const year = base.startOf("year").add(offset, "year").year();
-    return `${year}`;
-  }
-  return "";
-};
-
-const CashflowSearchToolbar = ({
-  search,
-  setSearch,
-  onFilterClick,
-  filterRef,
-  isMobile,
-  isTablet,
-}) => (
-  <div
-    style={{
-      display: "flex",
-      gap: 8,
-      padding: isMobile ? 6 : 8,
-      alignItems: "center",
-      width: "100%",
-      maxWidth: isMobile ? "220px" : isTablet ? "280px" : "320px",
-    }}
-  >
-    <input
-      type="text"
-      placeholder="Search expenses..."
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      style={{
-        backgroundColor: "#1b1b1b",
-        color: "#ffffff",
-        borderRadius: 8,
-        fontSize: isMobile ? "0.7rem" : "0.75rem",
-        border: "1px solid #00dac6",
-        padding: isMobile ? "6px 10px" : "8px 16px",
-        width: "100%",
-        outline: "none",
-      }}
-    />
-    <IconButton
-      sx={{ color: "#00dac6", flexShrink: 0, p: isMobile ? 0.5 : 1 }}
-      onClick={onFilterClick}
-      ref={filterRef}
-    >
-      <FilterListIcon fontSize={isMobile ? "small" : "small"} />
-    </IconButton>
-  </div>
-);
-
-const flowTypeCycle = [
-  { label: "Money In & Out", value: "all", color: "bg-[#5b7fff] text-white" },
-  { label: "Money In", value: "inflow", color: "bg-[#06D6A0] text-black" },
-  { label: "Money Out", value: "outflow", color: "bg-[#FF6B6B] text-white" },
-];
-
-// Small pill for selection summary values (basic pill reused inside enhanced bar)
-const SummaryPill = ({ label, value, icon }) => (
-  <span
-    style={{
-      background: "#1b1b1b",
-      border: "1px solid #262626",
-      borderRadius: 8,
-      padding: "6px 10px",
-      fontSize: 11,
-      fontWeight: 600,
-      color: "#cfd3d8",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 6,
-      lineHeight: 1.15,
-      position: "relative",
-      minHeight: 30,
-      boxShadow:
-        "0 2px 4px -1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.03)",
-    }}
-  >
-    {icon && (
-      <span
-        style={{
-          fontSize: 13,
-          opacity: 0.9,
-          display: "inline-flex",
-          alignItems: "center",
-        }}
-      >
-        {icon}
-      </span>
-    )}
-    <span style={{ opacity: 0.55, fontWeight: 500 }}>{label}</span>
-    <span style={{ color: "#00dac6", fontVariantNumeric: "tabular-nums" }}>
-      {value}
-    </span>
-  </span>
-);
-
+// Main component
 const Cashflow = () => {
-  const [activeRange, setActiveRange] = useState("month"); // Default to month on mount
+  const [activeRange, setActiveRange] = useState("month");
   const [offset, setOffset] = useState(0);
-  const [flowTab, setFlowTab] = useState("all"); // Start with 'all'
+  const [flowTab, setFlowTab] = useState("all");
   const [search, setSearch] = useState("");
-  // Legacy single selection kept for compatibility; new multi-select uses selectedBars
-  const [selectedBar, setSelectedBar] = useState(null); // last clicked (primary) bar
-  const [selectedBars, setSelectedBars] = useState([]); // array of { idx, data }
-  const [lastBarSelectedIdx, setLastBarSelectedIdx] = useState(null); // anchor for shift selection
-  // Track which bar user is hovering (via activeTooltipIndex) so even tiny bars can be clicked
+  const [selectedBar, setSelectedBar] = useState(null);
+  const [selectedBars, setSelectedBars] = useState([]);
+  const [lastBarSelectedIdx, setLastBarSelectedIdx] = useState(null);
   const [hoverBarIndex, setHoverBarIndex] = useState(null);
-  const [selectedCardIdx, setSelectedCardIdx] = useState([]); // Change from null to an array
-  const [lastSelectedIdx, setLastSelectedIdx] = useState(null); // For shift selection
+  const [selectedCardIdx, setSelectedCardIdx] = useState([]);
+  const [lastSelectedIdx, setLastSelectedIdx] = useState(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sortType, setSortType] = useState("recent");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
-  // Enhanced summary bar toggle (collapsed by default on very small screens)
   const [summaryExpanded, setSummaryExpanded] = useState(true);
   const [expenseData, setExpenseData] = useState({});
   const dispatch = useDispatch();
@@ -233,78 +95,36 @@ const Cashflow = () => {
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const { friendId } = useParams();
   const isFriendView = Boolean(friendId && friendId !== "undefined");
-  // Current user id (adjust selectors if auth slice differs)
   const currentUserId = useSelector(
     (s) => s.auth?.user?.id || s.auth?.userId || null
   );
   const { hasWriteAccess } = useFriendAccess(friendId);
-  // Compact number formatter: 1.2k, 3.4M, 1B
   const formatCompactNumber = (value) => {
     if (value === null || value === undefined || isNaN(value)) return "0";
     const abs = Math.abs(value);
     const sign = value < 0 ? "-" : "";
-    if (abs >= 1e9) {
-      const v = +(value / 1e9).toFixed(abs >= 1e10 ? 0 : 1);
-      return `${sign}${v.toString().replace(/\.0$/, "")}B`;
-    }
-    if (abs >= 1e6) {
-      const v = +(value / 1e6).toFixed(abs >= 1e7 ? 0 : 1);
-      return `${sign}${v.toString().replace(/\.0$/, "")}M`;
-    }
-    if (abs >= 1e3) {
-      const v = +(value / 1e3).toFixed(abs >= 1e4 ? 0 : 1);
-      return `${sign}${v.toString().replace(/\.0$/, "")}k`;
-    }
-    // Show two decimals for fractional amounts, otherwise integer
+    if (abs >= 1e9) return sign + (abs / 1e9).toFixed(1) + "B";
+    if (abs >= 1e6) return sign + (abs / 1e6).toFixed(1) + "M";
+    if (abs >= 1e3) return sign + (abs / 1e3).toFixed(1) + "k";
     return value % 1 === 0
       ? `${sign}${Math.round(abs)}`
       : `${sign}${abs.toFixed(2)}`;
   };
-
-  // Return compact formatted number without currency symbol
   const formatCurrencyCompact = (value) => formatCompactNumber(value);
-
-  // Full numeric formatter for labels (e.g. 12,345 or 12.34)
   const formatNumberFull = (value) => {
     if (value === null || value === undefined || isNaN(value)) return "0";
-    // If integer, show with thousand separators
     if (Number.isInteger(value)) return value.toLocaleString();
-    // Otherwise show up to 2 decimal places
     return value.toLocaleString(undefined, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
   };
-  // Removed isFiltering; search is client-side only
   const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
   const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const [confirmationText, setConfirmationText] = useState("");
-  // Controls a brief shrink animation when the flow button is clicked
   const [shrinkFlowBtn, setShrinkFlowBtn] = useState(false);
+
   useEffect(() => {
-    if (location.state && location.state.selectedCategory) {
-      // Set the range type and offset from the navigation state if available
-      if (location.state.rangeType) {
-        setActiveRange(location.state.rangeType);
-      }
-      if (location.state.offset !== undefined) {
-        setOffset(location.state.offset);
-      }
-      if (location.state.flowType) {
-        setFlowTab(location.state.flowType);
-      }
-
-      // Set search to filter by the selected category
-      setSearch(location.state.selectedCategory);
-
-      // Clear the navigation state to prevent reapplying on refresh
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
-
-  // Fetch data on range/offset/flow changes; search is client-side only
-  useEffect(() => {
-    // Friend view adds friendId param, category filter still derived from search client-side
     dispatch(
       fetchCashflowExpenses(
         activeRange,
@@ -369,7 +189,7 @@ const Cashflow = () => {
     setPopoverOpen(false);
   };
 
-  const rangeLabel = getRangeLabel(activeRange, offset);
+  const rangeLabel = getRangeLabel(activeRange, offset, "cashflow");
 
   // Adjust bar chart styles based on screen size
   const barChartStyles = {
@@ -850,417 +670,8 @@ const Cashflow = () => {
     setExpenseData({});
   };
 
-  // Render bar chart
-  const renderBarChart = () => (
-    <ResponsiveContainer width="100%" height={isMobile ? "100%" : "100%"}>
-      <BarChart
-        data={chartData}
-        barWidth={barChartStyles.barWidth}
-        hideNumbers={barChartStyles.hideNumbers}
-        margin={{ right: isMobile ? 0 : 40 }}
-        // Use mouse move to capture activeTooltipIndex (works even if bar value ~0)
-        onMouseMove={(state) => {
-          if (state && typeof state.activeTooltipIndex === "number") {
-            setHoverBarIndex(state.activeTooltipIndex);
-          } else {
-            setHoverBarIndex(null);
-          }
-        }}
-        onMouseLeave={() => setHoverBarIndex(null)}
-        // Chart-level click: if we have a hovered index, select that bar
-        onClick={(e) => {
-          if (hoverBarIndex !== null && chartData[hoverBarIndex]) {
-            const multi = e && (e.ctrlKey || e.metaKey);
-            const rangeSel = e && e.shiftKey;
-            handleBarClick(
-              chartData[hoverBarIndex],
-              hoverBarIndex,
-              multi,
-              rangeSel
-            );
-          }
-        }}
-        style={{ cursor: hoverBarIndex !== null ? "pointer" : "default" }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
-        {/** Custom clickable X axis tick so user can click anywhere on the date label area (not just the bar). */}
-        <XAxis
-          dataKey={xKey}
-          stroke="#b0b6c3"
-          tickLine={false}
-          axisLine={{ stroke: "#33384e" }}
-          height={50}
-          tick={(props) => {
-            const { x, y, payload, index } = props; // index corresponds to data index
-            const isSelected = selectedBars.some((b) => b.idx === index);
-            // Approximate band width for clickable rect (safer than relying on internals)
-            const band = barChartStyles.barWidth + (isMobile ? 8 : 12);
-            const selectedColor =
-              flowTab === "outflow"
-                ? "#ff4d4f"
-                : flowTab === "inflow"
-                ? "#06d6a0"
-                : "#5b7fff";
-            return (
-              <g
-                transform={`translate(${x},${y})`}
-                style={{ cursor: "pointer" }}
-                onClick={(e) => {
-                  const multi = e && (e.ctrlKey || e.metaKey);
-                  const rangeSel = e && e.shiftKey;
-                  if (chartData[index]) {
-                    handleBarClick(chartData[index], index, multi, rangeSel);
-                  }
-                  e.stopPropagation();
-                }}
-              >
-                {/* Invisible rectangle expands the hit area for easier clicking */}
-                <rect
-                  x={-band / 2}
-                  y={-(isMobile ? 26 : 30)}
-                  width={band}
-                  height={isMobile ? 34 : 40}
-                  fill="transparent"
-                />
-                <text
-                  dy={10}
-                  fill={isSelected ? selectedColor : "#b0b6c3"}
-                  fontSize={13}
-                  fontWeight={isSelected ? 800 : 600}
-                  textAnchor="middle"
-                >
-                  {payload?.value}
-                </text>
-              </g>
-            );
-          }}
-          label={
-            barChartStyles.hideAxisLabels
-              ? null
-              : {
-                  value:
-                    activeRange === "month"
-                      ? "Day"
-                      : activeRange === "week"
-                      ? "Weekday"
-                      : "Month",
-                  position: "insideBottomRight",
-                  offset: -5,
-                  fill: "#b0b6c3",
-                  fontWeight: 700,
-                  fontSize: 14,
-                  dy: -20,
-                  dx: 30,
-                }
-          }
-        />
-        <YAxis
-          stroke="#b0b6c3"
-          tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
-          axisLine={{ stroke: "#33384e" }}
-          tickLine={false}
-          label={
-            barChartStyles.hideAxisLabels
-              ? null
-              : {
-                  value: "Amount",
-                  angle: -90,
-                  position: "insideLeft",
-                  fill: "#b0b6c3",
-                  fontWeight: 700,
-                  fontSize: 14,
-                  dy: 40, // Move the Y axis label further left to avoid overlap
-                }
-          }
-          tickFormatter={(value) => formatCompactNumber(value)}
-          width={80} // Increase Y axis width for more space
-        />
-        <Tooltip
-          cursor={false}
-          contentStyle={{
-            background: "#23243a",
-            border: "1px solid #00dac6",
-            color: "#fff",
-            borderRadius: 8,
-            fontWeight: 500,
-          }}
-          labelStyle={{ color: "#00dac6", fontWeight: 700 }}
-          itemStyle={{ color: "#b0b6c3" }}
-          formatter={(value) => [formatCurrencyCompact(value), "Amount"]}
-          wrapperStyle={{ zIndex: 1000 }}
-          labelFormatter={(label, payload) => {
-            try {
-              if (!Array.isArray(payload) || payload.length === 0) return label;
-              if (activeRange === "year") {
-                const monthIdx = yearMonths.indexOf(String(label));
-                if (monthIdx >= 0) {
-                  const baseYear = dayjs().startOf("year").add(offset, "year");
-                  const monthStart = baseYear.month(monthIdx).startOf("month");
-                  const monthEnd = monthStart.endOf("month");
-                  return `${monthStart.format("MMM")} (${monthStart.format(
-                    "D MMM"
-                  )} - ${monthEnd.format("D MMM")})`;
-                }
-              } else if (activeRange === "month") {
-                const dayNum = parseInt(String(label), 10);
-                if (!isNaN(dayNum)) {
-                  const baseMonth = dayjs()
-                    .startOf("month")
-                    .add(offset, "month");
-                  const date = baseMonth.date(dayNum);
-                  return date.format("D MMM");
-                }
-              } else if (activeRange === "week") {
-                const idx = weekDays.indexOf(String(label));
-                if (idx >= 0) {
-                  // Compute Monday of the CURRENT week explicitly (independent of startOf('week') which is Sunday)
-                  // then apply the offset in weeks. This avoids accidental +1 week drift.
-                  const today = dayjs();
-                  const daysSinceMonday = (today.day() + 6) % 7; // 0 if Monday, 6 if Sunday
-                  const currentMonday = today.subtract(daysSinceMonday, "day");
-                  const monday = currentMonday.add(offset, "week");
-                  const date = monday.add(idx, "day");
-                  return `${date.format("ddd")}, ${date.format("D MMM")}`;
-                }
-              }
-            } catch (e) {
-              // silent fallback
-            }
-            return label;
-          }}
-        />
-        {/* Average line */}
-        {Array.isArray(chartData) &&
-          chartData.length > 0 &&
-          (() => {
-            // Calculate average only over the portion of the range that has passed
-            // (for the current period when offset === 0). For past/future offsets
-            // use the full range length.
-            let visibleCount = chartData.length;
-            if (offset === 0) {
-              if (activeRange === "year") {
-                // include months up to current month (month() is 0-based)
-                visibleCount = Math.min(chartData.length, dayjs().month() + 1);
-              } else if (activeRange === "month") {
-                // include days up to today
-                visibleCount = Math.min(chartData.length, dayjs().date());
-              } else if (activeRange === "week") {
-                // include weekdays up to today in Mon..Sun order
-                const todayIdx = (dayjs().day() + 6) % 7; // 0=Mon
-                visibleCount = Math.min(chartData.length, todayIdx + 1);
-              }
-            }
-            const total = chartData
-              .slice(0, visibleCount)
-              .reduce((s, item) => s + (item.amount || 0), 0);
-            const avg = visibleCount ? total / visibleCount : 0;
-            const labelText = `Avg ${formatCurrencyCompact(avg)}`;
-            return (
-              <ReferenceLine
-                y={avg}
-                stroke="#FFD54A"
-                strokeDasharray="4 4"
-                label={({ viewBox, x, y }) => {
-                  // Position the label near the right end of the line; fallback to x/y
-                  // move 30px to the right as requested
-                  const tx =
-                    ((viewBox && viewBox.x + viewBox.width - 8) || x || 0) + 35;
-                  const baseY =
-                    typeof y === "number"
-                      ? y
-                      : (viewBox && viewBox.y + viewBox.height / 2) || 0;
-                  // Two-line label: 'Avg' above, amount on the next line
-                  const labelYTop = baseY - 8; // slightly above the line
-                  const labelYBottom = baseY + 10; // below the top line
-                  return (
-                    <g style={{ pointerEvents: "none" }}>
-                      <text
-                        x={tx}
-                        y={labelYTop}
-                        fill="#FFD54A"
-                        fontWeight={700}
-                        fontSize={12}
-                        textAnchor="end"
-                      >
-                        Avg
-                      </text>
-                      <text
-                        x={tx}
-                        y={labelYBottom}
-                        fill="#FFD54A"
-                        fontWeight={700}
-                        fontSize={12}
-                        textAnchor="end"
-                      >
-                        {formatNumberFull(
-                          Number.isFinite(avg) ? Math.trunc(avg) : 0
-                        )}
-                      </text>
-                    </g>
-                  );
-                }}
-              />
-            );
-          })()}
-        <Bar
-          dataKey="amount"
-          fill="#5b7fff"
-          radius={[6, 6, 0, 0]}
-          maxBarSize={32}
-        >
-          {chartData.map((entry, idx) => {
-            const isSelected = selectedBars.some((b) => b.idx === idx);
-            const isHover = hoverBarIndex === idx && !isSelected;
-            return (
-              <Cell
-                key={idx}
-                fill={
-                  isSelected
-                    ? flowTab === "outflow"
-                      ? "#ff4d4f"
-                      : flowTab === "inflow"
-                      ? "#06d6a0"
-                      : "#5b7fff"
-                    : isHover
-                    ? "#7895ff"
-                    : "#5b7fff"
-                }
-                cursor={chartData.length > 0 ? "pointer" : "default"}
-                onClick={(e) => {
-                  if (!chartData.length) return;
-                  const multi = e && (e.ctrlKey || e.metaKey);
-                  const rangeSel = e && e.shiftKey;
-                  handleBarClick(entry, idx, multi, rangeSel);
-                  e.stopPropagation();
-                }}
-              />
-            );
-          })}
-          {/* Add value labels on top of bars */}
-          {!barChartStyles.hideNumbers && (
-            <LabelList
-              dataKey="amount"
-              position="top"
-              content={({ x, y, width, value }) => {
-                if (!value) return null; // Don't render label for 0
-                const labelY = y < 18 ? y + 14 : y - 6;
-                return (
-                  <text
-                    x={x + width / 2}
-                    y={labelY}
-                    fill="#fff"
-                    fontSize={11}
-                    textAnchor="middle"
-                  >
-                    {formatNumberFull(value)}
-                  </text>
-                );
-              }}
-            />
-          )}
-        </Bar>
-        {/* Transparent full-height clickable columns so user can click empty vertical space above tiny bars */}
-        <Customized
-          component={(props) => {
-            const { xAxisMap, offset } = props || {};
-            if (!xAxisMap || !chartData?.length) return null;
-            const axisKey = Object.keys(xAxisMap)[0];
-            const xAxisCfg = xAxisMap[axisKey];
-            const scale = xAxisCfg && xAxisCfg.scale;
-            if (!scale || typeof scale.bandwidth !== "function") return null;
-            const bandW = scale.bandwidth();
-            return (
-              <g>
-                {chartData.map((entry, idx) => {
-                  const xPos = scale(entry[xKey]);
-                  if (typeof xPos !== "number" || isNaN(xPos)) return null;
-                  const isSelected = selectedBars.some((b) => b.idx === idx);
-                  const isHover = hoverBarIndex === idx && !isSelected;
-                  return (
-                    <g key={`col-hit-${idx}`}>
-                      <rect
-                        x={xPos}
-                        y={offset.top}
-                        width={bandW}
-                        height={offset.height}
-                        fill={(function () {
-                          const base =
-                            flowTab === "outflow"
-                              ? "255,77,79"
-                              : flowTab === "inflow"
-                              ? "6,214,160"
-                              : "91,127,255";
-                          if (isSelected) return `rgba(${base},0.18)`;
-                          if (isHover) return `rgba(${base},0.12)`;
-                          return "transparent";
-                        })()}
-                        style={{
-                          cursor: "pointer",
-                          transition: "fill 100ms linear",
-                        }}
-                        onMouseEnter={() => setHoverBarIndex(idx)}
-                        onMouseLeave={() => setHoverBarIndex(null)}
-                        onClick={(e) => {
-                          const multi = e && (e.ctrlKey || e.metaKey);
-                          const rangeSel = e && e.shiftKey;
-                          handleBarClick(entry, idx, multi, rangeSel);
-                          e.stopPropagation();
-                        }}
-                      />
-                    </g>
-                  );
-                })}
-              </g>
-            );
-          }}
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-
-  // Friend switching helper
-  const handleRouteChange = async (newFriendId) => {
-    navigate(`/friends/expenses/${newFriendId}`);
-  };
-
-  const refreshData = async (newFriendId) => {
-    const targetId = newFriendId || friendId;
-    if (!targetId) return;
-    await Promise.all([
-      dispatch(fetchFriendship(targetId)),
-      dispatch(fetchFriendsDetailed()),
-      dispatch(
-        fetchCashflowExpenses(
-          activeRange,
-          offset,
-          flowTab === "all" ? null : flowTab,
-          null,
-          targetId
-        )
-      ),
-    ]);
-    setSelectedBar(null);
-    setSelectedBars([]);
-    setSelectedCardIdx([]);
-  };
-
   return (
     <>
-      {/* Friend info bar if in friend view */}
-      {/* {isFriendView && (
-        <FriendInfoBar
-          friendship={friendship}
-          friendId={friendId}
-          friends={friends || []}
-          loading={loading}
-          onRouteChange={handleRouteChange}
-          refreshData={refreshData}
-          showInfoBar={true}
-        />
-      )}
-      {!isFriendView && (
-        <div className={isMobile ? "h-[34px]" : "h-[50px]"}></div>
-      )} */}
       <div
         className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
         style={{
@@ -1278,52 +689,20 @@ const Cashflow = () => {
           minWidth: 0,
         }}
       >
-        <ToastNotification
-          open={toastOpen}
-          message={toastMessage}
-          onClose={handleToastClose}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }} // Adjusted position to top-center
-          autoHideDuration={5000} // Set duration to 5 seconds
-        />
-        <Modal
-          isOpen={isDeleteModalOpen}
-          onClose={isDeleting ? undefined : handleCancelDelete}
-          title="Deletion Confirmation"
-          data={expenseData}
+        <DeletionConfirmationWithToast
+          toastOpen={toastOpen}
+          toastMessage={toastMessage}
+          onToastClose={handleToastClose}
+          isDeleteModalOpen={isDeleteModalOpen}
+          isDeleting={isDeleting}
+          expenseData={expenseData}
           headerNames={headerNames}
           onApprove={handleConfirmDelete}
-          onDecline={isDeleting ? undefined : handleCancelDelete}
-          approveText={
-            isDeleting ? (
-              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span
-                  className="loader"
-                  style={{
-                    width: 18,
-                    height: 18,
-                    border: "2px solid #fff",
-                    borderTop: "2px solid #00DAC6",
-                    borderRadius: "50%",
-                    animation: "spin 1s linear infinite",
-                    display: "inline-block",
-                  }}
-                ></span>
-                Deleting...
-              </span>
-            ) : (
-              "Yes, Delete"
-            )
-          }
+          onDecline={handleCancelDelete}
+          approveText="Yes, Delete"
           declineText="No, Cancel"
           confirmationText={confirmationText}
-          disableActions={isDeleting}
         />
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
         {/* Flow Summary Pills (Money In / Money Out / In & Out) */}
         <div
           style={{
@@ -1725,94 +1104,25 @@ const Cashflow = () => {
           </div>
         )}
 
-        <div className="flex gap-4 mb-4">
-          {isFriendView && (
-            <Button
-              variant="contained"
-              onClick={() =>
-                friendId && friendId !== "undefined"
-                  ? navigate(`/friends`)
-                  : navigate("/expenses")
-              }
-              sx={{
-                backgroundColor: "#1b1b1b",
-                borderRadius: "8px",
-                color: "#00DAC6",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                px: 1.5,
-                py: 0.75,
-                textTransform: "none",
-                fontSize: "0.8rem",
-                "&:hover": { backgroundColor: "#28282a" },
-              }}
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15 18L9 12L15 6"
-                  stroke="#00DAC6"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Back
-            </Button>
-          )}
-          {rangeTypes.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => {
-                if (activeRange === tab.value) {
-                  setSelectedBar(null); // Reset bar selection if clicking the same tab
-                  setSelectedBars([]);
-                }
-                setActiveRange(tab.value);
-              }}
-              className={`px-4 py-2 rounded font-semibold flex items-center gap-2 ${
-                activeRange === tab.value
-                  ? "bg-[#00DAC6] text-black"
-                  : "bg-[#29282b] text-white"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex justify-between items-center mb-2">
-          <button
-            onClick={handleBack}
-            disabled={offset <= -52}
-            className={`px-3 py-1 rounded text-lg flex items-center ${
-              offset <= -52
-                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                : "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-            }`}
-            aria-label="Previous"
-          >
-            &#8592;
-          </button>
-          <span className="text-white text-sm">{rangeLabel}</span>
-          <button
-            onClick={handleNext}
-            disabled={offset >= 0}
-            className={`px-3 py-1 rounded text-lg flex items-center ${
-              offset >= 0
-                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                : "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-            }`}
-            aria-label="Next"
-          >
-            &#8594;
-          </button>
-        </div>
+        <RangePeriodNavigator
+          isFriendView={isFriendView}
+          friendId={friendId}
+          navigate={navigate}
+          rangeTypes={rangeTypes}
+          activeRange={activeRange}
+          setActiveRange={setActiveRange}
+          offset={offset}
+          handleBack={handleBack}
+          handleNext={handleNext}
+          rangeLabel={rangeLabel}
+          onResetSelection={() => {
+            setSelectedBar(null);
+            setSelectedBars([]);
+          }}
+          disablePrevAt={-52}
+          disableNextAt={0}
+          isMobile={isMobile}
+        />
         {/* Decreased graph height and moved cards/search up */}
         <div
           className="w-full h-[220px] rounded-lg p-4 mb-4"
@@ -1839,725 +1149,115 @@ const Cashflow = () => {
               subMessage="Try adjusting filters or date range"
             />
           ) : (
-            renderBarChart()
+            <CashFlowChart
+              chartData={chartData}
+              xKey={xKey}
+              barChartStyles={barChartStyles}
+              isMobile={isMobile}
+              isTablet={isTablet}
+              selectedBars={selectedBars}
+              hoverBarIndex={hoverBarIndex}
+              setHoverBarIndex={setHoverBarIndex}
+              handleBarClick={handleBarClick}
+              flowTab={flowTab}
+              activeRange={activeRange}
+              offset={offset}
+              formatCompactNumber={formatCompactNumber}
+              formatCurrencyCompact={formatCurrencyCompact}
+              formatNumberFull={formatNumberFull}
+              yearMonths={yearMonths}
+              weekDays={weekDays}
+            />
           )}
         </div>
         {/* Search Bar */}
-        <div
-          className="flex items-center mt-2 mb-2"
-          style={{
-            width: "100%",
-            justifyContent: "flex-start",
-            flexWrap: isMobile ? "wrap" : "nowrap",
-            gap: isMobile ? 8 : 0,
-          }}
-        >
-          <CashflowSearchToolbar
-            search={search}
-            setSearch={setSearch}
-            onFilterClick={() => setPopoverOpen((v) => !v)}
-            filterRef={filterBtnRef}
-            isMobile={isMobile}
-            isTablet={isTablet}
-          />
-
-          {/* Fixed position for these buttons */}
-
-          {/* Navigation Section with Names and Icons */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginLeft: isMobile ? 0 : "8px",
-              flexShrink: 0,
-              gap: isMobile ? "6px" : "8px",
-              flexWrap: isMobile ? "wrap" : "nowrap",
-            }}
-          >
-            {[
-              {
-                // Use base path; friendId appended later to avoid duplicate /id/id
-                path: "/category-flow",
-                icon: "category.png",
-                label: "Categories",
-              },
-              // { path: "/transactions", icon: "history.png", label: "History" },
-              // { path: "/insights", icon: "insight.png", label: "Insights" },
-              // { path: "/reports", icon: "report.png", label: "Reports" },
-              // { path: "/cashflow", icon: "list.png", label: "Expenses" },
-              { path: "/budget", icon: "budget.png", label: "Budget" },
-              {
-                path: "/payment-method",
-                icon: "payment-method.png",
-                label: "Payment Method",
-              },
-              {
-                path: "/bill",
-                icon: "bill.png",
-                label: "Bill",
-              },
-              {
-                path: "/calendar-view",
-                icon: "calendar.png",
-                label: "Calendar",
-              },
-            ].map(({ path, icon, label }) => (
-              <button
-                key={path}
-                onClick={() => {
-                  const target = isFriendView ? `${path}/${friendId}` : path;
-                  navigate(target);
-                }}
-                className="nav-button"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: isMobile ? "6px" : "6px",
-                  padding: isMobile ? "6px 8px" : "8px 10px",
-                  backgroundColor: "#1b1b1b",
-                  border: "1px solid #333",
-                  borderRadius: "8px",
-                  color: "#00DAC6",
-                  fontSize: isMobile ? "12px" : "14px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  minWidth: "fit-content",
-                }}
-              >
-                <img
-                  src={require(`../../assests/${icon}`)}
-                  alt={label}
-                  style={{
-                    width: isMobile ? 16 : 18,
-                    height: isMobile ? 16 : 18,
-                    filter:
-                      "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                    transition: "filter 0.2s ease",
-                  }}
-                />
-                {!isMobile && <span>{label}</span>}
-              </button>
-            ))}
-            {/* Add New - only show if user has write/full access (or own view) */}
-            {hasWriteAccess && (
-              <button
-                ref={setAddNewBtnRef}
-                onClick={() => setAddNewPopoverOpen(!addNewPopoverOpen)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  padding: isMobile ? "6px 8px" : "6px 8px",
-                  backgroundColor: "#1b1b1b",
-                  border: "1px solid #333",
-                  borderRadius: "6px",
-                  color: "#00DAC6",
-                  fontSize: isMobile ? "11px" : "12px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  minWidth: "fit-content",
-                }}
-                disabled={!hasWriteAccess}
-                title={
-                  hasWriteAccess
-                    ? "Add expense, budget, category or upload file"
-                    : "You have read-only access"
-                }
-              >
-                <img
-                  src={require("../../assests/add.png")}
-                  alt="Add"
-                  style={{
-                    width: isMobile ? 14 : 16,
-                    height: isMobile ? 14 : 16,
-                    filter:
-                      "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
-                    transition: "filter 0.2s ease",
-                  }}
-                />
-                {!isMobile && <span>Add New</span>}
-              </button>
-            )}
-
-            {/* Simplified Add New Popover */}
-            {addNewPopoverOpen &&
-              hasWriteAccess &&
-              addNewBtnRef &&
-              createPortal(
-                <div
-                  data-popover="add-new"
-                  style={{
-                    position: "fixed",
-                    top:
-                      addNewBtnRef.getBoundingClientRect().bottom +
-                      4 +
-                      window.scrollY,
-                    left:
-                      addNewBtnRef.getBoundingClientRect().left +
-                      window.scrollX,
-                    zIndex: 1000,
-                    background: "#0b0b0b",
-                    border: "1px solid #333",
-                    borderRadius: 6,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                    minWidth: 140,
-                    padding: 4,
-                  }}
-                >
-                  {[
-                    {
-                      label: "Add Expense",
-                      route: isFriendView
-                        ? `/expenses/create/${friendId}`
-                        : "/expenses/create",
-                      color: "#00DAC6",
-                    },
-                    {
-                      label: "Upload File",
-                      route: isFriendView ? `/upload/expenses/${friendId}` : "/upload/expenses",
-                      color: "#5b7fff",
-                    },
-                    {
-                      label: "Add Budget",
-                      route: isFriendView
-                        ? `/budget/create/${friendId}`
-                        : "/budget/create",
-                      color: "#FFC107",
-                    },
-                    {
-                      label: "Add Category",
-                      route: isFriendView
-                        ? `/category-flow/create/${friendId}`
-                        : "/category-flow/create",
-                      color: "#ff6b6b",
-                    },
-                  ].map((item, idx) => (
-                    <button
-                      key={idx}
-                      style={{
-                        display: "block",
-                        width: "100%",
-                        background: "transparent",
-                        color: item.color,
-                        border: "none",
-                        textAlign: "left",
-                        padding: "8px 10px",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        borderRadius: 4,
-                      }}
-                      onClick={() => {
-                        navigate(item.route);
-                        setAddNewPopoverOpen(false);
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.background = item.color;
-                        e.target.style.color =
-                          item.color === "#FFC107" ? "#000" : "#fff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.background = "transparent";
-                        e.target.style.color = item.color;
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>,
-                document.body
-              )}
-          </div>
-
-          <style jsx>{`
-            .nav-button:hover {
-              background-color: #00dac6 !important;
-              color: #000 !important;
-              border-color: #00dac6 !important;
-            }
-            .nav-button:hover img {
-              filter: brightness(0) saturate(100%) invert(0%) !important;
-            }
-            .nav-button:hover svg circle,
-            .nav-button:hover svg path {
-              stroke: #000 !important;
-            }
-            .nav-button:hover span {
-              color: #000 !important;
-            }
-            .nav-button:active {
-              transform: scale(0.98);
-            }
-          `}</style>
-        </div>
-        {/* Sort Popover */}
-        {popoverOpen &&
-          filterBtnRef.current &&
-          createPortal(
-            <div
-              id="sort-popover"
-              style={{
-                position: "fixed",
-                top:
-                  filterBtnRef.current.getBoundingClientRect().top +
-                  window.scrollY,
-                left:
-                  filterBtnRef.current.getBoundingClientRect().right +
-                  8 +
-                  window.scrollX,
-                zIndex: 1000,
-                background: "#0b0b0b", // changed from #23243a to #0b0b0b
-                border: "1px solid #333",
-                borderRadius: 8,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-                minWidth: 140,
-                maxWidth: 180,
-                padding: 0,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                  padding: 4,
-                }}
-              >
-                {/* Recent First (moved to first option) */}
-                <button
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    width: "100%",
-                    background:
-                      sortType === "recent" ? "#5b7fff" : "transparent",
-                    color: sortType === "recent" ? "#fff" : "#5b7fff",
-                    border: "none",
-                    textAlign: "left",
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    fontWeight: sortType === "recent" ? 700 : 500,
-                    borderRadius: 6,
-                    transition: "background 0.2s, color 0.2s",
-                  }}
-                  onClick={() => handleSort("recent")}
-                >
-                  <img
-                    src={recentPng}
-                    alt="Recent"
-                    style={{
-                      width: 18,
-                      height: 18,
-                      filter:
-                        sortType === "recent"
-                          ? "none"
-                          : "grayscale(1) brightness(2)",
-                      borderRadius: 3,
-                      background: "transparent",
-                      opacity: 1,
-                      ...(sortType === "recent"
-                        ? {
-                            filter:
-                              "invert(1) sepia(1) saturate(5) hue-rotate(200deg)",
-                          }
-                        : {
-                            filter:
-                              "invert(34%) sepia(99%) saturate(749%) hue-rotate(200deg) brightness(1.2)",
-                          }),
-                    }}
-                  />
-                  <span>Recent First</span>
-                </button>
-                {/* High to Low */}
-                <button
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    width: "100%",
-                    background: sortType === "high" ? "#ff4d4f" : "transparent",
-                    color: sortType === "high" ? "#fff" : "#ff4d4f",
-                    border: "none",
-                    textAlign: "left",
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    fontWeight: sortType === "high" ? 700 : 500,
-                    borderRadius: 6,
-                    transition: "background 0.2s, color 0.2s",
-                  }}
-                  onClick={() => handleSort("high")}
-                >
-                  <ArrowDownwardIcon
-                    fontSize="small"
-                    style={{ color: sortType === "high" ? "#fff" : "#ff4d4f" }}
-                  />
-                  <span>High to Low</span>
-                </button>
-                {/* Low to High */}
-                <button
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    width: "100%",
-                    background: sortType === "low" ? "#06d6a0" : "transparent",
-                    color: sortType === "low" ? "#23243a" : "#06d6a0",
-                    border: "none",
-                    textAlign: "left",
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    fontWeight: sortType === "low" ? 700 : 500,
-                    borderRadius: 6,
-                    transition: "background 0.2s, color 0.2s",
-                  }}
-                  onClick={() => handleSort("low")}
-                >
-                  <ArrowUpwardIcon
-                    fontSize="small"
-                    style={{
-                      color: sortType === "low" ? "#23243a" : "#06d6a0",
-                    }}
-                  />
-                  <span>Low to High</span>
-                </button>
-              </div>
-            </div>,
-            document.body
-          )}
-        {/* Expense Cards Section */}
-        <div
-          className={
-            sortedCardData.length <= 3
-              ? "flex items-start gap-4 flex-wrap custom-scrollbar"
-              : "grid gap-4 custom-scrollbar"
-          }
-          style={
-            sortedCardData.length <= 3
-              ? {
-                  maxHeight: isMobile ? 500 : isTablet ? 280 : 360,
-                  overflowY: "auto",
-                  overflowX: "hidden",
-                  paddingRight: isMobile ? 6 : isTablet ? 8 : 16,
-                  justifyContent: "flex-start",
-                  flexDirection: isMobile ? "column" : "row",
-                  gap: isMobile ? 10 : 16,
-                }
-              : {
-                  gridTemplateColumns: isMobile
-                    ? "1fr"
-                    : isTablet
-                    ? "repeat(auto-fit, minmax(180px, 1fr))"
-                    : "repeat(auto-fit, minmax(260px, 1fr))",
-                  maxHeight: isMobile ? 420 : isTablet ? 280 : 360,
-                  overflowY: "auto",
-                  overflowX: "hidden",
-                  paddingRight: isMobile ? 6 : isTablet ? 8 : 16,
-                  gap: isMobile ? 10 : 16,
-                }
-          }
-        >
-          {loading && !search ? (
-            Array.from({ length: 3 }).map((_, idx) => (
-              <Skeleton
-                key={idx}
-                variant="rectangular"
-                width={340}
-                height={140}
-                animation="wave"
-                sx={{ bgcolor: "#23243a", borderRadius: 2 }}
-                style={{ minWidth: 220, maxWidth: 340, margin: "0 8px 16px 0" }}
-              />
-            ))
-          ) : sortedCardData.length === 0 ? (
-            <NoDataPlaceholder
-              size={isMobile ? "lg" : "fill"}
-              fullWidth
-              iconSize={isMobile ? 54 : 72}
-              style={{ minHeight: isMobile ? 260 : 340 }}
-              message={search ? "No matches" : "No data found"}
-              subMessage={
-                search
-                  ? "Try a different search term"
-                  : "Adjust filters or change the period"
-              }
-            />
-          ) : (
-            sortedCardData.map((row, idx) => {
-              const isSelected = selectedCardIdx.includes(idx);
-              // Determine type for icon/color in 'all' mode
-              let type;
-              if (flowTab === "all") {
-                type = row.type || row.expense?.type || "outflow";
-              } else {
-                type = flowTab;
-              }
-              // For 'all' mode, set color/icon per expense type
-              let amountColor = "#06d6a0"; // default inflow
-              let icon = (
-                <span
-                  style={{
-                    color: "#06d6a0",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    style={{
-                      display: "inline",
-                      verticalAlign: "middle",
-                      marginBottom: "-2px",
-                    }}
-                  >
-                    <path
-                      d="M8 14V2M8 2L3 7M8 2L13 7"
-                      stroke="#06d6a0"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              );
-              let isGain = true;
-              if (type === "outflow" || type === "loss") {
-                amountColor = "#ff4d4f";
-                isGain = false;
-                icon = (
-                  <span
-                    style={{
-                      color: "#ff4d4f",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{
-                        display: "inline",
-                        verticalAlign: "middle",
-                        marginBottom: "-2px",
-                      }}
-                    >
-                      <path
-                        d="M8 2V14M8 14L3 9M8 14L13 9"
-                        stroke="#ff4d4f"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                );
-              }
-              return (
-                <div
-                  key={idx}
-                  className={`bg-[#1b1b1b] rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200`}
-                  style={{
-                    minHeight: "140px",
-                    maxHeight: "140px",
-                    height: "140px",
-                    minWidth: "220px",
-                    maxWidth: "340px",
-                    width: "100%",
-                    padding: "18px 20px",
-                    boxSizing: "border-box",
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    background: isSelected
-                      ? isGain
-                        ? "rgba(6, 214, 160, 0.13)"
-                        : "rgba(255, 77, 79, 0.13)"
-                      : "#1b1b1b",
-                    transition: "background 0.2s, box-shadow 0.2s, border 0.2s",
-                    margin: "6px",
-                    border: isSelected
-                      ? `2px solid ${isGain ? "#06d6a0" : "#ff4d4f"}`
-                      : "2px solid transparent",
-                    userSelect: "none", // Prevent text selection
-                  }}
-                  onMouseDown={(event) => event.preventDefault()} // Prevent text selection on mouse down
-                  onClick={(event) => handleCardClick(idx, event)} // Pass event for ctrlKey/shiftKey support
-                >
-                  <div
-                    className="flex flex-col gap-2"
-                    style={{ height: "100%" }}
-                  >
-                    <div className="flex items-center justify-between min-w-0">
-                      <span
-                        className="font-semibold text-base truncate min-w-0 text-white"
-                        title={row.name}
-                        style={{ maxWidth: "70%", fontSize: "15px" }}
-                        data-tooltip-id={`expense-name-tooltip-${idx}`}
-                        data-tooltip-content={row.name}
-                      >
-                        {row.name}
-                      </span>
-                      <span
-                        className="text-xs font-semibold text-[#b0b6c3] ml-2 flex-shrink-0"
-                        style={{ whiteSpace: "nowrap" }}
-                        title={(() => {
-                          const dt = row.date || row.expense?.date;
-                          const dtStr =
-                            dt && dayjs(dt).isValid()
-                              ? dayjs(dt).format("D MMM")
-                              : "";
-                          const left = ""; // show only D MMM across ranges on card
-                          if (dtStr && left) return `${left} • ${dtStr}`;
-                          return left || dtStr;
-                        })()}
-                        data-tooltip-id={`expense-date-tooltip-${idx}`}
-                        data-tooltip-content={(() => {
-                          const dt = row.date || row.expense?.date;
-                          const dtStr =
-                            dt && dayjs(dt).isValid()
-                              ? dayjs(dt).format("D MMM")
-                              : "";
-                          const left = ""; // show only D MMM across ranges on card
-                          if (dtStr && left) return `${left} • ${dtStr}`;
-                          return left || dtStr;
-                        })()}
-                      >
-                        {(() => {
-                          const dt = row.date || row.expense?.date;
-                          const dtStr =
-                            dt && dayjs(dt).isValid()
-                              ? dayjs(dt).format("D MMM")
-                              : "";
-                          const left = ""; // show only D MMM across ranges on card
-                          if (dtStr && left) return `${left} • ${dtStr}`;
-                          return left || dtStr;
-                        })()}
-                      </span>
-                    </div>
-                    <div className="text-base font-bold flex items-center gap-1">
-                      {icon}
-                      <span
-                        style={{
-                          color: amountColor,
-                          fontSize: "16px",
-                          fontWeight: 700,
-                        }}
-                        title={`Amount: ${formatNumberFull(row.amount)}`}
-                        data-tooltip-id={`expense-amount-tooltip-${idx}`}
-                        data-tooltip-content={`Amount: ${formatNumberFull(
-                          row.amount
-                        )}`}
-                      >
-                        {formatNumberFull(row.amount)}
-                      </span>
-                    </div>
-                    <div
-                      className="text-gray-300 text-sm break-words card-comments-clamp"
-                      style={{
-                        wordBreak: "break-word",
-                        flex: 1,
-                        overflow: "hidden",
-                      }}
-                      title={row.comments}
-                      data-tooltip-id={`expense-comments-tooltip-${idx}`}
-                      data-tooltip-content={row.comments}
-                    >
-                      {row.comments}
-                    </div>
-                  </div>
-                  {isSelected &&
-                    selectedCardIdx.length === 1 &&
-                    hasWriteAccess && (
-                      <div
-                        className="absolute bottom-2 right-2 flex gap-2 opacity-90"
-                        style={{
-                          zIndex: 2,
-                          background: "#23243a",
-                          borderRadius: 8,
-                          boxShadow: "0 2px 8px #0002",
-                          padding: 4,
-                          display: "flex",
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <IconButton
-                          size="small"
-                          sx={{
-                            color: "#5b7fff",
-                            p: "4px",
-                            background: "#23243a",
-                            borderRadius: 1,
-                            boxShadow: 1,
-                            "&:hover": {
-                              background: "#2e335a",
-                              color: "#fff",
-                            },
-                          }}
-                          onClick={async () => {
-                            dispatch(
-                              getListOfBudgetsByExpenseId({
-                                id: row.id || row.expenseId,
-                                date: dayjs().format("YYYY-MM-DD"),
-                                friendId: friendId || null,
-                              })
-                            );
-                            const expensedata = await dispatch(
-                              getExpenseAction(row.id, friendId || "")
-                            );
-                            const bill = expensedata.bill
-                              ? await dispatch(
-                                  getBillByExpenseId(row.id, friendId || "")
-                                )
-                              : false;
-                            if (expensedata.bill) {
-                              navigate(
-                                isFriendView
-                                  ? `/bill/edit/${bill.id}/friend/${friendId}`
-                                  : `/bill/edit/${bill.id}`
-                              );
-                            } else {
-                              navigate(
-                                isFriendView
-                                  ? `/expenses/edit/${row.id}/friend/${friendId}`
-                                  : `/expenses/edit/${row.id}`
-                              );
-                            }
-                          }}
-                          aria-label="Edit Expense"
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          sx={{
-                            color: "#ff4d4f",
-                            p: "4px",
-                            background: "#23243a",
-                            borderRadius: 1,
-                            boxShadow: 1,
-                            "&:hover": {
-                              background: "#2e335a",
-                              color: "#fff",
-                            },
-                          }}
-                          onClick={() => handleDeleteClick(row, idx)}
-                          aria-label="Delete Expense"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </div>
-                    )}
-                </div>
-              );
-            })
-          )}
-        </div>
+        <SearchNavigationBar
+          search={search}
+          setSearch={setSearch}
+          onFilterToggle={() => setPopoverOpen((v) => !v)}
+          filterRef={filterBtnRef}
+          isMobile={isMobile}
+          isTablet={isTablet}
+          navItems={[
+            {
+              path: "/category-flow",
+              icon: "category.png",
+              label: "Categories",
+            },
+            { path: "/budget", icon: "budget.png", label: "Budget" },
+            {
+              path: "/payment-method",
+              icon: "payment-method.png",
+              label: "Payment Method",
+            },
+            { path: "/bill", icon: "bill.png", label: "Bill" },
+            { path: "/calendar-view", icon: "calendar.png", label: "Calendar" },
+          ]}
+          friendId={friendId}
+          isFriendView={isFriendView}
+          hasWriteAccess={hasWriteAccess}
+          navigate={navigate}
+          addNewOptions={[
+            {
+              label: "Add Expense",
+              route: isFriendView
+                ? `/expenses/create/${friendId}`
+                : "/expenses/create",
+              color: "#00DAC6",
+            },
+            {
+              label: "Upload File",
+              route: isFriendView
+                ? `/upload/expenses/${friendId}`
+                : "/upload/expenses",
+              color: "#5b7fff",
+            },
+            {
+              label: "Add Budget",
+              route: isFriendView
+                ? `/budget/create/${friendId}`
+                : "/budget/create",
+              color: "#FFC107",
+            },
+            {
+              label: "Add Category",
+              route: isFriendView
+                ? `/category-flow/create/${friendId}`
+                : "/category-flow/create",
+              color: "#ff6b6b",
+            },
+          ]}
+          placeholder="Search expenses..."
+        />
+        {/* Sort Popover (refactored) */}
+        <SortPopover
+          open={popoverOpen}
+          anchorRect={filterBtnRef.current?.getBoundingClientRect() || null}
+          sortType={sortType}
+          onSelect={(type) => handleSort(type)}
+          recentIcon={recentPng}
+        />
+        {/* Expense Cards Section (refactored) */}
+        <CashFlowExpenseCards
+          data={sortedCardData}
+          loading={loading}
+          search={search}
+          selectedCardIdx={selectedCardIdx}
+          flowTab={flowTab}
+          isMobile={isMobile}
+          isTablet={isTablet}
+          handleCardClick={handleCardClick}
+          hasWriteAccess={hasWriteAccess}
+          formatNumberFull={formatNumberFull}
+          dispatch={dispatch}
+          navigate={navigate}
+          friendId={friendId}
+          isFriendView={isFriendView}
+          handleDeleteClick={handleDeleteClick}
+          getListOfBudgetsByExpenseId={getListOfBudgetsByExpenseId}
+          getExpenseAction={getExpenseAction}
+          getBillByExpenseId={getBillByExpenseId}
+        />
         {/* End Expense Cards Section */}
         <style>{`
   .custom-scrollbar::-webkit-scrollbar {

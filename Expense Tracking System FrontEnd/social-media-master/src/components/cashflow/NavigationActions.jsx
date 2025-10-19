@@ -1,0 +1,198 @@
+import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+
+// Hook to manage add-new popover open/close & outside click
+export const useAddNewPopover = () => {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (
+        btnRef.current &&
+        !btnRef.current.contains(e.target) &&
+        !document.querySelector('[data-popover="add-new"]')?.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return { open, setOpen, btnRef };
+};
+
+// NavigationActions component
+// Props:
+// items: array of { path, icon, label }
+// friendId, isFriendView: used to adjust paths
+// hasWriteAccess: boolean controlling add-new visibility
+// navigate: navigation function
+// addNewOptions: array of { label, route, color }
+// isMobile: responsive flag
+// onAddNewToggle: optional callback when toggling popover
+// addIcon: path to add icon asset
+const NavigationActions = ({
+  items = [],
+  friendId,
+  isFriendView,
+  hasWriteAccess,
+  navigate,
+  addNewOptions = [],
+  isMobile,
+  addIcon,
+}) => {
+  const { open, setOpen, btnRef } = useAddNewPopover();
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        marginLeft: isMobile ? 0 : "8px",
+        flexShrink: 0,
+        gap: isMobile ? "6px" : "8px",
+        flexWrap: isMobile ? "wrap" : "nowrap",
+      }}
+    >
+      {items.map(({ path, icon, label }) => {
+        const target = isFriendView ? `${path}/${friendId}` : path;
+        return (
+          <button
+            key={path}
+            onClick={() => navigate(target)}
+            className="nav-button"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: isMobile ? "6px" : "6px",
+              padding: isMobile ? "6px 8px" : "8px 10px",
+              backgroundColor: "#1b1b1b",
+              border: "1px solid #333",
+              borderRadius: "8px",
+              color: "#00DAC6",
+              fontSize: isMobile ? "12px" : "14px",
+              fontWeight: "500",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              minWidth: "fit-content",
+            }}
+          >
+            <img
+              src={require(`../../assests/${icon}`)}
+              alt={label}
+              style={{
+                width: isMobile ? 16 : 18,
+                height: isMobile ? 16 : 18,
+                filter:
+                  "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                transition: "filter 0.2s ease",
+              }}
+            />
+            {!isMobile && <span>{label}</span>}
+          </button>
+        );
+      })}
+      {hasWriteAccess && (
+        <button
+          ref={btnRef}
+          onClick={() => setOpen((v) => !v)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            padding: isMobile ? "6px 8px" : "6px 8px",
+            backgroundColor: "#1b1b1b",
+            border: "1px solid #333",
+            borderRadius: "6px",
+            color: "#00DAC6",
+            fontSize: isMobile ? "11px" : "12px",
+            fontWeight: "500",
+            cursor: "pointer",
+            minWidth: "fit-content",
+          }}
+          title={
+            hasWriteAccess
+              ? "Add expense, budget, category or upload file"
+              : "You have read-only access"
+          }
+        >
+          <img
+            src={addIcon || require("../../assests/add.png")}
+            alt="Add"
+            style={{
+              width: isMobile ? 14 : 16,
+              height: isMobile ? 14 : 16,
+              filter:
+                "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+              transition: "filter 0.2s ease",
+            }}
+          />
+          {!isMobile && <span>Add New</span>}
+        </button>
+      )}
+      {open &&
+        hasWriteAccess &&
+        btnRef.current &&
+        createPortal(
+          <div
+            data-popover="add-new"
+            style={{
+              position: "fixed",
+              top:
+                btnRef.current.getBoundingClientRect().bottom +
+                4 +
+                window.scrollY,
+              left:
+                btnRef.current.getBoundingClientRect().left + window.scrollX,
+              zIndex: 1000,
+              background: "#0b0b0b",
+              border: "1px solid #333",
+              borderRadius: 6,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+              minWidth: 140,
+              padding: 4,
+            }}
+          >
+            {addNewOptions.map((item, idx) => (
+              <button
+                key={idx}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  background: "transparent",
+                  color: item.color,
+                  border: "none",
+                  textAlign: "left",
+                  padding: "8px 10px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  borderRadius: 4,
+                }}
+                onClick={() => {
+                  navigate(item.route);
+                  setOpen(false);
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = item.color;
+                  e.target.style.color =
+                    item.color === "#FFC107" ? "#000" : "#fff";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                  e.target.style.color = item.color;
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+};
+
+export default NavigationActions;
