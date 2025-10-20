@@ -21,7 +21,9 @@ import AddIcon from "@mui/icons-material/Add";
 import CategoryIcon from "@mui/icons-material/Category";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -248,6 +250,19 @@ const CreatePaymentMethod = ({ onClose, onCategoryCreated }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { friendId } = useParams();
+  const location = useLocation();
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  // Determine if we are in payment-method flow (starts with /payment-method)
+  const isPaymentMethodFlow = location.pathname.startsWith("/payment-method");
+  // Redirect if read-only (no write access)
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) =>
+      isPaymentMethodFlow
+        ? `/payment-method/${fid}`
+        : `/friends/expenses/${fid}`,
+    selfPath: isPaymentMethodFlow ? "/payment-method" : "/friends/expenses",
+    defaultPath: isPaymentMethodFlow ? "/payment-method" : "/friends/expenses",
+  });
   const [categoryData, setCategoryData] = useState({
     name: "",
     description: "",
@@ -924,21 +939,23 @@ const CreatePaymentMethod = ({ onClose, onCategoryCreated }) => {
                 gap: 2,
               }}
             >
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isSubmitting}
-                sx={{
-                  bgcolor: categoryData.color,
-                  color: "black",
-                  "&:hover": {
+              {hasWriteAccess && (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isSubmitting}
+                  sx={{
                     bgcolor: categoryData.color,
-                    opacity: 0.9,
-                  },
-                }}
-              >
-                {isSubmitting ? "Creating..." : "Create Payment Method"}
-              </Button>
+                    color: "black",
+                    "&:hover": {
+                      bgcolor: categoryData.color,
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  {isSubmitting ? "Creating..." : "Create Payment Method"}
+                </Button>
+              )}
             </Box>
           </Box>
         </div>
