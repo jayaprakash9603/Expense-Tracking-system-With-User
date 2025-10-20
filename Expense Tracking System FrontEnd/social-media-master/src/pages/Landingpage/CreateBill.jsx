@@ -21,6 +21,8 @@ import {
   Close as CloseIcon,
 } from "@mui/icons-material";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
+import { getExpensesSuggestions } from "../../Redux/Expenses/expense.action";
+import NameAutocomplete from "../../components/NameAutocomplete";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // still used for hasWriteAccess gating below
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
@@ -58,6 +60,10 @@ const CreateBill = ({ onClose, onSuccess }) => {
     error: budgetError,
     loading: budgetLoading,
   } = useSelector((state) => state.budgets || {});
+  const {
+    topExpenses: expenseNameSuggestions = [],
+    loading: suggestionsLoading,
+  } = useSelector((state) => state.expenses || {});
   const {
     categories,
     loading: categoriesLoading,
@@ -301,6 +307,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
   useEffect(() => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
   }, [dispatch, today]);
+
+  // Fetch expense name suggestions for autocomplete (top expense names)
+  useEffect(() => {
+    dispatch(getExpensesSuggestions(friendId || ""));
+  }, [dispatch, friendId]);
 
   // Update checkbox states when budgets change
   useEffect(() => {
@@ -753,44 +764,16 @@ const CreateBill = ({ onClose, onSuccess }) => {
         <label htmlFor="name" className={labelStyle} style={inputWrapper}>
           Name<span className="text-red-500"> *</span>
         </label>
-        <TextField
-          id="name"
-          name="name"
+        <NameAutocomplete
           value={billData.name}
-          onChange={handleInputChange}
-          placeholder="Enter name"
-          variant="outlined"
-          error={errors.name}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiInputBase-root": {
-              backgroundColor: "#29282b",
-              color: "#fff",
-              height: "56px",
-              fontSize: "16px",
-            },
-            "& .MuiInputBase-input": {
-              color: "#fff",
-              "&::placeholder": {
-                color: "#9ca3af",
-                opacity: 1,
-              },
-            },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: errors.name ? "#ff4d4f" : "rgb(75, 85, 99)",
-                borderWidth: "1px",
-              },
-              "&:hover fieldset": {
-                borderColor: errors.name ? "#ff4d4f" : "rgb(75, 85, 99)",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: errors.name ? "#ff4d4f" : "#00dac6",
-                borderWidth: "2px",
-              },
-            },
+          onChange={(val) => {
+            setBillData((prev) => ({ ...prev, name: val }));
+            if (errors.name && val)
+              setErrors((prev) => ({ ...prev, name: false }));
           }}
+          placeholder="Search or type bill name"
+          error={errors.name}
+          size="medium"
         />
       </div>
     </div>

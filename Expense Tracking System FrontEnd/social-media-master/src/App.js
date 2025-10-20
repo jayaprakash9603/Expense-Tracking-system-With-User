@@ -23,7 +23,7 @@ import Profile from "./pages/Landingpage/Profile";
 import NewBudget from "./pages/Landingpage/NewBudget";
 import EditBudget from "./pages/Landingpage/EditBudget";
 import Reports from "./pages/Landingpage/Reports";
-import Cashflow from "./pages/Landingpage/CashFlow";
+import Cashflow from "./pages/expenses-view/CashFlow";
 import CalendarView from "./pages/Landingpage/CalendarView";
 import DayTransactionsView from "./pages/Landingpage/DayTransactionsView";
 import CategoryFlow from "./pages/Landingpage/CategoryFlow";

@@ -6,11 +6,8 @@ import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { Snackbar } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
 import {
-  createExpenseAction,
   editExpenseAction,
-  fetchPreviousExpenses,
   getExpenseAction,
-  getExpensesSuggestions,
 } from "../../Redux/Expenses/expense.action";
 import {
   getListOfBudgetsByExpenseId,
@@ -24,6 +21,7 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
+import NameAutocomplete from "../../components/NameAutocomplete";
 import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -134,8 +132,7 @@ const EditExpense = ({}) => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [checkboxStates, setCheckboxStates] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  // Suggestions handled by NameAutocomplete component / hook
   // Dynamic payment methods
   const [localPaymentMethods, setLocalPaymentMethods] = useState([]);
   const [localPaymentMethodsLoading, setLocalPaymentMethodsLoading] =
@@ -144,9 +141,7 @@ const EditExpense = ({}) => {
     useState(null);
 
   // Get topExpenses from Redux, just like NewExpense
-  const { topExpenses, loading: loadingTopExpenses } = useSelector(
-    (state) => state.expenses || {}
-  );
+  // topExpenses now fetched internally by NameAutocomplete's hook; keep minimal expense slice access if needed elsewhere
 
   // Fetch budgets and expense data on component mount
   useEffect(() => {
@@ -259,10 +254,7 @@ const EditExpense = ({}) => {
     }
   }, [processedPaymentMethods, expenseData.paymentMethod]);
 
-  // Fetch expense name suggestions (same as NewExpense)
-  useEffect(() => {
-    dispatch(getExpensesSuggestions(friendId || ""));
-  }, [dispatch]);
+  // (Expense name suggestions fetch removed; handled by NameAutocomplete hook)
 
   // Update checkbox states when budgets change
   useEffect(() => {
@@ -290,21 +282,7 @@ const EditExpense = ({}) => {
     }
   }, [expense, today]);
 
-  // Fetch suggestions based on input (same as NewExpense)
-  const fetchSuggestions = (query) => {
-    const list = Array.isArray(topExpenses) ? topExpenses : [];
-    if (!query || !query.trim()) {
-      setSuggestions(list.slice(0, 50));
-      setLoadingSuggestions(false);
-      return;
-    }
-    setLoadingSuggestions(true);
-    const filtered = list.filter((item) =>
-      String(item).toLowerCase().includes(query.toLowerCase())
-    );
-    setSuggestions(filtered);
-    setLoadingSuggestions(false);
-  };
+  // Removed local fetchSuggestions; NameAutocomplete handles filtering.
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -931,84 +909,14 @@ const EditExpense = ({}) => {
         >
           Expense Name<span className="text-red-500"> *</span>
         </label>
-        <Autocomplete
-          freeSolo
-          autoHighlight
-          options={suggestions}
-          loading={loadingTopExpenses || loadingSuggestions}
-          loadingText="Loading"
-          noOptionsText="No options found"
-          value={expenseData?.expenseName || ""}
-          onOpen={() => fetchSuggestions(expenseData?.expenseName || "")}
-          onInputChange={(event, newValue) => {
-            setExpenseData((prev) => ({ ...prev, expenseName: newValue }));
-            fetchSuggestions(newValue);
-          }}
-          onChange={(event, newValue) => {
-            setExpenseData((prev) => ({
-              ...prev,
-              expenseName: newValue || "",
-            }));
-          }}
-          openOnFocus
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiAutocomplete-option": {
-              fontSize: "0.92rem", // smaller font size for options
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: errors.expenseName ? "#ff4d4f" : "rgb(75, 85, 99)",
-                borderWidth: errors.expenseName ? "2px" : "1px",
-              },
-              "&:hover fieldset": {
-                borderColor: errors.expenseName ? "#ff4d4f" : "rgb(75, 85, 99)",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: errors.expenseName ? "#ff4d4f" : "#00dac6",
-              },
-            },
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Enter expense name"
-              variant="outlined"
-              error={errors.expenseName}
-              InputProps={{
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {loadingTopExpenses || loadingSuggestions ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-                className: fieldStyles,
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
-                fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
-              }}
-              title={option}
-            >
-              {highlightText(option, inputValue)}
-            </li>
-          )}
+        <NameAutocomplete
+          value={expenseData.expenseName}
+          onChange={(val) =>
+            setExpenseData((prev) => ({ ...prev, expenseName: val }))
+          }
+          placeholder="Enter expense name"
+          error={!!errors.expenseName}
+          size="medium"
         />
       </div>
       {errors.expenseName && (

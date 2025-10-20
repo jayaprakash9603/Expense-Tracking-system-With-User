@@ -17,6 +17,8 @@ import PaymentIcon from "@mui/icons-material/Payment";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import useFriendAccess from "../../hooks/useFriendAccess";
+import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -246,7 +248,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { id } = useParams();
+  const { id, friendId: routeFriendId } = useParams();
 
   const isEditMode = !!id;
 
@@ -270,7 +272,18 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
   const [currentIconTab, setCurrentIconTab] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [friendId, setFriendId] = useState(0);
+  // Derive friendId directly from route param if present
+  const friendId = routeFriendId;
+  const { hasWriteAccess } = useFriendAccess(friendId);
+  const isPaymentMethodFlow = location.pathname.startsWith("/payment-method");
+  useRedirectIfReadOnly(friendId, {
+    buildFriendPath: (fid) =>
+      isPaymentMethodFlow
+        ? `/payment-method/${fid}`
+        : `/friends/expenses/${fid}`,
+    selfPath: isPaymentMethodFlow ? "/payment-method" : "/friends/expenses",
+    defaultPath: isPaymentMethodFlow ? "/payment-method" : "/friends/expenses",
+  });
 
   // Load payment method data if in edit mode
   useEffect(() => {
@@ -1063,27 +1076,29 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                 gap: 2,
               }}
             >
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isSubmitting}
-                sx={{
-                  bgcolor: paymentMethodData.color,
-                  color: "black",
-                  "&:hover": {
+              {hasWriteAccess && (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isSubmitting}
+                  sx={{
                     bgcolor: paymentMethodData.color,
-                    opacity: 0.9,
-                  },
-                }}
-              >
-                {isSubmitting
-                  ? isEditMode
-                    ? "Updating..."
-                    : "Creating..."
-                  : isEditMode
-                  ? "Update Payment Method"
-                  : "Create Payment Method"}
-              </Button>
+                    color: "black",
+                    "&:hover": {
+                      bgcolor: paymentMethodData.color,
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  {isSubmitting
+                    ? isEditMode
+                      ? "Updating..."
+                      : "Creating..."
+                    : isEditMode
+                    ? "Update Payment Method"
+                    : "Create Payment Method"}
+                </Button>
+              )}
             </Box>
           </Box>
         </div>
