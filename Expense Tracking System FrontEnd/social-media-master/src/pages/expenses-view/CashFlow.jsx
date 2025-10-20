@@ -93,24 +93,22 @@ const Cashflow = () => {
   const filterBtnRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  // Back button logic replicating Bill component behavior
-  // Back button logic:
-  // Show when: friend view OR (arrived from another flow and NOT from nav bar) OR (direct deep link without fromNav)
+  // Back button logic aligned with CategoryFlow: show only if friend view OR came from another flow.
   const originFlow = location?.state?.fromFlow;
-  const arrivedFromNav = location?.state?.fromNav === true;
+  const navigatedThroughTabs = location?.state?.navigatedThroughTabs === true;
   const showBackButton =
-    isFriendView ||
-    (!!originFlow && !arrivedFromNav) ||
-    (!arrivedFromNav && !originFlow);
+    !navigatedThroughTabs && (isFriendView || Boolean(originFlow));
   const handlePageBack = () => {
-    // If originFlow exists and not friend context, go back to that flow; else go to expenses (or friend expenses)
-    if (!isFriendView && originFlow && !arrivedFromNav) {
+    if (originFlow) {
       navigate(`/${originFlow}`);
       return;
     }
-    if (friendId && friendId !== "undefined")
-      navigate(`/friends/expenses/${friendId}`);
-    else navigate("/expenses");
+    // In friend view with no origin flow, go to friends list root
+    if (isFriendView) {
+      navigate("/friends");
+      return;
+    }
+    navigate("/expenses");
   };
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -126,6 +124,8 @@ const Cashflow = () => {
       dispatch(fetchFriendsDetailed());
     }
   }, [dispatch, friendId, isFriendView]);
+
+  // (Removed month-forcing effect; hook now defaults to 'month' directly.)
 
   useEffect(() => {
     if (location.state && location.state.selectedCategory) {

@@ -6,7 +6,8 @@ import { getRangeLabel, weekDays, yearMonths } from "../utils/flowDateUtils";
 
 export default function useCashflowData({ friendId, isFriendView, search }) {
   const dispatch = useDispatch();
-  const [activeRange, setActiveRange] = useState("week");
+  // Default to 'month' to align with CategoryFlow initial range
+  const [activeRange, setActiveRange] = useState("month");
   const [offset, setOffset] = useState(0);
   const [flowTab, setFlowTab] = useState("all");
   const { cashflowExpenses, loading } = useSelector((s) => s.expenses || {});
