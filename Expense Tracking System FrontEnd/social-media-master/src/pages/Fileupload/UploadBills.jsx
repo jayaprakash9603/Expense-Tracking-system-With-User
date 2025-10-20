@@ -42,6 +42,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
+  // Items per page (default 5) – user can adjust via dropdown
   const [itemsPerPage, setItemsPerPage] = useState(5);
   // MUI-style accordion expansion state (single expand at a time)
   const [expandedAccordion, setExpandedAccordion] = useState(null);
@@ -336,9 +337,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
     [totalPages]
   );
 
-  const handleItemsPerPageChange = useCallback((newItemsPerPage) => {
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
+  // Change items per page (reset page & collapse accordions)
+  const handleItemsPerPageChange = useCallback((e) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value)) {
+      setItemsPerPage(value);
+      setCurrentPage(1);
+      setExpandedAccordion(null);
+    }
   }, []);
 
   // Format currency
@@ -471,8 +477,8 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
         </button>
       </div>
       {/* Header */}
-      <div className="bg-[#0b0b0b] py-2 px-4 flex-shrink-0 text-center">
-        <h2 className="text-xl font-bold text-[#14b8a6]">
+      <div className="bg-[#0b0b0b] py-1 px-3 flex-shrink-0 text-center">
+        <h2 className="text-lg font-bold text-[#14b8a6] leading-tight">
           Excel Bill Import Manager
         </h2>
       </div>
@@ -480,7 +486,10 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       {/* Content Area */}
       <div className="flex-1 overflow-hidden flex flex-col">
         {/* File Upload Section */}
-        <div className="py-2 px-4 bg-[#1b1b1b] flex-shrink-0">
+        <div
+          className="py-1.5 px-3 bg-[#1b1b1b] flex-shrink-0"
+          style={{ marginTop: "30px" }}
+        >
           <div className="flex items-center space-x-4">
             <div className="flex-1">
               <input
@@ -523,7 +532,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
           {/* Messages / Progress: fixed-height container for consistent layout */}
           {(progress || isSaving || uploadMessage) && (
-            <div className="mt-3 bg-[#0b0b0b] rounded-md h-16 flex items-center px-3">
+            <div className="mt-2 bg-[#0b0b0b] rounded-md h-14 flex items-center px-3">
               {progress ? (
                 progress.status === "COMPLETED" ? (
                   <div className="text-sm text-white">
@@ -579,7 +588,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
         {showPreview && importedBills.length > 0 && (
           <>
             {/* Controls Bar */}
-            <div className="p-4 bg-[#0b0b0b] flex-shrink-0">
+            <div className="p-3 bg-[#0b0b0b] flex-shrink-0">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Search and Filters */}
                 <div className="flex items-center space-x-3">
@@ -650,9 +659,17 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
               {/* Progress Display removed from here to avoid duplication */}
             </div>
 
-            {/* Bills List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <div className="px-3 pt-1 pb-3">
+            {/* Bills List (scrollable when many items per page) */}
+            <div
+              className={`flex-1 ${itemsPerPage >= 10 ? "custom-scrollbar" : ""}`}
+              style={{
+                overflowY: itemsPerPage >= 10 ? "auto" : "hidden",
+                paddingRight: itemsPerPage >= 10 ? 4 : 0,
+              }}
+              aria-label="Imported bills list"
+              tabIndex={itemsPerPage >= 10 ? 0 : -1}
+            >
+              <div className="px-2 pt-1 pb-2">
                 {currentBills.length === 0 ? (
                   <div className="text-center py-8 text-gray-400">
                     No bills match your search criteria
@@ -668,7 +685,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                           expanded={expandedAccordion === panelId}
                           onChange={handleAccordionChange(panelId)}
                           sx={{
-                            mb: 2,
+                            mb: 1.25,
                             boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
                             borderRadius: "12px !important",
                             "&:before": { display: "none" },
@@ -685,20 +702,20 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                               backgroundColor: "#0b0b0b",
                               borderRadius: "12px",
                               color: "#fff",
-                              minHeight: "64px",
-                              height: "64px",
+                              minHeight: "56px",
+                              height: "56px",
                               "&.Mui-expanded": {
                                 borderBottomLeftRadius: 0,
                                 borderBottomRightRadius: 0,
-                                minHeight: "64px",
+                                minHeight: "56px",
                               },
                               "&:hover": {
                                 backgroundColor: "#1b1b1b",
                               },
                               "& .MuiAccordionSummary-content": {
-                                margin: "16px 0",
+                                margin: "10px 0",
                                 "&.Mui-expanded": {
-                                  margin: "16px 0",
+                                  margin: "10px 0",
                                 },
                               },
                             }}
@@ -716,8 +733,8 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                     bill.paymentMethod
                                   ),
                                   mr: 2,
-                                  width: 40,
-                                  height: 40,
+                                  width: 36,
+                                  height: 36,
                                 }}
                               >
                                 <ReceiptIcon sx={{ fontSize: 22 }} />
@@ -728,7 +745,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   sx={{
                                     fontWeight: 600,
                                     color: "#fff",
-                                    fontSize: "1.1rem",
+                                    fontSize: "1.0rem",
                                   }}
                                 >
                                   {bill.name || "Unnamed Bill"}
@@ -758,7 +775,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                         ? "#14b8a6"
                                         : "#f44336",
                                     fontWeight: 600,
-                                    fontSize: "1.1rem",
+                                    fontSize: "1.0rem",
                                   }}
                                 >
                                   {formatCurrency(bill.amount)}
@@ -774,8 +791,8 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                     ),
                                     color: "white",
                                     fontWeight: 600,
-                                    height: "28px",
-                                    fontSize: "0.8rem",
+                                    height: "24px",
+                                    fontSize: "0.7rem",
                                   }}
                                 />
                               </Box>
@@ -783,14 +800,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                           </AccordionSummary>
 
                           <AccordionDetails
-                            sx={{ p: 3, backgroundColor: "#1b1b1b" }}
+                            sx={{ p: 2, backgroundColor: "#1b1b1b" }}
                           >
                             <Grid container spacing={3}>
                               {/* Bill Summary */}
-                              <Grid item xs={12} md={6}>
+                              <Grid item xs={12} md={6} sx={{ pb: 1 }}>
                                 <Paper
                                   sx={{
-                                    p: 2,
+                                    p: 1.5,
                                     borderRadius: 2,
                                     backgroundColor: "#0b0b0b",
                                     border: "none",
@@ -799,7 +816,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   <Typography
                                     variant="h6"
                                     sx={{
-                                      mb: 2,
+                                      mb: 1.25,
                                       display: "flex",
                                       alignItems: "center",
                                       color: "#fff",
@@ -931,7 +948,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                               <Grid item xs={12} md={6}>
                                 <Paper
                                   sx={{
-                                    p: 2,
+                                    p: 1.5,
                                     borderRadius: 2,
                                     backgroundColor: "#0b0b0b",
                                     border: "none",
@@ -940,7 +957,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   <Typography
                                     variant="h6"
                                     sx={{
-                                      mb: 2,
+                                      mb: 1.25,
                                       display: "flex",
                                       alignItems: "center",
                                       color: "#fff",
@@ -1012,7 +1029,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                         sx={{
                                           color: "#b0b0b0",
                                           textAlign: "center",
-                                          py: 2,
+                                          py: 1.25,
                                         }}
                                       >
                                         No detailed expenses available
@@ -1060,6 +1077,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                       <button
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
+                        aria-disabled={currentPage === 1}
                         className="p-0.5 rounded hover:bg-[#0f0f10] disabled:opacity-50 disabled:cursor-not-allowed text-white"
                       >
                         <FaChevronLeft className="h-4 w-4" />
@@ -1070,6 +1088,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                       <button
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
+                        aria-disabled={currentPage === totalPages}
                         className="p-0.5 rounded hover:bg-[#0f0f10] disabled:opacity-50 disabled:cursor-not-allowed text-white"
                       >
                         <FaChevronRight className="h-4 w-4" />
@@ -1078,21 +1097,28 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                   </div>
 
                   {/* Right: page size selector */}
-                  <div className="flex items-center justify-end space-x-2">
-                    <span className="text-xs text-gray-300">Show:</span>
+                  <div className="flex items-center justify-end space-x-2 text-xs text-gray-300">
+                    <label htmlFor="page-size-select" className="sr-only">
+                      Bills per page
+                    </label>
                     <select
+                      id="page-size-select"
+                      aria-label="Bills per page"
                       value={itemsPerPage}
-                      onChange={(e) =>
-                        handleItemsPerPageChange(Number(e.target.value))
-                      }
-                      className="px-2 py-0.5 bg-[#0b0b0b] text-white rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#14b8a6] border border-[#14b8a6]"
+                      onChange={handleItemsPerPageChange}
+                      className="px-2 py-1 bg-[#0b0b0b] text-white rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-[#14b8a6] border border-[#14b8a6]"
+                      style={{ minWidth: "70px" }}
                     >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                      <option value={50}>50</option>
+                      {[5, 10, 15, 20].map((size) => (
+                        <option
+                          key={size}
+                          value={size}
+                          className="bg-[#0b0b0b]"
+                        >
+                          {size} / page
+                        </option>
+                      ))}
                     </select>
-                    <span className="text-xs text-gray-300">per page</span>
                   </div>
                 </div>
               </div>

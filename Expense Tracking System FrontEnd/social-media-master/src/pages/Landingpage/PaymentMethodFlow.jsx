@@ -109,6 +109,7 @@ const PaymentMethodFlow = () => {
             label: "Reports",
           },
           { path: "/budget", icon: "budget.png", label: "Budget" },
+          { path: "/expenses", icon: "save-money.png", label: "Expenses" },
           { path: "/category-flow", icon: "category.png", label: "Categories" },
           { path: "/bill", icon: "bill.png", label: "Bill" },
         ],

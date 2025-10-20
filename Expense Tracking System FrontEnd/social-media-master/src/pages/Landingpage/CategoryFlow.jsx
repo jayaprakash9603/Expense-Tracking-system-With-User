@@ -112,7 +112,7 @@ const CategoryFlow = () => {
           {
             path: "/payment-method",
             icon: "payment-method.png",
-            label: "Payment Method",
+            label: "Payments",
           },
           { path: "/bill", icon: "bill.png", label: "Bill" },
         ],
