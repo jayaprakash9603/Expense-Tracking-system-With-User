@@ -803,79 +803,35 @@
   background: rgba(255, 255, 255, 0.03);
 }
 .type-toggle .toggle-btn.active {
-  background: linear-gradient(
-    90deg,
-    rgba(20, 184, 166, 0.18),
-    rgba(20, 184, 166, 0.12)
-  );
-  color: #0b0b0b;
+  /* default active style (overridden by specific loss/gain rules below) */
+  background: rgba(20, 184, 166, 0.16);
+  color: #fff;
   box-shadow: 0 6px 18px rgba(20, 184, 166, 0.12);
 }
 .type-toggle .toggle-btn.active:focus {
   outline: 2px solid rgba(20, 184, 166, 0.18);
 }
 
-/* Daily-spending specific: color active loss/gain buttons appropriately
-   Keep these scoped to .daily-spending-chart so other toggles aren't affected */
-.daily-spending-chart .type-toggle .toggle-btn.loss.active {
-  background: #ef4444; /* solid red */
-  color: #ffffff; /* white text for contrast */
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.12);
+/* Generic loss/gain active and hover colors (apply everywhere) */
+.type-toggle .toggle-btn.loss.active {
+  background: #ef4444;
+  color: #ffffff;
   border: 1px solid #ef4444;
-}
-.daily-spending-chart .type-toggle .toggle-btn.gain.active {
-  background: #22c55e; /* solid green */
-  color: #ffffff; /* white text for contrast */
-  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.12);
-  border: 1px solid #22c55e;
-}
-
-/* slightly stronger hover for the specific buttons (solid darker shades) */
-.daily-spending-chart .type-toggle .toggle-btn.loss:hover {
-  background: #dc2626; /* red-600 */
-}
-.daily-spending-chart .type-toggle .toggle-btn.gain:hover {
-  background: #16a34a; /* green-600 */
-}
-
-/* Category breakdown: use the same red/green scheme for loss/gain */
-.category-breakdown .type-toggle .toggle-btn.loss.active {
-  background: #ef4444; /* solid red */
-  color: #ffffff;
   box-shadow: 0 6px 18px rgba(239, 68, 68, 0.12);
-  border: 1px solid #ef4444;
 }
-.category-breakdown .type-toggle .toggle-btn.gain.active {
-  background: #22c55e; /* solid green */
+.type-toggle .toggle-btn.gain.active {
+  background: #22c55e;
   color: #ffffff;
-  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.12);
   border: 1px solid #22c55e;
-}
-.category-breakdown .type-toggle .toggle-btn.loss:hover {
-  background: #dc2626; /* red-600 */
-}
-.category-breakdown .type-toggle .toggle-btn.gain:hover {
-  background: #16a34a; /* green-600 */
-}
-
-/* Payment methods: match category breakdown loss/gain colors */
-.payment-methods .type-toggle .toggle-btn.loss.active {
-  background: #ef4444; /* solid red */
-  color: #ffffff;
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.12);
-  border: 1px solid #ef4444;
-}
-.payment-methods .type-toggle .toggle-btn.gain.active {
-  background: #22c55e; /* solid green */
-  color: #ffffff;
   box-shadow: 0 6px 18px rgba(34, 197, 94, 0.12);
-  border: 1px solid #22c55e;
 }
-.payment-methods .type-toggle .toggle-btn.loss:hover {
-  background: #dc2626; /* red-600 */
+.type-toggle .toggle-btn.loss:hover {
+  background: #dc2626; /* deeper red */
+  color: #ffffff;
 }
-.payment-methods .type-toggle .toggle-btn.gain:hover {
-  background: #16a34a; /* green-600 */
+.type-toggle .toggle-btn.gain:hover {
+  background: #16a34a; /* deeper green */
+  color: #ffffff;
 }
 
 .total-amount {
@@ -886,16 +842,26 @@
   padding: 6px 12px;
   border-radius: 6px;
   border: 1px solid rgba(20, 184, 166, 0.2);
+  display: inline-flex; /* shrink to content */
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 /* Bottom-right badge for totals inside chart containers */
 .category-breakdown {
   position: relative;
 }
-.category-breakdown .total-amount-bottom {
+.category-breakdown .total-amount-bottom,
+.payment-methods .total-amount-bottom,
+.reusable-pie-chart .total-amount-bottom {
   position: absolute;
   right: 16px;
   bottom: 16px;
+  display: inline-flex;
+  justify-content: flex-end;
+  width: auto; /* prevent full width stretch */
+  max-width: 60%;
 }
 
 /* Match Payment Methods total placement to Category Breakdown */
@@ -903,6 +869,174 @@
   position: absolute;
   right: 16px;
   bottom: 16px;
+}
+
+/* Enhanced skeleton styles */
+.chart-skeleton {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.skeleton-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.skeleton-title {
+  width: 160px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.skeleton-actions {
+  width: 100px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.skeleton-chart-body {
+  flex: 1;
+  position: relative;
+}
+.skeleton-axis-x,
+.skeleton-axis-y {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.08);
+  animation: pulse 2s linear infinite;
+}
+.skeleton-axis-x {
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  height: 2px;
+}
+.skeleton-axis-y {
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 2px;
+}
+.skeleton-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 100%;
+  padding: 18px 8px 8px 22px;
+}
+.skeleton-bar {
+  flex: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.25),
+    rgba(255, 255, 255, 0.08)
+  );
+  border-radius: 4px;
+  animation: rise 1.8s ease-in-out infinite;
+}
+@keyframes rise {
+  0% {
+    transform: scaleY(0.85);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0.85);
+    opacity: 0.7;
+  }
+}
+.skeleton-line-body {
+  position: relative;
+  height: 100%;
+  padding: 10px 12px 4px 28px;
+}
+.skeleton-line-svg {
+  width: 100%;
+  height: 100%;
+}
+.skeleton-pie-wrap {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.skeleton-pie-svg {
+  width: 55%;
+  max-width: 260px;
+}
+.skeleton-pie-ring {
+  animation: dashRotate 2.4s linear infinite;
+  stroke-dasharray: 80 14;
+}
+@keyframes dashRotate {
+  0% {
+    stroke-dashoffset: 0;
+    transform: rotate(0deg);
+  }
+  100% {
+    stroke-dashoffset: 160;
+    transform: rotate(360deg);
+  }
+}
+.skeleton-legend {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.skeleton-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.skeleton-legend-item .legend-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.skeleton-legend-item .legend-text {
+  width: 70px;
+  height: 12px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.skeleton-total-pill {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 120px;
+  height: 22px;
+  background: rgba(20, 184, 166, 0.15);
+  border-radius: 6px;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse {
+  0% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.55;
+  }
 }
 
 .trend-stats {
@@ -1381,13 +1515,13 @@
 /* Line chart skeleton variant and control pills */
 .chart-skeleton .skeleton-line-body {
   width: 100%;
-  height: 100%;
+  height: 100%; /* fill parent height so inline height prop drives size */
   display: flex;
   align-items: center;
 }
 .skeleton-line-svg {
   width: 100%;
-  height: 200px;
+  height: 100%; /* inherit from container for adjustable heights */
 }
 .skeleton-pill {
   width: 110px;
@@ -1416,8 +1550,8 @@
 /* Constrain skeleton internals for daily spending chart to mirror real chart height */
 .daily-spending-chart .chart-skeleton .skeleton-line-svg,
 .daily-spending-chart .chart-skeleton .skeleton-chart-body {
-  height: 260px; /* match actual rendered chart height */
-  max-height: 260px;
+  height: 100%; /* use dynamic height from inline style */
+  max-height: 100%;
 }
 .skeleton-pie-wrap {
   width: 100%;
@@ -1464,7 +1598,7 @@
 }
 
 .skeleton-chart-body {
-  height: 200px;
+  height: 100%; /* allow container inline height to control sizing */
   display: flex;
   align-items: end;
   gap: 8px;
