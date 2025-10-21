@@ -9,7 +9,15 @@ const RecentTransactionsSkeleton = ({ rows = 5, perRow = 2 }) => {
   return (
     <div className="recent-transactions skeleton">
       <div className="section-header">
-        <h3 className="skeleton-text" style={{ width: 180 }}>
+        <h3
+          className="skeleton-text"
+          style={{
+            width: 180,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
           🕒 Recent Transactions
         </h3>
         <div className="skeleton-pill" style={{ width: 70 }} />

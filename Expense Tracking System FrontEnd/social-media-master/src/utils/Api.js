@@ -43,9 +43,10 @@ export async function fetchExpenseSummary(params = {}) {
  * Optional params forwarded as query string (e.g., { year } or date ranges).
  * Returns raw response body; caller can shape as needed.
  */
-export async function fetchMonthlyExpenses(params = {}) {
+export async function fetchMonthlyExpenses(params = {}, options = {}) {
   try {
-    const res = await api.get("/api/expenses/monthly", { params });
+    const { signal } = options;
+    const res = await api.get("/api/expenses/monthly", { params, signal });
     return res.data ?? [];
   } catch (err) {
     throw err;
@@ -62,7 +63,9 @@ export async function fetchMonthlyExpenses(params = {}) {
  */
 export async function fetchPaymentMethods(params = {}) {
   try {
-    const res = await api.get("/api/expenses/payment-methods/filtered", { params });
+    const res = await api.get("/api/expenses/payment-methods/filtered", {
+      params,
+    });
     return res.data ?? {};
   } catch (err) {
     throw err;

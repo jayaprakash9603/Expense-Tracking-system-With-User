@@ -8,7 +8,15 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
     return (
       <div className="budget-overview skeleton summary">
         <div className="section-header">
-          <h3 className="skeleton-text" style={{ width: 160 }}>
+          <h3
+            className="skeleton-text"
+            style={{
+              width: 160,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             🎯 Budget Overview
           </h3>
         </div>
@@ -55,7 +63,15 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
   return (
     <div className="budget-overview skeleton list">
       <div className="section-header">
-        <h3 className="skeleton-text" style={{ width: 160 }}>
+        <h3
+          className="skeleton-text"
+          style={{
+            width: 160,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
           📊 Budget Overview
         </h3>
         <div className="skeleton-pill" style={{ width: 70 }} />
