@@ -11,10 +11,10 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
           <h3
             className="skeleton-text"
             style={{
-              width: 160,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              width: "auto",
+              maxWidth: 240,
+              whiteSpace: "normal",
+              overflow: "visible",
             }}
           >
             🎯 Budget Overview
@@ -66,10 +66,10 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
         <h3
           className="skeleton-text"
           style={{
-            width: 160,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            width: "auto",
+            maxWidth: 240,
+            whiteSpace: "normal",
+            overflow: "visible",
           }}
         >
           📊 Budget Overview

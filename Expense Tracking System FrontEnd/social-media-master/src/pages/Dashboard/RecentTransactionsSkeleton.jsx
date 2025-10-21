@@ -12,10 +12,10 @@ const RecentTransactionsSkeleton = ({ rows = 5, perRow = 2 }) => {
         <h3
           className="skeleton-text"
           style={{
-            width: 180,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            width: "auto",
+            maxWidth: 240,
+            whiteSpace: "normal",
+            overflow: "visible",
           }}
         >
           🕒 Recent Transactions

@@ -6,10 +6,12 @@ import { api } from "../config/api";
  * Expected backend shape: { dailySpending: [{ day: '2025-08-01', spending: 123 }, ...] }
  * Returns normalized array: [{ day: '2025-08-01', spending: 123 }, ...]
  */
-export async function fetchDailySpending(params = {}) {
+export async function fetchDailySpending(params = {}, options = {}) {
   try {
+    const { signal } = options;
     const res = await api.get("/api/expenses/daily-spending", {
       params,
+      signal,
     });
     const raw = res.data?.dailySpending ?? res.data ?? [];
     return (Array.isArray(raw) ? raw : []).map((item) => ({

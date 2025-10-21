@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import useDailySpendingData from "../hooks/useDailySpendingData";
 import { DailySpendingChart, DailySpendingSkeleton } from "../pages/Dashboard";
@@ -17,20 +17,36 @@ const DailySpendingContainer = ({
   skeletonHeight = 240,
   refreshTrigger,
 }) => {
-  const { data, loading, timeframe, type, setTimeframe, setType } =
+  const { data, loading, timeframe, type, setTimeframe, setType, refetch } =
     useDailySpendingData({
       initialTimeframe: controlledTimeframe,
       initialType: controlledType,
       refreshTrigger,
     });
 
+  // Sync controlled prop changes (if parent manages state) into hook state
+  useEffect(() => {
+    if (controlledTimeframe && controlledTimeframe !== timeframe) {
+      setTimeframe(controlledTimeframe);
+      refetch();
+    }
+  }, [controlledTimeframe]);
+  useEffect(() => {
+    if (controlledType && controlledType !== type) {
+      setType(controlledType);
+      refetch();
+    }
+  }, [controlledType]);
+
   const handleTimeframe = (val) => {
     if (onTimeframeChange) onTimeframeChange(val);
     else setTimeframe(val);
+    refetch();
   };
   const handleType = (val) => {
     if (onTypeChange) onTypeChange(val);
     else setType(val);
+    refetch();
   };
 
   if (loading) {
