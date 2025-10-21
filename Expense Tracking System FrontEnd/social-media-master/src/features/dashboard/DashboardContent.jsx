@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardHeader from "../../components/DashboardHeader";
 import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SummaryOverview from "../../components/SummaryOverview";
@@ -15,6 +16,7 @@ import {
 } from "../../pages/Dashboard";
 import QuickAccess from "../../pages/Landingpage/QuickAccess";
 import { useDashboardContext } from "./DashboardProvider";
+import { createDashboardActions } from "./dashboardActions";
 
 // Central presentation component - minimal logic; relies on context for data/state.
 export default function DashboardContent() {
@@ -44,13 +46,13 @@ export default function DashboardContent() {
     monthlyTrendData,
   } = useDashboardContext();
 
-  const handleExport = () => {
-    // placeholder; original logic lives in ExpenseDashboard (API call & alert)
-    // could be moved to provider if global
-    console.log("Export triggered");
-  };
+  const navigate = useNavigate();
 
-  const handleFilter = () => console.log("Filter opened");
+  // Inject dependencies into centralized action creators.
+  const { exportReports, viewAllTransactions, openFilter } = useMemo(
+    () => createDashboardActions({ navigate }),
+    [navigate]
+  );
 
   const isMobile = window.matchMedia("(max-width:600px)").matches;
   const isTablet = window.matchMedia("(max-width:1024px)").matches;
@@ -59,8 +61,8 @@ export default function DashboardContent() {
     <div className="expense-dashboard">
       <DashboardHeader
         onRefresh={forceRefresh}
-        onExport={handleExport}
-        onFilter={handleFilter}
+        onExport={exportReports}
+        onFilter={openFilter}
       />
       <MetricsGrid
         analyticsSummary={analyticsSummary}
@@ -135,13 +137,14 @@ export default function DashboardContent() {
       <div className="bottom-section">
         {analyticsLoading ? (
           <>
-            <RecentTransactionsSkeleton count={8} />
+            <RecentTransactionsSkeleton count={10} />
             <BudgetOverviewSkeleton count={4} />
           </>
         ) : (
           <>
             <RecentTransactions
               transactions={analyticsSummary?.lastTenExpenses ?? []}
+              onViewAll={viewAllTransactions}
             />
             <BudgetOverview
               remainingBudget={analyticsSummary?.remainingBudget ?? 0}
