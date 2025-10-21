@@ -623,7 +623,15 @@ const Friends = () => {
       severity: "info",
     });
     dispatch(fetchFriendship(friendId || ""));
-    dispatch(fetchCashflowExpenses("month", 0, "all", "", friendId));
+    dispatch(
+      fetchCashflowExpenses({
+        range: "month",
+        offset: 0,
+        flowType: null, // 'all' equivalent
+        targetId: friendId,
+        groupBy: false,
+      })
+    );
 
     setTimeout(() => {
       setSnackbar({

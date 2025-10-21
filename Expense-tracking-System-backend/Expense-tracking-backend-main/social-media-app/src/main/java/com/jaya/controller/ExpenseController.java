@@ -2864,6 +2864,10 @@ public class ExpenseController {
             }
             effectiveStart = startDate;
             effectiveEnd = endDate;
+        } else if ((startDate != null && endDate == null) || (startDate == null && endDate != null)) {
+            // Reject partial explicit date input to avoid ambiguous ranges
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Provide both startDate and endDate, or omit both and use range parameter");
         } else {
             // Require range if no explicit dates
             if (range == null || range.isBlank()) {
@@ -2927,24 +2931,27 @@ public class ExpenseController {
             return ResponseEntity.ok(expenses);
         }
 
-        // Build grouped response structure by payment method
+        // Group by EXPENSE NAME (fallback to "unknown") instead of payment method
         Map<String, List<Expense>> grouped = expenses.stream()
-                .collect(Collectors.groupingBy(e -> (e.getExpense() != null && e.getExpense().getPaymentMethod() != null)
-                        ? e.getExpense().getPaymentMethod()
-                        : "unknown"));
+                .collect(Collectors.groupingBy(e -> {
+                    if (e.getExpense() == null || e.getExpense().getExpenseName() == null || e.getExpense().getExpenseName().isBlank()) {
+                        return "unknown";
+                    }
+                    return e.getExpense().getExpenseName();
+                }));
 
-        // Calculate totals per payment method and overall stats
-    Map<String, Double> paymentMethodTotals = new LinkedHashMap<>();
-    grouped.forEach((method, list) -> {
-        double total = list.stream()
-            .filter(exp -> exp.getExpense() != null)
-            .mapToDouble(exp -> exp.getExpense().getAmount())
-            .sum();
-        paymentMethodTotals.put(method, total);
-    });
-    double grandTotal = paymentMethodTotals.values().stream().mapToDouble(Double::doubleValue).sum();
+        // Calculate totals per expense name and overall stats
+        Map<String, Double> expenseNameTotals = new LinkedHashMap<>();
+        grouped.forEach((expenseName, list) -> {
+            double total = list.stream()
+                    .filter(exp -> exp.getExpense() != null)
+                    .mapToDouble(exp -> Optional.ofNullable(exp.getExpense().getAmount()).orElse(0.0))
+                    .sum();
+            expenseNameTotals.put(expenseName, total);
+        });
+        double grandTotal = expenseNameTotals.values().stream().mapToDouble(Double::doubleValue).sum();
 
-        // Prepare summary section
+        // Prepare summary section (renamed keys but keep old ones for backward compatibility where sensible)
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("totalAmount", grandTotal);
         Map<String, Object> dateRange = new LinkedHashMap<>();
@@ -2952,30 +2959,39 @@ public class ExpenseController {
         dateRange.put("toDate", effectiveEnd.toString());
         dateRange.put("flowType", flowType);
         summary.put("dateRange", dateRange);
-        summary.put("totalPaymentMethods", paymentMethodTotals.size());
+        summary.put("totalExpenseNames", expenseNameTotals.size());
         summary.put("totalExpenses", expenses.size());
-        summary.put("paymentMethodTotals", paymentMethodTotals);
+        summary.put("expenseNameTotals", expenseNameTotals);
+        // Backward compatible aliases (if frontend still expecting these temporarily)
+        summary.put("totalPaymentMethods", expenseNameTotals.size());
+        summary.put("paymentMethodTotals", expenseNameTotals);
 
-        // Assemble final response with summary first, then each payment method section
+        // Assemble final response with summary first, then each expense name section
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("summary", summary);
 
-        grouped.forEach((method, list) -> {
-            Map<String, Object> methodBlock = new LinkedHashMap<>();
-            methodBlock.put("expenseCount", list.size());
-            methodBlock.put("totalAmount", paymentMethodTotals.getOrDefault(method, 0.0));
-            methodBlock.put("paymentMethod", method);
+        grouped.forEach((expenseName, list) -> {
+            Map<String, Object> groupBlock = new LinkedHashMap<>();
+            groupBlock.put("expenseCount", list.size());
+            groupBlock.put("totalAmount", expenseNameTotals.getOrDefault(expenseName, 0.0));
+            groupBlock.put("expenseName", expenseName); // primary grouping key
+            groupBlock.put("paymentMethod", expenseName); // backward compat alias for frontend expecting this key
 
-            // Transform each expense into a simplified structure matching the sample
+            // Gather set of distinct payment methods in this expense name group (optional insight)
+            Set<String> paymentMethods = list.stream()
+                    .map(e -> e.getExpense() != null ? e.getExpense().getPaymentMethod() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            groupBlock.put("paymentMethods", paymentMethods);
+
+            // Transform each expense into a simplified structure
             List<Map<String, Object>> expenseEntries = list.stream().map(exp -> {
                 Map<String, Object> entry = new LinkedHashMap<>();
-                // Top-level date & id
                 if (exp.getDate() != null) {
                     entry.put("date", exp.getDate().toString());
                 }
                 entry.put("id", exp.getId());
 
-                // Details object
                 Map<String, Object> details = new LinkedHashMap<>();
                 ExpenseDetails d = exp.getExpense();
                 if (d != null) {
@@ -2992,8 +3008,9 @@ public class ExpenseController {
                 return entry;
             }).collect(Collectors.toList());
 
-            methodBlock.put("expenses", expenseEntries);
-            response.put(method, methodBlock);
+            groupBlock.put("expenses", expenseEntries);
+            // Backward compatible key (if frontend used paymentMethod previously as map key)
+            response.put(expenseName, groupBlock);
         });
 
         return ResponseEntity.ok(response);

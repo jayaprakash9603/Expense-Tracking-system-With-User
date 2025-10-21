@@ -57,6 +57,7 @@ import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard/AdminDashbo
 import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
 import Bill from "./pages/Landingpage/Bills/Bill";
 import BudgetDashboard from "./pages/Landingpage/Budget/BudgetDashboard";
+import CombinedExpenseReport from "./pages/Landingpage/CombinedExpenseReport";
 // import Bill from "./pages/Landingpage/Bills/Bill";
 function App() {
   const { auth } = useSelector((store) => store);
@@ -171,6 +172,11 @@ function App() {
                 path="edit/:id/friend/:friendId"
                 element={<EditExpense />}
               />
+              <Route path="reports" element={<CombinedExpenseReport />} />
+              <Route
+                path="reports/:friendId"
+                element={<CombinedExpenseReport />}
+              />
             </Route>
             <Route path="category-flow">
               <Route index element={<CategoryFlow />} />
@@ -201,6 +207,7 @@ function App() {
             <Route path="reports">
               <Route index element={<Reports />} />
               <Route path=":friendId" element={<Reports />} />
+              {/* Combined unified expense report (grouped cashflow analytics) */}
             </Route>
             <Route path="cashflow">
               {/* Directly render Cashflow for both self and friend contexts */}

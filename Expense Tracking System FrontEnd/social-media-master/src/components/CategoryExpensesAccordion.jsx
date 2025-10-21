@@ -10,10 +10,7 @@ import GenericAccordionGroup from "./GenericAccordionGroup";
  * - categories: Array of category spending objects (name, amount, transactions, expenses, percentage, avgPerTransaction)
  * - currencySymbol: String currency symbol displayed with amounts (default '₹').
  */
-const CategoryExpensesAccordion = ({
-  categories = [],
-  currencySymbol = "₹",
-}) => {
+const CategoryExpensesAccordion = ({ categories = [], currencySymbol = "₹" }) => {
   const groups = (Array.isArray(categories) ? categories : []).map((c) => ({
     label: c.name,
     totalAmount: c.amount,
@@ -36,15 +33,12 @@ const CategoryExpensesAccordion = ({
       label: "Amount",
       width: "110px",
       value: (row) => row.details?.amount ?? row.details?.netAmount ?? 0,
-      sortValue: (row) =>
-        Number(row.details?.amount ?? row.details?.netAmount ?? 0),
+      sortValue: (row) => Number(row.details?.amount ?? row.details?.netAmount ?? 0),
       className: (row) => {
         const rawType = (row?.details?.type || "").toLowerCase();
         if (rawType === "loss") return "pm-negative";
         if (rawType === "gain" || rawType === "profit") return "pm-positive";
-        const amt = Number(
-          row?.details?.amount ?? row?.details?.netAmount ?? 0
-        );
+        const amt = Number(row?.details?.amount ?? row?.details?.netAmount ?? 0);
         return amt < 0 ? "pm-negative" : "pm-positive";
       },
     },
@@ -58,8 +52,7 @@ const CategoryExpensesAccordion = ({
       key: "creditDue",
       label: "Credit Due",
       width: "120px",
-      value: (row) =>
-        row.details?.creditDue != null ? row.details.creditDue : "-",
+      value: (row) => (row.details?.creditDue != null ? row.details.creditDue : "-"),
       sortValue: (row) => Number(row.details?.creditDue ?? 0),
     },
     {
@@ -111,15 +104,11 @@ const CategoryExpensesAccordion = ({
                 </span>
               </div>
               <div className="pm-header-right">
-                <span
-                  className="metric-box avg"
-                  title="Average per Transaction"
-                >
+                <span className="metric-box avg" title="Average per Transaction">
                   Avg - ₹{group.avgPerTransaction}
                 </span>
                 <span className="metric-box amount" title="Total Amount">
-                  ₹{Number(group.totalAmount || 0).toLocaleString()} (
-                  {group.percentage}%)
+                  ₹{Number(group.totalAmount || 0).toLocaleString()} ({group.percentage}%)
                 </span>
                 <span className="pm-chevron" aria-hidden>
                   {isOpen ? "▾" : "▸"}

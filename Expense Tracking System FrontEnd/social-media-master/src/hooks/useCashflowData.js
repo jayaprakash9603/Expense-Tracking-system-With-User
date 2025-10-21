@@ -15,13 +15,15 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
   // fetch
   useEffect(() => {
     dispatch(
-      fetchCashflowExpenses(
-        activeRange,
+      fetchCashflowExpenses({
+        range: activeRange,
         offset,
-        flowTab === "all" ? null : flowTab,
-        null,
-        isFriendView ? friendId : null
-      )
+        flowType: flowTab === "all" ? null : flowTab,
+        // category intentionally null for base cashflow screen filtering by text search only
+        // type left undefined to fetch both loss & gain unless flowTab narrows via flowType
+        targetId: isFriendView ? friendId : undefined,
+        groupBy: false, // flat list for timeline visualization
+      })
     );
   }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView]);
 

@@ -84,13 +84,13 @@ export default function useExpenseDeletion({
           )
         );
         dispatch(
-          fetchCashflowExpenses(
-            activeRange,
+          fetchCashflowExpenses({
+            range: activeRange,
             offset,
-            flowTab === "all" ? null : flowTab,
-            null,
-            isFriendView ? friendId : null
-          )
+            flowType: flowTab === "all" ? null : flowTab,
+            targetId: isFriendView ? friendId : undefined,
+            groupBy: false,
+          })
         );
         setToastMessage("Selected expenses deleted successfully.");
         setToastOpen(true);
@@ -121,13 +121,13 @@ export default function useExpenseDeletion({
           : deleteExpenseAction(expenseToDelete, friendId || "")
       );
       dispatch(
-        fetchCashflowExpenses(
-          activeRange,
+        fetchCashflowExpenses({
+          range: activeRange,
           offset,
-          flowTab === "all" ? null : flowTab,
-          null,
-          isFriendView ? friendId : null
-        )
+          flowType: flowTab === "all" ? null : flowTab,
+          targetId: isFriendView ? friendId : undefined,
+          groupBy: false,
+        })
       );
       setToastMessage(
         bill ? "Bill deleted successfully" : "Expense deleted successfully."

@@ -213,6 +213,33 @@ export const PaymentLoadingSkeleton = () => (
     </div>
   </div>
 );
+export const ExpensesLoadingSkeleton = () => (
+  <div className="payment-methods-report">
+    <HeaderSkeleton rootClassName="payment-methods-header" />
+    <div className="payment-overview-cards">
+      {[...Array(4)].map((_, i) => (
+        <OverviewCardSkeleton key={i} />
+      ))}
+    </div>
+    <div className="chart-row full-width" style={{ marginBottom: 32 }}>
+      <PieChartSkeleton height={360} />
+    </div>
+    <div className="charts-grid">
+      <div className="chart-row full-width">
+        <ChartSkeleton height={300} />
+      </div>
+
+      <div className="chart-row">
+        <ChartSkeleton height={400} />
+        <ChartSkeleton height={400} />
+      </div>
+
+      <div className="chart-row full-width">
+        <TableSkeleton headerCells={7} rowCells={7} />
+      </div>
+    </div>
+  </div>
+);
 
 export default {
   HeaderSkeleton,
@@ -222,4 +249,5 @@ export default {
   TableSkeleton,
   CategoryLoadingSkeleton,
   PaymentLoadingSkeleton,
+  ExpensesLoadingSkeleton,
 };

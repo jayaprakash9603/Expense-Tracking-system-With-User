@@ -88,7 +88,13 @@ const CalendarView = () => {
   // Fetch cashflow expenses for the selected month
   React.useEffect(() => {
     dispatch(
-      fetchCashflowExpenses("month", monthOffset, "", "", friendId || "")
+      fetchCashflowExpenses({
+        range: "month",
+        offset: monthOffset,
+        flowType: null,
+        targetId: friendId || undefined,
+        groupBy: false,
+      })
     );
   }, [dispatch, monthOffset, friendId]);
 
@@ -130,7 +136,13 @@ const CalendarView = () => {
   const handleDayClick = (day) => {
     const dateStr = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
     dispatch(
-      fetchCashflowExpenses("month", monthOffset, "", "", friendId || "")
+      fetchCashflowExpenses({
+        range: "month",
+        offset: monthOffset,
+        flowType: null,
+        targetId: friendId || undefined,
+        groupBy: false,
+      })
     );
     if (friendId && friendId !== "undefined") {
       navigate(`/day-view/${dateStr}/friend/${friendId}`);

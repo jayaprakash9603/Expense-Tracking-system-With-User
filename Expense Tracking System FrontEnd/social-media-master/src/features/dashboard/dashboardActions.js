@@ -12,7 +12,7 @@
 export function createDashboardActions({ navigate, api } = {}) {
   const exportReports = async () => {
     try {
-      if (api) {
+      if (1==1) {
         await api.get("/api/expenses/generate-excel-report");
         await api.get("/api/bills/export/excel");
       } else {

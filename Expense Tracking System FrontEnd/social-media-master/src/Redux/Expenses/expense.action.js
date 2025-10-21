@@ -514,32 +514,53 @@ export const getExpensesByBudget =
     }
   };
 // Update the existing fetchCashflowExpenses function
+// Enhanced cashflow fetch supporting explicit dates, type and grouping
+// Usage examples:
+//  fetchCashflowExpenses({ range:'month', offset:0 })
+//  fetchCashflowExpenses({ startDate:'2025-09-01', endDate:'2025-09-30', type:'loss', groupBy:true })
 export const fetchCashflowExpenses =
-  (range, offset = 0, flowType, category, targetId) =>
+  ({
+    range,
+    offset = 0,
+    flowType,
+    category,
+    type,
+    startDate,
+    endDate,
+    groupBy = false,
+    targetId,
+  }) =>
   async (dispatch) => {
     try {
       dispatch({ type: FETCH_CASHFLOW_EXPENSES_REQUEST });
 
-      // Build the query parameters
-      let queryParams = `?range=${range}&offset=${offset}&targetId=${
-        targetId || ""
-      }`;
-      if (flowType) queryParams += `&flowType=${flowType}`;
-      if (category) queryParams += `&category=${encodeURIComponent(category)}`;
+      const params = new URLSearchParams();
+      if (startDate && endDate) {
+        params.append("startDate", startDate);
+        params.append("endDate", endDate);
+      } else {
+        if (range) params.append("range", range);
+        params.append("offset", String(offset));
+      }
+      if (flowType && flowType !== "all") params.append("flowType", flowType);
+      if (category) params.append("category", category);
+      if (type) params.append("type", type); // loss|gain
+      if (groupBy) params.append("groupBy", "true");
+      if (targetId) params.append("targetId", targetId);
 
-      // Use the api instance that's already configured with headers
-      const { data } = await api.get(`/api/expenses/cashflow${queryParams}`);
+      const { data } = await api.get(
+        `/api/expenses/cashflow?${params.toString()}`
+      );
 
-      dispatch({
-        type: FETCH_CASHFLOW_EXPENSES_SUCCESS,
-        payload: data,
-      });
+      dispatch({ type: FETCH_CASHFLOW_EXPENSES_SUCCESS, payload: data });
+      return data;
     } catch (error) {
       console.log("Error fetching cashflow expenses:", error);
       dispatch({
         type: FETCH_CASHFLOW_EXPENSES_FAILURE,
         payload: error.response?.data?.message || "Failed to fetch expenses",
       });
+      throw error;
     }
   };
 export const getExpensesByParticularDate =

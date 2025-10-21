@@ -89,13 +89,14 @@ export const useFriendshipData = (friendId, options = {}) => {
         setError(null);
         const { activeRange, offset, flowTab, search } = filters;
         await dispatch(
-          fetchCashflowExpenses(
-            activeRange,
+          fetchCashflowExpenses({
+            range: activeRange,
             offset,
-            flowTab === "all" ? null : flowTab,
-            search.trim() || null,
-            targetFriendId
-          )
+            flowType: flowTab === "all" ? null : flowTab,
+            // category param not used here; search handled locally
+            targetId: targetFriendId,
+            groupBy: false,
+          })
         );
       } catch (err) {
         console.error("Error fetching expenses data:", err);
