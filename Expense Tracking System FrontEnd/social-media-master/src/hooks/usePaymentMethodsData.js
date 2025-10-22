@@ -35,7 +35,12 @@ export default function usePaymentMethodsData({
    */
   const buildParams = useCallback(() => {
     const params = {};
-    const fmt = (d) => d.toISOString().slice(0, 10);
+    const fmt = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    };
     const now = new Date();
 
     // Normalize flowType: accept 'loss'/'gain' (chart UI) or 'outflow'/'inflow' (reports)
@@ -82,7 +87,7 @@ export default function usePaymentMethodsData({
       }
     }
 
-    // Add backend-expected params
+    // Add backend-expected params for all cases (buildReportParams adds these for its cases)
     if (reportFlow === "inflow") params.type = "gain";
     if (reportFlow === "outflow") params.type = "loss";
     if (reportFlow && reportFlow !== "all") params.flowType = reportFlow;
