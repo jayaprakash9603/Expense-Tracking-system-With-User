@@ -12,12 +12,14 @@ import ChartSkeleton from "../pages/Dashboard/ChartSkeleton";
  *  - refreshTrigger?: any (refetch when changes)
  *  - height?: number (skeleton/chart height)
  *  - maxYear?: number (upper bound when clicking next year)
+ *  - showSkeleton?: boolean (default true - enable/disable skeleton loader)
  */
 const MonthlyTrendContainer = ({
   initialYear,
   refreshTrigger,
   height = 480,
   maxYear,
+  showSkeleton = true,
 }) => {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(initialYear || currentYear);
@@ -27,7 +29,7 @@ const MonthlyTrendContainer = ({
   const handlePrevYear = () => setYear((y) => y - 1);
   const handleNextYear = () => setYear((y) => Math.min(effectiveMax, y + 1));
 
-  return loading ? (
+  return loading && showSkeleton ? (
     <ChartSkeleton height={height} />
   ) : (
     <MonthlyTrendChart
@@ -35,6 +37,7 @@ const MonthlyTrendContainer = ({
       year={year}
       onPrevYear={handlePrevYear}
       onNextYear={handleNextYear}
+      loading={loading}
     />
   );
 };
@@ -44,6 +47,7 @@ MonthlyTrendContainer.propTypes = {
   refreshTrigger: PropTypes.any,
   height: PropTypes.number,
   maxYear: PropTypes.number,
+  showSkeleton: PropTypes.bool,
 };
 
 export default MonthlyTrendContainer;

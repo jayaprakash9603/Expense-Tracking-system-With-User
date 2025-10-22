@@ -9,7 +9,10 @@ import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
 import CategoryBreakdownChart from "../Dashboard/CategoryBreakdownChart";
 import PaymentMethodChart from "../Dashboard/PaymentMethodChart";
-import { ExpensesLoadingSkeleton } from "../../components/skeletons/CommonSkeletons";
+import {
+  ExpensesLoadingSkeleton,
+  ChartSkeleton,
+} from "../../components/skeletons/CommonSkeletons";
 import { getChartColors } from "../../utils/chartColors";
 import "../Landingpage/Payment Report/PaymentReport.css"; // Reuse existing payment report styles
 
@@ -141,6 +144,11 @@ export default function CombinedExpenseReport() {
             flowType={categoryFlowType}
             onFlowTypeChange={setCategoryFlowType}
             loading={categoryLoading}
+            skeleton={
+              loading ? (
+                <ChartSkeleton height={480} variant="pie" noHeader />
+              ) : null
+            }
           />
           <PaymentMethodChart
             data={paymentMethodsData}
@@ -149,6 +157,11 @@ export default function CombinedExpenseReport() {
             flowType={paymentMethodFlowType}
             onFlowTypeChange={setPaymentMethodFlowType}
             loading={paymentMethodsLoading}
+            skeleton={
+              loading ? (
+                <ChartSkeleton height={480} variant="pie" noHeader />
+              ) : null
+            }
           />
         </div>
 

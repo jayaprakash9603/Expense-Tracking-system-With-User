@@ -24,7 +24,13 @@ const formatNumber0 = (v) =>
  * Displays monthly expense bars + average line for a given year.
  * Accepts normalized { labels, datasets: [{ data }] } structure.
  */
-const MonthlyTrendChart = ({ data, year, onPrevYear, onNextYear }) => {
+const MonthlyTrendChart = ({
+  data,
+  year,
+  onPrevYear,
+  onNextYear,
+  loading = false,
+}) => {
   const currentYear = new Date().getFullYear();
   const isAtCurrentYear = year >= currentYear;
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -48,7 +54,10 @@ const MonthlyTrendChart = ({ data, year, onPrevYear, onNextYear }) => {
   }));
 
   return (
-    <div className="chart-container monthly-trend">
+    <div
+      className="chart-container monthly-trend"
+      style={{ position: "relative" }}
+    >
       <div className="chart-header">
         <h3>📈 Monthly Expense Trend</h3>
         <div className="trend-stats">
@@ -121,6 +130,23 @@ const MonthlyTrendChart = ({ data, year, onPrevYear, onNextYear }) => {
           />
         </ComposedChart>
       </ResponsiveContainer>
+
+      {/* Loading indicator when skeleton is disabled */}
+      {loading && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            color: "#888",
+            fontSize: "14px",
+            fontWeight: 500,
+          }}
+        >
+          Loading...
+        </div>
+      )}
     </div>
   );
 };
@@ -135,6 +161,7 @@ MonthlyTrendChart.propTypes = {
   year: PropTypes.number.isRequired,
   onPrevYear: PropTypes.func.isRequired,
   onNextYear: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
 };
 
 export default MonthlyTrendChart;

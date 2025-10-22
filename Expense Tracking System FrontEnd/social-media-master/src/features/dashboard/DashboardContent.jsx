@@ -100,11 +100,13 @@ export default function DashboardContent() {
               onFlowTypeChange={setCategoryFlowType}
               loading={categoryLoading}
               skeleton={
-                <ChartSkeleton
-                  height={isMobile ? 380 : 560}
-                  variant="pie"
-                  noHeader
-                />
+                analyticsLoading ? (
+                  <ChartSkeleton
+                    height={isMobile ? 380 : 560}
+                    variant="pie"
+                    noHeader
+                  />
+                ) : null
               }
             />
           </div>
@@ -115,6 +117,7 @@ export default function DashboardContent() {
             refreshTrigger={Math.random()} /* context already manages; placeholder for integration */
             height={isMobile ? 260 : isTablet ? 380 : 600}
             maxYear={currentYear}
+            showSkeleton={analyticsLoading}
           />
           <PaymentMethodChart
             data={paymentMethodsData}
@@ -123,7 +126,11 @@ export default function DashboardContent() {
             flowType={paymentMethodsFlowType}
             onFlowTypeChange={setPaymentMethodsFlowType}
             loading={paymentMethodsLoading}
-            skeleton={<ChartSkeleton height={600} variant="pie" noHeader />}
+            skeleton={
+              analyticsLoading ? (
+                <ChartSkeleton height={600} variant="pie" noHeader />
+              ) : null
+            }
           />
         </div>
       </div>
