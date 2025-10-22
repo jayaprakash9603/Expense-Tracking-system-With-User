@@ -5,11 +5,85 @@
   margin-top: 12px;
 }
 
+/* Viewport for group-level pagination/scroll */
+.pm-groups-viewport {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* Reserve space for 8 collapsed accordion items (approx 58px each) + gaps */
+  min-height: calc(58px * 8 + 10px * 7);
+}
+.pm-groups-viewport.paged-mode {
+  /* Maintain fixed height for 8 items to prevent layout shift between pages */
+  height: calc(58px * 8 + 10px * 7);
+  overflow: hidden;
+}
+.pm-groups-viewport.scroll-mode {
+  height: calc(58px * 8 + 10px * 7);
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-color: #14b8a6 #1d1d1f;
+}
+.pm-groups-viewport.scroll-mode::-webkit-scrollbar {
+  width: 8px;
+}
+.pm-groups-viewport.scroll-mode::-webkit-scrollbar-track {
+  background: #1d1d1f;
+  border-radius: 6px;
+}
+.pm-groups-viewport.scroll-mode::-webkit-scrollbar-thumb {
+  background: #14b8a6;
+  border-radius: 6px;
+  border: 2px solid #1d1d1f;
+}
+.pm-groups-viewport.scroll-mode::-webkit-scrollbar-thumb:hover {
+  background: #19d5bd;
+}
+
+/* Placeholder items to keep consistent height on short last page */
+.pm-accordion-item.pm-placeholder {
+  background: #101010;
+  border: 1px dashed #222;
+  opacity: 0.35;
+  height: 58px;
+  display: flex;
+  align-items: center;
+}
+.pm-placeholder-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 18px;
+}
+.placeholder-block {
+  display: inline-block;
+  height: 16px;
+  width: 80px;
+  background: #1f1f1f;
+  border-radius: 6px;
+}
+.pm-placeholder .pm-method-name.placeholder-block {
+  width: 120px;
+}
+.pm-scroll-mode-info {
+  margin-top: 8px;
+}
+
 .pm-accordion-item {
   border: 1px solid #2a2a2a;
   border-radius: 10px;
   background: #141414;
   overflow: hidden;
+}
+.pm-groups-viewport .pm-accordion-item {
+  flex: 0 0 auto; /* prevent shrinking in flex column */
+}
+.pm-groups-viewport.paged-mode
+  .pm-accordion-item:not(.open)
+  .pm-accordion-header {
+  min-height: 58px; /* consistent collapsed height */
+  display: flex;
+  align-items: center;
 }
 .pm-accordion-item.open {
   outline: 0;
@@ -556,4 +630,74 @@
 }
 .pm-sort-icon.none {
   opacity: 0.5;
+}
+
+/* Group-level pagination (accordion cards) */
+.pm-group-pagination-bar {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #141414;
+  border: 1px solid #222;
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-start; /* allow centering via flex:1 child */
+  position: relative;
+}
+.pm-group-page-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto; /* take available space */
+  justify-content: center; /* center navigation */
+  order: 1;
+}
+.pm-group-page-size {
+  order: 2;
+  margin-left: auto; /* push selector to far right */
+}
+.pm-group-pagination-bar .pm-page-btn {
+  width: 34px;
+  height: 30px;
+  font-size: 15px;
+}
+.pm-group-pagination-bar .pm-page-indicator {
+  font-size: 13px;
+  color: #c9c9c9;
+  font-weight: 500;
+}
+.pm-group-page-size label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #ccc;
+}
+.pm-group-page-size select {
+  background: #1d1d1f;
+  color: #fff;
+  border: 1px solid #2a2a2a;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  min-width: 80px;
+}
+@media (max-width: 640px) {
+  .pm-group-pagination-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pm-group-page-controls {
+    width: 100%;
+    justify-content: center;
+    flex: 0 0 auto;
+  }
+  .pm-group-page-size {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-left: 0;
+  }
 }

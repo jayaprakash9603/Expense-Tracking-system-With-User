@@ -160,7 +160,7 @@ const GroupedExpensesAccordion = ({
                 {group.label}
               </span>
               <span className="metric-box tx" title="Transactions">
-                Tx {group.count}
+               Count {group.count}
               </span>
               {group.creditDueTotal > 0 && (
                 <span className="metric-box credit" title="Total Credit Due">
