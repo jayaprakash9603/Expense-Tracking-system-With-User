@@ -45,18 +45,18 @@ const SpendingChartTooltip = ({
 
   return (
     <div
+      className="spending-tooltip"
       style={{
         backgroundColor: "#1b1b1b",
         border: `1px solid ${theme.border}`,
         borderRadius: 8,
         color: "#fff",
-        paddingTop: 12,
-        paddingLeft: 12,
-        paddingRight: 12,
-        paddingBottom: expenses.length > 0 ? 8 : 12,
+        padding: 12,
         minWidth: config.minWidth,
         maxWidth: config.maxWidth,
         transform: "translateY(-20px)",
+        margin: 0,
+        lineHeight: 1.4,
       }}
     >
       {/* Date header */}
@@ -89,7 +89,7 @@ const SpendingChartTooltip = ({
           style={{
             borderTop: `1px solid ${theme.divider}`,
             paddingTop: 8,
-            paddingBottom: 0,
+            margin: 0,
           }}
         >
           {/* Header with count and "X+ more" indicator */}
@@ -141,6 +141,7 @@ const SpendingChartTooltip = ({
                   justifyContent: "space-between",
                   alignItems: "center",
                   fontSize: 11,
+                  margin: 0,
                 }}
               >
                 <span style={{ color: "#888" }}>{exp.category}</span>

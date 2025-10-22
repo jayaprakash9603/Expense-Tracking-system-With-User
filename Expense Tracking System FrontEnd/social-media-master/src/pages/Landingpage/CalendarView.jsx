@@ -17,6 +17,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import DateIndicator from "../../components/DateIndicator";
 
 // Helper to get the salary date for a given year and month
 function getSalaryDate(year, month) {
@@ -586,18 +587,12 @@ const CalendarView = () => {
                     sx={{
                       borderRadius: 2,
                       background: "#0b0b0b",
-                      border:
-                        isSalaryDay && isToday
-                          ? "none"
-                          : isToday
-                          ? "2.5px solid #00dac6"
-                          : "1.5px solid #444",
                       cursor: "pointer",
                       p: 1,
                       minHeight: isSmallScreen ? 50 : 60,
                       height: isSmallScreen ? 70 : 80,
                       textAlign: "center",
-                      transition: "background 0.2s, border 0.2s",
+                      transition: "background 0.2s",
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
@@ -606,70 +601,25 @@ const CalendarView = () => {
                       zIndex: 3,
                     }}
                   >
-                    {/* Show green corner borders only if today is salary day */}
-                    {isSalaryDay && isToday && (
-                      <>
-                        {/* Top Right */}
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            top: 0,
-                            right: 0,
-                            width: 20,
-                            height: 20,
-                            pointerEvents: "none",
-                            zIndex: 10,
-                            borderTop: "2.5px solid #22c55e",
-                            borderRight: "2.5px solid #22c55e",
-                            borderTopRightRadius: 6,
-                          }}
-                        />
-                        {/* Top Left */}
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: 20,
-                            height: 20,
-                            pointerEvents: "none",
-                            zIndex: 10,
-                            borderTop: "2.5px solid #22c55e",
-                            borderLeft: "2.5px solid #22c55e",
-                            borderTopLeftRadius: 6,
-                          }}
-                        />
-                        {/* Bottom Right */}
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            bottom: 0,
-                            right: 0,
-                            width: 20,
-                            height: 20,
-                            pointerEvents: "none",
-                            zIndex: 10,
-                            borderBottom: "2.5px solid #22c55e",
-                            borderRight: "2.5px solid #22c55e",
-                            borderBottomRightRadius: 6,
-                          }}
-                        />
-                        {/* Bottom Left */}
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            bottom: 0,
-                            left: 0,
-                            width: 20,
-                            height: 20,
-                            pointerEvents: "none",
-                            zIndex: 10,
-                            borderBottom: "2.5px solid #22c55e",
-                            borderLeft: "2.5px solid #22c55e",
-                            borderBottomLeftRadius: 6,
-                          }}
-                        />
-                      </>
+                    {/* Salary Day Indicator */}
+                    {isSalaryDay && (
+                      <DateIndicator
+                        type="salary"
+                        position="top-right"
+                        showAnimation={true}
+                        showCornerAccent={true}
+                        showBadge={true}
+                      />
+                    )}
+                    {/* Today Indicator */}
+                    {isToday && (
+                      <DateIndicator
+                        type="today"
+                        position="top-left"
+                        showAnimation={true}
+                        showCornerAccent={true}
+                        showBadge={true}
+                      />
                     )}
                     <Typography variant="body1" fontWeight={700} color="#fff">
                       {day}
