@@ -11,7 +11,7 @@
   flex-direction: column;
   gap: 10px;
   /* Reserve space for 8 collapsed accordion items (approx 58px each) + gaps */
-  min-height: calc(58px * 8 + 10px * 8  );
+  min-height: calc(58px * 8 + 10px * 8);
 }
 .pm-groups-viewport.paged-mode {
   /* Maintain fixed height for 8 items to prevent layout shift between pages */
@@ -39,6 +39,13 @@
 }
 .pm-groups-viewport.scroll-mode::-webkit-scrollbar-thumb:hover {
   background: #19d5bd;
+}
+
+/* Compact mode: fewer than BASE_GROUPS_PER_PAGE total groups -> allow natural height */
+.pm-groups-viewport.compact,
+.pm-groups-viewport.paged-mode.compact {
+  min-height: 0;
+  height: auto;
 }
 
 /* Placeholder items to keep consistent height on short last page */

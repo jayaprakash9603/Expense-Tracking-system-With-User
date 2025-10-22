@@ -59,8 +59,12 @@ export function GenericAccordionGroup({
 
   // Placeholders only if using base layout of 8 and fewer groups visible
   const BASE_GROUPS_PER_PAGE = 8;
+  const totalGroups = groups.length;
+  // If total groups < BASE_GROUPS_PER_PAGE we no longer render placeholders and allow container to shrink.
   const missingPlaceholders =
-    groupsPerPage === BASE_GROUPS_PER_PAGE
+    totalGroups < BASE_GROUPS_PER_PAGE
+      ? 0
+      : groupsPerPage === BASE_GROUPS_PER_PAGE
       ? Math.max(
           0,
           BASE_GROUPS_PER_PAGE -
@@ -97,7 +101,7 @@ export function GenericAccordionGroup({
       <div
         className={`pm-groups-viewport ${
           scrollMode ? "scroll-mode" : "paged-mode"
-        }`}
+        } ${totalGroups < BASE_GROUPS_PER_PAGE ? "compact" : ""}`}
       >
         {visibleGroups.map((group, localIdx) => {
           const idx = startGroup + localIdx; // original global index

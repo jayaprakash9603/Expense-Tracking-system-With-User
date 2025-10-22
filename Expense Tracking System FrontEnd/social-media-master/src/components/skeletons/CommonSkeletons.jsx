@@ -208,8 +208,10 @@ export const CategoryLoadingSkeleton = () => (
       <div className="chart-row full-width">
         <PieChartSkeleton height={360} />
       </div>
-      <div className="chart-row full-width">
-        <TableSkeleton />
+      <div className="charts-grid">
+        <div className="chart-row full-width">
+          <AccordionSkeleton items={8} />
+        </div>
       </div>
     </div>
   </div>
@@ -236,8 +238,10 @@ export const PaymentLoadingSkeleton = () => (
         <ChartSkeleton height={400} />
       </div>
 
-      <div className="chart-row full-width">
-        <TableSkeleton headerCells={7} rowCells={7} />
+      <div className="charts-grid">
+        <div className="chart-row full-width">
+          <AccordionSkeleton items={8} />
+        </div>
       </div>
     </div>
   </div>
