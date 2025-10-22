@@ -18,6 +18,24 @@ import { useNavigate, useParams } from "react-router-dom";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { fetchBillsForCalendar } from "../../Redux/Bill/bill.action";
+import DateIndicator from "../../components/DateIndicator";
+import JumpToTodayButton from "../../components/JumpToTodayButton";
+
+// Helper to get the salary date for a given year and month
+function getSalaryDate(year, month) {
+  // month: 0-based (0=Jan, 11=Dec)
+  let lastDay = dayjs(`${year}-${month + 1}-01`).endOf("month");
+  let dayOfWeek = lastDay.day(); // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+  if (dayOfWeek === 6) {
+    // Saturday
+    return lastDay.subtract(1, "day"); // Friday
+  } else if (dayOfWeek === 0) {
+    // Sunday
+    return lastDay.subtract(2, "day"); // Friday
+  } else {
+    return lastDay;
+  }
+}
 
 // Helper to get all days in a month
 function getDaysArray(year, month) {
@@ -145,6 +163,18 @@ const BillCalendarView = () => {
     setMonthOffset(diff);
   };
 
+  // Jump to today's month
+  const handleJumpToToday = () => {
+    const today = dayjs();
+    setSelectedDate(today);
+    setMonthOffset(0);
+  };
+
+  // Check if currently viewing today's month
+  const isViewingCurrentMonth = useMemo(() => {
+    return selectedDate.isSame(dayjs(), "month");
+  }, [selectedDate]);
+
   return (
     <div
       className="bg-[#0b0b0b] p-4 rounded-lg"
@@ -201,13 +231,18 @@ const BillCalendarView = () => {
       </Box>
       {/* Header for Bill Calendar View */}
       <Typography
-        variant={isSmallScreen ? "h6" : "h5"}
+        variant="h5"
         sx={{
-          mb: 2,
+          position: "absolute",
+          top: 12,
+          left: "50%",
+          transform: "translateX(-50%)",
           fontWeight: 700,
           textAlign: "center",
           color: "#fff",
-          mt: 1, // Changed from mt: 1 to mt: -2 to move it higher
+          m: 0,
+          zIndex: 15,
+          letterSpacing: 0.5,
         }}
       >
         Bills Calendar View
@@ -220,8 +255,10 @@ const BillCalendarView = () => {
           justifyContent: "center",
           gap: isSmallScreen ? 1 : 2,
           position: "relative",
-          mt: isSmallScreen ? 0 : -4,
+          mt: 3,
           flexDirection: isSmallScreen ? "column" : "row",
+          paddingTop: isSmallScreen ? 0 : 1,
+          pt: isSmallScreen ? 0 : 1,
         }}
       >
         {/* Total Spending card on the left */}
@@ -525,97 +562,145 @@ const BillCalendarView = () => {
           {Array.from({ length: startDay }).map((_, i) => (
             <Grid item xs={1} key={`empty-${i}`}></Grid>
           ))}
-          {days.map((day) => {
-            const key = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
-            const spending = daysData[key]?.spending || 0;
-            const income = daysData[key]?.income || 0;
-            return (
-              <Grid
-                item
-                xs={1}
-                key={day}
-                sx={{
-                  borderRadius: 2,
-                  position: "relative",
-                  overflow: "visible",
-                }}
-              >
-                <Box
-                  onClick={() => handleDayClick(day)}
+          {(() => {
+            const salaryDate = getSalaryDate(
+              selectedDate.year(),
+              selectedDate.month()
+            );
+            const salaryDay = salaryDate.date();
+            const salaryMonth = salaryDate.month();
+            const salaryYear = salaryDate.year();
+            return days.map((day) => {
+              const key = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
+              const spending = daysData[key]?.spending || 0;
+              const income = daysData[key]?.income || 0;
+              const isToday = dayjs().isSame(
+                dayjs(selectedDate).date(day),
+                "day"
+              );
+              const isSalaryDay =
+                day === salaryDay &&
+                selectedDate.month() === salaryMonth &&
+                selectedDate.year() === salaryYear;
+              return (
+                <Grid
+                  item
+                  xs={1}
+                  key={day}
                   sx={{
                     borderRadius: 2,
-                    background: "#0b0b0b",
-                    cursor: "pointer",
-                    p: 1,
-                    minHeight: isSmallScreen ? 50 : 60,
-                    height: isSmallScreen ? 70 : 80,
-                    textAlign: "center",
-                    transition: "background 0.2s",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
                     position: "relative",
-                    zIndex: 3,
+                    overflow: "visible",
                   }}
                 >
-                  <Typography variant="body1" fontWeight={700} color="#fff">
-                    {day}
-                  </Typography>
-                  {(spending !== 0 || income !== 0) && (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "flex-start",
-                        justifyContent: "center",
-                        gap: 1,
-                        width: "100%",
-                        mt: 2.2,
-                      }}
-                    >
-                      {spending !== 0 && (
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: "#fff",
-                            background: "rgba(255, 77, 79, 0.4)",
-                            display: "inline-block",
-                            fontWeight: 700,
-                            borderRadius: 1,
-                            px: 1.5,
-                            minWidth: 32,
-                            textAlign: "center",
-                          }}
-                        >
-                          ₹{Math.abs(spending).toFixed(0)}
-                        </Typography>
-                      )}
-                      {income !== 0 && (
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: "#fff",
-                            background: "rgba(6, 214, 160, 0.4)",
-                            display: "inline-block",
-                            fontWeight: 700,
-                            borderRadius: 1,
-                            px: 1.5,
-                            minWidth: 32,
-                            textAlign: "center",
-                          }}
-                        >
-                          ₹{income.toFixed(0)}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-                </Box>
-              </Grid>
-            );
-          })}
+                  <Box
+                    onClick={() => handleDayClick(day)}
+                    sx={{
+                      borderRadius: 2,
+                      background: "#0b0b0b",
+                      cursor: "pointer",
+                      p: 1,
+                      minHeight: isSmallScreen ? 50 : 60,
+                      height: isSmallScreen ? 70 : 80,
+                      textAlign: "center",
+                      transition: "background 0.2s",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      position: "relative",
+                      zIndex: 3,
+                    }}
+                  >
+                    {/* Salary Day Indicator */}
+                    {isSalaryDay && (
+                      <DateIndicator
+                        type="salary"
+                        position="top-right"
+                        showAnimation={true}
+                        showCornerAccent={true}
+                        showBadge={true}
+                      />
+                    )}
+                    {/* Today Indicator */}
+                    {isToday && (
+                      <DateIndicator
+                        type="today"
+                        position="top-left"
+                        showAnimation={true}
+                        showCornerAccent={true}
+                        showBadge={true}
+                      />
+                    )}
+                    <Typography variant="body1" fontWeight={700} color="#fff">
+                      {day}
+                    </Typography>
+                    {(spending !== 0 || income !== 0) && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "flex-start",
+                          justifyContent: "center",
+                          gap: 1,
+                          width: "100%",
+                          mt: 2.2,
+                        }}
+                      >
+                        {spending !== 0 && (
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#fff",
+                              background: "rgba(255, 77, 79, 0.4)",
+                              display: "inline-block",
+                              fontWeight: 700,
+                              borderRadius: 1,
+                              px: 1.5,
+                              minWidth: 32,
+                              textAlign: "center",
+                            }}
+                          >
+                            ₹{Math.abs(spending).toFixed(0)}
+                          </Typography>
+                        )}
+                        {income !== 0 && (
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#fff",
+                              background: "rgba(6, 214, 160, 0.4)",
+                              display: "inline-block",
+                              fontWeight: 700,
+                              borderRadius: 1,
+                              px: 1.5,
+                              minWidth: 32,
+                              textAlign: "center",
+                            }}
+                          >
+                            ₹{income.toFixed(0)}
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                </Grid>
+              );
+            });
+          })()}
         </Grid>
       </Box>
+
+      {/* Jump to Today Button */}
+      <JumpToTodayButton
+        onClick={handleJumpToToday}
+        isToday={isViewingCurrentMonth}
+        visible={true}
+        position="absolute"
+        customPosition={{ top: 16, right: 30 }}
+        viewType="month"
+        zIndex={20}
+      />
     </div>
   );
 };

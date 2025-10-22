@@ -18,6 +18,7 @@ import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import DateIndicator from "../../components/DateIndicator";
+import JumpToTodayButton from "../../components/JumpToTodayButton";
 
 // Helper to get the salary date for a given year and month
 function getSalaryDate(year, month) {
@@ -171,6 +172,18 @@ const CalendarView = () => {
     setMonthOffset(diff);
   };
 
+  // Jump to today's month
+  const handleJumpToToday = () => {
+    const today = dayjs();
+    setSelectedDate(today);
+    setMonthOffset(0);
+  };
+
+  // Check if currently viewing today's month
+  const isViewingCurrentMonth = useMemo(() => {
+    return selectedDate.isSame(dayjs(), "month");
+  }, [selectedDate]);
+
   return (
     <div
       className="bg-[#0b0b0b] p-4 rounded-lg"
@@ -227,13 +240,18 @@ const CalendarView = () => {
       </Box>
       {/* Header for Day/Calendar View */}
       <Typography
-        variant={isSmallScreen ? "h6" : "h5"}
+        variant="h5"
         sx={{
-          mb: 2,
+          position: "absolute",
+          top: 12,
+          left: "50%",
+          transform: "translateX(-50%)",
           fontWeight: 700,
           textAlign: "center",
           color: "#fff",
-          mt: 1,
+          m: 0,
+          zIndex: 15,
+          letterSpacing: 0.5,
         }}
       >
         Calendar View
@@ -246,8 +264,10 @@ const CalendarView = () => {
           justifyContent: "center",
           gap: isSmallScreen ? 1 : 2,
           position: "relative",
-          mt: isSmallScreen ? 0 : -4,
+          mt: 3,
           flexDirection: isSmallScreen ? "column" : "row",
+          paddingTop: isSmallScreen ? 0 : 1,
+          pt: isSmallScreen ? 0 : 1,
         }}
       >
         {/* Total Losses card on the left */}
@@ -679,6 +699,17 @@ const CalendarView = () => {
           })()}
         </Grid>
       </Box>
+
+      {/* Jump to Today Button */}
+      <JumpToTodayButton
+        onClick={handleJumpToToday}
+        isToday={isViewingCurrentMonth}
+        visible={true}
+        position="absolute"
+        customPosition={{ top: 16, right: 30 }}
+        viewType="month"
+        zIndex={20}
+      />
     </div>
   );
 };

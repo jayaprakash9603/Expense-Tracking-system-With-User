@@ -15,6 +15,7 @@ import Modal from "../../pages/Landingpage/Modal";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DayViewSkeleton from "../DayViewSkeleton";
+import JumpToTodayButton from "../JumpToTodayButton";
 import "./DayUnifiedView.css";
 
 /**
@@ -120,6 +121,16 @@ const DayUnifiedView = ({
 
   const handlePrevDay = () => goToDay(currentDay.subtract(1, "day"));
   const handleNextDay = () => goToDay(currentDay.add(1, "day"));
+
+  // Jump to today's date
+  const handleJumpToToday = () => {
+    goToDay(dayjs());
+  };
+
+  // Check if currently viewing today's date
+  const isViewingToday = useMemo(() => {
+    return currentDay.isSame(dayjs(), "day");
+  }, [currentDay]);
 
   const handleEdit = async (item) => {
     if (!getEditTargetId) return;
@@ -864,6 +875,18 @@ const DayUnifiedView = ({
           declineText="No, Cancel"
         />
       </Box>
+
+      {/* Jump to Today Button */}
+      <JumpToTodayButton
+        onClick={handleJumpToToday}
+        isToday={isViewingToday}
+        visible={true}
+        position="absolute"
+        customPosition={{ top: 16, right: 30 }}
+        viewType="day"
+        zIndex={20}
+      />
+
       <ToastNotification
         open={toastOpen}
         setOpen={setToastOpen}
