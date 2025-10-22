@@ -40,13 +40,11 @@ const DailySpendingContainer = ({
 
   const handleTimeframe = (val) => {
     if (onTimeframeChange) onTimeframeChange(val);
-    else setTimeframe(val);
-    refetch();
+    setTimeframe(val);
   };
   const handleType = (val) => {
     if (onTypeChange) onTypeChange(val);
-    else setType(val);
-    refetch();
+    setType(val);
   };
 
   if (loading) {
@@ -61,9 +59,9 @@ const DailySpendingContainer = ({
   return (
     <DailySpendingChart
       data={data}
-      timeframe={controlledTimeframe ?? timeframe}
+      timeframe={timeframe}
       onTimeframeChange={handleTimeframe}
-      selectedType={controlledType ?? type}
+      selectedType={type}
       onTypeToggle={handleType}
     />
   );

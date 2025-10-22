@@ -1,19 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
-import fetchDailySpending from "../utils/Api";
+import { api } from "../config/api";
 
 /**
  * useDailySpendingData
- * Encapsulates the daily spending fetch logic previously inline in `ExpenseDashboard`.
+ * Encapsulates the daily spending fetch logic using the cashflow API.
  * Handles timeframe and flow type (loss/gain) filtering, loading state, error fallback,
  * and request cancellation to avoid race conditions on rapid changes.
  *
  * Inputs:
  *  - timeframe: string ("this_month" | "last_month" | "last_3_months" | custom)
- *  - type: string ("loss" | "gain" | optional)
+ *  - type: string ("loss" | "gain" | null/undefined to fetch all types)
+ *  - targetId: optional target ID for filtering
+ *  - includeTypeInRequest: boolean (default true) - whether to send type in API request
  *
  * Returns:
  *  {
- *    data: Array<{ day: string, spending: number }> (normalized array or empty array),
+ *    data: Array<{ day: string, spending: number, expenses: array }>,
  *    loading: boolean,
  *    error: Error | null,
  *    refetch: () => Promise<void>,
@@ -26,6 +28,8 @@ import fetchDailySpending from "../utils/Api";
 export default function useDailySpendingData({
   initialTimeframe = "this_month",
   initialType = "loss",
+  targetId = null,
+  includeTypeInRequest = true, // New option to control whether type is sent in API
   refreshTrigger, // external key to force refetch (e.g. refreshKey)
 } = {}) {
   const [timeframe, setTimeframe] = useState(initialTimeframe);
@@ -34,48 +38,110 @@ export default function useDailySpendingData({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const buildParams = useCallback(() => {
-    const params = {};
+  const buildDateRange = useCallback(() => {
     const now = new Date();
+    let startDate, endDate;
+
     if (timeframe === "this_month" || timeframe === "month") {
-      params.month = now.getMonth() + 1; // 1-based
-      params.year = now.getFullYear();
+      // First day of current month to today
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = now;
     } else if (timeframe === "last_month") {
-      const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      params.month = d.getMonth() + 1;
-      params.year = d.getFullYear();
+      // First day to last day of previous month
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      startDate = lastMonth;
+      endDate = new Date(now.getFullYear(), now.getMonth(), 0); // last day of prev month
     } else if (timeframe === "last_3_months" || timeframe === "last_3") {
-      const end = now;
-      const start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-      params.fromDate = start.toISOString().split("T")[0];
-      params.toDate = end.toISOString().split("T")[0];
+      // 90 days back from today
+      startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      endDate = now;
+    } else {
+      // Default to current month
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = now;
     }
-    if (type) params.type = type;
-    return params;
-  }, [timeframe, type]);
+
+    // Format as YYYY-MM-DD
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    return {
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
+    };
+  }, [timeframe]);
 
   const performFetch = useCallback(
     async (abortSignal) => {
       setLoading(true);
       setError(null);
       try {
-        const params = buildParams();
-        const res = await fetchDailySpending(params, { signal: abortSignal });
-        if (abortSignal?.aborted) return; // exit silently if aborted mid-flight
-        if (Array.isArray(res)) {
-          setData(res);
-        } else {
-          // Support object map shape { '2025-10-20': 123, ... }
-          if (res && typeof res === "object") {
-            const normalized = Object.keys(res).map((day) => ({
-              day,
-              spending: Number(res[day] ?? 0),
-            }));
-            setData(normalized);
-          } else {
-            setData([]);
-          }
+        const { startDate, endDate } = buildDateRange();
+
+        // Build params for cashflow API
+        const params = new URLSearchParams();
+        params.append("startDate", startDate);
+        params.append("endDate", endDate);
+
+        // Only include type parameter if enabled and type is provided
+        if (includeTypeInRequest && type) {
+          params.append("type", type); // loss or gain
         }
+
+        if (targetId) params.append("targetId", targetId);
+
+        const res = await api.get(
+          `/api/expenses/cashflow?${params.toString()}`,
+          {
+            signal: abortSignal,
+          }
+        );
+
+        if (abortSignal?.aborted) return; // exit silently if aborted mid-flight
+
+        const expenses = res.data || [];
+
+        // Group expenses by date, sum amounts, and collect expense details
+        const dailyMap = {};
+
+        expenses.forEach((expense) => {
+          const date = expense.date; // Expected format: "YYYY-MM-DD"
+          const amount = Math.abs(expense.expense?.amount || 0); // Use absolute value for spending
+          const expenseName = expense.expense?.expenseName || "Unknown";
+          const categoryName = expense.categoryName || "";
+
+          if (date) {
+            if (!dailyMap[date]) {
+              dailyMap[date] = {
+                total: 0,
+                expenses: [],
+              };
+            }
+            dailyMap[date].total += amount;
+            dailyMap[date].expenses.push({
+              name: expenseName,
+              amount: amount,
+              category: categoryName,
+              paymentMethod: expense.expense?.paymentMethod || "",
+            });
+          }
+        });
+
+        // Convert to array format expected by chart with expense details
+        const normalized = Object.keys(dailyMap)
+          .sort() // Sort by date ascending
+          .map((day) => ({
+            day,
+            spending: dailyMap[day].total,
+            expenses: dailyMap[day].expenses,
+            type: type, // Include type for filtering
+          }));
+
+        setData(normalized);
       } catch (e) {
         if (!abortSignal?.aborted) {
           console.error("Daily spending fetch failed", e);
@@ -86,7 +152,7 @@ export default function useDailySpendingData({
         if (!abortSignal?.aborted) setLoading(false);
       }
     },
-    [buildParams]
+    [buildDateRange, type, targetId, includeTypeInRequest]
   );
 
   const refetch = useCallback(() => {

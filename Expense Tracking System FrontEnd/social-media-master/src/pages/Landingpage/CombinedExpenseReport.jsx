@@ -1,9 +1,14 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useGroupedCashflow from "../../hooks/useGroupedCashflow";
+import useCategoryFlowData from "../../hooks/useCategoryFlowData";
+import usePaymentMethodsData from "../../hooks/usePaymentMethodsData";
 import ReportHeader from "../../components/ReportHeader";
 import GroupedExpensesAccordion from "../../components/GroupedExpensesAccordion";
+import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
+import CategoryBreakdownChart from "../Dashboard/CategoryBreakdownChart";
+import PaymentMethodChart from "../Dashboard/PaymentMethodChart";
 import { ExpensesLoadingSkeleton } from "../../components/skeletons/CommonSkeletons";
 import { getChartColors } from "../../utils/chartColors";
 import "../Landingpage/Payment Report/PaymentReport.css"; // Reuse existing payment report styles
@@ -26,6 +31,37 @@ export default function CombinedExpenseReport() {
     methodsData,
     refetch,
   } = useGroupedCashflow({ friendId });
+
+  // Fetch category data
+  const { categoryExpenses, loading: categoryLoading } = useCategoryFlowData({
+    friendId,
+    isFriendView: !!friendId,
+    search: "",
+  });
+
+  // Map flowType to payment methods timeframe format
+  const paymentMethodsTimeframe = (() => {
+    if (timeframe === "month") return "this_month";
+    if (timeframe === "year") return "this_month";
+    if (timeframe === "week") return "this_month";
+    return "this_month";
+  })();
+
+  // Map flowType to payment methods flow type
+  const paymentMethodsFlowType =
+    flowType === "outflow" ? "loss" : flowType === "inflow" ? "gain" : "loss";
+
+  // Map flowType to category flow type (loss/gain)
+  const categoryFlowType =
+    flowType === "outflow" ? "loss" : flowType === "inflow" ? "gain" : "loss";
+
+  // Fetch payment methods data using the same API as dashboard
+  const { data: paymentMethodsData, loading: paymentMethodsLoading } =
+    usePaymentMethodsData({
+      timeframe: paymentMethodsTimeframe,
+      flowType: paymentMethodsFlowType,
+      refreshTrigger: rawData,
+    });
 
   // Removed category and fallback category spending logic
 
@@ -55,6 +91,22 @@ export default function CombinedExpenseReport() {
 
   if (loading) return <ExpensesLoadingSkeleton />;
 
+  // Map timeframe used by grouped cashflow (week|month|year) to daily spending timeframe tokens
+  const dailyTimeframe = (() => {
+    if (timeframe === "month") return "this_month";
+    if (timeframe === "year") return "this_month"; // no year aggregation yet; fallback to current month
+    if (timeframe === "week") return "this_month"; // week not supported; could enhance hook later
+    return "this_month";
+  })();
+
+  // Map flowType (all|outflow|inflow) to daily spending type (loss|gain|undefined)
+  const dailyType =
+    flowType === "outflow"
+      ? "loss"
+      : flowType === "inflow"
+      ? "gain"
+      : undefined;
+
   return (
     <div className="payment-methods-report">
       <ReportHeader
@@ -80,9 +132,58 @@ export default function CombinedExpenseReport() {
       <SharedOverviewCards data={methodsData} mode="expenses" />
 
       <div className="charts-grid">
+        <div className="chart-row">
+          <DailySpendingContainer
+            height={260}
+            refreshTrigger={
+              rawData /* trigger refetch when grouped data changes */
+            }
+          />
+        </div>
+
+        {/* Category Breakdown and Payment Method Charts in same row */}
+        <div className="chart-row">
+          <CategoryBreakdownChart
+            data={categoryExpenses}
+            timeframe={timeframe}
+            onTimeframeChange={setTimeframe}
+            flowType={categoryFlowType}
+            onFlowTypeChange={(newFlowType) => {
+              // Map back to grouped cashflow flowType
+              const mappedFlowType =
+                newFlowType === "loss"
+                  ? "outflow"
+                  : newFlowType === "gain"
+                  ? "inflow"
+                  : "all";
+              setFlowType(mappedFlowType);
+            }}
+            loading={categoryLoading}
+          />
+          <PaymentMethodChart
+            data={paymentMethodsData}
+            timeframe={paymentMethodsTimeframe}
+            onTimeframeChange={(newTimeframe) => {
+              // Map back to grouped cashflow timeframe if needed
+              setTimeframe("month");
+            }}
+            flowType={paymentMethodsFlowType}
+            onFlowTypeChange={(newFlowType) => {
+              // Map back to grouped cashflow flowType
+              const mappedFlowType =
+                newFlowType === "loss"
+                  ? "outflow"
+                  : newFlowType === "gain"
+                  ? "inflow"
+                  : "all";
+              setFlowType(mappedFlowType);
+            }}
+            loading={paymentMethodsLoading}
+          />
+        </div>
+
         <div className="chart-row full-width">
           {/* Pass rawData directly; component will normalize payment method blocks internally */}
-
           <GroupedExpensesAccordion rawData={rawData} summary={summary} />
         </div>
       </div>
