@@ -135,6 +135,7 @@ import {
  * @param {string} icon - Chart icon (optional)
  * @param {number} height - Chart height (optional)
  * @param {object} tooltipConfig - Tooltip configuration (optional)
+ * @param {boolean} loading - Loading state (optional, shows loading message when skeleton is disabled)
  */
 const DailySpendingChart = ({
   data,
@@ -148,6 +149,7 @@ const DailySpendingChart = ({
   icon,
   height,
   tooltipConfig,
+  loading = false,
 }) => {
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -262,6 +264,23 @@ const DailySpendingChart = ({
           />
         </AreaChart>
       </ResponsiveContainer>
+
+      {/* Loading indicator when skeleton is disabled */}
+      {loading && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            color: "#888",
+            fontSize: "14px",
+            fontWeight: 500,
+          }}
+        >
+          Loading...
+        </div>
+      )}
     </div>
   );
 };

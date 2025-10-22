@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useGroupedCashflow from "../../hooks/useGroupedCashflow";
-import useCategoryFlowData from "../../hooks/useCategoryFlowData";
+import useCategoryDistributionData from "../../hooks/useCategoryDistributionData";
 import usePaymentMethodsData from "../../hooks/usePaymentMethodsData";
 import ReportHeader from "../../components/ReportHeader";
 import GroupedExpensesAccordion from "../../components/GroupedExpensesAccordion";
@@ -19,6 +19,13 @@ const COLORS = getChartColors(12);
 export default function CombinedExpenseReport() {
   const { friendId } = useParams();
   const navigate = useNavigate();
+
+  // Independent state for each chart
+  const [categoryTimeframe, setCategoryTimeframe] = useState("this_month");
+  const [categoryFlowType, setCategoryFlowType] = useState("loss");
+  const [paymentMethodTimeframe, setPaymentMethodTimeframe] =
+    useState("this_month");
+  const [paymentMethodFlowType, setPaymentMethodFlowType] = useState("loss");
   const {
     timeframe,
     setTimeframe,
@@ -32,34 +39,19 @@ export default function CombinedExpenseReport() {
     refetch,
   } = useGroupedCashflow({ friendId });
 
-  // Fetch category data
-  const { categoryExpenses, loading: categoryLoading } = useCategoryFlowData({
-    friendId,
-    isFriendView: !!friendId,
-    search: "",
-  });
+  // Fetch category data with independent state
+  const { distribution: categoryDistribution, loading: categoryLoading } =
+    useCategoryDistributionData({
+      timeframe: categoryTimeframe,
+      flowType: categoryFlowType,
+      refreshTrigger: rawData,
+    });
 
-  // Map flowType to payment methods timeframe format
-  const paymentMethodsTimeframe = (() => {
-    if (timeframe === "month") return "this_month";
-    if (timeframe === "year") return "this_month";
-    if (timeframe === "week") return "this_month";
-    return "this_month";
-  })();
-
-  // Map flowType to payment methods flow type
-  const paymentMethodsFlowType =
-    flowType === "outflow" ? "loss" : flowType === "inflow" ? "gain" : "loss";
-
-  // Map flowType to category flow type (loss/gain)
-  const categoryFlowType =
-    flowType === "outflow" ? "loss" : flowType === "inflow" ? "gain" : "loss";
-
-  // Fetch payment methods data using the same API as dashboard
+  // Fetch payment methods data using independent state
   const { data: paymentMethodsData, loading: paymentMethodsLoading } =
     usePaymentMethodsData({
-      timeframe: paymentMethodsTimeframe,
-      flowType: paymentMethodsFlowType,
+      timeframe: paymentMethodTimeframe,
+      flowType: paymentMethodFlowType,
       refreshTrigger: rawData,
     });
 
@@ -135,55 +127,32 @@ export default function CombinedExpenseReport() {
         <div className="chart-row">
           <DailySpendingContainer
             height={260}
-            refreshTrigger={
-              rawData /* trigger refetch when grouped data changes */
-            }
+            refreshTrigger={rawData}
+            showSkeleton={false}
           />
         </div>
 
         {/* Category Breakdown and Payment Method Charts in same row */}
         <div className="chart-row">
           <CategoryBreakdownChart
-            data={categoryExpenses}
-            timeframe={timeframe}
-            onTimeframeChange={setTimeframe}
+            data={categoryDistribution}
+            timeframe={categoryTimeframe}
+            onTimeframeChange={setCategoryTimeframe}
             flowType={categoryFlowType}
-            onFlowTypeChange={(newFlowType) => {
-              // Map back to grouped cashflow flowType
-              const mappedFlowType =
-                newFlowType === "loss"
-                  ? "outflow"
-                  : newFlowType === "gain"
-                  ? "inflow"
-                  : "all";
-              setFlowType(mappedFlowType);
-            }}
+            onFlowTypeChange={setCategoryFlowType}
             loading={categoryLoading}
           />
           <PaymentMethodChart
             data={paymentMethodsData}
-            timeframe={paymentMethodsTimeframe}
-            onTimeframeChange={(newTimeframe) => {
-              // Map back to grouped cashflow timeframe if needed
-              setTimeframe("month");
-            }}
-            flowType={paymentMethodsFlowType}
-            onFlowTypeChange={(newFlowType) => {
-              // Map back to grouped cashflow flowType
-              const mappedFlowType =
-                newFlowType === "loss"
-                  ? "outflow"
-                  : newFlowType === "gain"
-                  ? "inflow"
-                  : "all";
-              setFlowType(mappedFlowType);
-            }}
+            timeframe={paymentMethodTimeframe}
+            onTimeframeChange={setPaymentMethodTimeframe}
+            flowType={paymentMethodFlowType}
+            onFlowTypeChange={setPaymentMethodFlowType}
             loading={paymentMethodsLoading}
           />
         </div>
 
         <div className="chart-row full-width">
-          {/* Pass rawData directly; component will normalize payment method blocks internally */}
           <GroupedExpensesAccordion rawData={rawData} summary={summary} />
         </div>
       </div>

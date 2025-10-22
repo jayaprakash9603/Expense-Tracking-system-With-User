@@ -65,9 +65,13 @@ export async function fetchMonthlyExpenses(params = {}, options = {}) {
  */
 export async function fetchPaymentMethods(params = {}) {
   try {
-    const res = await api.get("/api/expenses/payment-methods/filtered", {
-      params,
-    });
+    const res = await api.get(
+      "/api/expenses/all-by-payment-method/detailed/filtered",
+      {
+        params,
+      }
+    );
+    
     return res.data ?? {};
   } catch (err) {
     throw err;

@@ -22,10 +22,6 @@ import { createDashboardActions } from "./dashboardActions";
 export default function DashboardContent() {
   const {
     forceRefresh,
-    timeframe,
-    setTimeframe,
-    dailyType,
-    setDailyType,
     categoryTimeframe,
     setCategoryTimeframe,
     categoryFlowType,
@@ -72,12 +68,9 @@ export default function DashboardContent() {
       <div className="charts-grid">
         <div className="chart-row">
           <DailySpendingContainer
-            timeframe={timeframe}
-            type={dailyType}
-            onTimeframeChange={setTimeframe}
-            onTypeChange={setDailyType}
             height={isMobile ? 200 : isTablet ? 240 : 100}
             refreshTrigger={Math.random()} /* can use refreshKey from context later */
+            showSkeleton={analyticsLoading}
           />
           <div style={{ gridColumn: "1 / -1" }}>
             <QuickAccess />
@@ -130,7 +123,7 @@ export default function DashboardContent() {
             flowType={paymentMethodsFlowType}
             onFlowTypeChange={setPaymentMethodsFlowType}
             loading={paymentMethodsLoading}
-            skeleton={<ChartSkeleton height={480} variant="pie" noHeader />}
+            skeleton={<ChartSkeleton height={600} variant="pie" noHeader />}
           />
         </div>
       </div>

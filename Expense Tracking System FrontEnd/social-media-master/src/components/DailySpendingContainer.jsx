@@ -16,6 +16,7 @@ const DailySpendingContainer = ({
   height,
   skeletonHeight = 240,
   refreshTrigger,
+  showSkeleton = true, // Enable/disable skeleton loader
 }) => {
   const { data, loading, timeframe, type, setTimeframe, setType, refetch } =
     useDailySpendingData({
@@ -47,7 +48,7 @@ const DailySpendingContainer = ({
     setType(val);
   };
 
-  if (loading) {
+  if (loading && showSkeleton) {
     return (
       <DailySpendingSkeleton
         timeframe={timeframe}
@@ -63,6 +64,7 @@ const DailySpendingContainer = ({
       onTimeframeChange={handleTimeframe}
       selectedType={type}
       onTypeToggle={handleType}
+      loading={loading}
     />
   );
 };
@@ -75,6 +77,7 @@ DailySpendingContainer.propTypes = {
   height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   skeletonHeight: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   refreshTrigger: PropTypes.any,
+  showSkeleton: PropTypes.bool, // Optional: Enable/disable skeleton loader
 };
 
 export default DailySpendingContainer;

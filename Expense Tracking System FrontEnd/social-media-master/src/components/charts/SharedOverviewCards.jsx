@@ -73,7 +73,7 @@ const SharedOverviewCards = ({
   return (
     <div className={`shared-overview-cards ${mode}-overview-cards`}>
       {/* Total Spending */}
-      <div className="overview-card primary">
+      <div className="overview-card primary" style={{ minHeight: "120px" }}>
         <div className="card-icon">💰</div>
         <div className="card-content">
           <h3>Total Spending</h3>
@@ -88,7 +88,7 @@ const SharedOverviewCards = ({
       </div>
 
       {/* Top Item / Top Expense Name */}
-      <div className="overview-card secondary">
+      <div className="overview-card secondary" style={{ minHeight: "120px" }}>
         <div className="card-icon">🏆</div>
         <div className="card-content">
           <h3>
@@ -98,7 +98,17 @@ const SharedOverviewCards = ({
               ? "Top Payment Method"
               : "Top Category"}
           </h3>
-          <div className="card-value">
+          <div
+            className="card-value"
+            title={isExpenses ? topExpenseName : topItem?.[nameKey]}
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              maxWidth: "200px",
+              cursor: "pointer",
+            }}
+          >
             {isExpenses ? topExpenseName : topItem?.[nameKey]}
           </div>
           <div className="card-change">
@@ -113,7 +123,7 @@ const SharedOverviewCards = ({
       </div>
 
       {/* Avg Transaction */}
-      <div className="overview-card tertiary">
+      <div className="overview-card tertiary" style={{ minHeight: "120px" }}>
         <div className="card-icon">{isPayment || isExpenses ? "📊" : "📈"}</div>
         <div className="card-content">
           <h3>Avg Transaction</h3>
@@ -128,7 +138,7 @@ const SharedOverviewCards = ({
       </div>
 
       {/* Total Transactions */}
-      <div className="overview-card quaternary">
+      <div className="overview-card quaternary" style={{ minHeight: "120px" }}>
         <div className="card-icon">🔢</div>
         <div className="card-content">
           <h3>Total Transactions</h3>
