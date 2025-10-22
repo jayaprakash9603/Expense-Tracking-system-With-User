@@ -162,6 +162,35 @@ export const TableSkeleton = ({ headerCells = 6, rows = 9, rowCells = 6 }) => (
   </div>
 );
 
+export const AccordionSkeleton = ({ items = 6 }) => (
+  <div className="chart-container skeleton">
+    <div className="chart-header">
+      <div className="skeleton-chart-title" />
+      <div className="skeleton-chart-subtitle" />
+    </div>
+    <div className="pm-accordion-container">
+      {[...Array(items)].map((_, i) => (
+        <div
+          key={`accordion-skeleton-${i}`}
+          className="pm-accordion-item pm-placeholder"
+          aria-hidden="true"
+        >
+          <div className="pm-accordion-header pm-placeholder-header">
+            <div className="pm-header-left">
+              <span className="pm-method-name placeholder-block" />
+              <span className="pm-method-count placeholder-block" />
+            </div>
+            <div className="pm-header-right">
+              <span className="pm-method-amount placeholder-block" />
+              <span className="pm-chevron">▸</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 // Convenience composite for pages needing a full loading layout pattern (optional use)
 export const CategoryLoadingSkeleton = () => (
   <div className="category-report">
@@ -221,21 +250,23 @@ export const ExpensesLoadingSkeleton = () => (
         <OverviewCardSkeleton key={i} />
       ))}
     </div>
-    <div className="chart-row full-width" style={{ marginBottom: 32 }}>
+    {/* <div className="chart-row full-width" style={{ marginBottom: 32 }}>
       <PieChartSkeleton height={360} />
-    </div>
+    </div> */}
     <div className="charts-grid">
-      <div className="chart-row full-width">
+      {/* <div className="chart-row full-width">
         <ChartSkeleton height={300} />
       </div>
 
       <div className="chart-row">
         <ChartSkeleton height={400} />
         <ChartSkeleton height={400} />
-      </div>
+      </div> */}
 
-      <div className="chart-row full-width">
-        <TableSkeleton headerCells={7} rowCells={7} />
+      <div className="charts-grid">
+        <div className="chart-row full-width">
+          <AccordionSkeleton items={8} />
+        </div>
       </div>
     </div>
   </div>
@@ -247,6 +278,7 @@ export default {
   ChartSkeleton,
   PieChartSkeleton,
   TableSkeleton,
+  AccordionSkeleton,
   CategoryLoadingSkeleton,
   PaymentLoadingSkeleton,
   ExpensesLoadingSkeleton,

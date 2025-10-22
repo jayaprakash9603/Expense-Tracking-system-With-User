@@ -11,12 +11,13 @@
   flex-direction: column;
   gap: 10px;
   /* Reserve space for 8 collapsed accordion items (approx 58px each) + gaps */
-  min-height: calc(58px * 8 + 10px * 7);
+  min-height: calc(58px * 8 + 10px * 8  );
 }
 .pm-groups-viewport.paged-mode {
   /* Maintain fixed height for 8 items to prevent layout shift between pages */
-  height: calc(58px * 8 + 10px * 7);
-  overflow: hidden;
+  height: calc(58px * 8 + 10px * 9);
+  overflow-y: auto;
+  scrollbar-color: #14b8a6 #1d1d1f;
 }
 .pm-groups-viewport.scroll-mode {
   height: calc(58px * 8 + 10px * 7);
@@ -25,7 +26,7 @@
   scrollbar-color: #14b8a6 #1d1d1f;
 }
 .pm-groups-viewport.scroll-mode::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 .pm-groups-viewport.scroll-mode::-webkit-scrollbar-track {
   background: #1d1d1f;
@@ -634,7 +635,7 @@
 
 /* Group-level pagination (accordion cards) */
 .pm-group-pagination-bar {
-  margin-top: 16px;
+  margin-top: 0px;
   padding: 12px 16px;
   background: #141414;
   border: 1px solid #222;

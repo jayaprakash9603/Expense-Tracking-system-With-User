@@ -27,7 +27,7 @@ export function GenericAccordionGroup({
   // Group-level pagination configuration
   groupPaginationThreshold = 8,
   defaultGroupsPerPage = 8,
-  groupPageSizeOptions = [8, 16, 24],
+  groupPageSizeOptions = [8, 16, 24, 50],
 }) {
   const initialOpen = (() => {
     if (defaultOpen == null) return null;
