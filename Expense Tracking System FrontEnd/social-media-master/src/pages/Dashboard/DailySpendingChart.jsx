@@ -264,23 +264,6 @@ const DailySpendingChart = ({
           />
         </AreaChart>
       </ResponsiveContainer>
-
-      {/* Loading indicator when skeleton is disabled */}
-      {loading && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            color: "#888",
-            fontSize: "14px",
-            fontWeight: 500,
-          }}
-        >
-          Loading...
-        </div>
-      )}
     </div>
   );
 };
