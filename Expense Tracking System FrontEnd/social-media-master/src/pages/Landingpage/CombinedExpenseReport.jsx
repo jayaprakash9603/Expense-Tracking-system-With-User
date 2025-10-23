@@ -51,12 +51,15 @@ export default function CombinedExpenseReport() {
     });
 
   // Fetch payment methods data using independent state
-  const { data: paymentMethodsData, loading: paymentMethodsLoading } =
-    usePaymentMethodsData({
-      timeframe: paymentMethodTimeframe,
-      flowType: paymentMethodFlowType,
-      refreshTrigger: rawData,
-    });
+  const {
+    data: paymentMethodsData,
+    rawData: paymentMethodsRawData,
+    loading: paymentMethodsLoading,
+  } = usePaymentMethodsData({
+    timeframe: paymentMethodTimeframe,
+    flowType: paymentMethodFlowType,
+    refreshTrigger: rawData,
+  });
 
   // Removed category and fallback category spending logic
 
@@ -152,6 +155,7 @@ export default function CombinedExpenseReport() {
           />
           <PaymentMethodChart
             data={paymentMethodsData}
+            rawData={paymentMethodsRawData}
             timeframe={paymentMethodTimeframe}
             onTimeframeChange={setPaymentMethodTimeframe}
             flowType={paymentMethodFlowType}

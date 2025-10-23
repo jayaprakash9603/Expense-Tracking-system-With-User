@@ -31,6 +31,59 @@ import PropTypes from "prop-types";
 // ============================================================================
 
 /**
+ * Build friendly label from raw key
+ */
+const buildFriendlyLabel = (key) => {
+  const labelMap = {
+    creditNeedToPaid: "Credit (Due)",
+    cash: "Cash",
+    upi: "UPI",
+    card: "Card",
+    creditCard: "Credit Card",
+    debitCard: "Debit Card",
+    netBanking: "Net Banking",
+  };
+
+  return (
+    labelMap[key] ||
+    key
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim()
+  );
+};
+
+/**
+ * Reverse mapping - Get original key from friendly label
+ */
+const getOriginalKey = (friendlyLabel, data) => {
+  const reverseMap = {
+    "Credit (Due)": "creditNeedToPaid",
+    Cash: "cash",
+    UPI: "upi",
+    Card: "card",
+    "Credit Card": "creditCard",
+    "Debit Card": "debitCard",
+    "Net Banking": "netBanking",
+  };
+
+  // Try reverse map first
+  if (reverseMap[friendlyLabel]) {
+    return reverseMap[friendlyLabel];
+  }
+
+  // Try to find by comparing all keys with their friendly versions
+  const allKeys = Object.keys(data || {}).filter((key) => key !== "summary");
+  for (const key of allKeys) {
+    if (buildFriendlyLabel(key) === friendlyLabel) {
+      return key;
+    }
+  }
+
+  return null;
+};
+
+/**
  * Format number with locale
  */
 const formatNumber = (value) =>
@@ -151,8 +204,16 @@ const PieChartTooltip = ({ active, payload, data }) => {
   const categoryColor = segment.payload.fill || "#00dac6";
 
   // Get category/payment method details from full data
-  // Try exact match first, then case-insensitive match for payment methods
+  // First, try to get the original key from the friendly label
+  const originalKey = getOriginalKey(categoryName, data);
+
+  // Try exact match first
   let categoryDetails = data?.[categoryName];
+
+  // Try using original key if friendly label was detected
+  if (!categoryDetails && originalKey) {
+    categoryDetails = data?.[originalKey];
+  }
 
   if (!categoryDetails) {
     // Try lowercase match (for payment methods like "cash", "credit", etc.)
@@ -167,6 +228,19 @@ const PieChartTooltip = ({ active, payload, data }) => {
         key.toLowerCase() === categoryName.toLowerCase() && key !== "summary"
     );
     categoryDetails = matchingKey ? data[matchingKey] : {};
+  }
+
+  if (!categoryDetails) {
+    // Last resort: try to find by comparing friendly labels
+    const allKeys = Object.keys(data || {}).filter((key) => key !== "summary");
+    for (const key of allKeys) {
+      if (
+        buildFriendlyLabel(key).toLowerCase() === categoryName.toLowerCase()
+      ) {
+        categoryDetails = data[key];
+        break;
+      }
+    }
   }
 
   const expenseCount = categoryDetails?.expenseCount || 0;
