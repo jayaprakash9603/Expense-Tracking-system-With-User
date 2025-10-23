@@ -7,6 +7,7 @@ import {
 } from "../../Redux/Expenses/expense.action";
 import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
 import NameAutocomplete from "../../components/NameAutocomplete";
+import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import {
   useReactTable,
   getCoreRowModel,
@@ -110,6 +111,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const [localPaymentMethodsError, setLocalPaymentMethodsError] =
     useState(null);
   const [errors, setErrors] = useState({});
+  // Previous expense indicator state
+  const [previousExpense, setPreviousExpense] = useState(null);
+  const [loadingPreviousExpense, setLoadingPreviousExpense] = useState(false);
   // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
@@ -281,6 +285,56 @@ const NewExpense = ({ onClose, onSuccess }) => {
       }
     }
   }, [dateFromQuery]);
+
+  // Fetch previous expense when expense name and date change
+  useEffect(() => {
+    const fetchPrevious = async () => {
+      // Only fetch if both expense name and date are provided
+      if (!expenseData.expenseName || !expenseData.date) {
+        setPreviousExpense(null);
+        return;
+      }
+
+      // Skip if expense name is too short (less than 2 characters)
+      if (expenseData.expenseName.trim().length < 2) {
+        setPreviousExpense(null);
+        return;
+      }
+
+      setLoadingPreviousExpense(true);
+      try {
+        await dispatch(
+          fetchPreviousExpenses(
+            expenseData.expenseName.trim(),
+            expenseData.date,
+            friendId || undefined
+          )
+        );
+      } catch (error) {
+        console.log("Error fetching previous expense:", error);
+        setPreviousExpense(null);
+      } finally {
+        setLoadingPreviousExpense(false);
+      }
+    };
+
+    // Debounce the fetch to avoid too many API calls
+    const timeoutId = setTimeout(fetchPrevious, 500);
+    return () => clearTimeout(timeoutId);
+  }, [expenseData.expenseName, expenseData.date, dispatch, friendId]);
+
+  // Update previous expense from Redux state
+  const { previousExpenses: previousExpenseFromRedux } = useSelector(
+    (state) => state.expenses || {}
+  );
+
+  useEffect(() => {
+    if (previousExpenseFromRedux) {
+      setPreviousExpense(previousExpenseFromRedux);
+    } else {
+      setPreviousExpense(null);
+    }
+  }, [previousExpenseFromRedux]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -1066,19 +1120,49 @@ const NewExpense = ({ onClose, onSuccess }) => {
       >
         <div className="w-full flex justify-between items-center mb-1">
           <p className="text-white font-extrabold text-4xl">New Expense</p>
-          <button
-            onClick={() => {
-              if (onClose) {
-                onClose();
-              } else {
-                navigate(-1);
-              }
-            }}
-            className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
-            style={{ color: "#00dac6" }}
-          >
-            ×
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Display previous expense indicator only when name and date are set */}
+            {expenseData.expenseName?.trim().length >= 2 &&
+              expenseData.date && (
+                <PreviousExpenseIndicator
+                  expense={previousExpense}
+                  isLoading={loadingPreviousExpense}
+                  position="right"
+                  variant="gradient"
+                  showTooltip={true}
+                  dateFormat="DD MMM YYYY"
+                  label="Previously Added"
+                  labelPosition="top"
+                  icon="calendar"
+                  tooltipConfig={{
+                    showAmount: true,
+                    showPaymentMethod: true,
+                    showType: true,
+                  }}
+                  colorScheme={{
+                    primary: "#00dac6",
+                    secondary: "#00b8a0",
+                    text: "#ffffff",
+                    subtext: "#9ca3af",
+                  }}
+                />
+              )}
+
+            <button
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigate(-1);
+                }
+              }}
+              className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
+              style={{ color: "#00dac6" }}
+            >
+              ×
+            </button>
+          </div>
         </div>
         <hr className="border-t border-gray-600 w-full mt-[-4px]" />
 
