@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import dayjs from "dayjs";
 import { Skeleton, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
@@ -29,6 +29,29 @@ export default function CashFlowExpenseCards({
   getExpenseAction,
   getBillByExpenseId,
 }) {
+  const scrollContainerRef = useRef(null);
+  const scrollPositionRef = useRef(0);
+
+  // Save scroll position before re-render
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const handleScroll = () => {
+        scrollPositionRef.current = container.scrollTop;
+      };
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
+
+  // Restore scroll position after re-render
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container && scrollPositionRef.current > 0) {
+      container.scrollTop = scrollPositionRef.current;
+    }
+  });
+
   const wrapperClass =
     data.length <= 3
       ? "flex items-start gap-4 flex-wrap custom-scrollbar"
@@ -60,7 +83,11 @@ export default function CashFlowExpenseCards({
 
   if (loading && !search) {
     return (
-      <div className={wrapperClass} style={wrapperStyle}>
+      <div
+        ref={scrollContainerRef}
+        className={wrapperClass}
+        style={wrapperStyle}
+      >
         {Array.from({ length: 3 }).map((_, idx) => (
           <Skeleton
             key={idx}
@@ -78,7 +105,11 @@ export default function CashFlowExpenseCards({
 
   if (data.length === 0) {
     return (
-      <div className={wrapperClass} style={wrapperStyle}>
+      <div
+        ref={scrollContainerRef}
+        className={wrapperClass}
+        style={wrapperStyle}
+      >
         <NoDataPlaceholder
           size={isMobile ? "lg" : "fill"}
           fullWidth
@@ -96,7 +127,7 @@ export default function CashFlowExpenseCards({
   }
 
   return (
-    <div className={wrapperClass} style={wrapperStyle}>
+    <div ref={scrollContainerRef} className={wrapperClass} style={wrapperStyle}>
       {data.map((row, idx) => {
         const isSelected = selectedCardIdx.includes(idx);
         // Determine flow type in 'all' mode
@@ -167,7 +198,7 @@ export default function CashFlowExpenseCards({
 
         return (
           <div
-            key={idx}
+            key={row.id || row.expenseId || `expense-${idx}`}
             className="bg-[#1b1b1b] rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200"
             style={{
               minHeight: "140px",
@@ -192,8 +223,11 @@ export default function CashFlowExpenseCards({
                 : "2px solid transparent",
               userSelect: "none",
             }}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={(event) => handleCardClick(idx, event)}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              handleCardClick(idx, event);
+            }}
           >
             <div className="flex flex-col gap-2" style={{ height: "100%" }}>
               <div className="flex items-center justify-between min-w-0">

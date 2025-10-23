@@ -198,6 +198,24 @@
   box-shadow: 0 4px 20px rgba(20, 184, 166, 0.1);
 }
 
+/* Remove hover shadow and lift specifically for the Daily Spending chart */
+.daily-spending-chart .chart-container:hover,
+.daily-spending-chart.chart-container:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+/* Allow Daily Spending chart tooltips to overflow and be visible */
+.daily-spending-chart,
+.daily-spending-chart .chart-container {
+  overflow: visible !important;
+}
+
+/* Ensure Daily Spending chart has proper z-index for tooltip visibility */
+.chart-row > .daily-spending-chart {
+  z-index: 10;
+}
+
 .chart-header {
   margin-bottom: 20px;
 }
