@@ -2271,7 +2271,14 @@ public class ExpenseController {
 
 
             // Get expense before date
-            Expense expense = expenseService.getExpensesBeforeDate(targetUser.getId(), expenseName.trim(), parsedDate);
+            Expense expense;
+            try {
+                expense = expenseService.getExpensesBeforeDate(targetUser.getId(), expenseName.trim(), parsedDate);
+            } catch (IndexOutOfBoundsException e) {
+                // Handle case when no expenses exist before the given date
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(String.format("No expense found with name '%s' before date %s", expenseName, date));
+            }
 
             // Handle case when no expense is found
             if (expense == null) {
