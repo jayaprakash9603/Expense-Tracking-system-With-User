@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
+import { createFilterOptions } from "@mui/material/Autocomplete";
 import ReusableAutocomplete from "./ReusableAutocomplete";
 import usePaymentMethods from "../hooks/usePaymentMethods";
 import {
@@ -56,6 +57,18 @@ const PaymentMethodAutocomplete = ({
   showLabel = false,
   autofetch = true,
 }) => {
+  // Custom filter options for better search with spaces
+  const filterOptions = createFilterOptions({
+    matchFrom: "any",
+    stringify: (option) => {
+      // Combine label and value for searching, remove extra spaces
+      const label = (option.label || "").toLowerCase().trim();
+      const value = (option.value || "").toLowerCase().trim();
+      return `${label} ${value}`;
+    },
+    trim: true,
+  });
+
   // Use custom hook for payment method management
   const {
     processedPaymentMethods,
@@ -130,6 +143,7 @@ const PaymentMethodAutocomplete = ({
         onChange={handleChange}
         getOptionLabel={getPaymentMethodDisplayLabel}
         isOptionEqualToValue={arePaymentMethodsEqual}
+        filterOptions={filterOptions}
         renderOption={renderOption}
         placeholder={placeholder}
         error={error}

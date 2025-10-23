@@ -46,7 +46,12 @@ const usePaymentMethods = (
         ? paymentMethodsData
         : [];
 
-      setLocalPaymentMethods(validData);
+      // Deduplicate API results by name before storing
+      const deduplicatedData = Array.from(
+        new Map(validData.map((pm) => [pm.name?.toLowerCase(), pm])).values()
+      );
+
+      setLocalPaymentMethods(deduplicatedData);
       setLocalLoading(false);
     } catch (error) {
       console.error("Error fetching payment methods:", error);

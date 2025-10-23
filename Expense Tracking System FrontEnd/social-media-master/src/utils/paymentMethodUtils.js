@@ -72,6 +72,8 @@ export const getDefaultPaymentMethods = () => [
 
 /**
  * Filter payment methods by transaction type
+ * When transactionType is "gain" (income), show all payment methods (both income and expense)
+ * When transactionType is "loss" (expense), show only expense payment methods
  * @param {Array} paymentMethods - Array of payment method objects
  * @param {string} transactionType - "loss" (expense) or "gain" (income)
  * @returns {Array} Filtered payment methods
@@ -81,20 +83,20 @@ export const filterPaymentMethodsByType = (paymentMethods, transactionType) => {
     return [];
   }
 
-  const targetType =
-    transactionType === "loss"
-      ? "expense"
-      : transactionType === "gain"
-      ? "income"
-      : null;
-
-  if (!targetType) {
+  // If gain (income), show all payment methods (both income and expense)
+  if (transactionType === "gain") {
     return paymentMethods;
   }
 
-  return paymentMethods.filter(
-    (pm) => pm.type && pm.type.toLowerCase() === targetType
-  );
+  // If loss (expense), show only expense payment methods
+  if (transactionType === "loss") {
+    return paymentMethods.filter(
+      (pm) => pm.type && pm.type.toLowerCase() === "expense"
+    );
+  }
+
+  // Default: return all if type is unknown
+  return paymentMethods;
 };
 
 /**
@@ -140,7 +142,15 @@ export const processPaymentMethods = (
     availableMethods = filtered.map(transformPaymentMethodToOption);
   }
 
-  return availableMethods;
+  // Deduplicate by normalized value
+  const deduplicatedMap = new Map();
+  availableMethods.forEach((method) => {
+    if (!deduplicatedMap.has(method.value)) {
+      deduplicatedMap.set(method.value, method);
+    }
+  });
+
+  return Array.from(deduplicatedMap.values());
 };
 
 /**

@@ -639,7 +639,7 @@ const SpendingChartTooltip = ({
   // Build container styles
   const containerStyles = mergeStyles(
     {
-      backgroundColor: "#0f0f0f",
+      // backgroundColor: "#0f0f0f",
       border: `${responsiveStyles.container.borderWidth}px solid ${theme.border}`,
       borderRadius: responsiveStyles.container.borderRadius,
       color: "#fff",
@@ -650,6 +650,7 @@ const SpendingChartTooltip = ({
       boxShadow:
         "0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)",
       overflow: "hidden",
+      background: "transparent",
     },
     config.style
   );

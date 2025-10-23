@@ -1,6 +1,7 @@
 # Payment Method Autocomplete - Modular Architecture Documentation
 
 ## Overview
+
 This document describes the modular PaymentMethodAutocomplete component architecture, similar to CategoryAutocomplete, with complete separation of concerns and reusability.
 
 ## Architecture Structure
@@ -24,24 +25,30 @@ src/
 **Pure Utility Functions:**
 
 1. **formatPaymentMethodName(name)** - Formats payment method names for display
+
    - Input: "creditneedtopaid", "cash", "creditpaid"
    - Output: "Credit Due", "Cash", "Credit Paid"
 
 2. **normalizePaymentMethod(name)** - Normalizes to backend keys
+
    - Input: "Credit Due", "credit need to paid"
    - Output: "creditNeedToPaid"
 
 3. **getDefaultPaymentMethods()** - Returns array of default payment methods
+
    - Returns fallback methods when API fails
 
 4. **filterPaymentMethodsByType(paymentMethods, transactionType)** - Filters by type
+
    - "loss" → expense methods
    - "gain" → income methods
 
 5. **transformPaymentMethodToOption(paymentMethod)** - Transforms to option format
+
    - Returns: `{ value, label, type, original }`
 
 6. **processPaymentMethods(paymentMethods, transactionType, useDefaults)** - Main processor
+
    - Combines filtering, transformation, fallback logic
 
 7. **findPaymentMethodByValue(options, value)** - Finds option by value
@@ -62,15 +69,16 @@ src/
 
 ```javascript
 const {
-  paymentMethods,           // Raw payment methods from API
-  processedPaymentMethods,  // Filtered & formatted options
-  loading,                  // Combined loading state
-  error,                    // Error message
-  refetch                   // Manual refetch function
+  paymentMethods, // Raw payment methods from API
+  processedPaymentMethods, // Filtered & formatted options
+  loading, // Combined loading state
+  error, // Error message
+  refetch, // Manual refetch function
 } = usePaymentMethods(friendId, transactionType, autofetch);
 ```
 
 **Features:**
+
 - Auto-fetches payment methods from API
 - Processes based on transaction type
 - Memoized processed options
@@ -86,12 +94,12 @@ const {
 <PaymentMethodAutocomplete
   value={billData.paymentMethod}
   onChange={(paymentMethodValue) => {
-    setBillData(prev => ({
+    setBillData((prev) => ({
       ...prev,
-      paymentMethod: paymentMethodValue
+      paymentMethod: paymentMethodValue,
     }));
   }}
-  transactionType={billData.type}  // "loss" or "gain"
+  transactionType={billData.type} // "loss" or "gain"
   friendId={friendId}
   placeholder="Select payment method"
   size="medium"
@@ -99,6 +107,7 @@ const {
 ```
 
 **Props (15 total):**
+
 - `value` - Selected payment method value (string)
 - `onChange` - Callback(paymentMethodValue)
 - `transactionType` - "loss" (expense) or "gain" (income)
@@ -117,6 +126,7 @@ const {
 - `autofetch` - Auto-fetch flag (default: true)
 
 **Features:**
+
 - Automatic API fetching
 - Filtering by transaction type
 - Fallback to defaults
@@ -130,6 +140,7 @@ const {
 ### EditBill.jsx (COMPLETED ✅)
 
 **Before:**
+
 ```javascript
 // 80+ lines of code including:
 // - fetchAllPaymentMethods import
@@ -141,6 +152,7 @@ const {
 ```
 
 **After:**
+
 ```javascript
 import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
 
@@ -154,10 +166,11 @@ import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplet
   friendId={friendId}
   placeholder="Select payment method"
   size="medium"
-/>
+/>;
 ```
 
 **Removed:**
+
 - fetchAllPaymentMethods import
 - localPaymentMethods state (3 variables)
 - paymentMethods Redux selector
@@ -173,8 +186,10 @@ import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplet
 ### Remaining Components to Update
 
 #### 1. CreateBill.jsx
+
 **Location:** Line 907-1008
 **Changes Needed:**
+
 - Add import: `import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";`
 - Remove: formatPaymentMethodName, normalizePaymentMethod functions
 - Remove: defaultPaymentMethods, processedPaymentMethods
@@ -183,8 +198,10 @@ import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplet
 - Replace renderPaymentMethodAutocomplete
 
 #### 2. NewExpense.jsx
+
 **Location:** Line 616-710
 **Changes Needed:**
+
 - Add import: `import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";`
 - Remove: formatPaymentMethodName, normalizePaymentMethod functions
 - Remove: defaultPaymentMethods, processedPaymentMethods
@@ -193,8 +210,10 @@ import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplet
 - Replace renderPaymentMethodAutocomplete
 
 #### 3. EditExpense.jsx
+
 **Location:** Line 578-663
 **Changes Needed:**
+
 - Add import: `import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";`
 - Remove: formatPaymentMethodName, normalizePaymentMethod functions
 - Remove: defaultPaymentMethods, processedPaymentMethods
@@ -240,7 +259,7 @@ const renderPaymentMethodAutocomplete = () => (
             ...prev,
             paymentMethod: paymentMethodValue,
           }));
-          
+
           // For Expense components:
           setExpenseData((prev) => ({
             ...prev,
@@ -260,24 +279,28 @@ const renderPaymentMethodAutocomplete = () => (
 ## Benefits
 
 ### Code Quality
+
 - **Lines Reduced:** ~150 lines → ~15 lines per component (90% reduction)
 - **Duplication Removed:** 4 copies of same code → 1 reusable component
 - **Maintainability:** Changes in one place affect all components
 - **Testability:** Pure functions easy to test
 
 ### Architecture
+
 - **Separation of Concerns:** Utilities, hooks, components separated
 - **Single Responsibility:** Each file has one purpose
 - **DRY Principle:** No code duplication
 - **SOLID Principles:** Open/Closed, Dependency Inversion
 
 ### Developer Experience
+
 - **Easy to Use:** Simple API, sensible defaults
 - **Flexible:** 15 props for customization
 - **Consistent:** Same API as CategoryAutocomplete
 - **Documented:** Clear prop types and examples
 
 ### Future Extensibility
+
 - Create new autocompletes (BudgetAutocomplete, etc.) in minutes
 - Reuse utilities for any payment method operations
 - Extend without modifying existing code
@@ -286,46 +309,48 @@ const renderPaymentMethodAutocomplete = () => (
 ## Testing Examples
 
 ### Testing Utilities
+
 ```javascript
 import {
   formatPaymentMethodName,
   normalizePaymentMethod,
-  processPaymentMethods
-} from '../utils/paymentMethodUtils';
+  processPaymentMethods,
+} from "../utils/paymentMethodUtils";
 
-describe('paymentMethodUtils', () => {
-  test('formats payment method names', () => {
-    expect(formatPaymentMethodName('cash')).toBe('Cash');
-    expect(formatPaymentMethodName('creditneedtopaid')).toBe('Credit Due');
+describe("paymentMethodUtils", () => {
+  test("formats payment method names", () => {
+    expect(formatPaymentMethodName("cash")).toBe("Cash");
+    expect(formatPaymentMethodName("creditneedtopaid")).toBe("Credit Due");
   });
-  
-  test('normalizes payment methods', () => {
-    expect(normalizePaymentMethod('Credit Due')).toBe('creditNeedToPaid');
-    expect(normalizePaymentMethod('cash')).toBe('cash');
+
+  test("normalizes payment methods", () => {
+    expect(normalizePaymentMethod("Credit Due")).toBe("creditNeedToPaid");
+    expect(normalizePaymentMethod("cash")).toBe("cash");
   });
-  
-  test('processes payment methods by type', () => {
+
+  test("processes payment methods by type", () => {
     const methods = [
-      { name: 'cash', type: 'expense' },
-      { name: 'cash', type: 'income' }
+      { name: "cash", type: "expense" },
+      { name: "cash", type: "income" },
     ];
-    const processed = processPaymentMethods(methods, 'loss');
+    const processed = processPaymentMethods(methods, "loss");
     expect(processed).toHaveLength(1);
-    expect(processed[0].type).toBe('expense');
+    expect(processed[0].type).toBe("expense");
   });
 });
 ```
 
 ### Testing Hook
-```javascript
-import { renderHook } from '@testing-library/react-hooks';
-import usePaymentMethods from '../hooks/usePaymentMethods';
 
-test('fetches and processes payment methods', async () => {
+```javascript
+import { renderHook } from "@testing-library/react-hooks";
+import usePaymentMethods from "../hooks/usePaymentMethods";
+
+test("fetches and processes payment methods", async () => {
   const { result, waitForNextUpdate } = renderHook(() =>
-    usePaymentMethods('', 'loss', true)
+    usePaymentMethods("", "loss", true)
   );
-  
+
   expect(result.current.loading).toBe(true);
   await waitForNextUpdate();
   expect(result.current.loading).toBe(false);
@@ -334,11 +359,12 @@ test('fetches and processes payment methods', async () => {
 ```
 
 ### Testing Component
-```javascript
-import { render, screen } from '@testing-library/react';
-import PaymentMethodAutocomplete from '../components/PaymentMethodAutocomplete';
 
-test('renders payment method autocomplete', () => {
+```javascript
+import { render, screen } from "@testing-library/react";
+import PaymentMethodAutocomplete from "../components/PaymentMethodAutocomplete";
+
+test("renders payment method autocomplete", () => {
   const handleChange = jest.fn();
   render(
     <PaymentMethodAutocomplete
@@ -347,15 +373,17 @@ test('renders payment method autocomplete', () => {
       transactionType="loss"
     />
   );
-  
-  expect(screen.getByPlaceholderText(/select payment method/i)).toBeInTheDocument();
+
+  expect(
+    screen.getByPlaceholderText(/select payment method/i)
+  ).toBeInTheDocument();
 });
 ```
 
 ## Migration Checklist
 
 - [x] Create src/utils/paymentMethodUtils.js
-- [x] Create src/hooks/usePaymentMethods.js  
+- [x] Create src/hooks/usePaymentMethods.js
 - [x] Create src/components/PaymentMethodAutocomplete.jsx
 - [x] Update EditBill.jsx
 - [ ] Update CreateBill.jsx
@@ -368,16 +396,19 @@ test('renders payment method autocomplete', () => {
 ## Next Steps
 
 1. **Complete Remaining Components:**
+
    - CreateBill.jsx
    - NewExpense.jsx
    - EditExpense.jsx
 
 2. **Testing:**
+
    - Unit tests for utilities
    - Integration tests for hook
    - Component tests for PaymentMethodAutocomplete
 
 3. **Documentation:**
+
    - Add JSDoc comments
    - Create Storybook stories
    - Update component README
@@ -390,6 +421,7 @@ test('renders payment method autocomplete', () => {
 ## Summary
 
 Created a fully modular PaymentMethodAutocomplete component with:
+
 - **14 utility functions** in separate file
 - **1 custom hook** for data management
 - **1 reusable component** with 15 props

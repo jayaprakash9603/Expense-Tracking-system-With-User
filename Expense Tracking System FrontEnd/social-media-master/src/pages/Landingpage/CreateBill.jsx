@@ -25,12 +25,13 @@ import { getExpensesSuggestions } from "../../Redux/Expenses/expense.action";
 import NameAutocomplete from "../../components/NameAutocomplete";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import CategoryAutocomplete from "../../components/CategoryAutocomplete";
+import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
+import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // still used for hasWriteAccess gating below
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../hooks/usePreviousExpense";
 import { createBill } from "../../Redux/Bill/bill.action";
-import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 
 const labelStyle = "text-white text-sm sm:text-base font-semibold mr-4";
 const inputWrapper = {
@@ -66,11 +67,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
     topExpenses: expenseNameSuggestions = [],
     loading: suggestionsLoading,
   } = useSelector((state) => state.expenses || {});
-  const {
-    paymentMethods,
-    loading: paymentMethodsLoading,
-    error: paymentMethodsError,
-  } = useSelector((state) => state.paymentMethods || {});
 
   const [hasUnsavedExpenseChanges, setHasUnsavedExpenseChanges] =
     useState(false);
@@ -98,11 +94,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const [showBudgetTable, setShowBudgetTable] = useState(false);
   const [checkboxStates, setCheckboxStates] = useState([]);
   const [selectedBudgets, setSelectedBudgets] = useState([]);
-  const [localPaymentMethods, setLocalPaymentMethods] = useState([]);
-  const [localPaymentMethodsLoading, setLocalPaymentMethodsLoading] =
-    useState(false);
-  const [localPaymentMethodsError, setLocalPaymentMethodsError] =
-    useState(null);
 
   // Use custom hook for previous expense functionality
   const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
@@ -110,130 +101,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
     billData.date,
     friendId
   );
-
-  const formatPaymentMethodName = (name) => {
-    const n = String(name || "")
-      .toLowerCase()
-      .trim();
-    if (n === "cash") return "Cash";
-    if (
-      n === "creditneedtopaid" ||
-      n === "credit due" ||
-      n === "credit need to paid" ||
-      n === "credit need to pay" ||
-      n === "creditneedtopay"
-    )
-      return "Credit Due";
-    if (n === "creditpaid" || n === "credit paid") return "Credit Paid";
-    // For other payment methods, convert to title case
-    return String(name || "")
-      .replace(/([A-Z])/g, " $1")
-      .replace(/^./, (str) => str.toUpperCase())
-      .trim();
-  };
-
-  // Normalize any payment method label/value into backend-friendly keys
-  const normalizePaymentMethod = (name) => {
-    const raw = String(name || "").trim();
-    const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
-    switch (key) {
-      case "creditneedtopaid":
-      case "creditdue":
-        return "creditNeedToPaid";
-      case "creditpaid":
-        return "creditPaid";
-      case "cash":
-        return "cash";
-      default:
-        return raw; // keep custom methods as-is
-    }
-  };
-
-  const defaultPaymentMethods = [
-    { name: "cash", label: "Cash", type: "expense" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
-    { name: "creditPaid", label: "Credit Paid", type: "expense" },
-    { name: "cash", label: "Cash", type: "income" },
-    { name: "creditPaid", label: "Credit Paid", type: "income" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "income" },
-  ];
-  // Payment method options
-  // Fix the filtering logic in processedPaymentMethods
-  const processedPaymentMethods = useMemo(() => {
-    console.log("Processing local payment methods:", {
-      localPaymentMethods,
-      isArray: Array.isArray(localPaymentMethods),
-      length: localPaymentMethods?.length,
-      billType: billData.type,
-    });
-
-    let availablePaymentMethods = [];
-
-    // If we have valid payment methods from local state
-    if (Array.isArray(localPaymentMethods) && localPaymentMethods.length > 0) {
-      const filteredMethods = localPaymentMethods.filter((pm) => {
-        if (billData.type === "loss") {
-          return pm.type && pm.type.toLowerCase() === "expense";
-        } else if (billData.type === "gain") {
-          return pm.type && pm.type.toLowerCase() === "income";
-        }
-        return true;
-      });
-
-      availablePaymentMethods = filteredMethods.map((pm) => ({
-        value: normalizePaymentMethod(pm.name),
-        label: formatPaymentMethodName(pm.name),
-        ...pm,
-      }));
-    }
-
-    // Dedupe by value (avoid Credit Due duplicates from variations)
-    if (availablePaymentMethods.length > 0) {
-      const map = new Map();
-      for (const pm of availablePaymentMethods) {
-        if (!map.has(pm.value)) map.set(pm.value, pm);
-      }
-      availablePaymentMethods = Array.from(map.values());
-    }
-
-    // If no filtered methods available, use default fallback based on type
-    if (availablePaymentMethods.length === 0) {
-      console.log(
-        "Using default payment methods as fallback for type:",
-        billData.type
-      );
-
-      // Filter default methods by both name AND type
-      const defaultMethodsForType = defaultPaymentMethods.filter((pm) => {
-        if (billData.type === "loss") {
-          // Only return expense type payment methods
-          return pm.type === "expense";
-        } else if (billData.type === "gain") {
-          // Only return income type payment methods
-          return pm.type === "income";
-        }
-        return true;
-      });
-
-      availablePaymentMethods = defaultMethodsForType.map((pm) => ({
-        value: normalizePaymentMethod(pm.name),
-        label: pm.label,
-        type: pm.type,
-      }));
-    }
-
-    // Final dedupe including defaults
-    if (availablePaymentMethods.length > 0) {
-      const final = new Map();
-      for (const pm of availablePaymentMethods) {
-        if (!final.has(pm.value)) final.set(pm.value, pm);
-      }
-      availablePaymentMethods = Array.from(final.values());
-    }
-
-    console.log("Final available payment methods:", availablePaymentMethods);
-    return availablePaymentMethods;
-  }, [localPaymentMethods, billData.type]);
 
   // Type options
   const typeOptions = ["gain", "loss"];
@@ -262,51 +129,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
     return hasItemName && hasValidUnitPrice && hasValidQuantity;
   };
 
-  useEffect(() => {
-    const fetchPaymentMethods = async () => {
-      try {
-        setLocalPaymentMethodsLoading(true);
-        setLocalPaymentMethodsError(null);
-
-        console.log(
-          "Fetching payment methods for friendId:",
-          friendId || "current user"
-        );
-
-        // Dispatch the action and wait for the result
-        const resultAction = await dispatch(
-          fetchAllPaymentMethods(friendId || "")
-        );
-
-        console.log("Payment methods action result:", resultAction);
-
-        // Check if the action was successful and extract the payload
-        if (resultAction) {
-          const paymentMethodsData = resultAction || resultAction || [];
-          console.log("Setting local payment methods:", paymentMethodsData);
-          setLocalPaymentMethods(
-            Array.isArray(paymentMethodsData) ? paymentMethodsData : []
-          );
-        } else {
-          const errorMessage =
-            resultAction.error?.message ||
-            resultAction.payload ||
-            "Failed to fetch payment methods";
-          console.error("Payment methods fetch failed:", errorMessage);
-          setLocalPaymentMethodsError(errorMessage);
-        }
-      } catch (error) {
-        console.error("Error fetching payment methods:", error);
-        setLocalPaymentMethodsError(
-          error.message || "Failed to fetch payment methods"
-        );
-      } finally {
-        setLocalPaymentMethodsLoading(false);
-      }
-    };
-
-    fetchPaymentMethods();
-  }, [dispatch]);
   // Fetch budgets on component mount
   useEffect(() => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
@@ -353,8 +175,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
     setBillData((prev) => ({
       ...prev,
       type: newType,
-      // Reset payment method to first available option for the new type
-      paymentMethod: "cash", // This will be updated by the effect below
     }));
 
     if (errors.type) {
@@ -362,25 +182,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
     }
   };
 
-  //Add useEffect to update payment method when type changes and options are available
-  useEffect(() => {
-    if (processedPaymentMethods.length > 0) {
-      // Check if current payment method is still valid for the selected type
-      const currentMethodValid = processedPaymentMethods.some(
-        (pm) => pm.value === billData.paymentMethod
-      );
-
-      // If current method is not valid, set to first available option
-      if (!currentMethodValid) {
-        setBillData((prev) => ({
-          ...prev,
-          paymentMethod: normalizePaymentMethod(
-            processedPaymentMethods[0]?.value || "cash"
-          ),
-        }));
-      }
-    }
-  }, [processedPaymentMethods, billData.paymentMethod]);
   const handleDateChange = (newValue) => {
     if (newValue) {
       const formatted = dayjs(newValue).format("YYYY-MM-DD");
@@ -914,97 +715,20 @@ const CreateBill = ({ onClose, onSuccess }) => {
         >
           Payment Method
         </label>
-        <Autocomplete
-          autoHighlight
-          options={processedPaymentMethods}
-          getOptionLabel={(option) => option.label || option}
-          value={
-            processedPaymentMethods.find(
-              (pm) => pm.value === billData.paymentMethod
-            ) || null
-          }
-          onChange={(event, newValue) => {
+        <PaymentMethodAutocomplete
+          value={billData.paymentMethod}
+          onChange={(paymentMethodValue) => {
             setBillData((prev) => ({
               ...prev,
-              paymentMethod: newValue
-                ? normalizePaymentMethod(newValue.value)
-                : "cash",
+              paymentMethod: paymentMethodValue,
             }));
           }}
-          loading={localPaymentMethodsLoading}
-          noOptionsText={
-            billData.type
-              ? `No ${
-                  billData.type === "loss" ? "expense" : "income"
-                } payment methods available`
-              : "No payment methods available"
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select payment method"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {localPaymentMethodsLoading ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              }}
-              sx={{
-                "& .MuiInputBase-root": {
-                  backgroundColor: "#29282b",
-                  color: "#fff",
-                  height: "56px",
-                  fontSize: "16px",
-                },
-                "& .MuiInputBase-input": {
-                  color: "#fff",
-                  "&::placeholder": {
-                    color: "#9ca3af",
-                    opacity: 1,
-                  },
-                },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "rgb(75, 85, 99)",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "rgb(75, 85, 99)",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#00dac6",
-                    borderWidth: "2px",
-                  },
-                },
-              }}
-            />
-          )}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-          }}
+          transactionType={billData.type}
+          friendId={friendId}
+          placeholder="Select payment method"
+          size="medium"
         />
       </div>
-
-      {/* Error display using local state */}
-      {localPaymentMethodsError && (
-        <div className="text-red-400 text-xs mt-1">
-          Error: {localPaymentMethodsError}
-        </div>
-      )}
-
-      {/* Debug info - remove in production */}
-      {/* <div className="text-gray-400 text-xs mt-1">
-        Options: {processedPaymentMethods.length} available for{" "}
-        {billData.type || "all types"}
-        {localPaymentMethodsLoading && " (Loading...)"}
-      </div> */}
     </div>
   );
 

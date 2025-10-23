@@ -8,6 +8,8 @@ import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
 import NameAutocomplete from "../../components/NameAutocomplete";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import CategoryAutocomplete from "../../components/CategoryAutocomplete";
+import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
+import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import {
   useReactTable,
   getCoreRowModel,
@@ -18,7 +20,6 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../hooks/usePreviousExpense";
-import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -34,44 +35,6 @@ const inputWrapper = {
   minWidth: "150px",
   display: "flex",
   alignItems: "center",
-};
-
-// Helpers replicated (simplified) from CreateBill for consistency
-const formatPaymentMethodName = (name) => {
-  const n = String(name || "")
-    .toLowerCase()
-    .trim();
-  if (n === "cash" || n === "cash ") return "Cash";
-  // Treat all variations of credit due / need to paid the same
-  if (
-    n === "creditneedtopaid" ||
-    n === "credit due" ||
-    n === "credit need to paid" ||
-    n === "credit need to pay" ||
-    n === "creditneedtopay"
-  )
-    return "Credit Due";
-  if (n === "creditpaid" || n === "credit paid") return "Credit Paid";
-  return String(name || "")
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (str) => str.toUpperCase())
-    .trim();
-};
-
-const normalizePaymentMethod = (name) => {
-  const raw = String(name || "").trim();
-  const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
-  switch (key) {
-    case "creditneedtopaid":
-    case "creditdue":
-      return "creditNeedToPaid";
-    case "creditpaid":
-      return "creditPaid";
-    case "cash":
-      return "cash";
-    default:
-      return raw; // custom names as-is
-  }
 };
 
 const NewExpense = ({ onClose, onSuccess }) => {
@@ -99,12 +62,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
     date: dateFromQuery || today,
     creditDue: "",
   });
-  // Local payment method dynamic state
-  const [localPaymentMethods, setLocalPaymentMethods] = useState([]);
-  const [localPaymentMethodsLoading, setLocalPaymentMethodsLoading] =
-    useState(false);
-  const [localPaymentMethodsError, setLocalPaymentMethodsError] =
-    useState(null);
   const [errors, setErrors] = useState({});
   // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
@@ -144,106 +101,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
   useEffect(() => {
     dispatch(getExpensesSuggestions(friendId || ""));
   }, [dispatch, friendId]);
-
-  // Fetch payment methods (dynamic dropdown) similar to CreateBill
-  useEffect(() => {
-    const fetchPaymentMethods = async () => {
-      try {
-        setLocalPaymentMethodsLoading(true);
-        setLocalPaymentMethodsError(null);
-        const result = await dispatch(fetchAllPaymentMethods(friendId || ""));
-        if (result && Array.isArray(result)) {
-          setLocalPaymentMethods(result);
-        } else if (result?.payload && Array.isArray(result.payload)) {
-          setLocalPaymentMethods(result.payload);
-        } else {
-          // Fallback to empty; reducer may still populate via selector if needed
-          setLocalPaymentMethods([]);
-        }
-      } catch (err) {
-        setLocalPaymentMethodsError(
-          err?.message || "Failed to fetch payment methods"
-        );
-      } finally {
-        setLocalPaymentMethodsLoading(false);
-      }
-    };
-    fetchPaymentMethods();
-  }, [dispatch, friendId]);
-
-  // Default methods used as fallback when API returns none
-  const defaultPaymentMethods = [
-    { name: "cash", label: "Cash", type: "expense" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
-    { name: "creditPaid", label: "Credit Paid", type: "expense" },
-    { name: "cash", label: "Cash", type: "income" },
-    { name: "creditPaid", label: "Credit Paid", type: "income" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "income" },
-  ];
-
-  // Processed & filtered according to transactionType (gain/loss ~ income/expense)
-  const processedPaymentMethods = useMemo(() => {
-    // Normalize to lowercase like CreateBill implementation does
-    const txType = String(expenseData.transactionType || "loss").toLowerCase();
-    const flow = txType === "gain" ? "income" : "expense";
-    let available = [];
-
-    if (Array.isArray(localPaymentMethods) && localPaymentMethods.length > 0) {
-      const filtered = localPaymentMethods.filter((pm) => {
-        const pmType = String(
-          pm.type || pm.flowType || pm.category || ""
-        ).toLowerCase();
-        if (!pmType) return true; // if backend didn't tag, keep it visible
-        if (flow === "expense") {
-          return ["expense", "loss", "debit"].includes(pmType);
-        }
-        return ["income", "gain", "credit"].includes(pmType);
-      });
-      available = filtered.map((pm) => ({
-        value: normalizePaymentMethod(pm.name),
-        label: formatPaymentMethodName(pm.name),
-        ...pm,
-      }));
-    }
-
-    // Dedupe by normalized value (avoid Credit Due duplicates)
-    const dedupMap = new Map();
-    for (const pm of available) {
-      if (!dedupMap.has(pm.value)) dedupMap.set(pm.value, pm);
-    }
-    available = Array.from(dedupMap.values());
-
-    if (available.length === 0) {
-      const defaults = defaultPaymentMethods.filter((pm) => pm.type === flow);
-      available = defaults.map((pm) => ({
-        value: normalizePaymentMethod(pm.name),
-        label: pm.label,
-        type: pm.type,
-      }));
-    }
-    // Final dedupe including defaults
-    const finalMap = new Map();
-    for (const pm of available) {
-      if (!finalMap.has(pm.value)) finalMap.set(pm.value, pm);
-    }
-    available = Array.from(finalMap.values());
-    return available;
-  }, [localPaymentMethods, expenseData.transactionType]);
-
-  // Ensure selected payment method remains valid after type (transactionType) change
-  useEffect(() => {
-    if (processedPaymentMethods.length > 0) {
-      const currentValid = processedPaymentMethods.some(
-        (pm) => pm.value === expenseData.paymentMethod
-      );
-      if (!currentValid) {
-        setExpenseData((prev) => ({
-          ...prev,
-          paymentMethod: processedPaymentMethods[0].value || "cash",
-        }));
-      }
-    }
-  }, [processedPaymentMethods, expenseData.paymentMethod]);
 
   // Set initial type based on salary date logic if dateFromQuery is present
   React.useEffect(() => {
@@ -623,86 +480,20 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           Payment Method
         </label>
-        <Autocomplete
-          autoHighlight
-          options={processedPaymentMethods}
-          getOptionLabel={(option) => option.label || option}
-          value={
-            processedPaymentMethods.find(
-              (pm) => pm.value === expenseData.paymentMethod
-            ) || null
-          }
-          onChange={(event, newValue) => {
+        <PaymentMethodAutocomplete
+          value={expenseData.paymentMethod}
+          onChange={(paymentMethodValue) => {
             setExpenseData((prev) => ({
               ...prev,
-              paymentMethod: newValue ? newValue.value : "cash",
+              paymentMethod: paymentMethodValue,
             }));
           }}
-          loading={localPaymentMethodsLoading}
-          noOptionsText={
-            expenseData.transactionType
-              ? `No ${(
-                  expenseData.transactionType || ""
-                ).toLowerCase()} payment methods`
-              : "No payment methods"
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select payment method"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                className: fieldStyles,
-                endAdornment: (
-                  <>
-                    {localPaymentMethodsLoading ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
-                fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
-              }}
-              title={option.label}
-            >
-              {highlightText(option.label, inputValue)}
-            </li>
-          )}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiAutocomplete-option": {
-              fontSize: "0.92rem",
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-          }}
+          transactionType={expenseData.transactionType}
+          friendId={friendId}
+          placeholder="Select payment method"
+          size="medium"
         />
       </div>
-      {localPaymentMethodsError && (
-        <div className="text-red-400 text-xs mt-1">
-          Error: {localPaymentMethodsError}
-        </div>
-      )}
-      {errors.paymentMethod && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors.paymentMethod}
-        </span>
-      )}
     </div>
   );
   // Use lowercase internal values for consistency (gain/loss)
