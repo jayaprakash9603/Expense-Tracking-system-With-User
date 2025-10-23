@@ -94,6 +94,12 @@
   margin-bottom: 32px;
 }
 
+.expenses-overview-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
 .overview-card {
   background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
   border: 1px solid #2a2a2a;
@@ -190,6 +196,71 @@
 
 .chart-container:hover {
   box-shadow: 0 4px 20px rgba(20, 184, 166, 0.1);
+}
+
+/* Remove hover shadow and lift specifically for the Daily Spending chart */
+.daily-spending-chart .chart-container:hover,
+.daily-spending-chart.chart-container:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+/* Allow Daily Spending chart tooltips to overflow and be visible */
+.daily-spending-chart,
+.daily-spending-chart .chart-container {
+  overflow: visible !important;
+}
+
+/* Ensure Daily Spending chart has proper z-index for tooltip visibility */
+.chart-row > .daily-spending-chart {
+  z-index: 10;
+}
+
+/* Enhanced Pie Chart Styles for Better UX with Small Segments */
+.reusable-pie-chart {
+  position: relative;
+  overflow: visible !important;
+}
+
+.reusable-pie-chart.chart-container {
+  overflow: visible !important;
+}
+
+/* Ensure pie chart labels are visible */
+.reusable-pie-chart .recharts-pie-label-text {
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+/* Legend hover effect */
+.reusable-pie-chart .recharts-legend-item {
+  cursor: pointer !important;
+  transition: all 0.3s ease;
+}
+
+.reusable-pie-chart .recharts-legend-item:hover {
+  opacity: 1 !important;
+}
+
+.reusable-pie-chart .recharts-legend-item text {
+  transition: all 0.3s ease;
+}
+
+.reusable-pie-chart .recharts-legend-item:hover text {
+  fill: #14b8a6 !important;
+  font-weight: 700;
+}
+
+/* Pie segment hover effects */
+.reusable-pie-chart .recharts-sector {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.reusable-pie-chart .recharts-sector:hover {
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(20, 184, 166, 0.5));
+  transform-origin: center;
 }
 
 .chart-header {

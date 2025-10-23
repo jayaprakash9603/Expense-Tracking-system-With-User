@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  createExpenseAction,
-  fetchPreviousExpenses,
-  getExpensesSuggestions,
-} from "../../Redux/Expenses/expense.action";
+import { createExpenseAction } from "../../Redux/Expenses/expense.action";
 import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
-import NameAutocomplete from "../../components/NameAutocomplete";
+import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
+import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
+import CategoryAutocomplete from "../../components/CategoryAutocomplete";
+import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
+import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import {
   useReactTable,
   getCoreRowModel,
@@ -16,8 +16,7 @@ import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
-import { fetchCategories } from "../../Redux/Category/categoryActions";
-import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
+import usePreviousExpense from "../../hooks/usePreviousExpense";
 import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -35,44 +34,6 @@ const inputWrapper = {
   alignItems: "center",
 };
 
-// Helpers replicated (simplified) from CreateBill for consistency
-const formatPaymentMethodName = (name) => {
-  const n = String(name || "")
-    .toLowerCase()
-    .trim();
-  if (n === "cash" || n === "cash ") return "Cash";
-  // Treat all variations of credit due / need to paid the same
-  if (
-    n === "creditneedtopaid" ||
-    n === "credit due" ||
-    n === "credit need to paid" ||
-    n === "credit need to pay" ||
-    n === "creditneedtopay"
-  )
-    return "Credit Due";
-  if (n === "creditpaid" || n === "credit paid") return "Credit Paid";
-  return String(name || "")
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (str) => str.toUpperCase())
-    .trim();
-};
-
-const normalizePaymentMethod = (name) => {
-  const raw = String(name || "").trim();
-  const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
-  switch (key) {
-    case "creditneedtopaid":
-    case "creditdue":
-      return "creditNeedToPaid";
-    case "creditpaid":
-      return "creditPaid";
-    case "cash":
-      return "cash";
-    default:
-      return raw; // custom names as-is
-  }
-};
-
 const NewExpense = ({ onClose, onSuccess }) => {
   const location = useLocation();
   // Get date from query param if present
@@ -81,17 +42,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
-  const { topExpenses, loading: loading } = useSelector(
-    (state) => state.expenses || {}
-  );
   const { budgets, error: budgetError } = useSelector(
     (state) => state.budgets || {}
   );
-  const {
-    categories,
-    loading: categoriesLoading,
-    error: categoriesError,
-  } = useSelector((state) => state.categories || {});
   const dispatch = useDispatch();
   const [expenseData, setExpenseData] = useState({
     expenseName: "",
@@ -103,12 +56,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
     date: dateFromQuery || today,
     creditDue: "",
   });
-  // Local payment method dynamic state
-  const [localPaymentMethods, setLocalPaymentMethods] = useState([]);
-  const [localPaymentMethodsLoading, setLocalPaymentMethodsLoading] =
-    useState(false);
-  const [localPaymentMethodsError, setLocalPaymentMethodsError] =
-    useState(null);
   const [errors, setErrors] = useState({});
   // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
@@ -117,6 +64,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const [checkboxStates, setCheckboxStates] = useState([]);
   const { friendId } = useParams();
   const { hasWriteAccess } = useFriendAccess(friendId);
+
+  // Use custom hook for previous expense functionality
+  const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
+    expenseData.expenseName,
+    expenseData.date,
+    friendId
+  );
+
   // Updated redirect base paths to /friends/expenses*
   useRedirectIfReadOnly(friendId, {
     buildFriendPath: (fid) => `/friends/expenses/${fid}`,
@@ -135,128 +90,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
   useEffect(() => {
     setCheckboxStates(budgets.map((budget) => budget.includeInBudget || false));
   }, [budgets]);
-
-  // Fetch expenses suggestions
-  useEffect(() => {
-    dispatch(getExpensesSuggestions(friendId || ""));
-  }, [dispatch, friendId]);
-
-  // Fetch categories on component mount
-  useEffect(() => {
-    dispatch(fetchCategories(friendId || ""));
-  }, [dispatch, friendId]);
-
-  // Fetch payment methods (dynamic dropdown) similar to CreateBill
-  useEffect(() => {
-    const fetchPaymentMethods = async () => {
-      try {
-        setLocalPaymentMethodsLoading(true);
-        setLocalPaymentMethodsError(null);
-        const result = await dispatch(fetchAllPaymentMethods(friendId || ""));
-        if (result && Array.isArray(result)) {
-          setLocalPaymentMethods(result);
-        } else if (result?.payload && Array.isArray(result.payload)) {
-          setLocalPaymentMethods(result.payload);
-        } else {
-          // Fallback to empty; reducer may still populate via selector if needed
-          setLocalPaymentMethods([]);
-        }
-      } catch (err) {
-        setLocalPaymentMethodsError(
-          err?.message || "Failed to fetch payment methods"
-        );
-      } finally {
-        setLocalPaymentMethodsLoading(false);
-      }
-    };
-    fetchPaymentMethods();
-  }, [dispatch, friendId]);
-
-  // Default methods used as fallback when API returns none
-  const defaultPaymentMethods = [
-    { name: "cash", label: "Cash", type: "expense" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
-    { name: "creditPaid", label: "Credit Paid", type: "expense" },
-    { name: "cash", label: "Cash", type: "income" },
-    { name: "creditPaid", label: "Credit Paid", type: "income" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "income" },
-  ];
-
-  // Processed & filtered according to transactionType (gain/loss ~ income/expense)
-  const processedPaymentMethods = useMemo(() => {
-    // Normalize to lowercase like CreateBill implementation does
-    const txType = String(expenseData.transactionType || "loss").toLowerCase();
-    const flow = txType === "gain" ? "income" : "expense";
-    let available = [];
-
-    if (Array.isArray(localPaymentMethods) && localPaymentMethods.length > 0) {
-      const filtered = localPaymentMethods.filter((pm) => {
-        const pmType = String(
-          pm.type || pm.flowType || pm.category || ""
-        ).toLowerCase();
-        if (!pmType) return true; // if backend didn't tag, keep it visible
-        if (flow === "expense") {
-          return ["expense", "loss", "debit"].includes(pmType);
-        }
-        return ["income", "gain", "credit"].includes(pmType);
-      });
-      available = filtered.map((pm) => ({
-        value: normalizePaymentMethod(pm.name),
-        label: formatPaymentMethodName(pm.name),
-        ...pm,
-      }));
-    }
-
-    // Dedupe by normalized value (avoid Credit Due duplicates)
-    const dedupMap = new Map();
-    for (const pm of available) {
-      if (!dedupMap.has(pm.value)) dedupMap.set(pm.value, pm);
-    }
-    available = Array.from(dedupMap.values());
-
-    if (available.length === 0) {
-      const defaults = defaultPaymentMethods.filter((pm) => pm.type === flow);
-      available = defaults.map((pm) => ({
-        value: normalizePaymentMethod(pm.name),
-        label: pm.label,
-        type: pm.type,
-      }));
-    }
-    // Final dedupe including defaults
-    const finalMap = new Map();
-    for (const pm of available) {
-      if (!finalMap.has(pm.value)) finalMap.set(pm.value, pm);
-    }
-    available = Array.from(finalMap.values());
-    return available;
-  }, [localPaymentMethods, expenseData.transactionType]);
-
-  // Ensure selected payment method remains valid after type (transactionType) change
-  useEffect(() => {
-    if (processedPaymentMethods.length > 0) {
-      const currentValid = processedPaymentMethods.some(
-        (pm) => pm.value === expenseData.paymentMethod
-      );
-      if (!currentValid) {
-        setExpenseData((prev) => ({
-          ...prev,
-          paymentMethod: processedPaymentMethods[0].value || "cash",
-        }));
-      }
-    }
-  }, [processedPaymentMethods, expenseData.paymentMethod]);
-
-  // Ensure unique categories strictly by name (case-insensitive, trimmed)
-  const uniqueCategories = useMemo(() => {
-    const list = Array.isArray(categories) ? categories : [];
-    const byName = new Map();
-    for (const c of list) {
-      const nameKey = c?.name?.toLowerCase().trim();
-      if (!nameKey) continue;
-      if (!byName.has(nameKey)) byName.set(nameKey, c);
-    }
-    return Array.from(byName.values());
-  }, [categories]);
 
   // Set initial type based on salary date logic if dateFromQuery is present
   React.useEffect(() => {
@@ -589,13 +422,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           Expense Name<span className="text-red-500"> *</span>
         </label>
-        <NameAutocomplete
+        <ExpenseNameAutocomplete
           value={expenseData.expenseName}
           onChange={(val) => {
             setExpenseData((prev) => ({ ...prev, expenseName: val }));
             if (errors.expenseName && val)
               setErrors((prev) => ({ ...prev, expenseName: false }));
           }}
+          friendId={friendId}
           placeholder="Enter expense name"
           error={errors.expenseName}
           size="medium"
@@ -610,97 +444,17 @@ const NewExpense = ({ onClose, onSuccess }) => {
         <label htmlFor="category" className={labelStyle} style={inputWrapper}>
           Category
         </label>
-        <Autocomplete
-          autoHighlight
-          options={uniqueCategories}
-          getOptionLabel={(option) => option.name || ""}
-          isOptionEqualToValue={(option, value) =>
-            option?.id != null && value?.id != null
-              ? option.id === value.id
-              : (option?.name || "").toLowerCase().trim() ===
-                (value?.name || "").toLowerCase().trim()
-          }
-          filterOptions={(options, state) => {
-            // Apply default filtering by input; then dedupe by name
-            const input = (state.inputValue || "").toLowerCase().trim();
-            const filtered = options.filter((opt) =>
-              (opt?.name || "").toLowerCase().includes(input)
-            );
-            const seen = new Set();
-            const out = [];
-            for (const o of filtered) {
-              const k = (o?.name || "").toLowerCase().trim();
-              if (k && !seen.has(k)) {
-                seen.add(k);
-                out.push(o);
-              }
-            }
-            return out;
-          }}
-          value={
-            Array.isArray(uniqueCategories)
-              ? uniqueCategories.find(
-                  (cat) => cat.id === expenseData.category
-                ) || null
-              : null
-          }
-          onInputChange={(event, newValue) => {
-            const matchedCategory = Array.isArray(uniqueCategories)
-              ? uniqueCategories.find(
-                  (cat) =>
-                    (cat.name || "").toLowerCase().trim() ===
-                    (newValue || "").toLowerCase().trim()
-                )
-              : null;
+        <CategoryAutocomplete
+          value={expenseData.category}
+          onChange={(categoryId) => {
             setExpenseData((prev) => ({
               ...prev,
-              category: matchedCategory ? matchedCategory.id : "",
+              category: categoryId,
             }));
           }}
-          onChange={(event, newValue) => {
-            setExpenseData((prev) => ({
-              ...prev,
-              category: newValue ? newValue.id : "",
-            }));
-          }}
-          noOptionsText="No options found"
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Search category"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                className: fieldStyles,
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
-                fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
-              }}
-              title={option.name}
-            >
-              {highlightText(option.name, inputValue)}
-            </li>
-          )}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiAutocomplete-option": {
-              fontSize: "0.92rem",
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-          }}
+          friendId={friendId}
+          placeholder="Search category"
+          size="medium"
         />
       </div>
     </div>
@@ -716,86 +470,20 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           Payment Method
         </label>
-        <Autocomplete
-          autoHighlight
-          options={processedPaymentMethods}
-          getOptionLabel={(option) => option.label || option}
-          value={
-            processedPaymentMethods.find(
-              (pm) => pm.value === expenseData.paymentMethod
-            ) || null
-          }
-          onChange={(event, newValue) => {
+        <PaymentMethodAutocomplete
+          value={expenseData.paymentMethod}
+          onChange={(paymentMethodValue) => {
             setExpenseData((prev) => ({
               ...prev,
-              paymentMethod: newValue ? newValue.value : "cash",
+              paymentMethod: paymentMethodValue,
             }));
           }}
-          loading={localPaymentMethodsLoading}
-          noOptionsText={
-            expenseData.transactionType
-              ? `No ${(
-                  expenseData.transactionType || ""
-                ).toLowerCase()} payment methods`
-              : "No payment methods"
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select payment method"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                className: fieldStyles,
-                endAdornment: (
-                  <>
-                    {localPaymentMethodsLoading ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
-                fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
-              }}
-              title={option.label}
-            >
-              {highlightText(option.label, inputValue)}
-            </li>
-          )}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiAutocomplete-option": {
-              fontSize: "0.92rem",
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-          }}
+          transactionType={expenseData.transactionType}
+          friendId={friendId}
+          placeholder="Select payment method"
+          size="medium"
         />
       </div>
-      {localPaymentMethodsError && (
-        <div className="text-red-400 text-xs mt-1">
-          Error: {localPaymentMethodsError}
-        </div>
-      )}
-      {errors.paymentMethod && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors.paymentMethod}
-        </span>
-      )}
     </div>
   );
   // Use lowercase internal values for consistency (gain/loss)
@@ -1066,19 +754,49 @@ const NewExpense = ({ onClose, onSuccess }) => {
       >
         <div className="w-full flex justify-between items-center mb-1">
           <p className="text-white font-extrabold text-4xl">New Expense</p>
-          <button
-            onClick={() => {
-              if (onClose) {
-                onClose();
-              } else {
-                navigate(-1);
-              }
-            }}
-            className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
-            style={{ color: "#00dac6" }}
-          >
-            ×
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Display previous expense indicator only when name and date are set */}
+            {expenseData.expenseName?.trim().length >= 2 &&
+              expenseData.date && (
+                <PreviousExpenseIndicator
+                  expense={previousExpense}
+                  isLoading={loadingPreviousExpense}
+                  position="right"
+                  variant="gradient"
+                  showTooltip={true}
+                  dateFormat="DD MMM YYYY"
+                  label="Previously Added"
+                  labelPosition="top"
+                  icon="calendar"
+                  tooltipConfig={{
+                    showAmount: true,
+                    showPaymentMethod: true,
+                    showType: true,
+                  }}
+                  colorScheme={{
+                    primary: "#00dac6",
+                    secondary: "#00b8a0",
+                    text: "#ffffff",
+                    subtext: "#9ca3af",
+                  }}
+                />
+              )}
+
+            <button
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigate(-1);
+                }
+              }}
+              className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
+              style={{ color: "#00dac6" }}
+            >
+              ×
+            </button>
+          </div>
         </div>
         <hr className="border-t border-gray-600 w-full mt-[-4px]" />
 
@@ -1335,7 +1053,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         width: 6px;
       }      .overflow-x-auto::-webkit-scrollbar {
         height: 6px;
-      }
+
     }
     /* Existing scrollbar styles */
     .overflow-y-auto::-webkit-scrollbar {

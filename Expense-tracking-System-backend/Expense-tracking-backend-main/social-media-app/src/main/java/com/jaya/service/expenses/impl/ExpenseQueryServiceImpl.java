@@ -567,11 +567,22 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             paymentMethodTotals.put(paymentMethod, methodTotal);
 
+            // Fetch PaymentMethod entity to get additional details (description, color, icon, etc.)
+            PaymentMethod pmEntity = paymentMethodService.getByNameWithService(userId, paymentMethod);
+            
             Map<String, Object> methodDetails = new HashMap<>();
+            methodDetails.put("id", pmEntity != null ? pmEntity.getId() : null);
+            methodDetails.put("name", pmEntity != null ? pmEntity.getName() : paymentMethod);
             methodDetails.put("paymentMethod", paymentMethod);
-            methodDetails.put("expenses", formattedExpenses);
-            methodDetails.put("totalAmount", methodTotal);
+            methodDetails.put("description", pmEntity != null ? pmEntity.getDescription() : "");
+            methodDetails.put("isGlobal", pmEntity != null && pmEntity.isGlobal());
+            methodDetails.put("icon", pmEntity != null ? pmEntity.getIcon() : "");
+            methodDetails.put("color", pmEntity != null ? pmEntity.getColor() : "");
+            methodDetails.put("editUserIds", pmEntity != null && pmEntity.getEditUserIds() != null ? pmEntity.getEditUserIds() : new ArrayList<>());
+            methodDetails.put("userIds", pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
             methodDetails.put("expenseCount", expenses.size());
+            methodDetails.put("totalAmount", methodTotal);
+            methodDetails.put("expenses", formattedExpenses);
 
             response.put(paymentMethod, methodDetails);
         }

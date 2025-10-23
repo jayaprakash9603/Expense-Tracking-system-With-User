@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ItemNameAutocomplete from "./ItemNameAutocomplete";
-import NameAutocomplete from "../../components/NameAutocomplete";
+import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
+import CategoryAutocomplete from "../../components/CategoryAutocomplete";
+import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
 import {
   Autocomplete,
   TextField,
@@ -25,9 +27,8 @@ import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // retains gating
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
-import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { updateBill, getBillById } from "../../Redux/Bill/bill.action";
-import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
+import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 
 const labelStyle = "text-white text-sm sm:text-base font-semibold mr-4";
 const inputWrapper = {
@@ -60,16 +61,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     error: budgetError,
     loading: budgetLoading,
   } = useSelector((state) => state.budgets || {});
-  const {
-    categories = [],
-    loading: categoriesLoading,
-    error: categoriesError,
-  } = useSelector((state) => state.categories || {});
-  const {
-    paymentMethods = [],
-    loading: paymentMethodsLoading,
-    error: paymentMethodsError,
-  } = useSelector((state) => state.paymentMethods || {});
   const { loading: billLoading } = useSelector((state) => state.bills || {});
 
   const [hasUnsavedExpenseChanges, setHasUnsavedExpenseChanges] =
@@ -97,7 +88,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const [showBudgetTable, setShowBudgetTable] = useState(false);
   const [checkboxStates, setCheckboxStates] = useState([]);
   const [selectedBudgets, setSelectedBudgets] = useState([]);
-  const [localPaymentMethods, setLocalPaymentMethods] = useState([]);
 
   // Load bill data on component mount
   useEffect(() => {
@@ -166,107 +156,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     loadBillData();
   }, [currentBillId, dispatch, id]);
 
-  const formatPaymentMethodName = (name) => {
-    switch (name.toLowerCase()) {
-      case "cash":
-        return "Cash";
-      case "creditneedtopaid":
-        return "Credit Due";
-      case "creditpaid":
-        return "Credit Paid";
-      default:
-        return name
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (str) => str.toUpperCase())
-          .trim();
-    }
-  };
-
-  // Normalize payment method to backend keys
-  const normalizePaymentMethod = (name) => {
-    const raw = String(name || "").trim();
-    const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
-    switch (key) {
-      case "creditneedtopaid":
-      case "creditdue":
-        return "creditNeedToPaid";
-      case "creditpaid":
-        return "creditPaid";
-      case "cash":
-        return "cash";
-      default:
-        return raw;
-    }
-  };
-
-  const defaultPaymentMethods = [
-    { name: "cash", label: "Cash", type: "expense" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
-    { name: "creditPaid", label: "Credit Paid", type: "expense" },
-    { name: "cash", label: "Cash", type: "income" },
-    { name: "creditPaid", label: "Credit Paid", type: "income" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "income" },
-  ];
-
-  const processedPaymentMethods = useMemo(() => {
-    let availablePaymentMethods = [];
-
-    if (Array.isArray(localPaymentMethods) && localPaymentMethods.length > 0) {
-      availablePaymentMethods = localPaymentMethods
-        .filter((pm) => {
-          if (billData.type === "loss") {
-            return pm.type && pm.type.toLowerCase() === "expense";
-          } else if (billData.type === "gain") {
-            return pm.type && pm.type.toLowerCase() === "income";
-          }
-          return true;
-        })
-        .map((pm) => ({
-          value: normalizePaymentMethod(pm.name),
-          label: formatPaymentMethodName(pm.name),
-          type: pm.type,
-        }));
-    }
-
-    if (availablePaymentMethods.length === 0) {
-      availablePaymentMethods = defaultPaymentMethods
-        .filter((pm) => {
-          if (billData.type === "loss") {
-            return pm.type === "expense";
-          } else if (billData.type === "gain") {
-            return pm.type === "income";
-          }
-          return true;
-        })
-        .map((pm) => ({
-          value: normalizePaymentMethod(pm.name),
-          label: pm.label,
-          type: pm.type,
-        }));
-    }
-
-    return availablePaymentMethods;
-  }, [localPaymentMethods, billData.type]);
-
-  // Update payment method only if necessary
-  useEffect(() => {
-    if (!isInitialLoad && processedPaymentMethods.length > 0) {
-      const currentMethodValid = processedPaymentMethods.some(
-        (pm) => pm.value === billData.paymentMethod
-      );
-      const newPaymentMethod = normalizePaymentMethod(
-        processedPaymentMethods[0]?.value || "cash"
-      );
-
-      if (!currentMethodValid && billData.paymentMethod !== newPaymentMethod) {
-        setBillData((prev) => ({
-          ...prev,
-          paymentMethod: newPaymentMethod,
-        }));
-      }
-    }
-  }, [processedPaymentMethods, isInitialLoad]);
-
   const isCurrentRowComplete = (expense) => {
     if (!expense) return false;
 
@@ -290,24 +179,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   };
 
   useEffect(() => {
-    const fetchPaymentMethods = async () => {
-      try {
-        const resultAction = await dispatch(
-          fetchAllPaymentMethods(friendId || "")
-        );
-        const paymentMethodsData = resultAction?.payload || resultAction || [];
-        setLocalPaymentMethods(
-          Array.isArray(paymentMethodsData) ? paymentMethodsData : []
-        );
-      } catch (error) {
-        console.error("Error fetching payment methods:", error);
-      }
-    };
-
-    fetchPaymentMethods();
-  }, [dispatch]);
-
-  useEffect(() => {
     if (billData.date) {
       dispatch(getListOfBudgetsById(billData.date, friendId || ""));
     }
@@ -326,10 +197,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
       );
     }
   }, [budgets, selectedBudgets]);
-
-  useEffect(() => {
-    dispatch(fetchCategories(friendId || ""));
-  }, [dispatch]);
 
   useEffect(() => {
     const totalAmount = expenses.reduce(
@@ -739,7 +606,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           Name<span className="text-red-500"> *</span>
         </label>
         <div style={{ width: "100%", maxWidth: 300 }}>
-          <NameAutocomplete
+          <ExpenseNameAutocomplete
             value={billData.name}
             onChange={(val) => {
               setBillData((prev) => ({ ...prev, name: val }));
@@ -747,6 +614,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                 setErrors((prev) => ({ ...prev, name: false }));
               }
             }}
+            friendId={friendId}
             placeholder="Enter name"
             error={errors.name}
           />
@@ -881,80 +749,20 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         >
           Payment Method
         </label>
-        <Autocomplete
-          autoHighlight
-          options={processedPaymentMethods}
-          getOptionLabel={(option) => option.label || option}
-          value={
-            processedPaymentMethods.find(
-              (pm) => pm.value === billData.paymentMethod
-            ) || null
-          }
-          onChange={(event, newValue) => {
+        <PaymentMethodAutocomplete
+          value={billData.paymentMethod}
+          onChange={(paymentMethodValue) => {
             setBillData((prev) => ({
               ...prev,
-              paymentMethod: newValue
-                ? normalizePaymentMethod(newValue.value)
-                : "cash",
+              paymentMethod: paymentMethodValue,
             }));
           }}
-          loading={paymentMethodsLoading}
-          noOptionsText={
-            billData.type
-              ? `No ${
-                  billData.type === "loss" ? "expense" : "income"
-                } payment methods available`
-              : "No payment methods available"
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select payment method"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {paymentMethodsLoading ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              }}
-              sx={{
-                "& .MuiInputBase-root": {
-                  backgroundColor: "#29282b",
-                  color: "#fff",
-                  height: "56px",
-                  fontSize: "16px",
-                },
-                "& .MuiInputBase-input": {
-                  color: "#fff",
-                  "&::placeholder": { color: "#9ca3af", opacity: 1 },
-                },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "rgb(75, 85, 99)",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": { borderColor: "rgb(75, 85, 99)" },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#00dac6",
-                    borderWidth: "2px",
-                  },
-                },
-              }}
-            />
-          )}
-          sx={{ width: "100%", maxWidth: "300px" }}
+          transactionType={billData.type}
+          friendId={friendId}
+          placeholder="Select payment method"
+          size="medium"
         />
       </div>
-      {paymentMethodsError && (
-        <div className="text-red-400 text-xs mt-1">
-          Error: {paymentMethodsError}
-        </div>
-      )}
     </div>
   );
 
@@ -1017,52 +825,17 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         <label htmlFor="category" className={labelStyle} style={inputWrapper}>
           Category
         </label>
-        <Autocomplete
-          autoHighlight
-          options={Array.isArray(categories) ? categories : []}
-          getOptionLabel={(option) => option.name || ""}
-          value={
-            Array.isArray(categories)
-              ? categories.find((cat) => cat.id === billData.categoryId) || null
-              : null
-          }
-          onChange={(event, newValue) => {
+        <CategoryAutocomplete
+          value={billData.categoryId}
+          onChange={(categoryId) => {
             setBillData((prev) => ({
               ...prev,
-              categoryId: newValue ? newValue.id : "",
+              categoryId: categoryId,
             }));
           }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Search category"
-              variant="outlined"
-              sx={{
-                "& .MuiInputBase-root": {
-                  backgroundColor: "#29282b",
-                  color: "#fff",
-                  height: "56px",
-                  fontSize: "16px",
-                },
-                "& .MuiInputBase-input": {
-                  color: "#fff",
-                  "&::placeholder": { color: "#9ca3af", opacity: 1 },
-                },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "rgb(75, 85, 99)",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": { borderColor: "rgb(75, 85, 99)" },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#00dac6",
-                    borderWidth: "2px",
-                  },
-                },
-              }}
-            />
-          )}
-          sx={{ width: "100%", maxWidth: "300px" }}
+          friendId={friendId}
+          placeholder="Search category"
+          size="medium"
         />
       </div>
     </div>

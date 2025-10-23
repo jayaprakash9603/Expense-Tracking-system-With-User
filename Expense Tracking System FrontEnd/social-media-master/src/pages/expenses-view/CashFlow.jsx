@@ -288,6 +288,7 @@ const Cashflow = () => {
           },
         ],
         navItems: [
+          { path: "/expenses/reports", icon: "report.png", label: "Reports" },
           { path: "/category-flow", icon: "category.png", label: "Categories" },
           { path: "/budget", icon: "budget.png", label: "Budget" },
           {

@@ -2271,12 +2271,17 @@ public class ExpenseController {
 
 
             // Get expense before date
-            Expense expense = expenseService.getExpensesBeforeDate(targetUser.getId(), expenseName.trim(), parsedDate);
+            Expense expense;
+            try {
+                expense = expenseService.getExpensesBeforeDate(targetUser.getId(), expenseName.trim(), parsedDate);
+            } catch (IndexOutOfBoundsException e) {
+                // Handle case when no expenses exist before the given date
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
 
             // Handle case when no expense is found
             if (expense == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(String.format("No expense found with name '%s' before date %s", expenseName, date));
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
             }
 
 
@@ -2833,65 +2838,187 @@ public class ExpenseController {
 
     @GetMapping("/cashflow")
     public ResponseEntity<?> getCashflowExpenses(
-            @RequestParam String range,
-            @RequestParam Integer offset,
+            @RequestParam(required = false) String range,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false) String flowType,
             @RequestParam(required = false) String category,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+        @RequestParam(required = false, defaultValue = "false") Boolean groupBy,
             @RequestParam(required = false) Integer targetId,
             @RequestHeader("Authorization") String jwt) throws Exception {
 
+        User reqUser = userService.findUserByJwt(jwt);
+        User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
+        // Validate type parameter (if provided)
+        if (type != null && !type.equalsIgnoreCase("loss") && !type.equalsIgnoreCase("gain")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid type parameter. Must be 'loss' or 'gain'.");
+        }
 
-            User reqUser = userService.findUserByJwt(jwt);
+        LocalDate effectiveStart;
+        LocalDate effectiveEnd;
 
-            User targetUser;
-
-                targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-
-
-            LocalDate startDate;
-            LocalDate endDate;
+        // If explicit date range provided, prioritize and ignore range/offset
+        if (startDate != null && endDate != null) {
+            if (endDate.isBefore(startDate)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("endDate cannot be before startDate");
+            }
+            effectiveStart = startDate;
+            effectiveEnd = endDate;
+        } else if ((startDate != null && endDate == null) || (startDate == null && endDate != null)) {
+            // Reject partial explicit date input to avoid ambiguous ranges
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Provide both startDate and endDate, or omit both and use range parameter");
+        } else {
+            // Require range if no explicit dates
+            if (range == null || range.isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Provide either startDate & endDate or a range parameter (week|month|year)");
+            }
             LocalDate now = LocalDate.now();
-
             switch (range.toLowerCase()) {
                 case "week":
-                    startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
-                    endDate = startDate.plusDays(6);
+                    effectiveStart = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
+                    effectiveEnd = effectiveStart.plusDays(6);
                     break;
                 case "month":
-                    startDate = now.withDayOfMonth(1).plusMonths(offset);
-                    endDate = startDate.plusMonths(1).minusDays(1);
+                    effectiveStart = now.withDayOfMonth(1).plusMonths(offset);
+                    effectiveEnd = effectiveStart.plusMonths(1).minusDays(1);
                     break;
                 case "year":
-                    startDate = now.withDayOfMonth(1).withMonth(1).plusYears(offset);
-                    endDate = startDate.plusYears(1).minusDays(1);
+                    effectiveStart = now.withDayOfMonth(1).withMonth(1).plusYears(offset);
+                    effectiveEnd = effectiveStart.plusYears(1).minusDays(1);
                     break;
                 default:
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Invalid range parameter");
+                            .body("Invalid range parameter. Must be one of week, month, year");
             }
+        }
 
-            List<Expense> expenses = expenseService.getExpensesWithinRange(
-                    targetUser.getId(),
-                    startDate,
-                    endDate,
-                    flowType
-            );
+        List<Expense> expenses = expenseService.getExpensesWithinRange(
+                targetUser.getId(),
+                effectiveStart,
+                effectiveEnd,
+                flowType
+        );
 
-            if (category != null && !category.isEmpty()) {
-                expenses = expenses.stream()
-                        .filter(expense -> {
-                            if (expense.getExpense() == null || expense.getExpense().getExpenseName() == null) {
-                                return false;
-                            }
-                            String expenseName = expense.getExpense().getExpenseName();
-                            return expenseName.toLowerCase().contains(category.toLowerCase());
-                        })
-                        .collect(Collectors.toList());
-            }
+        // Optional category name substring filter
+        if (category != null && !category.isEmpty()) {
+            expenses = expenses.stream()
+                    .filter(expense -> {
+                        if (expense.getExpense() == null || expense.getExpense().getExpenseName() == null) {
+                            return false;
+                        }
+                        String expenseName = expense.getExpense().getExpenseName();
+                        return expenseName.toLowerCase().contains(category.toLowerCase());
+                    })
+                    .collect(Collectors.toList());
+        }
 
+        // Optional type filter (loss/gain)
+        if (type != null) {
+            expenses = expenses.stream()
+                    .filter(expense -> {
+                        if (expense.getExpense() == null || expense.getExpense().getType() == null) {
+                            return false;
+                        }
+                        return expense.getExpense().getType().equalsIgnoreCase(type);
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // If groupBy flag not set or false, return the flat list (existing behavior)
+        if (groupBy == null || !groupBy) {
             return ResponseEntity.ok(expenses);
+        }
 
+        // Group by EXPENSE NAME (fallback to "unknown") instead of payment method
+        Map<String, List<Expense>> grouped = expenses.stream()
+                .collect(Collectors.groupingBy(e -> {
+                    if (e.getExpense() == null || e.getExpense().getExpenseName() == null || e.getExpense().getExpenseName().isBlank()) {
+                        return "unknown";
+                    }
+                    return e.getExpense().getExpenseName();
+                }));
+
+        // Calculate totals per expense name and overall stats
+        Map<String, Double> expenseNameTotals = new LinkedHashMap<>();
+        grouped.forEach((expenseName, list) -> {
+            double total = list.stream()
+                    .filter(exp -> exp.getExpense() != null)
+                    .mapToDouble(exp -> Optional.ofNullable(exp.getExpense().getAmount()).orElse(0.0))
+                    .sum();
+            expenseNameTotals.put(expenseName, total);
+        });
+        double grandTotal = expenseNameTotals.values().stream().mapToDouble(Double::doubleValue).sum();
+
+        // Prepare summary section (renamed keys but keep old ones for backward compatibility where sensible)
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("totalAmount", grandTotal);
+        Map<String, Object> dateRange = new LinkedHashMap<>();
+        dateRange.put("fromDate", effectiveStart.toString());
+        dateRange.put("toDate", effectiveEnd.toString());
+        dateRange.put("flowType", flowType);
+        summary.put("dateRange", dateRange);
+        summary.put("totalExpenseNames", expenseNameTotals.size());
+        summary.put("totalExpenses", expenses.size());
+        summary.put("expenseNameTotals", expenseNameTotals);
+        // Backward compatible aliases (if frontend still expecting these temporarily)
+        summary.put("totalPaymentMethods", expenseNameTotals.size());
+        summary.put("paymentMethodTotals", expenseNameTotals);
+
+        // Assemble final response with summary first, then each expense name section
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("summary", summary);
+
+        grouped.forEach((expenseName, list) -> {
+            Map<String, Object> groupBlock = new LinkedHashMap<>();
+            groupBlock.put("expenseCount", list.size());
+            groupBlock.put("totalAmount", expenseNameTotals.getOrDefault(expenseName, 0.0));
+            groupBlock.put("expenseName", expenseName); // primary grouping key
+            groupBlock.put("paymentMethod", expenseName); // backward compat alias for frontend expecting this key
+
+            // Gather set of distinct payment methods in this expense name group (optional insight)
+            Set<String> paymentMethods = list.stream()
+                    .map(e -> e.getExpense() != null ? e.getExpense().getPaymentMethod() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            groupBlock.put("paymentMethods", paymentMethods);
+
+            // Transform each expense into a simplified structure
+            List<Map<String, Object>> expenseEntries = list.stream().map(exp -> {
+                Map<String, Object> entry = new LinkedHashMap<>();
+                if (exp.getDate() != null) {
+                    entry.put("date", exp.getDate().toString());
+                }
+                entry.put("id", exp.getId());
+
+                Map<String, Object> details = new LinkedHashMap<>();
+                ExpenseDetails d = exp.getExpense();
+                if (d != null) {
+                    details.put("amount", d.getAmount());
+                    details.put("comments", d.getComments());
+                    details.put("netAmount", d.getNetAmount());
+                    details.put("paymentMethod", d.getPaymentMethod());
+                    details.put("id", d.getId());
+                    details.put("type", d.getType());
+                    details.put("expenseName", d.getExpenseName());
+                    details.put("creditDue", d.getCreditDue());
+                }
+                entry.put("details", details);
+                return entry;
+            }).collect(Collectors.toList());
+
+            groupBlock.put("expenses", expenseEntries);
+            // Backward compatible key (if frontend used paymentMethod previously as map key)
+            response.put(expenseName, groupBlock);
+        });
+
+        return ResponseEntity.ok(response);
     }
 
 

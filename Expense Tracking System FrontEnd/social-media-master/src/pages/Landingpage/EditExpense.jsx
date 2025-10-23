@@ -21,14 +21,15 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
-import NameAutocomplete from "../../components/NameAutocomplete";
+import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
+import CategoryAutocomplete from "../../components/CategoryAutocomplete";
+import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
+import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { fetchCategories } from "../../Redux/Category/categoryActions";
-import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 
 // Use the same fieldStyles, labelStyle, formRow, firstFormRow, inputWrapper as NewExpense
 const fieldStyles =
@@ -38,46 +39,6 @@ const formRow = "mt-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
 const firstFormRow =
   "mt-2 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
 const inputWrapper = { width: "150px" };
-
-// Payment method helpers (harmonized with CreateBill/NewExpense)
-const formatPaymentMethodName = (name) => {
-  const n = String(name || "")
-    .toLowerCase()
-    .trim();
-  if (n === "cash") return "Cash";
-  if (
-    n === "creditneedtopaid" ||
-    n === "credit due" ||
-    n === "credit need to paid" ||
-    n === "credit need to pay" ||
-    n === "creditneedtopay"
-  )
-    return "Credit Due";
-  if (n === "creditpaid" || n === "credit paid") return "Credit Paid";
-  return String(name || "")
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (str) => str.toUpperCase())
-    .trim();
-};
-
-const normalizePaymentMethod = (name) => {
-  const raw = String(name || "").trim();
-  const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
-  switch (key) {
-    case "creditneedtopaid":
-    case "creditdue":
-    case "creditneedtopay":
-      return "creditNeedToPaid";
-    case "creditpaid":
-      return "creditPaid";
-    case "cash":
-      return "cash";
-    default:
-      return raw;
-  }
-};
-
-const paymentMethodLabelFromKey = (key) => formatPaymentMethodName(key);
 
 const EditExpense = ({}) => {
   const location = useLocation();
@@ -95,24 +56,7 @@ const EditExpense = ({}) => {
   const { budgets, error: budgetError } = useSelector(
     (state) => state.budgets || {}
   );
-  const {
-    categories,
-    loading: categoriesLoading,
-    error: categoriesError,
-  } = useSelector((state) => state.categories || {});
   const dispatch = useDispatch();
-
-  // Unique categories by name (case-insensitive, trimmed)
-  const uniqueCategories = useMemo(() => {
-    const list = Array.isArray(categories) ? categories : [];
-    const byName = new Map();
-    for (const c of list) {
-      const key = (c?.name || "").toLowerCase().trim();
-      if (!key) continue;
-      if (!byName.has(key)) byName.set(key, c);
-    }
-    return Array.from(byName.values());
-  }, [categories]);
 
   const [expenseData, setExpenseData] = useState({
     expenseName: "",
@@ -133,12 +77,6 @@ const EditExpense = ({}) => {
   const [pageSize, setPageSize] = useState(5);
   const [checkboxStates, setCheckboxStates] = useState([]);
   // Suggestions handled by NameAutocomplete component / hook
-  // Dynamic payment methods
-  const [localPaymentMethods, setLocalPaymentMethods] = useState([]);
-  const [localPaymentMethodsLoading, setLocalPaymentMethodsLoading] =
-    useState(false);
-  const [localPaymentMethodsError, setLocalPaymentMethodsError] =
-    useState(null);
 
   // Get topExpenses from Redux, just like NewExpense
   // topExpenses now fetched internally by NameAutocomplete's hook; keep minimal expense slice access if needed elsewhere
@@ -161,100 +99,6 @@ const EditExpense = ({}) => {
     );
     dispatch(getExpenseAction(id || "", friendId || ""));
   }, [dispatch]);
-
-  // Fetch categories on mount (and when friendId changes), same as NewExpense
-  useEffect(() => {
-    dispatch(fetchCategories(friendId || ""));
-  }, [dispatch, friendId]);
-
-  // Fetch payment methods (dynamic) similar to other components
-  useEffect(() => {
-    const run = async () => {
-      try {
-        setLocalPaymentMethodsLoading(true);
-        setLocalPaymentMethodsError(null);
-        const res = await dispatch(fetchAllPaymentMethods(friendId || ""));
-        if (res && Array.isArray(res)) {
-          setLocalPaymentMethods(res);
-        } else if (res?.payload && Array.isArray(res.payload)) {
-          setLocalPaymentMethods(res.payload);
-        } else {
-          setLocalPaymentMethods([]);
-        }
-      } catch (e) {
-        setLocalPaymentMethodsError(
-          e?.message || "Failed to fetch payment methods"
-        );
-      } finally {
-        setLocalPaymentMethodsLoading(false);
-      }
-    };
-    run();
-  }, [dispatch, friendId]);
-
-  const defaultPaymentMethods = [
-    { name: "cash", label: "Cash", type: "expense" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
-    { name: "creditPaid", label: "Credit Paid", type: "expense" },
-    { name: "cash", label: "Cash", type: "income" },
-    { name: "creditPaid", label: "Credit Paid", type: "income" },
-    { name: "creditNeedToPaid", label: "Credit Due", type: "income" },
-  ];
-
-  const processedPaymentMethods = useMemo(() => {
-    const txType = String(expenseData.transactionType || "loss").toLowerCase();
-    const flow = txType === "gain" ? "income" : "expense";
-    let available = [];
-    if (Array.isArray(localPaymentMethods) && localPaymentMethods.length > 0) {
-      const filtered = localPaymentMethods.filter((pm) => {
-        const pmType = String(
-          pm.type || pm.flowType || pm.category || ""
-        ).toLowerCase();
-        if (!pmType) return true; // show if unspecified
-        if (flow === "expense")
-          return ["expense", "loss", "debit"].includes(pmType);
-        return ["income", "gain", "credit"].includes(pmType);
-      });
-      available = filtered.map((pm) => ({
-        value: normalizePaymentMethod(pm.name),
-        label: formatPaymentMethodName(pm.name),
-        ...pm,
-      }));
-    }
-    // Dedupe before fallback
-    const map = new Map();
-    for (const pm of available) if (!map.has(pm.value)) map.set(pm.value, pm);
-    available = Array.from(map.values());
-    if (available.length === 0) {
-      const defaults = defaultPaymentMethods.filter((pm) => pm.type === flow);
-      available = defaults.map((pm) => ({
-        value: normalizePaymentMethod(pm.name),
-        label: pm.label,
-        type: pm.type,
-      }));
-    }
-    const finalMap = new Map();
-    for (const pm of available)
-      if (!finalMap.has(pm.value)) finalMap.set(pm.value, pm);
-    return Array.from(finalMap.values());
-  }, [localPaymentMethods, expenseData.transactionType]);
-
-  // Keep selected method valid
-  useEffect(() => {
-    if (processedPaymentMethods.length > 0) {
-      const valid = processedPaymentMethods.some(
-        (pm) => pm.value === normalizePaymentMethod(expenseData.paymentMethod)
-      );
-      if (!valid) {
-        setExpenseData((prev) => ({
-          ...prev,
-          paymentMethod: processedPaymentMethods[0].value,
-        }));
-      }
-    }
-  }, [processedPaymentMethods, expenseData.paymentMethod]);
-
-  // (Expense name suggestions fetch removed; handled by NameAutocomplete hook)
 
   // Update checkbox states when budgets change
   useEffect(() => {
@@ -575,88 +419,18 @@ const EditExpense = ({}) => {
         <label htmlFor="category" className={labelStyle} style={inputWrapper}>
           Category
         </label>
-        <Autocomplete
-          autoHighlight
-          options={uniqueCategories}
-          getOptionLabel={(option) => option.name || ""}
-          isOptionEqualToValue={(option, value) =>
-            option?.id != null && value?.id != null
-              ? option.id === value.id
-              : (option?.name || "").toLowerCase().trim() ===
-                (value?.name || "").toLowerCase().trim()
-          }
-          filterOptions={(options, state) => {
-            const input = (state.inputValue || "").toLowerCase().trim();
-            const filtered = options.filter((opt) =>
-              (opt?.name || "").toLowerCase().includes(input)
-            );
-            const seen = new Set();
-            const out = [];
-            for (const o of filtered) {
-              const k = (o?.name || "").toLowerCase().trim();
-              if (k && !seen.has(k)) {
-                seen.add(k);
-                out.push(o);
-              }
-            }
-            return out;
-          }}
-          value={
-            Array.isArray(uniqueCategories)
-              ? uniqueCategories.find(
-                  (cat) => cat.id === expenseData.category
-                ) || null
-              : null
-          }
-          onInputChange={(event, newValue) => {
-            const matchedCategory = uniqueCategories.find(
-              (cat) =>
-                (cat.name || "").toLowerCase().trim() ===
-                (newValue || "").toLowerCase().trim()
-            );
+        <CategoryAutocomplete
+          value={expenseData.category}
+          onChange={(categoryId) => {
             setExpenseData((prev) => ({
               ...prev,
-              category: matchedCategory ? matchedCategory.id : "",
-              categoryName: newValue || "",
+              category: categoryId,
             }));
           }}
-          onChange={(event, newValue) => {
-            setExpenseData((prev) => ({
-              ...prev,
-              category: newValue ? newValue.id : "",
-              categoryName: newValue ? newValue.name : prev.categoryName,
-            }));
-          }}
-          noOptionsText="No options found"
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Search category"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                className: fieldStyles,
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
-                fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
-              }}
-              title={option.name}
-            >
-              {highlightText(option.name, inputValue)}
-            </li>
-          )}
-          sx={{ width: "100%", maxWidth: "300px" }}
+          friendId={friendId}
+          placeholder="Search category"
+          size="medium"
+          error={!!errors.category}
         />
       </div>
       {errors.category && (
@@ -677,79 +451,20 @@ const EditExpense = ({}) => {
         >
           Payment Method
         </label>
-        <Autocomplete
-          autoHighlight
-          options={processedPaymentMethods}
-          getOptionLabel={(option) => option.label || option}
-          value={
-            processedPaymentMethods.find(
-              (pm) =>
-                pm.value === normalizePaymentMethod(expenseData.paymentMethod)
-            ) || null
-          }
-          onChange={(event, newValue) => {
+        <PaymentMethodAutocomplete
+          value={expenseData.paymentMethod}
+          onChange={(paymentMethodValue) => {
             setExpenseData((prev) => ({
               ...prev,
-              paymentMethod: newValue ? newValue.value : "cash",
+              paymentMethod: paymentMethodValue,
             }));
           }}
-          loading={localPaymentMethodsLoading}
-          noOptionsText={
-            expenseData.transactionType
-              ? `No ${(
-                  expenseData.transactionType || ""
-                ).toLowerCase()} payment methods`
-              : "No payment methods"
-          }
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select payment method"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                className: fieldStyles,
-                endAdornment: (
-                  <>
-                    {localPaymentMethodsLoading ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
-                fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
-              }}
-              title={option.label}
-            >
-              {highlightText(option.label, inputValue)}
-            </li>
-          )}
-          sx={{ width: "100%", maxWidth: "300px" }}
+          transactionType={expenseData.transactionType}
+          friendId={friendId}
+          placeholder="Select payment method"
+          size="medium"
         />
       </div>
-      {localPaymentMethodsError && (
-        <div className="text-red-400 text-xs mt-1">
-          Error: {localPaymentMethodsError}
-        </div>
-      )}
-      {errors.paymentMethod && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors.paymentMethod}
-        </span>
-      )}
     </div>
   );
 
@@ -909,11 +624,12 @@ const EditExpense = ({}) => {
         >
           Expense Name<span className="text-red-500"> *</span>
         </label>
-        <NameAutocomplete
+        <ExpenseNameAutocomplete
           value={expenseData.expenseName}
           onChange={(val) =>
             setExpenseData((prev) => ({ ...prev, expenseName: val }))
           }
+          friendId={friendId}
           placeholder="Enter expense name"
           error={!!errors.expenseName}
           size="medium"
