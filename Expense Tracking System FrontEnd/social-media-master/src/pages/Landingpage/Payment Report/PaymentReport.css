@@ -216,6 +216,53 @@
   z-index: 10;
 }
 
+/* Enhanced Pie Chart Styles for Better UX with Small Segments */
+.reusable-pie-chart {
+  position: relative;
+  overflow: visible !important;
+}
+
+.reusable-pie-chart.chart-container {
+  overflow: visible !important;
+}
+
+/* Ensure pie chart labels are visible */
+.reusable-pie-chart .recharts-pie-label-text {
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+/* Legend hover effect */
+.reusable-pie-chart .recharts-legend-item {
+  cursor: pointer !important;
+  transition: all 0.3s ease;
+}
+
+.reusable-pie-chart .recharts-legend-item:hover {
+  opacity: 1 !important;
+}
+
+.reusable-pie-chart .recharts-legend-item text {
+  transition: all 0.3s ease;
+}
+
+.reusable-pie-chart .recharts-legend-item:hover text {
+  fill: #14b8a6 !important;
+  font-weight: 700;
+}
+
+/* Pie segment hover effects */
+.reusable-pie-chart .recharts-sector {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.reusable-pie-chart .recharts-sector:hover {
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(20, 184, 166, 0.5));
+  transform-origin: center;
+}
+
 .chart-header {
   margin-bottom: 20px;
 }

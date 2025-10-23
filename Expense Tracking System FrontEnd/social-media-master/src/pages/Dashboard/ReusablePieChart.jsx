@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import ReactDOM from "react-dom";
 import {
   ResponsiveContainer,
   PieChart,
@@ -6,6 +7,7 @@ import {
   Cell,
   Tooltip,
   Legend,
+  Label,
 } from "recharts";
 import PieChartTooltip from "../../components/charts/PieChartTooltip";
 
@@ -69,6 +71,22 @@ const ReusablePieChart = ({
   valuePrefix = "₹",
   skeleton = null,
 }) => {
+  const [activeIndex, setActiveIndex] = useState(null);
+  const [legendTooltip, setLegendTooltip] = useState(null);
+  const chartRef = useRef(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [isLegendHovered, setIsLegendHovered] = useState(false);
+  const tooltipTimeoutRef = useRef(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Normalize data
   let normalized = { items: [], total: 0 };
   if (normalize && typeof normalize === "function") {
@@ -99,6 +117,12 @@ const ReusablePieChart = ({
   const pieData = normalized.items;
   const totalAmount = normalized.total;
 
+  // Calculate percentage for each segment
+  const pieDataWithPercentage = pieData.map((item) => ({
+    ...item,
+    percentage: totalAmount > 0 ? (item.value / totalAmount) * 100 : 0,
+  }));
+
   // Responsive radii fallback
   const isMobile = window.matchMedia("(max-width:600px)").matches;
   const isTablet = window.matchMedia("(max-width:1024px)").matches;
@@ -106,6 +130,126 @@ const ReusablePieChart = ({
   const defaultOuter = isMobile ? 110 : isTablet ? 150 : 180;
   const iRadius = innerRadius ?? defaultInner;
   const oRadius = outerRadius ?? defaultOuter;
+
+  // Handle mouse enter on pie segment
+  const onPieEnter = (_, index) => {
+    // Clear any pending timeout immediately
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+      tooltipTimeoutRef.current = null;
+    }
+
+    // Clear legend tooltip immediately when entering pie
+    setLegendTooltip(null);
+
+    // Only activate if legend is not being hovered
+    if (!isLegendHovered) {
+      setActiveIndex(index);
+    }
+  };
+
+  // Handle mouse leave
+  const onPieLeave = () => {
+    // Only clear if legend is not being hovered
+    if (!isLegendHovered) {
+      setActiveIndex(null);
+    }
+
+    // Always clear tooltip when leaving pie segment
+    setLegendTooltip(null);
+  };
+
+  // Handle legend hover - highlight the corresponding pie segment
+  const handleLegendMouseEnter = (e) => {
+    // Clear any pending timeout
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+      tooltipTimeoutRef.current = null;
+    }
+
+    setIsLegendHovered(true);
+
+    const index = pieDataWithPercentage.findIndex(
+      (item) => item.name === e.value
+    );
+    if (index !== -1) {
+      setActiveIndex(index);
+
+      // Calculate tooltip position relative to the viewport
+      if (chartRef.current) {
+        const rect = chartRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height * 0.4; // 40% from top
+
+        setTooltipPosition({ x: centerX, y: centerY });
+      }
+
+      // Create tooltip data for legend hover
+      setLegendTooltip({
+        active: true,
+        payload: [
+          {
+            name: pieDataWithPercentage[index].name,
+            value: pieDataWithPercentage[index].value,
+            payload: {
+              fill: colors[index % colors.length],
+              name: pieDataWithPercentage[index].name,
+              value: pieDataWithPercentage[index].value,
+            },
+          },
+        ],
+      });
+    }
+  };
+
+  const handleLegendMouseLeave = () => {
+    setIsLegendHovered(false);
+
+    // Add a very small delay before clearing to allow smooth transitions
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setActiveIndex(null);
+      setLegendTooltip(null);
+    }, 1);
+  };
+
+  // Custom label renderer for segments (shows percentage on hover or for larger segments)
+  const renderCustomLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    index,
+  }) => {
+    // Don't show label if tooltip is visible (legend is being hovered)
+    if (legendTooltip) return null;
+
+    // Only show label if segment is large enough (>5%) or is being hovered
+    if (percent < 0.05 && activeIndex !== index) return null;
+
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius + 25;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="#fff"
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+        style={{
+          fontSize: isMobile ? "10px" : "12px",
+          fontWeight: activeIndex === index ? 700 : 600,
+          textShadow: "0 2px 4px rgba(0,0,0,0.8)",
+        }}
+      >
+        {`${(percent * 100).toFixed(2)}%`}
+      </text>
+    );
+  };
 
   return (
     <div className={className}>
@@ -157,41 +301,77 @@ const ReusablePieChart = ({
           {skeleton}
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={height}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              cx="50%"
-              cy="50%"
-              innerRadius={iRadius}
-              outerRadius={oRadius}
-              paddingAngle={2}
-              dataKey="value"
-            >
-              {pieData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={colors[index % colors.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip
-              content={(props) => (
-                <PieChartTooltip {...props} data={rawData || data} />
-              )}
-            />
-            {legend && (
-              <Legend
-                verticalAlign="bottom"
-                height={36}
-                wrapperStyle={{
-                  color: "#fff",
-                  fontSize: isMobile ? "10px" : "12px",
+        <div
+          ref={chartRef}
+          style={{ position: "relative", width: "100%", height }}
+        >
+          <ResponsiveContainer width="100%" height={height}>
+            <PieChart>
+              <Pie
+                data={pieDataWithPercentage}
+                cx="50%"
+                cy="50%"
+                innerRadius={iRadius}
+                outerRadius={oRadius}
+                paddingAngle={2}
+                dataKey="value"
+                onMouseEnter={onPieEnter}
+                onMouseLeave={onPieLeave}
+                label={renderCustomLabel}
+                labelLine={{
+                  stroke: "#666",
+                  strokeWidth: 1,
                 }}
-              />
-            )}
-          </PieChart>
-        </ResponsiveContainer>
+                activeIndex={activeIndex}
+                activeShape={{
+                  outerRadius: oRadius + 10,
+                  stroke: "#fff",
+                  strokeWidth: 2,
+                }}
+              >
+                {pieDataWithPercentage.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={colors[index % colors.length]}
+                    opacity={
+                      activeIndex === null || activeIndex === index ? 1 : 0.6
+                    }
+                    style={{
+                      filter:
+                        activeIndex === index ? "brightness(1.2)" : "none",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                    }}
+                  />
+                ))}
+              </Pie>
+              {/* Only show Recharts tooltip when legend is not hovered */}
+              {!isLegendHovered && (
+                <Tooltip
+                  content={(props) => (
+                    <PieChartTooltip {...props} data={rawData || data} />
+                  )}
+                  cursor={{ fill: "transparent" }}
+                  isAnimationActive={false}
+                  trigger="hover"
+                  allowEscapeViewBox={{ x: true, y: true }}
+                />
+              )}
+              {legend && (
+                <Legend
+                  verticalAlign="bottom"
+                  height={36}
+                  wrapperStyle={{
+                    color: "#fff",
+                    fontSize: isMobile ? "10px" : "12px",
+                  }}
+                  onMouseEnter={handleLegendMouseEnter}
+                  onMouseLeave={handleLegendMouseLeave}
+                />
+              )}
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       )}
       {/* Render footer total only after data has loaded to avoid showing misleading 0 during skeleton */}
       {renderFooterTotal && !loading && (
@@ -200,6 +380,28 @@ const ReusablePieChart = ({
           {formatNumber0(totalAmount)}
         </div>
       )}
+
+      {/* Portal tooltip for legend hover - renders at body level to avoid z-index issues */}
+      {legendTooltip &&
+        ReactDOM.createPortal(
+          <div
+            style={{
+              position: "fixed",
+              top: `${tooltipPosition.y}px`,
+              left: `${tooltipPosition.x}px`,
+              transform: "translate(-50%, -50%)",
+              pointerEvents: "none",
+              zIndex: 10000,
+            }}
+          >
+            <PieChartTooltip
+              active={legendTooltip.active}
+              payload={legendTooltip.payload}
+              data={rawData || data}
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

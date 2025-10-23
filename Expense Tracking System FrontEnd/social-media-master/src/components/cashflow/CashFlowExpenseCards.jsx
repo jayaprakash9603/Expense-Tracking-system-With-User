@@ -30,27 +30,26 @@ export default function CashFlowExpenseCards({
   getBillByExpenseId,
 }) {
   const scrollContainerRef = useRef(null);
-  const scrollPositionRef = useRef(0);
+  const cardRefs = useRef([]);
+  const lastClickedIndexRef = useRef(null);
 
-  // Save scroll position before re-render
+  // Scroll to the last clicked card when selection changes
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      const handleScroll = () => {
-        scrollPositionRef.current = container.scrollTop;
-      };
-      container.addEventListener("scroll", handleScroll);
-      return () => container.removeEventListener("scroll", handleScroll);
+    if (lastClickedIndexRef.current !== null && cardRefs.current[lastClickedIndexRef.current]) {
+      const cardElement = cardRefs.current[lastClickedIndexRef.current];
+      
+      // Use a small timeout to ensure the DOM has updated
+      setTimeout(() => {
+        cardElement.scrollIntoView({
+          behavior: 'auto',
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      }, 0);
+      
+      lastClickedIndexRef.current = null;
     }
-  }, []);
-
-  // Restore scroll position after re-render
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container && scrollPositionRef.current > 0) {
-      container.scrollTop = scrollPositionRef.current;
-    }
-  });
+  }, [selectedCardIdx]);
 
   const wrapperClass =
     data.length <= 3
@@ -199,6 +198,7 @@ export default function CashFlowExpenseCards({
         return (
           <div
             key={row.id || row.expenseId || `expense-${idx}`}
+            ref={(el) => (cardRefs.current[idx] = el)}
             className="bg-[#1b1b1b] rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200"
             style={{
               minHeight: "140px",
@@ -226,6 +226,10 @@ export default function CashFlowExpenseCards({
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
+              
+              // Store the clicked index
+              lastClickedIndexRef.current = idx;
+              
               handleCardClick(idx, event);
             }}
           >
