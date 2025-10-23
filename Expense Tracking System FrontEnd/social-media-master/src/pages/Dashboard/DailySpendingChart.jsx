@@ -55,7 +55,25 @@
  *      data={spendingData}
  *      timeframe="this_month"
  *      onTimeframeChange={setTimeframe}
- *      tooltipConfig={{ maxExpensesToShow: 10, minWidth: 250 }}
+ *      tooltipConfig={{
+ *        maxExpensesToShow: 10,
+ *        minWidth: 250,
+ *        maxWidth: 350,
+ *        borderRadius: 16,
+ *        amountFontSize: 20
+ *      }}
+ *      selectedType="loss"
+ *      onTypeToggle={setType}
+ *    />
+ *
+ * 6. Using tooltip style presets:
+ *    import { TOOLTIP_STYLE_PRESETS } from "../../config/chartConfig";
+ *
+ *    <DailySpendingChart
+ *      data={spendingData}
+ *      timeframe="this_month"
+ *      onTimeframeChange={setTimeframe}
+ *      tooltipConfig={{ ...TOOLTIP_CONFIG, ...TOOLTIP_STYLE_PRESETS.comfortable }}
  *      selectedType="loss"
  *      onTypeToggle={setType}
  *    />
@@ -232,14 +250,20 @@ const DailySpendingChart = ({
           />
 
           <Tooltip
-            wrapperStyle={{ zIndex: 9999, outline: "none" }}
+            wrapperStyle={{
+              zIndex: 9999,
+              outline: "none",
+            }}
             cursor={{
               stroke: theme.color,
               strokeWidth: 2,
               strokeDasharray: "5 5",
+              opacity: 0.5,
             }}
             position={{ y: 0 }}
             allowEscapeViewBox={{ x: false, y: true }}
+            animationDuration={150}
+            animationEasing="ease-out"
             content={(props) => (
               <SpendingChartTooltip
                 {...props}
