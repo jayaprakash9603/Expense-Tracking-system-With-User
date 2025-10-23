@@ -248,6 +248,17 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     return availablePaymentMethods;
   }, [localPaymentMethods, billData.type]);
 
+  const uniqueCategories = useMemo(() => {
+    const list = Array.isArray(categories) ? categories : [];
+    const byName = new Map();
+    for (const c of list) {
+      const nameKey = c?.name?.toLowerCase().trim();
+      if (!nameKey) continue;
+      if (!byName.has(nameKey)) byName.set(nameKey, c);
+    }
+    return Array.from(byName.values());
+  }, [categories]);
+
   // Update payment method only if necessary
   useEffect(() => {
     if (!isInitialLoad && processedPaymentMethods.length > 0) {
@@ -1019,12 +1030,24 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         </label>
         <Autocomplete
           autoHighlight
-          options={Array.isArray(categories) ? categories : []}
+          options={uniqueCategories}
           getOptionLabel={(option) => option.name || ""}
+          isOptionEqualToValue={(option, value) =>
+            option.id === value.id || option.name === value.name
+          }
+          filterOptions={(options, { inputValue }) => {
+            if (!inputValue) return options;
+            const seen = new Set();
+            return options.filter((opt) => {
+              const key = opt.name?.toLowerCase().trim();
+              if (!key || seen.has(key)) return false;
+              seen.add(key);
+              return key.includes(inputValue.toLowerCase().trim());
+            });
+          }}
           value={
-            Array.isArray(categories)
-              ? categories.find((cat) => cat.id === billData.categoryId) || null
-              : null
+            uniqueCategories.find((cat) => cat.id === billData.categoryId) ||
+            null
           }
           onChange={(event, newValue) => {
             setBillData((prev) => ({
@@ -1032,6 +1055,21 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
               categoryId: newValue ? newValue.id : "",
             }));
           }}
+          onInputChange={(event, value, reason) => {
+            if (reason === "input" && value) {
+              const exactMatch = uniqueCategories.find(
+                (c) =>
+                  c.name?.toLowerCase().trim() === value.toLowerCase().trim()
+              );
+              if (exactMatch && exactMatch.id !== billData.categoryId) {
+                setBillData((prev) => ({
+                  ...prev,
+                  categoryId: exactMatch.id,
+                }));
+              }
+            }
+          }}
+          noOptionsText="No options found"
           renderInput={(params) => (
             <TextField
               {...params}

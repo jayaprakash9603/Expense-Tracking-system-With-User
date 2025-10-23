@@ -21,7 +21,7 @@ wt new-tab --title "EurekaServer" cmd /k "cd /d C:\Users\jayapraj\Downloads\Expe
 ; new-tab --title "BillService" cmd /k "cd /d C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\Bill-Service && mvn spring-boot:run" ^
 ; new-tab --title "AuditService" cmd /k "cd /d C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\Audit-Service && mvn spring-boot:run" ^
 
-; new-tab --title "Frontend" cmd /k "cd /d C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense Tracking System FrontEnd\social-media-master && npm start`"
+; new-tab --title "Frontend" cmd /k "cd /d \"C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense Tracking System FrontEnd\social-media-master\" && npm start"
 
 echo All services launched in separate tabs!
 goto :end
