@@ -2276,14 +2276,12 @@ public class ExpenseController {
                 expense = expenseService.getExpensesBeforeDate(targetUser.getId(), expenseName.trim(), parsedDate);
             } catch (IndexOutOfBoundsException e) {
                 // Handle case when no expenses exist before the given date
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(String.format("No expense found with name '%s' before date %s", expenseName, date));
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
             }
 
             // Handle case when no expense is found
             if (expense == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(String.format("No expense found with name '%s' before date %s", expenseName, date));
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
             }
 
 
