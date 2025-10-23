@@ -23,9 +23,11 @@ import {
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { getExpensesSuggestions } from "../../Redux/Expenses/expense.action";
 import NameAutocomplete from "../../components/NameAutocomplete";
+import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // still used for hasWriteAccess gating below
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
+import usePreviousExpense from "../../hooks/usePreviousExpense";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { createBill } from "../../Redux/Bill/bill.action";
 import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
@@ -106,6 +108,13 @@ const CreateBill = ({ onClose, onSuccess }) => {
     useState(false);
   const [localPaymentMethodsError, setLocalPaymentMethodsError] =
     useState(null);
+
+  // Use custom hook for previous expense functionality
+  const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
+    billData.name,
+    billData.date,
+    friendId
+  );
 
   const formatPaymentMethodName = (name) => {
     const n = String(name || "")
@@ -1224,19 +1233,48 @@ const CreateBill = ({ onClose, onSuccess }) => {
       >
         <div className="w-full flex justify-between items-center mb-1">
           <p className="text-white font-extrabold text-4xl">Create Bill</p>
-          <button
-            onClick={() => {
-              if (onClose) {
-                onClose();
-              } else {
-                navigate(-1);
-              }
-            }}
-            className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
-            style={{ color: "#00dac6" }}
-          >
-            ×
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Display previous expense indicator only when name and date are set */}
+            {billData.name?.trim().length >= 2 && billData.date && (
+              <PreviousExpenseIndicator
+                expense={previousExpense}
+                isLoading={loadingPreviousExpense}
+                position="right"
+                variant="gradient"
+                showTooltip={true}
+                dateFormat="DD MMM YYYY"
+                label="Previously Added"
+                labelPosition="top"
+                icon="calendar"
+                tooltipConfig={{
+                  showAmount: true,
+                  showPaymentMethod: true,
+                  showType: true,
+                }}
+                colorScheme={{
+                  primary: "#00dac6",
+                  secondary: "#00b8a0",
+                  text: "#ffffff",
+                  subtext: "#9ca3af",
+                }}
+              />
+            )}
+
+            <button
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigate(-1);
+                }
+              }}
+              className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
+              style={{ color: "#00dac6" }}
+            >
+              ×
+            </button>
+          </div>
         </div>
         <hr className="border-t border-gray-600 w-full mt-[-4px] mb-0" />
 

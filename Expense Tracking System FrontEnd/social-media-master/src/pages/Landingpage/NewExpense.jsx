@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createExpenseAction,
-  fetchPreviousExpenses,
   getExpensesSuggestions,
 } from "../../Redux/Expenses/expense.action";
 import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
@@ -17,6 +16,7 @@ import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
+import usePreviousExpense from "../../hooks/usePreviousExpense";
 import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 import { DataGrid } from "@mui/x-data-grid";
@@ -111,9 +111,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const [localPaymentMethodsError, setLocalPaymentMethodsError] =
     useState(null);
   const [errors, setErrors] = useState({});
-  // Previous expense indicator state
-  const [previousExpense, setPreviousExpense] = useState(null);
-  const [loadingPreviousExpense, setLoadingPreviousExpense] = useState(false);
   // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
@@ -121,6 +118,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const [checkboxStates, setCheckboxStates] = useState([]);
   const { friendId } = useParams();
   const { hasWriteAccess } = useFriendAccess(friendId);
+
+  // Use custom hook for previous expense functionality
+  const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
+    expenseData.expenseName,
+    expenseData.date,
+    friendId
+  );
+
   // Updated redirect base paths to /friends/expenses*
   useRedirectIfReadOnly(friendId, {
     buildFriendPath: (fid) => `/friends/expenses/${fid}`,
@@ -285,56 +290,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
       }
     }
   }, [dateFromQuery]);
-
-  // Fetch previous expense when expense name and date change
-  useEffect(() => {
-    const fetchPrevious = async () => {
-      // Only fetch if both expense name and date are provided
-      if (!expenseData.expenseName || !expenseData.date) {
-        setPreviousExpense(null);
-        return;
-      }
-
-      // Skip if expense name is too short (less than 2 characters)
-      if (expenseData.expenseName.trim().length < 2) {
-        setPreviousExpense(null);
-        return;
-      }
-
-      setLoadingPreviousExpense(true);
-      try {
-        await dispatch(
-          fetchPreviousExpenses(
-            expenseData.expenseName.trim(),
-            expenseData.date,
-            friendId || undefined
-          )
-        );
-      } catch (error) {
-        console.log("Error fetching previous expense:", error);
-        setPreviousExpense(null);
-      } finally {
-        setLoadingPreviousExpense(false);
-      }
-    };
-
-    // Debounce the fetch to avoid too many API calls
-    const timeoutId = setTimeout(fetchPrevious, 500);
-    return () => clearTimeout(timeoutId);
-  }, [expenseData.expenseName, expenseData.date, dispatch, friendId]);
-
-  // Update previous expense from Redux state
-  const { previousExpenses: previousExpenseFromRedux } = useSelector(
-    (state) => state.expenses || {}
-  );
-
-  useEffect(() => {
-    if (previousExpenseFromRedux) {
-      setPreviousExpense(previousExpenseFromRedux);
-    } else {
-      setPreviousExpense(null);
-    }
-  }, [previousExpenseFromRedux]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
