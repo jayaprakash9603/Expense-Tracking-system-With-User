@@ -36,6 +36,7 @@ export default function DashboardContent() {
     categoryDistribution,
     categoryLoading,
     paymentMethodsData,
+    paymentMethodsRawData,
     paymentMethodsLoading,
     dailySpendingData, // not directly needed (container fetches internally, kept for potential stats)
     monthlyTrendLoading,
@@ -121,6 +122,7 @@ export default function DashboardContent() {
           />
           <PaymentMethodChart
             data={paymentMethodsData}
+            rawData={paymentMethodsRawData}
             timeframe={paymentMethodsTimeframe}
             onTimeframeChange={setPaymentMethodsTimeframe}
             flowType={paymentMethodsFlowType}

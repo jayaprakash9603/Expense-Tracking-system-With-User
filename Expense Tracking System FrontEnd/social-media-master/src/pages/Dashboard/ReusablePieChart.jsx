@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import PieChartTooltip from "../../components/charts/PieChartTooltip";
 
 // Generic reusable Pie/Donut chart component
 // Props:
@@ -48,6 +49,7 @@ const formatNumber0 = (v) =>
 const ReusablePieChart = ({
   title = "Pie Chart",
   data,
+  rawData,
   timeframe,
   onTimeframeChange,
   flowType,
@@ -174,30 +176,9 @@ const ReusablePieChart = ({
               ))}
             </Pie>
             <Tooltip
-              content={({ active, payload }) => {
-                if (!active || !payload || !payload.length) return null;
-                const p = payload[0];
-                const name = p.payload.name ?? p.name;
-                const value = p.payload.value ?? p.value ?? 0;
-                return (
-                  <div
-                    style={{
-                      backgroundColor: "#1b1b1b",
-                      border: "1px solid #14b8a6",
-                      borderRadius: 8,
-                      color: "#fff",
-                      padding: 8,
-                      minWidth: 120,
-                    }}
-                  >
-                    <div style={{ fontSize: 12, color: "#cfd8dc" }}>{name}</div>
-                    <div style={{ fontWeight: 700, color: "#14b8a6" }}>
-                      {valuePrefix}
-                      {formatNumber0(value)}
-                    </div>
-                  </div>
-                );
-              }}
+              content={(props) => (
+                <PieChartTooltip {...props} data={rawData || data} />
+              )}
             />
             {legend && (
               <Legend

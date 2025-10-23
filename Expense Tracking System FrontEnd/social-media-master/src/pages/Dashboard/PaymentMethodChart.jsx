@@ -4,6 +4,7 @@ import ReusablePieChart from "./ReusablePieChart";
 // Wrapper specialized for Payment Methods (non-donut pie)
 const PaymentMethodChart = ({
   data,
+  rawData,
   timeframe,
   onTimeframeChange,
   flowType,
@@ -11,8 +12,12 @@ const PaymentMethodChart = ({
   loading = false,
   skeleton = null,
 }) => {
-
-  {console.log("data",data)}
+  {
+    console.log("data", data);
+  }
+  {
+    console.log("rawData", rawData);
+  }
   const normalize = (raw) => {
     if (
       raw &&
@@ -52,6 +57,7 @@ const PaymentMethodChart = ({
     <ReusablePieChart
       title="💳 Payment Methods"
       data={data}
+      rawData={rawData}
       timeframe={timeframe}
       onTimeframeChange={onTimeframeChange}
       flowType={flowType}

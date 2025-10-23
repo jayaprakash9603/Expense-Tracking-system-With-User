@@ -40,6 +40,7 @@ export function DashboardProvider({ children }) {
   });
   const {
     data: paymentMethodsData,
+    rawData: paymentMethodsRawData,
     loading: paymentMethodsLoading,
     error: paymentMethodsError,
   } = usePaymentMethodsData({
@@ -89,6 +90,7 @@ export function DashboardProvider({ children }) {
     categoryLoading,
     categoryError,
     paymentMethodsData,
+    paymentMethodsRawData,
     paymentMethodsLoading,
     paymentMethodsError,
     dailySpendingData,

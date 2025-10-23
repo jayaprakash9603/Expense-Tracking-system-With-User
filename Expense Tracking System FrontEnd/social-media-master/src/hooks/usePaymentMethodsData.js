@@ -26,6 +26,7 @@ export default function usePaymentMethodsData({
   useFriendlyLabels = true,
 } = {}) {
   const [data, setData] = useState(null); // normalized { labels, datasets: [{ data }] }
+  const [rawData, setRawData] = useState(null); // original API response with full details
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -110,6 +111,9 @@ export default function usePaymentMethodsData({
 
         if (controller.signal.aborted) return;
 
+        // Store raw response for tooltip access
+        setRawData(res);
+
         // Use shared normalizer to handle multiple API shapes
         let normalized = normalizePaymentMethodData(res);
 
@@ -124,6 +128,7 @@ export default function usePaymentMethodsData({
           console.error("Payment methods fetch failed", e);
           setError(e);
           setData(null);
+          setRawData(null);
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -134,5 +139,5 @@ export default function usePaymentMethodsData({
     return () => controller.abort();
   }, [buildParams, refreshTrigger, useFriendlyLabels]);
 
-  return { data, loading, error };
+  return { data, rawData, loading, error };
 }
