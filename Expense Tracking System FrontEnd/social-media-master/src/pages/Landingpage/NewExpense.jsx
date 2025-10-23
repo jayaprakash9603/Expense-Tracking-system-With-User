@@ -7,6 +7,7 @@ import {
 import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
 import NameAutocomplete from "../../components/NameAutocomplete";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
+import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import {
   useReactTable,
   getCoreRowModel,
@@ -17,7 +18,6 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../hooks/usePreviousExpense";
-import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
@@ -88,11 +88,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const { budgets, error: budgetError } = useSelector(
     (state) => state.budgets || {}
   );
-  const {
-    categories,
-    loading: categoriesLoading,
-    error: categoriesError,
-  } = useSelector((state) => state.categories || {});
   const dispatch = useDispatch();
   const [expenseData, setExpenseData] = useState({
     expenseName: "",
@@ -148,11 +143,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
   // Fetch expenses suggestions
   useEffect(() => {
     dispatch(getExpensesSuggestions(friendId || ""));
-  }, [dispatch, friendId]);
-
-  // Fetch categories on component mount
-  useEffect(() => {
-    dispatch(fetchCategories(friendId || ""));
   }, [dispatch, friendId]);
 
   // Fetch payment methods (dynamic dropdown) similar to CreateBill
@@ -254,18 +244,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
       }
     }
   }, [processedPaymentMethods, expenseData.paymentMethod]);
-
-  // Ensure unique categories strictly by name (case-insensitive, trimmed)
-  const uniqueCategories = useMemo(() => {
-    const list = Array.isArray(categories) ? categories : [];
-    const byName = new Map();
-    for (const c of list) {
-      const nameKey = c?.name?.toLowerCase().trim();
-      if (!nameKey) continue;
-      if (!byName.has(nameKey)) byName.set(nameKey, c);
-    }
-    return Array.from(byName.values());
-  }, [categories]);
 
   // Set initial type based on salary date logic if dateFromQuery is present
   React.useEffect(() => {
@@ -619,97 +597,17 @@ const NewExpense = ({ onClose, onSuccess }) => {
         <label htmlFor="category" className={labelStyle} style={inputWrapper}>
           Category
         </label>
-        <Autocomplete
-          autoHighlight
-          options={uniqueCategories}
-          getOptionLabel={(option) => option.name || ""}
-          isOptionEqualToValue={(option, value) =>
-            option?.id != null && value?.id != null
-              ? option.id === value.id
-              : (option?.name || "").toLowerCase().trim() ===
-                (value?.name || "").toLowerCase().trim()
-          }
-          filterOptions={(options, state) => {
-            // Apply default filtering by input; then dedupe by name
-            const input = (state.inputValue || "").toLowerCase().trim();
-            const filtered = options.filter((opt) =>
-              (opt?.name || "").toLowerCase().includes(input)
-            );
-            const seen = new Set();
-            const out = [];
-            for (const o of filtered) {
-              const k = (o?.name || "").toLowerCase().trim();
-              if (k && !seen.has(k)) {
-                seen.add(k);
-                out.push(o);
-              }
-            }
-            return out;
-          }}
-          value={
-            Array.isArray(uniqueCategories)
-              ? uniqueCategories.find(
-                  (cat) => cat.id === expenseData.category
-                ) || null
-              : null
-          }
-          onInputChange={(event, newValue) => {
-            const matchedCategory = Array.isArray(uniqueCategories)
-              ? uniqueCategories.find(
-                  (cat) =>
-                    (cat.name || "").toLowerCase().trim() ===
-                    (newValue || "").toLowerCase().trim()
-                )
-              : null;
+        <CategoryAutocomplete
+          value={expenseData.category}
+          onChange={(categoryId) => {
             setExpenseData((prev) => ({
               ...prev,
-              category: matchedCategory ? matchedCategory.id : "",
+              category: categoryId,
             }));
           }}
-          onChange={(event, newValue) => {
-            setExpenseData((prev) => ({
-              ...prev,
-              category: newValue ? newValue.id : "",
-            }));
-          }}
-          noOptionsText="No options found"
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Search category"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                className: fieldStyles,
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
-                fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
-              }}
-              title={option.name}
-            >
-              {highlightText(option.name, inputValue)}
-            </li>
-          )}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiAutocomplete-option": {
-              fontSize: "0.92rem",
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-          }}
+          friendId={friendId}
+          placeholder="Search category"
+          size="medium"
         />
       </div>
     </div>

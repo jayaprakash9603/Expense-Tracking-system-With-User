@@ -24,11 +24,11 @@ import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { getExpensesSuggestions } from "../../Redux/Expenses/expense.action";
 import NameAutocomplete from "../../components/NameAutocomplete";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
+import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // still used for hasWriteAccess gating below
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../hooks/usePreviousExpense";
-import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { createBill } from "../../Redux/Bill/bill.action";
 import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 
@@ -66,11 +66,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
     topExpenses: expenseNameSuggestions = [],
     loading: suggestionsLoading,
   } = useSelector((state) => state.expenses || {});
-  const {
-    categories,
-    loading: categoriesLoading,
-    error: categoriesError,
-  } = useSelector((state) => state.categories || {});
   const {
     paymentMethods,
     loading: paymentMethodsLoading,
@@ -243,18 +238,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
   // Type options
   const typeOptions = ["gain", "loss"];
 
-  // Ensure unique categories strictly by name (case-insensitive, trimmed)
-  const uniqueCategories = useMemo(() => {
-    const list = Array.isArray(categories) ? categories : [];
-    const byName = new Map();
-    for (const c of list) {
-      const nameKey = c?.name?.toLowerCase().trim();
-      if (!nameKey) continue;
-      if (!byName.has(nameKey)) byName.set(nameKey, c);
-    }
-    return Array.from(byName.values());
-  }, [categories]);
-
   // Validation function for expense items
 
   const isCurrentRowComplete = (expense) => {
@@ -338,11 +321,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
   useEffect(() => {
     setCheckboxStates(budgets.map((budget) => budget.includeInBudget || false));
   }, [budgets]);
-
-  // Fetch categories on component mount
-  useEffect(() => {
-    dispatch(fetchCategories(friendId || ""));
-  }, [dispatch]);
 
   // Calculate total amount from saved expenses
   useEffect(() => {
@@ -1095,99 +1073,17 @@ const CreateBill = ({ onClose, onSuccess }) => {
         <label htmlFor="category" className={labelStyle} style={inputWrapper}>
           Category
         </label>
-        <Autocomplete
-          autoHighlight
-          options={uniqueCategories}
-          getOptionLabel={(option) => option.name || ""}
-          isOptionEqualToValue={(option, value) =>
-            option?.id != null && value?.id != null
-              ? option.id === value.id
-              : (option?.name || "").toLowerCase().trim() ===
-                (value?.name || "").toLowerCase().trim()
-          }
-          filterOptions={(options, state) => {
-            // Apply default filtering by input; then dedupe by name
-            const input = (state.inputValue || "").toLowerCase().trim();
-            const filtered = options.filter((opt) =>
-              (opt?.name || "").toLowerCase().includes(input)
-            );
-            const seen = new Set();
-            const out = [];
-            for (const o of filtered) {
-              const k = (o?.name || "").toLowerCase().trim();
-              if (k && !seen.has(k)) {
-                seen.add(k);
-                out.push(o);
-              }
-            }
-            return out;
-          }}
-          value={
-            Array.isArray(uniqueCategories)
-              ? uniqueCategories.find(
-                  (cat) => cat.id === billData.categoryId
-                ) || null
-              : null
-          }
-          onInputChange={(event, newValue) => {
-            const matchedCategory = Array.isArray(uniqueCategories)
-              ? uniqueCategories.find(
-                  (cat) =>
-                    (cat.name || "").toLowerCase().trim() ===
-                    (newValue || "").toLowerCase().trim()
-                )
-              : null;
+        <CategoryAutocomplete
+          value={billData.categoryId}
+          onChange={(categoryId) => {
             setBillData((prev) => ({
               ...prev,
-              categoryId: matchedCategory ? matchedCategory.id : "",
+              categoryId: categoryId,
             }));
           }}
-          onChange={(event, newValue) => {
-            setBillData((prev) => ({
-              ...prev,
-              categoryId: newValue ? newValue.id : "",
-            }));
-          }}
-          noOptionsText="No options found"
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Search category"
-              variant="outlined"
-              sx={{
-                "& .MuiInputBase-root": {
-                  backgroundColor: "#29282b",
-                  color: "#fff",
-                  height: "56px",
-                  fontSize: "16px",
-                },
-                "& .MuiInputBase-input": {
-                  color: "#fff",
-                  "&::placeholder": {
-                    color: "#9ca3af",
-                    opacity: 1,
-                  },
-                },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "rgb(75, 85, 99)",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "rgb(75, 85, 99)",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#00dac6",
-                    borderWidth: "2px",
-                  },
-                },
-              }}
-            />
-          )}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-          }}
+          friendId={friendId}
+          placeholder="Search category"
+          size="medium"
         />
       </div>
     </div>

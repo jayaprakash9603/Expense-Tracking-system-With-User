@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ItemNameAutocomplete from "./ItemNameAutocomplete";
 import NameAutocomplete from "../../components/NameAutocomplete";
+import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import {
   Autocomplete,
   TextField,
@@ -25,7 +26,6 @@ import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // retains gating
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
-import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { updateBill, getBillById } from "../../Redux/Bill/bill.action";
 import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 
@@ -35,6 +35,40 @@ const inputWrapper = {
   minWidth: "150px",
   display: "flex",
   alignItems: "center",
+};
+
+// Utility functions for payment method handling (defined outside component)
+const formatPaymentMethodName = (name) => {
+  switch (name.toLowerCase()) {
+    case "cash":
+      return "Cash";
+    case "creditneedtopaid":
+      return "Credit Due";
+    case "creditpaid":
+      return "Credit Paid";
+    default:
+      return name
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (str) => str.toUpperCase())
+        .trim();
+  }
+};
+
+// Normalize payment method to backend keys
+const normalizePaymentMethod = (name) => {
+  const raw = String(name || "").trim();
+  const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
+  switch (key) {
+    case "creditneedtopaid":
+    case "creditdue":
+      return "creditNeedToPaid";
+    case "creditpaid":
+      return "creditPaid";
+    case "cash":
+      return "cash";
+    default:
+      return raw;
+  }
 };
 
 const EditBill = ({ onClose, onSuccess, billId }) => {
@@ -60,11 +94,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     error: budgetError,
     loading: budgetLoading,
   } = useSelector((state) => state.budgets || {});
-  const {
-    categories = [],
-    loading: categoriesLoading,
-    error: categoriesError,
-  } = useSelector((state) => state.categories || {});
   const {
     paymentMethods = [],
     loading: paymentMethodsLoading,
@@ -166,39 +195,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     loadBillData();
   }, [currentBillId, dispatch, id]);
 
-  const formatPaymentMethodName = (name) => {
-    switch (name.toLowerCase()) {
-      case "cash":
-        return "Cash";
-      case "creditneedtopaid":
-        return "Credit Due";
-      case "creditpaid":
-        return "Credit Paid";
-      default:
-        return name
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (str) => str.toUpperCase())
-          .trim();
-    }
-  };
-
-  // Normalize payment method to backend keys
-  const normalizePaymentMethod = (name) => {
-    const raw = String(name || "").trim();
-    const key = raw.toLowerCase().replace(/\s+/g, "").replace(/_/g, "");
-    switch (key) {
-      case "creditneedtopaid":
-      case "creditdue":
-        return "creditNeedToPaid";
-      case "creditpaid":
-        return "creditPaid";
-      case "cash":
-        return "cash";
-      default:
-        return raw;
-    }
-  };
-
   const defaultPaymentMethods = [
     { name: "cash", label: "Cash", type: "expense" },
     { name: "creditNeedToPaid", label: "Credit Due", type: "expense" },
@@ -247,17 +243,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
 
     return availablePaymentMethods;
   }, [localPaymentMethods, billData.type]);
-
-  const uniqueCategories = useMemo(() => {
-    const list = Array.isArray(categories) ? categories : [];
-    const byName = new Map();
-    for (const c of list) {
-      const nameKey = c?.name?.toLowerCase().trim();
-      if (!nameKey) continue;
-      if (!byName.has(nameKey)) byName.set(nameKey, c);
-    }
-    return Array.from(byName.values());
-  }, [categories]);
 
   // Update payment method only if necessary
   useEffect(() => {
@@ -337,10 +322,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
       );
     }
   }, [budgets, selectedBudgets]);
-
-  useEffect(() => {
-    dispatch(fetchCategories(friendId || ""));
-  }, [dispatch]);
 
   useEffect(() => {
     const totalAmount = expenses.reduce(
@@ -1028,79 +1009,17 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         <label htmlFor="category" className={labelStyle} style={inputWrapper}>
           Category
         </label>
-        <Autocomplete
-          autoHighlight
-          options={uniqueCategories}
-          getOptionLabel={(option) => option.name || ""}
-          isOptionEqualToValue={(option, value) =>
-            option.id === value.id || option.name === value.name
-          }
-          filterOptions={(options, { inputValue }) => {
-            if (!inputValue) return options;
-            const seen = new Set();
-            return options.filter((opt) => {
-              const key = opt.name?.toLowerCase().trim();
-              if (!key || seen.has(key)) return false;
-              seen.add(key);
-              return key.includes(inputValue.toLowerCase().trim());
-            });
-          }}
-          value={
-            uniqueCategories.find((cat) => cat.id === billData.categoryId) ||
-            null
-          }
-          onChange={(event, newValue) => {
+        <CategoryAutocomplete
+          value={billData.categoryId}
+          onChange={(categoryId) => {
             setBillData((prev) => ({
               ...prev,
-              categoryId: newValue ? newValue.id : "",
+              categoryId: categoryId,
             }));
           }}
-          onInputChange={(event, value, reason) => {
-            if (reason === "input" && value) {
-              const exactMatch = uniqueCategories.find(
-                (c) =>
-                  c.name?.toLowerCase().trim() === value.toLowerCase().trim()
-              );
-              if (exactMatch && exactMatch.id !== billData.categoryId) {
-                setBillData((prev) => ({
-                  ...prev,
-                  categoryId: exactMatch.id,
-                }));
-              }
-            }
-          }}
-          noOptionsText="No options found"
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Search category"
-              variant="outlined"
-              sx={{
-                "& .MuiInputBase-root": {
-                  backgroundColor: "#29282b",
-                  color: "#fff",
-                  height: "56px",
-                  fontSize: "16px",
-                },
-                "& .MuiInputBase-input": {
-                  color: "#fff",
-                  "&::placeholder": { color: "#9ca3af", opacity: 1 },
-                },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "rgb(75, 85, 99)",
-                    borderWidth: "1px",
-                  },
-                  "&:hover fieldset": { borderColor: "rgb(75, 85, 99)" },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#00dac6",
-                    borderWidth: "2px",
-                  },
-                },
-              }}
-            />
-          )}
-          sx={{ width: "100%", maxWidth: "300px" }}
+          friendId={friendId}
+          placeholder="Search category"
+          size="medium"
         />
       </div>
     </div>

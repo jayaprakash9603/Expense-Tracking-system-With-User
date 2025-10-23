@@ -22,12 +22,12 @@ import { DataGrid } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import NameAutocomplete from "../../components/NameAutocomplete";
+import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { fetchCategories } from "../../Redux/Category/categoryActions";
 import { fetchAllPaymentMethods } from "../../Redux/Payment Method/paymentMethod.action";
 
 // Use the same fieldStyles, labelStyle, formRow, firstFormRow, inputWrapper as NewExpense
@@ -95,24 +95,7 @@ const EditExpense = ({}) => {
   const { budgets, error: budgetError } = useSelector(
     (state) => state.budgets || {}
   );
-  const {
-    categories,
-    loading: categoriesLoading,
-    error: categoriesError,
-  } = useSelector((state) => state.categories || {});
   const dispatch = useDispatch();
-
-  // Unique categories by name (case-insensitive, trimmed)
-  const uniqueCategories = useMemo(() => {
-    const list = Array.isArray(categories) ? categories : [];
-    const byName = new Map();
-    for (const c of list) {
-      const key = (c?.name || "").toLowerCase().trim();
-      if (!key) continue;
-      if (!byName.has(key)) byName.set(key, c);
-    }
-    return Array.from(byName.values());
-  }, [categories]);
 
   const [expenseData, setExpenseData] = useState({
     expenseName: "",
@@ -161,11 +144,6 @@ const EditExpense = ({}) => {
     );
     dispatch(getExpenseAction(id || "", friendId || ""));
   }, [dispatch]);
-
-  // Fetch categories on mount (and when friendId changes), same as NewExpense
-  useEffect(() => {
-    dispatch(fetchCategories(friendId || ""));
-  }, [dispatch, friendId]);
 
   // Fetch payment methods (dynamic) similar to other components
   useEffect(() => {
@@ -575,88 +553,18 @@ const EditExpense = ({}) => {
         <label htmlFor="category" className={labelStyle} style={inputWrapper}>
           Category
         </label>
-        <Autocomplete
-          autoHighlight
-          options={uniqueCategories}
-          getOptionLabel={(option) => option.name || ""}
-          isOptionEqualToValue={(option, value) =>
-            option?.id != null && value?.id != null
-              ? option.id === value.id
-              : (option?.name || "").toLowerCase().trim() ===
-                (value?.name || "").toLowerCase().trim()
-          }
-          filterOptions={(options, state) => {
-            const input = (state.inputValue || "").toLowerCase().trim();
-            const filtered = options.filter((opt) =>
-              (opt?.name || "").toLowerCase().includes(input)
-            );
-            const seen = new Set();
-            const out = [];
-            for (const o of filtered) {
-              const k = (o?.name || "").toLowerCase().trim();
-              if (k && !seen.has(k)) {
-                seen.add(k);
-                out.push(o);
-              }
-            }
-            return out;
-          }}
-          value={
-            Array.isArray(uniqueCategories)
-              ? uniqueCategories.find(
-                  (cat) => cat.id === expenseData.category
-                ) || null
-              : null
-          }
-          onInputChange={(event, newValue) => {
-            const matchedCategory = uniqueCategories.find(
-              (cat) =>
-                (cat.name || "").toLowerCase().trim() ===
-                (newValue || "").toLowerCase().trim()
-            );
+        <CategoryAutocomplete
+          value={expenseData.category}
+          onChange={(categoryId) => {
             setExpenseData((prev) => ({
               ...prev,
-              category: matchedCategory ? matchedCategory.id : "",
-              categoryName: newValue || "",
+              category: categoryId,
             }));
           }}
-          onChange={(event, newValue) => {
-            setExpenseData((prev) => ({
-              ...prev,
-              category: newValue ? newValue.id : "",
-              categoryName: newValue ? newValue.name : prev.categoryName,
-            }));
-          }}
-          noOptionsText="No options found"
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Search category"
-              variant="outlined"
-              InputProps={{
-                ...params.InputProps,
-                className: fieldStyles,
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
-                fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
-              }}
-              title={option.name}
-            >
-              {highlightText(option.name, inputValue)}
-            </li>
-          )}
-          sx={{ width: "100%", maxWidth: "300px" }}
+          friendId={friendId}
+          placeholder="Search category"
+          size="medium"
+          error={!!errors.category}
         />
       </div>
       {errors.category && (
