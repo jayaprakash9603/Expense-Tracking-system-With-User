@@ -1,11 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  createExpenseAction,
-  getExpensesSuggestions,
-} from "../../Redux/Expenses/expense.action";
+import { createExpenseAction } from "../../Redux/Expenses/expense.action";
 import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
-import NameAutocomplete from "../../components/NameAutocomplete";
+import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
@@ -45,9 +42,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
-  const { topExpenses, loading: loading } = useSelector(
-    (state) => state.expenses || {}
-  );
   const { budgets, error: budgetError } = useSelector(
     (state) => state.budgets || {}
   );
@@ -96,11 +90,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
   useEffect(() => {
     setCheckboxStates(budgets.map((budget) => budget.includeInBudget || false));
   }, [budgets]);
-
-  // Fetch expenses suggestions
-  useEffect(() => {
-    dispatch(getExpensesSuggestions(friendId || ""));
-  }, [dispatch, friendId]);
 
   // Set initial type based on salary date logic if dateFromQuery is present
   React.useEffect(() => {
@@ -433,13 +422,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           Expense Name<span className="text-red-500"> *</span>
         </label>
-        <NameAutocomplete
+        <ExpenseNameAutocomplete
           value={expenseData.expenseName}
           onChange={(val) => {
             setExpenseData((prev) => ({ ...prev, expenseName: val }));
             if (errors.expenseName && val)
               setErrors((prev) => ({ ...prev, expenseName: false }));
           }}
+          friendId={friendId}
           placeholder="Enter expense name"
           error={errors.expenseName}
           size="medium"
@@ -1063,7 +1053,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         width: 6px;
       }      .overflow-x-auto::-webkit-scrollbar {
         height: 6px;
-      }
+
     }
     /* Existing scrollbar styles */
     .overflow-y-auto::-webkit-scrollbar {

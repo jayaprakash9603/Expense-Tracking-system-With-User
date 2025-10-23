@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ItemNameAutocomplete from "./ItemNameAutocomplete";
-import NameAutocomplete from "../../components/NameAutocomplete";
+import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
 import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
 import {
@@ -606,7 +606,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           Name<span className="text-red-500"> *</span>
         </label>
         <div style={{ width: "100%", maxWidth: 300 }}>
-          <NameAutocomplete
+          <ExpenseNameAutocomplete
             value={billData.name}
             onChange={(val) => {
               setBillData((prev) => ({ ...prev, name: val }));
@@ -614,6 +614,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                 setErrors((prev) => ({ ...prev, name: false }));
               }
             }}
+            friendId={friendId}
             placeholder="Enter name"
             error={errors.name}
           />

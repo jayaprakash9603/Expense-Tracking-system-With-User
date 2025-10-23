@@ -21,8 +21,7 @@ import {
   Close as CloseIcon,
 } from "@mui/icons-material";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
-import { getExpensesSuggestions } from "../../Redux/Expenses/expense.action";
-import NameAutocomplete from "../../components/NameAutocomplete";
+import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
@@ -63,10 +62,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
     error: budgetError,
     loading: budgetLoading,
   } = useSelector((state) => state.budgets || {});
-  const {
-    topExpenses: expenseNameSuggestions = [],
-    loading: suggestionsLoading,
-  } = useSelector((state) => state.expenses || {});
 
   const [hasUnsavedExpenseChanges, setHasUnsavedExpenseChanges] =
     useState(false);
@@ -133,11 +128,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
   useEffect(() => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
   }, [dispatch, today]);
-
-  // Fetch expense name suggestions for autocomplete (top expense names)
-  useEffect(() => {
-    dispatch(getExpensesSuggestions(friendId || ""));
-  }, [dispatch, friendId]);
 
   // Update checkbox states when budgets change
   useEffect(() => {
@@ -564,13 +554,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
         <label htmlFor="name" className={labelStyle} style={inputWrapper}>
           Name<span className="text-red-500"> *</span>
         </label>
-        <NameAutocomplete
+        <ExpenseNameAutocomplete
           value={billData.name}
           onChange={(val) => {
             setBillData((prev) => ({ ...prev, name: val }));
             if (errors.name && val)
               setErrors((prev) => ({ ...prev, name: false }));
           }}
+          friendId={friendId}
           placeholder="Search or type bill name"
           error={errors.name}
           size="medium"

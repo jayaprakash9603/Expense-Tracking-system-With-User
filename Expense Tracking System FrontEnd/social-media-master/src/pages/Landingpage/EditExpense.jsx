@@ -21,7 +21,7 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
-import NameAutocomplete from "../../components/NameAutocomplete";
+import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
 import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
@@ -624,11 +624,12 @@ const EditExpense = ({}) => {
         >
           Expense Name<span className="text-red-500"> *</span>
         </label>
-        <NameAutocomplete
+        <ExpenseNameAutocomplete
           value={expenseData.expenseName}
           onChange={(val) =>
             setExpenseData((prev) => ({ ...prev, expenseName: val }))
           }
+          friendId={friendId}
           placeholder="Enter expense name"
           error={!!errors.expenseName}
           size="medium"
