@@ -33,6 +33,7 @@ import {
   Delete as DeleteIcon,
   List as ListIcon,
 } from "@mui/icons-material";
+import { useTheme } from "../../../hooks/useTheme";
 
 const BillAccordion = ({
   bill,
@@ -46,16 +47,18 @@ const BillAccordion = ({
   onDeleteBill,
   hasWriteAccess,
 }) => {
+  const { colors } = useTheme();
+
   // Constants
   const COLORS = {
-    primary: "#14b8a6",
+    primary: colors.primary_accent,
     error: "#f44336",
-    background: "#0b0b0b",
-    surface: "#1b1b1b",
-    text: "#fff",
-    textSecondary: "#b0b0b0",
-    hover: "#28282a",
-    primaryHover: "#14b8a620",
+    background: colors.tertiary_bg,
+    surface: colors.primary_bg,
+    text: colors.primary_text,
+    textSecondary: colors.secondary_text,
+    hover: colors.hover_bg,
+    primaryHover: `${colors.primary_accent}20`,
   };
 
   const PAYMENT_COLORS = {

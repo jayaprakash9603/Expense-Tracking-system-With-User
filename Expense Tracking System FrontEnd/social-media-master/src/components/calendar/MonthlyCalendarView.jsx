@@ -5,7 +5,7 @@ import {
   Box,
   IconButton,
   useMediaQuery,
-  useTheme,
+  useTheme as useMuiTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import dayjs from "dayjs";
@@ -14,6 +14,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import DateIndicator from "../DateIndicator";
 import JumpToTodayButton from "../JumpToTodayButton";
 import PropTypes from "prop-types";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * ============================================================================
@@ -250,6 +251,7 @@ const MonthNavigator = ({
   onNextMonth,
   onDateChange,
   isSmallScreen,
+  colors,
 }) => (
   <Box
     sx={{
@@ -259,7 +261,7 @@ const MonthNavigator = ({
       gap: isSmallScreen ? 1 : 2,
     }}
   >
-    <IconButton onClick={onPrevMonth} sx={{ color: "#00dac6" }}>
+    <IconButton onClick={onPrevMonth} sx={{ color: "#14b8a6" }}>
       <ArrowBackIcon />
     </IconButton>
 
@@ -269,24 +271,24 @@ const MonthNavigator = ({
         value={selectedDate}
         onChange={onDateChange}
         sx={{
-          background: "#23243a",
+          background: colors.primary_bg,
           borderRadius: 2,
-          color: "#fff",
-          ".MuiInputBase-input": { color: "#fff" },
-          ".MuiSvgIcon-root": { color: "#00dac6" },
+          color: colors.primary_text,
+          ".MuiInputBase-input": { color: colors.primary_text },
+          ".MuiSvgIcon-root": { color: "#14b8a6" },
           width: isSmallScreen ? "100%" : 140,
         }}
         slotProps={{
           textField: {
             size: "small",
             variant: "outlined",
-            sx: { color: "#fff" },
+            sx: { color: colors.primary_text },
           },
         }}
       />
     </LocalizationProvider>
 
-    <IconButton onClick={onNextMonth} sx={{ color: "#00dac6" }}>
+    <IconButton onClick={onNextMonth} sx={{ color: "#14b8a6" }}>
       <ArrowBackIcon style={{ transform: "scaleX(-1)" }} />
     </IconButton>
   </Box>
@@ -304,6 +306,7 @@ const CalendarDay = ({
   isSmallScreen,
   spendingKey = "spending",
   incomeKey = "income",
+  colors,
 }) => {
   const spending = dayData?.[spendingKey] || 0;
   const income = dayData?.[incomeKey] || 0;
@@ -313,7 +316,7 @@ const CalendarDay = ({
       onClick={() => onClick(day)}
       sx={{
         borderRadius: 2,
-        background: "#0b0b0b",
+        background: colors.secondary_bg,
         cursor: "pointer",
         p: 1,
         minHeight: isSmallScreen ? 50 : 60,
@@ -350,7 +353,7 @@ const CalendarDay = ({
       )}
 
       {/* Day number */}
-      <Typography variant="body1" fontWeight={700} color="#fff">
+      <Typography variant="body1" fontWeight={700} color={colors.primary_text}>
         {day}
       </Typography>
 
@@ -451,8 +454,9 @@ const MonthlyCalendarView = ({
   // Styling
   containerStyle = {},
 }) => {
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const muiTheme = useMuiTheme();
+  const isSmallScreen = useMediaQuery(muiTheme.breakpoints.down("sm"));
+  const { colors } = useTheme();
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [monthOffset, setMonthOffset] = useState(initialOffset);
@@ -537,12 +541,13 @@ const MonthlyCalendarView = ({
 
   return (
     <div
-      className="bg-[#0b0b0b] p-4 rounded-lg"
       style={{
+        backgroundColor: colors.secondary_bg,
+        padding: "16px",
+        borderRadius: "8px",
         width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
         height: isSmallScreen ? "auto" : "calc(100vh - 100px)",
         marginRight: isSmallScreen ? "0" : "20px",
-        borderRadius: "8px",
         boxSizing: "border-box",
         position: "relative",
         display: "flex",
@@ -560,9 +565,9 @@ const MonthlyCalendarView = ({
               position: "absolute",
               top: 16,
               left: 16,
-              color: "#00DAC6",
-              backgroundColor: "#1b1b1b",
-              "&:hover": { backgroundColor: "#28282a" },
+              color: "#14b8a6",
+              backgroundColor: colors.primary_bg,
+              "&:hover": { backgroundColor: colors.hover_bg },
               zIndex: 10,
             }}
             onClick={onBack}
@@ -577,7 +582,7 @@ const MonthlyCalendarView = ({
             >
               <path
                 d="M15 18L9 12L15 6"
-                stroke="#00DAC6"
+                stroke="#14b8a6"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -597,7 +602,7 @@ const MonthlyCalendarView = ({
           transform: "translateX(-50%)",
           fontWeight: 700,
           textAlign: "center",
-          color: "#fff",
+          color: colors.primary_text,
           m: 0,
           zIndex: 15,
           letterSpacing: 0.5,
@@ -639,6 +644,7 @@ const MonthlyCalendarView = ({
           onNextMonth={handleNextMonth}
           onDateChange={handleDatePicker}
           isSmallScreen={isSmallScreen}
+          colors={colors}
         />
 
         {/* Income card */}
@@ -658,7 +664,7 @@ const MonthlyCalendarView = ({
         sx={{
           flex: 1,
           overflow: "hidden",
-          background: "#1b1b1b",
+          background: colors.primary_bg,
           borderRadius: 2,
           p: 2,
           minHeight: isSmallScreen ? "auto" : "0px",
@@ -672,7 +678,7 @@ const MonthlyCalendarView = ({
           columns={7}
           sx={{
             mb: 2,
-            background: "#1b1b1b",
+            background: colors.primary_bg,
             borderRadius: 2,
             borderBottom: 0,
             position: "relative",
@@ -687,7 +693,7 @@ const MonthlyCalendarView = ({
               background: (() => {
                 const total = totalIncome + Math.abs(totalSpending);
                 if (total === 0)
-                  return "linear-gradient(90deg, #1b1b1b 100%, #1b1b1b 100%)";
+                  return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
                 const incomePercent = (totalIncome / total) * 100;
                 return `linear-gradient(90deg, #06d6a0 ${incomePercent}%, #ff4d4f ${incomePercent}%, #ff4d4f 100%)`;
               })(),
@@ -702,7 +708,7 @@ const MonthlyCalendarView = ({
                 variant="subtitle2"
                 sx={{
                   fontWeight: 700,
-                  color: "#fff",
+                  color: colors.primary_text,
                   py: 1,
                   letterSpacing: 1,
                   border: "none",
@@ -756,6 +762,7 @@ const MonthlyCalendarView = ({
                   isSmallScreen={isSmallScreen}
                   spendingKey={summaryConfig.spendingKey}
                   incomeKey={summaryConfig.incomeKey}
+                  colors={colors}
                 />
               </Grid>
             );
@@ -799,6 +806,7 @@ MonthNavigator.propTypes = {
   onNextMonth: PropTypes.func.isRequired,
   onDateChange: PropTypes.func.isRequired,
   isSmallScreen: PropTypes.bool,
+  colors: PropTypes.object,
 };
 
 CalendarDay.propTypes = {
@@ -810,6 +818,7 @@ CalendarDay.propTypes = {
   isSmallScreen: PropTypes.bool,
   spendingKey: PropTypes.string,
   incomeKey: PropTypes.string,
+  colors: PropTypes.object,
 };
 
 MonthlyCalendarView.propTypes = {

@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useTheme } from "../hooks/useTheme";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -22,6 +23,7 @@ const formatNumber0 = (v) =>
  * Accepts a summary object; falls back to defaults for missing values.
  */
 const SummaryOverview = ({ summary }) => {
+  const { colors } = useTheme();
   const isMobile = useMediaQuery("(max-width:600px)");
   const s = {
     totalExpenses: summary?.totalExpenses ?? 30557,
@@ -62,10 +64,18 @@ const SummaryOverview = ({ summary }) => {
   }));
 
   return (
-    <div className="chart-container summary-overview">
+    <div
+      className="chart-container summary-overview"
+      style={{
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+      }}
+    >
       <div className="chart-header">
-        <h3>🔎 Application Overview</h3>
-        <div className="total-amount">Live Summary</div>
+        <h3 style={{ color: colors.primary_text }}>🔎 Application Overview</h3>
+        <div className="total-amount" style={{ color: colors.primary_accent }}>
+          Live Summary
+        </div>
       </div>
       <div className="overview-content">
         <div className="overview-metrics">
@@ -76,11 +86,33 @@ const SummaryOverview = ({ summary }) => {
             ["👥", "Friends", s.friendsCount],
             ["🧑‍🤝‍🧑", "Groups", s.groupsCount],
           ].map(([icon, title, val], i) => (
-            <div className="overview-metric" key={i}>
-              <div className="metric-icon">{icon}</div>
+            <div
+              className="overview-metric"
+              key={i}
+              style={{
+                backgroundColor: colors.tertiary_bg,
+                border: `1px solid ${colors.border_color}`,
+              }}
+            >
+              <div
+                className="metric-icon"
+                style={{ color: colors.primary_accent }}
+              >
+                {icon}
+              </div>
               <div className="metric-body">
-                <div className="metric-title">{title}</div>
-                <div className="metric-value">{val}</div>
+                <div
+                  className="metric-title"
+                  style={{ color: colors.secondary_text }}
+                >
+                  {title}
+                </div>
+                <div
+                  className="metric-value"
+                  style={{ color: colors.primary_text }}
+                >
+                  {val}
+                </div>
               </div>
             </div>
           ))}
@@ -93,25 +125,33 @@ const SummaryOverview = ({ summary }) => {
             >
               <defs>
                 <linearGradient id="ovGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.08} />
+                  <stop
+                    offset="5%"
+                    stopColor={colors.primary_accent}
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={colors.primary_accent}
+                    stopOpacity={0.08}
+                  />
                 </linearGradient>
               </defs>
               <XAxis dataKey="month" hide />
               <YAxis hide />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#1b1b1b",
-                  border: "1px solid #14b8a6",
+                  backgroundColor: colors.tertiary_bg,
+                  border: `1px solid ${colors.primary_accent}`,
                   borderRadius: 8,
-                  color: "#fff",
+                  color: colors.primary_text,
                 }}
                 formatter={(value) => [`₹${formatNumber0(value)}`, "Spending"]}
               />
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#14b8a6"
+                stroke={colors.primary_accent}
                 fillOpacity={1}
                 fill="url(#ovGrad)"
                 strokeWidth={2}
@@ -131,24 +171,64 @@ const SummaryOverview = ({ summary }) => {
             ["Savings Rate", `${s.savingsRate}%`, "of income"],
             ["Upcoming Bills", s.upcomingBills, "due this week"],
           ].map(([title, val, sub], i) => (
-            <div className="kpi-card" key={i}>
-              <div className="kpi-title">{title}</div>
-              <div className="kpi-value">{val}</div>
-              <div className="kpi-sub">{sub}</div>
+            <div
+              className="kpi-card"
+              key={i}
+              style={{
+                backgroundColor: colors.tertiary_bg,
+                border: `1px solid ${colors.border_color}`,
+              }}
+            >
+              <div
+                className="kpi-title"
+                style={{ color: colors.secondary_text }}
+              >
+                {title}
+              </div>
+              <div className="kpi-value" style={{ color: colors.primary_text }}>
+                {val}
+              </div>
+              <div className="kpi-sub" style={{ color: colors.secondary_text }}>
+                {sub}
+              </div>
             </div>
           ))}
         </div>
         <div className="overview-bottom">
-          <div className="top-expenses full-width">
-            <div className="small-header">Top Expenses</div>
+          <div
+            className="top-expenses full-width"
+            style={{
+              backgroundColor: colors.tertiary_bg,
+              border: `1px solid ${colors.border_color}`,
+            }}
+          >
+            <div
+              className="small-header"
+              style={{ color: colors.primary_text }}
+            >
+              Top Expenses
+            </div>
             <ul>
               {s.topExpenses.map((e, i) => (
-                <li key={i} className="top-expense-item">
+                <li
+                  key={i}
+                  className="top-expense-item"
+                  style={{
+                    borderBottom: `1px solid ${colors.border_color}`,
+                  }}
+                >
                   <div className="expense-left">
-                    <div className="cat-name" title={e.name}>
+                    <div
+                      className="cat-name"
+                      title={e.name}
+                      style={{ color: colors.primary_text }}
+                    >
                       {e.name}
                     </div>
-                    <div className="cat-sub">
+                    <div
+                      className="cat-sub"
+                      style={{ color: colors.secondary_text }}
+                    >
                       {new Date(e.date).toLocaleDateString(undefined, {
                         day: "2-digit",
                         month: "short",
@@ -157,7 +237,10 @@ const SummaryOverview = ({ summary }) => {
                     </div>
                   </div>
                   <div className="expense-right">
-                    <span className="cat-value">
+                    <span
+                      className="cat-value"
+                      style={{ color: colors.primary_text }}
+                    >
                       ₹{formatNumber0(e.amount)}
                     </span>
                   </div>

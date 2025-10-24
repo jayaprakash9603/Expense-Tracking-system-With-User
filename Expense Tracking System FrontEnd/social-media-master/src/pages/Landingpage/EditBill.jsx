@@ -29,16 +29,18 @@ import useFriendAccess from "../../hooks/useFriendAccess"; // retains gating
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { updateBill, getBillById } from "../../Redux/Bill/bill.action";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
-
-const labelStyle = "text-white text-sm sm:text-base font-semibold mr-4";
-const inputWrapper = {
-  width: "150px",
-  minWidth: "150px",
-  display: "flex",
-  alignItems: "center",
-};
+import { useTheme } from "../../hooks/useTheme";
 
 const EditBill = ({ onClose, onSuccess, billId }) => {
+  const { colors } = useTheme();
+
+  const labelStyle = `text-sm sm:text-base font-semibold mr-4`;
+  const inputWrapper = {
+    width: "150px",
+    minWidth: "150px",
+    display: "flex",
+    alignItems: "center",
+  };
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -508,43 +510,49 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
       variant="rectangular"
       height={56}
       width={width}
-      sx={{ bgcolor: "#29282b", borderRadius: 1 }}
+      sx={{ bgcolor: colors.secondary_bg, borderRadius: 1 }}
     />
   );
 
   const ExpenseItemSkeleton = () => (
-    <div className="bg-[#1b1b1b] rounded-lg p-2 border border-gray-700 animate-pulse">
+    <div
+      className="rounded-lg p-2 border animate-pulse"
+      style={{
+        backgroundColor: colors.primary_bg,
+        borderColor: colors.border_color,
+      }}
+    >
       <div className="flex justify-between mb-2">
         <Skeleton
           variant="text"
           width={90}
           height={16}
-          sx={{ bgcolor: "#333" }}
+          sx={{ bgcolor: colors.hover_bg }}
         />
         <Skeleton
           variant="text"
           width={50}
           height={16}
-          sx={{ bgcolor: "#333" }}
+          sx={{ bgcolor: colors.hover_bg }}
         />
       </div>
       <Skeleton
         variant="text"
         width={120}
         height={12}
-        sx={{ bgcolor: "#2d2d2d" }}
+        sx={{ bgcolor: colors.secondary_bg }}
       />
       <Skeleton
         variant="text"
         width={100}
         height={12}
-        sx={{ bgcolor: "#2d2d2d" }}
+        sx={{ bgcolor: colors.secondary_bg }}
       />
       <Skeleton
         variant="text"
         width={80}
         height={12}
-        sx={{ bgcolor: "#2d2d2d" }}
+        sx={{ bgcolor: colors.secondary_bg }}
       />
     </div>
   );
@@ -558,21 +566,23 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           style={{
             width: "calc(100vw - 370px)",
             height: "calc(100vh - 100px)",
-            backgroundColor: "rgb(11, 11, 11)",
+            backgroundColor: colors.tertiary_bg,
             borderRadius: "8px",
-            border: "1px solid rgb(0, 0, 0)",
+            border: `1px solid ${colors.border_color}`,
             padding: "20px",
           }}
         >
           <div className="text-red-400 text-xl mb-4">⚠️ Error Loading Bill</div>
-          <p className="text-gray-400 text-center mb-6">{loadError}</p>
+          <p className="mb-6 text-center" style={{ color: colors.icon_muted }}>
+            {loadError}
+          </p>
           <div className="flex gap-4">
             <Button
               onClick={() => window.location.reload()}
               sx={{
-                backgroundColor: "#00DAC6",
-                color: "black",
-                "&:hover": { backgroundColor: "#00b8a0" },
+                backgroundColor: colors.button_bg,
+                color: colors.button_text,
+                "&:hover": { backgroundColor: colors.button_hover },
               }}
             >
               Retry
@@ -602,7 +612,11 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const renderNameInput = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="name" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="name"
+          className={labelStyle}
+          style={{ ...inputWrapper, color: colors.primary_text }}
+        >
           Name<span className="text-red-500"> *</span>
         </label>
         <div style={{ width: "100%", maxWidth: 300 }}>
@@ -629,7 +643,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         <label
           htmlFor="description"
           className={labelStyle}
-          style={inputWrapper}
+          style={{ ...inputWrapper, color: colors.primary_text }}
         >
           Description
         </label>
@@ -646,22 +660,22 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             width: "100%",
             maxWidth: "300px",
             "& .MuiInputBase-root": {
-              backgroundColor: "#29282b",
-              color: "#fff",
+              backgroundColor: colors.secondary_bg,
+              color: colors.primary_text,
               fontSize: "16px",
             },
             "& .MuiInputBase-input": {
-              color: "#fff",
-              "&::placeholder": { color: "#9ca3af", opacity: 1 },
+              color: colors.primary_text,
+              "&::placeholder": { color: colors.icon_muted, opacity: 1 },
             },
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
-                borderColor: "rgb(75, 85, 99)",
+                borderColor: colors.border_color,
                 borderWidth: "1px",
               },
-              "&:hover fieldset": { borderColor: "rgb(75, 85, 99)" },
+              "&:hover fieldset": { borderColor: colors.border_color },
               "&.Mui-focused fieldset": {
-                borderColor: "#00dac6",
+                borderColor: colors.secondary_accent,
                 borderWidth: "2px",
               },
             },
@@ -674,7 +688,11 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const renderDateInput = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="date" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="date"
+          className={labelStyle}
+          style={{ ...inputWrapper, color: colors.primary_text }}
+        >
           Date<span className="text-red-500"> *</span>
         </label>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -682,29 +700,31 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             value={billData.date ? dayjs(billData.date) : null}
             onChange={handleDateChange}
             sx={{
-              background: "#29282b",
+              background: colors.secondary_bg,
               borderRadius: 2,
-              color: "#fff",
+              color: colors.primary_text,
               ".MuiInputBase-input": {
-                color: "#fff",
+                color: colors.primary_text,
                 height: 32,
                 fontSize: 16,
               },
-              ".MuiSvgIcon-root": { color: "#00dac6" },
+              ".MuiSvgIcon-root": { color: colors.secondary_accent },
               width: 300,
               height: 56,
               minHeight: 56,
               maxHeight: 56,
               "& .MuiOutlinedInput-root": {
                 "& fieldset": {
-                  borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                  borderColor: errors.date ? "#ff4d4f" : colors.border_color,
                   borderWidth: "1px",
                 },
                 "&:hover fieldset": {
-                  borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                  borderColor: errors.date ? "#ff4d4f" : colors.border_color,
                 },
                 "&.Mui-focused fieldset": {
-                  borderColor: errors.date ? "#ff4d4f" : "#00dac6",
+                  borderColor: errors.date
+                    ? "#ff4d4f"
+                    : colors.secondary_accent,
                   borderWidth: "2px",
                 },
               },
@@ -745,7 +765,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         <label
           htmlFor="paymentMethod"
           className={labelStyle}
-          style={inputWrapper}
+          style={{ ...inputWrapper, color: colors.primary_text }}
         >
           Payment Method
         </label>
@@ -769,7 +789,11 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const renderTypeAutocomplete = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="type" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="type"
+          className={labelStyle}
+          style={{ ...inputWrapper, color: colors.primary_text }}
+        >
           Type<span className="text-red-500"> *</span>
         </label>
         <Autocomplete
@@ -788,25 +812,27 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
               error={errors.type}
               sx={{
                 "& .MuiInputBase-root": {
-                  backgroundColor: "#29282b",
-                  color: "#fff",
+                  backgroundColor: colors.secondary_bg,
+                  color: colors.primary_text,
                   height: "56px",
                   fontSize: "16px",
                 },
                 "& .MuiInputBase-input": {
-                  color: "#fff",
-                  "&::placeholder": { color: "#9ca3af", opacity: 1 },
+                  color: colors.primary_text,
+                  "&::placeholder": { color: colors.icon_muted, opacity: 1 },
                 },
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": {
-                    borderColor: errors.type ? "#ff4d4f" : "rgb(75, 85, 99)",
+                    borderColor: errors.type ? "#ff4d4f" : colors.border_color,
                     borderWidth: "1px",
                   },
                   "&:hover fieldset": {
-                    borderColor: errors.type ? "#ff4d4f" : "rgb(75, 85, 99)",
+                    borderColor: errors.type ? "#ff4d4f" : colors.border_color,
                   },
                   "&.Mui-focused fieldset": {
-                    borderColor: errors.type ? "#ff4d4f" : "#00dac6",
+                    borderColor: errors.type
+                      ? "#ff4d4f"
+                      : colors.secondary_accent,
                     borderWidth: "2px",
                   },
                 },
@@ -822,7 +848,11 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const renderCategoryAutocomplete = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="category" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="category"
+          className={labelStyle}
+          style={{ ...inputWrapper, color: colors.primary_text }}
+        >
           Category
         </label>
         <CategoryAutocomplete
@@ -918,16 +948,21 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         style={{
           width: "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
-          backgroundColor: "rgb(11, 11, 11)",
+          backgroundColor: colors.tertiary_bg,
           borderRadius: "8px",
           marginRight: "20px",
-          border: "1px solid rgb(0, 0, 0)",
+          border: `1px solid ${colors.border_color}`,
           padding: "20px",
           overflowY: "auto",
         }}
       >
         <div className="w-full flex justify-between items-center mb-1">
-          <p className="text-white font-extrabold text-4xl">Edit Bill</p>
+          <p
+            className="font-extrabold text-4xl"
+            style={{ color: colors.primary_text }}
+          >
+            Edit Bill
+          </p>
           <button
             onClick={() => {
               if (onClose) {
@@ -936,8 +971,11 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                 navigate(-1);
               }
             }}
-            className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
-            style={{ color: "#00dac6" }}
+            className="flex items-center justify-center w-12 h-12 text-[32px] font-bold rounded mt-[-10px]"
+            style={{
+              backgroundColor: colors.secondary_bg,
+              color: colors.secondary_accent,
+            }}
           >
             ×
           </button>
@@ -965,9 +1003,11 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             onClick={handleToggleBudgetTable}
             startIcon={<LinkIcon />}
             sx={{
-              backgroundColor: showBudgetTable ? "#00b8a0" : "#00DAC6",
-              color: "black",
-              "&:hover": { backgroundColor: "#00b8a0" },
+              backgroundColor: showBudgetTable
+                ? colors.button_hover
+                : colors.button_bg,
+              color: colors.button_text,
+              "&:hover": { backgroundColor: colors.button_hover },
             }}
           >
             {showBudgetTable ? "Hide" : "Link"} Budgets
@@ -977,9 +1017,11 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             onClick={handleOpenExpenseTable}
             startIcon={<AddIcon />}
             sx={{
-              backgroundColor: showExpenseTable ? "#00b8a0" : "#00DAC6",
-              color: "black",
-              "&:hover": { backgroundColor: "#00b8a0" },
+              backgroundColor: showExpenseTable
+                ? colors.button_hover
+                : colors.button_bg,
+              color: colors.button_text,
+              "&:hover": { backgroundColor: colors.button_hover },
             }}
           >
             {showExpenseTable ? "Hide" : "Edit"} Expense Items
@@ -989,7 +1031,10 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         {showBudgetTable && !showExpenseTable && (
           <div className="mt-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-white text-xl font-semibold">
+              <h3
+                className="text-xl font-semibold"
+                style={{ color: colors.primary_text }}
+              >
                 Available Budgets for Selected Date
               </h3>
               <IconButton
@@ -1011,10 +1056,17 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
 
             {budgetLoading ? (
               <div className="flex justify-center items-center py-8">
-                <CircularProgress sx={{ color: "#00DAC6" }} />
+                <CircularProgress sx={{ color: colors.primary_accent }} />
               </div>
             ) : budgets.length === 0 ? (
-              <div className="text-center text-gray-400 py-8 bg-[#29282b] rounded border border-gray-600">
+              <div
+                className="text-center py-8 rounded border"
+                style={{
+                  color: colors.icon_muted,
+                  backgroundColor: colors.secondary_bg,
+                  borderColor: colors.border_color,
+                }}
+              >
                 No budgets found for the selected date
               </div>
             ) : (
@@ -1022,9 +1074,9 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                 sx={{
                   height: 325,
                   width: "100%",
-                  background: "#29282b",
+                  background: colors.secondary_bg,
                   borderRadius: 2,
-                  border: "1px solid #444",
+                  border: `1px solid ${colors.border_color}`,
                 }}
               >
                 <DataGrid
@@ -1041,11 +1093,15 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                   rowHeight={42}
                   headerHeight={32}
                   sx={{
-                    color: "#fff",
+                    color: colors.primary_text,
                     border: 0,
-                    "& .MuiDataGrid-columnHeaders": { background: "#222" },
-                    "& .MuiDataGrid-row": { background: "#29282b" },
-                    "& .MuiCheckbox-root": { color: "#00dac6 !important" },
+                    "& .MuiDataGrid-columnHeaders": {
+                      background: colors.tertiary_bg,
+                    },
+                    "& .MuiDataGrid-row": { background: colors.secondary_bg },
+                    "& .MuiCheckbox-root": {
+                      color: `${colors.primary_accent} !important`,
+                    },
                     fontSize: "0.92rem",
                   }}
                 />
@@ -1057,7 +1113,10 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         {showExpenseTable && !showBudgetTable && (
           <div className="mt-6 flex-1 flex flex-col min-h-0">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-white text-xl font-semibold">
+              <h3
+                className="text-xl font-semibold"
+                style={{ color: colors.primary_text }}
+              >
                 Edit Expense Items
               </h3>
               <IconButton
@@ -1071,24 +1130,51 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
               </IconButton>
             </div>
 
-            <div className="bg-[#29282b] rounded border border-gray-600 px-3 pt-3 flex-1 flex flex-col min-h-0">
-              <div className="grid grid-cols-6 gap-3 mb-3 pb-2 border-b border-gray-600">
-                <div className="text-white font-semibold text-sm col-span-1">
+            <div
+              className="rounded border px-3 pt-3 flex-1 flex flex-col min-h-0"
+              style={{
+                backgroundColor: colors.secondary_bg,
+                borderColor: colors.border_color,
+              }}
+            >
+              <div
+                className="grid grid-cols-6 gap-3 mb-3 pb-2 border-b"
+                style={{ borderColor: colors.border_color }}
+              >
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Item Name *
                 </div>
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Quantity *
                 </div>
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Unit Price *
                 </div>
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Total Price
                 </div>
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Comments
                 </div>
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Actions
                 </div>
               </div>
@@ -1108,10 +1194,13 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                       key={index}
                       ref={isLastRow ? lastRowRef : null}
                       className={`grid grid-cols-6 gap-3 items-center p-3 rounded ${
-                        isIncomplete
-                          ? "bg-[#2d1b1b] border border-red-500"
-                          : "bg-[#1b1b1b]"
+                        isIncomplete ? "border border-red-500" : ""
                       }`}
+                      style={{
+                        backgroundColor: isIncomplete
+                          ? "rgba(255, 68, 68, 0.1)"
+                          : colors.primary_bg,
+                      }}
                     >
                       <div className="col-span-1">
                         <ItemNameAutocomplete
@@ -1142,13 +1231,42 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                               e.preventDefault();
                             }
                           }}
-                          className={`w-full px-3 py-2 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
+                          className={`w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
                             hasItemName &&
                             (!expense.quantity ||
                               parseFloat(expense.quantity) <= 0)
-                              ? "bg-[#3d2b2b] border border-red-400 focus:ring-red-400 outline-none"
-                              : "bg-[#29282b] focus:ring-[#00dac6]"
+                              ? "border border-red-400 focus:ring-red-400 outline-none"
+                              : ""
                           }`}
+                          style={{
+                            backgroundColor:
+                              hasItemName &&
+                              (!expense.quantity ||
+                                parseFloat(expense.quantity) <= 0)
+                                ? "rgba(255, 68, 68, 0.2)"
+                                : colors.secondary_bg,
+                            color: colors.primary_text,
+                            borderColor:
+                              hasItemName &&
+                              (!expense.quantity ||
+                                parseFloat(expense.quantity) <= 0)
+                                ? "#ff4d4f"
+                                : colors.border_color,
+                          }}
+                          onFocus={(e) => {
+                            if (
+                              !(
+                                hasItemName &&
+                                (!expense.quantity ||
+                                  parseFloat(expense.quantity) <= 0)
+                              )
+                            ) {
+                              e.target.style.outline = `2px solid ${colors.secondary_accent}`;
+                            }
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.outline = "none";
+                          }}
                           min="1"
                           step="1"
                         />
@@ -1176,11 +1294,28 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                               e.preventDefault();
                             }
                           }}
-                          className={`w-full px-3 py-2 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
+                          className={`w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
                             isIncomplete
-                              ? "bg-[#3d2b2b] border border-red-400 focus:ring-red-400 outline-none"
-                              : "bg-[#29282b] focus:ring-[#00dac6]"
+                              ? "border border-red-400 focus:ring-red-400 outline-none"
+                              : ""
                           }`}
+                          style={{
+                            backgroundColor: isIncomplete
+                              ? "rgba(255, 68, 68, 0.2)"
+                              : colors.secondary_bg,
+                            color: colors.primary_text,
+                            borderColor: isIncomplete
+                              ? "#ff4d4f"
+                              : colors.border_color,
+                          }}
+                          onFocus={(e) => {
+                            if (!isIncomplete) {
+                              e.target.style.outline = `2px solid ${colors.secondary_accent}`;
+                            }
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.outline = "none";
+                          }}
                           min="0.01"
                           step="0.01"
                         />
@@ -1190,7 +1325,11 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                           type="text"
                           value={expense.totalPrice.toFixed(2)}
                           readOnly
-                          className="w-full px-3 py-2 rounded bg-[#333] text-gray-400 cursor-not-allowed text-sm"
+                          className="w-full px-3 py-2 rounded cursor-not-allowed text-sm"
+                          style={{
+                            backgroundColor: colors.hover_bg,
+                            color: colors.icon_muted,
+                          }}
                         />
                       </div>
                       <div className="col-span-1">
@@ -1205,7 +1344,17 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                               e.target.value
                             )
                           }
-                          className="w-full px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
+                          className="w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm"
+                          style={{
+                            backgroundColor: colors.secondary_bg,
+                            color: colors.primary_text,
+                          }}
+                          onFocus={(e) => {
+                            e.target.style.outline = `2px solid ${colors.secondary_accent}`;
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.outline = "none";
+                          }}
                         />
                       </div>
                       <div className="col-span-1 flex gap-2">
@@ -1233,7 +1382,10 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                 })}
               </div>
 
-              <div className="mt-4 pt-4 border-t border-gray-600">
+              <div
+                className="mt-4 pt-4 border-t"
+                style={{ borderColor: colors.border_color }}
+              >
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex flex-col">
                     <Button
@@ -1248,18 +1400,18 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                         backgroundColor: isCurrentRowComplete(
                           tempExpenses[tempExpenses.length - 1]
                         )
-                          ? "#00DAC6"
+                          ? colors.button_bg
                           : "#666",
                         color: isCurrentRowComplete(
                           tempExpenses[tempExpenses.length - 1]
                         )
-                          ? "black"
+                          ? colors.button_text
                           : "#999",
                         "&:hover": {
                           backgroundColor: isCurrentRowComplete(
                             tempExpenses[tempExpenses.length - 1]
                           )
-                            ? "#00b8a0"
+                            ? colors.button_hover
                             : "#666",
                         },
                         "&:disabled": {
@@ -1282,7 +1434,10 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                     )}
                   </div>
                   {tempExpenses.length > 0 && (
-                    <div className="text-white font-semibold">
+                    <div
+                      className="font-semibold"
+                      style={{ color: colors.primary_text }}
+                    >
                       Total Amount: ₹
                       {tempExpenses
                         .reduce(
@@ -1309,9 +1464,9 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                     <Button
                       onClick={handleSaveExpenses}
                       sx={{
-                        backgroundColor: "#00DAC6",
-                        color: "black",
-                        "&:hover": { backgroundColor: "#00b8a0" },
+                        backgroundColor: colors.button_bg,
+                        color: colors.button_text,
+                        "&:hover": { backgroundColor: colors.button_hover },
                         fontSize: "0.875rem",
                         padding: "6px 12px",
                       }}
@@ -1328,12 +1483,24 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
 
         {!showExpenseTable && !showBudgetTable && (
           <div className="mt-4">
-            <div className="bg-[#29282b] rounded border border-gray-600 p-3">
+            <div
+              className="rounded border p-3"
+              style={{
+                backgroundColor: colors.secondary_bg,
+                borderColor: colors.border_color,
+              }}
+            >
               <div className="flex justify-between items-center mb-2">
-                <h4 className="text-white font-semibold text-base">
+                <h4
+                  className="font-semibold text-base"
+                  style={{ color: colors.primary_text }}
+                >
                   Expense Items Summary
                 </h4>
-                <span className="text-[#00dac6] text-sm font-medium">
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: colors.secondary_accent }}
+                >
                   {expenses.length} item{expenses.length !== 1 ? "s" : ""} added
                 </span>
               </div>
@@ -1351,7 +1518,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                   <p className="text-red-400 text-sm mb-1">
                     ⚠️ No expense items added yet
                   </p>
-                  <p className="text-gray-400 text-xs">
+                  <p className="text-xs" style={{ color: colors.icon_muted }}>
                     At least one expense item is required to update the bill
                   </p>
                 </div>
@@ -1362,44 +1529,64 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                     style={{
                       maxHeight: "285px",
                       scrollbarWidth: "thin",
-                      scrollbarColor: "#00dac6 #1b1b1b",
+                      scrollbarColor: `${colors.secondary_accent} ${colors.primary_bg}`,
                     }}
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                       {expenses.map((expense, index) => (
                         <div
                           key={index}
-                          className="bg-[#1b1b1b] rounded-lg p-2 border border-gray-700 hover:border-gray-600 transition-colors"
+                          className="rounded-lg p-2 border hover:border-opacity-80 transition-colors"
+                          style={{
+                            backgroundColor: colors.primary_bg,
+                            borderColor: colors.border_color,
+                          }}
                         >
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-1 min-w-0 pr-2">
                               <h5
-                                className="text-white font-medium text-xs truncate max-w-[140px]"
+                                className="font-medium text-xs truncate max-w-[140px]"
                                 title={expense.itemName}
+                                style={{ color: colors.primary_text }}
                               >
                                 {expense.itemName}
                               </h5>
                             </div>
-                            <div className="text-[#00dac6] font-semibold text-xs whitespace-nowrap">
+                            <div
+                              className="font-semibold text-xs whitespace-nowrap"
+                              style={{ color: colors.secondary_accent }}
+                            >
                               ₹{expense.totalPrice.toFixed(2)}
                             </div>
                           </div>
                           <div className="space-y-1 text-[10px]">
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Qty</span>
-                              <span className="text-white font-medium">
+                              <span style={{ color: colors.icon_muted }}>
+                                Qty
+                              </span>
+                              <span
+                                className="font-medium"
+                                style={{ color: colors.primary_text }}
+                              >
                                 {expense.quantity}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Unit</span>
-                              <span className="text-white font-medium">
+                              <span style={{ color: colors.icon_muted }}>
+                                Unit
+                              </span>
+                              <span
+                                className="font-medium"
+                                style={{ color: colors.primary_text }}
+                              >
                                 ₹{parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Calc</span>
-                              <span className="text-gray-300">
+                              <span style={{ color: colors.icon_muted }}>
+                                Calc
+                              </span>
+                              <span style={{ color: colors.secondary_text }}>
                                 {expense.quantity} × ₹
                                 {parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
@@ -1407,11 +1594,24 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                           </div>
                           {expense.comments &&
                             expense.comments.trim() !== "" && (
-                              <div className="mt-1 pt-1 border-t border-gray-700">
-                                <div className="text-gray-500 text-[10px] mb-0.5">
+                              <div
+                                className="mt-1 pt-1 border-t"
+                                style={{ borderColor: colors.border_color }}
+                              >
+                                <div
+                                  className="text-[10px] mb-0.5"
+                                  style={{ color: colors.icon_muted }}
+                                >
                                   Comments
                                 </div>
-                                <div className="text-gray-300 text-[10px] bg-[#29282b] p-1 rounded border border-gray-600 break-words max-h-16 overflow-auto">
+                                <div
+                                  className="text-[10px] p-1 rounded border break-words max-h-16 overflow-auto"
+                                  style={{
+                                    color: colors.secondary_text,
+                                    backgroundColor: colors.secondary_bg,
+                                    borderColor: colors.border_color,
+                                  }}
+                                >
                                   {expense.comments}
                                 </div>
                               </div>
@@ -1420,12 +1620,21 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                       ))}
                     </div>
                   </div>
-                  <div className="border-t border-gray-600 pt-3 mt-3">
+                  <div
+                    className="border-t pt-3 mt-3"
+                    style={{ borderColor: colors.border_color }}
+                  >
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium text-sm">
+                      <span
+                        className="font-medium text-sm"
+                        style={{ color: colors.icon_muted }}
+                      >
                         Total Amount:
                       </span>
-                      <span className="text-[#00dac6] font-bold text-lg">
+                      <span
+                        className="font-bold text-lg"
+                        style={{ color: colors.secondary_accent }}
+                      >
                         ₹
                         {expenses
                           .reduce((sum, expense) => sum + expense.totalPrice, 0)
@@ -1444,10 +1653,27 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             <button
               onClick={handleSubmit}
               disabled={billLoading}
-              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 font-semibold rounded w-full sm:w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: colors.button_bg,
+                color: colors.button_text,
+              }}
+              onMouseEnter={(e) => {
+                if (!billLoading) {
+                  e.target.style.backgroundColor = colors.button_hover;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!billLoading) {
+                  e.target.style.backgroundColor = colors.button_bg;
+                }
+              }}
             >
               {billLoading ? (
-                <CircularProgress size={20} color="inherit" />
+                <CircularProgress
+                  size={20}
+                  sx={{ color: colors.button_text }}
+                />
               ) : (
                 "Update"
               )}
@@ -1475,27 +1701,27 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             width: 4px;
           }
           .overflow-y-auto::-webkit-scrollbar-track {
-            background: #1b1b1b;
+            background: ${colors.primary_bg};
           }
           .overflow-y-auto::-webkit-scrollbar-thumb {
-            background: #00dac6;
+            background: ${colors.secondary_accent};
             border-radius: 4px;
           }
           .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-            background: #00b8a0;
+            background: ${colors.button_hover};
           }
           .overflow-x-auto::-webkit-scrollbar {
             height: 4px;
           }
           .overflow-x-auto::-webkit-scrollbar-track {
-            background: #1b1b1b;
+            background: ${colors.primary_bg};
           }
           .overflow-x-auto::-webkit-scrollbar-thumb {
-            background: #00dac6;
+            background: ${colors.secondary_accent};
             border-radius: 4px;
           }
           .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-            background: #00b8a0;
+            background: ${colors.button_hover};
           }
           @media (max-width: 640px) {
             .edit-bill-container {

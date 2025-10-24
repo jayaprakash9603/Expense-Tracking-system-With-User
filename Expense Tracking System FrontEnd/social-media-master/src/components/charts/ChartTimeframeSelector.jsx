@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * ChartTimeframeSelector - Dropdown for selecting chart timeframe
@@ -9,6 +10,8 @@ import PropTypes from "prop-types";
  * @param {Array} options - Array of timeframe options { value, label }
  */
 const ChartTimeframeSelector = ({ value, onChange, options }) => {
+  const { colors } = useTheme();
+
   if (!onChange || !options || options.length === 0) return null;
 
   return (
@@ -16,6 +19,11 @@ const ChartTimeframeSelector = ({ value, onChange, options }) => {
       className="time-selector"
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      style={{
+        backgroundColor: colors.tertiary_bg,
+        color: colors.primary_text,
+        border: `1px solid ${colors.border_color}`,
+      }}
     >
       {options.map((opt) => (
         <option key={opt.value} value={opt.value}>

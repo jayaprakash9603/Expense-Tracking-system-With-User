@@ -19,8 +19,10 @@ import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
+import { useTheme } from "../../hooks/useTheme";
 
 const EditBudget = () => {
+  const { colors } = useTheme();
   const navigate = useNavigate();
   const { id, friendId } = useParams(); // Get budget ID from URL
 
@@ -61,8 +63,7 @@ const EditBudget = () => {
 
   const fieldStyles =
     "px-3 py-2 rounded bg-[#29282b] text-white border border-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[350px] max-w-[250px]";
-  const labelStyle =
-    "text-white text-base sm:text-base text-sm font-semibold mr-3";
+  const labelStyle = "text-base sm:text-base text-sm font-semibold mr-3";
   const formRow = "mt-6 flex flex-col sm:flex-row sm:items-center gap-4 w-full";
 
   // Pre-populate form with budget data
@@ -351,7 +352,11 @@ const EditBudget = () => {
   const renderInput = (id, type = "text") => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor={id} className={labelStyle} style={{ width: "100px" }}>
+        <label
+          htmlFor={id}
+          className={labelStyle}
+          style={{ width: "100px", color: colors.primary_text }}
+        >
           {id
             .replace(/([A-Z])/g, " $1")
             .replace(/^./, (str) => str.toUpperCase())}
@@ -363,11 +368,24 @@ const EditBudget = () => {
           value={formData[id]}
           onChange={handleInputChange}
           placeholder={`Enter ${id}`}
-          className={fieldStyles}
+          className={`px-3 py-2 rounded transition-colors w-full focus:outline-none ${
+            errors[id]
+              ? "border-red-500 focus:border-red-600"
+              : "focus:border-[#00dac6]"
+          }`}
+          style={{
+            maxWidth: "350px",
+            backgroundColor: colors.tertiary_bg,
+            color: colors.primary_text,
+            border: `1px solid ${errors[id] ? "#ef4444" : colors.border_color}`,
+          }}
         />
       </div>
       {errors[id] && (
-        <span className="text-red-500 text-sm ml-[100px] sm:ml-[120px]">
+        <span
+          className="text-sm ml-[100px] sm:ml-[120px]"
+          style={{ color: "#ef4444" }}
+        >
           {errors[id]}
         </span>
       )}
@@ -375,17 +393,16 @@ const EditBudget = () => {
   );
 
   return (
-    <div className="bg-[#1b1b1b]">
-      {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
+    <div style={{ backgroundColor: colors.primary_bg }}>
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
         style={{
           height: "auto",
           minHeight: "calc(100vh - 100px)",
-          backgroundColor: "rgb(11, 11, 11)",
+          backgroundColor: colors.secondary_bg,
           borderRadius: "8px",
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-          border: "1px solid rgb(0, 0, 0)",
+          border: `1px solid ${colors.border_color}`,
           opacity: 1,
           marginRight: "20px",
           padding: "16px",
@@ -393,17 +410,34 @@ const EditBudget = () => {
       >
         <div>
           <div className="w-full flex justify-between items-center mb-4">
-            <p className="text-white font-extrabold text-2xl sm:text-3xl">
+            <p
+              className="font-extrabold text-2xl sm:text-3xl"
+              style={{ color: colors.primary_text }}
+            >
               Edit Budget
             </p>
             <button
               onClick={handleCloseBudget}
-              className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a]"
+              className="px-2 py-1 border rounded"
+              style={{
+                color: colors.primary_accent,
+                backgroundColor: colors.tertiary_bg,
+                borderColor: colors.border_color,
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.backgroundColor = colors.hover_bg)
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.backgroundColor = colors.tertiary_bg)
+              }
             >
               X
             </button>
           </div>
-          <hr className="border-t border-gray-600 w-full mb-4 sm:mb-6" />
+          <hr
+            className="border-t w-full mb-4 sm:mb-6"
+            style={{ borderColor: colors.border_color }}
+          />
           <div className={formRow}>
             {renderInput("name")}
             {renderInput("description")}
@@ -429,14 +463,35 @@ const EditBudget = () => {
           <div className="mt-4 sm:mt-[50px] w-full flex flex-col sm:flex-row items-center justify-between gap-2">
             <button
               onClick={handleLinkExpenses}
-              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[150px]"
+              className="px-6 py-2 font-semibold rounded w-full sm:w-[150px]"
+              style={{
+                backgroundColor: colors.button_bg,
+                color: colors.button_text,
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.backgroundColor = colors.button_hover)
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.backgroundColor = colors.button_bg)
+              }
             >
               Link Expenses
             </button>
             {showTable && (
               <button
                 onClick={handleCloseTable}
-                className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a] mt-2 sm:mt-0 hidden sm:block"
+                className="px-2 py-1 border rounded mt-2 sm:mt-0 hidden sm:block"
+                style={{
+                  backgroundColor: colors.tertiary_bg,
+                  color: colors.primary_text,
+                  borderColor: colors.border_color,
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = colors.hover_bg)
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = colors.tertiary_bg)
+                }
               >
                 X
               </button>
@@ -448,41 +503,68 @@ const EditBudget = () => {
                 <div className="flex justify-end mb-2">
                   <button
                     onClick={handleCloseTable}
-                    className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a]"
+                    className="px-2 py-1 border rounded"
+                    style={{
+                      backgroundColor: colors.tertiary_bg,
+                      color: colors.primary_text,
+                      borderColor: colors.border_color,
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.backgroundColor = colors.hover_bg)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.backgroundColor = colors.tertiary_bg)
+                    }
                   >
                     X
                   </button>
                 </div>
                 {expenses.length === 0 ? (
-                  <div className="text-center text-gray-400 py-8">
+                  <div
+                    className="text-center py-8"
+                    style={{ color: colors.icon_muted }}
+                  >
                     No rows found
                   </div>
                 ) : (
                   table.getRowModel().rows.map((row) => (
                     <div
                       key={row.id}
-                      className="bg-[#29282b] border border-gray-600 rounded-lg p-4"
+                      className="border rounded-lg p-4"
+                      style={{
+                        backgroundColor: colors.tertiary_bg,
+                        borderColor: colors.border_color,
+                      }}
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-white font-semibold">
+                        <span
+                          className="font-semibold"
+                          style={{ color: colors.primary_text }}
+                        >
                           {row.original.expense.expenseName}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-300 text-sm">
+                          <span
+                            className="text-sm"
+                            style={{ color: colors.secondary_text }}
+                          >
                             In Budget
                           </span>
                           <input
                             type="checkbox"
                             checked={checkboxStates[row.index]}
                             onChange={() => handleCheckboxChange(row.index)}
-                            className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+                            className="h-5 w-5 rounded focus:ring-[#00dac6]"
                             style={{
-                              accentColor: "#00b8a0",
+                              accentColor: colors.primary_accent,
                             }}
                           />
                         </div>
                       </div>
-                      <div className="text-gray-300 text-sm space-y-1">
+                      <div
+                        className="text-sm space-y-1"
+                        style={{ color: colors.secondary_text }}
+                      >
                         <p>
                           <span className="font-medium">Date:</span>{" "}
                           {row.original.date}
@@ -513,9 +595,9 @@ const EditBudget = () => {
                   sx={{
                     height: 340,
                     width: "100%",
-                    background: "#29282b",
+                    background: colors.tertiary_bg,
                     borderRadius: 2,
-                    border: "1px solid #444",
+                    border: `1px solid ${colors.border_color}`,
                   }}
                 >
                   <DataGrid
@@ -532,11 +614,31 @@ const EditBudget = () => {
                     rowHeight={45}
                     headerHeight={32}
                     sx={{
-                      color: "#fff",
+                      color: colors.primary_text,
                       border: 0,
-                      "& .MuiDataGrid-columnHeaders": { background: "#222" },
-                      "& .MuiDataGrid-row": { background: "#29282b" },
-                      "& .MuiCheckbox-root": { color: "#00dac6 !important" },
+                      "& .MuiDataGrid-columnHeaders": {
+                        background: colors.secondary_bg,
+                        color: colors.primary_text,
+                      },
+                      "& .MuiDataGrid-row": {
+                        background: colors.tertiary_bg,
+                        "&:hover": {
+                          backgroundColor: colors.hover_bg,
+                        },
+                      },
+                      "& .MuiDataGrid-cell": {
+                        borderColor: colors.border_color,
+                      },
+                      "& .MuiCheckbox-root": {
+                        color: `${colors.primary_accent} !important`,
+                      },
+                      "& .MuiDataGrid-footerContainer": {
+                        backgroundColor: colors.secondary_bg,
+                        borderColor: colors.border_color,
+                      },
+                      "& .MuiTablePagination-root": {
+                        color: colors.primary_text,
+                      },
                       fontSize: "0.92rem",
                     }}
                   />
@@ -549,7 +651,7 @@ const EditBudget = () => {
           <div className="w-full flex justify-end mt-4 sm:mt-8">
             <button
               onClick={handleSubmit}
-              className={`py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] transition-all duration-200 w-full sm:w-[120px] ${
+              className={`py-2 font-semibold rounded transition-all duration-200 w-full sm:w-[120px] ${
                 isSubmitting ? "sm:w-[180px]" : ""
               }`}
               disabled={isSubmitting || !hasWriteAccess}
@@ -562,6 +664,16 @@ const EditBudget = () => {
                 justifyContent: "center",
                 fontSize: "1rem",
                 gap: isSubmitting ? 10 : 0,
+                backgroundColor: colors.button_bg,
+                color: colors.button_text,
+              }}
+              onMouseEnter={(e) => {
+                if (!isSubmitting) {
+                  e.target.style.backgroundColor = colors.button_hover;
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = colors.button_bg;
               }}
             >
               {isSubmitting ? (
@@ -571,8 +683,8 @@ const EditBudget = () => {
                     style={{
                       width: 20,
                       height: 20,
-                      border: "3px solid #fff",
-                      borderTop: "3px solid #00DAC6",
+                      border: `3px solid ${colors.button_text}`,
+                      borderTop: `3px solid ${colors.primary_accent}`,
                       borderRadius: "50%",
                       animation: "spin 1s linear infinite",
                       display: "inline-block",
@@ -594,16 +706,12 @@ const EditBudget = () => {
           }
         `}</style>
       </div>
-      {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <style>
         {`
           input[type="date"]::-webkit-calendar-picker-indicator {
             background: url('https://cdn-icons-png.flaticon.com/128/8350/8350450.png') no-repeat;
             background-size: 18px;
             filter: invert(1) brightness(100) contrast(100);
-          }
-          input[type="date"], input[type="number"] {
-            color: white;
           }
           input[type="number"]::-webkit-outer-spin-button,
           input[type="number"]::-webkit-inner-spin-button {
@@ -618,27 +726,29 @@ const EditBudget = () => {
             width: 8px;
           }
           .overflow-y-auto::-webkit-scrollbar-track {
-            background: #1b1b1b;
+            background: ${colors.secondary_bg};
           }
           .overflow-y-auto::-webkit-scrollbar-thumb {
-            background: #00dac6;
+            background: ${colors.primary_accent};
             border-radius: 4px;
           }
           .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-            background: #00b8a0;
+            background: ${colors.primary_accent};
+            opacity: 0.8;
           }
           .overflow-x-auto::-webkit-scrollbar {
             height: 8px;
           }
           .overflow-x-auto::-webkit-scrollbar-track {
-            background: #1b1b1b;
+            background: ${colors.secondary_bg};
           }
           .overflow-x-auto::-webkit-scrollbar-thumb {
-            background: #00dac6;
+            background: ${colors.primary_accent};
             border-radius: 4px;
           }
           .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-            background: #00b8a0;
+            background: ${colors.primary_accent};
+            opacity: 0.8;
           }
         `}
       </style>

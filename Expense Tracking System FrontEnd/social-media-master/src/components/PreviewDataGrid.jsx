@@ -5,24 +5,28 @@ import {
   GridToolbarContainer,
   GridToolbarQuickFilter,
 } from "@mui/x-data-grid";
+import { useTheme } from "../hooks/useTheme";
 
-const PreviewToolbar = () => (
-  <GridToolbarContainer sx={{ display: "flex", gap: 1, p: 1 }}>
-    <GridToolbarQuickFilter
-      sx={{
-        fontSize: "0.875rem",
-        "& .MuiInputBase-root": {
-          backgroundColor: "#1b1b1b",
-          color: "#ffffff",
-          borderRadius: "8px",
-        },
-        "& .MuiInputBase-input::placeholder": {
-          color: "#666666",
-        },
-      }}
-    />
-  </GridToolbarContainer>
-);
+const PreviewToolbar = () => {
+  const { colors } = useTheme();
+  return (
+    <GridToolbarContainer sx={{ display: "flex", gap: 1, p: 1 }}>
+      <GridToolbarQuickFilter
+        sx={{
+          fontSize: "0.875rem",
+          "& .MuiInputBase-root": {
+            backgroundColor: colors.primary_bg,
+            color: colors.primary_text,
+            borderRadius: "8px",
+          },
+          "& .MuiInputBase-input::placeholder": {
+            color: colors.secondary_text,
+          },
+        }}
+      />
+    </GridToolbarContainer>
+  );
+};
 
 const PreviewDataGrid = ({
   rows = [],

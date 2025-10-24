@@ -1,6 +1,7 @@
 import React from "react";
 import { IconButton } from "@mui/material";
 import { Filter, Download } from "lucide-react";
+import { useTheme } from "../hooks/useTheme";
 
 /**
  * ReportHeader - Generic header for analytics report pages (payment methods, categories, etc.)
@@ -46,6 +47,8 @@ const ReportHeader = ({
   flowTypeOptions = DEFAULT_FLOW_TYPES,
   className = "",
 }) => {
+  const { colors } = useTheme();
+
   return (
     <div className={`report-header ${className}`.trim()}>
       <div
@@ -55,8 +58,8 @@ const ReportHeader = ({
         <IconButton
           sx={{
             color: "#00DAC6",
-            backgroundColor: "#1b1b1b",
-            "&:hover": { backgroundColor: "#28282a" },
+            backgroundColor: colors.primary_bg,
+            "&:hover": { backgroundColor: colors.hover_bg },
             zIndex: 10,
             transform: "translateY(-15px)",
           }}

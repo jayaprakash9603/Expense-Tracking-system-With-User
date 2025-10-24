@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import ReusableAutocomplete from "./ReusableAutocomplete";
 import useCategories from "../hooks/useCategories";
+import { useTheme } from "../hooks/useTheme";
 import {
   findCategoryById,
   findExactCategoryMatch,
@@ -55,6 +56,7 @@ const CategoryAutocomplete = ({
   showLabel = false,
   autofetch = true,
 }) => {
+  const { colors } = useTheme();
   // Use custom hook for category management
   const {
     uniqueCategories,
@@ -126,7 +128,7 @@ const CategoryAutocomplete = ({
       {showLabel && label && (
         <label
           style={{
-            color: "#fff",
+            color: colors.primary_text,
             fontSize: "0.875rem",
             fontWeight: "600",
             marginBottom: "4px",
@@ -158,7 +160,11 @@ const CategoryAutocomplete = ({
       />
       {categoriesError && !helperText && (
         <div
-          style={{ color: "#ff4444", fontSize: "0.75rem", marginTop: "4px" }}
+          style={{
+            color: colors.primary_text,
+            fontSize: "0.75rem",
+            marginTop: "4px",
+          }}
         >
           Error: {categoriesError}
         </div>

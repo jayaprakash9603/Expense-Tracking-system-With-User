@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { IconButton, useMediaQuery } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
+import { useTheme } from "../hooks/useTheme";
 
 const formatNumber0 = (v) =>
   Number(v ?? 0).toLocaleString(undefined, {
@@ -31,6 +32,7 @@ const MonthlyTrendChart = ({
   onNextYear,
   loading = false,
 }) => {
+  const { colors } = useTheme();
   const currentYear = new Date().getFullYear();
   const isAtCurrentYear = year >= currentYear;
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -56,12 +58,16 @@ const MonthlyTrendChart = ({
   return (
     <div
       className="chart-container monthly-trend"
-      style={{ position: "relative" }}
+      style={{
+        position: "relative",
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+      }}
     >
       <div className="chart-header">
-        <h3>📈 Monthly Expense Trend</h3>
+        <h3 style={{ color: colors.primary_text }}>📈 Monthly Expense Trend</h3>
         <div className="trend-stats">
-          <span className="trend-up">
+          <span className="trend-up" style={{ color: colors.primary_accent }}>
             ↗ {base.length ? "12%" : "--"} vs last year
           </span>
         </div>
@@ -73,11 +79,21 @@ const MonthlyTrendChart = ({
           onClick={onPrevYear}
           aria-label="Previous year"
           title="Go to previous year"
+          sx={{ color: colors.primary_accent }}
         >
           <ChevronLeft />
         </IconButton>
         <span
           className={`year-chip ${isAtCurrentYear ? "current" : ""}`}
+          style={{
+            backgroundColor: colors.tertiary_bg,
+            color: isAtCurrentYear
+              ? colors.primary_accent
+              : colors.primary_text,
+            border: `1px solid ${
+              isAtCurrentYear ? colors.primary_accent : colors.border_color
+            }`,
+          }}
           title={isAtCurrentYear ? "Current year" : undefined}
         >
           {year}
@@ -95,32 +111,41 @@ const MonthlyTrendChart = ({
               ? "You're viewing the current year"
               : "Go to next year"
           }
+          sx={{
+            color: isAtCurrentYear
+              ? colors.secondary_text
+              : colors.primary_accent,
+          }}
         >
           <ChevronRight />
         </IconButton>
       </div>
       <ResponsiveContainer width="100%" height={chartHeight}>
         <ComposedChart data={chartRows}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-          <XAxis dataKey="month" stroke="#888" fontSize={12} />
+          <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
+          <XAxis dataKey="month" stroke={colors.secondary_text} fontSize={12} />
           <YAxis
-            stroke="#888"
+            stroke={colors.secondary_text}
             fontSize={12}
             tickFormatter={(value) => `₹${Math.round(value / 1000)}K`}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#1b1b1b",
-              border: "1px solid #14b8a6",
+              backgroundColor: colors.tertiary_bg,
+              border: `1px solid ${colors.primary_accent}`,
               borderRadius: "8px",
-              color: "#fff",
+              color: colors.primary_text,
             }}
             formatter={(value, name) => [
               `₹${formatNumber0(value)}`,
               name === "expenses" ? "Expenses" : "Average",
             ]}
           />
-          <Bar dataKey="expenses" fill="#14b8a6" radius={[4, 4, 0, 0]} />
+          <Bar
+            dataKey="expenses"
+            fill={colors.primary_accent}
+            radius={[4, 4, 0, 0]}
+          />
           <Line
             type="monotone"
             dataKey="average"
@@ -139,7 +164,7 @@ const MonthlyTrendChart = ({
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            color: "#888",
+            color: colors.secondary_text,
             fontSize: "14px",
             fontWeight: 500,
           }}

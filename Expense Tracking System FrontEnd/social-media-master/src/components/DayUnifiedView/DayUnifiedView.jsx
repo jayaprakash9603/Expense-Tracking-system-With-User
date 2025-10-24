@@ -16,6 +16,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DayViewSkeleton from "../DayViewSkeleton";
 import JumpToTodayButton from "../JumpToTodayButton";
+import { useTheme as useAppTheme } from "../../hooks/useTheme";
 import "./DayUnifiedView.css";
 
 /**
@@ -52,6 +53,7 @@ const DayUnifiedView = ({
   fetchAfterDelete,
   emptyTitle = "No data!",
 }) => {
+  const { colors } = useAppTheme();
   const [selectedCardIdx, setSelectedCardIdx] = useState(null);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -294,8 +296,8 @@ const DayUnifiedView = ({
           top: 16,
           left: 16,
           color: "#00DAC6",
-          backgroundColor: "#1b1b1b",
-          "&:hover": { backgroundColor: "#28282a" },
+          backgroundColor: colors.primary_bg,
+          "&:hover": { backgroundColor: colors.hover_bg },
           zIndex: 10,
         }}
         onClick={() => {
@@ -622,7 +624,7 @@ const DayUnifiedView = ({
         sx={{
           flex: 1,
           overflow: "auto",
-          background: "#1b1b1b",
+          background: colors.primary_bg,
           borderRadius: 2,
           p: 2,
           position: "relative",

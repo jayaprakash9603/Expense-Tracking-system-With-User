@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * ChartTypeToggle - Toggle buttons for switching between chart types (Loss/Gain)
@@ -9,6 +10,8 @@ import PropTypes from "prop-types";
  * @param {Array} options - Array of type options { value, label, color }
  */
 const ChartTypeToggle = ({ selectedType, onToggle, options }) => {
+  const { colors } = useTheme();
+
   if (!onToggle || !options || options.length === 0) return null;
 
   return (
@@ -22,6 +25,21 @@ const ChartTypeToggle = ({ selectedType, onToggle, options }) => {
           }`}
           onClick={() => onToggle(opt.value)}
           aria-pressed={selectedType === opt.value}
+          style={{
+            backgroundColor:
+              selectedType === opt.value ? opt.color : colors.button_bg,
+            color: selectedType === opt.value ? "white" : colors.button_text,
+            border: `2px solid ${
+              selectedType === opt.value ? opt.color : colors.border_color
+            }`,
+            fontWeight: selectedType === opt.value ? 700 : 500,
+            transform: selectedType === opt.value ? "scale(1.05)" : "scale(1)",
+            boxShadow:
+              selectedType === opt.value
+                ? `0 0 0 3px ${opt.color}20, 0 2px 8px ${opt.color}40`
+                : "none",
+            transition: "all 0.2s ease",
+          }}
         >
           {opt.label}
         </button>

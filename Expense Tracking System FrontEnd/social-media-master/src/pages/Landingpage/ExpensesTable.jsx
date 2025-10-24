@@ -23,7 +23,7 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { Menu, MenuItem } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
-import theme from "./theme";
+import createAppTheme from "./theme";
 import ToastNotification from "./ToastNotification";
 import Modal from "./Modal";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
@@ -33,6 +33,10 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
   const { expenses: reduxExpenses, loading } = useSelector(
     (state) => state.expenses || {}
   );
+
+  // Get theme mode from Redux
+  const themeMode = useSelector((state) => state.theme?.mode || "dark");
+  const theme = React.useMemo(() => createAppTheme(themeMode), [themeMode]);
 
   const [selectedIds, setSelectedIds] = useState([]);
   const navigate = useNavigate();

@@ -41,7 +41,6 @@ const FriendsEmptyState = ({ type = "suggestions", searchActive = false }) => {
       fullWidth
       height={type === "friends" ? 340 : type === "shared" ? 340 : 340}
       iconSize={48}
-      style={{ background: "#1b1b1b", border: "1px dashed #333" }}
     />
   );
 };

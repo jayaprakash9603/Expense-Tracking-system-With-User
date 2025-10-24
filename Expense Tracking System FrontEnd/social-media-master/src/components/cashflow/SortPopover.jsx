@@ -2,6 +2,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import { useTheme } from "../../hooks/useTheme";
 
 // Reusable SortPopover component
 // Props:
@@ -13,6 +14,8 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 // recentIcon: optional image src for recent icon
 // styling overrides could be added later via className or style prop
 const SortPopover = ({ open, anchorRect, sortType, onSelect, recentIcon }) => {
+  const { colors } = useTheme();
+
   if (!open || !anchorRect) return null;
 
   const top = anchorRect.top + window.scrollY;
@@ -26,8 +29,8 @@ const SortPopover = ({ open, anchorRect, sortType, onSelect, recentIcon }) => {
         top,
         left,
         zIndex: 1000,
-        background: "#0b0b0b",
-        border: "1px solid #333",
+        background: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
         borderRadius: 8,
         boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
         minWidth: 140,

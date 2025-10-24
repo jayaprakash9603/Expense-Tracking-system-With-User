@@ -16,6 +16,7 @@ import dayjs from "dayjs"; // kept for potential future date ops not covered by 
 import useAverageLine from "./cashflow/useAverageLine";
 import useTooltipFormatter from "./cashflow/useTooltipFormatter";
 import useSelectionHelpers from "./cashflow/useSelectionHelpers";
+import { useTheme } from "../hooks/useTheme";
 
 // Separate chart component extracted from CashFlow.jsx
 // Props are intentionally verbose to keep this presentational and stateless.
@@ -50,6 +51,7 @@ const CashFlowChart = ({
   ],
   weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
 }) => {
+  const { colors, mode } = useTheme();
   const { avg } = useAverageLine(chartData, activeRange, offset);
   const tooltipFormatter = useTooltipFormatter(
     activeRange,
@@ -64,6 +66,18 @@ const CashFlowChart = ({
     () => new Set(selectedBars.map((b) => b.idx)),
     [selectedBars]
   );
+
+  // Theme-aware colors
+  const gridColor = mode === "dark" ? "#33384e" : "#e0e0e0";
+  const axisTextColor = mode === "dark" ? "#b0b6c3" : "#4a5568";
+  const axisLineColor = mode === "dark" ? "#33384e" : "#d0d0d0";
+  const tooltipBg = mode === "dark" ? "#23243a" : "#ffffff";
+  const tooltipBorder = mode === "dark" ? "#00dac6" : "#14b8a6";
+  const tooltipTextColor = mode === "dark" ? "#fff" : "#1a1a1a";
+  const tooltipLabelColor = mode === "dark" ? "#00dac6" : "#14b8a6";
+  const tooltipItemColor = mode === "dark" ? "#b0b6c3" : "#666666";
+  const labelTextColor = "#ffffff"; // Keep white for visibility on colored bars in both themes
+
   return (
     <ResponsiveContainer width="100%" height={isMobile ? "100%" : "100%"}>
       <BarChart
@@ -93,12 +107,12 @@ const CashFlowChart = ({
         }}
         style={{ cursor: hoverBarIndex !== null ? "pointer" : "default" }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
+        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
         <XAxis
           dataKey={xKey}
-          stroke="#b0b6c3"
+          stroke={axisTextColor}
           tickLine={false}
-          axisLine={{ stroke: "#33384e" }}
+          axisLine={{ stroke: axisLineColor }}
           height={50}
           tick={(props) => {
             const { x, y, payload, index } = props;
@@ -126,7 +140,7 @@ const CashFlowChart = ({
                 />
                 <text
                   dy={10}
-                  fill={isSelected ? selectedColor : "#b0b6c3"}
+                  fill={isSelected ? selectedColor : axisTextColor}
                   fontSize={13}
                   fontWeight={isSelected ? 800 : 600}
                   textAnchor="middle"
@@ -148,7 +162,7 @@ const CashFlowChart = ({
                       : "Month",
                   position: "insideBottomRight",
                   offset: -5,
-                  fill: "#b0b6c3",
+                  fill: axisTextColor,
                   fontWeight: 700,
                   fontSize: 14,
                   dy: -20,
@@ -157,9 +171,9 @@ const CashFlowChart = ({
           }
         />
         <YAxis
-          stroke="#b0b6c3"
-          tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
-          axisLine={{ stroke: "#33384e" }}
+          stroke={axisTextColor}
+          tick={{ fill: axisTextColor, fontWeight: 600, fontSize: 13 }}
+          axisLine={{ stroke: axisLineColor }}
           tickLine={false}
           label={
             barChartStyles?.hideAxisLabels
@@ -168,7 +182,7 @@ const CashFlowChart = ({
                   value: "Amount",
                   angle: -90,
                   position: "insideLeft",
-                  fill: "#b0b6c3",
+                  fill: axisTextColor,
                   fontWeight: 700,
                   fontSize: 14,
                   dy: 40,
@@ -180,14 +194,18 @@ const CashFlowChart = ({
         <Tooltip
           cursor={false}
           contentStyle={{
-            background: "#23243a",
-            border: "1px solid #00dac6",
-            color: "#fff",
+            background: tooltipBg,
+            border: `1px solid ${tooltipBorder}`,
+            color: tooltipTextColor,
             borderRadius: 8,
             fontWeight: 500,
+            boxShadow:
+              mode === "dark"
+                ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+                : "0 4px 12px rgba(0, 0, 0, 0.15)",
           }}
-          labelStyle={{ color: "#00dac6", fontWeight: 700 }}
-          itemStyle={{ color: "#b0b6c3" }}
+          labelStyle={{ color: tooltipLabelColor, fontWeight: 700 }}
+          itemStyle={{ color: tooltipItemColor }}
           formatter={(value) => [formatCurrencyCompact(value), "Amount"]}
           wrapperStyle={{ zIndex: 1000 }}
           labelFormatter={tooltipFormatter}
@@ -276,7 +294,7 @@ const CashFlowChart = ({
                   <text
                     x={x + width / 2}
                     y={labelY}
-                    fill="#fff"
+                    fill={labelTextColor}
                     fontSize={11}
                     textAnchor="middle"
                   >

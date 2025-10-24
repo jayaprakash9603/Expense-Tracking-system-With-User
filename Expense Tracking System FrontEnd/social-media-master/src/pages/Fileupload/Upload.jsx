@@ -24,9 +24,11 @@ import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import PercentageLoader from "../../components/Loaders/PercentageLoader";
 import PulseLoader from "../../components/Loaders/Loader"; // added
 import { api, API_BASE_URL } from "../../config/api";
+import { useTheme } from "../../hooks/useTheme";
 
 const Upload = () => {
   const dispatch = useDispatch();
+  const { colors } = useTheme();
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("expenses");
   const [uploadedData, setUploadedData] = useState([]);
@@ -234,16 +236,16 @@ const Upload = () => {
 
   return (
     <>
-      <div className=" bg-[#1b1b1b]">
+      <div style={{ backgroundColor: colors.primary_bg }}>
         <div
           className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
           style={{
             height: "auto",
             minHeight: "calc(100vh - 100px)",
-            backgroundColor: "rgb(11, 11, 11)",
+            backgroundColor: colors.secondary_bg,
             borderRadius: "8px",
             boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-            border: "1px solid rgb(0, 0, 0)",
+            border: `1px solid ${colors.border_color}`,
             opacity: 1,
             position: "relative",
             marginRight: "20px",
@@ -254,10 +256,10 @@ const Upload = () => {
           <div style={{ position: "absolute", top: 16, left: 16, zIndex: 10 }}>
             <IconButton
               sx={{
-                color: "#00DAC6",
-                backgroundColor: "#1b1b1b",
+                color: "#14b8a6",
+                backgroundColor: colors.primary_bg,
                 "&:hover": {
-                  backgroundColor: "#28282a",
+                  backgroundColor: colors.hover_bg,
                 },
                 zIndex: 10,
               }}
@@ -277,7 +279,7 @@ const Upload = () => {
               >
                 <path
                   d="M15 18L9 12L15 6"
-                  stroke="#00DAC6"
+                  stroke="#14b8a6"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -298,14 +300,43 @@ const Upload = () => {
               {hasWriteAccess && (
                 <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">
                   <button
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 z-10"
+                    style={{
+                      backgroundColor: "#dc2626",
+                      color: "#ffffff",
+                      padding: "0.25rem 0.75rem",
+                      borderRadius: "0.375rem",
+                      border: "none",
+                      cursor: "pointer",
+                      zIndex: 10,
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.backgroundColor = "#b91c1c")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.backgroundColor = "#dc2626")
+                    }
                     onClick={hideTable}
                     title="Close Table"
                   >
                     Cancel
                   </button>
                   <button
-                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 z-10"
+                    style={{
+                      backgroundColor: "#2563eb",
+                      color: "#ffffff",
+                      padding: "0.25rem 0.75rem",
+                      borderRadius: "0.375rem",
+                      border: "none",
+                      cursor: isLoading ? "not-allowed" : "pointer",
+                      opacity: isLoading ? 0.6 : 1,
+                      zIndex: 10,
+                    }}
+                    onMouseEnter={(e) =>
+                      !isLoading && (e.target.style.backgroundColor = "#1d4ed8")
+                    }
+                    onMouseLeave={(e) =>
+                      !isLoading && (e.target.style.backgroundColor = "#2563eb")
+                    }
                     onClick={handleSave}
                     disabled={isLoading}
                   >
@@ -435,25 +466,81 @@ const Upload = () => {
                         !showBudgetsUploadBtn && (
                           <>
                             <button
-                              className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
+                              style={{
+                                backgroundColor: "#2563eb",
+                                color: "#ffffff",
+                                padding: "0.75rem 1.5rem",
+                                borderRadius: "0.5rem",
+                                fontSize: "1.125rem",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.target.style.backgroundColor = "#1d4ed8")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.target.style.backgroundColor = "#2563eb")
+                              }
                               onClick={openModal}
                             >
                               Upload Expenses
                             </button>
                             <button
-                              className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
+                              style={{
+                                backgroundColor: "#059669",
+                                color: "#ffffff",
+                                padding: "0.75rem 1.5rem",
+                                borderRadius: "0.5rem",
+                                fontSize: "1.125rem",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.target.style.backgroundColor = "#047857")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.target.style.backgroundColor = "#059669")
+                              }
                               onClick={openCategoryFilePicker}
                             >
                               Upload Categories
                             </button>
                             <button
-                              className="bg-indigo-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-indigo-700"
+                              style={{
+                                backgroundColor: "#4f46e5",
+                                color: "#ffffff",
+                                padding: "0.75rem 1.5rem",
+                                borderRadius: "0.5rem",
+                                fontSize: "1.125rem",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.target.style.backgroundColor = "#4338ca")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.target.style.backgroundColor = "#4f46e5")
+                              }
                               onClick={() => openModal("payment-methods")}
                             >
                               Upload Payment Methods
                             </button>
                             <button
-                              className="bg-fuchsia-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-fuchsia-700"
+                              style={{
+                                backgroundColor: "#c026d3",
+                                color: "#ffffff",
+                                padding: "0.75rem 1.5rem",
+                                borderRadius: "0.5rem",
+                                fontSize: "1.125rem",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.target.style.backgroundColor = "#a21caf")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.target.style.backgroundColor = "#c026d3")
+                              }
                               onClick={() => openModal("budgets")}
                             >
                               Upload Budgets
@@ -462,7 +549,21 @@ const Upload = () => {
                         )}
                       {showExpensesUploadBtn && (
                         <button
-                          className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-blue-700"
+                          style={{
+                            backgroundColor: "#2563eb",
+                            color: "#ffffff",
+                            padding: "0.75rem 1.5rem",
+                            borderRadius: "0.5rem",
+                            fontSize: "1.125rem",
+                            border: "none",
+                            cursor: "pointer",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.target.style.backgroundColor = "#1d4ed8")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.target.style.backgroundColor = "#2563eb")
+                          }
                           onClick={openModal}
                         >
                           Upload Expenses
@@ -470,7 +571,21 @@ const Upload = () => {
                       )}
                       {showCategoriesUploadBtn && (
                         <button
-                          className="bg-emerald-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-emerald-700"
+                          style={{
+                            backgroundColor: "#059669",
+                            color: "#ffffff",
+                            padding: "0.75rem 1.5rem",
+                            borderRadius: "0.5rem",
+                            fontSize: "1.125rem",
+                            border: "none",
+                            cursor: "pointer",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.target.style.backgroundColor = "#047857")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.target.style.backgroundColor = "#059669")
+                          }
                           onClick={openCategoryFilePicker}
                         >
                           Upload Categories
@@ -481,7 +596,21 @@ const Upload = () => {
                         !showCategoriesUploadBtn &&
                         !showBudgetsUploadBtn && (
                           <button
-                            className="bg-indigo-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-indigo-700"
+                            style={{
+                              backgroundColor: "#4f46e5",
+                              color: "#ffffff",
+                              padding: "0.75rem 1.5rem",
+                              borderRadius: "0.5rem",
+                              fontSize: "1.125rem",
+                              border: "none",
+                              cursor: "pointer",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.backgroundColor = "#4338ca")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.backgroundColor = "#4f46e5")
+                            }
                             onClick={() => openModal("payment-methods")}
                           >
                             Upload Payment Methods
@@ -492,7 +621,21 @@ const Upload = () => {
                         !showCategoriesUploadBtn &&
                         !showPaymentMethodsUploadBtn && (
                           <button
-                            className="bg-fuchsia-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-fuchsia-700"
+                            style={{
+                              backgroundColor: "#c026d3",
+                              color: "#ffffff",
+                              padding: "0.75rem 1.5rem",
+                              borderRadius: "0.5rem",
+                              fontSize: "1.125rem",
+                              border: "none",
+                              cursor: "pointer",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.backgroundColor = "#a21caf")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.backgroundColor = "#c026d3")
+                            }
                             onClick={() => openModal("budgets")}
                           >
                             Upload Budgets
@@ -528,7 +671,10 @@ const Upload = () => {
         sx={{
           color: "#fff",
           zIndex: (theme) => theme.zIndex.drawer + 1400,
-          backgroundColor: "rgba(0, 0, 0, 0.78)",
+          backgroundColor:
+            colors.mode === "dark"
+              ? "rgba(0, 0, 0, 0.78)"
+              : "rgba(255, 255, 255, 0.78)",
           backdropFilter: "blur(4px)",
           display: "flex",
           alignItems: "center",
@@ -559,22 +705,22 @@ const Upload = () => {
             <PercentageLoader
               percentage={saveProgress}
               size="xl"
-              trackColor="#2a2a2a"
+              trackColor={colors.mode === "dark" ? "#2a2a2a" : "#e0e0e0"}
               progressColor="#14b8a6"
-              textColor="#fff"
+              textColor={colors.primary_text}
               showPercentage={true}
               processed={saveProcessed}
               total={saveTotal}
             />
             {saveTotal > 0 && (
-              <Box sx={{ color: "#9ca3af", fontSize: "0.8rem" }}>
+              <Box sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}>
                 {saveProcessed} / {saveTotal} items saved
               </Box>
             )}
             {loadingMessage && (
               <Box
                 sx={{
-                  color: "#fff",
+                  color: colors.primary_text,
                   fontSize: "1.1rem",
                   fontWeight: 600,
                   textShadow: "0 2px 4px rgba(0,0,0,0.5)",
@@ -585,7 +731,7 @@ const Upload = () => {
             )}
             <Box
               sx={{
-                color: "#a0a0a0",
+                color: colors.secondary_text,
                 fontSize: "0.85rem",
                 maxWidth: 340,
                 lineHeight: 1.5,

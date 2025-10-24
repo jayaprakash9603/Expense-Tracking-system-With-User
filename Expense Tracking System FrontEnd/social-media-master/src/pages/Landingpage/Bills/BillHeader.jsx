@@ -16,6 +16,7 @@ import {
   Assessment as AssessmentIcon,
   CalendarToday as CalendarIcon,
 } from "@mui/icons-material";
+import { useTheme } from "../../../hooks/useTheme";
 
 const BillHeader = ({
   friendId,
@@ -28,6 +29,7 @@ const BillHeader = ({
   hideBackButton = false,
 }) => {
   const open = Boolean(menuAnchorEl);
+  const { colors } = useTheme();
 
   const handleDirectCreateBill = () => {
     // Utilize existing menu routing logic by calling onMenuItemClick with 'new'
@@ -40,9 +42,9 @@ const BillHeader = ({
         <Box sx={{ position: "absolute", top: 16, left: 16, zIndex: 10 }}>
           <IconButton
             sx={{
-              color: "#00DAC6",
-              backgroundColor: "#1b1b1b",
-              "&:hover": { backgroundColor: "#28282a" },
+              color: colors.secondary_accent,
+              backgroundColor: colors.primary_bg,
+              "&:hover": { backgroundColor: colors.hover_bg },
               zIndex: 10,
             }}
             onClick={onBack}
@@ -70,8 +72,8 @@ const BillHeader = ({
             startIcon={<AddIcon />}
             onClick={handleDirectCreateBill}
             sx={{
-              backgroundColor: "#14b8a6",
-              color: "white",
+              backgroundColor: colors.primary_accent,
+              color: colors.button_text,
               fontWeight: 600,
               px: 2.5,
               py: 1,
@@ -80,7 +82,7 @@ const BillHeader = ({
               fontSize: "0.85rem",
               minHeight: "40px",
               boxShadow: "none",
-              "&:hover": { backgroundColor: "#0d9488" },
+              "&:hover": { backgroundColor: colors.button_hover },
               "@media (max-width:600px)": { display: "none" },
             }}
           >
@@ -89,9 +91,9 @@ const BillHeader = ({
         )}
         <IconButton
           sx={{
-            color: "#00DAC6",
-            backgroundColor: "#1b1b1b",
-            "&:hover": { backgroundColor: "#28282a" },
+            color: colors.secondary_accent,
+            backgroundColor: colors.primary_bg,
+            "&:hover": { backgroundColor: colors.hover_bg },
             zIndex: 10,
           }}
           onClick={onMenuClick}
@@ -108,8 +110,8 @@ const BillHeader = ({
           transformOrigin={{ vertical: "top", horizontal: "right" }}
           PaperProps={{
             sx: {
-              backgroundColor: "#1b1b1b",
-              border: "1px solid #14b8a6",
+              backgroundColor: colors.primary_bg,
+              border: `1px solid ${colors.primary_accent}`,
               borderRadius: "8px",
               boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
               mt: 1,
@@ -141,13 +143,13 @@ const BillHeader = ({
                 key={key}
                 onClick={() => onMenuItemClick(key)}
                 sx={{
-                  color: "#fff",
+                  color: colors.primary_text,
                   px: 3,
                   py: 1.5,
-                  "&:hover": { backgroundColor: "#28282a" },
+                  "&:hover": { backgroundColor: colors.hover_bg },
                 }}
               >
-                <Icon sx={{ mr: 2, color: "#14b8a6" }} />
+                <Icon sx={{ mr: 2, color: colors.primary_accent }} />
                 <Typography variant="body2">{label}</Typography>
               </MenuItem>
             ))}

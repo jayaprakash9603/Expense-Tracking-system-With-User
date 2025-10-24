@@ -1,12 +1,21 @@
 import React from "react";
+import { useTheme } from "../../hooks/useTheme";
 
 // BudgetOverviewSkeleton supports two modes:
 //  summary: circle progress + two metric lines (Remaining / Total Spent)
 //  list: multiple budget rows with bar + metrics (count controls rows)
 const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
+  const { colors } = useTheme();
+
   if (mode === "summary") {
     return (
-      <div className="budget-overview skeleton summary">
+      <div
+        className="budget-overview skeleton summary"
+        style={{
+          backgroundColor: colors.secondary_bg,
+          border: `1px solid ${colors.border_color}`,
+        }}
+      >
         <div className="section-header">
           <h3
             className="skeleton-text"
@@ -15,6 +24,8 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
               maxWidth: 240,
               whiteSpace: "normal",
               overflow: "visible",
+              backgroundColor: colors.hover_bg,
+              color: colors.primary_text,
             }}
           >
             🎯 Budget Overview
@@ -25,11 +36,19 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
             <div className="budget-center">
               <div
                 className="budget-percentage skeleton-text"
-                style={{ width: 48, height: 22 }}
+                style={{
+                  width: 48,
+                  height: 22,
+                  backgroundColor: colors.hover_bg,
+                }}
               />
               <div
                 className="budget-label skeleton-text"
-                style={{ width: 40, height: 14 }}
+                style={{
+                  width: 40,
+                  height: 14,
+                  backgroundColor: colors.hover_bg,
+                }}
               />
               {/* Small round shape inside the center to mirror live UI accent */}
               <div
@@ -38,7 +57,7 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
                   width: 20,
                   height: 20,
                   borderRadius: "50%",
-                  background: "rgba(255,255,255,0.08)",
+                  backgroundColor: colors.hover_bg,
                   marginTop: 6,
                 }}
               />
@@ -47,12 +66,40 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
         </div>
         <div className="budget-details">
           <div className="budget-item">
-            <span className="skeleton-text" style={{ width: 70, height: 14 }} />
-            <span className="skeleton-pill" style={{ width: 90, height: 18 }} />
+            <span
+              className="skeleton-text"
+              style={{
+                width: 70,
+                height: 14,
+                backgroundColor: colors.hover_bg,
+              }}
+            />
+            <span
+              className="skeleton-pill"
+              style={{
+                width: 90,
+                height: 18,
+                backgroundColor: colors.hover_bg,
+              }}
+            />
           </div>
           <div className="budget-item">
-            <span className="skeleton-text" style={{ width: 80, height: 14 }} />
-            <span className="skeleton-pill" style={{ width: 90, height: 18 }} />
+            <span
+              className="skeleton-text"
+              style={{
+                width: 80,
+                height: 14,
+                backgroundColor: colors.hover_bg,
+              }}
+            />
+            <span
+              className="skeleton-pill"
+              style={{
+                width: 90,
+                height: 18,
+                backgroundColor: colors.hover_bg,
+              }}
+            />
           </div>
         </div>
       </div>
@@ -61,7 +108,13 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
 
   // list mode skeleton
   return (
-    <div className="budget-overview skeleton list">
+    <div
+      className="budget-overview skeleton list"
+      style={{
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+      }}
+    >
       <div className="section-header">
         <h3
           className="skeleton-text"
@@ -70,42 +123,82 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
             maxWidth: 240,
             whiteSpace: "normal",
             overflow: "visible",
+            backgroundColor: colors.hover_bg,
+            color: colors.primary_text,
           }}
         >
           📊 Budget Overview
         </h3>
-        <div className="skeleton-pill" style={{ width: 70 }} />
+        <div
+          className="skeleton-pill"
+          style={{
+            width: 70,
+            backgroundColor: colors.hover_bg,
+          }}
+        />
       </div>
       <div className="budget-list">
         {Array.from({ length: count }).map((_, i) => (
-          <div key={i} className="budget-item">
+          <div
+            key={i}
+            className="budget-item"
+            style={{
+              backgroundColor: colors.tertiary_bg,
+              border: `1px solid ${colors.border_color}`,
+            }}
+          >
             <div className="budget-header">
               <div
                 className="skeleton-text"
-                style={{ width: 120, height: 14 }}
+                style={{
+                  width: 120,
+                  height: 14,
+                  backgroundColor: colors.hover_bg,
+                }}
               />
               <div
                 className="skeleton-pill"
-                style={{ width: 42, height: 18 }}
+                style={{
+                  width: 42,
+                  height: 18,
+                  backgroundColor: colors.hover_bg,
+                }}
               />
             </div>
             <div className="budget-bar-wrapper">
-              <div className="budget-bar-bg skeleton-bar">
+              <div
+                className="budget-bar-bg skeleton-bar"
+                style={{
+                  backgroundColor: colors.hover_bg,
+                }}
+              >
                 <div className="budget-bar-fill" style={{ width: "0%" }} />
               </div>
             </div>
             <div className="budget-metrics">
               <div
                 className="skeleton-text"
-                style={{ width: 90, height: 12 }}
+                style={{
+                  width: 90,
+                  height: 12,
+                  backgroundColor: colors.hover_bg,
+                }}
               />
               <div
                 className="skeleton-text"
-                style={{ width: 80, height: 12 }}
+                style={{
+                  width: 80,
+                  height: 12,
+                  backgroundColor: colors.hover_bg,
+                }}
               />
               <div
                 className="skeleton-text"
-                style={{ width: 100, height: 12 }}
+                style={{
+                  width: 100,
+                  height: 12,
+                  backgroundColor: colors.hover_bg,
+                }}
               />
             </div>
           </div>

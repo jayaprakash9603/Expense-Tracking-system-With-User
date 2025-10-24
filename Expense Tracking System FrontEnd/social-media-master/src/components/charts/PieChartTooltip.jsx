@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * ============================================================================
@@ -194,6 +195,8 @@ const PercentageIcon = ({ size = 14, color = "#fff" }) => (
  * @param {object} data - Full data object from API (with summary and category details)
  */
 const PieChartTooltip = ({ active, payload, data }) => {
+  const { colors } = useTheme();
+
   // Early return if tooltip is not active
   if (!active || !payload || !payload.length) return null;
 
@@ -271,10 +274,10 @@ const PieChartTooltip = ({ active, payload, data }) => {
   return (
     <div
       style={{
-        backgroundColor: "#0f0f0f",
+        backgroundColor: colors.tertiary_bg,
         border: `2px solid ${categoryColor}`,
         borderRadius: 12,
-        color: "#fff",
+        color: colors.primary_text,
         padding: 0,
         minWidth: isMobile ? 200 : isTablet ? 220 : 240,
         maxWidth: isMobile ? 280 : isTablet ? 300 : 320,
@@ -356,7 +359,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
       <div
         style={{
           padding: padding,
-          background: "#0f0f0f",
+          background: colors.secondary_bg,
         }}
       >
         {/* Transaction Count */}
@@ -367,9 +370,9 @@ const PieChartTooltip = ({ active, payload, data }) => {
             justifyContent: "space-between",
             marginBottom: gap,
             padding: "8px 10px",
-            background: "rgba(255, 255, 255, 0.03)",
+            background: colors.tertiary_bg,
             borderRadius: 8,
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            border: `1px solid ${colors.border_color}`,
           }}
         >
           <div
@@ -383,7 +386,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             <span
               style={{
                 fontSize: fontSize.label,
-                color: "#aaa",
+                color: colors.secondary_text,
                 fontWeight: 500,
               }}
             >
@@ -393,7 +396,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
           <span
             style={{
               fontSize: fontSize.value,
-              color: "#fff",
+              color: colors.primary_text,
               fontWeight: 700,
             }}
           >
@@ -408,9 +411,9 @@ const PieChartTooltip = ({ active, payload, data }) => {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "8px 10px",
-            background: "rgba(255, 255, 255, 0.03)",
+            background: colors.tertiary_bg,
             borderRadius: 8,
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            border: `1px solid ${colors.border_color}`,
           }}
         >
           <div
@@ -424,7 +427,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             <span
               style={{
                 fontSize: fontSize.label,
-                color: "#aaa",
+                color: colors.secondary_text,
                 fontWeight: 500,
               }}
             >
@@ -448,7 +451,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             style={{
               marginTop: gap,
               padding: "8px 10px",
-              background: "rgba(255, 255, 255, 0.02)",
+              background: colors.tertiary_bg,
               borderRadius: 8,
               borderLeft: `3px solid ${categoryColor}`,
             }}
@@ -456,7 +459,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             <div
               style={{
                 fontSize: fontSize.label - 1,
-                color: "#888",
+                color: colors.secondary_text,
                 fontWeight: 500,
                 marginBottom: 4,
                 textTransform: "uppercase",
@@ -468,7 +471,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             <div
               style={{
                 fontSize: fontSize.label,
-                color: "#bbb",
+                color: colors.primary_text,
                 lineHeight: 1.4,
               }}
             >

@@ -1,18 +1,21 @@
 import React from "react";
+import { useTheme } from "../../hooks/useTheme";
 
 // Small pill for summary metrics in selection info bar
 // Props: label (string), value (string|number), icon (ReactNode optional)
 const SummaryPill = ({ label, value, icon }) => {
+  const { colors } = useTheme();
+
   return (
     <span
       style={{
-        background: "#1b1b1b",
-        border: "1px solid #262626",
+        background: colors.primary_bg,
+        border: `1px solid ${colors.border_color}`,
         borderRadius: 8,
         padding: "6px 10px",
         fontSize: 11,
         fontWeight: 600,
-        color: "#cfd3d8",
+        color: colors.secondary_text,
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
@@ -36,7 +39,12 @@ const SummaryPill = ({ label, value, icon }) => {
         </span>
       )}
       <span style={{ opacity: 0.55, fontWeight: 500 }}>{label}</span>
-      <span style={{ color: "#00dac6", fontVariantNumeric: "tabular-nums" }}>
+      <span
+        style={{
+          color: colors.active_text,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
         {value}
       </span>
     </span>
