@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../hooks/useTheme";
 import DashboardHeader from "../../components/DashboardHeader";
 import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SummaryOverview from "../../components/SummaryOverview";
@@ -20,6 +21,7 @@ import { createDashboardActions } from "./dashboardActions";
 
 // Central presentation component - minimal logic; relies on context for data/state.
 export default function DashboardContent() {
+  const { colors } = useTheme();
   const {
     forceRefresh,
     categoryTimeframe,
@@ -55,7 +57,14 @@ export default function DashboardContent() {
   const isTablet = window.matchMedia("(max-width:1024px)").matches;
 
   return (
-    <div className="expense-dashboard">
+    <div
+      className="expense-dashboard"
+      style={{
+        backgroundColor: colors.secondary_bg,
+        color: colors.primary_text,
+        border: `1px solid ${colors.border_color}`,
+      }}
+    >
       <DashboardHeader
         onRefresh={forceRefresh}
         onExport={exportReports}
@@ -130,7 +139,7 @@ export default function DashboardContent() {
             loading={paymentMethodsLoading}
             skeleton={
               analyticsLoading ? (
-                <ChartSkeleton height={600} variant="pie" noHeader />
+                <ChartSkeleton height={450} variant="pie" noHeader />
               ) : null
             }
           />

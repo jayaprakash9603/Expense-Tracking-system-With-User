@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * ============================================================================
@@ -439,13 +440,13 @@ const TooltipHeader = ({
 /**
  * Transaction Item Component
  */
-const TransactionItem = ({ expense, theme, responsiveStyles }) => (
+const TransactionItem = ({ expense, theme, responsiveStyles, colors }) => (
   <div
     style={{
-      background: "rgba(255, 255, 255, 0.03)",
+      background: colors.tertiary_bg,
       borderRadius: 8,
       padding: "8px 10px",
-      border: "1px solid rgba(255, 255, 255, 0.08)",
+      border: `1px solid ${colors.border_color}`,
       transition: "all 0.2s ease",
     }}
   >
@@ -460,7 +461,7 @@ const TransactionItem = ({ expense, theme, responsiveStyles }) => (
       <div
         style={{
           fontSize: responsiveStyles.typography.transactionName,
-          color: "#fff",
+          color: colors.primary_text,
           fontWeight: 600,
           flex: 1,
           lineHeight: 1.3,
@@ -499,7 +500,7 @@ const TransactionItem = ({ expense, theme, responsiveStyles }) => (
       <span
         style={{
           fontSize: responsiveStyles.typography.category,
-          color: "#999",
+          color: colors.secondary_text,
           fontWeight: 500,
         }}
       >
@@ -519,6 +520,7 @@ const TransactionsList = ({
   theme,
   responsiveStyles,
   styles,
+  colors,
 }) => {
   if (expenses.length === 0) return null;
 
@@ -526,7 +528,7 @@ const TransactionsList = ({
     <div
       style={{
         padding: responsiveStyles.body.padding,
-        background: "#0f0f0f",
+        background: colors.secondary_bg,
         ...styles.body,
       }}
     >
@@ -534,7 +536,7 @@ const TransactionsList = ({
       <div
         style={{
           fontSize: 10,
-          color: "#888",
+          color: colors.secondary_text,
           marginBottom: 8,
           fontWeight: 600,
           display: "flex",
@@ -553,7 +555,7 @@ const TransactionsList = ({
             size={responsiveStyles.icons.transaction}
             color={theme.color}
           />
-          <span style={{ color: "#ccc" }}>Transactions</span>
+          <span style={{ color: colors.primary_text }}>Transactions</span>
           <span
             style={{
               background: theme.color,
@@ -570,8 +572,8 @@ const TransactionsList = ({
         {remainingCount > 0 && (
           <span
             style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              color: "#bbb",
+              background: colors.tertiary_bg,
+              color: colors.secondary_text,
               padding: "2px 6px",
               borderRadius: 6,
               fontSize: 9,
@@ -597,6 +599,7 @@ const TransactionsList = ({
             expense={exp}
             theme={theme}
             responsiveStyles={responsiveStyles}
+            colors={colors}
           />
         ))}
       </div>
@@ -624,6 +627,8 @@ const SpendingChartTooltip = ({
   config = {},
   theme,
 }) => {
+  const { colors } = useTheme();
+
   // Early return if tooltip is not active
   if (!active || !payload || !payload.length) return null;
 
@@ -642,7 +647,7 @@ const SpendingChartTooltip = ({
       // backgroundColor: "#0f0f0f",
       border: `${responsiveStyles.container.borderWidth}px solid ${theme.border}`,
       borderRadius: responsiveStyles.container.borderRadius,
-      color: "#fff",
+      color: colors.primary_text,
       padding: 0,
       minWidth: config.minWidth || responsiveStyles.container.minWidth,
       maxWidth: config.maxWidth || responsiveStyles.container.maxWidth,
@@ -682,6 +687,7 @@ const SpendingChartTooltip = ({
         theme={theme}
         responsiveStyles={responsiveStyles}
         styles={customStyles}
+        colors={colors}
       />
     </div>
   );
@@ -724,6 +730,7 @@ TransactionItem.propTypes = {
   }).isRequired,
   theme: PropTypes.object.isRequired,
   responsiveStyles: PropTypes.object.isRequired,
+  colors: PropTypes.object.isRequired,
 };
 
 TransactionsList.propTypes = {
@@ -733,6 +740,7 @@ TransactionsList.propTypes = {
   theme: PropTypes.object.isRequired,
   responsiveStyles: PropTypes.object.isRequired,
   styles: PropTypes.object.isRequired,
+  colors: PropTypes.object.isRequired,
 };
 
 SpendingChartTooltip.propTypes = {

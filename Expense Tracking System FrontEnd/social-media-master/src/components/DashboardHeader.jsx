@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useTheme } from "../hooks/useTheme";
 import {
   IconButton,
   Menu,
@@ -22,6 +23,7 @@ const DashboardHeader = ({
   onFilter,
   menuProps = {},
 }) => {
+  const { colors } = useTheme();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
@@ -35,8 +37,10 @@ const DashboardHeader = ({
     <div className="dashboard-header">
       <div className="header-left">
         <div className="header-title">
-          <h1>{title}</h1>
-          {subtitle && <p>{subtitle}</p>}
+          <h1 style={{ color: colors.primary_text }}>{title}</h1>
+          {subtitle && (
+            <p style={{ color: colors.secondary_text }}>{subtitle}</p>
+          )}
         </div>
       </div>
       <div className="header-actions">
@@ -48,6 +52,7 @@ const DashboardHeader = ({
           aria-expanded={open ? "true" : undefined}
           onClick={handleMenuOpen}
           size="small"
+          style={{ color: colors.icon_muted }}
         >
           <MoreVert />
         </IconButton>
@@ -59,9 +64,9 @@ const DashboardHeader = ({
           MenuListProps={{ "aria-labelledby": "dashboard-menu" }}
           PaperProps={{
             sx: {
-              backgroundColor: "#1e1e1e",
-              color: "#fff",
-              border: "1px solid #2a2a2a",
+              backgroundColor: colors.tertiary_bg,
+              color: colors.primary_text,
+              border: `1px solid ${colors.border_color}`,
               minWidth: 220,
             },
             ...menuProps.PaperProps,
@@ -69,33 +74,54 @@ const DashboardHeader = ({
         >
           {onRefresh && (
             <MenuItem onClick={handleAndClose(onRefresh)}>
-              <ListItemIcon sx={{ color: "#14b8a6" }}>
+              <ListItemIcon sx={{ color: colors.primary_accent }}>
                 <Refresh fontSize="small" />
               </ListItemIcon>
               <ListItemText
                 primary="Refresh"
                 secondary="Reload dashboard data"
+                primaryTypographyProps={{
+                  style: { color: colors.primary_text },
+                }}
+                secondaryTypographyProps={{
+                  style: { color: colors.secondary_text },
+                }}
               />
             </MenuItem>
           )}
           {onExport && (
             <MenuItem onClick={handleAndClose(onExport)}>
-              <ListItemIcon sx={{ color: "#14b8a6" }}>
+              <ListItemIcon sx={{ color: colors.primary_accent }}>
                 <Download fontSize="small" />
               </ListItemIcon>
               <ListItemText
                 primary="Export Reports"
                 secondary="Download Excel summaries"
+                primaryTypographyProps={{
+                  style: { color: colors.primary_text },
+                }}
+                secondaryTypographyProps={{
+                  style: { color: colors.secondary_text },
+                }}
               />
             </MenuItem>
           )}
           {onFilter && (
             <MenuItem onClick={handleAndClose(onFilter)}>
-              <ListItemIcon sx={{ color: "#14b8a6" }}>
+              <ListItemIcon sx={{ color: colors.primary_accent }}>
                 {/* Could use a Filter icon here */}
                 <Refresh fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="Filter" secondary="Open filter options" />
+              <ListItemText
+                primary="Filter"
+                secondary="Open filter options"
+                primaryTypographyProps={{
+                  style: { color: colors.primary_text },
+                }}
+                secondaryTypographyProps={{
+                  style: { color: colors.secondary_text },
+                }}
+              />
             </MenuItem>
           )}
         </Menu>

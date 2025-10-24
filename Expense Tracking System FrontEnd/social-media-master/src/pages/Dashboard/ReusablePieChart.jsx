@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
+import { useTheme } from "../../hooks/useTheme";
 import {
   ResponsiveContainer,
   PieChart,
@@ -71,6 +72,7 @@ const ReusablePieChart = ({
   valuePrefix = "₹",
   skeleton = null,
 }) => {
+  const { colors: themeColors } = useTheme();
   const [activeIndex, setActiveIndex] = useState(null);
   const [legendTooltip, setLegendTooltip] = useState(null);
   const chartRef = useRef(null);
@@ -237,7 +239,7 @@ const ReusablePieChart = ({
       <text
         x={x}
         y={y}
-        fill="#fff"
+        fill={themeColors.primary_text}
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
         style={{
@@ -252,9 +254,15 @@ const ReusablePieChart = ({
   };
 
   return (
-    <div className={className}>
+    <div
+      className={className}
+      style={{
+        backgroundColor: themeColors.secondary_bg,
+        border: `1px solid ${themeColors.border_color}`,
+      }}
+    >
       <div className="chart-header">
-        <h3>{title}</h3>
+        <h3 style={{ color: themeColors.primary_text }}>{title}</h3>
         {controls && (
           <div className="chart-controls">
             {onTimeframeChange && (
@@ -262,6 +270,11 @@ const ReusablePieChart = ({
                 className="time-selector"
                 value={timeframe}
                 onChange={(e) => onTimeframeChange(e.target.value)}
+                style={{
+                  backgroundColor: themeColors.tertiary_bg,
+                  color: themeColors.primary_text,
+                  border: `1px solid ${themeColors.border_color}`,
+                }}
               >
                 <option value="this_month">This Month</option>
                 <option value="last_month">Last Month</option>
@@ -277,6 +290,15 @@ const ReusablePieChart = ({
                   }`}
                   onClick={() => onFlowTypeChange("loss")}
                   aria-pressed={flowType === "loss"}
+                  style={{
+                    backgroundColor:
+                      flowType === "loss" ? "#ef4444" : themeColors.button_bg,
+                    color:
+                      flowType === "loss" ? "white" : themeColors.button_text,
+                    border: `1px solid ${
+                      flowType === "loss" ? "#ef4444" : themeColors.border_color
+                    }`,
+                  }}
                 >
                   Loss
                 </button>
@@ -287,6 +309,15 @@ const ReusablePieChart = ({
                   }`}
                   onClick={() => onFlowTypeChange("gain")}
                   aria-pressed={flowType === "gain"}
+                  style={{
+                    backgroundColor:
+                      flowType === "gain" ? "#10b981" : themeColors.button_bg,
+                    color:
+                      flowType === "gain" ? "white" : themeColors.button_text,
+                    border: `1px solid ${
+                      flowType === "gain" ? "#10b981" : themeColors.border_color
+                    }`,
+                  }}
                 >
                   Gain
                 </button>
@@ -319,13 +350,13 @@ const ReusablePieChart = ({
                 onMouseLeave={onPieLeave}
                 label={renderCustomLabel}
                 labelLine={{
-                  stroke: "#666",
+                  stroke: themeColors.border_color,
                   strokeWidth: 1,
                 }}
                 activeIndex={activeIndex}
                 activeShape={{
                   outerRadius: oRadius + 10,
-                  stroke: "#fff",
+                  stroke: themeColors.primary_accent,
                   strokeWidth: 2,
                 }}
               >
@@ -362,7 +393,7 @@ const ReusablePieChart = ({
                   verticalAlign="bottom"
                   height={36}
                   wrapperStyle={{
-                    color: "#fff",
+                    color: themeColors.primary_text,
                     fontSize: isMobile ? "10px" : "12px",
                   }}
                   onMouseEnter={handleLegendMouseEnter}
@@ -375,7 +406,10 @@ const ReusablePieChart = ({
       )}
       {/* Render footer total only after data has loaded to avoid showing misleading 0 during skeleton */}
       {renderFooterTotal && !loading && (
-        <div className="total-amount total-amount-bottom">
+        <div
+          className="total-amount total-amount-bottom"
+          style={{ color: themeColors.primary_text }}
+        >
           {footerPrefix} {valuePrefix}
           {formatNumber0(totalAmount)}
         </div>

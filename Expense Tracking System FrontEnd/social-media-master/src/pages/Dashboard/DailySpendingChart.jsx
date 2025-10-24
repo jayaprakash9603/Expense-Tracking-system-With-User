@@ -103,6 +103,7 @@
  */
 
 import React from "react";
+import { useTheme } from "../../hooks/useTheme";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -169,6 +170,8 @@ const DailySpendingChart = ({
   tooltipConfig,
   loading = false,
 }) => {
+  const { colors } = useTheme();
+
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:1024px)");
@@ -200,11 +203,15 @@ const DailySpendingChart = ({
   return (
     <div
       className="chart-container daily-spending-chart fade-in"
-      style={{ overflow: "visible" }}
+      style={{
+        overflow: "visible",
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+      }}
     >
       {/* Chart header */}
       <div className="chart-header">
-        <h3>
+        <h3 style={{ color: colors.primary_text }}>
           {icon || ""}
           {title}
         </h3>
@@ -232,18 +239,18 @@ const DailySpendingChart = ({
             </linearGradient>
           </defs>
 
-          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+          <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
 
           <XAxis
             dataKey="day"
-            stroke="#888"
+            stroke={colors.primary_text}
             fontSize={12}
             tickLine={false}
             hide={hideXAxis}
           />
 
           <YAxis
-            stroke="#888"
+            stroke={colors.primary_text}
             fontSize={12}
             tickLine={false}
             tickFormatter={(value) => `₹${Math.round(value / 1000)}K`}
