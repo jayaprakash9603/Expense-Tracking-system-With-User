@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
+import { useTheme } from "../../hooks/useTheme";
 import { Snackbar } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
 import {
@@ -31,21 +32,22 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
-// Use the same fieldStyles, labelStyle, formRow, firstFormRow, inputWrapper as NewExpense
-const fieldStyles =
-  "px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[300px] max-w-[200px] border-0";
-const labelStyle = "text-white text-sm sm:text-base font-semibold mr-4";
-const formRow = "mt-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
-const firstFormRow =
-  "mt-2 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
-const inputWrapper = { width: "150px" };
-
 const EditExpense = ({}) => {
+  const { colors } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
   const { id, friendId } = useParams();
   const { hasWriteAccess } = useFriendAccess(friendId);
+
+  // Dynamic styles based on theme
+  const fieldStyles = `px-3 py-2 rounded text-base sm:max-w-[300px] max-w-[200px] border-0`;
+  const labelStyle = `text-sm sm:text-base font-semibold mr-4`;
+  const formRow = "mt-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
+  const firstFormRow =
+    "mt-2 flex flex-col sm:flex-row sm:items-center gap-2 w-full";
+  const inputWrapper = { width: "150px" };
+
   // Updated redirect base paths to /friends/expenses*
   useRedirectIfReadOnly(friendId, {
     buildFriendPath: (fid) => `/friends/expenses/${fid}`,
@@ -267,7 +269,11 @@ const EditExpense = ({}) => {
   const renderInput = (id, type = "text", isTextarea = false) => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor={id} className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor={id}
+          style={{ color: colors.primary_text, ...inputWrapper }}
+          className={labelStyle}
+        >
           {id
             .replace(/([A-Z])/g, " $1")
             .replace(/^./, (str) => str.toUpperCase())}
@@ -286,7 +292,9 @@ const EditExpense = ({}) => {
             className={fieldStyles}
             style={{
               height: "80px",
-              borderColor: errors[id] ? "#ff4d4f" : "rgb(75, 85, 99)",
+              backgroundColor: colors.active_bg,
+              color: colors.primary_text,
+              borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
               borderWidth: errors[id] ? "2px" : "1px",
             }}
           />
@@ -300,7 +308,9 @@ const EditExpense = ({}) => {
             placeholder={`Enter ${id}`}
             className={fieldStyles}
             style={{
-              borderColor: errors[id] ? "#ff4d4f" : "rgb(75, 85, 99)",
+              backgroundColor: colors.active_bg,
+              color: colors.primary_text,
+              borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
               borderWidth: errors[id] ? "2px" : "1px",
             }}
           />
@@ -317,7 +327,11 @@ const EditExpense = ({}) => {
   const renderSelect = (id, options) => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor={id} className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor={id}
+          style={{ color: colors.primary_text, ...inputWrapper }}
+          className={labelStyle}
+        >
           {id
             .replace(/([A-Z])/g, " $1")
             .replace(/^./, (str) => str.toUpperCase())}
@@ -328,6 +342,10 @@ const EditExpense = ({}) => {
           value={expenseData[id]}
           onChange={handleInputChange}
           className={fieldStyles}
+          style={{
+            backgroundColor: colors.active_bg,
+            color: colors.primary_text,
+          }}
         >
           {options.map((opt) => (
             <option key={opt} value={opt}>
@@ -347,7 +365,11 @@ const EditExpense = ({}) => {
   const renderCustomDateInput = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="date" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="date"
+          style={{ color: colors.primary_text, ...inputWrapper }}
+          className={labelStyle}
+        >
           Date<span className="text-red-500"> *</span>
         </label>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -360,11 +382,11 @@ const EditExpense = ({}) => {
               }
             }}
             sx={{
-              background: "#1b1b1b",
+              background: colors.active_bg,
               borderRadius: 2,
-              color: "#fff",
+              color: colors.primary_text,
               ".MuiInputBase-input": {
-                color: "#fff",
+                color: colors.primary_text,
                 height: 32,
                 fontSize: 18,
               },
@@ -379,7 +401,7 @@ const EditExpense = ({}) => {
                 size: "medium",
                 variant: "outlined",
                 sx: {
-                  color: "#fff",
+                  color: colors.primary_text,
                   height: 56,
                   minHeight: 56,
                   maxHeight: 56,
@@ -416,7 +438,11 @@ const EditExpense = ({}) => {
   const renderCategoryAutocomplete = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="category" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="category"
+          style={{ color: colors.primary_text, ...inputWrapper }}
+          className={labelStyle}
+        >
           Category
         </label>
         <CategoryAutocomplete
@@ -446,8 +472,8 @@ const EditExpense = ({}) => {
       <div className="flex items-center">
         <label
           htmlFor="paymentMethod"
+          style={{ color: colors.primary_text, ...inputWrapper }}
           className={labelStyle}
-          style={inputWrapper}
         >
           Payment Method
         </label>
@@ -486,7 +512,7 @@ const EditExpense = ({}) => {
             const checked = e.target.checked;
             setCheckboxStates(Array(budgets.length).fill(checked));
           }}
-          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+          className="h-5 w-5 border-gray-700 rounded focus:ring-[#00dac6]"
           style={{ accentColor: "#00b8a0", marginLeft: 2, marginRight: 2 }}
         />
       ),
@@ -500,7 +526,7 @@ const EditExpense = ({}) => {
           type="checkbox"
           checked={checkboxStates[params.row.index]}
           onChange={() => handleCheckboxChange(params.row.index)}
-          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+          className="h-5 w-5 border-gray-700 rounded focus:ring-[#00dac6]"
           style={{ accentColor: "#00b8a0" }}
         />
       ),
@@ -619,8 +645,8 @@ const EditExpense = ({}) => {
       <div className="flex items-center">
         <label
           htmlFor="expenseName"
+          style={{ color: colors.primary_text, ...inputWrapper }}
           className={labelStyle}
-          style={inputWrapper}
         >
           Expense Name<span className="text-red-500"> *</span>
         </label>
@@ -653,24 +679,32 @@ const EditExpense = ({}) => {
         style={{
           width: "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
-          backgroundColor: "rgb(11, 11, 11)",
+          backgroundColor: colors.secondary_bg,
           borderRadius: "8px",
           marginRight: "20px",
-          border: "1px solid rgb(0, 0, 0)",
+          border: `1px solid ${colors.border_color}`,
           padding: "20px",
         }}
       >
         <div className="w-full flex justify-between items-center mb-1">
-          <p className="text-white font-extrabold text-4xl">Edit Expense</p>
+          <p
+            style={{ color: colors.primary_text }}
+            className="font-extrabold text-4xl"
+          >
+            Edit Expense
+          </p>
           <button
             onClick={handleOnClose}
-            className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
-            style={{ color: "#00dac6" }}
+            className="flex items-center justify-center w-12 h-12 text-[32px] font-bold rounded mt-[-10px]"
+            style={{ backgroundColor: colors.active_bg, color: "#00dac6" }}
           >
             ×
           </button>
         </div>
-        <hr className="border-t border-gray-600 w-full mt-[-4px]" />
+        <hr
+          style={{ borderColor: colors.border_color }}
+          className="border-t w-full mt-[-4px]"
+        />
 
         <div className={firstFormRow}>
           {/* Expense Name (MUI Autocomplete with suggestions) */}
@@ -680,8 +714,8 @@ const EditExpense = ({}) => {
             <div className="flex items-center">
               <label
                 htmlFor="amount"
+                style={{ color: colors.primary_text, ...inputWrapper }}
                 className={labelStyle}
-                style={inputWrapper}
               >
                 Amount<span className="text-red-500"> *</span>
               </label>
@@ -703,7 +737,11 @@ const EditExpense = ({}) => {
                   className: fieldStyles,
                   style: {
                     height: "52px",
-                    borderColor: errors.amount ? "#ff4d4f" : "rgb(75, 85, 99)",
+                    backgroundColor: colors.active_bg,
+                    color: colors.primary_text,
+                    borderColor: errors.amount
+                      ? "#ff4d4f"
+                      : colors.border_color,
                     borderWidth: errors.amount ? "2px" : "1px",
                   },
                 }}
@@ -714,14 +752,14 @@ const EditExpense = ({}) => {
                     "& fieldset": {
                       borderColor: errors.amount
                         ? "#ff4d4f"
-                        : "rgb(75, 85, 99)",
+                        : colors.border_color,
                       borderWidth: errors.amount ? "2px" : "1px",
                       borderStyle: "solid",
                     },
                     "&:hover fieldset": {
                       borderColor: errors.amount
                         ? "#ff4d4f"
-                        : "rgb(75, 85, 99)",
+                        : colors.border_color,
                       borderWidth: errors.amount ? "2px" : "1px",
                       borderStyle: "solid",
                     },
@@ -733,7 +771,7 @@ const EditExpense = ({}) => {
                     "& .MuiOutlinedInput-notchedOutline": {
                       borderColor: errors.amount
                         ? "#ff4d4f"
-                        : "rgb(75, 85, 99)",
+                        : colors.border_color,
                       borderWidth: errors.amount ? "2px" : "1px",
                       borderStyle: "solid",
                     },
@@ -756,8 +794,8 @@ const EditExpense = ({}) => {
             <div className="flex items-center">
               <label
                 htmlFor="transactionType"
+                style={{ color: colors.primary_text, ...inputWrapper }}
                 className={labelStyle}
-                style={inputWrapper}
               >
                 Transaction Type<span className="text-red-500"> *</span>
               </label>
@@ -786,14 +824,14 @@ const EditExpense = ({}) => {
                     "& fieldset": {
                       borderColor: errors.transactionType
                         ? "#ff4d4f"
-                        : "rgb(75, 85, 99)",
+                        : colors.border_color,
                       borderWidth: errors.transactionType ? "2px" : "1px",
                       borderStyle: "solid",
                     },
                     "&:hover fieldset": {
                       borderColor: errors.transactionType
                         ? "#ff4d4f"
-                        : "rgb(75, 85, 99)",
+                        : colors.border_color,
                       borderWidth: errors.transactionType ? "2px" : "1px",
                       borderStyle: "solid",
                     },
@@ -807,7 +845,7 @@ const EditExpense = ({}) => {
                     "& .MuiOutlinedInput-notchedOutline": {
                       borderColor: errors.transactionType
                         ? "#ff4d4f"
-                        : "rgb(75, 85, 99)",
+                        : colors.border_color,
                       borderWidth: errors.transactionType ? "2px" : "1px",
                       borderStyle: "solid",
                     },
@@ -822,6 +860,10 @@ const EditExpense = ({}) => {
                     InputProps={{
                       ...params.InputProps,
                       className: fieldStyles,
+                      style: {
+                        backgroundColor: colors.active_bg,
+                        color: colors.primary_text,
+                      },
                     }}
                   />
                 )}
@@ -861,8 +903,8 @@ const EditExpense = ({}) => {
             <div className="flex items-center">
               <label
                 htmlFor="comments"
+                style={{ color: colors.primary_text, ...inputWrapper }}
                 className={labelStyle}
-                style={inputWrapper}
               >
                 Comments
               </label>
@@ -883,19 +925,23 @@ const EditExpense = ({}) => {
                 maxRows={5}
                 InputProps={{
                   className: fieldStyles,
-                  style: { height: "auto" },
+                  style: {
+                    height: "auto",
+                    backgroundColor: colors.active_bg,
+                    color: colors.primary_text,
+                  },
                 }}
                 sx={{
                   width: "100%",
                   maxWidth: "920px",
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
-                      borderColor: "rgb(75, 85, 99)",
+                      borderColor: colors.border_color,
                       borderWidth: "1px",
                       borderStyle: "solid",
                     },
                     "&:hover fieldset": {
-                      borderColor: "rgb(75, 85, 99)",
+                      borderColor: colors.border_color,
                       borderWidth: "1px",
                       borderStyle: "solid",
                     },
@@ -921,7 +967,12 @@ const EditExpense = ({}) => {
           {showTable && (
             <button
               onClick={handleCloseTable}
-              className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a] mt-2 sm:mt-0 hidden sm:block"
+              className="px-2 py-1 border rounded hover:bg-[#3a3a3a] mt-2 sm:mt-0 hidden sm:block"
+              style={{
+                backgroundColor: colors.active_bg,
+                borderColor: colors.border_color,
+                color: colors.primary_text,
+              }}
             >
               X
             </button>
@@ -934,27 +985,47 @@ const EditExpense = ({}) => {
               <div className="flex justify-end mb-2">
                 <button
                   onClick={handleCloseTable}
-                  className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a]"
+                  className="px-2 py-1 border rounded hover:bg-[#3a3a3a]"
+                  style={{
+                    backgroundColor: colors.active_bg,
+                    borderColor: colors.border_color,
+                    color: colors.primary_text,
+                  }}
                 >
                   X
                 </button>
               </div>
               {budgets.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">
+                <div
+                  style={{ color: colors.secondary_text }}
+                  className="text-center py-8"
+                >
                   No rows found
                 </div>
               ) : (
                 budgets.map((row, index) => (
                   <div
                     key={row.id}
-                    className="bg-[#29282b] border border-gray-600 rounded-lg p-4"
+                    className="border rounded-lg p-4"
+                    style={{
+                      backgroundColor: colors.active_bg,
+                      borderColor: colors.border_color,
+                    }}
                   >
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-white font-semibold">
+                      <span
+                        style={{ color: colors.primary_text }}
+                        className="font-semibold"
+                      >
                         {row.name}
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-300 text-sm">In Budget</span>
+                        <span
+                          style={{ color: colors.secondary_text }}
+                          className="text-sm"
+                        >
+                          In Budget
+                        </span>
                         <input
                           type="checkbox"
                           checked={checkboxStates[index]}
@@ -963,7 +1034,10 @@ const EditExpense = ({}) => {
                         />
                       </div>
                     </div>
-                    <div className="text-gray-300 text-sm space-y-1">
+                    <div
+                      style={{ color: colors.secondary_text }}
+                      className="text-sm space-y-1"
+                    >
                       <p>
                         <span className="font-medium">Description:</span>{" "}
                         {row.description}
@@ -994,9 +1068,9 @@ const EditExpense = ({}) => {
                 sx={{
                   height: 320,
                   width: "100%",
-                  background: "#29282b",
+                  background: colors.active_bg,
                   borderRadius: 2,
-                  border: "1px solid #444",
+                  border: `1px solid ${colors.border_color}`,
                 }}
               >
                 <DataGrid
@@ -1015,10 +1089,12 @@ const EditExpense = ({}) => {
                   rowHeight={41}
                   headerHeight={32}
                   sx={{
-                    color: "#fff",
+                    color: colors.primary_text,
                     border: 0,
-                    "& .MuiDataGrid-columnHeaders": { background: "#222" },
-                    "& .MuiDataGrid-row": { background: "#29282b" },
+                    "& .MuiDataGrid-columnHeaders": {
+                      background: colors.tertiary_bg,
+                    },
+                    "& .MuiDataGrid-row": { background: colors.active_bg },
                     "& .MuiCheckbox-root": { color: "#00dac6 !important" },
                     fontSize: "0.92rem",
                   }}

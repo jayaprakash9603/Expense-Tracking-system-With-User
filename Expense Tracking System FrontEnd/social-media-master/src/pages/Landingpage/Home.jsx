@@ -8,8 +8,10 @@ import {
   fetchFriendship,
   fetchFriendsDetailed,
 } from "../../Redux/Friends/friendsActions";
+import { useTheme } from "../../hooks/useTheme";
 
 const Home = () => {
+  const { colors } = useTheme();
   const { friendId } = useParams();
   const isFriendView = Boolean(friendId && friendId !== "undefined");
   const dispatch = useDispatch();
@@ -50,7 +52,7 @@ const Home = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-[#1b1b1b]">
+    <div className="flex flex-col md:flex-row min-h-screen" style={{ backgroundColor: colors.primary_bg }}>
       <div className="md:w-[400px] lg:w-[450px]">
         <Left />
       </div>

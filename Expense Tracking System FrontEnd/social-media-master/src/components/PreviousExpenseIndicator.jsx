@@ -1,6 +1,7 @@
 import React from "react";
 import dayjs from "dayjs";
 import PropTypes from "prop-types";
+import { useTheme } from "../hooks/useTheme";
 
 /**
  * PreviousExpenseIndicator Component
@@ -55,6 +56,8 @@ const PreviousExpenseIndicator = ({
   // Accessibility
   ariaLabel = "Previously added expense information",
 }) => {
+  const { colors } = useTheme();
+
   // Don't render if no expense data
   if (!expense) return null;
 
@@ -257,12 +260,16 @@ const PreviousExpenseIndicator = ({
           <div
             className={`
               absolute ${getTooltipPosition()} top-full mt-2 w-64 
-              bg-[#1b1b1b] rounded-lg shadow-xl p-3 
+              rounded-lg shadow-xl p-3 
               opacity-0 invisible 
               group-hover:opacity-100 group-hover:visible 
               transition-all duration-200 z-50
             `}
-            style={{ borderColor: colorScheme.primary, borderWidth: "1px" }}
+            style={{
+              backgroundColor: colors.primary_bg,
+              borderColor: colorScheme.primary,
+              borderWidth: "1px",
+            }}
           >
             <div className="space-y-2">
               {/* Amount */}
@@ -329,8 +336,9 @@ const PreviousExpenseIndicator = ({
 
             {/* Tooltip Arrow */}
             <div
-              className={`absolute -top-1 ${getTooltipArrow()} w-2 h-2 bg-[#1b1b1b] transform rotate-45`}
+              className={`absolute -top-1 ${getTooltipArrow()} w-2 h-2 transform rotate-45`}
               style={{
+                backgroundColor: colors.primary_bg,
                 borderLeft: `1px solid ${colorScheme.primary}`,
                 borderTop: `1px solid ${colorScheme.primary}`,
               }}

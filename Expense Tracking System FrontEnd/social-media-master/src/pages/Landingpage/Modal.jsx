@@ -1,4 +1,5 @@
 import React from "react";
+import { useTheme } from "../../hooks/useTheme";
 
 const Modal = ({
   isOpen,
@@ -12,6 +13,7 @@ const Modal = ({
   confirmationText = "Are you sure you want to delete this?",
   headerNames = {},
 }) => {
+  const { colors } = useTheme();
   if (!isOpen) return null;
 
   const hasData = Object.keys(data).length > 0;
@@ -19,15 +21,20 @@ const Modal = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
       <div
-        className={`bg-[#1b1b1b] text-white rounded-xl shadow-lg p-6 w-[90%] max-w-[700px] ${
+        className={`rounded-xl shadow-lg p-6 w-[90%] max-w-[700px] ${
           hasData ? "min-h-[300px]" : "min-h-[50px] max-w-[500px]"
         } relative`}
+        style={{
+          backgroundColor: colors.modal_bg,
+          color: colors.primary_text,
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{title}</h2>
           <button
-            className="text-white text-2xl absolute top-4 right-4"
+            className="text-2xl absolute top-4 right-4"
+            style={{ color: colors.primary_text }}
             onClick={onClose}
           >
             &times;
@@ -43,7 +50,9 @@ const Modal = ({
                   const label = headerNames[key] || key;
                   return (
                     <div key={key} className="flex justify-between">
-                      <span className="text-gray-400">{label}</span>
+                      <span style={{ color: colors.secondary_text }}>
+                        {label}
+                      </span>
                       <span>{data[key]}</span>
                     </div>
                   );

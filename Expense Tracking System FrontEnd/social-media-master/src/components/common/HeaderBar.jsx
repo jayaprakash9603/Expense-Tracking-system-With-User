@@ -75,8 +75,8 @@ const HeaderBar = () => {
   return (
     <>
       <div
-        className={`h-[50px] flex items-center justify-end px-4 sm:px-6 border-b transition-colors ${
-          isDark ? "bg-[#1b1b1b] border-gray-800" : "bg-white border-gray-200"
+        className={`h-[50px] flex items-center justify-end px-4 sm:px-6  transition-colors ${
+          isDark ? "bg-[#1b1b1b] " : "bg-white "
         }`}
       >
         {/* Right Section: Theme Toggle & Profile */}

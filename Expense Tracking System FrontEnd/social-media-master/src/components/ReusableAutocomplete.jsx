@@ -5,6 +5,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import ReusableTextField from "./ReusableTextField";
+import { useTheme } from "../hooks/useTheme";
 
 /**
  * ReusableAutocomplete - A robust, reusable Autocomplete component
@@ -88,32 +89,46 @@ const ReusableAutocomplete = ({
   id,
   ...restProps
 }) => {
+  const { colors } = useTheme();
+
+  // Use theme colors as defaults if no custom colors provided
+  const effectiveBgColor =
+    backgroundColor === "#29282b" ? colors.active_bg : backgroundColor;
+  const effectiveTextColor =
+    textColor === "#fff" ? colors.primary_text : textColor;
+  const effectiveBorderColor =
+    borderColor === "rgb(75, 85, 99)" ? colors.border_color : borderColor;
+  const effectiveFocusBorderColor =
+    focusBorderColor === "#00dac6" ? "#00dac6" : focusBorderColor;
+  const effectivePlaceholderColor =
+    placeholderColor === "#9ca3af" ? colors.secondary_text : placeholderColor;
+
   const defaultSx = {
     width: "100%",
     maxWidth: "300px",
     "& .MuiInputBase-root": {
-      backgroundColor: backgroundColor,
-      color: textColor,
+      backgroundColor: effectiveBgColor,
+      color: effectiveTextColor,
       height: size === "small" ? "40px" : "56px",
       fontSize: size === "small" ? "14px" : "16px",
     },
     "& .MuiInputBase-input": {
-      color: textColor,
+      color: effectiveTextColor,
       "&::placeholder": {
-        color: placeholderColor,
+        color: effectivePlaceholderColor,
         opacity: 1,
       },
     },
     "& .MuiOutlinedInput-root": {
       "& fieldset": {
-        borderColor: error ? errorBorderColor : borderColor,
+        borderColor: error ? errorBorderColor : effectiveBorderColor,
         borderWidth: error ? "2px" : "1px",
       },
       "&:hover fieldset": {
-        borderColor: error ? errorBorderColor : borderColor,
+        borderColor: error ? errorBorderColor : effectiveBorderColor,
       },
       "&.Mui-focused fieldset": {
-        borderColor: error ? errorBorderColor : focusBorderColor,
+        borderColor: error ? errorBorderColor : effectiveFocusBorderColor,
         borderWidth: "2px",
       },
     },
@@ -123,14 +138,23 @@ const ReusableAutocomplete = ({
       paddingBottom: "4px",
     },
     "& .MuiAutocomplete-listbox": {
-      backgroundColor: "#1b1b1b",
-      color: textColor,
+      backgroundColor: colors.primary_bg,
+      color: effectiveTextColor,
     },
     "& .MuiAutocomplete-option:hover": {
-      backgroundColor: "#2d2d2d",
+      backgroundColor: colors.hover_bg,
     },
     "& .MuiAutocomplete-option[aria-selected='true']": {
-      backgroundColor: "#3d3d3d",
+      backgroundColor: colors.active_bg,
+    },
+    "& .MuiAutocomplete-paper": {
+      backgroundColor: colors.primary_bg,
+    },
+    "& .MuiAutocomplete-noOptions": {
+      color: colors.secondary_text,
+    },
+    "& .MuiAutocomplete-loading": {
+      color: colors.secondary_text,
     },
     ...sx,
   };
@@ -184,12 +208,12 @@ const ReusableAutocomplete = ({
           error={error}
           helperText={helperText}
           size={size}
-          backgroundColor={backgroundColor}
-          textColor={textColor}
-          borderColor={borderColor}
-          focusBorderColor={focusBorderColor}
+          backgroundColor={effectiveBgColor}
+          textColor={effectiveTextColor}
+          borderColor={effectiveBorderColor}
+          focusBorderColor={effectiveFocusBorderColor}
           errorBorderColor={errorBorderColor}
-          placeholderColor={placeholderColor}
+          placeholderColor={effectivePlaceholderColor}
           InputProps={{
             ...params.InputProps,
             startAdornment: (
