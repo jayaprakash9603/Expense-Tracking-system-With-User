@@ -4,6 +4,7 @@ import { Skeleton, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import NoDataPlaceholder from "../../components/NoDataPlaceholder"; // adjust path if needed
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * Reusable expense cards list for CashFlow page.
@@ -29,6 +30,7 @@ export default function CashFlowExpenseCards({
   getExpenseAction,
   getBillByExpenseId,
 }) {
+  const { colors } = useTheme();
   const scrollContainerRef = useRef(null);
   const cardRefs = useRef([]);
   const lastClickedIndexRef = useRef(null);
@@ -97,7 +99,7 @@ export default function CashFlowExpenseCards({
             width={340}
             height={140}
             animation="wave"
-            sx={{ bgcolor: "#23243a", borderRadius: 2 }}
+            sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
             style={{ minWidth: 220, maxWidth: 340, margin: "0 8px 16px 0" }}
           />
         ))}
@@ -202,7 +204,7 @@ export default function CashFlowExpenseCards({
           <div
             key={row.id || row.expenseId || `expense-${idx}`}
             ref={(el) => (cardRefs.current[idx] = el)}
-            className="bg-[#1b1b1b] rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200"
+            className="rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200"
             style={{
               minHeight: "140px",
               maxHeight: "140px",
@@ -218,12 +220,12 @@ export default function CashFlowExpenseCards({
                 ? isGain
                   ? "rgba(6, 214, 160, 0.13)"
                   : "rgba(255, 77, 79, 0.13)"
-                : "#1b1b1b",
+                : colors.primary_bg,
               transition: "background 0.2s, box-shadow 0.2s, border 0.2s",
               margin: "6px",
               border: isSelected
                 ? `2px solid ${isGain ? "#06d6a0" : "#ff4d4f"}`
-                : "2px solid transparent",
+                : `2px solid transparent`,
               userSelect: "none",
             }}
             onClick={(event) => {
@@ -239,15 +241,22 @@ export default function CashFlowExpenseCards({
             <div className="flex flex-col gap-2" style={{ height: "100%" }}>
               <div className="flex items-center justify-between min-w-0">
                 <span
-                  className="font-semibold text-base truncate min-w-0 text-white"
+                  className="font-semibold text-base truncate min-w-0"
                   title={row.name}
-                  style={{ maxWidth: "70%", fontSize: "15px" }}
+                  style={{
+                    maxWidth: "70%",
+                    fontSize: "15px",
+                    color: colors.primary_text,
+                  }}
                 >
                   {row.name}
                 </span>
                 <span
-                  className="text-xs font-semibold text-[#b0b6c3] ml-2 flex-shrink-0"
-                  style={{ whiteSpace: "nowrap" }}
+                  className="text-xs font-semibold ml-2 flex-shrink-0"
+                  style={{
+                    whiteSpace: "nowrap",
+                    color: colors.secondary_text,
+                  }}
                   title={dateValue}
                 >
                   {dateValue}
@@ -267,8 +276,13 @@ export default function CashFlowExpenseCards({
                 </span>
               </div>
               <div
-                className="text-gray-300 text-sm break-words card-comments-clamp"
-                style={{ wordBreak: "break-word", flex: 1, overflow: "hidden" }}
+                className="text-sm break-words card-comments-clamp"
+                style={{
+                  wordBreak: "break-word",
+                  flex: 1,
+                  overflow: "hidden",
+                  color: colors.secondary_text,
+                }}
                 title={row.comments}
               >
                 {row.comments}
@@ -279,7 +293,7 @@ export default function CashFlowExpenseCards({
                 className="absolute bottom-2 right-2 flex gap-2 opacity-90"
                 style={{
                   zIndex: 2,
-                  background: "#23243a",
+                  background: colors.active_bg,
                   borderRadius: 8,
                   boxShadow: "0 2px 8px #0002",
                   padding: 4,
@@ -292,10 +306,10 @@ export default function CashFlowExpenseCards({
                   sx={{
                     color: "#5b7fff",
                     p: "4px",
-                    background: "#23243a",
+                    background: colors.active_bg,
                     borderRadius: 1,
                     boxShadow: 1,
-                    "&:hover": { background: "#2e335a", color: "#fff" },
+                    "&:hover": { background: colors.hover_bg, color: "#fff" },
                   }}
                   onClick={async () => {
                     dispatch(
@@ -336,10 +350,10 @@ export default function CashFlowExpenseCards({
                   sx={{
                     color: "#ff4d4f",
                     p: "4px",
-                    background: "#23243a",
+                    background: colors.active_bg,
                     borderRadius: 1,
                     boxShadow: 1,
-                    "&:hover": { background: "#2e335a", color: "#fff" },
+                    "&:hover": { background: colors.hover_bg, color: "#fff" },
                   }}
                   onClick={() => handleDeleteClick(row, idx)}
                   aria-label="Delete Expense"

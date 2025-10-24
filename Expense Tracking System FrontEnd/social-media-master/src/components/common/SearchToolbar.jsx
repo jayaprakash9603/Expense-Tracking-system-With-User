@@ -1,6 +1,7 @@
 import React from "react";
 import { IconButton } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * Generic search + filter toolbar.
@@ -21,6 +22,8 @@ const SearchToolbar = ({
   isTablet,
   placeholder = "Search...",
 }) => {
+  const { colors } = useTheme();
+
   return (
     <div
       style={{
@@ -38,18 +41,18 @@ const SearchToolbar = ({
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         style={{
-          backgroundColor: "#1b1b1b",
-          color: "#ffffff",
+          backgroundColor: colors.primary_bg,
+          color: colors.primary_text,
           borderRadius: 8,
           fontSize: isMobile ? "0.7rem" : "0.75rem",
-          border: "1px solid #00dac6",
+          border: `1px solid ${colors.active_text}`,
           padding: isMobile ? "6px 10px" : "8px 16px",
           width: "100%",
           outline: "none",
         }}
       />
       <IconButton
-        sx={{ color: "#00dac6", flexShrink: 0, p: isMobile ? 0.5 : 1 }}
+        sx={{ color: colors.active_text, flexShrink: 0, p: isMobile ? 0.5 : 1 }}
         onClick={onFilterClick}
         ref={filterRef}
       >

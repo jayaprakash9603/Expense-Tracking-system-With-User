@@ -1,6 +1,7 @@
 import React from "react";
 import SearchToolbar from "../common/SearchToolbar";
 import NavigationActions from "./NavigationActions";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * Combined search input + navigation / add-new action bar.
@@ -22,6 +23,8 @@ const SearchNavigationBar = ({
   placeholder = "Search expenses...",
   currentFlow,
 }) => {
+  const { colors } = useTheme();
+
   return (
     <div
       className="flex items-center mt-2 mb-2"
@@ -55,19 +58,21 @@ const SearchNavigationBar = ({
 
       <style>{`
         .nav-button:hover {
-          background-color: #00dac6 !important;
-          color: #000 !important;
-          border-color: #00dac6 !important;
+          background-color: ${colors.button_hover} !important;
+          color: ${colors.button_text} !important;
+          border-color: ${colors.button_hover} !important;
         }
         .nav-button:hover img {
-          filter: brightness(0) saturate(100%) invert(0%) !important;
+          filter: brightness(0) saturate(100%) ${
+            colors.mode === "dark" ? "invert(0%)" : "invert(100%)"
+          } !important;
         }
         .nav-button:hover svg circle,
         .nav-button:hover svg path {
-          stroke: #000 !important;
+          stroke: ${colors.button_text} !important;
         }
         .nav-button:hover span {
-          color: #000 !important;
+          color: ${colors.button_text} !important;
         }
         .nav-button:active {
           transform: scale(0.98);
