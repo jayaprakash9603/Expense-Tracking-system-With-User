@@ -1,18 +1,16 @@
-import React from 'react';
-import {
-  Typography,
-  Box,
-  Grid,
-  Card,
-} from "@mui/material";
+import React from "react";
+import { Typography, Box, Grid, Card } from "@mui/material";
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
   Receipt as ReceiptIcon,
   AttachMoney as MoneyIcon,
 } from "@mui/icons-material";
+import { useTheme } from "../../../hooks/useTheme";
 
 const BillSummary = ({ billStats, selectedDate }) => {
+  const { colors } = useTheme();
+
   // Utility functions
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
@@ -27,11 +25,11 @@ const BillSummary = ({ billStats, selectedDate }) => {
 
   // Constants
   const COLORS = {
-    primary: '#14b8a6',
-    error: '#f44336',
-    background: '#1b1b1b',
-    surface: '#0b0b0b',
-    textSecondary: '#b0b0b0',
+    primary: colors.primary_accent,
+    error: "#f44336",
+    background: colors.primary_bg,
+    surface: colors.tertiary_bg,
+    textSecondary: colors.secondary_text,
   };
 
   const HOVER_OPACITY = 0.2;
@@ -41,29 +39,70 @@ const BillSummary = ({ billStats, selectedDate }) => {
   const isNetPositive = netAmount >= 0;
 
   // Card configuration factory
-  const createCardConfig = (id, icon, label, value, isPositive = true, formatValue = true) => ({
+  const createCardConfig = (
+    id,
+    icon,
+    label,
+    value,
+    isPositive = true,
+    formatValue = true
+  ) => ({
     id,
     icon,
     label,
     value,
     color: isPositive ? COLORS.primary : COLORS.error,
     borderColor: isPositive ? COLORS.primary : COLORS.error,
-    hoverColor: `rgba(${isPositive ? '20, 184, 166' : '244, 67, 54'}, ${HOVER_OPACITY})`,
-    formatValue
+    hoverColor: `rgba(${
+      isPositive ? "20, 184, 166" : "244, 67, 54"
+    }, ${HOVER_OPACITY})`,
+    formatValue,
   });
 
   // Card configurations using factory
   const cardConfigs = [
-    createCardConfig('total', ReceiptIcon, 'Total Bills', billStats.total, true, false),
-    createCardConfig('income', TrendingUpIcon, 'Total Income', billStats.totalIncome),
-    createCardConfig('expense', TrendingDownIcon, 'Total Expenses', billStats.totalExpense, false),
-    createCardConfig('net', MoneyIcon, 'Net Balance', Math.abs(netAmount), isNetPositive),
+    createCardConfig(
+      "total",
+      ReceiptIcon,
+      "Total Bills",
+      billStats.total,
+      true,
+      false
+    ),
+    createCardConfig(
+      "income",
+      TrendingUpIcon,
+      "Total Income",
+      billStats.totalIncome
+    ),
+    createCardConfig(
+      "expense",
+      TrendingDownIcon,
+      "Total Expenses",
+      billStats.totalExpense,
+      false
+    ),
+    createCardConfig(
+      "net",
+      MoneyIcon,
+      "Net Balance",
+      Math.abs(netAmount),
+      isNetPositive
+    ),
   ];
 
   // Reusable card component
   const SummaryCard = ({ config }) => {
-    const { icon: IconComponent, label, value, color, borderColor, hoverColor, formatValue } = config;
-    
+    const {
+      icon: IconComponent,
+      label,
+      value,
+      color,
+      borderColor,
+      hoverColor,
+      formatValue,
+    } = config;
+
     return (
       <Card
         sx={{
@@ -94,7 +133,7 @@ const BillSummary = ({ billStats, selectedDate }) => {
         >
           <IconComponent sx={{ color: COLORS.surface, fontSize: 20 }} />
         </Box>
-        
+
         <Typography
           variant="caption"
           sx={{
@@ -106,7 +145,7 @@ const BillSummary = ({ billStats, selectedDate }) => {
         >
           {label}
         </Typography>
-        
+
         <Typography
           variant="h5"
           sx={{

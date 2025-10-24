@@ -8,6 +8,7 @@ import Skeleton from "@mui/material/Skeleton";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import { rangeTypes } from "../../utils/flowDateUtils";
 import recentPng from "../../assests/recent.png";
+import { useTheme } from "../../hooks/useTheme";
 
 // Flexible layout wrapper used by CashFlow to integrate multi-selection and bulk deletion.
 const GenericFlowLayout = ({
@@ -76,10 +77,13 @@ const GenericFlowLayout = ({
   },
   formatters: { formatCompactNumber, formatCurrencyCompact, formatNumberFull },
 }) => {
+  const { colors } = useTheme();
+
   return (
     <div
-      className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
+      className="rounded-lg mt-[0px]"
       style={{
+        backgroundColor: colors.secondary_bg,
         width: isMobile ? "100vw" : isTablet ? "100vw" : "calc(100vw - 370px)",
         height: isMobile ? "auto" : isTablet ? "auto" : "calc(100vh - 100px)",
         marginRight: isMobile ? 0 : isTablet ? 0 : "20px",
@@ -167,7 +171,7 @@ const GenericFlowLayout = ({
       <div
         className="w-full h-[220px] rounded-lg p-4 mb-4"
         style={{
-          background: "#1b1b1b",
+          background: colors.primary_bg,
           paddingRight: isMobile ? 8 : isTablet ? 24 : 60,
           height: isMobile ? 120 : isTablet ? 160 : 220,
           minWidth: 0,
@@ -179,7 +183,10 @@ const GenericFlowLayout = ({
             width="100%"
             height={160}
             animation="wave"
-            sx={{ bgcolor: "#23243a", borderRadius: 2 }}
+            sx={{
+              bgcolor: colors.hover_bg,
+              borderRadius: 2,
+            }}
           />
         ) : chartData.length === 0 ? (
           <NoDataPlaceholder
@@ -250,14 +257,20 @@ const GenericFlowLayout = ({
         isFriendView={isFriendView}
       />
       <style>{`
-				.custom-scrollbar::-webkit-scrollbar { width: 8px; background: #23243a; }
-				.custom-scrollbar::-webkit-scrollbar-thumb { background: ${
-          flowTab === "outflow"
-            ? "#ff4d4f"
-            : flowTab === "inflow"
-            ? "#06d6a0"
-            : "#5b7fff"
-        }; border-radius: 6px; }
+				.custom-scrollbar::-webkit-scrollbar { 
+          width: 8px; 
+          background: ${colors.hover_bg}; 
+        }
+				.custom-scrollbar::-webkit-scrollbar-thumb { 
+          background: ${
+            flowTab === "outflow"
+              ? "#ff4d4f"
+              : flowTab === "inflow"
+              ? "#06d6a0"
+              : "#5b7fff"
+          }; 
+          border-radius: 6px; 
+        }
 			`}</style>
     </div>
   );

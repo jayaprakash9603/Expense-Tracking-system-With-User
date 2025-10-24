@@ -9,6 +9,7 @@ import {
   Box,
   Button,
 } from "@mui/material";
+import { useTheme } from "../hooks/useTheme";
 
 /*
   Reusable FilterPopover
@@ -32,6 +33,7 @@ const FilterPopover = ({
   onApply,
   onClear,
 }) => {
+  const { colors } = useTheme();
   const [working, setWorking] = useState(selected);
 
   // Sync when popover opens with committed selection
@@ -64,10 +66,10 @@ const FilterPopover = ({
       transformOrigin={{ vertical: "top", horizontal: "right" }}
       PaperProps={{
         sx: {
-          backgroundColor: "#1f1f1f",
-          color: "white",
+          backgroundColor: colors.tertiary_bg,
+          color: colors.primary_text,
           minWidth: 240,
-          border: "1px solid #2d2d2d",
+          border: `1px solid ${colors.border_color}`,
           boxShadow: "0 4px 18px rgba(0,0,0,0.5)",
         },
       }}
@@ -77,7 +79,7 @@ const FilterPopover = ({
           variant="subtitle2"
           sx={{
             fontWeight: 600,
-            color: "#14b8a6",
+            color: colors.primary_accent,
             mb: 1,
             display: "flex",
             alignItems: "center",
@@ -88,8 +90,8 @@ const FilterPopover = ({
           {working.length > 0 && (
             <span
               style={{
-                background: "#14b8a6",
-                color: "#0b0b0b",
+                background: colors.primary_accent,
+                color: colors.secondary_bg,
                 borderRadius: "999px",
                 fontSize: 10,
                 fontWeight: 600,
@@ -114,19 +116,22 @@ const FilterPopover = ({
                   size="small"
                   checked={working.includes(opt.value)}
                   onChange={() => handleToggle(opt.value)}
-                  sx={{ color: "#888", "&.Mui-checked": { color: "#14b8a6" } }}
+                  sx={{
+                    color: colors.icon_muted,
+                    "&.Mui-checked": { color: colors.primary_accent },
+                  }}
                 />
               }
               label={<span style={{ fontSize: 13 }}>{opt.label}</span>}
               sx={{
                 m: 0,
                 alignItems: "center",
-                "& .MuiFormControlLabel-label": { color: "white" },
+                "& .MuiFormControlLabel-label": { color: colors.primary_text },
               }}
             />
           ))}
         </FormGroup>
-        <Divider sx={{ my: 1 }} />
+        <Divider sx={{ my: 1, borderColor: colors.border_color }} />
         <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
           <Button
             variant="outlined"
@@ -136,11 +141,11 @@ const FilterPopover = ({
             sx={{
               borderColor:
                 working.length === 0 && selected.length === 0
-                  ? "#333"
+                  ? colors.border_color
                   : "#e6a935",
               color:
                 working.length === 0 && selected.length === 0
-                  ? "#555"
+                  ? colors.secondary_text
                   : "#e6a935",
               backgroundColor:
                 working.length === 0 && selected.length === 0
@@ -151,11 +156,11 @@ const FilterPopover = ({
               "&:hover": {
                 borderColor:
                   working.length === 0 && selected.length === 0
-                    ? "#444"
+                    ? colors.hover_bg
                     : "#f0b949",
                 backgroundColor:
                   working.length === 0 && selected.length === 0
-                    ? "rgba(255,255,255,0.04)"
+                    ? colors.hover_bg
                     : "rgba(230,169,53,0.15)",
               },
               transition: "all 0.18s ease",
@@ -168,8 +173,8 @@ const FilterPopover = ({
             size="small"
             onClick={handleDone}
             sx={{
-              backgroundColor: "#14b8a6",
-              "&:hover": { backgroundColor: "#0f8b7d" },
+              backgroundColor: colors.primary_accent,
+              "&:hover": { backgroundColor: colors.button_hover },
             }}
           >
             Done

@@ -4,6 +4,7 @@ import {
   formatNumberFull,
   formatCompactNumber,
 } from "../../utils/numberFormatters";
+import { useTheme } from "../../hooks/useTheme";
 
 const SelectionSummaryBar = ({
   selectionStats,
@@ -13,6 +14,8 @@ const SelectionSummaryBar = ({
   setSummaryExpanded,
   clearSelection,
 }) => {
+  const { colors } = useTheme();
+
   if (!selectionStats || selectionStats.count <= 1) return null;
   return (
     <div
@@ -33,10 +36,10 @@ const SelectionSummaryBar = ({
             display: "flex",
             alignItems: "stretch",
             gap: 8,
-            background: "#1b1b1b",
+            background: colors.primary_bg,
             backdropFilter: "blur(10px) saturate(140%)",
             WebkitBackdropFilter: "blur(10px) saturate(140%)",
-            border: "1px solid rgba(255,255,255,0.05)",
+            border: `1px solid ${colors.border_color}`,
             boxShadow:
               "0 4px 18px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.6)",
             borderRadius: 14,
@@ -61,9 +64,9 @@ const SelectionSummaryBar = ({
                   : "Expand selection stats"
               }
               style={{
-                background: "#1b1b1b",
-                border: "1px solid #303030",
-                color: "#00dac6",
+                background: colors.primary_bg,
+                border: `1px solid ${colors.border_color}`,
+                color: colors.active_text,
                 width: 34,
                 height: 34,
                 display: "flex",
@@ -149,8 +152,11 @@ const SelectionSummaryBar = ({
             <button
               onClick={clearSelection}
               style={{
-                background: "#2a1313",
-                border: "1px solid #4b1d1d",
+                background: colors.mode === "dark" ? "#2a1313" : "#ffe5e5",
+                border:
+                  colors.mode === "dark"
+                    ? "1px solid #4b1d1d"
+                    : "1px solid #ffcccb",
                 color: "#ff6b6b",
                 fontSize: 12,
                 padding: "8px 12px",

@@ -38,8 +38,10 @@ import {
 import Modal from "./Modal";
 import ToastNotification from "./ToastNotification";
 import useFriendAccess from "../../hooks/useFriendAccess";
+import { useTheme } from "../../hooks/useTheme";
 
 const Budget = () => {
+  const { colors } = useTheme();
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [sortModel, setSortModel] = useState([]);
@@ -250,7 +252,13 @@ const Budget = () => {
           hasWriteAccess ? (
             <IconButton
               onClick={(e) => handleMenuClick(e, params.row.id)}
-              sx={{ color: "#ffffff", "&:hover": { color: "#00dac6" } }}
+              sx={{
+                color: colors.primary_accent,
+                "&:hover": {
+                  color: colors.primary_accent,
+                  opacity: 0.8,
+                },
+              }}
             >
               <MoreVertIcon fontSize="small" />
             </IconButton>
@@ -266,7 +274,13 @@ const Budget = () => {
                   navigate(`/budget/report/${params.row.id}`);
                 }
               }}
-              sx={{ color: "#ffffff", "&:hover": { color: "#00dac6" } }}
+              sx={{
+                color: colors.primary_accent,
+                "&:hover": {
+                  color: colors.primary_accent,
+                  opacity: 0.8,
+                },
+              }}
             >
               <ReportIcon fontSize="small" />
             </IconButton>
@@ -315,15 +329,15 @@ const Budget = () => {
       <GridToolbarQuickFilter
         sx={{
           "& .MuiInputBase-root": {
-            backgroundColor: "#1b1b1b",
-            color: "#ffffff",
+            backgroundColor: colors.tertiary_bg,
+            color: colors.primary_text,
             borderRadius: "8px",
             fontSize: "0.75rem",
           },
-          "& .MuiInputBase-input::placeholder": { color: "#666666" },
+          "& .MuiInputBase-input::placeholder": { color: colors.icon_muted },
         }}
       />
-      <IconButton sx={{ color: "#00dac6" }}>
+      <IconButton sx={{ color: colors.primary_accent }}>
         <FilterListIcon fontSize="small" />
       </IconButton>
     </GridToolbarContainer>
@@ -334,11 +348,11 @@ const Budget = () => {
       {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <Box
         sx={{
-          bgcolor: "#0b0b0b",
+          bgcolor: colors.secondary_bg,
           width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
           borderRadius: "8px",
-          border: "1px solid #000",
+          border: `1px solid ${colors.border_color}`,
           p: 2,
           mr: isSmallScreen ? 0 : "20px",
           display: "flex",
@@ -357,10 +371,10 @@ const Budget = () => {
           {!hideBackButton && (
             <IconButton
               sx={{
-                color: "#00DAC6",
-                backgroundColor: "#1b1b1b",
+                color: colors.primary_accent,
+                backgroundColor: colors.tertiary_bg,
                 "&:hover": {
-                  backgroundColor: "#28282a",
+                  backgroundColor: colors.hover_bg,
                 },
                 zIndex: 10,
               }}
@@ -380,7 +394,7 @@ const Budget = () => {
               >
                 <path
                   d="M15 18L9 12L15 6"
-                  stroke="#00DAC6"
+                  stroke={colors.primary_accent}
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -391,7 +405,7 @@ const Budget = () => {
           <Typography
             variant="h3"
             sx={{
-              color: "#ffffff",
+              color: colors.primary_text,
               fontWeight: "bold",
               fontSize: "1.25rem",
             }}
@@ -403,10 +417,13 @@ const Budget = () => {
               <IconButton
                 onClick={handleNewBudgetClick}
                 sx={{
-                  color: "#ffffff",
-                  bgcolor: "#00dac6",
+                  color: colors.button_text,
+                  bgcolor: colors.primary_accent,
                   borderRadius: "50%",
                   p: 1,
+                  "&:hover": {
+                    bgcolor: colors.button_hover,
+                  },
                 }}
               >
                 <AddIcon fontSize="small" />
@@ -421,17 +438,39 @@ const Budget = () => {
                   <Button
                     variant="contained"
                     onClick={handleNewBudgetClick}
-                    sx={{ textTransform: "none" }}
+                    sx={{
+                      textTransform: "none",
+                      bgcolor: colors.button_bg,
+                      color: colors.button_text,
+                      "&:hover": {
+                        bgcolor: colors.button_hover,
+                      },
+                    }}
                   >
                     + New Budget
                   </Button>
-                  <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+                  <IconButton
+                    sx={{
+                      color: colors.primary_accent,
+                      bgcolor: colors.tertiary_bg,
+                    }}
+                  >
                     <FilterListIcon fontSize="small" />
                   </IconButton>
-                  <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+                  <IconButton
+                    sx={{
+                      color: colors.primary_accent,
+                      bgcolor: colors.tertiary_bg,
+                    }}
+                  >
                     <FilterListIcon fontSize="small" />
                   </IconButton>
-                  <IconButton sx={{ color: "#00dac6", bgcolor: "#1b1b1b" }}>
+                  <IconButton
+                    sx={{
+                      color: colors.primary_accent,
+                      bgcolor: colors.tertiary_bg,
+                    }}
+                  >
                     <MoreVertIcon fontSize="small" />
                   </IconButton>
                 </>
@@ -441,7 +480,7 @@ const Budget = () => {
             </Box>
           )}
         </Box>
-        <Divider sx={{ borderColor: "#28282a", my: 1 }} />
+        <Divider sx={{ borderColor: colors.border_color, my: 1 }} />
         <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
           {loading ? (
             <Box sx={{ height: `${tableHeight}px`, overflow: "hidden" }}>
@@ -453,6 +492,7 @@ const Budget = () => {
                     width: "100%",
                     mb: index < 9 ? "3px" : 0,
                     borderRadius: "4px",
+                    bgcolor: colors.tertiary_bg,
                   }}
                 />
               ))}
@@ -502,13 +542,40 @@ const Budget = () => {
                 },
               }}
               sx={{
+                backgroundColor: colors.secondary_bg,
+                color: colors.primary_text,
+                border: `1px solid ${colors.border_color}`,
                 "& .MuiDataGrid-cell": {
                   fontSize: isSmallScreen ? "0.85rem" : "0.875rem",
                   py: 0.5,
+                  borderColor: colors.border_color,
+                  color: colors.primary_text,
                 },
                 "& .MuiDataGrid-columnHeaders": {
                   fontSize: "0.75rem",
                   py: 0.5,
+                  backgroundColor: colors.tertiary_bg,
+                  color: colors.primary_text,
+                  borderColor: colors.border_color,
+                },
+                "& .MuiDataGrid-row": {
+                  "&:hover": {
+                    backgroundColor: colors.hover_bg,
+                  },
+                },
+                "& .MuiCheckbox-root": {
+                  color: `${colors.primary_accent} !important`,
+                },
+                "& .MuiDataGrid-footerContainer": {
+                  backgroundColor: colors.tertiary_bg,
+                  borderColor: colors.border_color,
+                  color: colors.primary_text,
+                },
+                "& .MuiTablePagination-root": {
+                  color: colors.primary_text,
+                },
+                "& .MuiDataGrid-toolbarContainer": {
+                  color: colors.primary_text,
                 },
               }}
             />
@@ -521,9 +588,9 @@ const Budget = () => {
             onClose={handleMenuClose}
             PaperProps={{
               sx: {
-                bgcolor: "#1b1b1b",
-                color: "#ffffff",
-                border: "1px solid #28282a",
+                bgcolor: colors.tertiary_bg,
+                color: colors.primary_text,
+                border: `1px solid ${colors.border_color}`,
                 borderRadius: "8px",
                 minWidth: "120px",
               },
@@ -535,7 +602,7 @@ const Budget = () => {
               onClick={handleReport}
               sx={{
                 color: "#2196f3",
-                "&:hover": { bgcolor: "#2a2a2a" },
+                "&:hover": { bgcolor: colors.hover_bg },
                 display: "flex",
                 gap: 1,
               }}
@@ -547,7 +614,7 @@ const Budget = () => {
               onClick={handleEdit}
               sx={{
                 color: "#4caf50",
-                "&:hover": { bgcolor: "#2a2a2a" },
+                "&:hover": { bgcolor: colors.hover_bg },
                 display: "flex",
                 gap: 1,
               }}
@@ -559,7 +626,7 @@ const Budget = () => {
               onClick={handleDelete}
               sx={{
                 color: "#f44336",
-                "&:hover": { bgcolor: "#2a2a2a" },
+                "&:hover": { bgcolor: colors.hover_bg },
                 display: "flex",
                 gap: 1,
               }}

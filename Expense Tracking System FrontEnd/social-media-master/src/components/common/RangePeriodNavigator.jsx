@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@mui/material";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * RangePeriodNavigator
@@ -38,6 +39,8 @@ const RangePeriodNavigator = ({
   disableNextAt = 0,
   isMobile = false,
 }) => {
+  const { colors } = useTheme();
+
   return (
     <>
       <div
@@ -49,9 +52,9 @@ const RangePeriodNavigator = ({
             variant="contained"
             onClick={() => onBackNavigate && onBackNavigate()}
             sx={{
-              backgroundColor: "#1b1b1b",
+              backgroundColor: colors.primary_bg,
               borderRadius: "8px",
-              color: "#00DAC6",
+              color: colors.active_text,
               display: "flex",
               alignItems: "center",
               gap: "8px",
@@ -60,7 +63,7 @@ const RangePeriodNavigator = ({
               textTransform: "none",
               fontSize: isMobile ? "0.7rem" : "0.8rem",
               minHeight: 36,
-              "&:hover": { backgroundColor: "#28282a" },
+              "&:hover": { backgroundColor: colors.hover_bg },
             }}
           >
             <svg
@@ -72,7 +75,7 @@ const RangePeriodNavigator = ({
             >
               <path
                 d="M15 18L9 12L15 6"
-                stroke="#00DAC6"
+                stroke={colors.active_text}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -94,12 +97,18 @@ const RangePeriodNavigator = ({
                 }
                 setActiveRange(tab.value);
               }}
-              className={`px-4 py-2 rounded font-semibold flex items-center gap-2 ${
-                activeRange === tab.value
-                  ? "bg-[#00DAC6] text-black"
-                  : "bg-[#29282b] text-white"
-              }`}
-              style={{ transition: "background-color 0.2s" }}
+              className="px-4 py-2 rounded font-semibold flex items-center gap-2"
+              style={{
+                backgroundColor:
+                  activeRange === tab.value
+                    ? colors.button_bg
+                    : colors.active_bg,
+                color:
+                  activeRange === tab.value
+                    ? colors.button_text
+                    : colors.primary_text,
+                transition: "background-color 0.2s",
+              }}
             >
               {tab.label}
             </button>
@@ -110,24 +119,42 @@ const RangePeriodNavigator = ({
         <button
           onClick={handleBack}
           disabled={offset <= disablePrevAt}
-          className={`px-3 py-1 rounded text-lg flex items-center ${
-            offset <= disablePrevAt
-              ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-              : "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-          }`}
+          className="px-3 py-1 rounded text-lg flex items-center"
+          style={{
+            backgroundColor:
+              offset <= disablePrevAt
+                ? colors.secondary_text
+                : colors.button_bg,
+            color:
+              offset <= disablePrevAt
+                ? colors.border_color
+                : colors.button_text,
+            cursor: offset <= disablePrevAt ? "not-allowed" : "pointer",
+            opacity: offset <= disablePrevAt ? 0.5 : 1,
+          }}
           aria-label="Previous"
         >
           &#8592;
         </button>
-        <span className="text-white text-sm">{rangeLabel}</span>
+        <span style={{ color: colors.primary_text, fontSize: "0.875rem" }}>
+          {rangeLabel}
+        </span>
         <button
           onClick={handleNext}
           disabled={offset >= disableNextAt}
-          className={`px-3 py-1 rounded text-lg flex items-center ${
-            offset >= disableNextAt
-              ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-              : "bg-[#00DAC6] text-black hover:bg-[#00b8a0]"
-          }`}
+          className="px-3 py-1 rounded text-lg flex items-center"
+          style={{
+            backgroundColor:
+              offset >= disableNextAt
+                ? colors.secondary_text
+                : colors.button_bg,
+            color:
+              offset >= disableNextAt
+                ? colors.border_color
+                : colors.button_text,
+            cursor: offset >= disableNextAt ? "not-allowed" : "pointer",
+            opacity: offset >= disableNextAt ? 0.5 : 1,
+          }}
           aria-label="Next"
         >
           &#8594;

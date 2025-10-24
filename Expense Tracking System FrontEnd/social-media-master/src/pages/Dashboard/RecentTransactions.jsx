@@ -1,5 +1,6 @@
 import React from "react";
 import ListSkeleton from "../../components/ListSkeleton";
+import { useTheme } from "../../hooks/useTheme";
 
 // Reusable Recent Transactions list
 // Props:
@@ -15,11 +16,26 @@ const RecentTransactions = ({
   onViewAll,
   skeletonCount = 5,
 }) => {
+  const { colors } = useTheme();
+
   return (
-    <div className="recent-transactions">
+    <div
+      className="recent-transactions"
+      style={{
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+      }}
+    >
       <div className="section-header">
-        <h3>🕒 Recent Transactions</h3>
-        <button className="view-all-btn" onClick={onViewAll}>
+        <h3 style={{ color: colors.primary_text }}>🕒 Recent Transactions</h3>
+        <button
+          className="view-all-btn"
+          onClick={onViewAll}
+          style={{
+            backgroundColor: colors.primary_accent,
+            color: colors.button_text,
+          }}
+        >
           View All
         </button>
       </div>
@@ -40,8 +56,9 @@ const RecentTransactions = ({
                     ? "rgba(255,0,0,0.08)"
                     : transaction.expense?.type === "gain"
                     ? "rgba(0,255,0,0.08)"
-                    : "transparent",
+                    : colors.tertiary_bg,
                 transition: "background-color 0.3s ease",
+                border: `1px solid ${colors.border_color}`,
               }}
             >
               <div className="transaction-icon">
@@ -51,13 +68,20 @@ const RecentTransactions = ({
                 <div
                   className="transaction-name"
                   title={transaction.expense?.expenseName}
+                  style={{ color: colors.primary_text }}
                 >
                   {transaction.expense?.expenseName}
                 </div>
-                <div className="transaction-category">
+                <div
+                  className="transaction-category"
+                  style={{ color: colors.secondary_text }}
+                >
                   {transaction.categoryName}
                 </div>
-                <div className="transaction-date">
+                <div
+                  className="transaction-date"
+                  style={{ color: colors.secondary_text }}
+                >
                   {transaction.date
                     ? new Date(transaction.date).toLocaleDateString()
                     : ""}
@@ -67,6 +91,12 @@ const RecentTransactions = ({
                 className={`transaction-amount ${
                   transaction.expense?.type || ""
                 }`}
+                style={{
+                  color:
+                    transaction.expense?.type === "loss"
+                      ? "#ef4444"
+                      : "#10b981",
+                }}
               >
                 {transaction.expense?.type === "loss" ? "-" : "+"}₹
                 {Number(

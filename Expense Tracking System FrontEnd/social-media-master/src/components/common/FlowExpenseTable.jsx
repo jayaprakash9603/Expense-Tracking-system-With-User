@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { DataGrid } from "@mui/x-data-grid";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * FlowExpenseTable
@@ -16,6 +17,7 @@ const FlowExpenseTable = ({
   isTablet,
   onClose,
 }) => {
+  const { colors } = useTheme();
   const [sort, setSort] = useState({ field: "date", direction: "desc" });
 
   const rows = useMemo(
@@ -71,7 +73,14 @@ const FlowExpenseTable = ({
       headerName: "Name",
       flex: 2,
       renderCell: (params) => (
-        <div className="text-white truncate" title={params.value}>
+        <div
+          style={{
+            color: colors.primary_text,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+          title={params.value}
+        >
           {params.value}
         </div>
       ),
@@ -82,7 +91,7 @@ const FlowExpenseTable = ({
       headerName: "Date",
       flex: 1,
       renderCell: (params) => (
-        <div className="text-white">
+        <div style={{ color: colors.primary_text }}>
           {typeof params.value === "string"
             ? dayjs(params.value).format("DD/MM/YYYY")
             : "No date"}
@@ -136,7 +145,7 @@ const FlowExpenseTable = ({
     <div
       className="w-full rounded-lg p-4 mb-4"
       style={{
-        background: "#1b1b1b",
+        background: colors.primary_bg,
         minWidth: 0,
         maxWidth: "100%",
         boxSizing: "border-box",
@@ -146,7 +155,9 @@ const FlowExpenseTable = ({
       }}
     >
       <div className="flex justify-between items-center mb-3">
-        <h3 className="text-white font-bold">{title}</h3>
+        <h3 style={{ color: colors.primary_text, fontWeight: "bold" }}>
+          {title}
+        </h3>
         <IconButton onClick={onClose} sx={{ color: "#ff5252" }}>
           <CloseIcon />
         </IconButton>
@@ -165,12 +176,12 @@ const FlowExpenseTable = ({
           disableColumnMenu
           initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
           sx={{
-            bgcolor: "#1b1b1b",
-            color: "#ffffff",
-            border: "1px solid #28282a",
+            bgcolor: colors.primary_bg,
+            color: colors.primary_text,
+            border: `1px solid ${colors.border_color}`,
             "& .MuiDataGrid-columnHeaders": {
-              bgcolor: "#333333",
-              color: "#ffffff",
+              bgcolor: colors.hover_bg,
+              color: colors.primary_text,
             },
             "& .MuiDataGrid-row": {
               maxHeight: "40px !important",
@@ -181,15 +192,15 @@ const FlowExpenseTable = ({
               padding: "4px 8px",
               display: "flex",
               alignItems: "center",
-              color: "#ffffff",
+              color: colors.primary_text,
             },
-            "& .MuiDataGrid-row:hover": { bgcolor: "#28282a" },
+            "& .MuiDataGrid-row:hover": { bgcolor: colors.hover_bg },
             "& .MuiDataGrid-footerContainer": {
-              bgcolor: "#333333",
-              color: "#ffffff",
+              bgcolor: colors.hover_bg,
+              color: colors.primary_text,
             },
-            "& .MuiTablePagination-root": { color: "#ffffff" },
-            "& .MuiSvgIcon-root": { color: "#ffffff" },
+            "& .MuiTablePagination-root": { color: colors.primary_text },
+            "& .MuiSvgIcon-root": { color: colors.primary_text },
             height: isMobile ? 200 : isTablet ? 250 : 315,
           }}
         />

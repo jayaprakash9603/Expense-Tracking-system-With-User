@@ -16,6 +16,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 //  - getInitials(first, last)
 //  - getAvatarColor(id)
 //  - themeColor
+//  - colors: theme colors object
 const SharingCard = ({
   user,
   direction,
@@ -28,6 +29,7 @@ const SharingCard = ({
   getInitials,
   getAvatarColor,
   themeColor = "#14b8a6",
+  colors,
 }) => {
   const directionBadge = direction === "incoming" ? "S" : "Y";
   const directionTitle =
@@ -38,12 +40,14 @@ const SharingCard = ({
     direction === "incoming" && user.accessLevel && user.accessLevel !== "NONE";
 
   // Direction-based accent colors (no gradients)
-  const incomingColor = "#14b8a6"; // teal brand
+  const incomingColor = colors?.primary_accent || "#14b8a6"; // teal brand
   const outgoingColor = "#e6a935"; // warm amber for contrast
   const accent = direction === "incoming" ? incomingColor : outgoingColor;
-  const subtleBg = direction === "incoming" ? "#1f2e2d" : "#2e2819"; // very subtle tinted bg
-  const baseBg = "#2a2a2a"; // keep consistent card base
-  const hoverBg = "#333333";
+  const baseBg = colors?.tertiary_bg || "#2a2a2a"; // keep consistent card base
+  const hoverBg = colors?.hover_bg || "#333333";
+  const primaryText = colors?.primary_text || "white";
+  const secondaryText = colors?.secondary_text || "#9ca3af";
+  const borderColor = colors?.border_color || "#202020";
 
   // Combine subtle tint behind avatar area while keeping base background
 
@@ -58,24 +62,25 @@ const SharingCard = ({
         borderLeft: `4px solid ${accent}`,
         boxShadow: selected
           ? `0 0 0 1px ${accent} inset, 0 0 0 2px rgba(0,0,0,0.4)`
-          : "0 0 0 1px #202020 inset",
+          : `0 0 0 1px ${borderColor} inset`,
       }}
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hoverBg)}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = baseBg)}
     >
       <div className="relative">
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold"
+          className="text-sm font-bold w-12 h-12 rounded-full flex items-center justify-center"
           style={{
             backgroundColor: getAvatarColor(user.userId),
             boxShadow: `0 0 0 2px ${accent}22`,
+            color: primaryText,
           }}
         >
           {getInitials(user.name.split(" ")[0], user.name.split(" ")[1] || "")}
         </div>
         <span
-          className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold text-black shadow"
-          style={{ backgroundColor: accent }}
+          className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow"
+          style={{ backgroundColor: accent, color: baseBg }}
           title={directionTitle}
         >
           {directionBadge}
@@ -83,7 +88,10 @@ const SharingCard = ({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <p className="text-white text-sm font-semibold truncate">
+          <p
+            className="text-sm font-semibold truncate"
+            style={{ color: primaryText }}
+          >
             {user.name}
           </p>
           <span
@@ -97,8 +105,13 @@ const SharingCard = ({
             {user.accessLevel || "NONE"}
           </span>
         </div>
-        <p className="text-xs text-gray-400 truncate mb-1">{user.email}</p>
-        <div className="flex items-center text-[11px] text-gray-300 gap-1">
+        <p className="text-xs truncate mb-1" style={{ color: secondaryText }}>
+          {user.email}
+        </p>
+        <div
+          className="flex items-center text-[11px] gap-1"
+          style={{ color: secondaryText }}
+        >
           {getAccessLevelIcon(user.accessLevel)}
           <span style={{ color: accent }}>
             {getAccessLevelDescription(user.accessLevel, descriptionKey)}

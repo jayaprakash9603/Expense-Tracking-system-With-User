@@ -1,4 +1,5 @@
 import React from "react";
+import { useTheme } from "../../hooks/useTheme";
 import {
   TrendingUp,
   TrendingDown,
@@ -26,34 +27,60 @@ const MetricCard = ({
   type,
   trend,
 }) => {
+  const { colors } = useTheme();
+
   const formatValue = (val) => {
     if (typeof val === "number") return `₹${formatNumber0(val)}`;
     return val;
   };
+
   return (
-    <div className={`metric-card ${type}`}>
+    <div
+      className={`metric-card ${type}`}
+      style={{
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+      }}
+    >
       <div className="metric-header">
-        <div className="metric-icon">{icon}</div>
+        <div className="metric-icon" style={{ color: colors.primary_accent }}>
+          {icon}
+        </div>
         <div className={`trend-indicator ${trend}`}>
           {trend === "up" ? (
-            <TrendingUp />
+            <TrendingUp style={{ color: "#10b981" }} />
           ) : trend === "down" ? (
-            <TrendingDown />
+            <TrendingDown style={{ color: "#ef4444" }} />
           ) : (
-            <TrendingFlat />
+            <TrendingFlat style={{ color: colors.secondary_text }} />
           )}
         </div>
       </div>
       <div className="metric-content">
-        <h3>{title}</h3>
-        <div className="metric-value">{formatValue(value)}</div>
+        <h3 style={{ color: colors.secondary_text }}>{title}</h3>
+        <div className="metric-value" style={{ color: colors.primary_text }}>
+          {formatValue(value)}
+        </div>
         {changeText ? (
-          <div className={`metric-change ${changeDirection || "neutral"}`}>
+          <div
+            className={`metric-change ${changeDirection || "neutral"}`}
+            style={{
+              color:
+                changeDirection === "positive"
+                  ? "#10b981"
+                  : changeDirection === "negative"
+                  ? "#ef4444"
+                  : colors.secondary_text,
+            }}
+          >
             {changeText}
           </div>
         ) : typeof change === "number" ? (
           <div
             className={`metric-change ${change > 0 ? "positive" : "negative"}`}
+            style={{
+              color: change > 0 ? "#10b981" : "#ef4444",
+            }}
           >
             {change > 0 ? "+" : ""}
             {change}% from last month
@@ -61,27 +88,79 @@ const MetricCard = ({
         ) : null}
       </div>
       <div className="metric-sparkline">
-        <div className="sparkline-bar" style={{ height: "60%" }}></div>
-        <div className="sparkline-bar" style={{ height: "80%" }}></div>
-        <div className="sparkline-bar" style={{ height: "40%" }}></div>
-        <div className="sparkline-bar" style={{ height: "90%" }}></div>
-        <div className="sparkline-bar" style={{ height: "70%" }}></div>
+        <div
+          className="sparkline-bar"
+          style={{
+            height: "60%",
+            backgroundColor: colors.hover_bg,
+          }}
+        />
+        <div
+          className="sparkline-bar"
+          style={{
+            height: "80%",
+            backgroundColor: colors.hover_bg,
+          }}
+        />
+        <div
+          className="sparkline-bar"
+          style={{
+            height: "40%",
+            backgroundColor: colors.hover_bg,
+          }}
+        />
+        <div
+          className="sparkline-bar"
+          style={{
+            height: "90%",
+            backgroundColor: colors.hover_bg,
+          }}
+        />
+        <div
+          className="sparkline-bar"
+          style={{
+            height: "70%",
+            backgroundColor: colors.hover_bg,
+          }}
+        />
       </div>
     </div>
   );
 };
 
 // Skeleton for metrics grid (same as previous inline use)
-const MetricCardSkeleton = () => (
-  <div className="metric-card-skeleton">
-    <div className="skeleton-icon" />
-    <div className="skeleton-content">
-      <div className="skeleton-title" />
-      <div className="skeleton-value" />
-      <div className="skeleton-change" />
+const MetricCardSkeleton = () => {
+  const { colors } = useTheme();
+
+  return (
+    <div
+      className="metric-card-skeleton"
+      style={{
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+      }}
+    >
+      <div
+        className="skeleton-icon"
+        style={{ backgroundColor: colors.hover_bg }}
+      />
+      <div className="skeleton-content">
+        <div
+          className="skeleton-title"
+          style={{ backgroundColor: colors.hover_bg }}
+        />
+        <div
+          className="skeleton-value"
+          style={{ backgroundColor: colors.hover_bg }}
+        />
+        <div
+          className="skeleton-change"
+          style={{ backgroundColor: colors.hover_bg }}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Main MetricsGrid component
 // Props:

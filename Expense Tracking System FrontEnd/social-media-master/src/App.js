@@ -20,6 +20,7 @@ import Budget from "./pages/Landingpage/Budget";
 import EditExpense from "./pages/Landingpage/EditExpense";
 import NewExpense from "./pages/Landingpage/NewExpense";
 import Profile from "./pages/Landingpage/Profile";
+import Settings from "./pages/Landingpage/Settings";
 import NewBudget from "./pages/Landingpage/NewBudget";
 import EditBudget from "./pages/Landingpage/EditBudget";
 import Reports from "./pages/Landingpage/Reports";
@@ -60,11 +61,13 @@ import BudgetDashboard from "./pages/Landingpage/Budget/BudgetDashboard";
 import CombinedExpenseReport from "./pages/Landingpage/CombinedExpenseReport";
 // import Bill from "./pages/Landingpage/Bills/Bill";
 function App() {
-  const { auth } = useSelector((store) => store);
+  const { auth, theme } = useSelector((store) => store);
   const dispatch = useDispatch();
   const jwt = localStorage.getItem("jwt");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const isDark = theme?.mode === "dark";
 
   useEffect(() => {
     if (jwt) {
@@ -91,7 +94,7 @@ function App() {
 
   return (
     <>
-      <div className="">
+      <div className={isDark ? "dark" : "light"}>
         <Routes>
           {/* Other Routes */}
 
@@ -111,6 +114,7 @@ function App() {
               <Route path=":id" element={<GroupDetail />} />
             </Route>
             <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
             <Route path="friends" element={<Friends />} />
             <Route path="payment-method">
               <Route index element={<PaymentMethodFlow />} />

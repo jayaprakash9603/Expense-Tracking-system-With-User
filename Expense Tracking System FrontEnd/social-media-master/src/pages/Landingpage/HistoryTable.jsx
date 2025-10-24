@@ -33,12 +33,20 @@ import {
   getExpensesAction,
 } from "../../Redux/Expenses/expense.action";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
-import theme from "./theme";
+import createAppTheme from "./theme";
 import ToastNotification from "./ToastNotification";
 
 const HistoryTable = ({ friendId }) => {
   const dispatch = useDispatch();
   const { history, loading } = useSelector((state) => state.expenses || {});
+
+  // Get theme mode from Redux
+  const themeMode = useSelector((state) => state.theme?.mode || "dark");
+  const customTheme = React.useMemo(
+    () => createAppTheme(themeMode),
+    [themeMode]
+  );
+
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -133,7 +141,7 @@ const HistoryTable = ({ friendId }) => {
 
   if (loading) {
     return (
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={customTheme}>
         <Box
           sx={{
             width: "100%",
@@ -162,7 +170,7 @@ const HistoryTable = ({ friendId }) => {
   }
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={customTheme}>
       <ToastNotification
         open={toastOpen}
         message={toastMessage}

@@ -1,6 +1,7 @@
 import React from "react";
 import { TextField as MuiTextField } from "@mui/material";
 import PropTypes from "prop-types";
+import { useTheme } from "../hooks/useTheme";
 
 /**
  * ReusableTextField - A robust, reusable TextField component
@@ -70,37 +71,51 @@ const ReusableTextField = ({
   label,
   ...restProps
 }) => {
+  const { colors } = useTheme();
+
+  // Use theme colors as defaults if no custom colors provided (check against hardcoded defaults)
+  const effectiveBgColor =
+    backgroundColor === "#29282b" ? colors.active_bg : backgroundColor;
+  const effectiveTextColor =
+    textColor === "#fff" ? colors.primary_text : textColor;
+  const effectiveBorderColor =
+    borderColor === "rgb(75, 85, 99)" ? colors.border_color : borderColor;
+  const effectiveFocusBorderColor =
+    focusBorderColor === "#00dac6" ? "#00dac6" : focusBorderColor;
+  const effectivePlaceholderColor =
+    placeholderColor === "#9ca3af" ? colors.secondary_text : placeholderColor;
+
   const defaultSx = {
     width: fullWidth ? "100%" : "auto",
     maxWidth: "300px",
     "& .MuiInputBase-root": {
-      backgroundColor: backgroundColor,
-      color: textColor,
+      backgroundColor: effectiveBgColor,
+      color: effectiveTextColor,
       height: !multiline ? (size === "small" ? "40px" : "56px") : "auto",
       fontSize: size === "small" ? "14px" : "16px",
     },
     "& .MuiInputBase-input": {
-      color: textColor,
+      color: effectiveTextColor,
       "&::placeholder": {
-        color: placeholderColor,
+        color: effectivePlaceholderColor,
         opacity: 1,
       },
     },
     "& .MuiOutlinedInput-root": {
       "& fieldset": {
-        borderColor: error ? errorBorderColor : borderColor,
+        borderColor: error ? errorBorderColor : effectiveBorderColor,
         borderWidth: error ? "2px" : "1px",
       },
       "&:hover fieldset": {
-        borderColor: error ? errorBorderColor : borderColor,
+        borderColor: error ? errorBorderColor : effectiveBorderColor,
       },
       "&.Mui-focused fieldset": {
-        borderColor: error ? errorBorderColor : focusBorderColor,
+        borderColor: error ? errorBorderColor : effectiveFocusBorderColor,
         borderWidth: "2px",
       },
     },
     "& .MuiFormHelperText-root": {
-      color: error ? errorBorderColor : textColor,
+      color: error ? errorBorderColor : effectiveTextColor,
       marginLeft: 0,
       fontSize: "0.75rem",
     },

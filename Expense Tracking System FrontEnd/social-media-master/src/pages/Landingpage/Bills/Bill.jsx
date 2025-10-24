@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import { useNavigate, useParams, useLocation } from "react-router";
+import { useTheme as useAppTheme } from "../../../hooks/useTheme";
 
 // Custom hooks
 import { useBillData } from "./useBillData";
@@ -34,6 +35,7 @@ const Bill = () => {
   const hideBackButton = location?.state?.fromSidebar === true;
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const { colors } = useAppTheme();
 
   // State management
   const [activeTab, setActiveTab] = useState(0);
@@ -197,9 +199,8 @@ const Bill = () => {
     <Box
       sx={{
         height: "calc(100vh - 100px)",
-        // top: "50px",
         width: "calc(100vw - 370px)",
-        backgroundColor: "#0b0b0b",
+        backgroundColor: colors.tertiary_bg,
         position: "relative",
         overflow: "hidden",
         borderRadius: "16px",
@@ -280,14 +281,14 @@ const Bill = () => {
               width: "8px",
             },
             "&::-webkit-scrollbar-track": {
-              backgroundColor: "#1b1b1b",
+              backgroundColor: colors.primary_bg,
               borderRadius: "4px",
             },
             "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "#14b8a6",
+              backgroundColor: colors.primary_accent,
               borderRadius: "4px",
               "&:hover": {
-                backgroundColor: "#0d9488",
+                backgroundColor: colors.secondary_accent,
               },
             },
           }}
@@ -325,13 +326,13 @@ const Bill = () => {
               color="primary"
               sx={{
                 "& .MuiPaginationItem-root": {
-                  color: "#b0b0b0",
+                  color: colors.secondary_text,
                   "&.Mui-selected": {
-                    backgroundColor: "#14b8a6",
-                    color: "white",
+                    backgroundColor: colors.primary_accent,
+                    color: colors.button_text,
                   },
                   "&:hover": {
-                    backgroundColor: "#14b8a6",
+                    backgroundColor: colors.primary_accent,
                     opacity: 0.7,
                   },
                 },

@@ -2,13 +2,13 @@
   width: calc(100vw - 370px);
   height: calc(100vh - 100px);
   margin: 0 20px 0 0;
-  background: #0b0b0b;
-  color: #ffffff;
+  /* background removed - using inline style from component */
+  /* color removed - using inline style from component */
   padding: 24px;
   overflow-y: auto;
   border-radius: 16px;
-  border: 1px solid rgba(20, 184, 166, 0.1);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  /* border removed - using inline style from component */
+  /* box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); */
   position: relative;
 }
 
@@ -333,8 +333,8 @@
 }
 
 .chart-container {
-  background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
-  border: 1px solid rgba(20, 184, 166, 0.2);
+  /* background removed - using inline style from component */
+  /* border removed - using inline style from component */
   border-radius: 16px;
   padding: 24px;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1206,15 +1206,15 @@
 
 /* Recent Transactions */
 .recent-transactions {
-  background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
-  border: 1px solid rgba(20, 184, 166, 0.2);
+  /* background removed - using inline style from component */
+  /* border removed - using inline style from component */
   border-radius: 16px;
   padding: 24px;
   transition: all 0.3s ease;
 }
 
 .recent-transactions:hover {
-  border-color: rgba(20, 184, 166, 0.4);
+  /* border-color removed - inline style handles it */
   box-shadow: 0 8px 24px rgba(20, 184, 166, 0.1);
 }
 
@@ -1228,7 +1228,7 @@
 .section-header h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #ffffff;
+  /* color removed - using inline style from component */
   margin: 0;
   display: flex;
   align-items: center;
@@ -1283,8 +1283,8 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: rgba(20, 184, 166, 0.05);
-  border: 1px solid rgba(20, 184, 166, 0.1);
+  /* background removed - using inline style from component */
+  /* border removed - using inline style from component */
   border-radius: 10px;
   transition: all 0.3s ease;
   cursor: pointer;
@@ -1292,8 +1292,8 @@
 }
 
 .transaction-item:hover {
-  background: rgba(20, 184, 166, 0.1);
-  border-color: rgba(20, 184, 166, 0.2);
+  /* background removed - inline style handles it */
+  /* border-color removed - inline style handles it */
   transform: translateX(4px);
 }
 
@@ -1368,8 +1368,8 @@
 
 /* Budget Overview */
 .budget-overview {
-  background: linear-gradient(135deg, #1b1b1b 0%, #2a2a2a 100%);
-  border: 1px solid rgba(20, 184, 166, 0.2);
+  /* background removed - using inline style from component */
+  /* border removed - using inline style from component */
   border-radius: 16px;
   padding: 24px;
   text-align: center;
@@ -1377,7 +1377,7 @@
 }
 
 .budget-overview:hover {
-  border-color: rgba(20, 184, 166, 0.4);
+  /* border-color removed - inline style handles it */
   box-shadow: 0 8px 24px rgba(20, 184, 166, 0.1);
 }
 
@@ -1391,12 +1391,7 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background: conic-gradient(
-    #14b8a6 0deg,
-    #14b8a6 calc(var(--progress) * 3.6deg),
-    rgba(20, 184, 166, 0.2) calc(var(--progress) * 3.6deg),
-    rgba(20, 184, 166, 0.2) 360deg
-  );
+  /* background removed - using inline style from component for dynamic theme colors */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1412,25 +1407,25 @@
 .budget-center {
   width: 120px;
   height: 120px;
-  background: radial-gradient(circle, #1b1b1b 0%, #2a2a2a 100%);
+  /* background removed - using inline style from component */
   border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(20, 184, 166, 0.3);
+  /* border removed - using inline style from component */
 }
 
 .budget-percentage {
   font-size: 2rem;
   font-weight: 700;
-  color: #14b8a6;
-  text-shadow: 0 0 20px rgba(20, 184, 166, 0.5);
+  /* color removed - using inline style from component */
+  /* text-shadow removed - using inline style from component */
 }
 
 .budget-label {
   font-size: 0.875rem;
-  color: #888;
+  /* color removed - using inline style from component */
   margin-top: 4px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1447,27 +1442,27 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: rgba(20, 184, 166, 0.05);
+  /* background removed - using inline style from component */
   border-radius: 8px;
-  border: 1px solid rgba(20, 184, 166, 0.1);
+  /* border removed - using inline style from component */
   transition: all 0.3s ease;
 }
 
 .budget-item:hover {
-  background: rgba(20, 184, 166, 0.1);
-  border-color: rgba(20, 184, 166, 0.2);
+  /* background removed - inline style handles it */
+  /* border-color removed - inline style handles it */
   transform: translateX(2px);
 }
 
 .budget-item span:first-child {
-  color: #888;
+  /* color removed - using inline style from component */
   font-size: 0.875rem;
   font-weight: 500;
 }
 
 .budget-item span:last-child {
   font-weight: 600;
-  color: #ffffff;
+  /* color removed - using inline style from component */
 }
 
 .budget-item .positive {
@@ -1476,6 +1471,65 @@
 
 .budget-item .negative {
   color: #ef4444;
+}
+
+/* Budget Card Styling for Enhanced Design */
+.budget-card {
+  /* background removed - using inline style from component */
+  /* border removed - using inline style from component */
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.budget-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.budget-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.budget-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.budget-card:hover .budget-card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.budget-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.budget-card-label {
+  font-size: 0.813rem;
+  font-weight: 500;
+  /* color removed - using inline style from component */
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.budget-card-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  /* color removed - using inline style from component */
+  letter-spacing: -0.02em;
 }
 
 /* Skeleton Styles (improved shimmer + staggered animations) */
@@ -2050,6 +2104,28 @@
 
   .budget-percentage {
     font-size: 1.75rem;
+  }
+
+  .budget-card {
+    padding: 12px;
+  }
+
+  .budget-card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .budget-card-content {
+    gap: 12px;
+  }
+
+  .budget-card-label {
+    font-size: 0.75rem;
+  }
+
+  .budget-card-value {
+    font-size: 1.1rem;
   }
 }
 

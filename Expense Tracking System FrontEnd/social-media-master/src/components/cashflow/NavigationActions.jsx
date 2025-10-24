@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useTheme } from "../../hooks/useTheme";
 
 // Hook to manage add-new popover open/close & outside click
 export const useAddNewPopover = () => {
@@ -46,6 +47,7 @@ const NavigationActions = ({
   currentFlow, // e.g. 'category-flow', 'payment-method', 'cashflow'
 }) => {
   const { open, setOpen, btnRef } = useAddNewPopover();
+  const { colors, getIconFilter } = useTheme();
 
   return (
     <div
@@ -75,10 +77,10 @@ const NavigationActions = ({
               alignItems: "center",
               gap: isMobile ? "6px" : "6px",
               padding: isMobile ? "6px 8px" : "8px 10px",
-              backgroundColor: "#1b1b1b",
-              border: "1px solid #333",
+              backgroundColor: colors.primary_bg,
+              border: `1px solid ${colors.border_color}`,
               borderRadius: "8px",
-              color: "#00DAC6",
+              color: colors.active_text,
               fontSize: isMobile ? "12px" : "14px",
               fontWeight: "500",
               cursor: "pointer",
@@ -93,7 +95,7 @@ const NavigationActions = ({
                 width: isMobile ? 16 : 18,
                 height: isMobile ? 16 : 18,
                 filter:
-                  "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                  "invert(61%) sepia(55%) saturate(654%) hue-rotate(130deg) brightness(91%) contrast(90%)", // Primary color #14b8a6
                 transition: "filter 0.2s ease",
               }}
             />
@@ -110,10 +112,10 @@ const NavigationActions = ({
             alignItems: "center",
             gap: "4px",
             padding: isMobile ? "6px 8px" : "6px 8px",
-            backgroundColor: "#1b1b1b",
-            border: "1px solid #333",
+            backgroundColor: colors.primary_bg,
+            border: `1px solid ${colors.border_color}`,
             borderRadius: "6px",
-            color: "#00DAC6",
+            color: colors.active_text,
             fontSize: isMobile ? "11px" : "12px",
             fontWeight: "500",
             cursor: "pointer",
@@ -132,7 +134,7 @@ const NavigationActions = ({
               width: isMobile ? 14 : 16,
               height: isMobile ? 14 : 16,
               filter:
-                "brightness(0) saturate(100%) invert(67%) sepia(99%) saturate(749%) hue-rotate(120deg) brightness(1.1)",
+                "invert(61%) sepia(55%) saturate(654%) hue-rotate(130deg) brightness(91%) contrast(90%)", // Primary color #14b8a6
               transition: "filter 0.2s ease",
             }}
           />
@@ -154,8 +156,8 @@ const NavigationActions = ({
               left:
                 btnRef.current.getBoundingClientRect().left + window.scrollX,
               zIndex: 1000,
-              background: "#0b0b0b",
-              border: "1px solid #333",
+              background: colors.secondary_bg,
+              border: `1px solid ${colors.border_color}`,
               borderRadius: 6,
               boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
               minWidth: 140,

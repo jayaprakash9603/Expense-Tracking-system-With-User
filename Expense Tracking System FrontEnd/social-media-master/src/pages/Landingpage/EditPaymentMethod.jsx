@@ -19,6 +19,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
+import { useTheme } from "../../hooks/useTheme";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -245,6 +246,7 @@ const ICON_CATEGORIES = {
 };
 
 const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
+  const { colors } = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -515,18 +517,18 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
   // Show loading state
   if (loading) {
     return (
-      <div className="bg-[#1b1b1b]">
-        <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      <div style={{ backgroundColor: colors.secondary_bg }}>
+        <div className="w-full sm:w-[calc(100vw-350px)] h-[50px]"></div>
         <div
           className="flex lg:w-[calc(100vw-370px)] flex-col justify-center items-center sm:w-full"
           style={{
             height: "calc(100vh - 100px)",
-            backgroundColor: "rgb(11, 11, 11)",
+            backgroundColor: colors.secondary_bg,
             borderRadius: "8px",
-            border: "1px solid rgb(0, 0, 0)",
+            border: `1px solid ${colors.border_color}`,
           }}
         >
-          <Typography sx={{ color: "white", fontSize: "1.2rem" }}>
+          <Typography sx={{ color: colors.primary_text, fontSize: "1.2rem" }}>
             Loading payment method details...
           </Typography>
         </div>
@@ -537,15 +539,15 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
   // Show error state if there's a loading error
   if (errors.submit && isEditMode && !paymentMethodData.name) {
     return (
-      <div className="bg-[#1b1b1b]">
-        <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div>
+      <div style={{ backgroundColor: colors.primary_bg }}>
+        <div className="w-full sm:w-[calc(100vw-350px)] h-[50px]"></div>
         <div
           className="flex lg:w-[calc(100vw-370px)] flex-col justify-center items-center sm:w-full"
           style={{
             height: "calc(100vh - 100px)",
-            backgroundColor: "rgb(11, 11, 11)",
+            backgroundColor: colors.secondary_bg,
             borderRadius: "8px",
-            border: "1px solid rgb(0, 0, 0)",
+            border: `1px solid ${colors.border_color}`,
             padding: "16px",
           }}
         >
@@ -555,7 +557,11 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
           <Button
             onClick={handleClosePaymentMethod}
             variant="contained"
-            sx={{ bgcolor: "#29282b", "&:hover": { bgcolor: "#3a3a3a" } }}
+            sx={{
+              bgcolor: colors.button_bg,
+              color: colors.button_text,
+              "&:hover": { bgcolor: colors.button_hover },
+            }}
           >
             Go Back
           </Button>
@@ -565,35 +571,52 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
   }
 
   return (
-    <div className="bg-[#1b1b1b]">
+    <div style={{ backgroundColor: colors.primary_bg }}>
       {/* <div className="w-full sm:w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
         style={{
           height: "auto",
           minHeight: "calc(100vh - 100px)",
-          backgroundColor: "rgb(11, 11, 11)",
+          backgroundColor: colors.secondary_bg,
           borderRadius: "8px",
           marginRight: "20px",
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-          border: "1px solid rgb(0, 0, 0)",
+          border: `1px solid ${colors.border_color}`,
           opacity: 1,
           padding: "16px",
         }}
       >
         <div>
           <div className="w-full flex justify-between items-center mb-2">
-            <p className="text-white font-extrabold text-2xl sm:text-3xl">
+            <p
+              className="font-extrabold text-2xl sm:text-3xl"
+              style={{ color: colors.primary_text }}
+            >
               {isEditMode ? "Edit Payment Method" : "Create Payment Method"}
             </p>
             <button
               onClick={handleClosePaymentMethod}
-              className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a]"
+              className="px-2 py-1 border rounded"
+              style={{
+                backgroundColor: colors.secondary_bg,
+                color: colors.primary_text,
+                borderColor: colors.border_color,
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.backgroundColor = colors.hover_bg)
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.backgroundColor = colors.secondary_bg)
+              }
             >
               X
             </button>
           </div>
-          <hr className="border-t border-gray-600 w-full mb-2 sm:mb-4 -mt-3" />
+          <hr
+            className="border-t w-full mb-2 sm:mb-4 -mt-3"
+            style={{ borderColor: colors.border_color }}
+          />
 
           <Box component="form" onSubmit={handlePaymentMethodSubmit} noValidate>
             {/* Modified layout for the top fields with equal width */}
@@ -631,27 +654,28 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                       )}
                     </>
                   ),
-                  style: { color: "white" },
+                  style: { color: colors.primary_text },
                 }}
                 sx={{
                   flex: 1,
                   "& .MuiOutlinedInput-root": {
+                    backgroundColor: colors.secondary_bg,
                     "& fieldset": {
-                      borderColor: errors.name
-                        ? "red"
-                        : "rgba(255,255,255,0.3)",
+                      borderColor: errors.name ? "red" : colors.border_color,
                     },
                     "&:hover fieldset": {
-                      borderColor: errors.name
-                        ? "red"
-                        : "rgba(255,255,255,0.5)",
+                      borderColor: errors.name ? "red" : colors.border_color,
                     },
                     "&.Mui-focused fieldset": {
                       borderColor: errors.name
                         ? "red"
                         : paymentMethodData.color,
                     },
-                    color: "white",
+                    color: colors.primary_text,
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: colors.icon_muted,
+                    opacity: 1,
                   },
                   "& .MuiFormHelperText-root": {
                     color: errors.name ? "red" : paymentMethodData.color,
@@ -675,21 +699,26 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                       sx={{ mr: 1, color: paymentMethodData.color }}
                     />
                   ),
-                  style: { color: "white" },
+                  style: { color: colors.primary_text },
                 }}
                 sx={{
                   flex: 1,
                   "& .MuiOutlinedInput-root": {
+                    backgroundColor: colors.secondary_bg,
                     "& fieldset": {
-                      borderColor: "rgba(255,255,255,0.3)",
+                      borderColor: colors.border_color,
                     },
                     "&:hover fieldset": {
-                      borderColor: "rgba(255,255,255,0.5)",
+                      borderColor: colors.border_color,
                     },
                     "&.Mui-focused fieldset": {
                       borderColor: paymentMethodData.color,
                     },
-                    color: "white",
+                    color: colors.primary_text,
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: colors.icon_muted,
+                    opacity: 1,
                   },
                   "& .MuiFormHelperText-root": {
                     color: errors.description ? "red" : paymentMethodData.color,
@@ -717,27 +746,28 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                       sx={{ mr: 1, color: paymentMethodData.color }}
                     />
                   ),
-                  style: { color: "white" },
+                  style: { color: colors.primary_text },
                 }}
                 sx={{
                   flex: 1,
                   "& .MuiOutlinedInput-root": {
+                    backgroundColor: colors.secondary_bg,
                     "& fieldset": {
-                      borderColor: errors.amount
-                        ? "red"
-                        : "rgba(255,255,255,0.3)",
+                      borderColor: errors.amount ? "red" : colors.border_color,
                     },
                     "&:hover fieldset": {
-                      borderColor: errors.amount
-                        ? "red"
-                        : "rgba(255,255,255,0.5)",
+                      borderColor: errors.amount ? "red" : colors.border_color,
                     },
                     "&.Mui-focused fieldset": {
                       borderColor: errors.amount
                         ? "red"
                         : paymentMethodData.color,
                     },
-                    color: "white",
+                    color: colors.primary_text,
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: colors.icon_muted,
+                    opacity: 1,
                   },
                   "& .MuiFormHelperText-root": {
                     color: errors.amount ? "red" : paymentMethodData.color,
@@ -750,6 +780,22 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                 value={paymentMethodData.type}
                 onChange={(event, newValue) => {
                   setPaymentMethodData((prev) => ({ ...prev, type: newValue }));
+                }}
+                componentsProps={{
+                  paper: {
+                    sx: {
+                      backgroundColor: colors.secondary_bg,
+                      color: colors.primary_text,
+                      "& .MuiAutocomplete-option": {
+                        "&:hover": {
+                          backgroundColor: colors.hover_bg,
+                        },
+                        "&[aria-selected='true']": {
+                          backgroundColor: colors.hover_bg,
+                        },
+                      },
+                    },
+                  },
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -765,16 +811,21 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                     }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
+                        backgroundColor: colors.secondary_bg,
                         "& fieldset": {
-                          borderColor: "rgba(255,255,255,0.3)",
+                          borderColor: colors.border_color,
                         },
                         "&:hover fieldset": {
-                          borderColor: "rgba(255,255,255,0.5)",
+                          borderColor: colors.border_color,
                         },
                         "&.Mui-focused fieldset": {
                           borderColor: paymentMethodData.color,
                         },
-                        color: "white",
+                        color: colors.primary_text,
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: colors.icon_muted,
+                        opacity: 1,
                       },
                     }}
                   />
@@ -782,10 +833,10 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                 sx={{
                   flex: 1,
                   "& .MuiAutocomplete-popupIndicator": {
-                    color: "white",
+                    color: colors.icon_muted,
                   },
                   "& .MuiAutocomplete-clearIndicator": {
-                    color: "white",
+                    color: colors.icon_muted,
                   },
                 }}
               />
@@ -797,7 +848,11 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <Typography
-                    sx={{ color: "white", mb: 1, fontSize: "0.9rem" }}
+                    sx={{
+                      color: colors.primary_text,
+                      mb: 1,
+                      fontSize: "0.9rem",
+                    }}
                   >
                     Select Color
                   </Typography>
@@ -806,11 +861,12 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                       display: "flex",
                       flexWrap: "wrap",
                       gap: 1,
-                      border: "1px solid rgba(255,255,255,0.3)",
+                      border: `1px solid ${colors.border_color}`,
                       borderRadius: 1,
                       p: 2,
                       height: "200px",
                       overflowY: "auto",
+                      backgroundColor: colors.secondary_bg,
                     }}
                   >
                     {CATEGORY_COLORS.map((color) => (
@@ -825,8 +881,8 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                           cursor: "pointer",
                           border:
                             paymentMethodData.color === color
-                              ? "2px solid white"
-                              : "1px solid rgba(255,255,255,0.3)",
+                              ? `3px solid ${colors.primary_text}`
+                              : `1px solid ${colors.border_color}`,
                           "&:hover": {
                             opacity: 0.8,
                           },
@@ -841,17 +897,22 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <Typography
-                    sx={{ color: "white", mb: 1, fontSize: "0.9rem" }}
+                    sx={{
+                      color: colors.primary_text,
+                      mb: 1,
+                      fontSize: "0.9rem",
+                    }}
                   >
                     Select Icon
                   </Typography>
                   <Box
                     sx={{
-                      border: "1px solid rgba(255,255,255,0.3)",
+                      border: `1px solid ${colors.border_color}`,
                       borderRadius: 1,
                       height: "200px",
                       display: "flex",
                       flexDirection: "column",
+                      backgroundColor: colors.secondary_bg,
                     }}
                   >
                     {/* Icon category tabs with custom scroll buttons */}
@@ -910,9 +971,9 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                       }}
                       sx={{
                         borderBottom: 1,
-                        borderColor: "rgba(255,255,255,0.1)",
+                        borderColor: colors.border_color,
                         "& .MuiTab-root": {
-                          color: "rgba(255,255,255,0.7)",
+                          color: colors.icon_muted,
                           "&.Mui-selected": {
                             color: paymentMethodData.color,
                           },
@@ -958,7 +1019,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                           width: "6px",
                         },
                         "&::-webkit-scrollbar-track": {
-                          background: "rgba(255,255,255,0.05)",
+                          background: colors.hover_bg,
                           borderRadius: "4px",
                         },
                         "&::-webkit-scrollbar-thumb": {
@@ -984,11 +1045,11 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                             border:
                               paymentMethodData.selectedIconKey === iconKey
                                 ? `2px solid ${paymentMethodData.color}`
-                                : "1px solid rgba(255,255,255,0.3)",
+                                : `1px solid ${colors.border_color}`,
                             cursor: "pointer",
                             "&:hover": {
                               opacity: 0.8,
-                              backgroundColor: "rgba(255,255,255,0.1)",
+                              backgroundColor: colors.hover_bg,
                             },
                             backgroundColor:
                               paymentMethodData.selectedIconKey === iconKey
@@ -1017,7 +1078,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                               color:
                                 paymentMethodData.selectedIconKey === iconKey
                                   ? paymentMethodData.color
-                                  : "white",
+                                  : colors.icon_muted,
                               fontSize: "26px",
                             },
                           })}
@@ -1052,7 +1113,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                           },
                         }}
                       />
-                      <Typography sx={{ color: "white" }}>
+                      <Typography sx={{ color: colors.primary_text }}>
                         Make this a global payment method (available to all
                         users)
                       </Typography>

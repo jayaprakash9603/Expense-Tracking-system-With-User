@@ -9,6 +9,7 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
+import { useTheme } from "../../hooks/useTheme";
 
 // Tooltip renderer extracted & simplified from CategoryFlow.
 const CategoryStackTooltip = ({
@@ -18,6 +19,7 @@ const CategoryStackTooltip = ({
   isMobile,
   isTablet,
   formatCompactNumber,
+  colors,
 }) => {
   if (!active || !payload || !payload.length) return null;
   const nameMax = isMobile ? 110 : isTablet ? 150 : 180;
@@ -28,9 +30,9 @@ const CategoryStackTooltip = ({
   return (
     <div
       style={{
-        background: "#0b0b0b",
-        border: "1px solid #333",
-        color: "#e5e7eb",
+        background: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+        color: colors.primary_text,
         borderRadius: 8,
         padding: 12,
         maxWidth: isMobile ? 220 : 320,
@@ -40,7 +42,7 @@ const CategoryStackTooltip = ({
       {label && (
         <div
           style={{
-            color: "#00DAC6",
+            color: "#14b8a6",
             fontWeight: 700,
             marginBottom: 8,
             fontSize: 12,
@@ -80,13 +82,19 @@ const CategoryStackTooltip = ({
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  color: "#b0b6c3",
+                  color: colors.secondary_text,
                   fontSize: 12,
                 }}
               >
                 {item?.name}
               </div>
-              <div style={{ fontWeight: 800, fontSize: 12, color: "#ffffff" }}>
+              <div
+                style={{
+                  fontWeight: 800,
+                  fontSize: 12,
+                  color: colors.primary_text,
+                }}
+              >
                 ₹{formatCompactNumber(item?.value || 0)}
               </div>
             </div>
@@ -111,35 +119,40 @@ const CategoryFlowChart = ({
   formatCompactNumber,
   onSegmentClick,
 }) => {
+  const { colors } = useTheme();
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart
         data={stackedChartData}
         margin={{ top: 4, right: isMobile ? 8 : 24, left: 8, bottom: 0 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="#33384e" />
+        <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
         <XAxis
           dataKey={xAxisKey}
-          stroke="#b0b6c3"
-          tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
+          stroke={colors.secondary_text}
+          tick={{ fill: colors.secondary_text, fontWeight: 600, fontSize: 13 }}
           tickLine={false}
-          axisLine={{ stroke: "#33384e" }}
+          axisLine={{ stroke: colors.border_color }}
         />
         <YAxis
-          stroke="#b0b6c3"
-          tick={{ fill: "#b0b6c3", fontWeight: 600, fontSize: 13 }}
-          axisLine={{ stroke: "#33384e" }}
+          stroke={colors.secondary_text}
+          tick={{ fill: colors.secondary_text, fontWeight: 600, fontSize: 13 }}
+          axisLine={{ stroke: colors.border_color }}
           tickLine={false}
           width={80}
           tickFormatter={(v) => formatCompactNumber(v)}
         />
         <Tooltip
-          cursor={{ fill: "#23243a22" }}
+          cursor={{
+            fill: colors.mode === "dark" ? "#23243a22" : "rgba(0,0,0,0.05)",
+          }}
           content={
             <CategoryStackTooltip
               isMobile={isMobile}
               isTablet={isTablet}
               formatCompactNumber={formatCompactNumber}
+              colors={colors}
             />
           }
           wrapperStyle={{ zIndex: 9999 }}

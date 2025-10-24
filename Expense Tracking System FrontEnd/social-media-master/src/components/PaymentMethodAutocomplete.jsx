@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { createFilterOptions } from "@mui/material/Autocomplete";
 import ReusableAutocomplete from "./ReusableAutocomplete";
 import usePaymentMethods from "../hooks/usePaymentMethods";
+import { useTheme } from "../hooks/useTheme";
 import {
   findPaymentMethodByValue,
   arePaymentMethodsEqual,
@@ -57,6 +58,8 @@ const PaymentMethodAutocomplete = ({
   showLabel = false,
   autofetch = true,
 }) => {
+  const { colors } = useTheme();
+
   // Custom filter options for better search with spaces
   const filterOptions = createFilterOptions({
     matchFrom: "any",
@@ -126,7 +129,7 @@ const PaymentMethodAutocomplete = ({
       {showLabel && label && (
         <label
           style={{
-            color: "#fff",
+            color: colors.primary_text,
             fontSize: "0.875rem",
             fontWeight: "600",
             marginBottom: "4px",

@@ -1,12 +1,15 @@
-import React from 'react';
-import { Paper, Tabs, Tab } from '@mui/material';
+import React from "react";
+import { Paper, Tabs, Tab } from "@mui/material";
 import {
   List as ListIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
+import { useTheme } from "../../../hooks/useTheme";
 
 const BillTabs = ({ activeTab, onTabChange, billStats }) => {
+  const { colors } = useTheme();
+
   return (
     <Paper
       sx={{
@@ -14,7 +17,7 @@ const BillTabs = ({ activeTab, onTabChange, billStats }) => {
         borderRadius: 3,
         overflow: "hidden",
         boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-        backgroundColor: "#1b1b1b",
+        backgroundColor: colors.primary_bg,
         border: "none",
       }}
     >
@@ -29,22 +32,22 @@ const BillTabs = ({ activeTab, onTabChange, billStats }) => {
             textTransform: "none",
             py: 2,
             minHeight: 60,
-            color: "#b0b0b0",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth transition for tab content
+            color: colors.secondary_text,
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             "&.Mui-selected": {
-              color: "#14b8a6",
-              transform: "scale(1.02)", // Subtle scale effect on active tab
+              color: colors.primary_accent,
+              transform: "scale(1.02)",
             },
             "&:hover": {
-              color: "#14b8a6",
-              backgroundColor: "rgba(20, 184, 166, 0.08)", // Hover effect
+              color: colors.primary_accent,
+              backgroundColor: `${colors.primary_accent}14`,
             },
           },
           "& .MuiTabs-indicator": {
             height: 3,
             borderRadius: "3px 3px 0 0",
-            backgroundColor: "#14b8a6",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Smooth indicator animation
+            backgroundColor: colors.primary_accent,
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           },
           "& .MuiTabs-flexContainer": {
             position: "relative",

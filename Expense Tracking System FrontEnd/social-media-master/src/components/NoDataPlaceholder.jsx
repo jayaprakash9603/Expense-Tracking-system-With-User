@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Typography, Button } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import InsertChartOutlinedIcon from "@mui/icons-material/InsertChartOutlined";
+import { useTheme } from "../hooks/useTheme";
 
 /*
   Reusable NoDataPlaceholder component
@@ -27,8 +28,10 @@ const NoDataPlaceholder = ({
   minWidth,
   maxWidth,
   style,
-  iconSize = 44, 
+  iconSize = 44,
 }) => {
+  const { colors } = useTheme();
+
   const derivedHeights = {
     sm: height || 140,
     md: height || 180,
@@ -46,12 +49,12 @@ const NoDataPlaceholder = ({
         alignItems: "center",
         justifyContent: "center",
         gap: dense ? 1 : 1.5,
-        bgcolor: "#1b1b1b",
-        border: "1px dashed #333",
+        bgcolor: colors.primary_bg,
+        border: `1px dashed ${colors.border_color}`,
         borderRadius: 2,
         px: size === "lg" || size === "fill" ? 4 : 2,
         textAlign: "center",
-        color: "#b0b6c3",
+        color: colors.secondary_text,
         width: fullWidth ? "100%" : undefined,
         minWidth,
         maxWidth,
@@ -60,17 +63,26 @@ const NoDataPlaceholder = ({
     >
       <Box sx={{ fontSize: iconSize, lineHeight: 1, opacity: 0.6 }}>
         {icon || (
-          <InsertChartOutlinedIcon sx={{ fontSize: iconSize, opacity: 0.6 }} />
+          <InsertChartOutlinedIcon
+            sx={{
+              fontSize: iconSize,
+              opacity: 0.6,
+              color: colors.secondary_text,
+            }}
+          />
         )}
       </Box>
       <Typography
         variant="subtitle1"
-        sx={{ fontWeight: 600, color: "#e0e0e0" }}
+        sx={{ fontWeight: 600, color: colors.primary_text }}
       >
         {message}
       </Typography>
       {subMessage && (
-        <Typography variant="caption" sx={{ maxWidth: 360, color: "#8a8f99" }}>
+        <Typography
+          variant="caption"
+          sx={{ maxWidth: 360, color: colors.secondary_text }}
+        >
           {subMessage}
         </Typography>
       )}
