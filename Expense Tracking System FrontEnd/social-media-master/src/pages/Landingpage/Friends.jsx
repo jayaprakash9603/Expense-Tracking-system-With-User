@@ -57,6 +57,7 @@ import FriendsEmptyState from "../../components/FriendsEmptyState";
 import SharingCard from "../../components/SharingCard";
 import FilterPopover from "../../components/FilterPopover";
 import ListSkeleton from "../../components/ListSkeleton";
+import { useTheme } from "../../hooks/useTheme";
 import {
   filterSuggestions,
   filterRequests,
@@ -71,48 +72,50 @@ const themeColor = "#14b8a6";
 // Update the color of edit, lock, and view icons
 const iconColor = "#14b8a6";
 
-// Add custom scrollbar styles
-const scrollbarStyles = `
-  /* Custom scrollbar styles */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: #1b1b1b;
-    border-radius: 10px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #14b8a6;
-    border-radius: 10px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #14b8a6;
-  }
-
-  /* Horizontal chip scroll (single-line) */
-  .chip-scroll {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
-    padding-bottom: 4px;
-    -ms-overflow-style: none; /* IE */
-    scrollbar-width: none; /* Firefox */
-  }
-  .chip-scroll::-webkit-scrollbar { height: 6px; }
-  .chip-scroll::-webkit-scrollbar-track { background: transparent; }
-  .chip-scroll::-webkit-scrollbar-thumb { background: #2f2f2f; border-radius: 8px; }
-  .chip-scroll::-webkit-scrollbar-thumb:hover { background: #3d3d3d; }
-`;
-
 const Friends = () => {
+  const { colors } = useTheme();
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Add custom scrollbar styles - now using theme colors
+  const scrollbarStyles = `
+    /* Custom scrollbar styles */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: ${colors.secondary_bg};
+      border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: ${colors.primary_accent};
+      border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: ${colors.primary_accent};
+      opacity: 0.8;
+    }
+
+    /* Horizontal chip scroll (single-line) */
+    .chip-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      padding-bottom: 4px;
+      -ms-overflow-style: none; /* IE */
+      scrollbar-width: none; /* Firefox */
+    }
+    .chip-scroll::-webkit-scrollbar { height: 6px; }
+    .chip-scroll::-webkit-scrollbar-track { background: transparent; }
+    .chip-scroll::-webkit-scrollbar-thumb { background: ${colors.tertiary_bg}; border-radius: 8px; }
+    .chip-scroll::-webkit-scrollbar-thumb:hover { background: ${colors.hover_bg}; }
+  `;
 
   // Get user data from Redux store
   const user = useSelector((state) => state.auth.user);
@@ -764,8 +767,17 @@ const Friends = () => {
   // If user is not logged in, show login message
   if (!user || !token) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#1b1b1b]">
-        <div className="text-white text-center p-8 bg-[#2a2a2a] rounded-lg">
+      <div
+        className="flex items-center justify-center h-screen"
+        style={{ backgroundColor: colors.primary_bg }}
+      >
+        <div
+          className="text-center p-8 rounded-lg"
+          style={{
+            backgroundColor: colors.secondary_bg,
+            color: colors.primary_text,
+          }}
+        >
           <h2 className="text-2xl font-bold mb-4">Please Log In</h2>
           <p>You need to be logged in to view and manage friends.</p>
         </div>
@@ -778,31 +790,40 @@ const Friends = () => {
       {/* Add the style tag for custom scrollbar */}
       <style>{scrollbarStyles}</style>
 
-      <div className="bg-[#1b1b1b]">
-        {/* <div className="h-[50px] bg-[#1b1b1b]"></div> */}
+      <div style={{ backgroundColor: colors.primary_bg }}>
         <div
-          className="flex flex-col md:flex-row w-full md:w-[calc(100vw-350px)] p-2 md:p-4 rounded-lg border border-black bg-[rgb(11,11,11)] shadow-sm"
+          className="flex flex-col md:flex-row w-full md:w-[calc(100vw-350px)] p-2 md:p-4 rounded-lg shadow-sm"
           style={{
             height: isSmallScreen ? "auto" : "calc(100vh - 100px)",
             width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
-            marginRight: "20px", // Add left margin to move it left
-            maxWidth: "1600px", // Add max width for very large screens
+            marginRight: "20px",
+            maxWidth: "1600px",
+            backgroundColor: colors.secondary_bg,
+            border: `1px solid ${colors.border_color}`,
           }}
         >
           {/* Left Section - Friends List */}
-          <div className="flex flex-col w-full md:w-1/2 lg:w-2/5 px-4 py-6 border-r border-gray-800">
+          <div
+            className="flex flex-col w-full md:w-1/2 lg:w-2/5 px-4 py-6 border-r"
+            style={{ borderColor: colors.border_color }}
+          >
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-white">Friends</h1>
+              <h1
+                className="text-3xl font-bold"
+                style={{ color: colors.primary_text }}
+              >
+                Friends
+              </h1>
               <Button
                 size="small"
                 onClick={handleManualRefresh}
                 title="Refresh sharing data"
                 sx={{
                   minWidth: "auto",
-                  color: "#14b8a6",
+                  color: colors.primary_accent,
                   padding: "4px",
                   "&:hover": {
-                    backgroundColor: "rgba(20, 184, 166, 0.1)",
+                    backgroundColor: `${colors.primary_accent}1A`,
                   },
                 }}
               >
@@ -820,12 +841,12 @@ const Friends = () => {
                 scrollButtons="auto"
                 sx={{
                   "& .MuiTabs-indicator": {
-                    backgroundColor: "#14b8a6",
+                    backgroundColor: colors.primary_accent,
                   },
                   "& .MuiTab-root": {
-                    color: "white",
+                    color: colors.secondary_text,
                     "&.Mui-selected": {
-                      color: "#14b8a6",
+                      color: colors.primary_accent,
                     },
                   },
                 }}
@@ -865,21 +886,25 @@ const Friends = () => {
                     onChange={handleSearchChange}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        color: "white",
-                        backgroundColor: "#2a2a2a",
-                        "& fieldset": { borderColor: "#4a4a4a" },
-                        "&:hover fieldset": { borderColor: "#6a6a6a" },
-                        "&.Mui-focused fieldset": { borderColor: "#6a6a6a" },
+                        color: colors.primary_text,
+                        backgroundColor: colors.tertiary_bg,
+                        "& fieldset": { borderColor: colors.border_color },
+                        "&:hover fieldset": {
+                          borderColor: colors.border_color,
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: colors.border_color,
+                        },
                       },
                       "& .MuiInputBase-input::placeholder": {
-                        color: "gray",
+                        color: colors.icon_muted,
                         opacity: 1,
                       },
                     }}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <SearchIcon sx={{ color: "gray" }} />
+                          <SearchIcon sx={{ color: colors.icon_muted }} />
                         </InputAdornment>
                       ),
                     }}
@@ -888,7 +913,7 @@ const Friends = () => {
                     size="small"
                     onClick={(e) => openFilter(e, "suggestions")}
                     sx={{
-                      color: suggestionFilters.length ? "#14b8a6" : "#14b8a6",
+                      color: colors.primary_accent,
                       minWidth: 0,
                       position: "relative",
                     }}
@@ -906,8 +931,8 @@ const Friends = () => {
                           top: 0,
                           right: 0,
                           transform: "translate(40%, -40%)",
-                          background: "#14b8a6",
-                          color: "#0b0b0b",
+                          background: colors.primary_accent,
+                          color: colors.secondary_bg,
                           borderRadius: "999px",
                           fontSize: "10px",
                           fontWeight: 600,
@@ -953,34 +978,57 @@ const Friends = () => {
                       filteredSuggestions.map((friend) => (
                         <div
                           key={friend.id}
-                          className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
-                            selectedFriend?.id === friend.id
-                              ? "border-2 border-[#14b8a6]"
-                              : ""
-                          }`}
+                          className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors"
+                          style={{
+                            backgroundColor: colors.tertiary_bg,
+                            border:
+                              selectedFriend?.id === friend.id
+                                ? `2px solid ${colors.primary_accent}`
+                                : "2px solid transparent",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              colors.hover_bg)
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              selectedFriend?.id === friend.id
+                                ? colors.hover_bg
+                                : colors.tertiary_bg)
+                          }
                           onClick={() => handleFriendSelect(friend)}
                         >
                           <div className="flex items-center flex-grow mr-2">
                             <div
-                              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
+                              className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
                               style={{
                                 backgroundColor: getAvatarColor(friend.id),
+                                color: "#ffffff",
                               }}
                             >
                               {getInitials(friend.firstName, friend.lastName)}
                             </div>
                             <div className="max-w-[calc(100%-80px)]">
-                              <p className="text-white font-medium truncate">
+                              <p
+                                className="font-medium truncate"
+                                style={{ color: colors.primary_text }}
+                              >
                                 {friend.firstName} {friend.lastName}
                               </p>
-                              <p className="text-sm text-gray-400 truncate">
+                              <p
+                                className="text-sm truncate"
+                                style={{ color: colors.secondary_text }}
+                              >
                                 {friend.email}
                               </p>
                               <div className="flex items-center mt-1">
                                 {getAccessLevelIcon(
                                   friend.friendship?.recipientAccess || "NONE"
                                 )}
-                                <span className="text-xs text-gray-400 ml-2">
+                                <span
+                                  className="text-xs ml-2"
+                                  style={{ color: colors.secondary_text }}
+                                >
                                   {getAccessLevelDescription(
                                     friend.friendship?.recipientAccess || "NONE"
                                   )}
@@ -988,7 +1036,10 @@ const Friends = () => {
                               </div>
                             </div>
                           </div>
-                          <ChevronRight className="text-gray-400 flex-shrink-0" />
+                          <ChevronRight
+                            className="flex-shrink-0"
+                            style={{ color: colors.secondary_text }}
+                          />
                         </div>
                       ))
                     )}
@@ -1008,21 +1059,25 @@ const Friends = () => {
                     onChange={handleRequestSearchChange}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        color: "white",
-                        backgroundColor: "#2a2a2a",
-                        "& fieldset": { borderColor: "#4a4a4a" },
-                        "&:hover fieldset": { borderColor: "#6a6a6a" },
-                        "&.Mui-focused fieldset": { borderColor: "#6a6a6a" },
+                        color: colors.primary_text,
+                        backgroundColor: colors.tertiary_bg,
+                        "& fieldset": { borderColor: colors.border_color },
+                        "&:hover fieldset": {
+                          borderColor: colors.border_color,
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: colors.border_color,
+                        },
                       },
                       "& .MuiInputBase-input::placeholder": {
-                        color: "gray",
+                        color: colors.icon_muted,
                         opacity: 1,
                       },
                     }}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <SearchIcon sx={{ color: "gray" }} />
+                          <SearchIcon sx={{ color: colors.icon_muted }} />
                         </InputAdornment>
                       ),
                     }}
@@ -1031,7 +1086,7 @@ const Friends = () => {
                     size="small"
                     onClick={(e) => openFilter(e, "requests")}
                     sx={{
-                      color: requestFilters.length ? "#14b8a6" : "#14b8a6",
+                      color: colors.primary_accent,
                       minWidth: 0,
                       position: "relative",
                     }}
@@ -1049,8 +1104,8 @@ const Friends = () => {
                           top: 0,
                           right: 0,
                           transform: "translate(40%, -40%)",
-                          background: "#14b8a6",
-                          color: "#0b0b0b",
+                          background: colors.primary_accent,
+                          color: colors.secondary_bg,
                           borderRadius: "999px",
                           fontSize: "10px",
                           fontWeight: 600,
@@ -1098,17 +1153,24 @@ const Friends = () => {
                         return (
                           <div
                             key={request.id}
-                            className="bg-[#2a2a2a] p-4 rounded-lg"
+                            className="p-4 rounded-lg"
+                            style={{ backgroundColor: colors.tertiary_bg }}
                           >
                             <div className="flex items-center mb-4">
                               <div className="mr-4">
                                 <UserAvatar user={requester} />
                               </div>
                               <div className="min-w-0 flex-grow">
-                                <p className="text-white font-medium truncate">
+                                <p
+                                  className="font-medium truncate"
+                                  style={{ color: colors.primary_text }}
+                                >
                                   {requester.firstName} {requester.lastName}
                                 </p>
-                                <p className="text-sm text-gray-400 overflow-hidden text-ellipsis">
+                                <p
+                                  className="text-sm overflow-hidden text-ellipsis"
+                                  style={{ color: colors.secondary_text }}
+                                >
                                   {requester.email}
                                 </p>
                               </div>
@@ -1161,21 +1223,25 @@ const Friends = () => {
                     onChange={handleFriendSearchChange}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        color: "white",
-                        backgroundColor: "#2a2a2a",
-                        "& fieldset": { borderColor: "#4a4a4a" },
-                        "&:hover fieldset": { borderColor: "#6a6a6a" },
-                        "&.Mui-focused fieldset": { borderColor: "#6a6a6a" },
+                        color: colors.primary_text,
+                        backgroundColor: colors.tertiary_bg,
+                        "& fieldset": { borderColor: colors.border_color },
+                        "&:hover fieldset": {
+                          borderColor: colors.border_color,
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: colors.border_color,
+                        },
                       },
                       "& .MuiInputBase-input::placeholder": {
-                        color: "gray",
+                        color: colors.icon_muted,
                         opacity: 1,
                       },
                     }}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <SearchIcon sx={{ color: "gray" }} />
+                          <SearchIcon sx={{ color: colors.icon_muted }} />
                         </InputAdornment>
                       ),
                     }}
@@ -1184,7 +1250,9 @@ const Friends = () => {
                     size="small"
                     onClick={(e) => openFilter(e, "friends")}
                     sx={{
-                      color: friendFilters.length ? "#14b8a6" : "#14b8a6",
+                      color: friendFilters.length
+                        ? colors.primary_accent
+                        : colors.primary_accent,
                       minWidth: 0,
                       position: "relative",
                     }}
@@ -1202,8 +1270,8 @@ const Friends = () => {
                           top: 0,
                           right: 0,
                           transform: "translate(40%, -40%)",
-                          background: "#14b8a6",
-                          color: "#0b0b0b",
+                          background: colors.primary_accent,
+                          color: colors.secondary_bg,
                           borderRadius: "999px",
                           fontSize: "10px",
                           fontWeight: 600,
@@ -1249,27 +1317,54 @@ const Friends = () => {
                       filteredFriends.map((friend) => (
                         <div
                           key={friend.id}
-                          className={`flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#333333] transition-colors ${
-                            selectedFriend?.id === friend.id
-                              ? "border-2 border-[#14b8a6]"
-                              : ""
+                          className={`flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors ${
+                            selectedFriend?.id === friend.id ? "border-2" : ""
                           }`}
+                          style={{
+                            backgroundColor:
+                              selectedFriend?.id === friend.id
+                                ? colors.tertiary_bg
+                                : colors.tertiary_bg,
+                            borderColor:
+                              selectedFriend?.id === friend.id
+                                ? colors.primary_accent
+                                : "transparent",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (selectedFriend?.id !== friend.id) {
+                              e.currentTarget.style.backgroundColor =
+                                colors.hover_bg;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (selectedFriend?.id !== friend.id) {
+                              e.currentTarget.style.backgroundColor =
+                                colors.tertiary_bg;
+                            }
+                          }}
                           onClick={() => handleFriendSelect(friend)}
                         >
                           <div className="flex items-center flex-grow mr-2">
                             <div
-                              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0"
+                              className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
                               style={{
                                 backgroundColor: getAvatarColor(friend.id),
+                                color: colors.primary_text,
                               }}
                             >
                               {getInitials(friend.firstName, friend.lastName)}
                             </div>
                             <div className="max-w-[calc(100%-80px)]">
-                              <p className="text-white font-medium truncate">
+                              <p
+                                className="font-medium truncate"
+                                style={{ color: colors.primary_text }}
+                              >
                                 {friend.firstName} {friend.lastName}
                               </p>
-                              <p className="text-sm text-gray-400 truncate">
+                              <p
+                                className="text-sm truncate"
+                                style={{ color: colors.secondary_text }}
+                              >
                                 {friend.email}
                               </p>
                               <div className="flex items-center mt-1">
@@ -1278,7 +1373,10 @@ const Friends = () => {
                                     ? friend.friendship?.recipientAccess
                                     : friend.friendship?.requesterAccess
                                 )}
-                                <span className="text-xs text-gray-400 ml-2">
+                                <span
+                                  className="text-xs ml-2"
+                                  style={{ color: colors.secondary_text }}
+                                >
                                   {getAccessLevelDescription(
                                     friend.friendship?.requester.id === user.id
                                       ? friend.friendship?.recipientAccess
@@ -1293,11 +1391,17 @@ const Friends = () => {
                               onClick={(e) =>
                                 handleAccessMenuOpen(e, friend.friendship)
                               }
-                              sx={{ color: "#14b8a6", minWidth: "40px" }}
+                              sx={{
+                                color: colors.primary_accent,
+                                minWidth: "40px",
+                              }}
                             >
                               <Settings />
                             </Button>
-                            <ChevronRight className="text-gray-400 flex-shrink-0" />
+                            <ChevronRight
+                              className="flex-shrink-0"
+                              style={{ color: colors.secondary_text }}
+                            />
                           </div>
                         </div>
                       ))
@@ -1317,22 +1421,25 @@ const Friends = () => {
                     onChange={(e) => setSharingSearchTerm(e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        color: "white",
-                        backgroundColor: "#2a2a2a",
-                        // Match other tabs' border behavior
-                        "& fieldset": { borderColor: "#4a4a4a" },
-                        "&:hover fieldset": { borderColor: "#6a6a6a" },
-                        "&.Mui-focused fieldset": { borderColor: "#6a6a6a" },
+                        color: colors.primary_text,
+                        backgroundColor: colors.tertiary_bg,
+                        "& fieldset": { borderColor: colors.border_color },
+                        "&:hover fieldset": {
+                          borderColor: colors.border_color,
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: colors.border_color,
+                        },
                       },
                       "& .MuiInputBase-input::placeholder": {
-                        color: "gray",
+                        color: colors.icon_muted,
                         opacity: 1,
                       },
                     }}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <SearchIcon sx={{ color: "gray" }} />
+                          <SearchIcon sx={{ color: colors.icon_muted }} />
                         </InputAdornment>
                       ),
                     }}
@@ -1341,7 +1448,9 @@ const Friends = () => {
                     size="small"
                     onClick={(e) => openFilter(e, "shared")}
                     sx={{
-                      color: sharedFilters.length ? "#14b8a6" : "#14b8a6",
+                      color: sharedFilters.length
+                        ? colors.primary_accent
+                        : colors.primary_accent,
                       minWidth: 0,
                       position: "relative",
                     }}
@@ -1359,8 +1468,8 @@ const Friends = () => {
                           top: 0,
                           right: 0,
                           transform: "translate(40%, -40%)",
-                          background: "#14b8a6",
-                          color: "#0b0b0b",
+                          background: colors.primary_accent,
+                          color: colors.secondary_bg,
                           borderRadius: "999px",
                           fontSize: "10px",
                           fontWeight: 600,
@@ -1421,6 +1530,7 @@ const Friends = () => {
                       getInitials={getInitials}
                       getAvatarColor={getAvatarColor}
                       themeColor={themeColor}
+                      colors={colors}
                     />
                   );
 
@@ -1466,14 +1576,24 @@ const Friends = () => {
                           <div className="flex items-center gap-2">
                             <Typography
                               variant="subtitle1"
-                              sx={{ color: "#14b8a6", fontWeight: 600 }}
+                              sx={{
+                                color: colors.primary_accent,
+                                fontWeight: 600,
+                              }}
                             >
                               Friends Sharing With Me
                             </Typography>
                             {loadingSharedWithMe && <></>}
                           </div>
                           {sharedWithMe.length > 0 && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-[#14b8a61a] text-[#14b8a6] border border-[#14b8a633]">
+                            <span
+                              className="text-xs px-2 py-1 rounded-full border"
+                              style={{
+                                backgroundColor: `${colors.primary_accent}1a`,
+                                color: colors.primary_accent,
+                                borderColor: `${colors.primary_accent}33`,
+                              }}
+                            >
                               {sharedWithMe.length}
                             </span>
                           )}
@@ -1501,14 +1621,24 @@ const Friends = () => {
                           <div className="flex items-center gap-2">
                             <Typography
                               variant="subtitle1"
-                              sx={{ color: "#14b8a6", fontWeight: 600 }}
+                              sx={{
+                                color: colors.primary_accent,
+                                fontWeight: 600,
+                              }}
                             >
                               I'm Sharing With
                             </Typography>
                             {loadingISharedWith && <></>}
                           </div>
                           {iSharedWith.length > 0 && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-[#14b8a61a] text-[#14b8a6] border border-[#14b8a633]">
+                            <span
+                              className="text-xs px-2 py-1 rounded-full border"
+                              style={{
+                                backgroundColor: `${colors.primary_accent}1a`,
+                                color: colors.primary_accent,
+                                borderColor: `${colors.primary_accent}33`,
+                              }}
+                            >
                               {iSharedWith.length}
                             </span>
                           )}
@@ -1541,12 +1671,16 @@ const Friends = () => {
           {/* Right Section - Friend Details */}
           <div className="hidden md:flex flex-col w-1/2 lg:w-3/5 p-6">
             {activeTab === 0 && selectedFriend ? (
-              <div className="bg-[#2a2a2a] p-6 rounded-lg">
+              <div
+                className="p-6 rounded-lg"
+                style={{ backgroundColor: colors.tertiary_bg }}
+              >
                 <div className="flex items-center mb-6">
                   <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold mr-6"
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
                     style={{
                       backgroundColor: getAvatarColor(selectedFriend.id),
+                      color: colors.primary_text,
                     }}
                   >
                     {getInitials(
@@ -1555,12 +1689,22 @@ const Friends = () => {
                     )}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">
+                    <h2
+                      className="text-2xl font-bold"
+                      style={{ color: colors.primary_text }}
+                    >
                       {selectedFriend.firstName} {selectedFriend.lastName}
                     </h2>
-                    <p className="text-gray-400">{selectedFriend.email}</p>
+                    <p style={{ color: colors.secondary_text }}>
+                      {selectedFriend.email}
+                    </p>
                     {selectedFriend.bio && (
-                      <p className="text-gray-300 mt-2">{selectedFriend.bio}</p>
+                      <p
+                        className="mt-2"
+                        style={{ color: colors.primary_text }}
+                      >
+                        {selectedFriend.bio}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -1575,13 +1719,13 @@ const Friends = () => {
                     }
                     fullWidth
                     sx={{
-                      backgroundColor: "#14b8a6",
+                      backgroundColor: colors.primary_accent,
                       "&:hover": {
-                        backgroundColor: "#2d8a67",
+                        backgroundColor: colors.button_hover,
                       },
                       "&.Mui-disabled": {
-                        backgroundColor: "#1e5441",
-                        color: "rgba(255, 255, 255, 0.5)",
+                        backgroundColor: colors.hover_bg,
+                        color: colors.secondary_text,
                       },
                     }}
                   >
@@ -1593,16 +1737,24 @@ const Friends = () => {
 
                 {selectedFriend.location && (
                   <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-white mb-2">
+                    <h3
+                      className="text-lg font-semibold mb-2"
+                      style={{ color: colors.primary_text }}
+                    >
                       Location
                     </h3>
-                    <p className="text-gray-300">{selectedFriend.location}</p>
+                    <p style={{ color: colors.primary_text }}>
+                      {selectedFriend.location}
+                    </p>
                   </div>
                 )}
 
                 {selectedFriend.interests && (
                   <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-white mb-2">
+                    <h3
+                      className="text-lg font-semibold mb-2"
+                      style={{ color: colors.primary_text }}
+                    >
                       Interests
                     </h3>
                     <div className="flex flex-wrap gap-2">
@@ -1611,7 +1763,11 @@ const Friends = () => {
                         .map((interest, index) => (
                           <span
                             key={index}
-                            className="px-3 py-1 bg-[#14b8a633] text-[#14b8a6] rounded-full text-sm"
+                            className="px-3 py-1 rounded-full text-sm"
+                            style={{
+                              backgroundColor: `${colors.primary_accent}33`,
+                              color: colors.primary_accent,
+                            }}
                           >
                             {interest.trim()}
                           </span>
@@ -1621,12 +1777,16 @@ const Friends = () => {
                 )}
               </div>
             ) : activeTab === 1 && selectedFriend ? (
-              <div className="bg-[#2a2a2a] p-6 rounded-lg">
+              <div
+                className="p-6 rounded-lg"
+                style={{ backgroundColor: colors.tertiary_bg }}
+              >
                 <div className="flex items-center mb-6">
                   <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold mr-6"
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
                     style={{
                       backgroundColor: getAvatarColor(selectedFriend.id),
+                      color: colors.primary_text,
                     }}
                   >
                     {getInitials(
@@ -1635,10 +1795,15 @@ const Friends = () => {
                     )}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">
+                    <h2
+                      className="text-2xl font-bold"
+                      style={{ color: colors.primary_text }}
+                    >
                       {selectedFriend.firstName} {selectedFriend.lastName}
                     </h2>
-                    <p className="text-gray-400">{selectedFriend.email}</p>
+                    <p style={{ color: colors.secondary_text }}>
+                      {selectedFriend.email}
+                    </p>
                   </div>
                 </div>
 
@@ -1653,9 +1818,9 @@ const Friends = () => {
                     disabled={respondingToRequest}
                     sx={{
                       flex: 1,
-                      backgroundColor: "#14b8a6",
+                      backgroundColor: colors.primary_accent,
                       "&:hover": {
-                        backgroundColor: "#2d8a67",
+                        backgroundColor: colors.button_hover,
                       },
                     }}
                   >
@@ -1676,12 +1841,16 @@ const Friends = () => {
                 </div>
               </div>
             ) : activeTab === 2 && selectedFriend ? (
-              <div className="bg-[#2a2a2a] p-6 rounded-lg">
+              <div
+                className="p-6 rounded-lg"
+                style={{ backgroundColor: colors.tertiary_bg }}
+              >
                 <div className="flex items-center mb-6">
                   <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold mr-6"
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
                     style={{
                       backgroundColor: getAvatarColor(selectedFriend.id),
+                      color: colors.primary_text,
                     }}
                   >
                     {getInitials(
@@ -1690,37 +1859,62 @@ const Friends = () => {
                     )}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">
+                    <h2
+                      className="text-2xl font-bold"
+                      style={{ color: colors.primary_text }}
+                    >
                       {selectedFriend.firstName} {selectedFriend.lastName}
                     </h2>
-                    <p className="text-gray-400">{selectedFriend.email}</p>
+                    <p style={{ color: colors.secondary_text }}>
+                      {selectedFriend.email}
+                    </p>
                     {selectedFriend.bio && (
-                      <p className="text-gray-300 mt-2">{selectedFriend.bio}</p>
+                      <p
+                        className="mt-2"
+                        style={{ color: colors.primary_text }}
+                      >
+                        {selectedFriend.bio}
+                      </p>
                     )}
                   </div>
                 </div>
 
                 {/* Access Level Section */}
-                <div className="mt-6 bg-[#222222] p-4 rounded-lg relative">
+                <div
+                  className="mt-6 p-4 rounded-lg relative"
+                  style={{ backgroundColor: colors.secondary_bg }}
+                >
                   {/* Friends since date in top right corner */}
-                  <p className="text-gray-400 text-xs absolute top-4 right-4">
+                  <p
+                    className="text-xs absolute top-4 right-4"
+                    style={{ color: colors.secondary_text }}
+                  >
                     Friends since:{" "}
                     {new Date(
                       selectedFriend.friendship?.createdAt || Date.now()
                     ).toLocaleDateString()}
                   </p>
 
-                  <h3 className="text-lg font-semibold text-white mb-3">
+                  <h3
+                    className="text-lg font-semibold mb-3"
+                    style={{ color: colors.primary_text }}
+                  >
                     Expense Sharing Settings
                   </h3>
 
                   <div className="flex justify-between mb-4">
                     {/* You are sharing with them */}
                     <div className="flex-1 mr-2">
-                      <p className="text-sm text-gray-400 mb-2">
+                      <p
+                        className="text-sm mb-2"
+                        style={{ color: colors.secondary_text }}
+                      >
                         You are sharing:
                       </p>
-                      <div className="flex items-center bg-[#333333] p-3 rounded-lg h-[100px]">
+                      <div
+                        className="flex items-center p-3 rounded-lg h-[100px]"
+                        style={{ backgroundColor: colors.hover_bg }}
+                      >
                         <div className="mr-3" style={{ color: themeColor }}>
                           {getAccessLevelIcon(
                             selectedFriend?.friendship?.requesterAccess ||
@@ -1728,10 +1922,16 @@ const Friends = () => {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-white font-medium truncate">
+                          <p
+                            className="font-medium truncate"
+                            style={{ color: colors.primary_text }}
+                          >
                             {getCurrentAccessLevel(selectedFriend.friendship)}
                           </p>
-                          <p className="text-sm text-gray-400 truncate">
+                          <p
+                            className="text-sm truncate"
+                            style={{ color: colors.secondary_text }}
+                          >
                             {getCurrentAccessLevel(
                               selectedFriend.friendship
                             ) === "NONE"
@@ -1746,21 +1946,33 @@ const Friends = () => {
 
                     {/* They are sharing with you */}
                     <div className="flex-1">
-                      <p className="text-sm text-gray-400 mb-2">
+                      <p
+                        className="text-sm mb-2"
+                        style={{ color: colors.secondary_text }}
+                      >
                         They are sharing:
                       </p>
-                      <div className="flex items-center bg-[#333333] p-3 rounded-lg h-[100px]">
+                      <div
+                        className="flex items-center p-3 rounded-lg h-[100px]"
+                        style={{ backgroundColor: colors.hover_bg }}
+                      >
                         <div className="mr-3" style={{ color: themeColor }}>
                           {getAccessLevelIcon(
                             selectedFriend.friendship?.requesterAccess || "NONE"
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-white font-medium truncate">
+                          <p
+                            className="font-medium truncate"
+                            style={{ color: colors.primary_text }}
+                          >
                             {selectedFriend.friendship?.requesterAccess ||
                               "NONE"}
                           </p>
-                          <p className="text-sm text-gray-400 truncate">
+                          <p
+                            className="text-sm truncate"
+                            style={{ color: colors.secondary_text }}
+                          >
                             {(selectedFriend.friendship?.requesterAccess ||
                               "NONE") === "NONE"
                               ? "No access to their expenses"
@@ -1784,7 +1996,7 @@ const Friends = () => {
                     sx={{
                       backgroundColor: themeColor,
                       "&:hover": {
-                        backgroundColor: "#2d8a67",
+                        backgroundColor: colors.button_hover,
                       },
                     }}
                   >
@@ -1802,11 +2014,11 @@ const Friends = () => {
                           handleViewSharedExpenses(selectedFriend.id)
                         }
                         sx={{
-                          borderColor: "#14b8a6",
-                          color: "#14b8a6",
+                          borderColor: colors.primary_accent,
+                          color: colors.primary_accent,
                           "&:hover": {
-                            borderColor: "#2d8a67",
-                            backgroundColor: "rgba(20, 184, 166, 0.1)",
+                            borderColor: colors.button_hover,
+                            backgroundColor: `${colors.primary_accent}1a`,
                           },
                         }}
                       >
@@ -1816,12 +2028,16 @@ const Friends = () => {
                   )}
               </div>
             ) : activeTab === 3 && selectedFriend ? (
-              <div className="bg-[#2a2a2a] p-6 rounded-lg">
+              <div
+                className="p-6 rounded-lg"
+                style={{ backgroundColor: colors.tertiary_bg }}
+              >
                 <div className="flex items-center mb-6">
                   <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold mr-6"
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
                     style={{
                       backgroundColor: getAvatarColor(selectedFriend.id),
+                      color: colors.primary_text,
                     }}
                   >
                     {getInitials(
@@ -1830,30 +2046,52 @@ const Friends = () => {
                     )}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">
+                    <h2
+                      className="text-2xl font-bold"
+                      style={{ color: colors.primary_text }}
+                    >
                       {selectedFriend.firstName} {selectedFriend.lastName}
                     </h2>
-                    <p className="text-gray-400">{selectedFriend.email}</p>
+                    <p style={{ color: colors.secondary_text }}>
+                      {selectedFriend.email}
+                    </p>
                   </div>
                 </div>
 
                 {/* Shared Expense Details */}
-                <div className="mt-6 bg-[#222222] p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-white mb-3">
+                <div
+                  className="mt-6 p-4 rounded-lg"
+                  style={{ backgroundColor: colors.secondary_bg }}
+                >
+                  <h3
+                    className="text-lg font-semibold mb-3"
+                    style={{ color: colors.primary_text }}
+                  >
                     Shared Expense Details
                   </h3>
 
                   <div className="mb-4">
-                    <p className="text-gray-300 mb-2">Access level:</p>
-                    <div className="flex items-center bg-[#333333] p-3 rounded-lg">
+                    <p className="mb-2" style={{ color: colors.primary_text }}>
+                      Access level:
+                    </p>
+                    <div
+                      className="flex items-center p-3 rounded-lg"
+                      style={{ backgroundColor: colors.hover_bg }}
+                    >
                       <div className="mr-3" style={{ color: themeColor }}>
                         {getAccessLevelIcon(selectedFriend.accessLevel)}
                       </div>
                       <div>
-                        <p className="text-white font-medium">
+                        <p
+                          className="font-medium"
+                          style={{ color: colors.primary_text }}
+                        >
                           {selectedFriend.accessLevel}
                         </p>
-                        <p className="text-sm text-gray-400">
+                        <p
+                          className="text-sm"
+                          style={{ color: colors.secondary_text }}
+                        >
                           {getAccessLevelDescription(
                             selectedFriend.accessLevel
                           )}
@@ -1866,9 +2104,9 @@ const Friends = () => {
                     variant="contained"
                     fullWidth
                     sx={{
-                      backgroundColor: "#14b8a6",
+                      backgroundColor: colors.primary_accent,
                       "&:hover": {
-                        backgroundColor: "#2d8a67",
+                        backgroundColor: colors.button_hover,
                       },
                     }}
                   >
@@ -1878,14 +2116,26 @@ const Friends = () => {
 
                 {/* Sharing History */}
                 <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">
+                  <h3
+                    className="text-lg font-semibold mb-3"
+                    style={{ color: colors.primary_text }}
+                  >
                     Sharing History
                   </h3>
-                  <div className="bg-[#222222] p-4 rounded-lg">
-                    <p className="text-gray-400 text-sm">
+                  <div
+                    className="p-4 rounded-lg"
+                    style={{ backgroundColor: colors.secondary_bg }}
+                  >
+                    <p
+                      className="text-sm"
+                      style={{ color: colors.secondary_text }}
+                    >
                       Sharing started: {new Date().toLocaleDateString()}
                     </p>
-                    <p className="text-gray-400 text-sm mt-2">
+                    <p
+                      className="text-sm mt-2"
+                      style={{ color: colors.secondary_text }}
+                    >
                       Last access level change:{" "}
                       {new Date().toLocaleDateString()}
                     </p>
@@ -1895,8 +2145,17 @@ const Friends = () => {
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center p-8">
-                  <ShareIcon sx={{ fontSize: 80, color: "#14b8a633", mb: 2 }} />
-                  <h2 className="text-2xl font-bold text-white mb-2">
+                  <ShareIcon
+                    sx={{
+                      fontSize: 80,
+                      color: `${colors.primary_accent}33`,
+                      mb: 2,
+                    }}
+                  />
+                  <h2
+                    className="text-2xl font-bold mb-2"
+                    style={{ color: colors.primary_text }}
+                  >
                     {activeTab === 0
                       ? "Select a friend suggestion"
                       : activeTab === 1
@@ -1905,7 +2164,7 @@ const Friends = () => {
                       ? "Select a friend"
                       : "Select a shared connection"}
                   </h2>
-                  <p className="text-gray-400">
+                  <p style={{ color: colors.secondary_text }}>
                     {activeTab === 0
                       ? "View details and send friend requests"
                       : activeTab === 1
@@ -1927,8 +2186,8 @@ const Friends = () => {
           onClose={handleAccessMenuClose}
           PaperProps={{
             sx: {
-              backgroundColor: "#2a2a2a",
-              color: "white",
+              backgroundColor: colors.tertiary_bg,
+              color: colors.primary_text,
               boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
               width: 250,
             },
@@ -1937,11 +2196,11 @@ const Friends = () => {
           <MenuItem
             onClick={() => handleSetAccessLevel("NONE")}
             sx={{
-              "&:hover": { backgroundColor: "#333333" },
+              "&:hover": { backgroundColor: colors.hover_bg },
               color:
                 getCurrentAccessLevel(selectedFriendship) === "NONE"
-                  ? "#14b8a6"
-                  : "white",
+                  ? colors.primary_accent
+                  : colors.primary_text,
             }}
           >
             <ListItemIcon>
@@ -1949,8 +2208,8 @@ const Friends = () => {
                 sx={{
                   color:
                     getCurrentAccessLevel(selectedFriendship) === "NONE"
-                      ? "#14b8a6"
-                      : "white",
+                      ? colors.primary_accent
+                      : colors.primary_text,
                 }}
               />
             </ListItemIcon>
@@ -1960,11 +2219,11 @@ const Friends = () => {
           <MenuItem
             onClick={() => handleSetAccessLevel("READ")}
             sx={{
-              "&:hover": { backgroundColor: "#333333" },
+              "&:hover": { backgroundColor: colors.hover_bg },
               color:
                 getCurrentAccessLevel(selectedFriendship) === "READ"
-                  ? "#14b8a6"
-                  : "white",
+                  ? colors.primary_accent
+                  : colors.primary_text,
             }}
           >
             <ListItemIcon>
@@ -1972,8 +2231,8 @@ const Friends = () => {
                 sx={{
                   color:
                     getCurrentAccessLevel(selectedFriendship) === "READ"
-                      ? "#3eb489"
-                      : "white",
+                      ? colors.primary_accent
+                      : colors.primary_text,
                 }}
               />
             </ListItemIcon>
@@ -1983,11 +2242,11 @@ const Friends = () => {
           <MenuItem
             onClick={() => handleSetAccessLevel("WRITE")}
             sx={{
-              "&:hover": { backgroundColor: "#333333" },
+              "&:hover": { backgroundColor: colors.hover_bg },
               color:
                 getCurrentAccessLevel(selectedFriendship) === "WRITE"
-                  ? "#3eb489"
-                  : "white",
+                  ? colors.primary_accent
+                  : colors.primary_text,
             }}
           >
             <ListItemIcon>
@@ -1995,8 +2254,8 @@ const Friends = () => {
                 sx={{
                   color:
                     getCurrentAccessLevel(selectedFriendship) === "WRITE"
-                      ? "#3eb489"
-                      : "white",
+                      ? colors.primary_accent
+                      : colors.primary_text,
                 }}
               />
             </ListItemIcon>
@@ -2006,11 +2265,11 @@ const Friends = () => {
           <MenuItem
             onClick={() => handleSetAccessLevel("FULL")}
             sx={{
-              "&:hover": { backgroundColor: "#333333" },
+              "&:hover": { backgroundColor: colors.hover_bg },
               color:
                 getCurrentAccessLevel(selectedFriendship) === "FULL"
-                  ? "#3eb489"
-                  : "white",
+                  ? colors.primary_accent
+                  : colors.primary_text,
             }}
           >
             <ListItemIcon>
@@ -2018,8 +2277,8 @@ const Friends = () => {
                 sx={{
                   color:
                     getCurrentAccessLevel(selectedFriendship) === "FULL"
-                      ? "#3eb489"
-                      : "white",
+                      ? colors.primary_accent
+                      : colors.primary_text,
                 }}
               />
             </ListItemIcon>
