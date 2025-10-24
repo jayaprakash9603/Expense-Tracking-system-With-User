@@ -1,6 +1,5 @@
 import React from "react";
 import NoDataPlaceholder from "./NoDataPlaceholder";
-import { useTheme } from "../hooks/useTheme";
 
 /*
   FriendsEmptyState
@@ -32,7 +31,6 @@ const messages = {
 };
 
 const FriendsEmptyState = ({ type = "suggestions", searchActive = false }) => {
-  const { colors } = useTheme();
   const cfg = messages[type] || messages.suggestions;
   const message = searchActive ? cfg.search : cfg.base;
   return (
@@ -43,10 +41,6 @@ const FriendsEmptyState = ({ type = "suggestions", searchActive = false }) => {
       fullWidth
       height={type === "friends" ? 340 : type === "shared" ? 340 : 340}
       iconSize={48}
-      style={{
-        background: colors.primary_bg,
-        border: `1px dashed ${colors.border_color}`,
-      }}
     />
   );
 };
