@@ -19,7 +19,12 @@ const Modal = ({
   const hasData = Object.keys(data).length > 0;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{
+        backgroundColor: colors.modal_overlay,
+      }}
+    >
       <div
         className={`rounded-xl shadow-lg p-6 w-[90%] max-w-[700px] ${
           hasData ? "min-h-[300px]" : "min-h-[50px] max-w-[500px]"
@@ -68,7 +73,7 @@ const Modal = ({
         </div>
 
         {/* Actions */}
-        <div className="flex flex sm:flex-row justify-between gap-4 mt-10">
+        <div className="flex sm:flex-row justify-between gap-4 mt-10">
           <button
             onClick={onDecline}
             className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-500 w-full sm:w-auto"

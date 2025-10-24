@@ -31,16 +31,19 @@ import useFriendAccess from "../../hooks/useFriendAccess"; // still used for has
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../hooks/usePreviousExpense";
 import { createBill } from "../../Redux/Bill/bill.action";
-
-const labelStyle = "text-white text-sm sm:text-base font-semibold mr-4";
-const inputWrapper = {
-  width: "150px",
-  minWidth: "150px",
-  display: "flex",
-  alignItems: "center",
-};
+import { useTheme } from "../../hooks/useTheme";
 
 const CreateBill = ({ onClose, onSuccess }) => {
+  const { colors } = useTheme();
+
+  const labelStyle = `text-sm sm:text-base font-semibold mr-4`;
+  const inputWrapper = {
+    width: "150px",
+    minWidth: "150px",
+    display: "flex",
+    alignItems: "center",
+  };
+
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const dateFromQuery = searchParams.get("date");
@@ -551,7 +554,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const renderNameInput = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="name" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="name"
+          className={labelStyle}
+          style={{ ...inputWrapper, color: colors.primary_text }}
+        >
           Name<span className="text-red-500"> *</span>
         </label>
         <ExpenseNameAutocomplete
@@ -576,7 +583,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
         <label
           htmlFor="description"
           className={labelStyle}
-          style={inputWrapper}
+          style={{ ...inputWrapper, color: colors.primary_text }}
         >
           Description
         </label>
@@ -593,27 +600,27 @@ const CreateBill = ({ onClose, onSuccess }) => {
             width: "100%",
             maxWidth: "300px",
             "& .MuiInputBase-root": {
-              backgroundColor: "#29282b",
-              color: "#fff",
+              backgroundColor: colors.secondary_bg,
+              color: colors.primary_text,
               fontSize: "16px",
             },
             "& .MuiInputBase-input": {
-              color: "#fff",
+              color: colors.primary_text,
               "&::placeholder": {
-                color: "#9ca3af",
+                color: colors.icon_muted,
                 opacity: 1,
               },
             },
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
-                borderColor: "rgb(75, 85, 99)",
+                borderColor: colors.border_color,
                 borderWidth: "1px",
               },
               "&:hover fieldset": {
-                borderColor: "rgb(75, 85, 99)",
+                borderColor: colors.border_color,
               },
               "&.Mui-focused fieldset": {
-                borderColor: "#00dac6",
+                borderColor: colors.secondary_accent,
                 borderWidth: "2px",
               },
             },
@@ -626,7 +633,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const renderDateInput = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="date" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="date"
+          className={labelStyle}
+          style={{ ...inputWrapper, color: colors.primary_text }}
+        >
           Date<span className="text-red-500"> *</span>
         </label>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -634,29 +645,31 @@ const CreateBill = ({ onClose, onSuccess }) => {
             value={billData.date ? dayjs(billData.date) : null}
             onChange={handleDateChange}
             sx={{
-              background: "#29282b",
+              background: colors.secondary_bg,
               borderRadius: 2,
-              color: "#fff",
+              color: colors.primary_text,
               ".MuiInputBase-input": {
-                color: "#fff",
+                color: colors.primary_text,
                 height: 32,
                 fontSize: 16,
               },
-              ".MuiSvgIcon-root": { color: "#00dac6" },
+              ".MuiSvgIcon-root": { color: colors.secondary_accent },
               width: 300,
               height: 56,
               minHeight: 56,
               maxHeight: 56,
               "& .MuiOutlinedInput-root": {
                 "& fieldset": {
-                  borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                  borderColor: errors.date ? "#ff4d4f" : colors.border_color,
                   borderWidth: "1px",
                 },
                 "&:hover fieldset": {
-                  borderColor: errors.date ? "#ff4d4f" : "rgb(75, 85, 99)",
+                  borderColor: errors.date ? "#ff4d4f" : colors.border_color,
                 },
                 "&.Mui-focused fieldset": {
-                  borderColor: errors.date ? "#ff4d4f" : "#00dac6",
+                  borderColor: errors.date
+                    ? "#ff4d4f"
+                    : colors.secondary_accent,
                   borderWidth: "2px",
                 },
               },
@@ -667,7 +680,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 variant: "outlined",
                 error: errors.date,
                 sx: {
-                  color: "#fff",
+                  color: colors.primary_text,
                   height: 56,
                   minHeight: 56,
                   maxHeight: 56,
@@ -702,7 +715,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
         <label
           htmlFor="paymentMethod"
           className={labelStyle}
-          style={inputWrapper}
+          style={{ ...inputWrapper, color: colors.primary_text }}
         >
           Payment Method
         </label>
@@ -726,7 +739,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const renderTypeAutocomplete = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="type" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="type"
+          className={labelStyle}
+          style={{ ...inputWrapper, color: colors.primary_text }}
+        >
           Type<span className="text-red-500"> *</span>
         </label>
         <Autocomplete
@@ -745,28 +762,30 @@ const CreateBill = ({ onClose, onSuccess }) => {
               error={errors.type}
               sx={{
                 "& .MuiInputBase-root": {
-                  backgroundColor: "#29282b",
-                  color: "#fff",
+                  backgroundColor: colors.secondary_bg,
+                  color: colors.primary_text,
                   height: "56px",
                   fontSize: "16px",
                 },
                 "& .MuiInputBase-input": {
-                  color: "#fff",
+                  color: colors.primary_text,
                   "&::placeholder": {
-                    color: "#9ca3af",
+                    color: colors.icon_muted,
                     opacity: 1,
                   },
                 },
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": {
-                    borderColor: errors.type ? "#ff4d4f" : "rgb(75, 85, 99)",
+                    borderColor: errors.type ? "#ff4d4f" : colors.border_color,
                     borderWidth: "1px",
                   },
                   "&:hover fieldset": {
-                    borderColor: errors.type ? "#ff4d4f" : "rgb(75, 85, 99)",
+                    borderColor: errors.type ? "#ff4d4f" : colors.border_color,
                   },
                   "&.Mui-focused fieldset": {
-                    borderColor: errors.type ? "#ff4d4f" : "#00dac6",
+                    borderColor: errors.type
+                      ? "#ff4d4f"
+                      : colors.secondary_accent,
                     borderWidth: "2px",
                   },
                 },
@@ -785,7 +804,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const renderCategoryAutocomplete = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
-        <label htmlFor="category" className={labelStyle} style={inputWrapper}>
+        <label
+          htmlFor="category"
+          className={labelStyle}
+          style={{ ...inputWrapper, color: colors.primary_text }}
+        >
           Category
         </label>
         <CategoryAutocomplete
@@ -879,22 +902,26 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
   return (
     <>
-      {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
         className="flex flex-col relative create-bill-container"
         style={{
           width: "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
-          backgroundColor: "rgb(11, 11, 11)",
+          backgroundColor: colors.tertiary_bg,
           borderRadius: "8px",
-          border: "1px solid rgb(0, 0, 0)",
+          border: `1px solid ${colors.border_color}`,
           padding: "20px",
           marginRight: "20px",
           overflowY: "auto",
         }}
       >
         <div className="w-full flex justify-between items-center mb-1">
-          <p className="text-white font-extrabold text-4xl">Create Bill</p>
+          <p
+            className="font-extrabold text-4xl"
+            style={{ color: colors.primary_text }}
+          >
+            Create Bill
+          </p>
 
           <div className="flex items-center gap-3">
             {/* Display previous expense indicator only when name and date are set */}
@@ -931,14 +958,20 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   navigate(-1);
                 }
               }}
-              className="flex items-center justify-center w-12 h-12 text-[32px] font-bold bg-[#29282b] rounded mt-[-10px]"
-              style={{ color: "#00dac6" }}
+              className="flex items-center justify-center w-12 h-12 text-[32px] font-bold rounded mt-[-10px]"
+              style={{
+                backgroundColor: colors.secondary_bg,
+                color: colors.secondary_accent,
+              }}
             >
               ×
             </button>
           </div>
         </div>
-        <hr className="border-t border-gray-600 w-full mt-[-4px] mb-0" />
+        <hr
+          className="border-t w-full mt-[-4px] mb-0"
+          style={{ borderColor: colors.border_color }}
+        />
 
         <div className="flex flex-col gap-4 mt-2">
           <div className="flex flex-1 gap-4 items-center">
@@ -959,10 +992,12 @@ const CreateBill = ({ onClose, onSuccess }) => {
             onClick={handleToggleBudgetTable}
             startIcon={<LinkIcon />}
             sx={{
-              backgroundColor: showBudgetTable ? "#00b8a0" : "#00DAC6",
-              color: "black",
+              backgroundColor: showBudgetTable
+                ? colors.button_hover
+                : colors.button_bg,
+              color: colors.button_text,
               "&:hover": {
-                backgroundColor: "#00b8a0",
+                backgroundColor: colors.button_hover,
               },
             }}
           >
@@ -973,10 +1008,12 @@ const CreateBill = ({ onClose, onSuccess }) => {
             onClick={handleOpenExpenseTable}
             startIcon={<AddIcon />}
             sx={{
-              backgroundColor: showExpenseTable ? "#00b8a0" : "#00DAC6",
-              color: "black",
+              backgroundColor: showExpenseTable
+                ? colors.button_hover
+                : colors.button_bg,
+              color: colors.button_text,
               "&:hover": {
-                backgroundColor: "#00b8a0",
+                backgroundColor: colors.button_hover,
               },
             }}
           >
@@ -988,15 +1025,18 @@ const CreateBill = ({ onClose, onSuccess }) => {
         {showBudgetTable && !showExpenseTable && (
           <div className="mt-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-white text-xl font-semibold">
+              <h3
+                className="text-xl font-semibold"
+                style={{ color: colors.primary_text }}
+              >
                 Available Budgets for Selected Date
               </h3>
               <IconButton
                 onClick={handleCloseBudgetTable}
                 sx={{
-                  color: "#ff4444", // Changed color to red
+                  color: "#ff4444",
                   "&:hover": {
-                    backgroundColor: "#ff444420", // Light red hover effect
+                    backgroundColor: "#ff444420",
                   },
                 }}
               >
@@ -1012,10 +1052,17 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
             {budgetLoading ? (
               <div className="flex justify-center items-center py-8">
-                <CircularProgress sx={{ color: "#00DAC6" }} />
+                <CircularProgress sx={{ color: colors.primary_accent }} />
               </div>
             ) : budgets.length === 0 ? (
-              <div className="text-center text-gray-400 py-8 bg-[#29282b] rounded border border-gray-600">
+              <div
+                className="text-center py-8 rounded border"
+                style={{
+                  color: colors.icon_muted,
+                  backgroundColor: colors.secondary_bg,
+                  borderColor: colors.border_color,
+                }}
+              >
                 No budgets found for the selected date
               </div>
             ) : (
@@ -1023,9 +1070,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 sx={{
                   height: 325,
                   width: "100%",
-                  background: "#29282b",
+                  background: colors.secondary_bg,
                   borderRadius: 2,
-                  border: "1px solid #444",
+                  border: `1px solid ${colors.border_color}`,
                 }}
               >
                 <DataGrid
@@ -1044,11 +1091,15 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   rowHeight={42}
                   headerHeight={32}
                   sx={{
-                    color: "#fff",
+                    color: colors.primary_text,
                     border: 0,
-                    "& .MuiDataGrid-columnHeaders": { background: "#222" },
-                    "& .MuiDataGrid-row": { background: "#29282b" },
-                    "& .MuiCheckbox-root": { color: "#00dac6 !important" },
+                    "& .MuiDataGrid-columnHeaders": {
+                      background: colors.tertiary_bg,
+                    },
+                    "& .MuiDataGrid-row": { background: colors.secondary_bg },
+                    "& .MuiCheckbox-root": {
+                      color: `${colors.primary_accent} !important`,
+                    },
                     fontSize: "0.92rem",
                   }}
                 />
@@ -1061,7 +1112,10 @@ const CreateBill = ({ onClose, onSuccess }) => {
         {showExpenseTable && !showBudgetTable && (
           <div className="mt-6 flex-1 flex flex-col min-h-0">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-white text-xl font-semibold">
+              <h3
+                className="text-xl font-semibold"
+                style={{ color: colors.primary_text }}
+              >
                 Expense Items
               </h3>
               <IconButton
@@ -1077,26 +1131,53 @@ const CreateBill = ({ onClose, onSuccess }) => {
               </IconButton>
             </div>
 
-            <div className="bg-[#29282b] rounded border border-gray-600 px-3 pt-3 flex-1 flex flex-col min-h-0">
+            <div
+              className="rounded border px-3 pt-3 flex-1 flex flex-col min-h-0"
+              style={{
+                backgroundColor: colors.secondary_bg,
+                borderColor: colors.border_color,
+              }}
+            >
               {/* Table Header - Updated */}
-              <div className="grid grid-cols-6 gap-3 mb-3 pb-2 border-b border-gray-600">
-                <div className="text-white font-semibold text-sm col-span-1">
+              <div
+                className="grid grid-cols-6 gap-3 mb-3 pb-2 border-b"
+                style={{ borderColor: colors.border_color }}
+              >
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Item Name *
                 </div>
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Quantity *
                 </div>
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Unit Price *
                 </div>
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Total Price
                 </div>
 
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Comments
                 </div>
-                <div className="text-white font-semibold text-sm col-span-1">
+                <div
+                  className="font-semibold text-sm col-span-1"
+                  style={{ color: colors.primary_text }}
+                >
                   Actions
                 </div>
               </div>
@@ -1116,10 +1197,16 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       key={index}
                       ref={isLastRow ? lastRowRef : null}
                       className={`grid grid-cols-6 gap-3 items-center p-3 rounded ${
-                        isIncomplete
-                          ? "bg-[#2d1b1b] border border-red-500"
-                          : "bg-[#1b1b1b]"
+                        isIncomplete ? "border border-red-500" : "border"
                       }`}
+                      style={{
+                        backgroundColor: isIncomplete
+                          ? "rgba(255, 68, 68, 0.1)"
+                          : colors.primary_bg,
+                        borderColor: isIncomplete
+                          ? "#ef4444"
+                          : colors.border_color,
+                      }}
                     >
                       {/* Item Name Autocomplete - Updated */}
                       <div className="col-span-1">
@@ -1155,13 +1242,32 @@ const CreateBill = ({ onClose, onSuccess }) => {
                               e.preventDefault();
                             }
                           }}
-                          className={`w-full px-3 py-2 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
+                          className={`w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
                             hasItemName &&
                             (!expense.quantity ||
                               parseFloat(expense.quantity) <= 0)
-                              ? "bg-[#3d2b2b] border border-red-400 focus:ring-red-400 outline-none"
-                              : "bg-[#29282b] focus:ring-[#00dac6]"
+                              ? "border border-red-400 focus:ring-red-400 outline-none"
+                              : ""
                           }`}
+                          style={{
+                            backgroundColor:
+                              hasItemName &&
+                              (!expense.quantity ||
+                                parseFloat(expense.quantity) <= 0)
+                                ? "rgba(255, 68, 68, 0.1)"
+                                : colors.secondary_bg,
+                            color: colors.primary_text,
+                            borderColor:
+                              hasItemName &&
+                              (!expense.quantity ||
+                                parseFloat(expense.quantity) <= 0)
+                                ? "#ef4444"
+                                : colors.border_color,
+                          }}
+                          onFocus={(e) =>
+                            (e.target.style.outline = `2px solid ${colors.secondary_accent}`)
+                          }
+                          onBlur={(e) => (e.target.style.outline = "none")}
                           min="1"
                           step="1"
                         />
@@ -1193,11 +1299,26 @@ const CreateBill = ({ onClose, onSuccess }) => {
                               e.preventDefault();
                             }
                           }}
-                          className={`w-full px-3 py-2 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
+                          className={`w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
                             isIncomplete
-                              ? "bg-[#3d2b2b] border border-red-400 focus:ring-red-400 outline-none"
-                              : "bg-[#29282b] focus:ring-[#00dac6]"
+                              ? "border border-red-400 focus:ring-red-400 outline-none"
+                              : ""
                           }`}
+                          style={{
+                            backgroundColor: isIncomplete
+                              ? "rgba(255, 68, 68, 0.1)"
+                              : colors.secondary_bg,
+                            color: colors.primary_text,
+                            borderColor: isIncomplete
+                              ? "#ef4444"
+                              : colors.border_color,
+                          }}
+                          onFocus={(e) =>
+                            (e.target.style.outline = `2px solid ${
+                              isIncomplete ? "#ef4444" : colors.secondary_accent
+                            }`)
+                          }
+                          onBlur={(e) => (e.target.style.outline = "none")}
                           min="0.01"
                           step="0.01"
                         />
@@ -1209,7 +1330,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
                           type="text"
                           value={expense.totalPrice.toFixed(2)}
                           readOnly
-                          className="w-full px-3 py-2 rounded bg-[#333] text-gray-400 cursor-not-allowed text-sm"
+                          className="w-full px-3 py-2 rounded cursor-not-allowed text-sm"
+                          style={{
+                            backgroundColor: colors.hover_bg,
+                            color: colors.icon_muted,
+                          }}
                         />
                       </div>
 
@@ -1226,7 +1351,15 @@ const CreateBill = ({ onClose, onSuccess }) => {
                               e.target.value
                             )
                           }
-                          className="w-full px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] text-sm"
+                          className="w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm"
+                          style={{
+                            backgroundColor: colors.secondary_bg,
+                            color: colors.primary_text,
+                          }}
+                          onFocus={(e) =>
+                            (e.target.style.outline = `2px solid ${colors.secondary_accent}`)
+                          }
+                          onBlur={(e) => (e.target.style.outline = "none")}
                         />
                       </div>
 
@@ -1364,12 +1497,24 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
         {!showExpenseTable && !showBudgetTable && (
           <div className="mt-4">
-            <div className="bg-[#29282b] rounded border border-gray-600 p-3">
+            <div
+              className="rounded border p-3"
+              style={{
+                backgroundColor: colors.secondary_bg,
+                borderColor: colors.border_color,
+              }}
+            >
               <div className="flex justify-between items-center mb-2">
-                <h4 className="text-white font-semibold text-base">
+                <h4
+                  className="font-semibold text-base"
+                  style={{ color: colors.primary_text }}
+                >
                   Expense Items Summary
                 </h4>
-                <span className="text-[#00dac6] text-sm font-medium">
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: colors.secondary_accent }}
+                >
                   {expenses.length} item{expenses.length !== 1 ? "s" : ""} added
                 </span>
               </div>
@@ -1388,7 +1533,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   <p className="text-red-400 text-sm mb-1">
                     ⚠️ No expense items added yet
                   </p>
-                  <p className="text-gray-400 text-xs">
+                  <p className="text-xs" style={{ color: colors.icon_muted }}>
                     At least one expense item is required to create a bill
                   </p>
                 </div>
@@ -1400,7 +1545,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                     style={{
                       maxHeight: "285px",
                       scrollbarWidth: "thin",
-                      scrollbarColor: "#00dac6 #1b1b1b",
+                      scrollbarColor: `${colors.primary_accent} ${colors.primary_bg}`,
                     }}
                   >
                     {/* Grid layout: 1 column on mobile, 2 on tablet, 3 on desktop */}
@@ -1408,37 +1553,57 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       {expenses.map((expense, index) => (
                         <div
                           key={index}
-                          className="bg-[#1b1b1b] rounded-lg p-2 border border-gray-700 hover:border-gray-600 transition-colors"
+                          className="rounded-lg p-2 border hover:border-gray-600 transition-colors"
+                          style={{
+                            backgroundColor: colors.primary_bg,
+                            borderColor: colors.border_color,
+                          }}
                         >
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-1 min-w-0 pr-2">
                               <h5
-                                className="text-white font-medium text-xs truncate max-w-[140px]"
+                                className="font-medium text-xs truncate max-w-[140px]"
                                 title={expense.itemName}
+                                style={{ color: colors.primary_text }}
                               >
                                 {expense.itemName}
                               </h5>
                             </div>
-                            <div className="text-[#00dac6] font-semibold text-xs whitespace-nowrap">
+                            <div
+                              className="font-semibold text-xs whitespace-nowrap"
+                              style={{ color: colors.secondary_accent }}
+                            >
                               ₹{expense.totalPrice.toFixed(2)}
                             </div>
                           </div>
                           <div className="space-y-1 text-[10px]">
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Qty</span>
-                              <span className="text-white font-medium">
+                              <span style={{ color: colors.icon_muted }}>
+                                Qty
+                              </span>
+                              <span
+                                className="font-medium"
+                                style={{ color: colors.primary_text }}
+                              >
                                 {expense.quantity}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Unit</span>
-                              <span className="text-white font-medium">
+                              <span style={{ color: colors.icon_muted }}>
+                                Unit
+                              </span>
+                              <span
+                                className="font-medium"
+                                style={{ color: colors.primary_text }}
+                              >
                                 ₹{parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">Calc</span>
-                              <span className="text-gray-300">
+                              <span style={{ color: colors.icon_muted }}>
+                                Calc
+                              </span>
+                              <span style={{ color: colors.secondary_text }}>
                                 {expense.quantity} × ₹
                                 {parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
@@ -1446,11 +1611,24 @@ const CreateBill = ({ onClose, onSuccess }) => {
                           </div>
                           {expense.comments &&
                             expense.comments.trim() !== "" && (
-                              <div className="mt-1 pt-1 border-t border-gray-700">
-                                <div className="text-gray-500 text-[10px] mb-0.5">
+                              <div
+                                className="mt-1 pt-1 border-t"
+                                style={{ borderColor: colors.border_color }}
+                              >
+                                <div
+                                  className="text-[10px] mb-0.5"
+                                  style={{ color: colors.icon_muted }}
+                                >
                                   Comments
                                 </div>
-                                <div className="text-gray-300 text-[10px] bg-[#29282b] p-1 rounded border border-gray-600 break-words max-h-16 overflow-auto">
+                                <div
+                                  className="text-[10px] p-1 rounded border break-words max-h-16 overflow-auto"
+                                  style={{
+                                    color: colors.secondary_text,
+                                    backgroundColor: colors.secondary_bg,
+                                    borderColor: colors.border_color,
+                                  }}
+                                >
                                   {expense.comments}
                                 </div>
                               </div>
@@ -1484,10 +1662,25 @@ const CreateBill = ({ onClose, onSuccess }) => {
             <button
               onClick={handleSubmit}
               disabled={billLoading}
-              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 font-semibold rounded w-full sm:w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: colors.button_bg,
+                color: colors.button_text,
+              }}
+              onMouseEnter={(e) =>
+                !billLoading &&
+                (e.target.style.backgroundColor = colors.button_hover)
+              }
+              onMouseLeave={(e) =>
+                !billLoading &&
+                (e.target.style.backgroundColor = colors.button_bg)
+              }
             >
               {billLoading ? (
-                <CircularProgress size={20} color="inherit" />
+                <CircularProgress
+                  size={20}
+                  sx={{ color: colors.button_text }}
+                />
               ) : (
                 "Submit"
               )}

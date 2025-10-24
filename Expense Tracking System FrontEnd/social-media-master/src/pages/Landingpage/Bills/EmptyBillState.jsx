@@ -2,10 +2,12 @@ import React from "react";
 import { Box, Typography, Button, Paper } from "@mui/material";
 import { Receipt as ReceiptIcon, Add as AddIcon } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router";
+import { useTheme } from "../../../hooks/useTheme";
 
 const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
   const navigate = useNavigate();
   const { friendId } = useParams();
+  const { colors } = useTheme();
 
   const handleCreateBill = () => {
     const createRoute = friendId ? `/bill/create/${friendId}` : "/bill/create";
@@ -24,8 +26,8 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "400px",
-        backgroundColor: "#1b1b1b",
-        border: "2px dashed #333",
+        backgroundColor: colors.primary_bg,
+        border: `2px dashed ${colors.border_color}`,
         borderRadius: 3,
         p: 4,
         textAlign: "center",
@@ -36,20 +38,20 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
           width: 80,
           height: 80,
           borderRadius: "50%",
-          backgroundColor: "#14b8a620",
+          backgroundColor: `${colors.primary_accent}20`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           mb: 3,
         }}
       >
-        <ReceiptIcon sx={{ fontSize: 40, color: "#14b8a6" }} />
+        <ReceiptIcon sx={{ fontSize: 40, color: colors.primary_accent }} />
       </Box>
 
       <Typography
         variant="h5"
         sx={{
-          color: "#fff",
+          color: colors.primary_text,
           fontWeight: 600,
           mb: 2,
         }}
@@ -60,7 +62,7 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
       <Typography
         variant="body1"
         sx={{
-          color: "#b0b0b0",
+          color: colors.secondary_text,
           mb: 1,
           maxWidth: 400,
         }}
@@ -72,7 +74,7 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
         <Typography
           variant="body2"
           sx={{
-            color: "#888",
+            color: colors.icon_muted,
             mb: 4,
             maxWidth: 400,
           }}
@@ -87,8 +89,8 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
           startIcon={<AddIcon />}
           onClick={handleCreateBill}
           sx={{
-            backgroundColor: "#14b8a6",
-            color: "white",
+            backgroundColor: colors.primary_accent,
+            color: colors.button_text,
             fontWeight: 600,
             px: 4,
             py: 1.5,
@@ -96,7 +98,7 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
             textTransform: "none",
             fontSize: "1rem",
             "&:hover": {
-              backgroundColor: "#0d9488",
+              backgroundColor: colors.button_hover,
             },
           }}
         >

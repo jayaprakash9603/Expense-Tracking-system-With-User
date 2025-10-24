@@ -50,7 +50,7 @@ export const THEME_COLORS = {
 
     // Modal/Dialog
     modal_bg: "#1b1b1b", // Modal background
-    modal_overlay: "rgba(0, 0, 0, 0.8)", // Modal backdrop
+    modal_overlay: "rgba(0, 0, 0, 0.95)", // Modal backdrop (thicker/darker)
   },
 
   light: {
@@ -66,7 +66,7 @@ export const THEME_COLORS = {
 
     // Text colors
     primary_text: "#1a1a1a", // Main text color (dark gray/black)
-    secondary_text: "#737373", // Muted text, disabled states
+    secondary_text: "#2a2a2a", // Muted text, chart axis labels (very dark for high visibility)
     active_text: "#14b8a6", // Active menu item text (primary teal)
     brand_text: "#14b8a6", // Brand color text
 
@@ -76,13 +76,13 @@ export const THEME_COLORS = {
     tertiary_accent: "#0f766e", // Even darker teal for hover
 
     // Border colors
-    border_color: "#e0e0e0", // Default border
-    border_light: "#f0f0f0", // Light border
+    border_color: "#d0d0d0", // Default border (darker for better visibility)
+    border_light: "#e8e8e8", // Light border
 
     // Icon colors
     icon_default: "#1a1a1a", // Default icon color (will use filter)
     icon_active: "#14b8a6", // Active icon color (will use filter)
-    icon_muted: "#737373", // Muted icon color
+    icon_muted: "#2a2a2a", // Muted icon color (very dark for visibility)
 
     // Button colors
     button_bg: "#14b8a6", // Primary button background
@@ -95,7 +95,7 @@ export const THEME_COLORS = {
 
     // Modal/Dialog
     modal_bg: "#ffffff", // Modal background
-    modal_overlay: "rgba(0, 0, 0, 0.3)", // Modal backdrop (lighter)
+    modal_overlay: "rgba(0, 0, 0, 0.6)", // Modal backdrop (thicker/darker)
   },
 };
 

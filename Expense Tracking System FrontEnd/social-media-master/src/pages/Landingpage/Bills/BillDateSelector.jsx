@@ -1,17 +1,20 @@
-import React from 'react';
-import { Box, IconButton } from '@mui/material';
+import React from "react";
+import { Box, IconButton } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
-import dayjs from 'dayjs';
+import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
+import dayjs from "dayjs";
+import { useTheme } from "../../../hooks/useTheme";
 
-const BillDateSelector = ({ 
-  selectedDate, 
-  onDateChange, 
-  onPrevMonth, 
+const BillDateSelector = ({
+  selectedDate,
+  onDateChange,
+  onPrevMonth,
   onNextMonth,
-  isSmallScreen 
+  isSmallScreen,
 }) => {
+  const { colors } = useTheme();
+
   const isNextMonthDisabled = () => {
     const currentMonth = dayjs();
     const nextMonth = selectedDate.add(1, "month");
@@ -34,9 +37,9 @@ const BillDateSelector = ({
         <IconButton
           onClick={onPrevMonth}
           sx={{
-            color: "#00dac6",
-            backgroundColor: "#1b1b1b",
-            "&:hover": { backgroundColor: "#28282a" },
+            color: colors.secondary_accent,
+            backgroundColor: colors.primary_bg,
+            "&:hover": { backgroundColor: colors.hover_bg },
           }}
         >
           <ArrowBackIcon />
@@ -49,21 +52,21 @@ const BillDateSelector = ({
             onChange={onDateChange}
             maxDate={dayjs()}
             sx={{
-              background: "#1b1b1b",
+              background: colors.primary_bg,
               borderRadius: 2,
-              color: "#fff",
+              color: colors.primary_text,
               ".MuiInputBase-input": {
-                color: "#fff",
+                color: colors.primary_text,
                 textAlign: "center",
                 fontWeight: 600,
                 fontSize: "1.1rem",
               },
-              ".MuiSvgIcon-root": { color: "#00dac6" },
+              ".MuiSvgIcon-root": { color: colors.secondary_accent },
               ".MuiOutlinedInput-notchedOutline": {
-                borderColor: "#14b8a6",
+                borderColor: colors.primary_accent,
               },
               "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#00dac6",
+                borderColor: colors.secondary_accent,
               },
               width: isSmallScreen ? "200px" : "180px",
             }}
@@ -71,7 +74,7 @@ const BillDateSelector = ({
               textField: {
                 size: "small",
                 variant: "outlined",
-                sx: { color: "#fff" },
+                sx: { color: colors.primary_text },
               },
             }}
           />
@@ -81,14 +84,18 @@ const BillDateSelector = ({
           onClick={onNextMonth}
           disabled={isNextMonthDisabled()}
           sx={{
-            color: isNextMonthDisabled() ? "#666" : "#00dac6",
-            backgroundColor: "#1b1b1b",
+            color: isNextMonthDisabled()
+              ? colors.icon_muted
+              : colors.secondary_accent,
+            backgroundColor: colors.primary_bg,
             "&:hover": {
-              backgroundColor: isNextMonthDisabled() ? "#1b1b1b" : "#28282a",
+              backgroundColor: isNextMonthDisabled()
+                ? colors.primary_bg
+                : colors.hover_bg,
             },
             "&.Mui-disabled": {
-              color: "#666",
-              backgroundColor: "#1b1b1b",
+              color: colors.icon_muted,
+              backgroundColor: colors.primary_bg,
             },
           }}
         >

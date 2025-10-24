@@ -4,7 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  useTheme,
+  useTheme as useMuiTheme,
   useMediaQuery,
 } from "@mui/material";
 import RangePeriodNavigator from "../common/RangePeriodNavigator";
@@ -21,6 +21,7 @@ import {
   filterExpensesForRangeBucket,
 } from "../../utils/flowEntityUtils";
 import { rangeTypes } from "../../utils/flowDateUtils"; // Added missing import
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * GenericFlowPage
@@ -82,9 +83,10 @@ const GenericFlowPage = ({
   const [shrinkFlowBtn, setShrinkFlowBtn] = useState(false);
   const filterBtnRef = useRef(null);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const muiTheme = useMuiTheme();
+  const { colors } = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(muiTheme.breakpoints.between("sm", "md"));
   const chartContainerHeight = isMobile ? 120 : isTablet ? 160 : 220;
 
   useEffect(() => {
@@ -176,15 +178,16 @@ const GenericFlowPage = ({
 
   return (
     <div
-      className="bg-[#0b0b0b] p-4 rounded-lg mt-[0px]"
       style={{
+        backgroundColor: colors.secondary_bg,
+        padding: isMobile ? 8 : isTablet ? 12 : 16,
+        borderRadius: isMobile ? 0 : isTablet ? "8px" : "8px",
+        marginTop: 0,
         width: isMobile ? "100vw" : isTablet ? "100vw" : "calc(100vw - 370px)",
         height: isMobile ? "auto" : isTablet ? "auto" : "calc(100vh - 100px)",
         marginRight: isMobile ? 0 : isTablet ? 0 : "20px",
-        borderRadius: isMobile ? 0 : isTablet ? "8px" : "8px",
         boxSizing: "border-box",
         position: "relative",
-        padding: isMobile ? 8 : isTablet ? 12 : 16,
         minWidth: 0,
       }}
     >
@@ -224,8 +227,8 @@ const GenericFlowPage = ({
           onClose={() => setOpen(false)}
           PaperProps={{
             style: {
-              backgroundColor: "#1b1b1b",
-              color: "#fff",
+              backgroundColor: colors.primary_bg,
+              color: colors.primary_text,
               borderRadius: "12px",
             },
           }}
@@ -264,7 +267,7 @@ const GenericFlowPage = ({
       <div
         className="w-full rounded-lg p-4 mb-4"
         style={{
-          background: "#1b1b1b",
+          background: colors.primary_bg,
           height: chartContainerHeight,
           minWidth: 0,
           maxWidth: "100%",
@@ -278,7 +281,7 @@ const GenericFlowPage = ({
             width="100%"
             height={isMobile ? 100 : isTablet ? 130 : 160}
             animation="wave"
-            sx={{ bgcolor: "#23243a", borderRadius: 2 }}
+            sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
           />
         ) : pieData.length === 0 ? (
           <NoDataPlaceholder
@@ -362,7 +365,9 @@ const GenericFlowPage = ({
         </>
       )}
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; background: #23243a; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; background: ${
+          colors.hover_bg
+        }; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: ${
           flowTab === "outflow"
             ? "#ff4d4f"

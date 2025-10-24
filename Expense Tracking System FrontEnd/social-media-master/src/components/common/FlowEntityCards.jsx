@@ -12,6 +12,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import { formatCurrencyCompact } from "../../utils/numberFormatters";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * FlowEntityCards
@@ -32,6 +33,7 @@ const FlowEntityCards = ({
   onEdit, // (entity) => void
   onDelete, // (entity) => void
 }) => {
+  const { colors } = useTheme();
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [menuEntity, setMenuEntity] = useState(null);
 
@@ -77,7 +79,7 @@ const FlowEntityCards = ({
             width={isMobile ? "100%" : 220}
             height={130}
             animation="wave"
-            sx={{ bgcolor: "#23243a", borderRadius: 2 }}
+            sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
             style={{ margin: "0 0 16px 0" }}
           />
         ))}
@@ -134,7 +136,25 @@ const FlowEntityCards = ({
           return (
             <div
               key={entity.categoryId || idx}
-              className={`bg-[#1b1b1b] rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200 ${
+              style={{
+                minHeight: "130px",
+                maxHeight: "130px",
+                height: "130px",
+                width: isMobile ? "100%" : 220,
+                padding: "16px 20px",
+                boxSizing: "border-box",
+                overflow: "hidden",
+                cursor: "pointer",
+                background: colors.primary_bg,
+                transition: "background 0.2s, box-shadow 0.2s, border 0.2s",
+                border: "2px solid transparent",
+                borderLeft: `6px solid ${entity.color}`,
+                margin: "4px",
+                borderRadius: "8px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                position: "relative",
+              }}
+              className={`${
                 isSelected
                   ? `ring-2 ${
                       flowTab === "outflow"
@@ -145,21 +165,6 @@ const FlowEntityCards = ({
                     }`
                   : ""
               }`}
-              style={{
-                minHeight: "130px",
-                maxHeight: "130px",
-                height: "130px",
-                width: isMobile ? "100%" : 220,
-                padding: "16px 20px",
-                boxSizing: "border-box",
-                overflow: "hidden",
-                cursor: "pointer",
-                background: "#1b1b1b",
-                transition: "background 0.2s, box-shadow 0.2s, border 0.2s",
-                border: "2px solid transparent",
-                borderLeft: `6px solid ${entity.color}`,
-                margin: "4px",
-              }}
               onClick={() => onSelect?.(entity)}
               onDoubleClick={(e) => onDouble?.(entity, e)}
             >
@@ -172,9 +177,12 @@ const FlowEntityCards = ({
                   <IconButton
                     size="small"
                     sx={{
-                      color: "#ffffff",
+                      color: colors.primary_text,
                       padding: "4px",
-                      backgroundColor: "#28282a80",
+                      backgroundColor:
+                        colors.mode === "dark"
+                          ? "#28282a80"
+                          : "rgba(0,0,0,0.05)",
                       "&:hover": { backgroundColor: `${entity.color}22` },
                     }}
                     onClick={(e) => openMenu(e, entity)}
@@ -186,12 +194,13 @@ const FlowEntityCards = ({
               <div className="flex flex-col gap-2" style={{ height: "100%" }}>
                 <div className="flex items-center justify-between min-w-0">
                   <span
-                    className="font-semibold text-base truncate min-w-0 text-white"
+                    className="font-semibold text-base truncate min-w-0"
                     title={entity.categoryName}
                     style={{
                       maxWidth: "70%",
                       fontSize: "15px",
                       fontWeight: 700,
+                      color: colors.primary_text,
                     }}
                   >
                     {entity.categoryName}
@@ -209,11 +218,12 @@ const FlowEntityCards = ({
                   </span>
                 </div>
                 <div
-                  className="text-gray-300 text-sm break-words card-comments-clamp"
+                  className="text-sm break-words card-comments-clamp"
                   style={{
                     wordBreak: "break-word",
                     flex: 1,
                     overflow: "hidden",
+                    color: colors.secondary_text,
                   }}
                 >
                   {`${entity.expenseCount} expense${
@@ -232,16 +242,16 @@ const FlowEntityCards = ({
         onClick={(e) => e.stopPropagation()}
         PaperProps={{
           sx: {
-            backgroundColor: "#1b1b1b",
-            color: "white",
-            border: "1px solid #333",
+            backgroundColor: colors.primary_bg,
+            color: colors.primary_text,
+            border: `1px solid ${colors.border_color}`,
             borderRadius: "8px",
             boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             minWidth: "150px",
             "& .MuiMenuItem-root": {
               fontSize: "14px",
               padding: "8px 16px",
-              "&:hover": { backgroundColor: "#333" },
+              "&:hover": { backgroundColor: colors.hover_bg },
             },
           },
         }}
@@ -252,7 +262,7 @@ const FlowEntityCards = ({
           <ListItemIcon>
             <EditIcon
               fontSize="small"
-              sx={{ color: menuEntity?.color || "#00dac6" }}
+              sx={{ color: menuEntity?.color || "#14b8a6" }}
             />
           </ListItemIcon>
           <ListItemText primary="Edit" />
