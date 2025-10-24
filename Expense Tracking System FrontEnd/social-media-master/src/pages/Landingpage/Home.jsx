@@ -3,6 +3,7 @@ import Left from "./Left.jsx";
 import { Outlet, useParams, useLocation, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import FriendInfoBar from "./FriendInfoBar";
+import HeaderBar from "../../components/common/HeaderBar";
 import {
   fetchFriendship,
   fetchFriendsDetailed,
@@ -66,7 +67,7 @@ const Home = () => {
             showInfoBar={showFriendInfo}
           />
         ) : (
-          <div className="h-[50px]"></div>
+          <HeaderBar />
         )}
         <div className="flex-1">
           <Outlet /> {/* Renders HomeContent or other route components */}

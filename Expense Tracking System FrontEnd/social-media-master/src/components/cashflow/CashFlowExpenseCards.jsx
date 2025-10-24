@@ -35,18 +35,21 @@ export default function CashFlowExpenseCards({
 
   // Scroll to the last clicked card when selection changes
   useEffect(() => {
-    if (lastClickedIndexRef.current !== null && cardRefs.current[lastClickedIndexRef.current]) {
+    if (
+      lastClickedIndexRef.current !== null &&
+      cardRefs.current[lastClickedIndexRef.current]
+    ) {
       const cardElement = cardRefs.current[lastClickedIndexRef.current];
-      
+
       // Use a small timeout to ensure the DOM has updated
       setTimeout(() => {
         cardElement.scrollIntoView({
-          behavior: 'auto',
-          block: 'nearest',
-          inline: 'nearest'
+          behavior: "auto",
+          block: "nearest",
+          inline: "nearest",
         });
       }, 0);
-      
+
       lastClickedIndexRef.current = null;
     }
   }, [selectedCardIdx]);
@@ -226,10 +229,10 @@ export default function CashFlowExpenseCards({
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
-              
+
               // Store the clicked index
               lastClickedIndexRef.current = idx;
-              
+
               handleCardClick(idx, event);
             }}
           >
