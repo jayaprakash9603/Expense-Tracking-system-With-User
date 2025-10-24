@@ -28,6 +28,7 @@ import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import CategoryEditSkeleton from "../../components/Loaders/CategoryEditSkeleton";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
+import { useTheme } from "../../hooks/useTheme";
 import {
   DEFAULT_CATEGORY_COLOR,
   CATEGORY_COLORS,
@@ -274,6 +275,7 @@ const ICON_CATEGORIES = {
 };
 
 const EditCategory = () => {
+  const { colors } = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id, friendId } = useParams(); // Get category ID from URL
@@ -542,16 +544,16 @@ const EditCategory = () => {
   if (initialLoading) return <CategoryEditSkeleton />;
 
   return (
-    <div className="bg-[#1b1b1b]">
+    <div style={{ backgroundColor: colors.secondary_bg }}>
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
         style={{
           height: "auto",
           minHeight: "calc(100vh - 100px)",
-          backgroundColor: "rgb(11, 11, 11)",
+          backgroundColor: colors.secondary_bg,
           borderRadius: "8px",
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-          border: "1px solid rgb(0, 0, 0)",
+          border: `1px solid ${colors.border_color}`,
           opacity: 1,
           marginRight: "20px",
           padding: "16px",
@@ -559,17 +561,34 @@ const EditCategory = () => {
       >
         <div>
           <div className="w-full flex justify-between items-center mb-2">
-            <p className="text-white font-extrabold text-2xl sm:text-3xl">
+            <p
+              className="font-extrabold text-2xl sm:text-3xl"
+              style={{ color: colors.primary_text }}
+            >
               Edit Category
             </p>
             <button
               onClick={handleCloseCategory}
-              className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a]"
+              className="px-2 py-1 border rounded"
+              style={{
+                backgroundColor: colors.secondary_bg,
+                color: colors.primary_text,
+                borderColor: colors.border_color,
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.backgroundColor = colors.hover_bg)
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.backgroundColor = colors.secondary_bg)
+              }
             >
               X
             </button>
           </div>
-          <hr className="border-t border-gray-600 w-full mb-2 sm:mb-4 -mt-3" />
+          <hr
+            className="border-t w-full mb-2 sm:mb-4 -mt-3"
+            style={{ borderColor: colors.border_color }}
+          />
 
           <Box component="form" onSubmit={handleCategorySubmit} noValidate>
             {/* Modified layout for the top three fields with equal width */}
@@ -609,21 +628,26 @@ const EditCategory = () => {
                       })()}
                     </>
                   ),
-                  style: { color: "white" },
+                  style: { color: colors.primary_text },
                 }}
                 sx={{
                   flex: 1,
                   "& .MuiOutlinedInput-root": {
+                    backgroundColor: colors.secondary_bg,
                     "& fieldset": {
-                      borderColor: "rgba(255,255,255,0.3)",
+                      borderColor: colors.border_color,
                     },
                     "&:hover fieldset": {
-                      borderColor: "rgba(255,255,255,0.5)",
+                      borderColor: colors.border_color,
                     },
                     "&.Mui-focused fieldset": {
                       borderColor: categoryData.color,
                     },
-                    color: "white",
+                    color: colors.primary_text,
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: colors.icon_muted,
+                    opacity: 1,
                   },
                   "& .MuiFormHelperText-root": {
                     color: categoryData.color,
@@ -647,21 +671,26 @@ const EditCategory = () => {
                       sx={{ mr: 1, color: categoryData.color }}
                     />
                   ),
-                  style: { color: "white" },
+                  style: { color: colors.primary_text },
                 }}
                 sx={{
                   flex: 1,
                   "& .MuiOutlinedInput-root": {
+                    backgroundColor: colors.secondary_bg,
                     "& fieldset": {
-                      borderColor: "rgba(255,255,255,0.3)",
+                      borderColor: colors.border_color,
                     },
                     "&:hover fieldset": {
-                      borderColor: "rgba(255,255,255,0.5)",
+                      borderColor: colors.border_color,
                     },
                     "&.Mui-focused fieldset": {
                       borderColor: categoryData.color,
                     },
-                    color: "white",
+                    color: colors.primary_text,
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: colors.icon_muted,
+                    opacity: 1,
                   },
                   "& .MuiFormHelperText-root": {
                     color: categoryData.color,
@@ -674,6 +703,22 @@ const EditCategory = () => {
                 value={categoryData.type}
                 onChange={(event, newValue) => {
                   setCategoryData((prev) => ({ ...prev, type: newValue }));
+                }}
+                componentsProps={{
+                  paper: {
+                    sx: {
+                      backgroundColor: colors.secondary_bg,
+                      color: colors.primary_text,
+                      "& .MuiAutocomplete-option": {
+                        "&:hover": {
+                          backgroundColor: colors.hover_bg,
+                        },
+                        "&[aria-selected='true']": {
+                          backgroundColor: colors.hover_bg,
+                        },
+                      },
+                    },
+                  },
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -689,16 +734,21 @@ const EditCategory = () => {
                     }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
+                        backgroundColor: colors.secondary_bg,
                         "& fieldset": {
-                          borderColor: "rgba(255,255,255,0.3)",
+                          borderColor: colors.border_color,
                         },
                         "&:hover fieldset": {
-                          borderColor: "rgba(255,255,255,0.5)",
+                          borderColor: colors.border_color,
                         },
                         "&.Mui-focused fieldset": {
                           borderColor: categoryData.color,
                         },
-                        color: "white",
+                        color: colors.primary_text,
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: colors.icon_muted,
+                        opacity: 1,
                       },
                     }}
                   />
@@ -706,10 +756,10 @@ const EditCategory = () => {
                 sx={{
                   flex: 1,
                   "& .MuiAutocomplete-popupIndicator": {
-                    color: "white",
+                    color: colors.icon_muted,
                   },
                   "& .MuiAutocomplete-clearIndicator": {
-                    color: "white",
+                    color: colors.icon_muted,
                   },
                 }}
               />
@@ -725,11 +775,12 @@ const EditCategory = () => {
                       display: "flex",
                       flexWrap: "wrap",
                       gap: 1,
-                      border: "1px solid rgba(255,255,255,0.3)",
+                      border: `1px solid ${colors.border_color}`,
                       borderRadius: 1,
                       p: 2,
                       height: "200px",
                       overflowY: "auto",
+                      backgroundColor: colors.secondary_bg,
                     }}
                   >
                     {CATEGORY_COLORS.map((color) => (
@@ -744,8 +795,8 @@ const EditCategory = () => {
                           cursor: "pointer",
                           border:
                             categoryData.color === color
-                              ? "2px solid white"
-                              : "1px solid rgba(255,255,255,0.3)",
+                              ? `3px solid ${colors.primary_text}`
+                              : `1px solid ${colors.border_color}`,
                           "&:hover": {
                             opacity: 0.8,
                           },
@@ -761,11 +812,12 @@ const EditCategory = () => {
                 <FormControl fullWidth>
                   <Box
                     sx={{
-                      border: "1px solid rgba(255,255,255,0.3)",
+                      border: `1px solid ${colors.border_color}`,
                       borderRadius: 1,
                       height: "200px",
                       display: "flex",
                       flexDirection: "column",
+                      backgroundColor: colors.secondary_bg,
                     }}
                   >
                     {/* Icon category tabs with custom scroll buttons */}
@@ -824,9 +876,9 @@ const EditCategory = () => {
                       }}
                       sx={{
                         borderBottom: 1,
-                        borderColor: "rgba(255,255,255,0.1)",
+                        borderColor: colors.border_color,
                         "& .MuiTab-root": {
-                          color: "rgba(255,255,255,0.7)",
+                          color: colors.icon_muted,
                           "&.Mui-selected": {
                             color: categoryData.color,
                           },
@@ -872,7 +924,7 @@ const EditCategory = () => {
                           width: "6px",
                         },
                         "&::-webkit-scrollbar-track": {
-                          background: "rgba(255,255,255,0.05)",
+                          background: colors.hover_bg,
                           borderRadius: "4px",
                         },
                         "&::-webkit-scrollbar-thumb": {
@@ -898,11 +950,11 @@ const EditCategory = () => {
                             border:
                               categoryData.selectedIconKey === iconKey
                                 ? `2px solid ${categoryData.color}`
-                                : "1px solid rgba(255,255,255,0.3)",
+                                : `1px solid ${colors.border_color}`,
                             cursor: "pointer",
                             "&:hover": {
                               opacity: 0.8,
-                              backgroundColor: "rgba(255,255,255,0.1)",
+                              backgroundColor: colors.hover_bg,
                             },
                             backgroundColor:
                               categoryData.selectedIconKey === iconKey
@@ -926,31 +978,15 @@ const EditCategory = () => {
                                 : {},
                           }}
                         >
-                          {(() => {
-                            const el = CATEGORY_ICONS[iconKey];
-                            if (React.isValidElement(el)) {
-                              return React.cloneElement(el, {
-                                style: {
-                                  color:
-                                    categoryData.selectedIconKey === iconKey
-                                      ? categoryData.color
-                                      : "white",
-                                  fontSize: "26px",
-                                },
-                              });
-                            }
-                            return (
-                              <CategoryIcon
-                                sx={{
-                                  color:
-                                    categoryData.selectedIconKey === iconKey
-                                      ? categoryData.color
-                                      : "white",
-                                  fontSize: "26px",
-                                }}
-                              />
-                            );
-                          })()}
+                          {React.cloneElement(CATEGORY_ICONS[iconKey], {
+                            style: {
+                              color:
+                                categoryData.selectedIconKey === iconKey
+                                  ? categoryData.color
+                                  : colors.icon_muted,
+                              fontSize: "26px",
+                            },
+                          })}
                         </Box>
                       ))}
                     </Box>
@@ -982,7 +1018,7 @@ const EditCategory = () => {
                           },
                         }}
                       />
-                      <Typography sx={{ color: "white" }}>
+                      <Typography sx={{ color: colors.primary_text }}>
                         Make this a global category (available to all users)
                       </Typography>
                     </Box>
@@ -1007,7 +1043,32 @@ const EditCategory = () => {
 
               {showExpenses && (
                 <Grid item xs={12} sx={{ mt: 0 }}>
-                  <Box sx={{ height: 320, width: "100%" }}>
+                  <Box
+                    sx={{
+                      height: 320,
+                      width: "100%",
+                      "& .MuiDataGrid-root": {
+                        backgroundColor: colors.secondary_bg,
+                        color: colors.primary_text,
+                        border: `1px solid ${colors.border_color}`,
+                      },
+                      "& .MuiDataGrid-columnHeaders": {
+                        backgroundColor: colors.tertiary_bg,
+                        color: colors.primary_text,
+                      },
+                      "& .MuiDataGrid-cell": {
+                        borderColor: colors.border_color,
+                      },
+                      "& .MuiCheckbox-root": {
+                        color: `${colors.primary_accent} !important`,
+                      },
+                      "& .MuiDataGrid-row": {
+                        "&:hover": {
+                          backgroundColor: colors.hover_bg,
+                        },
+                      },
+                    }}
+                  >
                     <DataGrid
                       rows={rows || []}
                       columns={columns}
