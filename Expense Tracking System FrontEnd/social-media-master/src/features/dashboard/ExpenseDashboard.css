@@ -1054,14 +1054,14 @@
   width: 14px;
   height: 14px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.15);
+  /* background removed - using inline style from component */
   animation: pulse 1.6s ease-in-out infinite;
 }
 .skeleton-legend-item .legend-text {
   width: 70px;
   height: 12px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  /* background removed - using inline style from component */
   animation: pulse 1.6s ease-in-out infinite;
 }
 .skeleton-total-pill {
@@ -1070,7 +1070,7 @@
   right: 14px;
   width: 120px;
   height: 22px;
-  background: rgba(20, 184, 166, 0.15);
+  /* background removed - using inline style from component */
   border-radius: 6px;
   animation: pulse 1.8s ease-in-out infinite;
 }
@@ -1407,7 +1407,6 @@
 .budget-center {
   width: 120px;
   height: 120px;
-  /* background removed - using inline style from component */
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -1542,20 +1541,15 @@
 
 /* Base shimmer background used by most skeleton elements */
 .skeleton-bg {
-  background: linear-gradient(
-    90deg,
-    rgba(26, 26, 26, 1) 0%,
-    rgba(35, 178, 156, 0.12) 25%,
-    rgba(26, 26, 26, 1) 50%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
 
 .metric-card-skeleton,
 .chart-skeleton {
-  background: linear-gradient(135deg, #151515 0%, #1f1f1f 100%);
-  border: 1px solid rgba(20, 184, 166, 0.06);
+  /* background removed - using inline style from component */
+  /* border removed - using inline style from component */
   border-radius: 16px;
   padding: 20px;
   position: relative;
@@ -1580,12 +1574,7 @@
   height: 48px;
   border-radius: 12px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
@@ -1602,13 +1591,7 @@
 .skeleton-change,
 .skeleton-actions {
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
-  background-image: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
@@ -1628,12 +1611,7 @@
   width: 110px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -1714,12 +1692,7 @@
   flex: 1;
   height: 40%; /* initial visual height, individual bars will override */
   border-radius: 6px 6px 0 0;
-  background-image: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }

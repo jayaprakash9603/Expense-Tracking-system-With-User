@@ -986,16 +986,16 @@ const Friends = () => {
                                 ? `2px solid ${colors.primary_accent}`
                                 : "2px solid transparent",
                           }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              colors.hover_bg)
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.backgroundColor =
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              colors.hover_bg;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
                               selectedFriend?.id === friend.id
                                 ? colors.hover_bg
-                                : colors.tertiary_bg)
-                          }
+                                : colors.tertiary_bg;
+                          }}
                           onClick={() => handleFriendSelect(friend)}
                         >
                           <div className="flex items-center flex-grow mr-2">
@@ -1003,7 +1003,7 @@ const Friends = () => {
                               className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
                               style={{
                                 backgroundColor: getAvatarColor(friend.id),
-                                color: "#ffffff",
+                                color: colors.button_text,
                               }}
                             >
                               {getInitials(friend.firstName, friend.lastName)}
@@ -1349,7 +1349,7 @@ const Friends = () => {
                               className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
                               style={{
                                 backgroundColor: getAvatarColor(friend.id),
-                                color: colors.primary_text,
+                                color: colors.button_text,
                               }}
                             >
                               {getInitials(friend.firstName, friend.lastName)}

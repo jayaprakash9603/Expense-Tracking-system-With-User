@@ -3,6 +3,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { api } from "../../config/api";
 import { useNavigate, useParams } from "react-router";
+import { useTheme } from "../../hooks/useTheme";
 import {
   Accordion,
   AccordionSummary,
@@ -29,6 +30,8 @@ import {
 } from "@mui/icons-material";
 
 const UploadBills = ({ targetId = null, onImportComplete }) => {
+  const { colors } = useTheme();
+
   // State Management
   const [selectedFile, setSelectedFile] = useState(null);
   const [importedBills, setImportedBills] = useState([]);
@@ -398,8 +401,9 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
   return (
     <div
-      className="fixed bg-[#0b0b0b] shadow-2xl overflow-hidden flex flex-col rounded-2xl"
+      className="fixed shadow-2xl overflow-hidden flex flex-col rounded-2xl"
       style={{
+        backgroundColor: colors.primary_bg,
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         right: "20px",
@@ -411,7 +415,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
         {`
           .custom-scrollbar {
     scrollbar-width: thin; /* Firefox */
-    scrollbar-color: #14b8a6 transparent; /* Firefox */
+    scrollbar-color: ${colors.primary_accent} transparent; /* Firefox */
           }
           .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
@@ -420,21 +424,21 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             background: transparent;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #14b8a6;
+    background-color: ${colors.primary_accent};
             border-radius: 8px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: #0d9488;
+    background-color: ${colors.primary_accent}dd;
           }
 
           /* Animated progress styles */
-          .progress-container { position: relative; width: 100%; height: 8px; border-radius: 9999px; background-color: #1b1b1b; overflow: hidden; }
-          .progress-bar { height: 100%; border-radius: 9999px; position: relative; background: linear-gradient(90deg, #14b8a6, #1dd4bf, #14b8a6); box-shadow: 0 0 12px rgba(20,184,166,0.45); transition: width 300ms ease; }
+          .progress-container { position: relative; width: 100%; height: 8px; border-radius: 9999px; background-color: ${colors.hover_bg}; overflow: hidden; }
+          .progress-bar { height: 100%; border-radius: 9999px; position: relative; background: linear-gradient(90deg, ${colors.primary_accent}, ${colors.primary_accent}dd, ${colors.primary_accent}); box-shadow: 0 0 12px ${colors.primary_accent}45; transition: width 300ms ease; }
           .progress-bar::after { content: ""; position: absolute; inset: 0; background-image: linear-gradient(45deg, rgba(255,255,255,0.25) 25%, rgba(255,255,255,0) 25%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.25) 75%, rgba(255,255,255,0) 75%, rgba(255,255,255,0)); background-size: 1rem 1rem; animation: stripes 1s linear infinite; pointer-events: none; }
           @keyframes stripes { from { background-position: 0 0; } to { background-position: 1rem 0; } }
           .progress-bar--indeterminate { position: absolute; width: 30%; left: 0; animation: indeterminate 1.2s ease-in-out infinite; }
           @keyframes indeterminate { 0% { transform: translateX(-30%); } 50% { transform: translateX(50%); } 100% { transform: translateX(130%); } }
-          .progress-meta { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; font-size: 0.75rem; color: #9ca3af; }
+          .progress-meta { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; font-size: 0.75rem; color: ${colors.secondary_text}; }
         `}
       </style>
       {/* Back Button (matches Bill component styling) */}
@@ -448,15 +452,15 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
           }
           className="rounded-full"
           style={{
-            color: "#00DAC6",
-            backgroundColor: "#1b1b1b",
+            color: colors.primary_accent,
+            backgroundColor: colors.secondary_bg,
             padding: 8,
           }}
           onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#28282a")
+            (e.currentTarget.style.backgroundColor = colors.hover_bg)
           }
           onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#1b1b1b")
+            (e.currentTarget.style.backgroundColor = colors.secondary_bg)
           }
         >
           <svg
@@ -468,7 +472,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
           >
             <path
               d="M15 18L9 12L15 6"
-              stroke="#00DAC6"
+              stroke={colors.primary_accent}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -477,8 +481,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
         </button>
       </div>
       {/* Header */}
-      <div className="bg-[#0b0b0b] py-1 px-3 flex-shrink-0 text-center">
-        <h2 className="text-lg font-bold text-[#14b8a6] leading-tight">
+      <div
+        className="py-1 px-3 flex-shrink-0 text-center"
+        style={{ backgroundColor: colors.primary_bg }}
+      >
+        <h2
+          className="text-lg font-bold leading-tight"
+          style={{ color: colors.primary_accent }}
+        >
           Excel Bill Import Manager
         </h2>
       </div>
@@ -487,8 +497,8 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       <div className="flex-1 overflow-hidden flex flex-col">
         {/* File Upload Section */}
         <div
-          className="py-1.5 px-3 bg-[#1b1b1b] flex-shrink-0"
-          style={{ marginTop: "30px" }}
+          className="py-1.5 px-3 flex-shrink-0"
+          style={{ marginTop: "30px", backgroundColor: colors.secondary_bg }}
         >
           <div className="flex items-center space-x-4">
             <div className="flex-1">
@@ -502,12 +512,19 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
               />
               <label
                 htmlFor="excel-upload"
-                className="cursor-pointer inline-flex items-center px-4 py-2 bg-[#14b8a6] text-white rounded-md hover:bg-[#0d9488] disabled:opacity-50 text-sm shadow-sm"
+                className="cursor-pointer inline-flex items-center px-4 py-2 rounded-md disabled:opacity-50 text-sm shadow-sm"
+                style={{
+                  backgroundColor: colors.primary_accent,
+                  color: colors.button_text,
+                }}
               >
                 📁 Select Excel File
               </label>
               {selectedFile && (
-                <span className="ml-3 text-sm text-gray-300">
+                <span
+                  className="ml-3 text-sm"
+                  style={{ color: colors.secondary_text }}
+                >
                   {selectedFile.name}
                 </span>
               )}
@@ -516,7 +533,11 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             <button
               onClick={handleUploadExcel}
               disabled={!selectedFile || isUploading || isSaving}
-              className="px-4 py-2 bg-[#14b8a6] text-white rounded-md hover:bg-[#0d9488] disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              style={{
+                backgroundColor: colors.primary_accent,
+                color: colors.button_text,
+              }}
             >
               {isUploading ? "⏳ Processing..." : "📤 Upload & Preview"}
             </button>
@@ -524,7 +545,11 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             <button
               onClick={handleReset}
               disabled={isUploading || isSaving}
-              className="px-4 py-2 bg-[#111827] text-white rounded-md hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              style={{
+                backgroundColor: colors.tertiary_bg,
+                color: colors.primary_text,
+              }}
             >
               🔄 Reset
             </button>
@@ -532,10 +557,16 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
           {/* Messages / Progress: fixed-height container for consistent layout */}
           {(progress || isSaving || uploadMessage) && (
-            <div className="mt-2 bg-[#0b0b0b] rounded-md h-14 flex items-center px-3">
+            <div
+              className="mt-2 rounded-md h-14 flex items-center px-3"
+              style={{ backgroundColor: colors.primary_bg }}
+            >
               {progress ? (
                 progress.status === "COMPLETED" ? (
-                  <div className="text-sm text-white">
+                  <div
+                    className="text-sm"
+                    style={{ color: colors.primary_text }}
+                  >
                     {`${progress.processed}/${progress.total} processed`}
                   </div>
                 ) : progress.status === "FAILED" ? (
@@ -570,11 +601,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                 uploadMessage && (
                   <div
                     className={`text-sm ${
-                      uploadMessage.includes("❌")
-                        ? "text-[#f44336]"
-                        : "text-white"
+                      uploadMessage.includes("❌") ? "text-[#f44336]" : ""
                     }`}
-                    style={{ width: "100%" }}
+                    style={{
+                      width: "100%",
+                      color: uploadMessage.includes("❌")
+                        ? "#f44336"
+                        : colors.primary_text,
+                    }}
                   >
                     {uploadMessage}
                   </div>
@@ -588,7 +622,10 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
         {showPreview && importedBills.length > 0 && (
           <>
             {/* Controls Bar */}
-            <div className="p-3 bg-[#0b0b0b] flex-shrink-0">
+            <div
+              className="p-3 flex-shrink-0"
+              style={{ backgroundColor: colors.primary_bg }}
+            >
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Search and Filters */}
                 <div className="flex items-center space-x-3">
@@ -597,19 +634,36 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                     placeholder="Search bills..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="px-3 py-1 bg-[#0b0b0b] text-white placeholder-gray-500 rounded-md text-sm w-48 focus:outline-none focus:ring-1 focus:ring-[#14b8a6] border border-[#14b8a6]"
+                    className="px-3 py-1 rounded-md text-sm w-48 focus:outline-none focus:ring-1"
+                    style={{
+                      backgroundColor: colors.primary_bg,
+                      color: colors.primary_text,
+                      border: `1px solid ${colors.primary_accent}`,
+                    }}
                   />
 
                   <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="px-3 py-1 bg-[#0b0b0b] text-white rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#14b8a6] border border-[#14b8a6]"
+                    className="px-3 py-1 rounded-md text-sm focus:outline-none focus:ring-1"
+                    style={{
+                      backgroundColor: colors.primary_bg,
+                      color: colors.primary_text,
+                      border: `1px solid ${colors.primary_accent}`,
+                    }}
                   >
-                    <option value="" className="bg-[#0b0b0b]">
+                    <option
+                      value=""
+                      style={{ backgroundColor: colors.primary_bg }}
+                    >
                       All Categories
                     </option>
                     {categories.map((cat) => (
-                      <option key={cat} value={cat} className="bg-[#0b0b0b]">
+                      <option
+                        key={cat}
+                        value={cat}
+                        style={{ backgroundColor: colors.primary_bg }}
+                      >
                         {cat}
                       </option>
                     ))}
@@ -622,24 +676,47 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                       setSortBy(field);
                       setSortOrder(order);
                     }}
-                    className="px-3 py-1 bg-[#0b0b0b] text-white rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#14b8a6] border border-[#14b8a6]"
+                    className="px-3 py-1 rounded-md text-sm focus:outline-none focus:ring-1"
+                    style={{
+                      backgroundColor: colors.primary_bg,
+                      color: colors.primary_text,
+                      border: `1px solid ${colors.primary_accent}`,
+                    }}
                   >
-                    <option value="name-asc" className="bg-[#0b0b0b]">
+                    <option
+                      value="name-asc"
+                      style={{ backgroundColor: colors.primary_bg }}
+                    >
                       Name A-Z
                     </option>
-                    <option value="name-desc" className="bg-[#0b0b0b]">
+                    <option
+                      value="name-desc"
+                      style={{ backgroundColor: colors.primary_bg }}
+                    >
                       Name Z-A
                     </option>
-                    <option value="amount-desc" className="bg-[#0b0b0b]">
+                    <option
+                      value="amount-desc"
+                      style={{ backgroundColor: colors.primary_bg }}
+                    >
                       Amount High-Low
                     </option>
-                    <option value="amount-asc" className="bg-[#0b0b0b]">
+                    <option
+                      value="amount-asc"
+                      style={{ backgroundColor: colors.primary_bg }}
+                    >
                       Amount Low-High
                     </option>
-                    <option value="date-desc" className="bg-[#0b0b0b]">
+                    <option
+                      value="date-desc"
+                      style={{ backgroundColor: colors.primary_bg }}
+                    >
                       Date Newest
                     </option>
-                    <option value="date-asc" className="bg-[#0b0b0b]">
+                    <option
+                      value="date-asc"
+                      style={{ backgroundColor: colors.primary_bg }}
+                    >
                       Date Oldest
                     </option>
                   </select>
@@ -647,10 +724,16 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
                 {/* Summary */}
                 <div className="flex items-center space-x-4">
-                  <span className="text-sm font-medium text-gray-300">
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: colors.secondary_text }}
+                  >
                     Total: {filteredAndSortedBills.length} bills
                   </span>
-                  <span className="text-sm font-medium text-[#14b8a6]">
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: colors.primary_accent }}
+                  >
                     Amount: {formatCurrency(totalAmount)}
                   </span>
                 </div>
@@ -661,7 +744,9 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
             {/* Bills List (scrollable when many items per page) */}
             <div
-              className={`flex-1 ${itemsPerPage >= 10 ? "custom-scrollbar" : ""}`}
+              className={`flex-1 ${
+                itemsPerPage >= 10 ? "custom-scrollbar" : ""
+              }`}
               style={{
                 overflowY: itemsPerPage >= 10 ? "auto" : "hidden",
                 paddingRight: itemsPerPage >= 10 ? 4 : 0,
@@ -671,7 +756,10 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             >
               <div className="px-2 pt-1 pb-2">
                 {currentBills.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
+                  <div
+                    className="text-center py-8"
+                    style={{ color: colors.secondary_text }}
+                  >
                     No bills match your search criteria
                   </div>
                 ) : (
@@ -690,18 +778,20 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                             borderRadius: "12px !important",
                             "&:before": { display: "none" },
                             overflow: "hidden",
-                            backgroundColor: "#1b1b1b",
+                            backgroundColor: colors.secondary_bg,
                             border: "none",
                           }}
                         >
                           <AccordionSummary
                             expandIcon={
-                              <ExpandMoreIcon sx={{ color: "#14b8a6" }} />
+                              <ExpandMoreIcon
+                                sx={{ color: colors.primary_accent }}
+                              />
                             }
                             sx={{
-                              backgroundColor: "#0b0b0b",
+                              backgroundColor: colors.primary_bg,
                               borderRadius: "12px",
-                              color: "#fff",
+                              color: colors.primary_text,
                               minHeight: "56px",
                               height: "56px",
                               "&.Mui-expanded": {
@@ -710,7 +800,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                 minHeight: "56px",
                               },
                               "&:hover": {
-                                backgroundColor: "#1b1b1b",
+                                backgroundColor: colors.hover_bg,
                               },
                               "& .MuiAccordionSummary-content": {
                                 margin: "10px 0",
@@ -1059,8 +1149,12 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             {/* Pagination */}
             {totalPages > 1 && (
               <div
-                className="py-1 px-2 bg-[#1b1b1b] flex-shrink-0"
-                style={{ paddingTop: "15px", paddingBottom: "9px" }}
+                className="py-1 px-2 flex-shrink-0"
+                style={{
+                  paddingTop: "15px",
+                  paddingBottom: "9px",
+                  backgroundColor: colors.secondary_bg,
+                }}
               >
                 <div className="grid grid-cols-3 items-center">
                   {/* Left spacer to allow centering */}
@@ -1068,7 +1162,10 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
                   {/* Center pagination controls */}
                   <div className="flex items-center justify-center space-x-2">
-                    <span className="text-xs text-gray-300">
+                    <span
+                      className="text-xs"
+                      style={{ color: colors.secondary_text }}
+                    >
                       {startIndex + 1}-
                       {Math.min(endIndex, filteredAndSortedBills.length)} of{" "}
                       {filteredAndSortedBills.length}
@@ -1078,18 +1175,47 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
                         aria-disabled={currentPage === 1}
-                        className="p-0.5 rounded hover:bg-[#0f0f10] disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                        className="p-0.5 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{
+                          color: colors.primary_text,
+                          backgroundColor: "transparent",
+                        }}
+                        onMouseEnter={(e) =>
+                          currentPage !== 1 &&
+                          (e.currentTarget.style.backgroundColor =
+                            colors.hover_bg)
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            "transparent")
+                        }
                       >
                         <FaChevronLeft className="h-4 w-4" />
                       </button>
-                      <span className="px-2 py-0.5 text-xs text-gray-300">
+                      <span
+                        className="px-2 py-0.5 text-xs"
+                        style={{ color: colors.secondary_text }}
+                      >
                         Page {currentPage} of {totalPages}
                       </span>
                       <button
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
                         aria-disabled={currentPage === totalPages}
-                        className="p-0.5 rounded hover:bg-[#0f0f10] disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                        className="p-0.5 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{
+                          color: colors.primary_text,
+                          backgroundColor: "transparent",
+                        }}
+                        onMouseEnter={(e) =>
+                          currentPage !== totalPages &&
+                          (e.currentTarget.style.backgroundColor =
+                            colors.hover_bg)
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            "transparent")
+                        }
                       >
                         <FaChevronRight className="h-4 w-4" />
                       </button>
@@ -1097,7 +1223,10 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                   </div>
 
                   {/* Right: page size selector */}
-                  <div className="flex items-center justify-end space-x-2 text-xs text-gray-300">
+                  <div
+                    className="flex items-center justify-end space-x-2 text-xs"
+                    style={{ color: colors.secondary_text }}
+                  >
                     <label htmlFor="page-size-select" className="sr-only">
                       Bills per page
                     </label>
@@ -1106,14 +1235,19 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                       aria-label="Bills per page"
                       value={itemsPerPage}
                       onChange={handleItemsPerPageChange}
-                      className="px-2 py-1 bg-[#0b0b0b] text-white rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-[#14b8a6] border border-[#14b8a6]"
-                      style={{ minWidth: "70px" }}
+                      className="px-2 py-1 rounded-md text-xs focus:outline-none focus:ring-1"
+                      style={{
+                        minWidth: "70px",
+                        backgroundColor: colors.primary_bg,
+                        color: colors.primary_text,
+                        border: `1px solid ${colors.primary_accent}`,
+                      }}
                     >
                       {[5, 10, 15, 20].map((size) => (
                         <option
                           key={size}
                           value={size}
-                          className="bg-[#0b0b0b]"
+                          style={{ backgroundColor: colors.primary_bg }}
                         >
                           {size} / page
                         </option>
@@ -1128,8 +1262,17 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       </div>
 
       {/* Instructions Footer */}
-      <div className="p-3 bg-[#0b0b0b] border-t border-[#1b1b1b] flex items-center justify-between gap-3">
-        <div className="text-xs text-gray-400 flex-1 text-left">
+      <div
+        className="p-3 flex items-center justify-between gap-3"
+        style={{
+          backgroundColor: colors.primary_bg,
+          borderTop: `1px solid ${colors.border_color}`,
+        }}
+      >
+        <div
+          className="text-xs flex-1 text-left"
+          style={{ color: colors.secondary_text }}
+        >
           <strong>Instructions:</strong> Select Excel file → Upload & Preview →
           Review bills → Save All Bills → Monitor progress
         </div>
@@ -1138,7 +1281,11 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
           <button
             onClick={handleSaveBills}
             disabled={isSaving}
-            className="px-6 py-2 bg-[#14b8a6] text-white rounded-md hover:bg-[#0d9488] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+            className="px-6 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+            style={{
+              backgroundColor: colors.primary_accent,
+              color: colors.button_text,
+            }}
           >
             {isSaving ? "⏳ Saving..." : "💾 Save All Bills"}
           </button>

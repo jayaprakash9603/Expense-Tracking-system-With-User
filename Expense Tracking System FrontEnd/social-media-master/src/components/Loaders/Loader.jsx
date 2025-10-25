@@ -1,10 +1,13 @@
 import React from "react";
+import { useTheme } from "../../hooks/useTheme";
 
 const PulseLoader = ({
   message = "Loading...",
   fullscreen = true,
   backdrop = true,
 }) => {
+  const { colors } = useTheme();
+
   const containerClasses = [
     fullscreen ? "fixed inset-0" : "relative w-full h-full",
     "z-[9999] grid place-items-center",
@@ -12,10 +15,12 @@ const PulseLoader = ({
     .filter(Boolean)
     .join(" ");
 
-  const backdropStyle = backdrop ? {
-    background: "linear-gradient(135deg, rgba(10, 10, 10, 0.85) 0%, rgba(26, 26, 26, 0.85) 100%)",
-    backdropFilter: "blur(8px)",
-  } : {};
+  const backdropStyle = backdrop
+    ? {
+        background: `${colors.primary_bg}dd`,
+        backdropFilter: "blur(8px)",
+      }
+    : {};
 
   return (
     <div
@@ -30,8 +35,10 @@ const PulseLoader = ({
           {[0, 1, 2].map((index) => (
             <div
               key={index}
-              className="w-4 h-4 bg-teal-400 rounded-full animate-bounce shadow-lg shadow-teal-400/30"
+              className="w-4 h-4 rounded-full animate-bounce shadow-lg"
               style={{
+                backgroundColor: colors.primary_accent,
+                boxShadow: `0 0 12px ${colors.primary_accent}30`,
                 animationDelay: `${index * 200}ms`,
                 animationDuration: "1s",
                 animationIterationCount: "infinite",
@@ -41,7 +48,10 @@ const PulseLoader = ({
           ))}
         </div>
         {message && (
-          <p className="mt-6 text-sm font-medium text-teal-100 select-none animate-pulse">
+          <p
+            className="mt-6 text-sm font-medium select-none animate-pulse"
+            style={{ color: colors.primary_text }}
+          >
             {message}
           </p>
         )}

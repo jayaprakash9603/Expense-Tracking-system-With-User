@@ -1,17 +1,24 @@
 import React from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
+import { useTheme } from "../../hooks/useTheme";
 
 const PercentageLoader = ({
   percentage = 0,
   size = "md",
-  trackColor = "#e0e0e0",
-  progressColor = "#1976d2",
-  textColor = "#000",
+  trackColor,
+  progressColor,
+  textColor,
   showPercentage = true,
   label = "",
   processed = null,
   total = null,
 }) => {
+  const { colors } = useTheme();
+
+  // Use theme colors if not explicitly provided
+  const finalTrackColor = trackColor || colors.hover_bg;
+  const finalProgressColor = progressColor || colors.primary_accent;
+  const finalTextColor = textColor || colors.primary_text;
   // Size configurations
   const sizeConfig = {
     sm: { width: 60, height: 60, thickness: 3, fontSize: "0.75rem" },
@@ -41,7 +48,7 @@ const PercentageLoader = ({
           size={config.width}
           thickness={config.thickness}
           sx={{
-            color: trackColor,
+            color: finalTrackColor,
             position: "absolute",
           }}
         />
@@ -53,7 +60,7 @@ const PercentageLoader = ({
           size={config.width}
           thickness={config.thickness}
           sx={{
-            color: progressColor,
+            color: finalProgressColor,
             animationDuration: "550ms",
             position: "relative",
             "& .MuiCircularProgress-circle": {
@@ -80,7 +87,7 @@ const PercentageLoader = ({
               variant="caption"
               component="div"
               sx={{
-                color: textColor,
+                color: finalTextColor,
                 fontSize: config.fontSize,
                 fontWeight: "bold",
               }}
@@ -96,7 +103,7 @@ const PercentageLoader = ({
         <Typography
           variant="body2"
           sx={{
-            color: textColor,
+            color: finalTextColor,
             textAlign: "center",
             fontSize: config.fontSize,
           }}
