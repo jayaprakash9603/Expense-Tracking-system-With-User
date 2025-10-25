@@ -120,10 +120,10 @@ const FriendInfoBar = ({
     return (
       <div
         className="rounded-lg mx-4 flex items-center justify-between relative"
-        style={{ 
-          height: "50px", 
+        style={{
+          height: "50px",
           padding: "0 12px",
-          backgroundColor: colors.secondary_bg
+          backgroundColor: colors.secondary_bg,
         }}
       >
         <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ const FriendInfoBar = ({
               sx={{ bgcolor: colors.hover_bg }}
             />
           </div>
-          <div 
+          <div
             className="w-8 h-[2px]"
             style={{ backgroundColor: colors.hover_bg }}
           ></div>
@@ -295,9 +295,10 @@ const FriendInfoBar = ({
         style={{
           height: "50px",
           backgroundColor: colors.secondary_bg,
-          boxShadow: colors.mode === "dark" 
-            ? "0 4px 12px rgba(0,0,0,0.15)" 
-            : "0 4px 12px rgba(0,0,0,0.08)",
+          boxShadow:
+            colors.mode === "dark"
+              ? "0 4px 12px rgba(0,0,0,0.15)"
+              : "0 4px 12px rgba(0,0,0,0.08)",
           borderLeft: `4px solid ${
             friendship.status === "ACCEPTED" ? "#00DAC6" : "#5b7fff"
           }`,
@@ -374,7 +375,7 @@ const FriendInfoBar = ({
                     },
                   }}
                 >
-                  <span 
+                  <span
                     className="text-[10px] leading-tight cursor-help truncate block"
                     style={{ color: colors.secondary_text }}
                   >
@@ -382,7 +383,7 @@ const FriendInfoBar = ({
                   </span>
                 </Tooltip>
               ) : (
-                <span 
+                <span
                   className="text-[10px] leading-tight truncate block"
                   style={{ color: colors.secondary_text }}
                 >
@@ -465,7 +466,7 @@ const FriendInfoBar = ({
                     },
                   }}
                 >
-                  <span 
+                  <span
                     className="text-[10px] leading-tight cursor-help truncate block"
                     style={{ color: colors.secondary_text }}
                   >
@@ -473,7 +474,7 @@ const FriendInfoBar = ({
                   </span>
                 </Tooltip>
               ) : (
-                <span 
+                <span
                   className="text-[10px] leading-tight truncate block"
                   style={{ color: colors.secondary_text }}
                 >
@@ -518,7 +519,7 @@ const FriendInfoBar = ({
         {/* Right section - Status, Access Level and Friend Switcher */}
         <div className="flex items-center gap-3 z-10 flex-shrink-0">
           {/* Status badge */}
-          <div 
+          <div
             className="px-2 py-1 rounded-full text-xs"
             style={{ backgroundColor: colors.tertiary_bg }}
           >
@@ -539,7 +540,7 @@ const FriendInfoBar = ({
           {/* Access Level badge */}
 
           {/* Access Level badge */}
-          <div 
+          <div
             className="px-2 py-1 rounded-full text-xs"
             style={{ backgroundColor: colors.tertiary_bg }}
           >
@@ -642,9 +643,10 @@ const FriendInfoBar = ({
                     zIndex: 1600,
                     animation: "dropdownFadeIn 0.18s ease-out forwards",
                     maxHeight: 500, // Increased max height
-                    boxShadow: colors.mode === "dark" 
-                      ? "0 8px 32px rgba(0,0,0,0.5)"
-                      : "0 8px 32px rgba(0,0,0,0.15)",
+                    boxShadow:
+                      colors.mode === "dark"
+                        ? "0 8px 32px rgba(0,0,0,0.5)"
+                        : "0 8px 32px rgba(0,0,0,0.15)",
                   }}
                 >
                   {/* Header with search */}
@@ -733,14 +735,21 @@ const FriendInfoBar = ({
                       <CircularProgress size={24} sx={{ color: "#5b7fff" }} />
                       <Typography
                         variant="body2"
-                        sx={{ display: "block", mt: 2, color: colors.secondary_text }}
+                        sx={{
+                          display: "block",
+                          mt: 2,
+                          color: colors.secondary_text,
+                        }}
                       >
                         Loading friends...
                       </Typography>
                     </Box>
                   ) : filteredFriends.length === 0 ? (
                     <Box sx={{ p: 3, textAlign: "center" }}>
-                      <Typography variant="body2" sx={{ color: colors.secondary_text, mb: 1 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: colors.secondary_text, mb: 1 }}
+                      >
                         {searchTerm
                           ? "No friends found matching your search"
                           : "No friends available"}
@@ -784,19 +793,19 @@ const FriendInfoBar = ({
                               sx={{
                                 py: 1.5,
                                 px: 2,
-                                borderBottom: "1px solid #2a2a2a",
-                                cursor: "pointer", // Added pointer cursor
+                                borderBottom: `1px solid ${colors.border_color}`,
+                                cursor: "pointer",
                                 "&.Mui-selected": {
-                                  backgroundColor: "#23243a",
-                                  borderLeft: "3px solid #00DAC6",
+                                  backgroundColor: colors.tertiary_bg,
+                                  borderLeft: `3px solid ${colors.primary_accent}`,
                                   "&:hover": {
-                                    backgroundColor: "#2a2b45",
-                                    cursor: "pointer", // Maintain pointer on selected hover
+                                    backgroundColor: colors.hover_bg,
+                                    cursor: "pointer",
                                   },
                                 },
                                 "&:hover": {
-                                  backgroundColor: "#23243a",
-                                  cursor: "pointer", // Added pointer cursor on hover
+                                  backgroundColor: colors.hover_bg,
+                                  cursor: "pointer",
                                 },
                                 "&:last-child": {
                                   borderBottom: "none",
@@ -812,7 +821,7 @@ const FriendInfoBar = ({
                                     bgcolor: friend.color || "#5b7fff",
                                     fontSize: "12px",
                                     border: isSelected
-                                      ? "2px solid #00DAC6"
+                                      ? `2px solid ${colors.primary_accent}`
                                       : "none",
                                   }}
                                 >
@@ -827,7 +836,7 @@ const FriendInfoBar = ({
                                   <Typography
                                     variant="body2"
                                     sx={{
-                                      color: "#fff",
+                                      color: colors.primary_text,
                                       fontSize: "0.875rem",
                                       fontWeight: isSelected ? 600 : 500,
                                     }}
@@ -840,7 +849,7 @@ const FriendInfoBar = ({
                                     <Typography
                                       variant="caption"
                                       sx={{
-                                        color: "#999",
+                                        color: colors.secondary_text,
                                         fontSize: "0.75rem",
                                         display: "block",
                                       }}
@@ -860,8 +869,7 @@ const FriendInfoBar = ({
                                               ? "#FFC107"
                                               : "#ff4d4f",
                                           fontSize: "0.625rem",
-                                          backgroundColor:
-                                            "rgba(35, 36, 58, 0.8)",
+                                          backgroundColor: colors.tertiary_bg,
                                           padding: "2px 6px",
                                           borderRadius: "4px",
                                         }}
@@ -889,8 +897,7 @@ const FriendInfoBar = ({
                                               : "#FFC107";
                                           })(),
                                           fontSize: "0.625rem",
-                                          backgroundColor:
-                                            "rgba(35, 36, 58, 0.8)",
+                                          backgroundColor: colors.tertiary_bg,
                                           padding: "2px 6px",
                                           borderRadius: "4px",
                                         }}
