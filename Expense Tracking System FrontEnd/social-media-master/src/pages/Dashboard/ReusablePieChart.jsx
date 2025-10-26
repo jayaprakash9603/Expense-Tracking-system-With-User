@@ -11,6 +11,7 @@ import {
   Label,
 } from "recharts";
 import PieChartTooltip from "../../components/charts/PieChartTooltip";
+import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 
 // Generic reusable Pie/Donut chart component
 // Props:
@@ -282,46 +283,14 @@ const ReusablePieChart = ({
               </select>
             )}
             {onFlowTypeChange && (
-              <div className="type-toggle">
-                <button
-                  type="button"
-                  className={`toggle-btn loss ${
-                    flowType === "loss" ? "active" : ""
-                  }`}
-                  onClick={() => onFlowTypeChange("loss")}
-                  aria-pressed={flowType === "loss"}
-                  style={{
-                    backgroundColor:
-                      flowType === "loss" ? "#ef4444" : themeColors.button_bg,
-                    color:
-                      flowType === "loss" ? "white" : themeColors.button_text,
-                    border: `1px solid ${
-                      flowType === "loss" ? "#ef4444" : themeColors.border_color
-                    }`,
-                  }}
-                >
-                  Loss
-                </button>
-                <button
-                  type="button"
-                  className={`toggle-btn gain ${
-                    flowType === "gain" ? "active" : ""
-                  }`}
-                  onClick={() => onFlowTypeChange("gain")}
-                  aria-pressed={flowType === "gain"}
-                  style={{
-                    backgroundColor:
-                      flowType === "gain" ? "#10b981" : themeColors.button_bg,
-                    color:
-                      flowType === "gain" ? "white" : themeColors.button_text,
-                    border: `1px solid ${
-                      flowType === "gain" ? "#10b981" : themeColors.border_color
-                    }`,
-                  }}
-                >
-                  Gain
-                </button>
-              </div>
+              <ChartTypeToggle
+                selectedType={flowType}
+                onToggle={onFlowTypeChange}
+                options={[
+                  { value: "loss", label: "Loss", color: "#ef4444" },
+                  { value: "gain", label: "Gain", color: "#10b981" },
+                ]}
+              />
             )}
           </div>
         )}
