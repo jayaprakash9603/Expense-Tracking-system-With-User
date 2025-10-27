@@ -1,6 +1,8 @@
 package com.jaya.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.jaya.dto.User;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;

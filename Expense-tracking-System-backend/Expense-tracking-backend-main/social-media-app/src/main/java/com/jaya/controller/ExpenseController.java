@@ -8,8 +8,7 @@ import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.*;
 import com.jaya.util.UserPermissionHelper;
 import com.jaya.util.BulkProgressTracker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
@@ -35,12 +34,11 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/expenses")
-public class ExpenseController {
+public class ExpenseController extends BaseExpenseController {
 
     public static final String INVALID_OR_EXPIRED_TOKEN = "Invalid or expired token";
     private final ExpenseService expenseService;
@@ -103,8 +101,7 @@ public class ExpenseController {
                                               @RequestHeader("Authorization") String jwt,
                                               @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         Expense createdExpense = expenseService.addExpense(expense, targetUser.getId());
         return ResponseEntity.ok(createdExpense);
 
@@ -117,11 +114,8 @@ public class ExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
-
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         Expense createdExpense = expenseService.copyExpense(targetUser.getId(), expenseId);
-
         return ResponseEntity.ok(createdExpense);
 
     }
@@ -130,7 +124,7 @@ public class ExpenseController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserExpenses(@PathVariable Integer userId,
                                              @RequestHeader("Authorization") String jwt) throws Exception {
-        User viewer = helper.authenticateUser(jwt);
+        User viewer = getAuthenticatedUser(jwt);
 
         if (viewer.getId().equals(userId)) {
             List<Expense> expenses = expenseService.getAllExpenses(viewer.getId());

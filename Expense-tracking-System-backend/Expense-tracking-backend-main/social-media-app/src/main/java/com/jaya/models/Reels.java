@@ -1,5 +1,7 @@
 package com.jaya.models;
 
+import com.jaya.dto.User;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,6 +29,7 @@ public class Reels {
 	
 	@ManyToOne
 	private User user;
+	
 	
 	
 	
