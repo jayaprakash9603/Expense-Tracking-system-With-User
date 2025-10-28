@@ -759,6 +759,33 @@
   color: #ffffff !important;
 }
 
+/* Dropdown/Select styling for chart components */
+.light .time-selector,
+.light .chart-controls select {
+  background-color: #e8e8e8 !important;
+  color: #1a1a1a !important;
+  border: 1px solid #d0d0d0 !important;
+}
+
+.light .time-selector option,
+.light .chart-controls select option {
+  background-color: #ffffff !important;
+  color: #1a1a1a !important;
+}
+
+.dark .time-selector,
+.dark .chart-controls select {
+  background-color: #0b0b0b !important;
+  color: #ffffff !important;
+  border: 1px solid #333333 !important;
+}
+
+.dark .time-selector option,
+.dark .chart-controls select option {
+  background-color: #1b1b1b !important;
+  color: #ffffff !important;
+}
+
 /* Legend specific overrides */
 .light .reusable-pie-chart .recharts-legend-item {
   color: #1a1a1a !important;

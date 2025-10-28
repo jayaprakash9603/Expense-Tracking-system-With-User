@@ -741,28 +741,56 @@
 
 .time-selector {
   padding: 10px 15px;
-  border: 2px solid #333333;
   border-radius: 8px;
-  background: #0b0b0b;
-  color: #ffffff;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  /* Remove hardcoded colors - let theme system handle them */
 }
 
-.time-selector:hover {
+/* Theme-aware styles for time selector */
+.light .time-selector {
+  border: 2px solid #d0d0d0;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.dark .time-selector {
+  border: 2px solid #333333;
+  background: #0b0b0b;
+  color: #ffffff;
+}
+
+.light .time-selector:hover {
+  border-color: #14b8a6;
+  background: #f5f5f5;
+}
+
+.dark .time-selector:hover {
   border-color: #14b8a6;
   background: #1b1b1b;
 }
 
-.time-selector:focus {
+.light .time-selector:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
+  background: #f5f5f5;
+}
+
+.dark .time-selector:focus {
   outline: none;
   border-color: #14b8a6;
   box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
   background: #1b1b1b;
 }
 
-.time-selector option {
+.light .time-selector option {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.dark .time-selector option {
   background: #1b1b1b;
   color: #ffffff;
 }
