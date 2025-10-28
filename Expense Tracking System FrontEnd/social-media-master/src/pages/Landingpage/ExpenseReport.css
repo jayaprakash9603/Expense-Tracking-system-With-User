@@ -521,17 +521,17 @@
   color: #ffffff;
 }
 
-/* Chart customization for dark theme */
-.recharts-cartesian-grid-horizontal line,
-.recharts-cartesian-grid-vertical line {
+/* Chart customization for dark theme - scoped to expense reports */
+.expense-report .recharts-cartesian-grid-horizontal line,
+.expense-report .recharts-cartesian-grid-vertical line {
   stroke: #333333;
 }
 
-.recharts-text {
+.expense-report .recharts-text {
   fill: #ffffff !important;
 }
 
-.recharts-legend-item-text {
+.expense-report .recharts-legend-item-text {
   color: #ffffff !important;
 }
 
@@ -541,7 +541,7 @@
   border-radius: 8px !important;
 } */
 
-.recharts-default-tooltip {
+.expense-report .recharts-default-tooltip {
   background: #1b1b1b !important;
   border: 1px solid #333333 !important;
   border-radius: 8px !important;
@@ -669,22 +669,31 @@
   color: #ffffff !important;
 }
 
-/* Axis styling */
-.recharts-cartesian-axis-tick-value {
+/* Axis styling - scoped to expense reports */
+.expense-report .recharts-cartesian-axis-tick-value {
   fill: #ffffff !important;
 }
 
-.recharts-polar-angle-axis-tick-value {
+.expense-report .recharts-polar-angle-axis-tick-value {
   fill: #ffffff !important;
 }
 
-.recharts-polar-radius-axis-tick-value {
+.expense-report .recharts-polar-radius-axis-tick-value {
   fill: #ffffff !important;
 }
 
 /* Reference line styling */
 .recharts-reference-line-line {
   stroke: #333333 !important;
+}
+
+/* DailySpendingChart specific overrides to allow theme-aware colors */
+.daily-spending-chart .recharts-cartesian-axis-tick-value {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+.daily-spending-chart .recharts-text {
+  fill: inherit !important; /* Allow theme colors to work */
 }
 
 /* Active dot styling */
