@@ -1416,3 +1416,50 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* MonthlyTrendChart specific overrides */
+.light .monthly-trend .recharts-tooltip-wrapper {
+  color: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-tooltip-wrapper {
+  color: #ffffff !important;
+}
+
+.light .monthly-trend .recharts-cartesian-axis-tick-value,
+.light .monthly-trend .recharts-text {
+  fill: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-cartesian-axis-tick-value,
+.dark .monthly-trend .recharts-text {
+  fill: #ffffff !important;
+}
+
+.light .monthly-trend .recharts-default-tooltip {
+  background: #ffffff !important;
+  border: 1px solid #d0d0d0 !important;
+  color: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-default-tooltip {
+  background: #1b1b1b !important;
+  border: 1px solid #333333 !important;
+  color: #ffffff !important;
+}
+
+.light .monthly-trend .recharts-tooltip-label {
+  color: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-tooltip-label {
+  color: #ffffff !important;
+}
+
+.light .monthly-trend .recharts-tooltip-item {
+  color: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-tooltip-item {
+  color: #ffffff !important;
+}

@@ -131,9 +131,17 @@ const MonthlyTrendChart = ({
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: colors.tertiary_bg,
-              border: `1px solid ${colors.primary_accent}`,
+              backgroundColor: colors.secondary_bg,
+              border: `1px solid ${colors.border_color}`,
               borderRadius: "8px",
+              color: colors.primary_text,
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            }}
+            labelStyle={{
+              color: colors.primary_text,
+              fontWeight: "600",
+            }}
+            itemStyle={{
               color: colors.primary_text,
             }}
             formatter={(value, name) => [
