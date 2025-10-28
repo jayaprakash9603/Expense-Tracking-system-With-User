@@ -73,7 +73,7 @@ const ReusablePieChart = ({
   valuePrefix = "₹",
   skeleton = null,
 }) => {
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, mode: themeMode } = useTheme();
   const [activeIndex, setActiveIndex] = useState(null);
   const [legendTooltip, setLegendTooltip] = useState(null);
   const chartRef = useRef(null);
@@ -236,17 +236,25 @@ const ReusablePieChart = ({
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+    // Debug: Log the theme colors
+    console.log("Theme mode:", themeMode);
+    console.log("Primary text color:", themeColors.primary_text);
+
+    // Force the correct color based on theme
+    const textColor = themeMode === "light" ? "#1a1a1a" : "#ffffff";
+
     return (
       <text
         x={x}
         y={y}
-        fill={themeColors.primary_text}
+        fill={textColor}
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
         style={{
           fontSize: isMobile ? "10px" : "12px",
           fontWeight: activeIndex === index ? 700 : 600,
-          textShadow: "0 2px 4px rgba(0,0,0,0.8)",
+          textShadow:
+            themeMode === "dark" ? "0 1px 2px rgba(0,0,0,0.5)" : "none", // Remove shadow entirely for light theme
         }}
       >
         {`${(percent * 100).toFixed(2)}%`}

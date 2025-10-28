@@ -696,10 +696,122 @@
   fill: inherit !important; /* Allow theme colors to work */
 }
 
+/* ReusablePieChart specific overrides to allow theme-aware colors */
+.reusable-pie-chart .recharts-text {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+.reusable-pie-chart .recharts-legend-item-text {
+  color: inherit !important; /* Allow theme colors to work */
+}
+
+.reusable-pie-chart .recharts-pie-label-text {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+.reusable-pie-chart .recharts-label {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+/* More specific overrides for pie chart labels */
+.light .reusable-pie-chart .recharts-text,
+.light .reusable-pie-chart .recharts-pie-label-text,
+.light .reusable-pie-chart .recharts-label {
+  fill: #1a1a1a !important; /* Force dark text in light theme */
+}
+
+.dark .reusable-pie-chart .recharts-text,
+.dark .reusable-pie-chart .recharts-pie-label-text,
+.dark .reusable-pie-chart .recharts-label {
+  fill: #ffffff !important; /* Force white text in dark theme */
+}
+
+/* Even more aggressive overrides for SVG text elements */
+.light .reusable-pie-chart svg text {
+  fill: #1a1a1a !important;
+}
+
+.dark .reusable-pie-chart svg text {
+  fill: #ffffff !important;
+}
+
+/* Target recharts generated text elements specifically */
+.light .reusable-pie-chart .recharts-wrapper text {
+  fill: #1a1a1a !important;
+}
+
+.dark .reusable-pie-chart .recharts-wrapper text {
+  fill: #ffffff !important;
+}
+
+/* NUCLEAR OPTION: Override all text in pie charts based on parent theme class */
+.light .chart-container.reusable-pie-chart text,
+.light .reusable-pie-chart text,
+.light [class*="reusable-pie-chart"] text {
+  fill: #1a1a1a !important;
+  color: #1a1a1a !important;
+}
+
+.dark .chart-container.reusable-pie-chart text,
+.dark .reusable-pie-chart text,
+.dark [class*="reusable-pie-chart"] text {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Legend specific overrides */
+.light .reusable-pie-chart .recharts-legend-item {
+  color: #1a1a1a !important;
+}
+
+.dark .reusable-pie-chart .recharts-legend-item {
+  color: #ffffff !important;
+}
+
+.light .reusable-pie-chart .recharts-legend-wrapper {
+  color: #1a1a1a !important;
+}
+
+.dark .reusable-pie-chart .recharts-legend-wrapper {
+  color: #ffffff !important;
+}
+
+/* CashFlow and other chart components - more generic overrides */
+.cashflow .recharts-cartesian-axis-tick-value,
+.cash-flow .recharts-cartesian-axis-tick-value,
+.expense-chart .recharts-cartesian-axis-tick-value,
+.chart-component .recharts-cartesian-axis-tick-value {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+.cashflow .recharts-text,
+.cash-flow .recharts-text,
+.expense-chart .recharts-text,
+.chart-component .recharts-text {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
 /* Active dot styling */
 .recharts-active-dot {
   stroke: #14b8a6 !important;
   fill: #14b8a6 !important;
+}
+
+/* THEME-AWARE OVERRIDES FOR ALL CHARTS */
+/* These overrides ensure that charts respect the theme system instead of being forced to white text */
+/* Apply to any container that wants theme-aware chart text */
+.light .recharts-cartesian-axis-tick-value,
+.light .recharts-text,
+.light .recharts-pie-label-text,
+.light .recharts-label {
+  fill: #1a1a1a !important; /* Dark text for light theme */
+}
+
+.dark .recharts-cartesian-axis-tick-value,
+.dark .recharts-text,
+.dark .recharts-pie-label-text,
+.dark .recharts-label {
+  fill: #ffffff !important; /* White text for dark theme */
 }
 
 /* Brush styling for dark theme */
