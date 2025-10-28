@@ -206,7 +206,7 @@ const DailySpendingChart = ({
       style={{
         overflow: "visible",
         backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "none", // Remove border as requested
       }}
     >
       {/* Chart header */}

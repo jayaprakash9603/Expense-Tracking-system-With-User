@@ -68,14 +68,9 @@ const CashFlowChart = ({
   );
 
   // Theme-aware colors
-  const gridColor = mode === "dark" ? "#33384e" : "#e0e0e0";
-  const axisTextColor = mode === "dark" ? "#b0b6c3" : "#4a5568";
-  const axisLineColor = mode === "dark" ? "#33384e" : "#d0d0d0";
-  const tooltipBg = mode === "dark" ? "#23243a" : "#ffffff";
-  const tooltipBorder = mode === "dark" ? "#00dac6" : "#14b8a6";
-  const tooltipTextColor = mode === "dark" ? "#fff" : "#1a1a1a";
-  const tooltipLabelColor = mode === "dark" ? "#00dac6" : "#14b8a6";
-  const tooltipItemColor = mode === "dark" ? "#b0b6c3" : "#666666";
+  const gridColor = colors.border_color;
+  const axisTextColor = colors.secondary_text;
+  const axisLineColor = colors.border_color;
   const labelTextColor = "#ffffff"; // Keep white for visibility on colored bars in both themes
 
   return (
@@ -194,18 +189,19 @@ const CashFlowChart = ({
         <Tooltip
           cursor={false}
           contentStyle={{
-            background: tooltipBg,
-            border: `1px solid ${tooltipBorder}`,
-            color: tooltipTextColor,
-            borderRadius: 8,
-            fontWeight: 500,
-            boxShadow:
-              mode === "dark"
-                ? "0 4px 12px rgba(0, 0, 0, 0.3)"
-                : "0 4px 12px rgba(0, 0, 0, 0.15)",
+            backgroundColor: colors.secondary_bg,
+            border: `1px solid ${colors.border_color}`,
+            borderRadius: "8px",
+            color: colors.primary_text,
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
           }}
-          labelStyle={{ color: tooltipLabelColor, fontWeight: 700 }}
-          itemStyle={{ color: tooltipItemColor }}
+          labelStyle={{
+            color: colors.primary_text,
+            fontWeight: "600",
+          }}
+          itemStyle={{
+            color: colors.primary_text,
+          }}
           formatter={(value) => [formatCurrencyCompact(value), "Amount"]}
           wrapperStyle={{ zIndex: 1000 }}
           labelFormatter={tooltipFormatter}

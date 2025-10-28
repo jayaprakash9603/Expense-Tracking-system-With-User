@@ -1463,3 +1463,14 @@
 .dark .monthly-trend .recharts-tooltip-item {
   color: #ffffff !important;
 }
+
+/* CashFlow Chart Tooltip Theme Support */
+.light .recharts-tooltip-label,
+.light .recharts-tooltip-item {
+  color: #1a1a1a !important;
+}
+
+.dark .recharts-tooltip-label,
+.dark .recharts-tooltip-item {
+  color: #ffffff !important;
+}
