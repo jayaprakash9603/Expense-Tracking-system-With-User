@@ -311,7 +311,7 @@ const FriendInfoBar = ({
           <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
             {/* Requester avatar with initial */}
             <Avatar
-              src={friendship.requester?.image}
+              src={friendship.requester?.profileImage}
               alt={friendship.requester?.firstName}
               sx={{
                 width: 28,
@@ -402,7 +402,7 @@ const FriendInfoBar = ({
           <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
             {/* Recipient avatar with initial */}
             <Avatar
-              src={friendship.recipient?.image}
+              src={friendship.recipient?.profileImage}
               alt={friendship.recipient?.firstName}
               sx={{
                 width: 28,
@@ -814,7 +814,7 @@ const FriendInfoBar = ({
                             >
                               <ListItemAvatar sx={{ minWidth: 40 }}>
                                 <Avatar
-                                  src={friend.image}
+                                  src={friend.profileImage}
                                   sx={{
                                     width: 32,
                                     height: 32,

@@ -59,6 +59,10 @@ public class User {
     @Column(name = "profile_image")
     private String profileImage;
 
+    @Size(max = 1000, message = "Cover image URL must not exceed 1000 characters")
+    @Column(name = "cover_image")
+    private String coverImage;
+
     private String mobile;
     private String occupation;
 

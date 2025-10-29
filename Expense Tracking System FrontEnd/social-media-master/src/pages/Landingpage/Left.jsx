@@ -43,7 +43,7 @@ const Left = () => {
   };
 
   // Determine avatar source or fallback
-  const avatarSrc = user?.image || "";
+  const avatarSrc = user?.profileImage || "";
 
   return (
     <>

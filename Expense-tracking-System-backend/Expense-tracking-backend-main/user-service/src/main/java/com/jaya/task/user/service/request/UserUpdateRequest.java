@@ -39,6 +39,9 @@ public class UserUpdateRequest {
     @Size(max = 1000, message = "Profile image URL must not exceed 1000 characters")
     private String profileImage;
 
+    @Size(max = 1000, message = "Cover image URL must not exceed 1000 characters")
+    private String coverImage;
+
     @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Mobile number should be valid")
     private String mobile;
 

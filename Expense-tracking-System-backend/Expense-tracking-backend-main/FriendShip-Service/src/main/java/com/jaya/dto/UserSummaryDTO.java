@@ -16,18 +16,21 @@ public class UserSummaryDTO {
     private String firstName;
     private String lastName;
     private String image;
+    private String profileImage;
 
-    // Add this method to a utility class or inside UserSummaryDTO as a static method
+    // Add this method to a utility class or inside UserSummaryDTO as a static
+    // method
 
     public static UserSummaryDTO fromUser(UserDto user) {
-        if (user == null) return null;
+        if (user == null)
+            return null;
         return new UserSummaryDTO(
                 Math.toIntExact(user.getId()),
                 user.getUsername(),
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getImage()
-        );
+                user.getImage(),
+                user.getProfileImage() != null ? user.getProfileImage() : user.getImage());
     }
 }

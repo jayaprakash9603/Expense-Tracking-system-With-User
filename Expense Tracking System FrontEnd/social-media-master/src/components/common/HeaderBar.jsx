@@ -46,7 +46,7 @@ const HeaderBar = () => {
     return `${firstInitial}${lastInitial}`;
   };
 
-  const avatarSrc = user?.image || "";
+  const avatarSrc = user?.profileImage || "";
 
   const handleThemeToggle = () => {
     dispatch(toggleTheme());

@@ -761,7 +761,7 @@ const Friends = () => {
 
   // Ensure user images are displayed correctly
   const getUserImage = (user) => {
-    return user?.image || "default-avatar.png"; // Fallback to default image
+    return user?.profileImage || "default-avatar.png"; // Fallback to default image
   };
 
   // If user is not logged in, show login message
@@ -999,15 +999,23 @@ const Friends = () => {
                           onClick={() => handleFriendSelect(friend)}
                         >
                           <div className="flex items-center flex-grow mr-2">
-                            <div
-                              className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
-                              style={{
-                                backgroundColor: getAvatarColor(friend.id),
-                                color: colors.button_text,
-                              }}
-                            >
-                              {getInitials(friend.firstName, friend.lastName)}
-                            </div>
+                            {friend.profileImage ? (
+                              <img
+                                src={friend.profileImage}
+                                alt={`${friend.firstName} ${friend.lastName}`}
+                                className="w-12 h-12 rounded-full object-cover mr-4 flex-shrink-0"
+                              />
+                            ) : (
+                              <div
+                                className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
+                                style={{
+                                  backgroundColor: getAvatarColor(friend.id),
+                                  color: colors.button_text,
+                                }}
+                              >
+                                {getInitials(friend.firstName, friend.lastName)}
+                              </div>
+                            )}
                             <div className="max-w-[calc(100%-80px)]">
                               <p
                                 className="font-medium truncate"
@@ -1345,15 +1353,23 @@ const Friends = () => {
                           onClick={() => handleFriendSelect(friend)}
                         >
                           <div className="flex items-center flex-grow mr-2">
-                            <div
-                              className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
-                              style={{
-                                backgroundColor: getAvatarColor(friend.id),
-                                color: colors.button_text,
-                              }}
-                            >
-                              {getInitials(friend.firstName, friend.lastName)}
-                            </div>
+                            {friend.profileImage ? (
+                              <img
+                                src={friend.profileImage}
+                                alt={`${friend.firstName} ${friend.lastName}`}
+                                className="w-12 h-12 rounded-full object-cover mr-4 flex-shrink-0"
+                              />
+                            ) : (
+                              <div
+                                className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
+                                style={{
+                                  backgroundColor: getAvatarColor(friend.id),
+                                  color: colors.button_text,
+                                }}
+                              >
+                                {getInitials(friend.firstName, friend.lastName)}
+                              </div>
+                            )}
                             <div className="max-w-[calc(100%-80px)]">
                               <p
                                 className="font-medium truncate"
@@ -1676,18 +1692,26 @@ const Friends = () => {
                 style={{ backgroundColor: colors.tertiary_bg }}
               >
                 <div className="flex items-center mb-6">
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
-                    style={{
-                      backgroundColor: getAvatarColor(selectedFriend.id),
-                      color: colors.primary_text,
-                    }}
-                  >
-                    {getInitials(
-                      selectedFriend.firstName,
-                      selectedFriend.lastName
-                    )}
-                  </div>
+                  {selectedFriend.profileImage ? (
+                    <img
+                      src={selectedFriend.profileImage}
+                      alt={`${selectedFriend.firstName} ${selectedFriend.lastName}`}
+                      className="w-20 h-20 rounded-full object-cover mr-6"
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
+                      style={{
+                        backgroundColor: getAvatarColor(selectedFriend.id),
+                        color: colors.primary_text,
+                      }}
+                    >
+                      {getInitials(
+                        selectedFriend.firstName,
+                        selectedFriend.lastName
+                      )}
+                    </div>
+                  )}
                   <div>
                     <h2
                       className="text-2xl font-bold"
@@ -1782,18 +1806,26 @@ const Friends = () => {
                 style={{ backgroundColor: colors.tertiary_bg }}
               >
                 <div className="flex items-center mb-6">
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
-                    style={{
-                      backgroundColor: getAvatarColor(selectedFriend.id),
-                      color: colors.primary_text,
-                    }}
-                  >
-                    {getInitials(
-                      selectedFriend.firstName,
-                      selectedFriend.lastName
-                    )}
-                  </div>
+                  {selectedFriend.profileImage ? (
+                    <img
+                      src={selectedFriend.profileImage}
+                      alt={`${selectedFriend.firstName} ${selectedFriend.lastName}`}
+                      className="w-20 h-20 rounded-full object-cover mr-6"
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
+                      style={{
+                        backgroundColor: getAvatarColor(selectedFriend.id),
+                        color: colors.primary_text,
+                      }}
+                    >
+                      {getInitials(
+                        selectedFriend.firstName,
+                        selectedFriend.lastName
+                      )}
+                    </div>
+                  )}
                   <div>
                     <h2
                       className="text-2xl font-bold"
@@ -1846,18 +1878,26 @@ const Friends = () => {
                 style={{ backgroundColor: colors.tertiary_bg }}
               >
                 <div className="flex items-center mb-6">
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
-                    style={{
-                      backgroundColor: getAvatarColor(selectedFriend.id),
-                      color: colors.primary_text,
-                    }}
-                  >
-                    {getInitials(
-                      selectedFriend.firstName,
-                      selectedFriend.lastName
-                    )}
-                  </div>
+                  {selectedFriend.profileImage ? (
+                    <img
+                      src={selectedFriend.profileImage}
+                      alt={`${selectedFriend.firstName} ${selectedFriend.lastName}`}
+                      className="w-20 h-20 rounded-full object-cover mr-6"
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
+                      style={{
+                        backgroundColor: getAvatarColor(selectedFriend.id),
+                        color: colors.primary_text,
+                      }}
+                    >
+                      {getInitials(
+                        selectedFriend.firstName,
+                        selectedFriend.lastName
+                      )}
+                    </div>
+                  )}
                   <div>
                     <h2
                       className="text-2xl font-bold"
@@ -2033,18 +2073,26 @@ const Friends = () => {
                 style={{ backgroundColor: colors.tertiary_bg }}
               >
                 <div className="flex items-center mb-6">
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
-                    style={{
-                      backgroundColor: getAvatarColor(selectedFriend.id),
-                      color: colors.primary_text,
-                    }}
-                  >
-                    {getInitials(
-                      selectedFriend.firstName,
-                      selectedFriend.lastName
-                    )}
-                  </div>
+                  {selectedFriend.profileImage ? (
+                    <img
+                      src={selectedFriend.profileImage}
+                      alt={`${selectedFriend.firstName} ${selectedFriend.lastName}`}
+                      className="w-20 h-20 rounded-full object-cover mr-6"
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
+                      style={{
+                        backgroundColor: getAvatarColor(selectedFriend.id),
+                        color: colors.primary_text,
+                      }}
+                    >
+                      {getInitials(
+                        selectedFriend.firstName,
+                        selectedFriend.lastName
+                      )}
+                    </div>
+                  )}
                   <div>
                     <h2
                       className="text-2xl font-bold"

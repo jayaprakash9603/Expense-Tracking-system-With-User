@@ -120,6 +120,9 @@ public class UserServiceImplementation implements UserService {
         // Update profile image URL
         applyIfPresent(updateRequest.getProfileImage(), v -> userToUpdate.setProfileImage(trim(v)));
 
+        // Update cover image URL
+        applyIfPresent(updateRequest.getCoverImage(), v -> userToUpdate.setCoverImage(trim(v)));
+
         // Update mobile
         applyIfPresent(updateRequest.getMobile(), v -> userToUpdate.setMobile(trim(v)));
 

@@ -52,6 +52,8 @@ const Profile = () => {
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [coverImageUploading, setCoverImageUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -69,6 +71,7 @@ const Profile = () => {
     bio: "",
     dateOfBirth: "",
     profileImage: "",
+    coverImage: "",
   });
 
   // Initialize form data when user data is loaded
@@ -84,6 +87,7 @@ const Profile = () => {
         bio: user.bio || "",
         dateOfBirth: user.dateOfBirth || "",
         profileImage: user.profileImage || "",
+        coverImage: user.coverImage || "",
       });
     }
   }, [user]);
@@ -157,6 +161,59 @@ const Profile = () => {
     }
   };
 
+  const handleCoverImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setSnackbar({
+        open: true,
+        message: "Please upload a valid image file",
+        severity: "error",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setSnackbar({
+        open: true,
+        message: "Image size should be less than 5MB",
+        severity: "error",
+      });
+      return;
+    }
+
+    try {
+      setCoverImageUploading(true);
+      const imageUrl = await uploadToCloudinary(file, "image");
+
+      if (imageUrl) {
+        setFormData((prev) => ({
+          ...prev,
+          coverImage: imageUrl,
+        }));
+        setSnackbar({
+          open: true,
+          message: "Cover image uploaded successfully!",
+          severity: "success",
+        });
+      } else {
+        throw new Error("Cover image upload failed");
+      }
+    } catch (error) {
+      console.error("Error uploading cover image:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to upload cover image. Please try again.",
+        severity: "error",
+      });
+    } finally {
+      setCoverImageUploading(false);
+    }
+  };
+
   const handleSave = async () => {
     try {
       // Prepare update request - only send changed fields
@@ -177,6 +234,8 @@ const Profile = () => {
         updateRequest.dateOfBirth = formData.dateOfBirth;
       if (formData.profileImage !== user?.profileImage)
         updateRequest.profileImage = formData.profileImage;
+      if (formData.coverImage !== user?.coverImage)
+        updateRequest.coverImage = formData.coverImage;
 
       if (Object.keys(updateRequest).length === 0) {
         // No changes made - just exit edit mode without any notification
@@ -184,6 +243,7 @@ const Profile = () => {
         return;
       }
 
+      setIsSaving(true);
       await dispatch(updateProfileAction(updateRequest));
 
       setSnackbar({
@@ -205,6 +265,8 @@ const Profile = () => {
         message: "Failed to update profile. Please try again.",
         severity: "error",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -221,6 +283,7 @@ const Profile = () => {
         bio: user.bio || "",
         dateOfBirth: user.dateOfBirth || "",
         profileImage: user.profileImage || "",
+        coverImage: user.coverImage || "",
       });
     }
     setIsEditMode(false);
@@ -273,26 +336,91 @@ const Profile = () => {
       {/* Hero Section with Profile Image */}
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${colors.primary_accent}15 0%, ${colors.primary_accent}05 100%)`,
+          background: formData.coverImage
+            ? `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${formData.coverImage})`
+            : `linear-gradient(135deg, ${colors.primary_accent}15 0%, ${colors.primary_accent}05 100%)`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
           borderBottom: `1px solid ${colors.border_color}`,
-          p: isSmallScreen ? 3 : 4,
+          p: isSmallScreen ? 2 : 4,
           position: "relative",
           overflow: "hidden",
+          minHeight: isSmallScreen ? "auto" : "250px",
         }}
       >
-        {/* Decorative background elements */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: -50,
-            right: -50,
-            width: 200,
-            height: 200,
-            borderRadius: "50%",
-            background: `${colors.primary_accent}08`,
-            filter: "blur(40px)",
-          }}
-        />
+        {/* Decorative background elements - only show if no cover image */}
+        {!formData.coverImage && (
+          <>
+            <Box
+              sx={{
+                position: "absolute",
+                top: -50,
+                right: -50,
+                width: 200,
+                height: 200,
+                borderRadius: "50%",
+                background: `${colors.primary_accent}08`,
+                filter: "blur(40px)",
+              }}
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: -30,
+                left: -30,
+                width: 150,
+                height: 150,
+                borderRadius: "50%",
+                background: `${colors.primary_accent}10`,
+                filter: "blur(30px)",
+              }}
+            />
+          </>
+        )}
+
+        {/* Cover Image Upload Button */}
+        {isEditMode && (
+          <Tooltip title="Upload Cover Image" arrow>
+            <IconButton
+              component="label"
+              sx={{
+                position: "absolute",
+                bottom: 16,
+                right: 16,
+                backgroundColor: `${colors.secondary_bg}cc`,
+                backdropFilter: "blur(10px)",
+                color: colors.primary_accent,
+                width: 44,
+                height: 44,
+                boxShadow: `0 4px 12px ${colors.primary_accent}40`,
+                "&:hover": {
+                  backgroundColor: colors.secondary_bg,
+                  transform: "scale(1.1)",
+                },
+                transition: "all 0.2s",
+                zIndex: 2,
+              }}
+              disabled={coverImageUploading}
+            >
+              {coverImageUploading ? (
+                <CircularProgress
+                  size={24}
+                  sx={{ color: colors.primary_accent }}
+                />
+              ) : (
+                <PhotoCameraIcon />
+              )}
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handleCoverImageUpload}
+              />
+            </IconButton>
+          </Tooltip>
+        )}
+
         <Box
           sx={{
             position: "absolute",
@@ -313,7 +441,7 @@ const Profile = () => {
             display: "flex",
             flexDirection: isSmallScreen ? "column" : "row",
             alignItems: isSmallScreen ? "center" : "flex-start",
-            gap: 3,
+            gap: isSmallScreen ? 2 : 3,
           }}
         >
           {/* Profile Image Section */}
@@ -393,28 +521,33 @@ const Profile = () => {
           {/* Profile Info Section */}
           <Box sx={{ flex: 1, textAlign: isSmallScreen ? "center" : "left" }}>
             <Typography
-              variant={isSmallScreen ? "h5" : "h4"}
+              variant={isSmallScreen ? "h6" : "h4"}
               sx={{
                 color: colors.primary_text,
                 fontWeight: 700,
                 mb: 0.5,
                 letterSpacing: "-0.5px",
+                fontSize: isSmallScreen ? "1.1rem" : undefined,
               }}
             >
               {formData.firstName} {formData.lastName}
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 color: colors.secondary_text,
-                mb: 2,
+                mb: isSmallScreen ? 1.5 : 2,
                 display: "flex",
                 alignItems: "center",
                 gap: 0.5,
                 justifyContent: isSmallScreen ? "center" : "flex-start",
+                fontSize: isSmallScreen ? "0.85rem" : undefined,
+                flexWrap: "wrap",
               }}
             >
-              <EmailIcon sx={{ fontSize: "1.1rem" }} />
+              <EmailIcon
+                sx={{ fontSize: isSmallScreen ? "0.9rem" : "1.1rem" }}
+              />
               {formData.email}
             </Typography>
 
@@ -423,7 +556,7 @@ const Profile = () => {
               sx={{
                 display: "flex",
                 flexWrap: "wrap",
-                gap: 2,
+                gap: isSmallScreen ? 1 : 2,
                 justifyContent: isSmallScreen ? "center" : "flex-start",
               }}
             >
@@ -433,19 +566,26 @@ const Profile = () => {
                     display: "flex",
                     alignItems: "center",
                     gap: 0.5,
-                    px: 1.5,
-                    py: 0.5,
+                    px: isSmallScreen ? 1 : 1.5,
+                    py: 0.4,
                     borderRadius: 2,
                     backgroundColor: colors.secondary_bg,
                     border: `1px solid ${colors.border_color}`,
                   }}
                 >
                   <WorkIcon
-                    sx={{ fontSize: "1rem", color: colors.primary_accent }}
+                    sx={{
+                      fontSize: isSmallScreen ? "0.85rem" : "1rem",
+                      color: colors.primary_accent,
+                    }}
                   />
                   <Typography
                     variant="caption"
-                    sx={{ color: colors.primary_text, fontWeight: 500 }}
+                    sx={{
+                      color: colors.primary_text,
+                      fontWeight: 500,
+                      fontSize: isSmallScreen ? "0.7rem" : undefined,
+                    }}
                   >
                     {formData.occupation}
                   </Typography>
@@ -457,19 +597,26 @@ const Profile = () => {
                     display: "flex",
                     alignItems: "center",
                     gap: 0.5,
-                    px: 1.5,
-                    py: 0.5,
+                    px: isSmallScreen ? 1 : 1.5,
+                    py: 0.4,
                     borderRadius: 2,
                     backgroundColor: colors.secondary_bg,
                     border: `1px solid ${colors.border_color}`,
                   }}
                 >
                   <LocationOnIcon
-                    sx={{ fontSize: "1rem", color: colors.primary_accent }}
+                    sx={{
+                      fontSize: isSmallScreen ? "0.85rem" : "1rem",
+                      color: colors.primary_accent,
+                    }}
                   />
                   <Typography
                     variant="caption"
-                    sx={{ color: colors.primary_text, fontWeight: 500 }}
+                    sx={{
+                      color: colors.primary_text,
+                      fontWeight: 500,
+                      fontSize: isSmallScreen ? "0.7rem" : undefined,
+                    }}
                   >
                     {formData.location}
                   </Typography>
@@ -481,19 +628,26 @@ const Profile = () => {
                     display: "flex",
                     alignItems: "center",
                     gap: 0.5,
-                    px: 1.5,
-                    py: 0.5,
+                    px: isSmallScreen ? 1 : 1.5,
+                    py: 0.4,
                     borderRadius: 2,
                     backgroundColor: colors.secondary_bg,
                     border: `1px solid ${colors.border_color}`,
                   }}
                 >
                   <CakeIcon
-                    sx={{ fontSize: "1rem", color: colors.primary_accent }}
+                    sx={{
+                      fontSize: isSmallScreen ? "0.85rem" : "1rem",
+                      color: colors.primary_accent,
+                    }}
                   />
                   <Typography
                     variant="caption"
-                    sx={{ color: colors.primary_text, fontWeight: 500 }}
+                    sx={{
+                      color: colors.primary_text,
+                      fontWeight: 500,
+                      fontSize: isSmallScreen ? "0.7rem" : undefined,
+                    }}
                   >
                     Joined{" "}
                     {new Date(user.createdAt).toLocaleDateString("en-US", {
@@ -510,9 +664,10 @@ const Profile = () => {
                 variant="body2"
                 sx={{
                   color: colors.secondary_text,
-                  mt: 2,
+                  mt: isSmallScreen ? 1.5 : 2,
                   fontStyle: "italic",
                   maxWidth: 500,
+                  fontSize: isSmallScreen ? "0.8rem" : undefined,
                 }}
               >
                 "{formData.bio}"
@@ -526,6 +681,8 @@ const Profile = () => {
               display: "flex",
               flexDirection: isSmallScreen ? "row" : "column",
               gap: 1,
+              width: isSmallScreen ? "100%" : "auto",
+              justifyContent: isSmallScreen ? "center" : "flex-start",
             }}
           >
             {!isEditMode ? (
@@ -533,13 +690,15 @@ const Profile = () => {
                 variant="contained"
                 startIcon={<EditIcon />}
                 onClick={() => setIsEditMode(true)}
-                size={isSmallScreen ? "small" : "medium"}
+                size="small"
                 sx={{
                   backgroundColor: colors.primary_accent,
                   color: colors.button_text,
                   fontWeight: 600,
-                  px: 3,
+                  px: isSmallScreen ? 2 : 3,
+                  py: isSmallScreen ? 0.75 : 1,
                   borderRadius: 2,
+                  fontSize: isSmallScreen ? "0.8rem" : undefined,
                   boxShadow: `0 4px 12px ${colors.primary_accent}40`,
                   "&:hover": {
                     backgroundColor: colors.button_hover,
@@ -555,37 +714,71 @@ const Profile = () => {
               <>
                 <Button
                   variant="contained"
-                  startIcon={<SaveIcon />}
+                  startIcon={
+                    isSaving ? (
+                      <CircularProgress
+                        size={16}
+                        sx={{ color: colors.button_text }}
+                      />
+                    ) : (
+                      <SaveIcon
+                        sx={{ fontSize: isSmallScreen ? "1rem" : undefined }}
+                      />
+                    )
+                  }
                   onClick={handleSave}
-                  disabled={loading}
-                  size={isSmallScreen ? "small" : "medium"}
+                  disabled={isSaving}
+                  size="small"
                   sx={{
                     backgroundColor: colors.primary_accent,
                     color: colors.button_text,
                     fontWeight: 600,
-                    px: 3,
+                    px: isSmallScreen ? 2 : 3,
+                    py: isSmallScreen ? 0.75 : 1,
                     borderRadius: 2,
+                    fontSize: isSmallScreen ? "0.8rem" : undefined,
+                    opacity: isSaving ? 0.7 : 1,
+                    flex: isSmallScreen ? 1 : "none",
                     "&:hover": {
                       backgroundColor: colors.button_hover,
                     },
+                    "&.Mui-disabled": {
+                      backgroundColor: colors.primary_accent,
+                      color: colors.button_text,
+                      opacity: 0.7,
+                    },
                   }}
                 >
-                  Save
+                  {isSaving ? "Saving..." : "Save"}
                 </Button>
                 <Button
                   variant="outlined"
-                  startIcon={<CancelIcon />}
+                  startIcon={
+                    <CancelIcon
+                      sx={{ fontSize: isSmallScreen ? "1rem" : undefined }}
+                    />
+                  }
                   onClick={handleCancel}
-                  size={isSmallScreen ? "small" : "medium"}
+                  disabled={isSaving}
+                  size="small"
                   sx={{
                     borderColor: colors.border_color,
                     color: colors.secondary_text,
                     fontWeight: 600,
-                    px: 3,
+                    px: isSmallScreen ? 2 : 3,
+                    py: isSmallScreen ? 0.75 : 1,
                     borderRadius: 2,
+                    fontSize: isSmallScreen ? "0.8rem" : undefined,
+                    opacity: isSaving ? 0.5 : 1,
+                    flex: isSmallScreen ? 1 : "none",
                     "&:hover": {
                       borderColor: colors.primary_accent,
                       backgroundColor: `${colors.primary_accent}15`,
+                    },
+                    "&.Mui-disabled": {
+                      borderColor: colors.border_color,
+                      color: colors.secondary_text,
+                      opacity: 0.5,
                     },
                   }}
                 >
