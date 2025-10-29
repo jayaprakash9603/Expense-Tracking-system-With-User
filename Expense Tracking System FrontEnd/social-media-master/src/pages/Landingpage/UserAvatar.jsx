@@ -25,11 +25,12 @@ const UserAvatar = ({ user }) => {
 
   // Determine what to display based on available user data
   const renderAvatar = () => {
-    // If user has an image, use it
-    if (user?.image) {
+    // If user has profileImage or image, use it (prioritize profileImage)
+    const imageUrl = user?.profileImage || user?.image;
+    if (imageUrl) {
       return (
         <img
-          src={user.image}
+          src={imageUrl}
           alt={`${user.firstName || ""} ${user.lastName || ""}`}
           className="w-12 h-12 rounded-full object-cover"
         />
