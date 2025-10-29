@@ -6,8 +6,6 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
-  Snackbar,
-  Alert,
   Tabs,
   Tab,
   Badge,
@@ -57,6 +55,7 @@ import FriendsEmptyState from "../../components/FriendsEmptyState";
 import SharingCard from "../../components/SharingCard";
 import FilterPopover from "../../components/FilterPopover";
 import ListSkeleton from "../../components/ListSkeleton";
+import ToastNotification from "./ToastNotification";
 import { useTheme } from "../../hooks/useTheme";
 import {
   filterSuggestions,
@@ -798,8 +797,8 @@ const Friends = () => {
             width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
             marginRight: "20px",
             maxWidth: "1600px",
-            backgroundColor: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
+            backgroundColor: colors.tertiary_bg,
+            // border: `1px solid ${colors.border_color}`,
           }}
         >
           {/* Left Section - Friends List */}
@@ -887,7 +886,7 @@ const Friends = () => {
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         color: colors.primary_text,
-                        backgroundColor: colors.tertiary_bg,
+                        backgroundColor: colors.primary_bg,
                         "& fieldset": { borderColor: colors.border_color },
                         "&:hover fieldset": {
                           borderColor: colors.border_color,
@@ -980,7 +979,7 @@ const Friends = () => {
                           key={friend.id}
                           className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors"
                           style={{
-                            backgroundColor: colors.tertiary_bg,
+                            backgroundColor: colors.primary_bg,
                             border:
                               selectedFriend?.id === friend.id
                                 ? `2px solid ${colors.primary_accent}`
@@ -994,7 +993,7 @@ const Friends = () => {
                             e.currentTarget.style.backgroundColor =
                               selectedFriend?.id === friend.id
                                 ? colors.hover_bg
-                                : colors.tertiary_bg;
+                                : colors.primary_bg;
                           }}
                           onClick={() => handleFriendSelect(friend)}
                         >
@@ -1068,7 +1067,7 @@ const Friends = () => {
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         color: colors.primary_text,
-                        backgroundColor: colors.tertiary_bg,
+                        backgroundColor: colors.primary_bg,
                         "& fieldset": { borderColor: colors.border_color },
                         "&:hover fieldset": {
                           borderColor: colors.border_color,
@@ -1162,7 +1161,7 @@ const Friends = () => {
                           <div
                             key={request.id}
                             className="p-4 rounded-lg"
-                            style={{ backgroundColor: colors.tertiary_bg }}
+                            style={{ backgroundColor: colors.primary_bg }}
                           >
                             <div className="flex items-center mb-4">
                               <div className="mr-4">
@@ -1232,7 +1231,7 @@ const Friends = () => {
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         color: colors.primary_text,
-                        backgroundColor: colors.tertiary_bg,
+                        backgroundColor: colors.primary_bg,
                         "& fieldset": { borderColor: colors.border_color },
                         "&:hover fieldset": {
                           borderColor: colors.border_color,
@@ -1331,8 +1330,8 @@ const Friends = () => {
                           style={{
                             backgroundColor:
                               selectedFriend?.id === friend.id
-                                ? colors.tertiary_bg
-                                : colors.tertiary_bg,
+                                ? colors.primary_bg
+                                : colors.primary_bg,
                             borderColor:
                               selectedFriend?.id === friend.id
                                 ? colors.primary_accent
@@ -1347,7 +1346,7 @@ const Friends = () => {
                           onMouseLeave={(e) => {
                             if (selectedFriend?.id !== friend.id) {
                               e.currentTarget.style.backgroundColor =
-                                colors.tertiary_bg;
+                                colors.primary_bg;
                             }
                           }}
                           onClick={() => handleFriendSelect(friend)}
@@ -1438,7 +1437,7 @@ const Friends = () => {
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         color: colors.primary_text,
-                        backgroundColor: colors.tertiary_bg,
+                        backgroundColor: colors.primary_bg,
                         "& fieldset": { borderColor: colors.border_color },
                         "&:hover fieldset": {
                           borderColor: colors.border_color,
@@ -1689,7 +1688,7 @@ const Friends = () => {
             {activeTab === 0 && selectedFriend ? (
               <div
                 className="p-6 rounded-lg"
-                style={{ backgroundColor: colors.tertiary_bg }}
+                style={{ backgroundColor: colors.primary_bg }}
               >
                 <div className="flex items-center mb-6">
                   {selectedFriend.profileImage ? (
@@ -1803,7 +1802,7 @@ const Friends = () => {
             ) : activeTab === 1 && selectedFriend ? (
               <div
                 className="p-6 rounded-lg"
-                style={{ backgroundColor: colors.tertiary_bg }}
+                style={{ backgroundColor: colors.primary_bg }}
               >
                 <div className="flex items-center mb-6">
                   {selectedFriend.profileImage ? (
@@ -1875,7 +1874,7 @@ const Friends = () => {
             ) : activeTab === 2 && selectedFriend ? (
               <div
                 className="p-6 rounded-lg"
-                style={{ backgroundColor: colors.tertiary_bg }}
+                style={{ backgroundColor: colors.primary_bg }}
               >
                 <div className="flex items-center mb-6">
                   {selectedFriend.profileImage ? (
@@ -2070,7 +2069,7 @@ const Friends = () => {
             ) : activeTab === 3 && selectedFriend ? (
               <div
                 className="p-6 rounded-lg"
-                style={{ backgroundColor: colors.tertiary_bg }}
+                style={{ backgroundColor: colors.primary_bg }}
               >
                 <div className="flex items-center mb-6">
                   {selectedFriend.profileImage ? (
@@ -2234,7 +2233,7 @@ const Friends = () => {
           onClose={handleAccessMenuClose}
           PaperProps={{
             sx: {
-              backgroundColor: colors.tertiary_bg,
+              backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
               width: 250,
@@ -2334,21 +2333,14 @@ const Friends = () => {
           </MenuItem>
         </Menu>
 
-        {/* Snackbar for notifications */}
-        <Snackbar
+        {/* Toast Notification */}
+        <ToastNotification
           open={snackbar.open}
-          autoHideDuration={6000}
+          message={snackbar.message}
           onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            sx={{ width: "100%" }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        />
         <FilterPopover
           anchorEl={filterAnchor}
           open={Boolean(filterAnchor)}

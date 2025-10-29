@@ -43,7 +43,7 @@ const SharingCard = ({
   const incomingColor = colors?.primary_accent || "#14b8a6"; // teal brand
   const outgoingColor = "#e6a935"; // warm amber for contrast
   const accent = direction === "incoming" ? incomingColor : outgoingColor;
-  const baseBg = colors?.tertiary_bg || "#2a2a2a"; // keep consistent card base
+  const baseBg = colors?.primary_bg || "#2a2a2a"; // keep consistent card base
   const hoverBg = colors?.hover_bg || "#333333";
   const primaryText = colors?.primary_text || "white";
   const secondaryText = colors?.secondary_text || "#9ca3af";
