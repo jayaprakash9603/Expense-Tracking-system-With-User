@@ -69,7 +69,7 @@ const ProfileHeader = ({
         p: isSmallScreen ? 2 : 4,
         position: "relative",
         overflow: "hidden",
-        minHeight: isSmallScreen ? "auto" : "250px",
+        minHeight: isSmallScreen ? "auto" : "230px",
       }}
     >
       {/* Decorative Background Elements */}
