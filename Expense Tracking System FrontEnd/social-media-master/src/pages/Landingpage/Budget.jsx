@@ -567,7 +567,7 @@ const Budget = () => {
                   color: `${colors.primary_accent} !important`,
                 },
                 "& .MuiDataGrid-footerContainer": {
-                  backgroundColor: colors.tertiary_bg,
+                  backgroundColor: colors.primary_bg,
                   borderColor: colors.border_color,
                   color: colors.primary_text,
                 },

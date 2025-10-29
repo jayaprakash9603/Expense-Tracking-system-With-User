@@ -90,6 +90,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTheme } from "../../../hooks/useTheme";
 import dayjs from "dayjs";
 import "./BudgetReport.css";
 import { Target } from "lucide-react";
@@ -97,6 +98,7 @@ import { Target } from "lucide-react";
 const BudgetReport = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { colors } = useTheme();
   const { budgetId, friendId } = useParams();
 
   // State management
@@ -2258,12 +2260,20 @@ const BudgetReport = () => {
                     rowHeight={txRowHeight}
                     headerHeight={txHeaderHeight}
                     sx={{
-                      backgroundColor: "transparent",
+                      backgroundColor: colors.secondary_bg,
+                      color: colors.primary_text,
                       "& .MuiDataGrid-virtualScroller": {
-                        backgroundColor: "transparent",
+                        backgroundColor: colors.secondary_bg,
                       },
                       "& .MuiDataGrid-footerContainer": {
-                        backgroundColor: "transparent",
+                        backgroundColor: colors.primary_bg,
+                        color: colors.primary_text,
+                      },
+                      "& .MuiTablePagination-root": {
+                        color: colors.primary_text,
+                      },
+                      "& .MuiSvgIcon-root": {
+                        color: colors.primary_text,
                       },
                     }}
                   />

@@ -8,9 +8,10 @@ import {
   Select,
   Typography,
   useMediaQuery,
-  useTheme,
+  useTheme as useMuiTheme,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
+import { useTheme } from "../../hooks/useTheme";
 import ExpenseEmail from "./ExpenseEmail";
 import ExpenseTableParent from "../ExpenseTableParent";
 import ReportsGeneration from "../ReportsGeneration";
@@ -45,8 +46,9 @@ const defaultColumns = [
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState("select");
   const [Url, setUrl] = useState(null);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const muiTheme = useMuiTheme();
+  const { colors } = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const { friendId } = useParams();
 
@@ -212,28 +214,28 @@ const Reports = () => {
                 disableColumnMenu
                 rowHeight={40} // Decreased row height
                 sx={{
-                  bgcolor: "#1b1b1b",
-                  color: "#ffffff",
-                  border: "1px solid #28282a",
+                  bgcolor: colors.secondary_bg,
+                  color: colors.primary_text,
+                  border: `1px solid ${colors.border_color}`,
                   "& .MuiDataGrid-columnHeaders": {
-                    bgcolor: "#333333",
-                    color: "#ffffff",
+                    bgcolor: colors.primary_bg,
+                    color: colors.primary_text,
                   },
                   "& .MuiDataGrid-cell": {
-                    color: "#ffffff",
+                    color: colors.primary_text,
                   },
                   "& .MuiDataGrid-row:hover": {
-                    bgcolor: "#28282a",
+                    bgcolor: colors.hover_bg,
                   },
                   "& .MuiDataGrid-footerContainer": {
-                    bgcolor: "#333333",
-                    color: "#ffffff",
+                    bgcolor: colors.primary_bg,
+                    color: colors.primary_text,
                   },
                   "& .MuiTablePagination-root": {
-                    color: "#ffffff",
+                    color: colors.primary_text,
                   },
                   "& .MuiSvgIcon-root": {
-                    color: "#ffffff",
+                    color: colors.primary_text,
                   },
                   height: isMobile ? 300 : 320, // Adjusted table height
                 }}
@@ -263,28 +265,28 @@ const Reports = () => {
                 disableColumnMenu
                 rowHeight={40} // Decreased row height
                 sx={{
-                  bgcolor: "#1b1b1b",
-                  color: "#ffffff",
-                  border: "1px solid #28282a",
+                  bgcolor: colors.secondary_bg,
+                  color: colors.primary_text,
+                  border: `1px solid ${colors.border_color}`,
                   "& .MuiDataGrid-columnHeaders": {
-                    bgcolor: "#333333",
-                    color: "#ffffff",
+                    bgcolor: colors.primary_bg,
+                    color: colors.primary_text,
                   },
                   "& .MuiDataGrid-cell": {
-                    color: "#ffffff",
+                    color: colors.primary_text,
                   },
                   "& .MuiDataGrid-row:hover": {
-                    bgcolor: "#28282a",
+                    bgcolor: colors.hover_bg,
                   },
                   "& .MuiDataGrid-footerContainer": {
-                    bgcolor: "#333333",
-                    color: "#ffffff",
+                    bgcolor: colors.primary_bg,
+                    color: colors.primary_text,
                   },
                   "& .MuiTablePagination-root": {
-                    color: "#ffffff",
+                    color: colors.primary_text,
                   },
                   "& .MuiSvgIcon-root": {
-                    color: "#ffffff",
+                    color: colors.primary_text,
                   },
                   height: isMobile ? 300 : 320, // Adjusted table height
                 }}

@@ -420,6 +420,52 @@
   gap: 12px;
   padding: 12px 0 24px 0;
 }
+
+/* Light theme pagination */
+.light .page-btn,
+.light .page-number {
+  background: var(--primary-bg, #ffffff);
+  color: var(--primary-text, #1a1a1a);
+  border: 1px solid var(--border-color, #e5e7eb);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.light .page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.light .page-number.active {
+  background: var(--primary-accent, #14b8a6);
+  color: var(--button-text, #ffffff);
+  border-color: var(--primary-accent, #14b8a6);
+}
+
+/* Dark theme pagination */
+.dark .page-btn,
+.dark .page-number {
+  background: var(--primary-bg, #0b0b0b);
+  color: var(--primary-text, #ffffff);
+  border: 1px solid var(--border-color, #333333);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dark .page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dark .page-number.active {
+  background: var(--primary-accent, #14b8a6);
+  color: var(--button-text, #071011);
+  border-color: var(--primary-accent, #14b8a6);
+}
+
+/* Legacy fallback for components not using theme classes */
 .page-btn,
 .page-number {
   background: #0b0b0b;

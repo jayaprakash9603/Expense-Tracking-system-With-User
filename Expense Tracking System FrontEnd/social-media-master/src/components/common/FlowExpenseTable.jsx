@@ -196,7 +196,7 @@ const FlowExpenseTable = ({
             },
             "& .MuiDataGrid-row:hover": { bgcolor: colors.hover_bg },
             "& .MuiDataGrid-footerContainer": {
-              bgcolor: colors.hover_bg,
+              bgcolor: colors.primary_bg,
               color: colors.primary_text,
             },
             "& .MuiTablePagination-root": { color: colors.primary_text },
