@@ -36,6 +36,17 @@ public class UserUpdateRequest {
     @Size(max = 500, message = "Bio must not exceed 500 characters")
     private String bio;
 
+    @Size(max = 1000, message = "Profile image URL must not exceed 1000 characters")
+    private String profileImage;
+
+    @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Mobile number should be valid")
+    private String mobile;
+
+    @Size(max = 100, message = "Occupation must not exceed 100 characters")
+    private String occupation;
+
+    private String dateOfBirth;
+
     @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
     private String firstName;
 
