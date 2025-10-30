@@ -13,6 +13,7 @@ import {
 import { IconButton, useMediaQuery } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { useTheme } from "../hooks/useTheme";
+import useUserSettings from "../hooks/useUserSettings";
 
 const formatNumber0 = (v) =>
   Number(v ?? 0).toLocaleString(undefined, {
@@ -38,6 +39,8 @@ const MonthlyTrendChart = ({
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:1024px)");
   const chartHeight = isMobile ? 260 : isTablet ? 380 : 480;
+   const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   const labels = Array.isArray(data?.labels) ? data.labels : [];
   const series = Array.isArray(data?.datasets?.[0]?.data)
@@ -127,7 +130,7 @@ const MonthlyTrendChart = ({
           <YAxis
             stroke={colors.secondary_text}
             fontSize={12}
-            tickFormatter={(value) => `₹${Math.round(value / 1000)}K`}
+            tickFormatter={(value) => `${currencySymbol}${Math.round(value / 1000)}K`}
           />
           <Tooltip
             contentStyle={{
@@ -145,7 +148,7 @@ const MonthlyTrendChart = ({
               color: colors.primary_text,
             }}
             formatter={(value, name) => [
-              `₹${formatNumber0(value)}`,
+              `${currencySymbol}${formatNumber0(value)}`,
               name === "expenses" ? "Expenses" : "Average",
             ]}
           />

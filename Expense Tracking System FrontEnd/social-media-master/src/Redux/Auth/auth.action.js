@@ -15,6 +15,7 @@ import {
   UPLOAD_TO_CLOUDINARY_REQUEST,
   UPLOAD_TO_CLOUDINARY_SUCCESS,
 } from "./auth.actionType";
+import { CLEAR_USER_SETTINGS } from "../UserSettings/userSettings.actionType";
 import axios from "axios";
 
 // Redirect helper function
@@ -165,5 +166,6 @@ export const logoutAction = () => (dispatch) => {
   localStorage.removeItem("jwt");
 
   dispatch({ type: "LOGOUT" });
+  dispatch({ type: CLEAR_USER_SETTINGS }); // Clear user settings on logout
   updateAuthHeader();
 };

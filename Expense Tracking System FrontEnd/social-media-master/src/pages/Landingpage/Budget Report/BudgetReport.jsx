@@ -91,6 +91,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTheme } from "../../../hooks/useTheme";
+import useUserSettings from "../../../hooks/useUserSettings";
 import dayjs from "dayjs";
 import "./BudgetReport.css";
 import { Target } from "lucide-react";
@@ -99,6 +100,8 @@ const BudgetReport = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
   const { budgetId, friendId } = useParams();
 
   // State management
@@ -140,7 +143,7 @@ const BudgetReport = () => {
       { field: "paymentMethod", headerName: "Payment Method", flex: 1 },
       {
         field: "amount",
-        headerName: "Amount (₹)",
+        headerName: `Amount (${currencySymbol})`,
         type: "number",
         flex: 0.8,
         headerAlign: "right",

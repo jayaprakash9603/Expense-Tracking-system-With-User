@@ -25,6 +25,7 @@ import { IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
+import useUserSettings from "../../hooks/useUserSettings";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -296,13 +297,13 @@ const FilterInfo = ({
 );
 
 // Summary Cards Component
-const SummaryCards = ({ analytics }) => (
+const SummaryCards = ({ analytics, currencySymbol = "₹" }) => (
   <div className="summary-cards">
     <div className="summary-card total">
       <div className="card-icon">💰</div>
       <div className="card-content">
         <h3>Total Expenses</h3>
-        <p className="amount">₹{analytics.totalExpenses.toFixed(2)}</p>
+        <p className="amount">{currencySymbol}{analytics.totalExpenses.toFixed(2)}</p>
       </div>
     </div>
     <div className="summary-card bills">
@@ -316,7 +317,7 @@ const SummaryCards = ({ analytics }) => (
       <div className="card-icon">📈</div>
       <div className="card-content">
         <h3>Average per Bill</h3>
-        <p className="amount">₹{analytics.averageExpense.toFixed(2)}</p>
+        <p className="amount">{currencySymbol}{analytics.averageExpense.toFixed(2)}</p>
       </div>
     </div>
     <div className="summary-card categories">
@@ -341,7 +342,7 @@ const NoDataMessage = () => (
 );
 
 // Category Bar Chart Component
-const CategoryBarChart = ({ categoryChartData }) => (
+const CategoryBarChart = ({ categoryChartData, currencySymbol = "₹" }) => (
   <div className="chart-container chart-half-width">
     <h3>💼 Expenses by Category</h3>
     <ResponsiveContainer width="100%" height={300}>
@@ -349,7 +350,7 @@ const CategoryBarChart = ({ categoryChartData }) => (
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
         <YAxis />
-        <Tooltip formatter={(value) => [`₹${value}`, "Amount"]} />
+        <Tooltip formatter={(value) => [`${currencySymbol}${value}`, "Amount"]} />
         <Legend />
         <Bar dataKey="amount" fill="#14b8a6" radius={[4, 4, 0, 0]} />
       </BarChart>

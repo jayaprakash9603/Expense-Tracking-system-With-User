@@ -11,11 +11,15 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { BarChart3 } from "lucide-react";
+import useUserSettings from "../../hooks/useUserSettings";
 
 // Payment Methods Usage Analysis (Pareto-like: amount bars + cumulative % + transactions)
 // Expects data: [{ method, totalAmount, transactions, cumulative(optional) }]
 // We compute cumulative internally if not provided.
 const PaymentUsageChart = ({ data = [] }) => {
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
+
   const total = data.reduce((s, d) => s + (d.totalAmount || 0), 0) || 0;
   const sorted = [...data].sort(
     (a, b) => (b.totalAmount || 0) - (a.totalAmount || 0)
@@ -72,8 +76,8 @@ const PaymentUsageChart = ({ data = [] }) => {
                 ];
               if (name === "totalAmount")
                 return [
-                  `₹${Number(value || 0).toLocaleString()}`,
-                  "Amount (₹)",
+                  `${currencySymbol}${Number(value || 0).toLocaleString()}`,
+                  `Amount (${currencySymbol})`,
                 ];
               return [value, name];
             }}
@@ -89,7 +93,7 @@ const PaymentUsageChart = ({ data = [] }) => {
             yAxisId="left"
             dataKey="totalAmount"
             fill="#06d6a0"
-            name="Amount (₹)"
+            name={`Amount (${currencySymbol})`}
             radius={[4, 4, 0, 0]}
           />
           <Line

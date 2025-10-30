@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -49,6 +49,7 @@ import {
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
 import { useTheme } from "../../hooks/useTheme";
 import ToastNotification from "./ToastNotification";
+import { updateUserSettings } from "../../Redux/UserSettings/userSettings.action";
 
 /**
  * Settings Page Component
@@ -59,17 +60,20 @@ const Settings = () => {
   const navigate = useNavigate();
   const { colors, mode } = useTheme();
   const { user } = useSelector((state) => state.auth || {});
+  const { settings: userSettings, loading: settingsLoading } = useSelector(
+    (state) => state.userSettings || {}
+  );
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
-  // State management
+  // State management - Initialize from Redux store
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [budgetAlerts, setBudgetAlerts] = useState(true);
   const [weeklyReports, setWeeklyReports] = useState(false);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [friendRequests, setFriendRequests] = useState(true);
   const [language, setLanguage] = useState("en");
-  const [currency, setCurrency] = useState("USD");
-  const [dateFormat, setDateFormat] = useState("MM/DD/YYYY");
+  const [currency, setCurrency] = useState("INR");
+  const [dateFormat, setDateFormat] = useState("DD/MM/YYYY");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -80,12 +84,36 @@ const Settings = () => {
 
   const isDark = mode === "dark";
 
+  // Sync local state with Redux store when settings are loaded
+  useEffect(() => {
+    if (userSettings) {
+      setEmailNotifications(userSettings.emailNotifications ?? true);
+      setBudgetAlerts(userSettings.budgetAlerts ?? true);
+      setWeeklyReports(userSettings.weeklyReports ?? false);
+      setPushNotifications(userSettings.pushNotifications ?? true);
+      setFriendRequests(userSettings.friendRequestNotifications ?? true);
+      setLanguage(userSettings.language ?? "en");
+      setCurrency(userSettings.currency ?? "INR");
+      setDateFormat(userSettings.dateFormat ?? "DD/MM/YYYY");
+    }
+  }, [userSettings]);
+
+  // Helper function to update settings in backend
+  const updateSettings = async (updates) => {
+    try {
+      await dispatch(updateUserSettings(updates));
+      showSnackbar("Settings updated successfully", "success");
+    } catch (error) {
+      showSnackbar("Failed to update settings", "error");
+      console.error("Error updating settings:", error);
+    }
+  };
+
   const handleThemeToggle = () => {
     dispatch(toggleTheme());
-    showSnackbar(
-      `Theme changed to ${isDark ? "light" : "dark"} mode`,
-      "success"
-    );
+    const newMode = isDark ? "light" : "dark";
+    updateSettings({ themeMode: newMode });
+    showSnackbar(`Theme changed to ${newMode} mode`, "success");
   };
 
   const showSnackbar = (message, severity = "success") => {
@@ -421,11 +449,11 @@ const Settings = () => {
               isSwitch
               switchChecked={emailNotifications}
               onSwitchChange={(e) => {
-                setEmailNotifications(e.target.checked);
+                const checked = e.target.checked;
+                setEmailNotifications(checked);
+                updateSettings({ emailNotifications: checked });
                 showSnackbar(
-                  `Email notifications ${
-                    e.target.checked ? "enabled" : "disabled"
-                  }`,
+                  `Email notifications ${checked ? "enabled" : "disabled"}`,
                   "success"
                 );
               }}
@@ -438,9 +466,11 @@ const Settings = () => {
               isSwitch
               switchChecked={budgetAlerts}
               onSwitchChange={(e) => {
-                setBudgetAlerts(e.target.checked);
+                const checked = e.target.checked;
+                setBudgetAlerts(checked);
+                updateSettings({ budgetAlerts: checked });
                 showSnackbar(
-                  `Budget alerts ${e.target.checked ? "enabled" : "disabled"}`,
+                  `Budget alerts ${checked ? "enabled" : "disabled"}`,
                   "success"
                 );
               }}
@@ -453,9 +483,11 @@ const Settings = () => {
               isSwitch
               switchChecked={weeklyReports}
               onSwitchChange={(e) => {
-                setWeeklyReports(e.target.checked);
+                const checked = e.target.checked;
+                setWeeklyReports(checked);
+                updateSettings({ weeklyReports: checked });
                 showSnackbar(
-                  `Weekly reports ${e.target.checked ? "enabled" : "disabled"}`,
+                  `Weekly reports ${checked ? "enabled" : "disabled"}`,
                   "success"
                 );
               }}
@@ -468,11 +500,11 @@ const Settings = () => {
               isSwitch
               switchChecked={pushNotifications}
               onSwitchChange={(e) => {
-                setPushNotifications(e.target.checked);
+                const checked = e.target.checked;
+                setPushNotifications(checked);
+                updateSettings({ pushNotifications: checked });
                 showSnackbar(
-                  `Push notifications ${
-                    e.target.checked ? "enabled" : "disabled"
-                  }`,
+                  `Push notifications ${checked ? "enabled" : "disabled"}`,
                   "success"
                 );
               }}
@@ -485,10 +517,12 @@ const Settings = () => {
               isSwitch
               switchChecked={friendRequests}
               onSwitchChange={(e) => {
-                setFriendRequests(e.target.checked);
+                const checked = e.target.checked;
+                setFriendRequests(checked);
+                updateSettings({ friendRequestNotifications: checked });
                 showSnackbar(
                   `Friend request notifications ${
-                    e.target.checked ? "enabled" : "disabled"
+                    checked ? "enabled" : "disabled"
                   }`,
                   "success"
                 );
@@ -551,7 +585,9 @@ const Settings = () => {
                 { value: "hi", label: "Hindi" },
               ]}
               onSelectChange={(e) => {
-                setLanguage(e.target.value);
+                const value = e.target.value;
+                setLanguage(value);
+                updateSettings({ language: value });
                 showSnackbar("Language preference updated", "success");
               }}
             />
@@ -570,7 +606,9 @@ const Settings = () => {
                 { value: "JPY", label: "JPY (¥)" },
               ]}
               onSelectChange={(e) => {
-                setCurrency(e.target.value);
+                const value = e.target.value;
+                setCurrency(value);
+                updateSettings({ currency: value });
                 showSnackbar("Currency preference updated", "success");
               }}
             />
@@ -587,7 +625,9 @@ const Settings = () => {
                 { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
               ]}
               onSelectChange={(e) => {
-                setDateFormat(e.target.value);
+                const value = e.target.value;
+                setDateFormat(value);
+                updateSettings({ dateFormat: value });
                 showSnackbar("Date format updated", "success");
               }}
             />

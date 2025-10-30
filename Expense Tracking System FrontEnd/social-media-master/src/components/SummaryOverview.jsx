@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
+import useUserSettings from "../hooks/useUserSettings";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -24,6 +25,8 @@ const formatNumber0 = (v) =>
  */
 const SummaryOverview = ({ summary }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
   const isMobile = useMediaQuery("(max-width:600px)");
   const s = {
     totalExpenses: summary?.totalExpenses ?? 30557,
@@ -53,8 +56,8 @@ const SummaryOverview = ({ summary }) => {
       { name: "Vacation", current: 8000, target: 15000 },
     ],
     recommendations: summary?.recommendations ?? [
-      { id: 1, text: "Reduce dining out to save ~₹1500/month" },
-      { id: 2, text: "Move ₹2000 to high-yield savings" },
+      { id: 1, text: `Reduce dining out to save ~${currencySymbol}1500/month` },
+      { id: 2, text: `Move ${currencySymbol}2000 to high-yield savings` },
     ],
   };
 
@@ -80,8 +83,16 @@ const SummaryOverview = ({ summary }) => {
       <div className="overview-content">
         <div className="overview-metrics">
           {[
-            ["💸", "Total Expenses", `₹${formatNumber0(s.totalExpenses)}`],
-            ["🏦", "Credit Due", `₹${formatNumber0(Math.abs(s.creditDue))}`],
+            [
+              "💸",
+              "Total Expenses",
+              `${currencySymbol}${formatNumber0(s.totalExpenses)}`,
+            ],
+            [
+              "🏦",
+              "Credit Due",
+              `${currencySymbol}${formatNumber0(Math.abs(s.creditDue))}`,
+            ],
             ["📊", "Active Budgets", s.budgetsActive],
             ["👥", "Friends", s.friendsCount],
             ["🧑‍🤝‍🧑", "Groups", s.groupsCount],
@@ -146,7 +157,10 @@ const SummaryOverview = ({ summary }) => {
                   borderRadius: 8,
                   color: colors.primary_text,
                 }}
-                formatter={(value) => [`₹${formatNumber0(value)}`, "Spending"]}
+                formatter={(value) => [
+                  `${currencySymbol}${formatNumber0(value)}`,
+                  "Spending",
+                ]}
               />
               <Area
                 type="monotone"
@@ -165,7 +179,7 @@ const SummaryOverview = ({ summary }) => {
           {[
             [
               "Avg Daily Spend",
-              `₹${formatNumber0(s.averageDaily)}`,
+              `${currencySymbol}${formatNumber0(s.averageDaily)}`,
               "Last 30 days",
             ],
             ["Savings Rate", `${s.savingsRate}%`, "of income"],
@@ -241,7 +255,8 @@ const SummaryOverview = ({ summary }) => {
                       className="cat-value"
                       style={{ color: colors.primary_text }}
                     >
-                      ₹{formatNumber0(e.amount)}
+                      {currencySymbol}
+                      {formatNumber0(e.amount)}
                     </span>
                   </div>
                 </li>

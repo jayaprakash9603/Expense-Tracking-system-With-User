@@ -10,6 +10,7 @@ import {
   Cell,
 } from "recharts";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 // Tooltip renderer extracted & simplified from CategoryFlow.
 const CategoryStackTooltip = ({
@@ -20,6 +21,7 @@ const CategoryStackTooltip = ({
   isTablet,
   formatCompactNumber,
   colors,
+  currencySymbol = "₹",
 }) => {
   if (!active || !payload || !payload.length) return null;
   const nameMax = isMobile ? 110 : isTablet ? 150 : 180;
@@ -95,7 +97,8 @@ const CategoryStackTooltip = ({
                   color: colors.primary_text,
                 }}
               >
-                ₹{formatCompactNumber(item?.value || 0)}
+                {currencySymbol}
+                {formatCompactNumber(item?.value || 0)}
               </div>
             </div>
           </div>
@@ -120,6 +123,8 @@ const CategoryFlowChart = ({
   onSegmentClick,
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -153,6 +158,7 @@ const CategoryFlowChart = ({
               isTablet={isTablet}
               formatCompactNumber={formatCompactNumber}
               colors={colors}
+              currencySymbol={currencySymbol}
             />
           }
           wrapperStyle={{ zIndex: 9999 }}

@@ -1,4 +1,5 @@
 import React from "react";
+import useUserSettings from "../../hooks/useUserSettings";
 
 /**
  * SharedOverviewCards
@@ -8,8 +9,10 @@ import React from "react";
 const SharedOverviewCards = ({
   data = [],
   mode = "payment",
-  currencySymbol = "₹",
+  currencySymbol,
 }) => {
+  const settings = useUserSettings();
+  const displayCurrency = currencySymbol || settings.getCurrency().symbol;
   const safe = Array.isArray(data) ? data : [];
   const isPayment = mode === "payment";
   const isCategory = mode === "category";
@@ -78,7 +81,7 @@ const SharedOverviewCards = ({
         <div className="card-content">
           <h3>Total Spending</h3>
           <div className="card-value">
-            {currencySymbol}
+            {displayCurrency}
             {Number(totalAmount).toLocaleString()}
           </div>
           <div className="card-change positive">
@@ -112,7 +115,7 @@ const SharedOverviewCards = ({
             {isExpenses ? topExpenseName : topItem?.[nameKey]}
           </div>
           <div className="card-change">
-            {currencySymbol}
+            {displayCurrency}
             {(isExpenses
               ? Number(topExpenseAmount || 0)
               : Number(topItem?.[amountKey] || 0)
@@ -128,7 +131,7 @@ const SharedOverviewCards = ({
         <div className="card-content">
           <h3>Avg Transaction</h3>
           <div className="card-value">
-            {currencySymbol}
+            {displayCurrency}
             {Math.round(avgTransactionValue)}
           </div>
           <div className="card-change negative">

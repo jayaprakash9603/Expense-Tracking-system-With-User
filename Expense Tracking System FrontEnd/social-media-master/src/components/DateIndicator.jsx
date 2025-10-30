@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
+import useUserSettings from "../hooks/useUserSettings";
 
 /**
  * DateIndicator Component
@@ -23,6 +24,9 @@ const DateIndicator = ({
   customBadgeText = null,
   customColors = null,
 }) => {
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
+
   // Default color schemes for different types
   const colorSchemes = {
     today: {
@@ -35,8 +39,8 @@ const DateIndicator = ({
       primary: "#22c55e",
       secondary: "#16a34a",
       accent: "rgba(34, 197, 94, 0.3)",
-      text: "₹ SALARY",
-      icon: "₹",
+      text: `${currencySymbol} SALARY`,
+      icon: currencySymbol,
     },
   };
 

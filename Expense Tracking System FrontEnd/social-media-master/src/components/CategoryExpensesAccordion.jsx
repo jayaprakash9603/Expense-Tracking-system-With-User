@@ -1,5 +1,6 @@
 import React from "react";
 import GenericAccordionGroup from "./GenericAccordionGroup";
+import useUserSettings from "../hooks/useUserSettings";
 
 /**
  * CategoryExpensesAccordion
@@ -8,9 +9,13 @@ import GenericAccordionGroup from "./GenericAccordionGroup";
  *
  * Props:
  * - categories: Array of category spending objects (name, amount, transactions, expenses, percentage, avgPerTransaction)
- * - currencySymbol: String currency symbol displayed with amounts (default '₹').
+ * - currencySymbol: String currency symbol displayed with amounts (optional, uses user settings if not provided).
  */
-const CategoryExpensesAccordion = ({ categories = [], currencySymbol = "₹" }) => {
+const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
+  const settings = useUserSettings();
+
+  // Use provided currency symbol or get from user settings
+  const displayCurrency = currencySymbol || settings.getCurrency().symbol;
   const groups = (Array.isArray(categories) ? categories : []).map((c) => ({
     label: c.name,
     totalAmount: c.amount,
@@ -33,12 +38,15 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol = "₹" }) 
       label: "Amount",
       width: "110px",
       value: (row) => row.details?.amount ?? row.details?.netAmount ?? 0,
-      sortValue: (row) => Number(row.details?.amount ?? row.details?.netAmount ?? 0),
+      sortValue: (row) =>
+        Number(row.details?.amount ?? row.details?.netAmount ?? 0),
       className: (row) => {
         const rawType = (row?.details?.type || "").toLowerCase();
         if (rawType === "loss") return "pm-negative";
         if (rawType === "gain" || rawType === "profit") return "pm-positive";
-        const amt = Number(row?.details?.amount ?? row?.details?.netAmount ?? 0);
+        const amt = Number(
+          row?.details?.amount ?? row?.details?.netAmount ?? 0
+        );
         return amt < 0 ? "pm-negative" : "pm-positive";
       },
     },
@@ -52,7 +60,8 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol = "₹" }) 
       key: "creditDue",
       label: "Credit Due",
       width: "120px",
-      value: (row) => (row.details?.creditDue != null ? row.details.creditDue : "-"),
+      value: (row) =>
+        row.details?.creditDue != null ? row.details.creditDue : "-",
       sortValue: (row) => Number(row.details?.creditDue ?? 0),
     },
     {
@@ -82,7 +91,7 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol = "₹" }) 
       </div>
       <GenericAccordionGroup
         groups={groups}
-        currencySymbol={currencySymbol}
+        currencySymbol={displayCurrency}
         classify={classify}
         columns={columns}
         defaultPageSize={5}
@@ -104,11 +113,17 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol = "₹" }) 
                 </span>
               </div>
               <div className="pm-header-right">
-                <span className="metric-box avg" title="Average per Transaction">
-                  Avg - ₹{group.avgPerTransaction}
+                <span
+                  className="metric-box avg"
+                  title="Average per Transaction"
+                >
+                  Avg - {displayCurrency}
+                  {group.avgPerTransaction}
                 </span>
                 <span className="metric-box amount" title="Total Amount">
-                  ₹{Number(group.totalAmount || 0).toLocaleString()} ({group.percentage}%)
+                  {displayCurrency}
+                  {Number(group.totalAmount || 0).toLocaleString()} (
+                  {group.percentage}%)
                 </span>
                 <span className="pm-chevron" aria-hidden>
                   {isOpen ? "▾" : "▸"}

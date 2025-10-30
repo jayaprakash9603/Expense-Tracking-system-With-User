@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
 import { logoutAction } from "../../Redux/Auth/auth.action";
+import { updateUserSettings } from "../../Redux/UserSettings/userSettings.action";
 import Modal from "../../pages/Landingpage/Modal";
 
 /**
@@ -50,6 +51,12 @@ const HeaderBar = () => {
 
   const handleThemeToggle = () => {
     dispatch(toggleTheme());
+
+    // Update user settings in backend
+    const newMode = isDark ? "light" : "dark";
+    dispatch(updateUserSettings({ themeMode: newMode })).catch((error) => {
+      console.error("Failed to update theme setting:", error);
+    });
   };
 
   const handleProfileClick = () => {
