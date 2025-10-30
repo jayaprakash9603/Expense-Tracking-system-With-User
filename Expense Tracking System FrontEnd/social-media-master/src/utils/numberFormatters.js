@@ -21,7 +21,7 @@ export function formatNumberFull(value) {
   return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
-// Currency compact (prefix currency symbol) - default Indian Rupee.
+// Currency compact (prefix currency symbol) - caller should pass currencySymbol from user settings.
 export function formatCurrencyCompact(value, currencySymbol = "₹") {
   return `${currencySymbol}${formatCompactNumber(value)}`;
 }

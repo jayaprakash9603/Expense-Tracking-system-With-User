@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import useUserSettings from "../../../hooks/useUserSettings";
 import "./InvestmentDashboard.css";
 
 const InvestmentDashboard = () => {
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
   const [activeTimeFilter, setActiveTimeFilter] = useState("1M");
   const [showAddInvestment, setShowAddInvestment] = useState(false);
   const [newInvestment, setNewInvestment] = useState({
@@ -357,7 +360,7 @@ const InvestmentDashboard = () => {
                 </select>
               </div>
               <div className="investment-form-group">
-                <label>Amount (₹)</label>
+                <label>Amount ({currencySymbol})</label>
                 <input
                   type="number"
                   value={newInvestment.amount}

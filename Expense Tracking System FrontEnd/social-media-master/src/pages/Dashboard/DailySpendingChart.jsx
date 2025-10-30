@@ -104,6 +104,7 @@
 
 import React from "react";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -171,6 +172,8 @@ const DailySpendingChart = ({
   loading = false,
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -253,7 +256,9 @@ const DailySpendingChart = ({
             stroke={colors.primary_text}
             fontSize={12}
             tickLine={false}
-            tickFormatter={(value) => `₹${Math.round(value / 1000)}K`}
+            tickFormatter={(value) =>
+              `${currencySymbol}${Math.round(value / 1000)}K`
+            }
           />
 
           <Tooltip

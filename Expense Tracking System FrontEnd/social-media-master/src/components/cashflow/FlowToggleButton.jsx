@@ -1,6 +1,7 @@
 import React from "react";
 import { flowTypeCycleDefault as flowTypeCycle } from "../../utils/flowDateUtils";
 import { formatCurrencyCompact } from "../../utils/numberFormatters";
+import useUserSettings from "../../hooks/useUserSettings";
 
 const FlowToggleButton = ({
   flowTab,
@@ -11,6 +12,9 @@ const FlowToggleButton = ({
   shrinkFlowBtn,
   setShrinkFlowBtn,
 }) => {
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
+
   const cycleFlow = () => {
     setShrinkFlowBtn(true);
     setTimeout(() => setShrinkFlowBtn(false), 220);
@@ -124,10 +128,10 @@ const FlowToggleButton = ({
             </div>
             <div style={{ fontSize: 12, opacity: 0.95 }}>
               {flowTab === "inflow"
-                ? formatCurrencyCompact(totals.inflow)
+                ? formatCurrencyCompact(totals.inflow, currencySymbol)
                 : flowTab === "outflow"
-                ? formatCurrencyCompact(totals.outflow)
-                : formatCurrencyCompact(totals.total)}
+                ? formatCurrencyCompact(totals.outflow, currencySymbol)
+                : formatCurrencyCompact(totals.total, currencySymbol)}
             </div>
           </div>
         )}

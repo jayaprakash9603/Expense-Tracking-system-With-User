@@ -4,6 +4,7 @@ import { IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { DataGrid } from "@mui/x-data-grid";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 /**
  * FlowExpenseTable
@@ -18,6 +19,8 @@ const FlowExpenseTable = ({
   onClose,
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
   const [sort, setSort] = useState({ field: "date", direction: "desc" });
 
   const rows = useMemo(
@@ -113,7 +116,8 @@ const FlowExpenseTable = ({
               fontWeight: "bold",
             }}
           >
-            ₹{Number(params.value)}
+            {currencySymbol}
+            {Number(params.value)}
           </div>
         );
       },

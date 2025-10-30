@@ -39,9 +39,12 @@ import Modal from "./Modal";
 import ToastNotification from "./ToastNotification";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 const Budget = () => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [sortModel, setSortModel] = useState([]);
@@ -180,7 +183,7 @@ const Budget = () => {
         maxWidth: 180,
         sortable: true,
         renderCell: (params) =>
-          `$${params.value ? params.value.toFixed(2) : "0.00"}`,
+          `${currencySymbol}${params.value ? params.value.toFixed(2) : "0.00"}`,
       },
     ];
     const baseLarge = [
@@ -210,7 +213,7 @@ const Budget = () => {
         maxWidth: 150,
         sortable: true,
         renderCell: (params) =>
-          `$${params.value ? params.value.toFixed(2) : "0.00"}`,
+          `${currencySymbol}${params.value ? params.value.toFixed(2) : "0.00"}`,
       },
       {
         field: "startDate",
@@ -238,7 +241,7 @@ const Budget = () => {
         maxWidth: 180,
         sortable: true,
         renderCell: (params) =>
-          `$${params.value ? params.value.toFixed(2) : "0.00"}`,
+          `${currencySymbol}${params.value ? params.value.toFixed(2) : "0.00"}`,
       },
     ];
 
@@ -311,13 +314,13 @@ const Budget = () => {
     ? {
         name: budgetToDelete.name || "N/A",
         amount: budgetToDelete.amount
-          ? `$${budgetToDelete.amount.toFixed(2)}`
+          ? `${currencySymbol}${budgetToDelete.amount.toFixed(2)}`
           : "N/A",
         description: budgetToDelete.description || "N/A",
         startDate: budgetToDelete.startDate || "N/A",
         endDate: budgetToDelete.endDate || "N/A",
         remainingAmount: budgetToDelete.remainingAmount
-          ? `$${budgetToDelete.remainingAmount.toFixed(2)}`
+          ? `${currencySymbol}${budgetToDelete.remainingAmount.toFixed(2)}`
           : "N/A",
       }
     : {};

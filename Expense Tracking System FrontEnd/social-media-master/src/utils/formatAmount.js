@@ -1,6 +1,7 @@
 /**
  * formatAmount(value, { currencySymbol, minimumFractionDigits, maximumFractionDigits })
  * Lightweight reusable amount formatter.
+ * Note: Default currencySymbol can be overridden by passing from user settings.
  */
 export function formatAmount(
   value,

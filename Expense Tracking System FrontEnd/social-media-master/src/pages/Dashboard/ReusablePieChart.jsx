@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 import {
   ResponsiveContainer,
   PieChart,
@@ -30,7 +31,7 @@ import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 //  innerRadius, outerRadius: override radii
 //  renderFooterTotal: bool - show Total footer
 //  footerPrefix: string - prefix for total (e.g. 'Total:')
-//  valuePrefix: currency symbol default '₹'
+//  valuePrefix: currency symbol default (uses user settings)
 //  skeleton: optional React node (caller passes while loading)
 
 const DEFAULT_COLORS = [
@@ -70,10 +71,12 @@ const ReusablePieChart = ({
   outerRadius,
   renderFooterTotal = true,
   footerPrefix = "Total:",
-  valuePrefix = "₹",
+  valuePrefix,
   skeleton = null,
 }) => {
   const { colors: themeColors, mode: themeMode } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = valuePrefix || settings.getCurrency().symbol;
   const [activeIndex, setActiveIndex] = useState(null);
   const [legendTooltip, setLegendTooltip] = useState(null);
   const chartRef = useRef(null);
@@ -387,7 +390,7 @@ const ReusablePieChart = ({
           className="total-amount total-amount-bottom"
           style={{ color: themeColors.primary_text }}
         >
-          {footerPrefix} {valuePrefix}
+          {footerPrefix} {currencySymbol}
           {formatNumber0(totalAmount)}
         </div>
       )}

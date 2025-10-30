@@ -30,9 +30,12 @@ import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { updateBill, getBillById } from "../../Redux/Bill/bill.action";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 const EditBill = ({ onClose, onSuccess, billId }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   const labelStyle = `text-sm sm:text-base font-semibold mr-4`;
   const inputWrapper = {
@@ -1438,7 +1441,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                       className="font-semibold"
                       style={{ color: colors.primary_text }}
                     >
-                      Total Amount: ₹
+                      Total Amount: {currencySymbol}
                       {tempExpenses
                         .reduce(
                           (sum, expense) => sum + (expense.totalPrice || 0),
@@ -1556,7 +1559,8 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                               className="font-semibold text-xs whitespace-nowrap"
                               style={{ color: colors.secondary_accent }}
                             >
-                              ₹{expense.totalPrice.toFixed(2)}
+                              {currencySymbol}
+                              {expense.totalPrice.toFixed(2)}
                             </div>
                           </div>
                           <div className="space-y-1 text-[10px]">
@@ -1579,7 +1583,8 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                                 className="font-medium"
                                 style={{ color: colors.primary_text }}
                               >
-                                ₹{parseFloat(expense.unitPrice).toFixed(2)}
+                                {currencySymbol}
+                                {parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
                             </div>
                             <div className="flex justify-between">
@@ -1587,7 +1592,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                                 Calc
                               </span>
                               <span style={{ color: colors.secondary_text }}>
-                                {expense.quantity} × ₹
+                                {expense.quantity} × {currencySymbol}
                                 {parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
                             </div>
@@ -1635,7 +1640,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                         className="font-bold text-lg"
                         style={{ color: colors.secondary_accent }}
                       >
-                        ₹
+                        {currencySymbol}
                         {expenses
                           .reduce((sum, expense) => sum + expense.totalPrice, 0)
                           .toFixed(2)}

@@ -17,6 +17,7 @@ import useAverageLine from "./cashflow/useAverageLine";
 import useTooltipFormatter from "./cashflow/useTooltipFormatter";
 import useSelectionHelpers from "./cashflow/useSelectionHelpers";
 import { useTheme } from "../hooks/useTheme";
+import useUserSettings from "../hooks/useUserSettings";
 
 // Separate chart component extracted from CashFlow.jsx
 // Props are intentionally verbose to keep this presentational and stateless.
@@ -52,6 +53,8 @@ const CashFlowChart = ({
   weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
 }) => {
   const { colors, mode } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
   const { avg } = useAverageLine(chartData, activeRange, offset);
   const tooltipFormatter = useTooltipFormatter(
     activeRange,
@@ -202,7 +205,10 @@ const CashFlowChart = ({
           itemStyle={{
             color: colors.primary_text,
           }}
-          formatter={(value) => [formatCurrencyCompact(value), "Amount"]}
+          formatter={(value) => [
+            formatCurrencyCompact(value, currencySymbol),
+            "Amount",
+          ]}
           wrapperStyle={{ zIndex: 1000 }}
           labelFormatter={tooltipFormatter}
         />

@@ -39,7 +39,7 @@ const MonthlyTrendChart = ({
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:1024px)");
   const chartHeight = isMobile ? 260 : isTablet ? 380 : 480;
-   const settings = useUserSettings();
+  const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
 
   const labels = Array.isArray(data?.labels) ? data.labels : [];
@@ -130,7 +130,9 @@ const MonthlyTrendChart = ({
           <YAxis
             stroke={colors.secondary_text}
             fontSize={12}
-            tickFormatter={(value) => `${currencySymbol}${Math.round(value / 1000)}K`}
+            tickFormatter={(value) =>
+              `${currencySymbol}${Math.round(value / 1000)}K`
+            }
           />
           <Tooltip
             contentStyle={{

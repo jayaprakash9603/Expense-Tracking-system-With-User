@@ -32,9 +32,12 @@ import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../hooks/usePreviousExpense";
 import { createBill } from "../../Redux/Bill/bill.action";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 const CreateBill = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   const labelStyle = `text-sm sm:text-base font-semibold mr-4`;
   const inputWrapper = {
@@ -1444,7 +1447,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   {/* Total Summary - Centered */}
                   {tempExpenses.length > 0 && (
                     <div className="text-white font-semibold">
-                      Total Amount: ₹
+                      Total Amount: {currencySymbol}
                       {tempExpenses
                         .reduce(
                           (sum, expense) => sum + (expense.totalPrice || 0),
@@ -1573,7 +1576,8 @@ const CreateBill = ({ onClose, onSuccess }) => {
                               className="font-semibold text-xs whitespace-nowrap"
                               style={{ color: colors.secondary_accent }}
                             >
-                              ₹{expense.totalPrice.toFixed(2)}
+                              {currencySymbol}
+                              {expense.totalPrice.toFixed(2)}
                             </div>
                           </div>
                           <div className="space-y-1 text-[10px]">
@@ -1596,7 +1600,8 @@ const CreateBill = ({ onClose, onSuccess }) => {
                                 className="font-medium"
                                 style={{ color: colors.primary_text }}
                               >
-                                ₹{parseFloat(expense.unitPrice).toFixed(2)}
+                                {currencySymbol}
+                                {parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
                             </div>
                             <div className="flex justify-between">
@@ -1604,7 +1609,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                                 Calc
                               </span>
                               <span style={{ color: colors.secondary_text }}>
-                                {expense.quantity} × ₹
+                                {expense.quantity} × {currencySymbol}
                                 {parseFloat(expense.unitPrice).toFixed(2)}
                               </span>
                             </div>
@@ -1645,7 +1650,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                         Total Amount:
                       </span>
                       <span className="text-[#00dac6] font-bold text-lg">
-                        ₹
+                        {currencySymbol}
                         {expenses
                           .reduce((sum, expense) => sum + expense.totalPrice, 0)
                           .toFixed(2)}

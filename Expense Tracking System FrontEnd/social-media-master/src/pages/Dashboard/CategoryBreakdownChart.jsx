@@ -46,7 +46,6 @@ const CategoryBreakdownChart = ({
       height={480}
       renderFooterTotal={true}
       footerPrefix="Total:"
-      valuePrefix="₹"
     />
   );
 };

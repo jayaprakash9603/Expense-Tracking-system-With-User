@@ -2,6 +2,7 @@ import React from "react";
 import dayjs from "dayjs";
 import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
+import useUserSettings from "../hooks/useUserSettings";
 
 /**
  * PreviousExpenseIndicator Component
@@ -68,7 +69,8 @@ const PreviousExpenseIndicator = ({
     showAmount: true,
     showPaymentMethod: true,
     showType: true,
-    amountFormatter: (amount) => `${currencySymbol}${amount?.toLocaleString() || 0}`,
+    amountFormatter: (amount) =>
+      `${currencySymbol}${amount?.toLocaleString() || 0}`,
     paymentMethodFormatter: null,
     typeFormatter: null,
   };
