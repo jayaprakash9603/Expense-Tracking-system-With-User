@@ -27,8 +27,8 @@ const ChartTypeToggle = ({ selectedType, onToggle, options }) => {
           aria-pressed={selectedType === opt.value}
           style={{
             backgroundColor:
-              selectedType === opt.value ? opt.color : colors.button_bg,
-            color: selectedType === opt.value ? "white" : colors.button_text,
+              selectedType === opt.value ? opt.color : colors.button_inactive,
+            color: selectedType === opt.value ? "white" : colors.primary_text,
             border: `2px solid ${
               selectedType === opt.value ? opt.color : colors.border_color
             }`,

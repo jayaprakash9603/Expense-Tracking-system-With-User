@@ -25,11 +25,15 @@ public class UserDto {
     @JsonProperty("image")
     private String image;
 
+    @JsonProperty("profileImage")
+    private String profileImage;
+
     @JsonProperty("mobile")
     private String mobile;
 
     // Default constructor (required for JSON deserialization)
-    public UserDto() {}
+    public UserDto() {
+    }
 
     // Constructor with parameters
     public UserDto(Integer id, String username, String email, String firstName, String lastName) {
@@ -89,6 +93,14 @@ public class UserDto {
         this.image = image;
     }
 
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
     public String getMobile() {
         return mobile;
     }
@@ -106,6 +118,7 @@ public class UserDto {
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", image='" + image + '\'' +
+                ", profileImage='" + profileImage + '\'' +
                 ", mobile='" + mobile + '\'' +
                 '}';
     }

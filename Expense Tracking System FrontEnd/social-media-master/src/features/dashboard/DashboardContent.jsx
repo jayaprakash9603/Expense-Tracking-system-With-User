@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 import DashboardHeader from "../../components/DashboardHeader";
 import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SummaryOverview from "../../components/SummaryOverview";
@@ -22,6 +23,8 @@ import { createDashboardActions } from "./dashboardActions";
 // Central presentation component - minimal logic; relies on context for data/state.
 export default function DashboardContent() {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
   const {
     forceRefresh,
     categoryTimeframe,
@@ -73,6 +76,7 @@ export default function DashboardContent() {
       <MetricsGrid
         analyticsSummary={analyticsSummary}
         loading={analyticsLoading}
+        currencySymbol={currencySymbol}
       />
 
       <div className="charts-grid">

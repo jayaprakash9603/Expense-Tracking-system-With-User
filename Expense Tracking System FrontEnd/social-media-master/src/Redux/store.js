@@ -19,6 +19,7 @@ import { paymentMethodReducer } from "./Payment Method/paymentMethod.reducer"; /
 import billReducer from "./Bill/bill.reducer";
 import chatReducer from "./chats/chatReducer";
 import { themeReducer } from "./Theme/theme.reducer";
+import userSettingsReducer from "./UserSettings/userSettings.reducer";
 
 // Combine reducers
 const rootreducers = combineReducers({
@@ -34,6 +35,7 @@ const rootreducers = combineReducers({
   bill: billReducer,
   chats: chatReducer,
   theme: themeReducer,
+  userSettings: userSettingsReducer,
 });
 
 // Compose enhancer with DevTools support

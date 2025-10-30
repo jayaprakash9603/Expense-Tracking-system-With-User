@@ -69,7 +69,6 @@ const PaymentMethodChart = ({
       height={480}
       renderFooterTotal={true}
       footerPrefix="Total:"
-      valuePrefix="₹"
     />
   );
 };

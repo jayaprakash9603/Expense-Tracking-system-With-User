@@ -31,9 +31,12 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import useUserSettings from "../../hooks/useUserSettings";
 
 const EditExpense = ({}) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const location = useLocation();
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
@@ -423,7 +426,7 @@ const EditExpense = ({}) => {
               },
             }}
             disableFuture
-            format="DD-MM-YYYY"
+            format={dateFormat}
           />
         </LocalizationProvider>
       </div>

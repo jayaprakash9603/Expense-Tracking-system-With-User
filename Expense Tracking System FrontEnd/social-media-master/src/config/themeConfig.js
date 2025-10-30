@@ -40,6 +40,7 @@ export const THEME_COLORS = {
     icon_muted: "#666666", // Muted icon color
 
     // Button colors
+    button_inactive: "#28282a", // Light gray for inactive buttons
     button_bg: "#00DAC6", // Primary button background
     button_text: "#1b1b1b", // Primary button text
     button_hover: "#00b8a9", // Primary button hover
@@ -85,6 +86,7 @@ export const THEME_COLORS = {
     icon_muted: "#2a2a2a", // Muted icon color (very dark for visibility)
 
     // Button colors
+    button_inactive: "#e8e8e8", // Light gray for inactive buttons
     button_bg: "#14b8a6", // Primary button background
     button_text: "#ffffff", // Primary button text
     button_hover: "#0d9488", // Primary button hover

@@ -10,6 +10,7 @@ import {
   Cell,
 } from "recharts";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 // Generic tooltip for stacked flow charts (categories, payment methods, etc.)
 const FlowStackTooltip = ({
@@ -21,6 +22,7 @@ const FlowStackTooltip = ({
   formatCompactNumber,
   accentColor = "#14b8a6",
   colors,
+  currencySymbol = "₹",
 }) => {
   if (!active || !payload || !payload.length) return null;
   const nameMax = isMobile ? 110 : isTablet ? 150 : 180;
@@ -96,7 +98,8 @@ const FlowStackTooltip = ({
                   color: colors.primary_text,
                 }}
               >
-                ₹{formatCompactNumber(item?.value || 0)}
+                {currencySymbol}
+                {formatCompactNumber(item?.value || 0)}
               </div>
             </div>
           </div>
@@ -122,6 +125,8 @@ const FlowStackedChart = ({
   accentColor,
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -132,14 +137,14 @@ const FlowStackedChart = ({
         <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
         <XAxis
           dataKey={xAxisKey}
-          stroke={colors.secondary_text}
-          tick={{ fill: colors.secondary_text, fontWeight: 600, fontSize: 13 }}
+          stroke={colors.primary_text}
+          tick={{ fill: colors.primary_text, fontWeight: 600, fontSize: 13 }}
           tickLine={false}
           axisLine={{ stroke: colors.border_color }}
         />
         <YAxis
-          stroke={colors.secondary_text}
-          tick={{ fill: colors.secondary_text, fontWeight: 600, fontSize: 13 }}
+          stroke={colors.primary_text}
+          tick={{ fill: colors.primary_text, fontWeight: 600, fontSize: 13 }}
           axisLine={{ stroke: colors.border_color }}
           tickLine={false}
           width={80}
@@ -156,6 +161,7 @@ const FlowStackedChart = ({
               formatCompactNumber={formatCompactNumber}
               accentColor={accentColor}
               colors={colors}
+              currencySymbol={currencySymbol}
             />
           }
           wrapperStyle={{ zIndex: 9999 }}

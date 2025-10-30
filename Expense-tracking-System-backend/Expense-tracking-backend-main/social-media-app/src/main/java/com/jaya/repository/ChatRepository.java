@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.jaya.models.Chat;
-import com.jaya.models.User;
+import com.jaya.dto.User;
 
 public interface ChatRepository extends JpaRepository<Chat, Integer>{
 

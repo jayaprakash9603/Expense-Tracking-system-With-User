@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 /**
  * ============================================================================
@@ -341,6 +342,7 @@ const TooltipHeader = ({
   theme,
   styles,
   responsiveStyles,
+  currencySymbol = "₹",
 }) => {
   const gradient = isLoss
     ? "linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)"
@@ -429,7 +431,8 @@ const TooltipHeader = ({
               letterSpacing: "-0.5px",
             }}
           >
-            ₹{formatNumber(amount)}
+            {currencySymbol}
+            {formatNumber(amount)}
           </div>
         </div>
       </div>
@@ -440,7 +443,13 @@ const TooltipHeader = ({
 /**
  * Transaction Item Component
  */
-const TransactionItem = ({ expense, theme, responsiveStyles, colors }) => (
+const TransactionItem = ({
+  expense,
+  theme,
+  responsiveStyles,
+  colors,
+  currencySymbol = "₹",
+}) => (
   <div
     style={{
       background: colors.tertiary_bg,
@@ -478,7 +487,8 @@ const TransactionItem = ({ expense, theme, responsiveStyles, colors }) => (
           whiteSpace: "nowrap",
         }}
       >
-        ₹{formatNumber(expense.amount)}
+        {currencySymbol}
+        {formatNumber(expense.amount)}
       </div>
     </div>
     <div
@@ -521,6 +531,7 @@ const TransactionsList = ({
   responsiveStyles,
   styles,
   colors,
+  currencySymbol = "₹",
 }) => {
   if (expenses.length === 0) return null;
 
@@ -593,13 +604,14 @@ const TransactionsList = ({
           gap: responsiveStyles.spacing.itemGap,
         }}
       >
-        {displayExpenses.map((exp, idx) => (
+        {displayExpenses.map((expense, index) => (
           <TransactionItem
-            key={idx}
-            expense={exp}
+            key={index}
+            expense={expense}
             theme={theme}
             responsiveStyles={responsiveStyles}
             colors={colors}
+            currencySymbol={currencySymbol}
           />
         ))}
       </div>
@@ -628,6 +640,8 @@ const SpendingChartTooltip = ({
   theme,
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   // Early return if tooltip is not active
   if (!active || !payload || !payload.length) return null;
@@ -679,6 +693,7 @@ const SpendingChartTooltip = ({
         theme={theme}
         styles={customStyles}
         responsiveStyles={responsiveStyles}
+        currencySymbol={currencySymbol}
       />
       <TransactionsList
         expenses={expenses}
@@ -688,6 +703,7 @@ const SpendingChartTooltip = ({
         responsiveStyles={responsiveStyles}
         styles={customStyles}
         colors={colors}
+        currencySymbol={currencySymbol}
       />
     </div>
   );
@@ -720,6 +736,7 @@ TooltipHeader.propTypes = {
   theme: PropTypes.object.isRequired,
   styles: PropTypes.object.isRequired,
   responsiveStyles: PropTypes.object.isRequired,
+  currencySymbol: PropTypes.string,
 };
 
 TransactionItem.propTypes = {
@@ -731,6 +748,7 @@ TransactionItem.propTypes = {
   theme: PropTypes.object.isRequired,
   responsiveStyles: PropTypes.object.isRequired,
   colors: PropTypes.object.isRequired,
+  currencySymbol: PropTypes.string,
 };
 
 TransactionsList.propTypes = {
@@ -741,6 +759,7 @@ TransactionsList.propTypes = {
   responsiveStyles: PropTypes.object.isRequired,
   styles: PropTypes.object.isRequired,
   colors: PropTypes.object.isRequired,
+  currencySymbol: PropTypes.string,
 };
 
 SpendingChartTooltip.propTypes = {

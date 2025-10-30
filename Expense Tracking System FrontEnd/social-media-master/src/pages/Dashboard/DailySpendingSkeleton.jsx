@@ -24,7 +24,7 @@ const DailySpendingSkeleton = ({
       className="chart-container daily-spending-chart"
       style={{
         backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "none", // Remove border as requested
       }}
     >
       <div className="chart-header">
@@ -32,19 +32,10 @@ const DailySpendingSkeleton = ({
           📊 Daily Spending Pattern
         </h3>
         <div className="chart-controls">
-          <div
-            className="time-selector skeleton-pill"
-            style={{ backgroundColor: colors.hover_bg }}
-          />
+          <div className="time-selector skeleton-pill" />
           <div className="type-toggle">
-            <div
-              className="toggle-btn loss skeleton-pill"
-              style={{ backgroundColor: colors.hover_bg }}
-            />
-            <div
-              className="toggle-btn gain skeleton-pill"
-              style={{ backgroundColor: colors.hover_bg }}
-            />
+            <div className="toggle-btn loss skeleton-pill" />
+            <div className="toggle-btn gain skeleton-pill" />
           </div>
         </div>
       </div>

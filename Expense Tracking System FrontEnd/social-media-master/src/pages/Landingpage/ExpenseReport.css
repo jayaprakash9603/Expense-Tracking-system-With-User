@@ -420,6 +420,52 @@
   gap: 12px;
   padding: 12px 0 24px 0;
 }
+
+/* Light theme pagination */
+.light .page-btn,
+.light .page-number {
+  background: var(--primary-bg, #ffffff);
+  color: var(--primary-text, #1a1a1a);
+  border: 1px solid var(--border-color, #e5e7eb);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.light .page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.light .page-number.active {
+  background: var(--primary-accent, #14b8a6);
+  color: var(--button-text, #ffffff);
+  border-color: var(--primary-accent, #14b8a6);
+}
+
+/* Dark theme pagination */
+.dark .page-btn,
+.dark .page-number {
+  background: var(--primary-bg, #0b0b0b);
+  color: var(--primary-text, #ffffff);
+  border: 1px solid var(--border-color, #333333);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dark .page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dark .page-number.active {
+  background: var(--primary-accent, #14b8a6);
+  color: var(--button-text, #071011);
+  border-color: var(--primary-accent, #14b8a6);
+}
+
+/* Legacy fallback for components not using theme classes */
 .page-btn,
 .page-number {
   background: #0b0b0b;
@@ -521,17 +567,17 @@
   color: #ffffff;
 }
 
-/* Chart customization for dark theme */
-.recharts-cartesian-grid-horizontal line,
-.recharts-cartesian-grid-vertical line {
+/* Chart customization for dark theme - scoped to expense reports */
+.expense-report .recharts-cartesian-grid-horizontal line,
+.expense-report .recharts-cartesian-grid-vertical line {
   stroke: #333333;
 }
 
-.recharts-text {
+.expense-report .recharts-text {
   fill: #ffffff !important;
 }
 
-.recharts-legend-item-text {
+.expense-report .recharts-legend-item-text {
   color: #ffffff !important;
 }
 
@@ -541,7 +587,7 @@
   border-radius: 8px !important;
 } */
 
-.recharts-default-tooltip {
+.expense-report .recharts-default-tooltip {
   background: #1b1b1b !important;
   border: 1px solid #333333 !important;
   border-radius: 8px !important;
@@ -669,16 +715,16 @@
   color: #ffffff !important;
 }
 
-/* Axis styling */
-.recharts-cartesian-axis-tick-value {
+/* Axis styling - scoped to expense reports */
+.expense-report .recharts-cartesian-axis-tick-value {
   fill: #ffffff !important;
 }
 
-.recharts-polar-angle-axis-tick-value {
+.expense-report .recharts-polar-angle-axis-tick-value {
   fill: #ffffff !important;
 }
 
-.recharts-polar-radius-axis-tick-value {
+.expense-report .recharts-polar-radius-axis-tick-value {
   fill: #ffffff !important;
 }
 
@@ -687,10 +733,158 @@
   stroke: #333333 !important;
 }
 
+/* DailySpendingChart specific overrides to allow theme-aware colors */
+.daily-spending-chart .recharts-cartesian-axis-tick-value {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+.daily-spending-chart .recharts-text {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+/* ReusablePieChart specific overrides to allow theme-aware colors */
+.reusable-pie-chart .recharts-text {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+.reusable-pie-chart .recharts-legend-item-text {
+  color: inherit !important; /* Allow theme colors to work */
+}
+
+.reusable-pie-chart .recharts-pie-label-text {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+.reusable-pie-chart .recharts-label {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+/* More specific overrides for pie chart labels */
+.light .reusable-pie-chart .recharts-text,
+.light .reusable-pie-chart .recharts-pie-label-text,
+.light .reusable-pie-chart .recharts-label {
+  fill: #1a1a1a !important; /* Force dark text in light theme */
+}
+
+.dark .reusable-pie-chart .recharts-text,
+.dark .reusable-pie-chart .recharts-pie-label-text,
+.dark .reusable-pie-chart .recharts-label {
+  fill: #ffffff !important; /* Force white text in dark theme */
+}
+
+/* Even more aggressive overrides for SVG text elements */
+.light .reusable-pie-chart svg text {
+  fill: #1a1a1a !important;
+}
+
+.dark .reusable-pie-chart svg text {
+  fill: #ffffff !important;
+}
+
+/* Target recharts generated text elements specifically */
+.light .reusable-pie-chart .recharts-wrapper text {
+  fill: #1a1a1a !important;
+}
+
+.dark .reusable-pie-chart .recharts-wrapper text {
+  fill: #ffffff !important;
+}
+
+/* NUCLEAR OPTION: Override all text in pie charts based on parent theme class */
+.light .chart-container.reusable-pie-chart text,
+.light .reusable-pie-chart text,
+.light [class*="reusable-pie-chart"] text {
+  fill: #1a1a1a !important;
+  color: #1a1a1a !important;
+}
+
+.dark .chart-container.reusable-pie-chart text,
+.dark .reusable-pie-chart text,
+.dark [class*="reusable-pie-chart"] text {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Dropdown/Select styling for chart components */
+.light .time-selector,
+.light .chart-controls select {
+  background-color: #e8e8e8 !important;
+  color: #1a1a1a !important;
+  border: 1px solid #d0d0d0 !important;
+}
+
+.light .time-selector option,
+.light .chart-controls select option {
+  background-color: #ffffff !important;
+  color: #1a1a1a !important;
+}
+
+.dark .time-selector,
+.dark .chart-controls select {
+  background-color: #0b0b0b !important;
+  color: #ffffff !important;
+  border: 1px solid #333333 !important;
+}
+
+.dark .time-selector option,
+.dark .chart-controls select option {
+  background-color: #1b1b1b !important;
+  color: #ffffff !important;
+}
+
+/* Legend specific overrides */
+.light .reusable-pie-chart .recharts-legend-item {
+  color: #1a1a1a !important;
+}
+
+.dark .reusable-pie-chart .recharts-legend-item {
+  color: #ffffff !important;
+}
+
+.light .reusable-pie-chart .recharts-legend-wrapper {
+  color: #1a1a1a !important;
+}
+
+.dark .reusable-pie-chart .recharts-legend-wrapper {
+  color: #ffffff !important;
+}
+
+/* CashFlow and other chart components - more generic overrides */
+.cashflow .recharts-cartesian-axis-tick-value,
+.cash-flow .recharts-cartesian-axis-tick-value,
+.expense-chart .recharts-cartesian-axis-tick-value,
+.chart-component .recharts-cartesian-axis-tick-value {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
+.cashflow .recharts-text,
+.cash-flow .recharts-text,
+.expense-chart .recharts-text,
+.chart-component .recharts-text {
+  fill: inherit !important; /* Allow theme colors to work */
+}
+
 /* Active dot styling */
 .recharts-active-dot {
   stroke: #14b8a6 !important;
   fill: #14b8a6 !important;
+}
+
+/* THEME-AWARE OVERRIDES FOR ALL CHARTS */
+/* These overrides ensure that charts respect the theme system instead of being forced to white text */
+/* Apply to any container that wants theme-aware chart text */
+.light .recharts-cartesian-axis-tick-value,
+.light .recharts-text,
+.light .recharts-pie-label-text,
+.light .recharts-label {
+  fill: #1a1a1a !important; /* Dark text for light theme */
+}
+
+.dark .recharts-cartesian-axis-tick-value,
+.dark .recharts-text,
+.dark .recharts-pie-label-text,
+.dark .recharts-label {
+  fill: #ffffff !important; /* White text for dark theme */
 }
 
 /* Brush styling for dark theme */
@@ -1267,4 +1461,62 @@
   .charts-grid {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* MonthlyTrendChart specific overrides */
+.light .monthly-trend .recharts-tooltip-wrapper {
+  color: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-tooltip-wrapper {
+  color: #ffffff !important;
+}
+
+.light .monthly-trend .recharts-cartesian-axis-tick-value,
+.light .monthly-trend .recharts-text {
+  fill: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-cartesian-axis-tick-value,
+.dark .monthly-trend .recharts-text {
+  fill: #ffffff !important;
+}
+
+.light .monthly-trend .recharts-default-tooltip {
+  background: #ffffff !important;
+  border: 1px solid #d0d0d0 !important;
+  color: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-default-tooltip {
+  background: #1b1b1b !important;
+  border: 1px solid #333333 !important;
+  color: #ffffff !important;
+}
+
+.light .monthly-trend .recharts-tooltip-label {
+  color: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-tooltip-label {
+  color: #ffffff !important;
+}
+
+.light .monthly-trend .recharts-tooltip-item {
+  color: #1a1a1a !important;
+}
+
+.dark .monthly-trend .recharts-tooltip-item {
+  color: #ffffff !important;
+}
+
+/* CashFlow Chart Tooltip Theme Support */
+.light .recharts-tooltip-label,
+.light .recharts-tooltip-item {
+  color: #1a1a1a !important;
+}
+
+.dark .recharts-tooltip-label,
+.dark .recharts-tooltip-item {
+  color: #ffffff !important;
 }

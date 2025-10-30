@@ -25,26 +25,17 @@ public class UserServiceApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		// Initialize default roles if they don't exist
 		if (!roleRepository.existsByName("USER")) {
-			Role userRole = roleRepository.save(new Role("USER", "Default user role"));
-			System.out.println("Created default USER role with ID: " + userRole.getId());
+			roleRepository.save(new Role("USER", "Default user role"));
 		} else {
 			System.out.println("USER role already exists");
 		}
 
 		if (!roleRepository.existsByName("ADMIN")) {
-			Role adminRole = roleRepository.save(new Role("ADMIN", "Administrator role"));
-			System.out.println("Created default ADMIN role with ID: " + adminRole.getId());
+			roleRepository.save(new Role("ADMIN", "Administrator role"));
 		} else {
 			System.out.println("ADMIN role already exists");
 		}
 
-		// Print all existing roles safely
-		List<Role> roles = roleRepository.findAll();
-		System.out.println("Available roles:");
-		for (Role role : roles) {
-			System.out.println("- ID: " + role.getId() + ", Name: " + role.getName() + ", Description: " + role.getDescription());
-		}
-
-		System.out.println("Total roles count: " + roles.size());
+		
 	}
 }

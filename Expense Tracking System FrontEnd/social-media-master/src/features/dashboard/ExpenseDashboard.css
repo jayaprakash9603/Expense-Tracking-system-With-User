@@ -741,28 +741,56 @@
 
 .time-selector {
   padding: 10px 15px;
-  border: 2px solid #333333;
   border-radius: 8px;
-  background: #0b0b0b;
-  color: #ffffff;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  /* Remove hardcoded colors - let theme system handle them */
 }
 
-.time-selector:hover {
+/* Theme-aware styles for time selector */
+.light .time-selector {
+  border: 2px solid #d0d0d0;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.dark .time-selector {
+  border: 2px solid #333333;
+  background: #0b0b0b;
+  color: #ffffff;
+}
+
+.light .time-selector:hover {
+  border-color: #14b8a6;
+  background: #f5f5f5;
+}
+
+.dark .time-selector:hover {
   border-color: #14b8a6;
   background: #1b1b1b;
 }
 
-.time-selector:focus {
+.light .time-selector:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
+  background: #f5f5f5;
+}
+
+.dark .time-selector:focus {
   outline: none;
   border-color: #14b8a6;
   box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
   background: #1b1b1b;
 }
 
-.time-selector option {
+.light .time-selector option {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.dark .time-selector option {
   background: #1b1b1b;
   color: #ffffff;
 }
@@ -918,16 +946,85 @@
   transform-origin: center;
 }
 
-/* Enhanced skeleton styles */
+/* Enhanced skeleton styles - Theme Aware */
 .chart-skeleton {
   position: relative;
   display: flex;
   flex-direction: column;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   overflow: hidden;
+  border: none; /* Remove border as requested */
+}
+
+/* Light theme skeleton styles */
+.light .chart-skeleton {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.light .skeleton-title {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.light .skeleton-actions {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.light .skeleton-axis-x,
+.light .skeleton-axis-y {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.light .skeleton-bar {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.light .skeleton-pie-ring {
+  stroke: rgba(0, 0, 0, 0.15);
+}
+
+.light .skeleton-legend-item .legend-color,
+.light .skeleton-legend-item .legend-text {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.light .skeleton-total-pill {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Dark theme skeleton styles */
+.dark .chart-skeleton {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dark .skeleton-title {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .skeleton-actions {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark .skeleton-axis-x,
+.dark .skeleton-axis-y {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .skeleton-bar {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .skeleton-pie-ring {
+  stroke: rgba(255, 255, 255, 0.15);
+}
+
+.dark .skeleton-legend-item .legend-color,
+.dark .skeleton-legend-item .legend-text {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .skeleton-total-pill {
+  background: rgba(255, 255, 255, 0.08);
 }
 .skeleton-chart-header {
   display: flex;
@@ -935,29 +1032,33 @@
   align-items: center;
   margin-bottom: 8px;
 }
+
 .skeleton-title {
   width: 160px;
   height: 16px;
-  background: rgba(255, 255, 255, 0.08);
   border-radius: 4px;
   animation: pulse 1.6s ease-in-out infinite;
+  /* Background color handled by theme-specific rules above */
 }
+
 .skeleton-actions {
   width: 100px;
   height: 16px;
-  background: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
   animation: pulse 1.6s ease-in-out infinite;
+  /* Background color handled by theme-specific rules above */
 }
+
 .skeleton-chart-body {
   flex: 1;
   position: relative;
 }
+
 .skeleton-axis-x,
 .skeleton-axis-y {
   position: absolute;
-  background: rgba(255, 255, 255, 0.08);
   animation: pulse 2s linear infinite;
+  /* Background color handled by theme-specific rules above */
 }
 .skeleton-axis-x {
   left: 0;
@@ -978,15 +1079,25 @@
   height: 100%;
   padding: 18px 8px 8px 22px;
 }
+
 .skeleton-bar {
   flex: 1;
+  border-radius: 4px;
+  animation: rise 1.8s ease-in-out infinite;
+  /* Background color handled by theme-specific rules above */
+}
+
+/* Theme-aware gradients for skeleton bars */
+.light .skeleton-bar {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.05));
+}
+
+.dark .skeleton-bar {
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.25),
     rgba(255, 255, 255, 0.08)
   );
-  border-radius: 4px;
-  animation: rise 1.8s ease-in-out infinite;
 }
 @keyframes rise {
   0% {
@@ -1054,14 +1165,14 @@
   width: 14px;
   height: 14px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.15);
+  /* background removed - using inline style from component */
   animation: pulse 1.6s ease-in-out infinite;
 }
 .skeleton-legend-item .legend-text {
   width: 70px;
   height: 12px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  /* background removed - using inline style from component */
   animation: pulse 1.6s ease-in-out infinite;
 }
 .skeleton-total-pill {
@@ -1070,7 +1181,7 @@
   right: 14px;
   width: 120px;
   height: 22px;
-  background: rgba(20, 184, 166, 0.15);
+  /* background removed - using inline style from component */
   border-radius: 6px;
   animation: pulse 1.8s ease-in-out infinite;
 }
@@ -1084,6 +1195,98 @@
   100% {
     opacity: 0.55;
   }
+}
+
+/* Skeleton pill styles - theme aware */
+.skeleton-pill {
+  border: none !important;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.light .skeleton-pill {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.dark .skeleton-pill {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Daily Spending Skeleton specific styles */
+.daily-spending-chart .time-selector.skeleton-pill {
+  width: 110px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.daily-spending-chart .toggle-btn.skeleton-pill {
+  width: 64px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+/* Line chart skeleton specific styles */
+.skeleton-line-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.skeleton-area-fill {
+  opacity: 0.3;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.light .skeleton-area-fill {
+  fill: rgba(255, 255, 255, 0.05);
+}
+
+.dark .skeleton-area-fill {
+  fill: rgba(255, 255, 255, 0.05);
+}
+
+/* SVG gradient stops for skeleton line */
+.light .skeleton-gradient-start {
+  stop-color: rgba(0, 0, 0, 0.1);
+}
+
+.light .skeleton-gradient-mid {
+  stop-color: rgba(0, 0, 0, 0.15);
+}
+
+.light .skeleton-gradient-end {
+  stop-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark .skeleton-gradient-start {
+  stop-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .skeleton-gradient-mid {
+  stop-color: rgba(255, 255, 255, 0.15);
+}
+
+.dark .skeleton-gradient-end {
+  stop-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Pie chart skeleton styles */
+.skeleton-pie-bg {
+  opacity: 0.3;
+}
+
+.light .skeleton-pie-bg {
+  stroke: rgba(0, 0, 0, 0.05);
+}
+
+.dark .skeleton-pie-bg {
+  stroke: rgba(255, 255, 255, 0.05);
+}
+
+.light .skeleton-pie-ring {
+  stroke: rgba(0, 0, 0, 0.15);
+}
+
+.dark .skeleton-pie-ring {
+  stroke: rgba(255, 255, 255, 0.15);
 }
 
 .trend-stats {
@@ -1407,7 +1610,6 @@
 .budget-center {
   width: 120px;
   height: 120px;
-  /* background removed - using inline style from component */
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -1542,20 +1744,15 @@
 
 /* Base shimmer background used by most skeleton elements */
 .skeleton-bg {
-  background: linear-gradient(
-    90deg,
-    rgba(26, 26, 26, 1) 0%,
-    rgba(35, 178, 156, 0.12) 25%,
-    rgba(26, 26, 26, 1) 50%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
 
 .metric-card-skeleton,
 .chart-skeleton {
-  background: linear-gradient(135deg, #151515 0%, #1f1f1f 100%);
-  border: 1px solid rgba(20, 184, 166, 0.06);
+  /* background removed - using inline style from component */
+  /* border removed - using inline style from component */
   border-radius: 16px;
   padding: 20px;
   position: relative;
@@ -1580,12 +1777,7 @@
   height: 48px;
   border-radius: 12px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
@@ -1602,13 +1794,7 @@
 .skeleton-change,
 .skeleton-actions {
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
-  background-image: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
@@ -1628,12 +1814,7 @@
   width: 110px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -1642,7 +1823,6 @@
   height: 28px;
 }
 .daily-spending-chart .chart-skeleton {
-  background: transparent;
   border: none;
   padding: 0;
   min-height: auto; /* inherit real chart natural height */
@@ -1714,12 +1894,7 @@
   flex: 1;
   height: 40%; /* initial visual height, individual bars will override */
   border-radius: 6px 6px 0 0;
-  background-image: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
+  /* background removed - using inline style from component */
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }

@@ -28,6 +28,7 @@ import {
   Language as LanguageIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
+import useUserSettings from "../../hooks/useUserSettings";
 import {
   getExpenseHistory,
   getExpensesAction,
@@ -46,6 +47,9 @@ const HistoryTable = ({ friendId }) => {
     () => createAppTheme(themeMode),
     [themeMode]
   );
+
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -606,7 +610,8 @@ const HistoryTable = ({ friendId }) => {
                                       <strong style={{ color: "#00dac6" }}>
                                         Amount:
                                       </strong>{" "}
-                                      ₹{details.expense?.amount || "0"}
+                                      {currencySymbol}
+                                      {details.expense?.amount || "0"}
                                     </Typography>
                                   </Grid>
                                   <Grid item xs={12} sm={6} md={4}>
@@ -661,7 +666,8 @@ const HistoryTable = ({ friendId }) => {
                                       <strong style={{ color: "#00dac6" }}>
                                         Net Amount:
                                       </strong>{" "}
-                                      ₹{details.expense?.netAmount || "0"}
+                                      {currencySymbol}
+                                      {details.expense?.netAmount || "0"}
                                     </Typography>
                                   </Grid>
                                   <Grid item xs={12} sm={6} md={4}>
@@ -672,7 +678,8 @@ const HistoryTable = ({ friendId }) => {
                                       <strong style={{ color: "#00dac6" }}>
                                         Credit Due:
                                       </strong>{" "}
-                                      ₹{details.expense?.creditDue || "0"}
+                                      {currencySymbol}
+                                      {details.expense?.creditDue || "0"}
                                     </Typography>
                                   </Grid>
                                   <Grid item xs={12} sm={6} md={4}>

@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 /**
  * ============================================================================
@@ -196,6 +197,8 @@ const PercentageIcon = ({ size = 14, color = "#fff" }) => (
  */
 const PieChartTooltip = ({ active, payload, data }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   // Early return if tooltip is not active
   if (!active || !payload || !payload.length) return null;
@@ -441,7 +444,8 @@ const PieChartTooltip = ({ active, payload, data }) => {
               fontWeight: 700,
             }}
           >
-            ₹{formatNumber(totalAmount)}
+            {currencySymbol}
+            {formatNumber(totalAmount)}
           </span>
         </div>
 

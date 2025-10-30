@@ -723,7 +723,6 @@ const Upload = () => {
                   color: colors.primary_text,
                   fontSize: "1.1rem",
                   fontWeight: 600,
-                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
                 }}
               >
                 {loadingMessage}

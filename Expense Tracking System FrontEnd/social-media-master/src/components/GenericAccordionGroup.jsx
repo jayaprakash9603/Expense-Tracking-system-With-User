@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import "./PaymentMethodAccordion.css";
 import { formatAmount as fmt } from "../utils/formatAmount";
+import useUserSettings from "../hooks/useUserSettings";
 
 /**
  * GenericAccordionGroup
@@ -14,7 +15,7 @@ const DEFAULT_TABS = [
 
 export function GenericAccordionGroup({
   groups = [],
-  currencySymbol = "₹",
+  currencySymbol,
   defaultOpen = null,
   tabs = DEFAULT_TABS,
   columns,
@@ -29,6 +30,9 @@ export function GenericAccordionGroup({
   defaultGroupsPerPage = 8,
   groupPageSizeOptions = [8, 16, 24, 50],
 }) {
+  const settings = useUserSettings();
+  const displayCurrency = currencySymbol || settings.getCurrency().symbol;
+
   const initialOpen = (() => {
     if (defaultOpen == null) return null;
     if (typeof defaultOpen === "number") return defaultOpen;
@@ -94,7 +98,7 @@ export function GenericAccordionGroup({
     [onToggle, groups]
   );
 
-  const formatAmount = (v) => fmt(v, { currencySymbol });
+  const formatAmount = (v) => fmt(v, { currencySymbol: displayCurrency });
 
   return (
     <div className="pm-accordion-group">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useTheme } from "../../hooks/useTheme";
 import {
   Box,
   Paper,
@@ -50,6 +51,7 @@ import {
 
 const AuditLogs = () => {
   const dispatch = useDispatch();
+  const { colors } = useTheme();
   const { auditLogs, loading, error } = useSelector(
     (state) => state.auditLogs || {}
   );
@@ -526,7 +528,14 @@ const AuditLogs = () => {
       )}
 
       {/* Search Bar */}
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper
+        sx={{
+          p: 2,
+          mb: 3,
+          backgroundColor: colors.primary_bg,
+          color: colors.primary_text,
+        }}
+      >
         <TextField
           fullWidth
           variant="outlined"
@@ -542,7 +551,9 @@ const AuditLogs = () => {
       </Paper>
 
       {/* Audit Logs Table */}
-      <Paper>
+      <Paper
+        sx={{ backgroundColor: colors.primary_bg, color: colors.primary_text }}
+      >
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
             <CircularProgress />
@@ -649,6 +660,22 @@ const AuditLogs = () => {
                 setPage(0);
               }}
               rowsPerPageOptions={[5, 10, 25, 50]}
+              sx={{
+                backgroundColor: colors.primary_bg,
+                color: colors.primary_text,
+                "& .MuiTablePagination-toolbar": {
+                  color: colors.primary_text,
+                },
+                "& .MuiTablePagination-selectLabel": {
+                  color: colors.primary_text,
+                },
+                "& .MuiTablePagination-displayedRows": {
+                  color: colors.primary_text,
+                },
+                "& .MuiSvgIcon-root": {
+                  color: colors.primary_text,
+                },
+              }}
             />
           </>
         )}

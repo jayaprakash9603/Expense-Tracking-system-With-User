@@ -4,6 +4,7 @@ import { IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { DataGrid } from "@mui/x-data-grid";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 /**
  * FlowExpenseTable
@@ -18,6 +19,9 @@ const FlowExpenseTable = ({
   onClose,
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const [sort, setSort] = useState({ field: "date", direction: "desc" });
 
   const rows = useMemo(
@@ -93,7 +97,7 @@ const FlowExpenseTable = ({
       renderCell: (params) => (
         <div style={{ color: colors.primary_text }}>
           {typeof params.value === "string"
-            ? dayjs(params.value).format("DD/MM/YYYY")
+            ? dayjs(params.value).format(dateFormat)
             : "No date"}
         </div>
       ),
@@ -113,7 +117,8 @@ const FlowExpenseTable = ({
               fontWeight: "bold",
             }}
           >
-            ₹{Number(params.value)}
+            {currencySymbol}
+            {Number(params.value)}
           </div>
         );
       },
@@ -196,7 +201,7 @@ const FlowExpenseTable = ({
             },
             "& .MuiDataGrid-row:hover": { bgcolor: colors.hover_bg },
             "& .MuiDataGrid-footerContainer": {
-              bgcolor: colors.hover_bg,
+              bgcolor: colors.primary_bg,
               color: colors.primary_text,
             },
             "& .MuiTablePagination-root": { color: colors.primary_text },

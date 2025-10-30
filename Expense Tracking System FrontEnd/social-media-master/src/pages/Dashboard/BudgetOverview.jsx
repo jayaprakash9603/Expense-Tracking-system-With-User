@@ -1,6 +1,7 @@
 import React from "react";
 import BudgetOverviewSkeleton from "./BudgetOverviewSkeleton";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 // Flexible BudgetOverview component
 // Supports either a list of detailed budgets or a simple remaining/total view.
@@ -22,6 +23,8 @@ const BudgetOverview = ({
   mode = "auto",
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   if (loading) return <BudgetOverviewSkeleton count={maxItems} />;
 
@@ -121,7 +124,8 @@ const BudgetOverview = ({
                     color: remainingBudget >= 0 ? "#10b981" : "#ef4444",
                   }}
                 >
-                  ₹{Number(Math.abs(remainingBudget || 0)).toLocaleString()}
+                  {currencySymbol}
+                  {Number(Math.abs(remainingBudget || 0)).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -154,7 +158,8 @@ const BudgetOverview = ({
                   className="budget-card-value"
                   style={{ color: colors.primary_text }}
                 >
-                  ₹{Number(Math.abs(totalLosses || 0)).toLocaleString()}
+                  {currencySymbol}
+                  {Number(Math.abs(totalLosses || 0)).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -249,19 +254,22 @@ const BudgetOverview = ({
                   className="allocated"
                   style={{ color: colors.secondary_text }}
                 >
-                  Allocated: ₹{Number(b.allocated || 0).toLocaleString()}
+                  Allocated: {currencySymbol}
+                  {Number(b.allocated || 0).toLocaleString()}
                 </span>
                 <span
                   className="spent"
                   style={{ color: colors.secondary_text }}
                 >
-                  Spent: ₹{Number(b.spent || 0).toLocaleString()}
+                  Spent: {currencySymbol}
+                  {Number(b.spent || 0).toLocaleString()}
                 </span>
                 <span
                   className="remaining"
                   style={{ color: colors.secondary_text }}
                 >
-                  Remaining: ₹{Number(remaining).toLocaleString()}
+                  Remaining: {currencySymbol}
+                  {Number(remaining).toLocaleString()}
                 </span>
               </div>
             </div>

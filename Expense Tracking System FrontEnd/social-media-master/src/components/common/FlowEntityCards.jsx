@@ -13,6 +13,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import { formatCurrencyCompact } from "../../utils/numberFormatters";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 /**
  * FlowEntityCards
@@ -34,6 +35,8 @@ const FlowEntityCards = ({
   onDelete, // (entity) => void
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [menuEntity, setMenuEntity] = useState(null);
 
@@ -214,7 +217,7 @@ const FlowEntityCards = ({
                       fontWeight: 700,
                     }}
                   >
-                    {formatCurrencyCompact(entity.totalAmount)}
+                    {formatCurrencyCompact(entity.totalAmount, currencySymbol)}
                   </span>
                 </div>
                 <div

@@ -6,8 +6,6 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
-  Snackbar,
-  Alert,
   Tabs,
   Tab,
   Badge,
@@ -57,6 +55,7 @@ import FriendsEmptyState from "../../components/FriendsEmptyState";
 import SharingCard from "../../components/SharingCard";
 import FilterPopover from "../../components/FilterPopover";
 import ListSkeleton from "../../components/ListSkeleton";
+import ToastNotification from "./ToastNotification";
 import { useTheme } from "../../hooks/useTheme";
 import {
   filterSuggestions,
@@ -761,7 +760,7 @@ const Friends = () => {
 
   // Ensure user images are displayed correctly
   const getUserImage = (user) => {
-    return user?.image || "default-avatar.png"; // Fallback to default image
+    return user?.profileImage || "default-avatar.png"; // Fallback to default image
   };
 
   // If user is not logged in, show login message
@@ -798,8 +797,8 @@ const Friends = () => {
             width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
             marginRight: "20px",
             maxWidth: "1600px",
-            backgroundColor: colors.secondary_bg,
-            border: `1px solid ${colors.border_color}`,
+            backgroundColor: colors.tertiary_bg,
+            // border: `1px solid ${colors.border_color}`,
           }}
         >
           {/* Left Section - Friends List */}
@@ -887,7 +886,7 @@ const Friends = () => {
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         color: colors.primary_text,
-                        backgroundColor: colors.tertiary_bg,
+                        backgroundColor: colors.primary_bg,
                         "& fieldset": { borderColor: colors.border_color },
                         "&:hover fieldset": {
                           borderColor: colors.border_color,
@@ -980,34 +979,42 @@ const Friends = () => {
                           key={friend.id}
                           className="flex items-center justify-between p-4 rounded-lg cursor-pointer transition-colors"
                           style={{
-                            backgroundColor: colors.tertiary_bg,
+                            backgroundColor: colors.primary_bg,
                             border:
                               selectedFriend?.id === friend.id
                                 ? `2px solid ${colors.primary_accent}`
                                 : "2px solid transparent",
                           }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              colors.hover_bg)
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.backgroundColor =
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              colors.hover_bg;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
                               selectedFriend?.id === friend.id
                                 ? colors.hover_bg
-                                : colors.tertiary_bg)
-                          }
+                                : colors.primary_bg;
+                          }}
                           onClick={() => handleFriendSelect(friend)}
                         >
                           <div className="flex items-center flex-grow mr-2">
-                            <div
-                              className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
-                              style={{
-                                backgroundColor: getAvatarColor(friend.id),
-                                color: "#ffffff",
-                              }}
-                            >
-                              {getInitials(friend.firstName, friend.lastName)}
-                            </div>
+                            {friend.profileImage ? (
+                              <img
+                                src={friend.profileImage}
+                                alt={`${friend.firstName} ${friend.lastName}`}
+                                className="w-12 h-12 rounded-full object-cover mr-4 flex-shrink-0"
+                              />
+                            ) : (
+                              <div
+                                className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
+                                style={{
+                                  backgroundColor: getAvatarColor(friend.id),
+                                  color: colors.button_text,
+                                }}
+                              >
+                                {getInitials(friend.firstName, friend.lastName)}
+                              </div>
+                            )}
                             <div className="max-w-[calc(100%-80px)]">
                               <p
                                 className="font-medium truncate"
@@ -1060,7 +1067,7 @@ const Friends = () => {
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         color: colors.primary_text,
-                        backgroundColor: colors.tertiary_bg,
+                        backgroundColor: colors.primary_bg,
                         "& fieldset": { borderColor: colors.border_color },
                         "&:hover fieldset": {
                           borderColor: colors.border_color,
@@ -1154,7 +1161,7 @@ const Friends = () => {
                           <div
                             key={request.id}
                             className="p-4 rounded-lg"
-                            style={{ backgroundColor: colors.tertiary_bg }}
+                            style={{ backgroundColor: colors.primary_bg }}
                           >
                             <div className="flex items-center mb-4">
                               <div className="mr-4">
@@ -1224,7 +1231,7 @@ const Friends = () => {
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         color: colors.primary_text,
-                        backgroundColor: colors.tertiary_bg,
+                        backgroundColor: colors.primary_bg,
                         "& fieldset": { borderColor: colors.border_color },
                         "&:hover fieldset": {
                           borderColor: colors.border_color,
@@ -1323,8 +1330,8 @@ const Friends = () => {
                           style={{
                             backgroundColor:
                               selectedFriend?.id === friend.id
-                                ? colors.tertiary_bg
-                                : colors.tertiary_bg,
+                                ? colors.primary_bg
+                                : colors.primary_bg,
                             borderColor:
                               selectedFriend?.id === friend.id
                                 ? colors.primary_accent
@@ -1339,21 +1346,29 @@ const Friends = () => {
                           onMouseLeave={(e) => {
                             if (selectedFriend?.id !== friend.id) {
                               e.currentTarget.style.backgroundColor =
-                                colors.tertiary_bg;
+                                colors.primary_bg;
                             }
                           }}
                           onClick={() => handleFriendSelect(friend)}
                         >
                           <div className="flex items-center flex-grow mr-2">
-                            <div
-                              className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
-                              style={{
-                                backgroundColor: getAvatarColor(friend.id),
-                                color: colors.primary_text,
-                              }}
-                            >
-                              {getInitials(friend.firstName, friend.lastName)}
-                            </div>
+                            {friend.profileImage ? (
+                              <img
+                                src={friend.profileImage}
+                                alt={`${friend.firstName} ${friend.lastName}`}
+                                className="w-12 h-12 rounded-full object-cover mr-4 flex-shrink-0"
+                              />
+                            ) : (
+                              <div
+                                className="w-12 h-12 rounded-full flex items-center justify-center font-bold mr-4 flex-shrink-0"
+                                style={{
+                                  backgroundColor: getAvatarColor(friend.id),
+                                  color: colors.button_text,
+                                }}
+                              >
+                                {getInitials(friend.firstName, friend.lastName)}
+                              </div>
+                            )}
                             <div className="max-w-[calc(100%-80px)]">
                               <p
                                 className="font-medium truncate"
@@ -1422,7 +1437,7 @@ const Friends = () => {
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         color: colors.primary_text,
-                        backgroundColor: colors.tertiary_bg,
+                        backgroundColor: colors.primary_bg,
                         "& fieldset": { borderColor: colors.border_color },
                         "&:hover fieldset": {
                           borderColor: colors.border_color,
@@ -1673,21 +1688,29 @@ const Friends = () => {
             {activeTab === 0 && selectedFriend ? (
               <div
                 className="p-6 rounded-lg"
-                style={{ backgroundColor: colors.tertiary_bg }}
+                style={{ backgroundColor: colors.primary_bg }}
               >
                 <div className="flex items-center mb-6">
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
-                    style={{
-                      backgroundColor: getAvatarColor(selectedFriend.id),
-                      color: colors.primary_text,
-                    }}
-                  >
-                    {getInitials(
-                      selectedFriend.firstName,
-                      selectedFriend.lastName
-                    )}
-                  </div>
+                  {selectedFriend.profileImage ? (
+                    <img
+                      src={selectedFriend.profileImage}
+                      alt={`${selectedFriend.firstName} ${selectedFriend.lastName}`}
+                      className="w-20 h-20 rounded-full object-cover mr-6"
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
+                      style={{
+                        backgroundColor: getAvatarColor(selectedFriend.id),
+                        color: colors.primary_text,
+                      }}
+                    >
+                      {getInitials(
+                        selectedFriend.firstName,
+                        selectedFriend.lastName
+                      )}
+                    </div>
+                  )}
                   <div>
                     <h2
                       className="text-2xl font-bold"
@@ -1779,21 +1802,29 @@ const Friends = () => {
             ) : activeTab === 1 && selectedFriend ? (
               <div
                 className="p-6 rounded-lg"
-                style={{ backgroundColor: colors.tertiary_bg }}
+                style={{ backgroundColor: colors.primary_bg }}
               >
                 <div className="flex items-center mb-6">
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
-                    style={{
-                      backgroundColor: getAvatarColor(selectedFriend.id),
-                      color: colors.primary_text,
-                    }}
-                  >
-                    {getInitials(
-                      selectedFriend.firstName,
-                      selectedFriend.lastName
-                    )}
-                  </div>
+                  {selectedFriend.profileImage ? (
+                    <img
+                      src={selectedFriend.profileImage}
+                      alt={`${selectedFriend.firstName} ${selectedFriend.lastName}`}
+                      className="w-20 h-20 rounded-full object-cover mr-6"
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
+                      style={{
+                        backgroundColor: getAvatarColor(selectedFriend.id),
+                        color: colors.primary_text,
+                      }}
+                    >
+                      {getInitials(
+                        selectedFriend.firstName,
+                        selectedFriend.lastName
+                      )}
+                    </div>
+                  )}
                   <div>
                     <h2
                       className="text-2xl font-bold"
@@ -1843,21 +1874,29 @@ const Friends = () => {
             ) : activeTab === 2 && selectedFriend ? (
               <div
                 className="p-6 rounded-lg"
-                style={{ backgroundColor: colors.tertiary_bg }}
+                style={{ backgroundColor: colors.primary_bg }}
               >
                 <div className="flex items-center mb-6">
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
-                    style={{
-                      backgroundColor: getAvatarColor(selectedFriend.id),
-                      color: colors.primary_text,
-                    }}
-                  >
-                    {getInitials(
-                      selectedFriend.firstName,
-                      selectedFriend.lastName
-                    )}
-                  </div>
+                  {selectedFriend.profileImage ? (
+                    <img
+                      src={selectedFriend.profileImage}
+                      alt={`${selectedFriend.firstName} ${selectedFriend.lastName}`}
+                      className="w-20 h-20 rounded-full object-cover mr-6"
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
+                      style={{
+                        backgroundColor: getAvatarColor(selectedFriend.id),
+                        color: colors.primary_text,
+                      }}
+                    >
+                      {getInitials(
+                        selectedFriend.firstName,
+                        selectedFriend.lastName
+                      )}
+                    </div>
+                  )}
                   <div>
                     <h2
                       className="text-2xl font-bold"
@@ -2030,21 +2069,29 @@ const Friends = () => {
             ) : activeTab === 3 && selectedFriend ? (
               <div
                 className="p-6 rounded-lg"
-                style={{ backgroundColor: colors.tertiary_bg }}
+                style={{ backgroundColor: colors.primary_bg }}
               >
                 <div className="flex items-center mb-6">
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
-                    style={{
-                      backgroundColor: getAvatarColor(selectedFriend.id),
-                      color: colors.primary_text,
-                    }}
-                  >
-                    {getInitials(
-                      selectedFriend.firstName,
-                      selectedFriend.lastName
-                    )}
-                  </div>
+                  {selectedFriend.profileImage ? (
+                    <img
+                      src={selectedFriend.profileImage}
+                      alt={`${selectedFriend.firstName} ${selectedFriend.lastName}`}
+                      className="w-20 h-20 rounded-full object-cover mr-6"
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mr-6"
+                      style={{
+                        backgroundColor: getAvatarColor(selectedFriend.id),
+                        color: colors.primary_text,
+                      }}
+                    >
+                      {getInitials(
+                        selectedFriend.firstName,
+                        selectedFriend.lastName
+                      )}
+                    </div>
+                  )}
                   <div>
                     <h2
                       className="text-2xl font-bold"
@@ -2186,7 +2233,7 @@ const Friends = () => {
           onClose={handleAccessMenuClose}
           PaperProps={{
             sx: {
-              backgroundColor: colors.tertiary_bg,
+              backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
               width: 250,
@@ -2286,21 +2333,14 @@ const Friends = () => {
           </MenuItem>
         </Menu>
 
-        {/* Snackbar for notifications */}
-        <Snackbar
+        {/* Toast Notification */}
+        <ToastNotification
           open={snackbar.open}
-          autoHideDuration={6000}
+          message={snackbar.message}
           onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            sx={{ width: "100%" }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        />
         <FilterPopover
           anchorEl={filterAnchor}
           open={Boolean(filterAnchor)}

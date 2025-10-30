@@ -17,6 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DayViewSkeleton from "../DayViewSkeleton";
 import JumpToTodayButton from "../JumpToTodayButton";
 import { useTheme as useAppTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 import "./DayUnifiedView.css";
 
 /**
@@ -54,6 +55,9 @@ const DayUnifiedView = ({
   emptyTitle = "No data!",
 }) => {
   const { colors } = useAppTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const [selectedCardIdx, setSelectedCardIdx] = useState(null);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -452,7 +456,8 @@ const DayUnifiedView = ({
                       mt: 0.5,
                     }}
                   >
-                    ₹{formatAmount(c.amount)}
+                    {currencySymbol}
+                    {formatAmount(c.amount)}
                   </Typography>
                 </Box>
               </Box>
@@ -503,7 +508,7 @@ const DayUnifiedView = ({
                   },
                 }}
                 disableFuture
-                format="YYYY-MM-DD"
+                format={dateFormat}
               />
             </LocalizationProvider>
             <IconButton
@@ -610,7 +615,8 @@ const DayUnifiedView = ({
                       mt: 0.5,
                     }}
                   >
-                    ₹{formatAmount(c.amount)}
+                    {currencySymbol}
+                    {formatAmount(c.amount)}
                   </Typography>
                 </Box>
               </Box>
@@ -731,7 +737,8 @@ const DayUnifiedView = ({
                           ml: 0.5,
                         }}
                       >
-                        ₹{Math.abs(amount).toFixed(2)}
+                        {currencySymbol}
+                        {Math.abs(amount).toFixed(2)}
                       </Typography>
                     </Box>
                   </Box>

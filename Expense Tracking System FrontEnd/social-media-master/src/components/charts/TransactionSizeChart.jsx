@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Target } from "lucide-react";
+import useUserSettings from "../../hooks/useUserSettings";
 
 // Transaction Size Distribution Chart
 // Data shape: [{ range: '₹0-100', MethodA: count, MethodB: count, ... }]
