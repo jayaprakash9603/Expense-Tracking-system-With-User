@@ -19,6 +19,8 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   DarkMode as DarkModeIcon,
@@ -45,6 +47,7 @@ import {
   Block as BlockIcon,
   Assessment as AssessmentIcon,
   MonetizationOn as MonetizationOnIcon,
+  Check as CheckIcon,
 } from "@mui/icons-material";
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
 import { useTheme } from "../../hooks/useTheme";
@@ -74,6 +77,7 @@ const Settings = () => {
   const [language, setLanguage] = useState("en");
   const [currency, setCurrency] = useState("INR");
   const [dateFormat, setDateFormat] = useState("DD/MM/YYYY");
+  const [profileVisibility, setProfileVisibility] = useState("PUBLIC");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -95,6 +99,7 @@ const Settings = () => {
       setLanguage(userSettings.language ?? "en");
       setCurrency(userSettings.currency ?? "INR");
       setDateFormat(userSettings.dateFormat ?? "DD/MM/YYYY");
+      setProfileVisibility(userSettings.profileVisibility ?? "PUBLIC");
     }
   }, [userSettings]);
 
@@ -243,30 +248,98 @@ const Settings = () => {
           </Button>
         )}
         {isSelect && (
-          <FormControl size="small" sx={{ minWidth: 120 }}>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
             <Select
               value={selectValue}
               onChange={onSelectChange}
               sx={{
                 color: colors.primary_text,
                 backgroundColor: colors.secondary_bg,
+                borderRadius: 2,
+                fontWeight: 600,
+                fontSize: "0.9rem",
                 "& .MuiOutlinedInput-notchedOutline": {
                   borderColor: colors.border_color,
+                  borderWidth: "1.5px",
                 },
                 "&:hover .MuiOutlinedInput-notchedOutline": {
                   borderColor: colors.primary_accent,
+                  borderWidth: "2px",
                 },
                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                   borderColor: colors.primary_accent,
+                  borderWidth: "2px",
                 },
                 "& .MuiSvgIcon-root": {
-                  color: colors.primary_text,
+                  color: colors.primary_accent,
+                },
+                "& .MuiSelect-select": {
+                  py: 1.2,
+                  px: 1.5,
+                },
+              }}
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    backgroundColor: colors.tertiary_bg,
+                    border: `1px solid ${colors.border_color}`,
+                    borderRadius: 2,
+                    mt: 1,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+                    maxHeight: 320,
+                    "& .MuiMenuItem-root": {
+                      color: colors.primary_text,
+                      fontSize: "0.9rem",
+                      fontWeight: 500,
+                      py: 1.5,
+                      px: 2,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        backgroundColor: colors.hover_bg,
+                        transform: "translateX(4px)",
+                      },
+                      "&.Mui-selected": {
+                        backgroundColor: `${colors.primary_accent}20`,
+                        color: colors.primary_accent,
+                        fontWeight: 600,
+                        borderLeft: `3px solid ${colors.primary_accent}`,
+                        "&:hover": {
+                          backgroundColor: `${colors.primary_accent}30`,
+                        },
+                      },
+                    },
+                  },
                 },
               }}
             >
               {selectOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
-                  {option.label}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      width: "100%",
+                    }}
+                  >
+                    <ListItemText
+                      primary={option.label}
+                      sx={{
+                        "& .MuiListItemText-primary": {
+                          fontSize: "0.9rem",
+                          fontWeight: selectValue === option.value ? 600 : 500,
+                        },
+                      }}
+                    />
+                    {selectValue === option.value && (
+                      <CheckIcon
+                        sx={{
+                          fontSize: "1.2rem",
+                          color: colors.primary_accent,
+                          ml: 1,
+                        }}
+                      />
+                    )}
+                  </Box>
                 </MenuItem>
               ))}
             </Select>
@@ -578,11 +651,11 @@ const Settings = () => {
               isSelect
               selectValue={language}
               selectOptions={[
-                { value: "en", label: "English" },
-                { value: "es", label: "Spanish" },
-                { value: "fr", label: "French" },
-                { value: "de", label: "German" },
-                { value: "hi", label: "Hindi" },
+                { value: "en", label: "🇺🇸 English" },
+                { value: "es", label: "🇪🇸 Spanish" },
+                { value: "fr", label: "🇫🇷 French" },
+                { value: "de", label: "🇩🇪 German" },
+                { value: "hi", label: "🇮🇳 Hindi" },
               ]}
               onSelectChange={(e) => {
                 const value = e.target.value;
@@ -599,11 +672,11 @@ const Settings = () => {
               isSelect
               selectValue={currency}
               selectOptions={[
-                { value: "USD", label: "USD ($)" },
-                { value: "EUR", label: "EUR (€)" },
-                { value: "GBP", label: "GBP (£)" },
-                { value: "INR", label: "INR (₹)" },
-                { value: "JPY", label: "JPY (¥)" },
+                { value: "USD", label: "💵 USD - US Dollar ($)" },
+                { value: "EUR", label: "💶 EUR - Euro (€)" },
+                { value: "GBP", label: "💷 GBP - British Pound (£)" },
+                { value: "INR", label: "💴 INR - Indian Rupee (₹)" },
+                { value: "JPY", label: "💴 JPY - Japanese Yen (¥)" },
               ]}
               onSelectChange={(e) => {
                 const value = e.target.value;
@@ -620,9 +693,9 @@ const Settings = () => {
               isSelect
               selectValue={dateFormat}
               selectOptions={[
-                { value: "MM/DD/YYYY", label: "MM/DD/YYYY" },
-                { value: "DD/MM/YYYY", label: "DD/MM/YYYY" },
-                { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
+                { value: "MM/DD/YYYY", label: "📅 MM/DD/YYYY (US)" },
+                { value: "DD/MM/YYYY", label: "📅 DD/MM/YYYY (UK/EU)" },
+                { value: "YYYY-MM-DD", label: "📅 YYYY-MM-DD (ISO)" },
               ]}
               onSelectChange={(e) => {
                 const value = e.target.value;
@@ -645,44 +718,97 @@ const Settings = () => {
             }}
           >
             <Box
-              sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                mb: 3,
+                justifyContent: "space-between",
+              }}
             >
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 2,
-                  backgroundColor: `${colors.primary_accent}20`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <ShieldIcon
-                  sx={{ color: colors.primary_accent, fontSize: "1.3rem" }}
-                />
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 2,
+                    backgroundColor: `${colors.primary_accent}20`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <ShieldIcon
+                    sx={{ color: colors.primary_accent, fontSize: "1.3rem" }}
+                  />
+                </Box>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: colors.primary_text,
+                    fontWeight: 700,
+                    letterSpacing: "-0.3px",
+                  }}
+                >
+                  Privacy & Security
+                </Typography>
               </Box>
-              <Typography
-                variant="h6"
+              <Chip
+                label={
+                  profileVisibility === "PUBLIC"
+                    ? "🌍 Public"
+                    : profileVisibility === "FRIENDS"
+                    ? "👥 Friends"
+                    : "🔒 Private"
+                }
+                size="small"
                 sx={{
-                  color: colors.primary_text,
-                  fontWeight: 700,
-                  letterSpacing: "-0.3px",
+                  backgroundColor:
+                    profileVisibility === "PUBLIC"
+                      ? `${colors.primary_accent}20`
+                      : profileVisibility === "FRIENDS"
+                      ? "rgba(59, 130, 246, 0.2)"
+                      : "rgba(239, 68, 68, 0.2)",
+                  color:
+                    profileVisibility === "PUBLIC"
+                      ? colors.primary_accent
+                      : profileVisibility === "FRIENDS"
+                      ? "#3b82f6"
+                      : "#ef4444",
+                  fontWeight: 600,
+                  fontSize: "0.75rem",
                 }}
-              >
-                Privacy & Security
-              </Typography>
+              />
             </Box>
 
             <SettingItem
               icon={VisibilityIcon}
               title="Profile Visibility"
-              description="Control who can see your profile information"
-              isButton
-              buttonText="Public"
-              onButtonClick={() =>
-                showSnackbar("Profile visibility settings", "info")
-              }
+              description="Control who can see your profile and expense information"
+              isSelect
+              selectValue={profileVisibility}
+              selectOptions={[
+                { value: "PUBLIC", label: "🌍 Public - Anyone can view" },
+                {
+                  value: "FRIENDS",
+                  label: "👥 Friends Only - Restricted access",
+                },
+                { value: "PRIVATE", label: "🔒 Private - Only you" },
+              ]}
+              onSelectChange={(e) => {
+                const value = e.target.value;
+                setProfileVisibility(value);
+                updateSettings({ profileVisibility: value });
+                const messages = {
+                  PUBLIC:
+                    "Your profile is now public - anyone can view your information",
+                  FRIENDS:
+                    "Your profile is now friends only - only friends can view",
+                  PRIVATE:
+                    "Your profile is now private - only you can view your information",
+                };
+                showSnackbar(messages[value], "success");
+              }}
             />
             <Divider sx={{ borderColor: colors.border_color, my: 1 }} />
             <SettingItem
