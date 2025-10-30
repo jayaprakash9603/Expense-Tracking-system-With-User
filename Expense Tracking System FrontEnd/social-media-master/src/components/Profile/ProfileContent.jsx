@@ -28,8 +28,24 @@ const ProfileContent = ({
       sx={{
         flexGrow: 1,
         overflow: "auto",
+        overflowX: "hidden",
         p: isSmallScreen ? 2 : 3,
         backgroundColor: colors.secondary_bg,
+        minHeight: 0,
+        "&::-webkit-scrollbar": {
+          width: "8px",
+        },
+        "&::-webkit-scrollbar-track": {
+          backgroundColor: colors.tertiary_bg,
+          borderRadius: "4px",
+        },
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: colors.border_color,
+          borderRadius: "4px",
+          "&:hover": {
+            backgroundColor: colors.primary_accent,
+          },
+        },
       }}
     >
       <Grid container spacing={isSmallScreen ? 2 : 3}>

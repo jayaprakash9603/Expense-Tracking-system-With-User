@@ -38,6 +38,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
 
   const labelStyle = `text-sm sm:text-base font-semibold mr-4`;
   const inputWrapper = {
@@ -647,6 +648,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
           <DatePicker
             value={billData.date ? dayjs(billData.date) : null}
             onChange={handleDateChange}
+            format={dateFormat}
             sx={{
               background: colors.secondary_bg,
               borderRadius: 2,
@@ -705,7 +707,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
               },
             }}
             disableFuture
-            format="DD-MM-YYYY"
           />
         </LocalizationProvider>
       </div>
@@ -935,7 +936,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 position="right"
                 variant="gradient"
                 showTooltip={true}
-                dateFormat="DD MMM YYYY"
+                dateFormat={dateFormat}
                 label="Previously Added"
                 labelPosition="top"
                 icon="calendar"

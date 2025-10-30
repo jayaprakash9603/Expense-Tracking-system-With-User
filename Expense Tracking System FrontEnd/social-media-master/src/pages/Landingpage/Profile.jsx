@@ -70,12 +70,14 @@ const Profile = () => {
         bgcolor: colors.primary_bg,
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
+        maxHeight: "calc(100vh - 100px)",
         borderRadius: isSmallScreen ? 0 : "8px",
         border: isSmallScreen ? "none" : `1px solid ${colors.border_color}`,
         mr: isSmallScreen ? 0 : "20px",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        position: "relative",
       }}
     >
       {/* Profile Header */}

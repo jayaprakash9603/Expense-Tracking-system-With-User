@@ -21,6 +21,7 @@ const FlowExpenseTable = ({
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const [sort, setSort] = useState({ field: "date", direction: "desc" });
 
   const rows = useMemo(
@@ -96,7 +97,7 @@ const FlowExpenseTable = ({
       renderCell: (params) => (
         <div style={{ color: colors.primary_text }}>
           {typeof params.value === "string"
-            ? dayjs(params.value).format("DD/MM/YYYY")
+            ? dayjs(params.value).format(dateFormat)
             : "No date"}
         </div>
       ),

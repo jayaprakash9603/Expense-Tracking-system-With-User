@@ -57,6 +57,7 @@ const DayUnifiedView = ({
   const { colors } = useAppTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const [selectedCardIdx, setSelectedCardIdx] = useState(null);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -507,7 +508,7 @@ const DayUnifiedView = ({
                   },
                 }}
                 disableFuture
-                format="YYYY-MM-DD"
+                format={dateFormat}
               />
             </LocalizationProvider>
             <IconButton

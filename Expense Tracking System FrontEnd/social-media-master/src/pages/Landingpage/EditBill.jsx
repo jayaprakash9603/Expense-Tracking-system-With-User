@@ -36,6 +36,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
 
   const labelStyle = `text-sm sm:text-base font-semibold mr-4`;
   const inputWrapper = {
@@ -702,6 +703,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           <DatePicker
             value={billData.date ? dayjs(billData.date) : null}
             onChange={handleDateChange}
+            format={dateFormat}
             sx={{
               background: colors.secondary_bg,
               borderRadius: 2,
@@ -755,7 +757,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
               },
             }}
             disableFuture
-            format="DD-MM-YYYY"
           />
         </LocalizationProvider>
       </div>

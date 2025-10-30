@@ -102,6 +102,7 @@ const BudgetReport = () => {
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const { budgetId, friendId } = useParams();
 
   // State management
@@ -869,8 +870,8 @@ const BudgetReport = () => {
               {budgetData?.name} Report
             </Typography>
             <Typography variant="subtitle1" className="budget-report-subtitle">
-              {dayjs(budgetData?.startDate).format("MMM DD")} -{" "}
-              {dayjs(budgetData?.endDate).format("MMM DD, YYYY")}
+              {dayjs(budgetData?.startDate).format(dateFormat)} -{" "}
+              {dayjs(budgetData?.endDate).format(dateFormat)}
               <Chip
                 label={budgetData?.budgetType}
                 size="small"

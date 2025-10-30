@@ -5,6 +5,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import NoDataPlaceholder from "../../components/NoDataPlaceholder"; // adjust path if needed
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 /**
  * Reusable expense cards list for CashFlow page.
@@ -31,6 +32,8 @@ export default function CashFlowExpenseCards({
   getBillByExpenseId,
 }) {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const scrollContainerRef = useRef(null);
   const cardRefs = useRef([]);
   const lastClickedIndexRef = useRef(null);
@@ -196,7 +199,7 @@ export default function CashFlowExpenseCards({
         const dateValue = (() => {
           const dt = row.date || row.expense?.date;
           const dtStr =
-            dt && dayjs(dt).isValid() ? dayjs(dt).format("D MMM") : "";
+            dt && dayjs(dt).isValid() ? dayjs(dt).format(dateFormat) : "";
           return dtStr;
         })();
 

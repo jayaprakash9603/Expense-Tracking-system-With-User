@@ -4,6 +4,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import useUserSettings from "../../hooks/useUserSettings";
 import {
   Person as PersonIcon,
   Email as EmailIcon,
@@ -34,6 +35,10 @@ const ProfileFormFields = ({
   colors,
   isSmallScreen,
 }) => {
+  // Get user settings for date format
+  const settings = useUserSettings();
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
+
   // Common text field styles
   const getTextFieldStyles = (isDisabled = false, isDashed = false) => ({
     "& .MuiOutlinedInput-root": {
@@ -165,6 +170,7 @@ const ProfileFormFields = ({
             }}
             disabled={!isEditMode}
             maxDate={dayjs()}
+            format={dateFormat}
             slotProps={{
               textField: {
                 fullWidth: true,
