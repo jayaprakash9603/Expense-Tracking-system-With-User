@@ -24,7 +24,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     List<Notification> findByUserIdAndTypeOrderByCreatedAtDesc(Integer userId, NotificationType type);
 
     @Query("SELECT n FROM Notification n WHERE n.userId = :userId AND n.createdAt >= :fromDate ORDER BY n.createdAt DESC")
-    List<Notification> findByUserIdAndCreatedAtAfter(@Param("userId") Integer userId, @Param("fromDate") LocalDateTime fromDate);
+    List<Notification> findByUserIdAndCreatedAtAfter(@Param("userId") Integer userId,
+            @Param("fromDate") LocalDateTime fromDate);
 
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.isRead = false")
     Long countUnreadNotifications(@Param("userId") Integer userId);
@@ -32,4 +33,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     List<Notification> findByIsSentFalseAndCreatedAtBefore(LocalDateTime dateTime);
 
     void deleteByUserIdAndCreatedAtBefore(Integer userId, LocalDateTime dateTime);
+
+    // New methods for notification management
+    Page<Notification> findByUserIdAndIsReadOrderByCreatedAtDesc(Integer userId, Boolean isRead, Pageable pageable);
+
+    List<Notification> findByUserIdAndIsRead(Integer userId, Boolean isRead);
+
+    Long countByUserIdAndIsRead(Integer userId, Boolean isRead);
+
+    void deleteByUserId(Integer userId);
 }

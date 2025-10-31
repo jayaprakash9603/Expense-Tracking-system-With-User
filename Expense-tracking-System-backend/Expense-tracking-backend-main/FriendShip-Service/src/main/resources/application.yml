@@ -24,6 +24,19 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
 
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        retry.backoff.ms: 1000
+        max.in.flight.requests.per.connection: 5
+        enable.idempotence: true
+
 eureka:
   instance:
     prefer-ip-address: true
