@@ -14,6 +14,7 @@ import {
   ChartSkeleton,
 } from "../../components/skeletons/CommonSkeletons";
 import { getChartColors } from "../../utils/chartColors";
+import { useTheme } from "../../hooks/useTheme";
 import "../Landingpage/Payment Report/PaymentReport.css"; // Reuse existing payment report styles
 
 // Combined Expenses Report: Overview, payment method distribution, usage, category distribution, expenses accordion.
@@ -22,6 +23,7 @@ const COLORS = getChartColors(12);
 export default function CombinedExpenseReport() {
   const { friendId } = useParams();
   const navigate = useNavigate();
+  const { colors, mode } = useTheme();
 
   // Independent state for each chart
   const [categoryTimeframe, setCategoryTimeframe] = useState("this_month");
@@ -106,71 +108,137 @@ export default function CombinedExpenseReport() {
       : undefined;
 
   return (
-    <div className="payment-methods-report">
-      <ReportHeader
-        className="payment-methods-header"
-        title="🧾 Expenses Report"
-        subtitle="Expenses grouped togethere"
-        timeframe={timeframe}
-        onTimeframeChange={setTimeframe}
-        onFilter={handleFilter}
-        onExport={handleExport}
-        onBack={handleBack}
-        flowType={flowType}
-        onFlowTypeChange={setFlowType}
-      />
+    <div
+      className="payment-methods-report"
+      style={{
+        background: colors.secondary_bg,
+        minHeight: "100vh-100px",
+        padding: "0",
+        position: "relative",
+      }}
+    >
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          background: colors.secondary_bg,
+          paddingTop: "24px",
+          paddingLeft: "24px",
+          paddingRight: "24px",
+        }}
+      >
+        <ReportHeader
+          className="payment-methods-header"
+          title="🧾 Expenses Report"
+          subtitle="Expenses grouped togethere"
+          timeframe={timeframe}
+          onTimeframeChange={setTimeframe}
+          onFilter={handleFilter}
+          onExport={handleExport}
+          onBack={handleBack}
+          flowType={flowType}
+          onFlowTypeChange={setFlowType}
+        />
+      </div>
 
-      {error && (
-        <div style={{ color: "#ff6b6b", marginBottom: 16 }}>
-          <div>Expenses Error: {error}</div>
-        </div>
-      )}
+      <div style={{ padding: "0 24px 24px 24px" }}>
+        {error && (
+          <div
+            style={{
+              color: "#ff6b6b",
+              marginBottom: 16,
+              padding: "12px 16px",
+              background:
+                mode === "dark"
+                  ? "rgba(255, 107, 107, 0.1)"
+                  : "rgba(255, 107, 107, 0.15)",
+              borderRadius: "8px",
+              border: `1px solid ${
+                mode === "dark"
+                  ? "rgba(255, 107, 107, 0.3)"
+                  : "rgba(255, 107, 107, 0.4)"
+              }`,
+            }}
+          >
+            <div>Expenses Error: {error}</div>
+          </div>
+        )}
 
-      {/* Overview cards: expenses mode with grouped payment method data */}
-      <SharedOverviewCards data={methodsData} mode="expenses" />
+        {/* Overview cards: expenses mode with grouped payment method data */}
+        <SharedOverviewCards data={methodsData} mode="expenses" />
 
-      <div className="charts-grid">
-        <div className="chart-row">
-          <DailySpendingContainer
-            height={260}
-            refreshTrigger={rawData}
-            showSkeleton={false}
-          />
-        </div>
+        <div
+          className="charts-grid"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "24px",
+          }}
+        >
+          <div
+            className="chart-row"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr",
+              gap: "24px",
+            }}
+          >
+            <DailySpendingContainer
+              height={260}
+              refreshTrigger={rawData}
+              showSkeleton={false}
+            />
+          </div>
 
-        {/* Category Breakdown and Payment Method Charts in same row */}
-        <div className="chart-row">
-          <CategoryBreakdownChart
-            data={categoryDistribution}
-            timeframe={categoryTimeframe}
-            onTimeframeChange={setCategoryTimeframe}
-            flowType={categoryFlowType}
-            onFlowTypeChange={setCategoryFlowType}
-            loading={categoryLoading}
-            skeleton={
-              loading ? (
-                <ChartSkeleton height={480} variant="pie" noHeader />
-              ) : null
-            }
-          />
-          <PaymentMethodChart
-            data={paymentMethodsData}
-            rawData={paymentMethodsRawData}
-            timeframe={paymentMethodTimeframe}
-            onTimeframeChange={setPaymentMethodTimeframe}
-            flowType={paymentMethodFlowType}
-            onFlowTypeChange={setPaymentMethodFlowType}
-            loading={paymentMethodsLoading}
-            skeleton={
-              loading ? (
-                <ChartSkeleton height={480} variant="pie" noHeader />
-              ) : null
-            }
-          />
-        </div>
+          {/* Category Breakdown and Payment Method Charts in same row */}
+          <div
+            className="chart-row"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "24px",
+            }}
+          >
+            <CategoryBreakdownChart
+              data={categoryDistribution}
+              timeframe={categoryTimeframe}
+              onTimeframeChange={setCategoryTimeframe}
+              flowType={categoryFlowType}
+              onFlowTypeChange={setCategoryFlowType}
+              loading={categoryLoading}
+              skeleton={
+                loading ? (
+                  <ChartSkeleton height={480} variant="pie" noHeader />
+                ) : null
+              }
+            />
+            <PaymentMethodChart
+              data={paymentMethodsData}
+              rawData={paymentMethodsRawData}
+              timeframe={paymentMethodTimeframe}
+              onTimeframeChange={setPaymentMethodTimeframe}
+              flowType={paymentMethodFlowType}
+              onFlowTypeChange={setPaymentMethodFlowType}
+              loading={paymentMethodsLoading}
+              skeleton={
+                loading ? (
+                  <ChartSkeleton height={480} variant="pie" noHeader />
+                ) : null
+              }
+            />
+          </div>
 
-        <div className="chart-row full-width">
-          <GroupedExpensesAccordion rawData={rawData} summary={summary} />
+          <div
+            className="chart-row full-width"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr",
+              gap: "24px",
+            }}
+          >
+            <GroupedExpensesAccordion rawData={rawData} summary={summary} />
+          </div>
         </div>
       </div>
     </div>

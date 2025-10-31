@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import GenericAccordionGroup from "./GenericAccordionGroup";
+import { useTheme } from "../hooks/useTheme";
 
 /**
  * GroupedExpensesAccordion
@@ -15,6 +16,7 @@ const GroupedExpensesAccordion = ({
   summary,
   currencySymbol = "₹",
 }) => {
+  const { colors, mode } = useTheme();
   // Normalize source: prefer explicit methods array, else derive from rawData
   const sourceMethods = useMemo(() => {
     if (Array.isArray(methods) && methods.length) return methods;
@@ -133,59 +135,98 @@ const GroupedExpensesAccordion = ({
     return "all";
   };
 
+  // Theme-aware CSS variables
+  const themeVars = {
+    "--pm-bg-primary": mode === "dark" ? "#141414" : "#ffffff",
+    "--pm-bg-secondary": mode === "dark" ? "#1d1d1f" : "#f5f5f5",
+    "--pm-bg-tertiary": mode === "dark" ? "#1b1b1b" : "#fafafa",
+    "--pm-border-color": colors.border_color,
+    "--pm-text-primary": colors.primary_text,
+    "--pm-text-secondary": mode === "dark" ? "#ccc" : "#555",
+    "--pm-text-tertiary": mode === "dark" ? "#bbb" : "#666",
+    "--pm-accent-color": colors.primary_accent,
+    "--pm-scrollbar-thumb": colors.primary_accent,
+    "--pm-scrollbar-track": mode === "dark" ? "#1d1d1f" : "#e8e8e8",
+  };
+
   return (
-    <div className="chart-container">
+    <div
+      className="chart-container"
+      style={{
+        background: colors.primary_bg,
+        border: `1px solid ${colors.border_color}`,
+        borderRadius: "12px",
+        padding: "24px",
+      }}
+    >
       <div className="chart-header">
-        <h3>🧾 Expenses Breakdown</h3>
-        <div className="chart-subtitle">
+        <h3 style={{ color: colors.primary_text, margin: "0 0 8px 0" }}>
+          🧾 Expenses Breakdown
+        </h3>
+        <div
+          className="chart-subtitle"
+          style={{
+            color: mode === "dark" ? "#888" : "#666",
+            fontSize: "14px",
+            marginBottom: "16px",
+          }}
+        >
           Expand a group to inspect its individual expense entries
         </div>
       </div>
-      <GenericAccordionGroup
-        groups={groups}
-        currencySymbol={currencySymbol}
-        classify={classify}
-        columns={columns}
-        defaultPageSize={5}
-        pageSizeOptions={[5, 10, 20, 50]}
-        headerRender={(group, isOpen, onToggle) => (
-          <button
-            type="button"
-            className="pm-accordion-header"
-            onClick={onToggle}
-            aria-expanded={isOpen}
-          >
-            <div className="pm-header-left boxed-metrics inline-metrics">
-              <span className="metric-box name" title={group.label}>
-                {group.label}
-              </span>
-              <span className="metric-box tx" title="Transactions">
-                Count {group.count}
-              </span>
-              {group.creditDueTotal > 0 && (
-                <span className="metric-box credit" title="Total Credit Due">
-                  Due {currencySymbol}
-                  {group.creditDueTotal.toLocaleString()}
+      <div style={themeVars}>
+        <GenericAccordionGroup
+          groups={groups}
+          currencySymbol={currencySymbol}
+          classify={classify}
+          columns={columns}
+          defaultPageSize={5}
+          pageSizeOptions={[5, 10, 20, 50]}
+          headerRender={(group, isOpen, onToggle) => (
+            <button
+              type="button"
+              className="pm-accordion-header"
+              onClick={onToggle}
+              aria-expanded={isOpen}
+              style={{
+                color: colors.primary_text,
+              }}
+            >
+              <div className="pm-header-left boxed-metrics inline-metrics">
+                <span className="metric-box name" title={group.label}>
+                  {group.label}
                 </span>
-              )}
-            </div>
-            <div className="pm-header-right">
-              <span className="metric-box avg" title="Average per Transaction">
-                Avg {currencySymbol}
-                {group.avgPerTransaction}
-              </span>
-              <span className="metric-box amount" title="Total Amount">
-                {currencySymbol}
-                {Number(group.totalAmount || 0).toLocaleString()} (
-                {group.percentage}%)
-              </span>
-              <span className="pm-chevron" aria-hidden>
-                {isOpen ? "▾" : "▸"}
-              </span>
-            </div>
-          </button>
-        )}
-      />
+                <span className="metric-box tx" title="Transactions">
+                  Count {group.count}
+                </span>
+                {group.creditDueTotal > 0 && (
+                  <span className="metric-box credit" title="Total Credit Due">
+                    Due {currencySymbol}
+                    {group.creditDueTotal.toLocaleString()}
+                  </span>
+                )}
+              </div>
+              <div className="pm-header-right">
+                <span
+                  className="metric-box avg"
+                  title="Average per Transaction"
+                >
+                  Avg {currencySymbol}
+                  {group.avgPerTransaction}
+                </span>
+                <span className="metric-box amount" title="Total Amount">
+                  {currencySymbol}
+                  {Number(group.totalAmount || 0).toLocaleString()} (
+                  {group.percentage}%)
+                </span>
+                <span className="pm-chevron" aria-hidden>
+                  {isOpen ? "▾" : "▸"}
+                </span>
+              </div>
+            </button>
+          )}
+        />
+      </div>
     </div>
   );
 };
