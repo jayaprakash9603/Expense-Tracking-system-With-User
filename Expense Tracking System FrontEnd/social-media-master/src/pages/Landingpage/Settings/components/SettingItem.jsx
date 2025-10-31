@@ -9,6 +9,7 @@ import {
   MenuItem,
   ListItemText,
   IconButton,
+  Slider,
 } from "@mui/material";
 import {
   Check as CheckIcon,
@@ -35,6 +36,13 @@ const SettingItem = ({
   selectValue = "",
   selectOptions = [],
   onSelectChange,
+  isSlider = false,
+  sliderValue = 0,
+  sliderMin = 0,
+  sliderMax = 100,
+  sliderStep = 1,
+  sliderMarks = [],
+  onSliderChange,
   isNavigation = false,
   onNavigationClick,
   isDanger = false,
@@ -251,6 +259,50 @@ const SettingItem = ({
           >
             <ChevronRightIcon />
           </IconButton>
+        )}
+
+        {isSlider && (
+          <Box sx={{ width: 200, ml: 2 }}>
+            <Slider
+              value={sliderValue}
+              min={sliderMin}
+              max={sliderMax}
+              step={sliderStep}
+              marks={sliderMarks}
+              onChange={onSliderChange}
+              sx={{
+                color: colors.primary_accent,
+                "& .MuiSlider-thumb": {
+                  width: 20,
+                  height: 20,
+                  backgroundColor: colors.primary_accent,
+                  "&:hover, &.Mui-focusVisible": {
+                    boxShadow: `0 0 0 8px ${colors.primary_accent}30`,
+                  },
+                  "&.Mui-active": {
+                    boxShadow: `0 0 0 12px ${colors.primary_accent}30`,
+                  },
+                },
+                "& .MuiSlider-track": {
+                  height: 6,
+                  backgroundColor: colors.primary_accent,
+                },
+                "& .MuiSlider-rail": {
+                  height: 6,
+                  backgroundColor: `${colors.primary_accent}30`,
+                },
+                "& .MuiSlider-mark": {
+                  backgroundColor: colors.border_color,
+                  height: 8,
+                  width: 2,
+                },
+                "& .MuiSlider-markLabel": {
+                  fontSize: "0.75rem",
+                  color: colors.secondary_text,
+                },
+              }}
+            />
+          </Box>
         )}
 
         {action && action}

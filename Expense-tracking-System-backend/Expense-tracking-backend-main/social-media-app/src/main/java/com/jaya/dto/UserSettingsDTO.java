@@ -28,11 +28,23 @@ public class UserSettingsDTO {
     @JsonProperty("userId")
     private Integer userId;
 
-    // Appearance Settings
+    // ==================== APPEARANCE SETTINGS ====================
     @JsonProperty("themeMode")
     private String themeMode;
 
-    // Notification Settings
+    @JsonProperty("fontSize")
+    private String fontSize;
+
+    @JsonProperty("compactMode")
+    private Boolean compactMode;
+
+    @JsonProperty("animations")
+    private Boolean animations;
+
+    @JsonProperty("highContrast")
+    private Boolean highContrast;
+
+    // ==================== NOTIFICATION SETTINGS ====================
     @JsonProperty("emailNotifications")
     private Boolean emailNotifications;
 
@@ -48,7 +60,7 @@ public class UserSettingsDTO {
     @JsonProperty("friendRequestNotifications")
     private Boolean friendRequestNotifications;
 
-    // Preference Settings
+    // ==================== PREFERENCE SETTINGS ====================
     @JsonProperty("language")
     private String language;
 
@@ -58,12 +70,57 @@ public class UserSettingsDTO {
     @JsonProperty("dateFormat")
     private String dateFormat;
 
-    // Privacy Settings
+    @JsonProperty("timeFormat")
+    private String timeFormat;
+
+    // ==================== PRIVACY & SECURITY SETTINGS ====================
     @JsonProperty("profileVisibility")
     private String profileVisibility;
 
     @JsonProperty("twoFactorEnabled")
     private Boolean twoFactorEnabled;
+
+    @JsonProperty("sessionTimeout")
+    private Boolean sessionTimeout;
+
+    // ==================== DATA & STORAGE SETTINGS ====================
+    @JsonProperty("autoBackup")
+    private Boolean autoBackup;
+
+    @JsonProperty("backupFrequency")
+    private String backupFrequency;
+
+    @JsonProperty("cloudSync")
+    private Boolean cloudSync;
+
+    // ==================== SMART FEATURES SETTINGS ====================
+    @JsonProperty("autoCategorize")
+    private Boolean autoCategorize;
+
+    @JsonProperty("smartBudgeting")
+    private Boolean smartBudgeting;
+
+    @JsonProperty("scheduledReports")
+    private String scheduledReports;
+
+    @JsonProperty("expenseReminders")
+    private Boolean expenseReminders;
+
+    @JsonProperty("predictiveAnalytics")
+    private Boolean predictiveAnalytics;
+
+    // ==================== ACCESSIBILITY SETTINGS ====================
+    @JsonProperty("screenReader")
+    private Boolean screenReader;
+
+    @JsonProperty("keyboardShortcuts")
+    private Boolean keyboardShortcuts;
+
+    @JsonProperty("reduceMotion")
+    private Boolean reduceMotion;
+
+    @JsonProperty("focusIndicators")
+    private Boolean focusIndicators;
 
     // Timestamps
     @JsonProperty("createdAt")

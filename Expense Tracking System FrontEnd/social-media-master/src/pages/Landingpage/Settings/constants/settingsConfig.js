@@ -24,6 +24,24 @@ import {
   Shield as ShieldIcon,
   Palette as PaletteIcon,
   AccountCircle as AccountCircleIcon,
+  TextFields as TextFieldsIcon,
+  ViewCompact as ViewCompactIcon,
+  Animation as AnimationIcon,
+  Contrast as ContrastIcon,
+  CloudSync as CloudSyncIcon,
+  CloudDownload as CloudDownloadIcon,
+  DeleteSweep as DeleteSweepIcon,
+  Psychology as PsychologyIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  Schedule as ScheduleIcon,
+  NotificationImportant as NotificationImportantIcon,
+  Accessible as AccessibleIcon,
+  Keyboard as KeyboardIcon,
+  MotionPhotosOff as MotionPhotosOffIcon,
+  RecordVoiceOver as RecordVoiceOverIcon,
+  Brightness4 as Brightness4Icon,
+  Timer as TimerIcon,
+  Category as CategoryIcon,
 } from "@mui/icons-material";
 
 /**
@@ -55,6 +73,44 @@ export const DATE_FORMAT_OPTIONS = [
   { value: "MM/DD/YYYY", label: "📅 MM/DD/YYYY (US)" },
   { value: "DD/MM/YYYY", label: "📅 DD/MM/YYYY (UK/EU)" },
   { value: "YYYY-MM-DD", label: "📅 YYYY-MM-DD (ISO)" },
+];
+
+/**
+ * Font size options
+ */
+export const FONT_SIZE_OPTIONS = [
+  { value: "small", label: "Small" },
+  { value: "medium", label: "Medium (Default)" },
+  { value: "large", label: "Large" },
+  { value: "extra-large", label: "Extra Large" },
+];
+
+/**
+ * Time format options
+ */
+export const TIME_FORMAT_OPTIONS = [
+  { value: "12h", label: "🕐 12-hour (3:00 PM)" },
+  { value: "24h", label: "🕒 24-hour (15:00)" },
+];
+
+/**
+ * Auto-backup frequency options
+ */
+export const BACKUP_FREQUENCY_OPTIONS = [
+  { value: "daily", label: "📆 Daily" },
+  { value: "weekly", label: "📅 Weekly" },
+  { value: "monthly", label: "🗓️ Monthly" },
+  { value: "manual", label: "✋ Manual Only" },
+];
+
+/**
+ * Report schedule options
+ */
+export const REPORT_SCHEDULE_OPTIONS = [
+  { value: "daily", label: "📊 Daily Summary" },
+  { value: "weekly", label: "📈 Weekly Summary" },
+  { value: "monthly", label: "📉 Monthly Summary" },
+  { value: "none", label: "🚫 No Scheduled Reports" },
 ];
 
 /**
@@ -111,6 +167,43 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "isDark",
         settingsKey: "themeMode",
+      },
+      {
+        id: "fontSize",
+        icon: TextFieldsIcon,
+        title: "Font Size",
+        description: "Adjust text size for better readability",
+        type: "select",
+        stateKey: "fontSize",
+        settingsKey: "fontSize",
+        options: FONT_SIZE_OPTIONS,
+      },
+      {
+        id: "compactMode",
+        icon: ViewCompactIcon,
+        title: "Compact Mode",
+        description: "Display more content with reduced spacing",
+        type: "switch",
+        stateKey: "compactMode",
+        settingsKey: "compactMode",
+      },
+      {
+        id: "animations",
+        icon: AnimationIcon,
+        title: "Enable Animations",
+        description: "Show smooth transitions and animations",
+        type: "switch",
+        stateKey: "animations",
+        settingsKey: "animations",
+      },
+      {
+        id: "highContrast",
+        icon: ContrastIcon,
+        title: "High Contrast Mode",
+        description: "Enhanced visibility for better accessibility",
+        type: "switch",
+        stateKey: "highContrast",
+        settingsKey: "highContrast",
       },
     ],
   },
@@ -203,6 +296,16 @@ export const SETTINGS_SECTIONS = {
         settingsKey: "dateFormat",
         options: DATE_FORMAT_OPTIONS,
       },
+      {
+        id: "timeFormat",
+        icon: TimerIcon,
+        title: "Time Format",
+        description: "Choose 12-hour or 24-hour time format",
+        type: "select",
+        stateKey: "timeFormat",
+        settingsKey: "timeFormat",
+        options: TIME_FORMAT_OPTIONS,
+      },
     ],
   },
 
@@ -240,6 +343,176 @@ export const SETTINGS_SECTIONS = {
         type: "button",
         buttonText: "Manage",
         action: "manageBlockedUsers",
+      },
+      {
+        id: "sessionTimeout",
+        icon: TimerIcon,
+        title: "Auto Logout",
+        description: "Automatically log out after period of inactivity",
+        type: "switch",
+        stateKey: "sessionTimeout",
+        settingsKey: "sessionTimeout",
+      },
+    ],
+  },
+
+  DATA_STORAGE: {
+    id: "data_storage",
+    title: "Data & Storage",
+    icon: StorageIcon,
+    items: [
+      {
+        id: "autoBackup",
+        icon: CloudDownloadIcon,
+        title: "Auto Backup",
+        description: "Automatically backup your data to cloud",
+        type: "switch",
+        stateKey: "autoBackup",
+        settingsKey: "autoBackup",
+      },
+      {
+        id: "backupFrequency",
+        icon: ScheduleIcon,
+        title: "Backup Frequency",
+        description: "How often to backup your data",
+        type: "select",
+        stateKey: "backupFrequency",
+        settingsKey: "backupFrequency",
+        options: BACKUP_FREQUENCY_OPTIONS,
+      },
+      {
+        id: "cloudSync",
+        icon: CloudSyncIcon,
+        title: "Cloud Sync",
+        description: "Sync data across all your devices",
+        type: "switch",
+        stateKey: "cloudSync",
+        settingsKey: "cloudSync",
+      },
+      {
+        id: "storageUsage",
+        icon: StorageIcon,
+        title: "Storage Usage",
+        description: "View your data storage usage",
+        type: "button",
+        buttonText: "View",
+        action: "viewStorage",
+      },
+      {
+        id: "clearCache",
+        icon: DeleteSweepIcon,
+        title: "Clear Cache",
+        description: "Free up space by clearing cached data",
+        type: "button",
+        buttonText: "Clear",
+        action: "clearCache",
+      },
+    ],
+  },
+
+  SMART_FEATURES: {
+    id: "smart_features",
+    title: "Smart Features & Automation",
+    icon: PsychologyIcon,
+    items: [
+      {
+        id: "autoCategorize",
+        icon: CategoryIcon,
+        title: "Auto-Categorize Expenses",
+        description: "AI-powered automatic expense categorization",
+        type: "switch",
+        stateKey: "autoCategorize",
+        settingsKey: "autoCategorize",
+      },
+      {
+        id: "smartBudgeting",
+        icon: AutoAwesomeIcon,
+        title: "Smart Budget Suggestions",
+        description: "Get AI recommendations for better budgeting",
+        type: "switch",
+        stateKey: "smartBudgeting",
+        settingsKey: "smartBudgeting",
+      },
+      {
+        id: "scheduledReports",
+        icon: ScheduleIcon,
+        title: "Scheduled Reports",
+        description: "Receive automated expense reports",
+        type: "select",
+        stateKey: "scheduledReports",
+        settingsKey: "scheduledReports",
+        options: REPORT_SCHEDULE_OPTIONS,
+      },
+      {
+        id: "expenseReminders",
+        icon: NotificationImportantIcon,
+        title: "Expense Reminders",
+        description: "Get reminders for recurring expenses",
+        type: "switch",
+        stateKey: "expenseReminders",
+        settingsKey: "expenseReminders",
+      },
+      {
+        id: "predictiveAnalytics",
+        icon: AssessmentIcon,
+        title: "Predictive Analytics",
+        description: "Forecast future expenses based on patterns",
+        type: "switch",
+        stateKey: "predictiveAnalytics",
+        settingsKey: "predictiveAnalytics",
+      },
+    ],
+  },
+
+  ACCESSIBILITY: {
+    id: "accessibility",
+    title: "Accessibility",
+    icon: AccessibleIcon,
+    items: [
+      {
+        id: "screenReader",
+        icon: RecordVoiceOverIcon,
+        title: "Screen Reader Support",
+        description: "Enhanced support for screen readers",
+        type: "switch",
+        stateKey: "screenReader",
+        settingsKey: "screenReader",
+      },
+      {
+        id: "keyboardShortcuts",
+        icon: KeyboardIcon,
+        title: "Keyboard Shortcuts",
+        description: "Enable keyboard navigation shortcuts",
+        type: "switch",
+        stateKey: "keyboardShortcuts",
+        settingsKey: "keyboardShortcuts",
+      },
+      {
+        id: "reduceMotion",
+        icon: MotionPhotosOffIcon,
+        title: "Reduce Motion",
+        description: "Minimize animations for better accessibility",
+        type: "switch",
+        stateKey: "reduceMotion",
+        settingsKey: "reduceMotion",
+      },
+      {
+        id: "focusIndicators",
+        icon: Brightness4Icon,
+        title: "Enhanced Focus Indicators",
+        description: "Highlight focused elements more prominently",
+        type: "switch",
+        stateKey: "focusIndicators",
+        settingsKey: "focusIndicators",
+      },
+      {
+        id: "keyboardShortcutsGuide",
+        icon: KeyboardIcon,
+        title: "Keyboard Shortcuts Guide",
+        description: "View all available keyboard shortcuts",
+        type: "button",
+        buttonText: "View",
+        action: "viewShortcuts",
       },
     ],
   },

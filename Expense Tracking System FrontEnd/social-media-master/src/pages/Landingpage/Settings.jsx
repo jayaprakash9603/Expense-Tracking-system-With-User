@@ -158,6 +158,36 @@ const Settings = () => {
     />
   );
 
+  // Render slider-type setting
+  const renderSliderSetting = (item) => {
+    const stateKey = item.stateKey;
+    const settingsKey = item.settingsKey;
+
+    return (
+      <SettingItem
+        key={item.id}
+        icon={item.icon}
+        title={item.title}
+        description={item.description}
+        isSlider
+        sliderValue={settingsState[stateKey]}
+        sliderMin={item.min}
+        sliderMax={item.max}
+        sliderStep={item.step}
+        sliderMarks={item.marks}
+        onSliderChange={(e, value) => {
+          updateSetting(stateKey, value);
+          updateSetting(
+            settingsKey,
+            value,
+            `${item.title} updated to ${value}`
+          );
+        }}
+        colors={colors}
+      />
+    );
+  };
+
   // Render setting item based on type
   const renderSettingItem = (item) => {
     // Special handling for theme toggle
@@ -185,6 +215,8 @@ const Settings = () => {
         return renderButtonSetting(item);
       case "navigation":
         return renderNavigationSetting(item);
+      case "slider":
+        return renderSliderSetting(item);
       default:
         return null;
     }

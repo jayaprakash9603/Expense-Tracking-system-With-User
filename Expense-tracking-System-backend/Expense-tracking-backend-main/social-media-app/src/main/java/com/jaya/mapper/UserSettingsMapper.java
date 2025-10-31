@@ -33,17 +33,43 @@ public class UserSettingsMapper {
         return UserSettingsDTO.builder()
                 .id(entity.getId())
                 .userId(entity.getUserId())
+                // Appearance
                 .themeMode(entity.getThemeMode())
+                .fontSize(entity.getFontSize())
+                .compactMode(entity.getCompactMode())
+                .animations(entity.getAnimations())
+                .highContrast(entity.getHighContrast())
+                // Notifications
                 .emailNotifications(entity.getEmailNotifications())
                 .budgetAlerts(entity.getBudgetAlerts())
                 .weeklyReports(entity.getWeeklyReports())
                 .pushNotifications(entity.getPushNotifications())
                 .friendRequestNotifications(entity.getFriendRequestNotifications())
+                // Preferences
                 .language(entity.getLanguage())
                 .currency(entity.getCurrency())
                 .dateFormat(entity.getDateFormat())
+                .timeFormat(entity.getTimeFormat())
+                // Privacy & Security
                 .profileVisibility(entity.getProfileVisibility())
                 .twoFactorEnabled(entity.getTwoFactorEnabled())
+                .sessionTimeout(entity.getSessionTimeout())
+                // Data & Storage
+                .autoBackup(entity.getAutoBackup())
+                .backupFrequency(entity.getBackupFrequency())
+                .cloudSync(entity.getCloudSync())
+                // Smart Features
+                .autoCategorize(entity.getAutoCategorize())
+                .smartBudgeting(entity.getSmartBudgeting())
+                .scheduledReports(entity.getScheduledReports())
+                .expenseReminders(entity.getExpenseReminders())
+                .predictiveAnalytics(entity.getPredictiveAnalytics())
+                // Accessibility
+                .screenReader(entity.getScreenReader())
+                .keyboardShortcuts(entity.getKeyboardShortcuts())
+                .reduceMotion(entity.getReduceMotion())
+                .focusIndicators(entity.getFocusIndicators())
+                // Timestamps
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -64,17 +90,42 @@ public class UserSettingsMapper {
         return UserSettings.builder()
                 .id(dto.getId())
                 .userId(dto.getUserId())
+                // Appearance
                 .themeMode(dto.getThemeMode())
+                .fontSize(dto.getFontSize())
+                .compactMode(dto.getCompactMode())
+                .animations(dto.getAnimations())
+                .highContrast(dto.getHighContrast())
+                // Notifications
                 .emailNotifications(dto.getEmailNotifications())
                 .budgetAlerts(dto.getBudgetAlerts())
                 .weeklyReports(dto.getWeeklyReports())
                 .pushNotifications(dto.getPushNotifications())
                 .friendRequestNotifications(dto.getFriendRequestNotifications())
+                // Preferences
                 .language(dto.getLanguage())
                 .currency(dto.getCurrency())
                 .dateFormat(dto.getDateFormat())
+                .timeFormat(dto.getTimeFormat())
+                // Privacy & Security
                 .profileVisibility(dto.getProfileVisibility())
                 .twoFactorEnabled(dto.getTwoFactorEnabled())
+                .sessionTimeout(dto.getSessionTimeout())
+                // Data & Storage
+                .autoBackup(dto.getAutoBackup())
+                .backupFrequency(dto.getBackupFrequency())
+                .cloudSync(dto.getCloudSync())
+                // Smart Features
+                .autoCategorize(dto.getAutoCategorize())
+                .smartBudgeting(dto.getSmartBudgeting())
+                .scheduledReports(dto.getScheduledReports())
+                .expenseReminders(dto.getExpenseReminders())
+                .predictiveAnalytics(dto.getPredictiveAnalytics())
+                // Accessibility
+                .screenReader(dto.getScreenReader())
+                .keyboardShortcuts(dto.getKeyboardShortcuts())
+                .reduceMotion(dto.getReduceMotion())
+                .focusIndicators(dto.getFocusIndicators())
                 .build();
     }
 
@@ -93,10 +144,24 @@ public class UserSettingsMapper {
             return;
         }
 
-        // Update only non-null fields (partial update)
+        // Appearance Settings
         if (request.getThemeMode() != null) {
             entity.setThemeMode(request.getThemeMode());
         }
+        if (request.getFontSize() != null) {
+            entity.setFontSize(request.getFontSize());
+        }
+        if (request.getCompactMode() != null) {
+            entity.setCompactMode(request.getCompactMode());
+        }
+        if (request.getAnimations() != null) {
+            entity.setAnimations(request.getAnimations());
+        }
+        if (request.getHighContrast() != null) {
+            entity.setHighContrast(request.getHighContrast());
+        }
+
+        // Notification Settings
         if (request.getEmailNotifications() != null) {
             entity.setEmailNotifications(request.getEmailNotifications());
         }
@@ -112,6 +177,8 @@ public class UserSettingsMapper {
         if (request.getFriendRequestNotifications() != null) {
             entity.setFriendRequestNotifications(request.getFriendRequestNotifications());
         }
+
+        // Preference Settings
         if (request.getLanguage() != null) {
             entity.setLanguage(request.getLanguage());
         }
@@ -121,11 +188,61 @@ public class UserSettingsMapper {
         if (request.getDateFormat() != null) {
             entity.setDateFormat(request.getDateFormat());
         }
+        if (request.getTimeFormat() != null) {
+            entity.setTimeFormat(request.getTimeFormat());
+        }
+
+        // Privacy & Security Settings
         if (request.getProfileVisibility() != null) {
             entity.setProfileVisibility(request.getProfileVisibility());
         }
         if (request.getTwoFactorEnabled() != null) {
             entity.setTwoFactorEnabled(request.getTwoFactorEnabled());
+        }
+        if (request.getSessionTimeout() != null) {
+            entity.setSessionTimeout(request.getSessionTimeout());
+        }
+
+        // Data & Storage Settings
+        if (request.getAutoBackup() != null) {
+            entity.setAutoBackup(request.getAutoBackup());
+        }
+        if (request.getBackupFrequency() != null) {
+            entity.setBackupFrequency(request.getBackupFrequency());
+        }
+        if (request.getCloudSync() != null) {
+            entity.setCloudSync(request.getCloudSync());
+        }
+
+        // Smart Features Settings
+        if (request.getAutoCategorize() != null) {
+            entity.setAutoCategorize(request.getAutoCategorize());
+        }
+        if (request.getSmartBudgeting() != null) {
+            entity.setSmartBudgeting(request.getSmartBudgeting());
+        }
+        if (request.getScheduledReports() != null) {
+            entity.setScheduledReports(request.getScheduledReports());
+        }
+        if (request.getExpenseReminders() != null) {
+            entity.setExpenseReminders(request.getExpenseReminders());
+        }
+        if (request.getPredictiveAnalytics() != null) {
+            entity.setPredictiveAnalytics(request.getPredictiveAnalytics());
+        }
+
+        // Accessibility Settings
+        if (request.getScreenReader() != null) {
+            entity.setScreenReader(request.getScreenReader());
+        }
+        if (request.getKeyboardShortcuts() != null) {
+            entity.setKeyboardShortcuts(request.getKeyboardShortcuts());
+        }
+        if (request.getReduceMotion() != null) {
+            entity.setReduceMotion(request.getReduceMotion());
+        }
+        if (request.getFocusIndicators() != null) {
+            entity.setFocusIndicators(request.getFocusIndicators());
         }
     }
 

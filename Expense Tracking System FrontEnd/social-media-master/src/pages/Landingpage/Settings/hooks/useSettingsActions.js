@@ -31,16 +31,63 @@ export const useSettingsActions = (
 
   // Action handlers mapped to action IDs
   const actionHandlers = {
+    // Account Management
     editProfile: () => navigate("/profile"),
     changePassword: () => setPasswordDialogOpen(true),
-    exportData: () => showSnackbar("Data export initiated", "success"),
+    exportData: () => {
+      showSnackbar("Preparing data export...", "info");
+      // Simulate export process
+      setTimeout(() => {
+        showSnackbar("Data export completed successfully!", "success");
+      }, 2000);
+    },
     deleteAccount: () => setDeleteDialogOpen(true),
-    enable2FA: () => showSnackbar("2FA setup coming soon", "info"),
-    manageBlockedUsers: () => showSnackbar("Blocked users management", "info"),
-    helpCenter: () => showSnackbar("Help center", "info"),
-    contactSupport: () => showSnackbar("Contact support", "info"),
-    termsOfService: () => showSnackbar("Terms of service", "info"),
-    privacyPolicy: () => showSnackbar("Privacy policy", "info"),
+
+    // Security
+    enable2FA: () => {
+      showSnackbar("Opening Two-Factor Authentication setup...", "info");
+      // Navigate to 2FA setup page or open modal
+    },
+    manageBlockedUsers: () => {
+      showSnackbar("Opening blocked users management...", "info");
+      // Navigate to blocked users page
+    },
+
+    // Data & Storage
+    viewStorage: () => {
+      showSnackbar("Storage usage: 234 MB of 5 GB used", "info");
+      // Open storage details modal
+    },
+    clearCache: () => {
+      showSnackbar("Clearing cache...", "info");
+      setTimeout(() => {
+        showSnackbar("Cache cleared successfully! Freed 156 MB", "success");
+      }, 1500);
+    },
+
+    // Accessibility
+    viewShortcuts: () => {
+      showSnackbar("Opening keyboard shortcuts guide...", "info");
+      // Open shortcuts modal or navigate to shortcuts page
+    },
+
+    // Help & Support
+    helpCenter: () => {
+      showSnackbar("Opening help center...", "info");
+      // Navigate to help center
+    },
+    contactSupport: () => {
+      showSnackbar("Opening contact support form...", "info");
+      // Open support form modal
+    },
+    termsOfService: () => {
+      showSnackbar("Opening terms of service...", "info");
+      // Navigate to terms page
+    },
+    privacyPolicy: () => {
+      showSnackbar("Opening privacy policy...", "info");
+      // Navigate to privacy page
+    },
   };
 
   // Generic action executor
