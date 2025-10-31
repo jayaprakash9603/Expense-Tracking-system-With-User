@@ -39,32 +39,50 @@ public class NotificationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        UserDto user = userService.getuserProfile(jwt);
-        Page<Notification> notifications = notificationRepository
-                .findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size));
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            Page<Notification> notifications = notificationRepository
+                    .findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size));
 
-        return ResponseEntity.ok(notifications.getContent());
+            return ResponseEntity.ok(notifications.getContent());
+        } catch (Exception e) {
+            System.err.println("Error fetching user profile: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(List.of());
+        }
     }
 
     @GetMapping("/unread")
     public ResponseEntity<List<Notification>> getUnreadNotifications(
             @RequestHeader("Authorization") String jwt) {
 
-        UserDto user = userService.getuserProfile(jwt);
-        List<Notification> notifications = notificationRepository
-                .findByUserIdAndIsReadFalseOrderByCreatedAtDesc(user.getId());
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            List<Notification> notifications = notificationRepository
+                    .findByUserIdAndIsReadFalseOrderByCreatedAtDesc(user.getId());
 
-        return ResponseEntity.ok(notifications);
+            return ResponseEntity.ok(notifications);
+        } catch (Exception e) {
+            System.err.println("Error fetching user profile: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(List.of());
+        }
     }
 
     @GetMapping("/count/unread")
     public ResponseEntity<Map<String, Long>> getUnreadCount(
             @RequestHeader("Authorization") String jwt) {
 
-        UserDto user = userService.getuserProfile(jwt);
-        Long count = notificationRepository.countUnreadNotifications(user.getId());
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            Long count = notificationRepository.countUnreadNotifications(user.getId());
 
-        return ResponseEntity.ok(Map.of("unreadCount", count));
+            return ResponseEntity.ok(Map.of("unreadCount", count));
+        } catch (Exception e) {
+            System.err.println("Error fetching user profile: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(Map.of("unreadCount", 0L));
+        }
     }
 
     @PutMapping("/{notificationId}/read")

@@ -6,7 +6,7 @@ import { toggleTheme } from "../../Redux/Theme/theme.actions";
 import { logoutAction } from "../../Redux/Auth/auth.action";
 import { updateUserSettings } from "../../Redux/UserSettings/userSettings.action";
 import Modal from "../../pages/Landingpage/Modal";
-import NotificationsPanel from "./NotificationsPanel";
+import NotificationsPanelRedux from "./NotificationsPanelRedux";
 
 /**
  * HeaderBar Component
@@ -347,7 +347,7 @@ const HeaderBar = () => {
       />
 
       {/* Notifications Panel */}
-      <NotificationsPanel
+      <NotificationsPanelRedux
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
         onNotificationRead={(unreadCount) =>

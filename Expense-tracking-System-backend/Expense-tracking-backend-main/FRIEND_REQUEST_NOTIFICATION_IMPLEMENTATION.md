@@ -3,6 +3,7 @@
 ## 📋 Overview
 
 A complete end-to-end notification system for friend requests that:
+
 1. **Produces Events** in FriendShip-Service when friend requests are sent/accepted/rejected
 2. **Consumes Events** in Notification-Service via Kafka
 3. **Sends Real-time Notifications** to frontend via WebSocket
@@ -43,20 +44,24 @@ A complete end-to-end notification system for friend requests that:
 ### FriendShip-Service
 
 #### New Files
+
 1. **`events/FriendRequestEvent.java`** - Event DTO for friend request events
 2. **`config/KafkaProducerConfig.java`** - Kafka producer configuration
 3. **`service/FriendRequestEventPublisher.java`** - Kafka event publisher service
 
 #### Modified Files
+
 1. **`service/FriendshipServiceImpl.java`** - Added event publishing logic
 2. **`resources/application.yml`** - Added Kafka configuration
 
 ### Notification-Service
 
 #### New Files
+
 1. **`dto/events/FriendRequestEventDTO.java`** - Event DTO for receiving friend request events
 
 #### Modified Files
+
 1. **`consumer/NotificationEventConsumer.java`** - Added friend request event consumer
 2. **`config/KafkaConfig.java`** - Added friend request consumer factory
 
@@ -200,22 +205,24 @@ Notification appears (low priority)
 
 ## 🎯 Notification Types
 
-| Event Type | Notification Sent To | Notification Type | Priority | Message |
-|------------|---------------------|-------------------|----------|---------|
-| FRIEND_REQUEST_SENT | Recipient (User B) | FRIEND_REQUEST_RECEIVED | MEDIUM | "{Requester} sent you a friend request" |
-| FRIEND_REQUEST_ACCEPTED | Requester (User A) | FRIEND_REQUEST_ACCEPTED | MEDIUM | "{Recipient} accepted your friend request!" |
-| FRIEND_REQUEST_REJECTED | Requester (User A) | FRIEND_REQUEST_REJECTED | LOW | "Your friend request was declined" |
+| Event Type              | Notification Sent To | Notification Type       | Priority | Message                                     |
+| ----------------------- | -------------------- | ----------------------- | -------- | ------------------------------------------- |
+| FRIEND_REQUEST_SENT     | Recipient (User B)   | FRIEND_REQUEST_RECEIVED | MEDIUM   | "{Requester} sent you a friend request"     |
+| FRIEND_REQUEST_ACCEPTED | Requester (User A)   | FRIEND_REQUEST_ACCEPTED | MEDIUM   | "{Recipient} accepted your friend request!" |
+| FRIEND_REQUEST_REJECTED | Requester (User A)   | FRIEND_REQUEST_REJECTED | LOW      | "Your friend request was declined"          |
 
 ---
 
 ## 🔌 Kafka Configuration
 
 ### Topic Name
+
 ```
 friend-request-events
 ```
 
 ### Consumer Group
+
 ```
 notification-friend-request-group
 ```
@@ -223,6 +230,7 @@ notification-friend-request-group
 ### Configuration in `application.yml`
 
 #### FriendShip-Service (Producer)
+
 ```yaml
 spring:
   kafka:
@@ -235,6 +243,7 @@ spring:
 ```
 
 #### Notification-Service (Consumer)
+
 ```yaml
 spring:
   kafka:
@@ -253,18 +262,19 @@ spring:
 ## 🌐 WebSocket Integration
 
 ### Endpoint Configuration
+
 ```java
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic", "/queue");
         config.setApplicationDestinationPrefixes("/app");
         config.setUserDestinationPrefix("/user");
     }
-    
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-notifications")
@@ -275,41 +285,43 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 ```
 
 ### Sending Notifications
+
 ```java
 // In NotificationEventConsumer.java
 private void sendNotificationToUser(Notification notification) {
-    String destination = String.format("/user/%d/queue/notifications", 
+    String destination = String.format("/user/%d/queue/notifications",
                                       notification.getUserId());
     messagingTemplate.convertAndSend(destination, notification);
 }
 ```
 
 ### Frontend Subscription (React)
+
 ```javascript
-import SockJS from 'sockjs-client';
-import { Stomp } from '@stomp/stompjs';
+import SockJS from "sockjs-client";
+import { Stomp } from "@stomp/stompjs";
 
 // Connect to WebSocket
-const socket = new SockJS('http://localhost:6004/ws-notifications');
+const socket = new SockJS("http://localhost:6004/ws-notifications");
 const stompClient = Stomp.over(socket);
 
 stompClient.connect({}, (frame) => {
-    console.log('Connected: ' + frame);
-    
-    // Subscribe to notifications for specific user
-    stompClient.subscribe(`/user/${userId}/queue/notifications`, (message) => {
-        const notification = JSON.parse(message.body);
-        console.log('Received notification:', notification);
-        
-        // Update notification panel
-        addNotificationToPanel(notification);
-        
-        // Update badge count
-        updateBadgeCount();
-        
-        // Show toast/alert
-        showNotificationToast(notification);
-    });
+  console.log("Connected: " + frame);
+
+  // Subscribe to notifications for specific user
+  stompClient.subscribe(`/user/${userId}/queue/notifications`, (message) => {
+    const notification = JSON.parse(message.body);
+    console.log("Received notification:", notification);
+
+    // Update notification panel
+    addNotificationToPanel(notification);
+
+    // Update badge count
+    updateBadgeCount();
+
+    // Show toast/alert
+    showNotificationToast(notification);
+  });
 });
 ```
 
@@ -351,19 +363,19 @@ public class FriendRequestEvent {
 @Slf4j
 public class FriendRequestEventPublisher {
     private static final String FRIEND_REQUEST_TOPIC = "friend-request-events";
-    
+
     @Autowired
     private KafkaTemplate<String, FriendRequestEvent> friendRequestKafkaTemplate;
-    
+
     public void publishFriendRequestEvent(FriendRequestEvent event) {
         try {
             log.info("Publishing friend request event: {}", event.getEventType());
-            
-            CompletableFuture<SendResult<String, FriendRequestEvent>> future = 
-                friendRequestKafkaTemplate.send(FRIEND_REQUEST_TOPIC, 
-                                               event.getFriendshipId().toString(), 
+
+            CompletableFuture<SendResult<String, FriendRequestEvent>> future =
+                friendRequestKafkaTemplate.send(FRIEND_REQUEST_TOPIC,
+                                               event.getFriendshipId().toString(),
                                                event);
-            
+
             future.whenComplete((result, ex) -> {
                 if (ex == null) {
                     log.info("Successfully published: {}", event.getEventType());
@@ -383,35 +395,35 @@ public class FriendRequestEventPublisher {
 ```java
 @Service
 public class FriendshipServiceImpl implements FriendshipService {
-    
+
     @Autowired
     private FriendRequestEventPublisher friendRequestEventPublisher;
-    
+
     @Override
-    public Friendship sendFriendRequest(Integer requesterId, Integer recipientId) 
+    public Friendship sendFriendRequest(Integer requesterId, Integer recipientId)
             throws Exception {
         // ... existing validation code ...
-        
+
         Friendship friendship = friendshipRepository.save(/* ... */);
-        
+
         // Publish event to Kafka
         publishFriendRequestSentEvent(friendship, requester, recipient);
-        
+
         return friendship;
     }
-    
+
     @Override
-    public Friendship respondToRequest(Integer friendshipId, Integer responderId, 
+    public Friendship respondToRequest(Integer friendshipId, Integer responderId,
                                       boolean accept) {
         // ... existing code ...
-        
+
         friendship = friendshipRepository.save(friendship);
-        
+
         // Publish event to Kafka
         try {
             UserDto requester = helper.validateUser(friendship.getRequesterId());
             UserDto recipient = helper.validateUser(friendship.getRecipientId());
-            
+
             if (accept) {
                 publishFriendRequestAcceptedEvent(friendship, requester, recipient);
             } else {
@@ -420,12 +432,12 @@ public class FriendshipServiceImpl implements FriendshipService {
         } catch (Exception e) {
             log.error("Failed to publish event: {}", e.getMessage());
         }
-        
+
         return friendship;
     }
-    
-    private void publishFriendRequestSentEvent(Friendship friendship, 
-                                               UserDto requester, 
+
+    private void publishFriendRequestSentEvent(Friendship friendship,
+                                               UserDto requester,
                                                UserDto recipient) {
         FriendRequestEvent event = FriendRequestEvent.builder()
             .eventId(System.currentTimeMillis())
@@ -435,10 +447,10 @@ public class FriendshipServiceImpl implements FriendshipService {
             .requesterName(requester.getFirstName() + " " + requester.getLastName())
             // ... other fields ...
             .build();
-        
+
         friendRequestEventPublisher.publishFriendRequestEvent(event);
     }
-    
+
     // Similar methods for accepted/rejected events
 }
 ```
@@ -450,11 +462,11 @@ public class FriendshipServiceImpl implements FriendshipService {
 @Slf4j
 @RequiredArgsConstructor
 public class NotificationEventConsumer {
-    
+
     private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
-    
+
     @KafkaListener(
         topics = "friend-request-events",
         groupId = "notification-friend-request-group",
@@ -465,49 +477,49 @@ public class NotificationEventConsumer {
             log.info("Received friend request event: {}", eventJson);
             FriendRequestEventDTO event = objectMapper.readValue(
                 eventJson, FriendRequestEventDTO.class);
-            
+
             createAndSendFriendRequestNotifications(event);
-            
-            log.info("Friend request notifications processed: {}", 
+
+            log.info("Friend request notifications processed: {}",
                     event.getEventType());
         } catch (Exception e) {
-            log.error("Error processing friend request event: {}", 
+            log.error("Error processing friend request event: {}",
                      e.getMessage(), e);
         }
     }
-    
+
     private void createAndSendFriendRequestNotifications(
             FriendRequestEventDTO event) {
         switch (event.getEventType()) {
             case "FRIEND_REQUEST_SENT":
                 // Notify recipient
-                Notification notification = 
+                Notification notification =
                     createFriendRequestReceivedNotification(event);
-                Notification saved = 
+                Notification saved =
                     notificationService.createNotification(notification);
                 sendNotificationToUser(saved);
                 break;
-            
+
             case "FRIEND_REQUEST_ACCEPTED":
                 // Notify requester
-                notification = 
+                notification =
                     createFriendRequestAcceptedNotification(event);
                 saved = notificationService.createNotification(notification);
                 sendNotificationToUser(saved);
                 break;
-            
+
             case "FRIEND_REQUEST_REJECTED":
                 // Notify requester
-                notification = 
+                notification =
                     createFriendRequestRejectedNotification(event);
                 saved = notificationService.createNotification(notification);
                 sendNotificationToUser(saved);
                 break;
         }
     }
-    
+
     private void sendNotificationToUser(Notification notification) {
-        String destination = String.format("/user/%d/queue/notifications", 
+        String destination = String.format("/user/%d/queue/notifications",
                                           notification.getUserId());
         messagingTemplate.convertAndSend(destination, notification);
     }
@@ -552,15 +564,15 @@ curl -X POST http://localhost:6009/api/friendships/respond \
 
 ```javascript
 // Test WebSocket in browser console
-const socket = new SockJS('http://localhost:6004/ws-notifications');
+const socket = new SockJS("http://localhost:6004/ws-notifications");
 const stompClient = Stomp.over(socket);
 
 stompClient.connect({}, (frame) => {
-    console.log('Connected:', frame);
-    
-    stompClient.subscribe('/user/2/queue/notifications', (message) => {
-        console.log('Received:', JSON.parse(message.body));
-    });
+  console.log("Connected:", frame);
+
+  stompClient.subscribe("/user/2/queue/notifications", (message) => {
+    console.log("Received:", JSON.parse(message.body));
+  });
 });
 
 // Should receive notification when User 1 sends friend request
@@ -573,11 +585,13 @@ stompClient.connect({}, (frame) => {
 ### Issue: Events not being published
 
 **Check:**
+
 1. Kafka is running: `docker ps`
 2. Topic exists: `kafka-topics --list --bootstrap-server localhost:9092`
 3. FriendShip-Service logs: Look for "Publishing friend request event"
 
 **Fix:**
+
 ```bash
 # Create topic manually if needed
 kafka-topics --create --topic friend-request-events \
@@ -587,14 +601,17 @@ kafka-topics --create --topic friend-request-events \
 ### Issue: Events not being consumed
 
 **Check:**
+
 1. Notification-Service logs: Look for "Received friend request event"
 2. Consumer group status:
+
 ```bash
 kafka-consumer-groups --bootstrap-server localhost:9092 \
   --describe --group notification-friend-request-group
 ```
 
 **Fix:**
+
 - Reset consumer offset if needed
 - Check Kafka configuration in application.yml
 - Verify trusted packages in JsonDeserializer
@@ -602,11 +619,13 @@ kafka-consumer-groups --bootstrap-server localhost:9092 \
 ### Issue: WebSocket not sending notifications
 
 **Check:**
+
 1. WebSocket connection established in frontend
 2. Notification-Service logs: Look for "Notification sent via WebSocket"
 3. User subscribed to correct destination: `/user/{userId}/queue/notifications`
 
 **Fix:**
+
 - Verify CORS configuration in WebSocketConfig
 - Check SockJS connection
 - Verify user ID matches
@@ -676,16 +695,19 @@ kafka-consumer-groups --bootstrap-server localhost:9092 \
 ## 🎯 Success Criteria
 
 ✅ **Event Publishing**
+
 - Friend request sent → Event published to Kafka
 - Friend request accepted → Event published to Kafka
 - Friend request rejected → Event published to Kafka
 
 ✅ **Event Consumption**
+
 - Notification-Service receives all events
 - Correct notifications created for each event type
 - Notifications saved to database
 
 ✅ **Real-time Delivery**
+
 - WebSocket connection established
 - Notifications sent to correct users
 - Frontend receives notifications immediately
@@ -693,6 +715,7 @@ kafka-consumer-groups --bootstrap-server localhost:9092 \
 - Notification panel updates automatically
 
 ✅ **User Experience**
+
 - Recipient sees "New Friend Request" notification
 - Requester sees "Request Accepted" notification
 - Toast/alert appears on notification

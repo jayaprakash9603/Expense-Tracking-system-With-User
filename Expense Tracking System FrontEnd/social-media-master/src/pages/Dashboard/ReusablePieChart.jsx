@@ -239,9 +239,6 @@ const ReusablePieChart = ({
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    // Debug: Log the theme colors
-    console.log("Theme mode:", themeMode);
-    console.log("Primary text color:", themeColors.primary_text);
 
     // Force the correct color based on theme
     const textColor = themeMode === "light" ? "#1a1a1a" : "#ffffff";

@@ -1,6 +1,7 @@
 # Kafka Consumer Offset Reset Guide
 
 ## Problem
+
 The Notification-Service has been consuming old messages from Kafka topics, which may contain corrupted or incompatible data from before the fixes were applied.
 
 ## Solution: Reset Consumer Offsets to Latest
@@ -8,6 +9,7 @@ The Notification-Service has been consuming old messages from Kafka topics, whic
 ### Option 1: Using Kafka Command Line Tools
 
 #### Reset ALL consumer groups to latest offset:
+
 ```bash
 # For Windows (PowerShell)
 cd C:\kafka_2.13-3.7.1\bin\windows
@@ -58,7 +60,7 @@ Update `application.yaml` to use new consumer group IDs temporarily:
 spring:
   kafka:
     consumer:
-      group-id: notification-service-group-v2  # Changed from notification-service-group
+      group-id: notification-service-group-v2 # Changed from notification-service-group
 ```
 
 This will create new consumer groups that automatically start from the latest offset.
@@ -66,11 +68,13 @@ This will create new consumer groups that automatically start from the latest of
 ## Verification
 
 ### Check current offsets:
+
 ```bash
 .\kafka-consumer-groups.bat --bootstrap-server localhost:9092 --group notification-payment-method-group --describe
 ```
 
 ### List all consumer groups:
+
 ```bash
 .\kafka-consumer-groups.bat --bootstrap-server localhost:9092 --list
 ```
@@ -84,22 +88,26 @@ This will create new consumer groups that automatically start from the latest of
 ## Important Notes
 
 ⚠️ **Do NOT reset offsets while the service is running!**
+
 - Stop Notification-Service first
 - Reset offsets
 - Start Notification-Service again
 
 ⚠️ **application.yaml already updated to `auto-offset-reset: latest`**
+
 - New consumer groups will automatically start from latest
 - Existing consumer groups need manual reset (use commands above)
 
 ## Current Configuration
 
 The `application.yaml` has been updated to:
+
 ```yaml
 consumer:
-  auto-offset-reset: latest  # Changed from 'earliest'
+  auto-offset-reset: latest # Changed from 'earliest'
 ```
 
 This ensures that:
+
 - **New consumer groups** → Start from latest messages only
 - **Existing consumer groups** → Continue from last committed offset (need manual reset)

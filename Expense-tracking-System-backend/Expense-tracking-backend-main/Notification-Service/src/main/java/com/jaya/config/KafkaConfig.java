@@ -173,6 +173,8 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, Object> expenseEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(expenseEventConsumerFactory());
+        factory.setConcurrency(3); // Run 3 concurrent consumers
+        factory.getContainerProperties().setPollTimeout(1000);
         return factory;
     }
 
@@ -183,6 +185,8 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, Object> billEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(billEventConsumerFactory());
+        factory.setConcurrency(3); // Run 3 concurrent consumers
+        factory.getContainerProperties().setPollTimeout(1000);
         return factory;
     }
 
@@ -193,6 +197,8 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, Object> budgetEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(budgetEventConsumerFactory());
+        factory.setConcurrency(3); // Run 3 concurrent consumers
+        factory.getContainerProperties().setPollTimeout(1000);
         return factory;
     }
 
@@ -203,6 +209,8 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, Object> categoryEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(categoryEventConsumerFactory());
+        factory.setConcurrency(3); // Run 3 concurrent consumers
+        factory.getContainerProperties().setPollTimeout(1000);
         return factory;
     }
 
@@ -213,6 +221,8 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, Object> paymentMethodEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(paymentMethodEventConsumerFactory());
+        factory.setConcurrency(3); // Run 3 concurrent consumers
+        factory.getContainerProperties().setPollTimeout(1000);
         return factory;
     }
 
@@ -223,6 +233,8 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, Object> friendEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(friendEventConsumerFactory());
+        factory.setConcurrency(3); // Run 3 concurrent consumers
+        factory.getContainerProperties().setPollTimeout(1000);
         return factory;
     }
 
@@ -233,6 +245,8 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, Object> friendRequestEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(friendRequestEventConsumerFactory());
+        factory.setConcurrency(3); // Run 3 concurrent consumers
+        factory.getContainerProperties().setPollTimeout(1000);
         return factory;
     }
 }

@@ -41,13 +41,20 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     /**
      * Register STOMP endpoints for WebSocket connections
-     * Frontend will connect to: ws://localhost:8084/notifications
+     * Frontend will connect to: ws://localhost:6003/notifications
+     * Alternative endpoint: ws://localhost:6003/ws
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // Primary endpoint
         registry.addEndpoint("/notifications")
                 .setAllowedOriginPatterns("*") // Allow all origins for development
                 .withSockJS(); // Enable SockJS fallback for browsers that don't support WebSocket
+
+        // Alternative endpoint for backward compatibility
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 
     /**

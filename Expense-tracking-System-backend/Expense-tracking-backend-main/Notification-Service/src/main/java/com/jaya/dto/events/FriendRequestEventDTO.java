@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class FriendRequestEventDTO {
-    
+
     private Long eventId;
     private String eventType; // FRIEND_REQUEST_SENT, FRIEND_REQUEST_ACCEPTED, FRIEND_REQUEST_REJECTED
     private Integer friendshipId;
@@ -31,7 +31,7 @@ public class FriendRequestEventDTO {
     private String friendshipStatus; // PENDING, ACCEPTED, REJECTED
     private LocalDateTime timestamp;
     private String message;
-    
+
     // Metadata
     private String source; // "FRIENDSHIP_SERVICE"
     private Integer notificationPriority; // 1=HIGH, 2=MEDIUM, 3=LOW

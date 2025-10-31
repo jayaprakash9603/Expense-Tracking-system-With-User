@@ -34,13 +34,17 @@ public class NotificationWebSocketController {
     public void subscribeToNotifications(@Payload String userId, Principal principal) {
         try {
             log.info("User {} subscribed to notifications", userId);
+            log.info("Principal: {}", principal);
 
-            // Send acknowledgment
-            String destination = String.format("/user/%s/queue/notifications", userId);
-            messagingTemplate.convertAndSend(destination,
+            // Send acknowledgment using convertAndSend to broadcast topic (like Chat
+            // service)
+            // This sends to /topic/user/{userId}/notifications (no Principal needed)
+            String destination = "/topic/user/" + userId + "/notifications";
+            messagingTemplate.convertAndSend(
+                    destination,
                     "{\"type\":\"SUBSCRIPTION_CONFIRMED\",\"message\":\"Successfully subscribed to notifications\"}");
 
-            log.info("Subscription confirmed for user {}", userId);
+            log.info("Subscription confirmed for user {} using convertAndSend to {}", userId, destination);
         } catch (Exception e) {
             log.error("Error handling notification subscription: {}", e.getMessage(), e);
         }

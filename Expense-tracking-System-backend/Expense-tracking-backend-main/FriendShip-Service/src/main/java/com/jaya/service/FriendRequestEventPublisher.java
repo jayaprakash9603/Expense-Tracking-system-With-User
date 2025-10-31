@@ -24,28 +24,29 @@ public class FriendRequestEventPublisher {
 
     /**
      * Publish friend request event to Kafka
+     * 
      * @param event The friend request event to publish
      */
     public void publishFriendRequestEvent(FriendRequestEvent event) {
         try {
-            log.info("Publishing friend request event: {} for friendship ID: {}", 
-                     event.getEventType(), event.getFriendshipId());
-            
-            CompletableFuture<SendResult<String, FriendRequestEvent>> future = 
-                friendRequestKafkaTemplate.send(FRIEND_REQUEST_TOPIC, event.getFriendshipId().toString(), event);
-            
+            log.info("Publishing friend request event: {} for friendship ID: {}",
+                    event.getEventType(), event.getFriendshipId());
+
+            CompletableFuture<SendResult<String, FriendRequestEvent>> future = friendRequestKafkaTemplate
+                    .send(FRIEND_REQUEST_TOPIC, event.getFriendshipId().toString(), event);
+
             future.whenComplete((result, ex) -> {
                 if (ex == null) {
                     log.info("Successfully published friend request event: {} to topic: {} with offset: {}",
-                             event.getEventType(), FRIEND_REQUEST_TOPIC, result.getRecordMetadata().offset());
+                            event.getEventType(), FRIEND_REQUEST_TOPIC, result.getRecordMetadata().offset());
                 } else {
                     log.error("Failed to publish friend request event: {} for friendship ID: {}. Error: {}",
-                             event.getEventType(), event.getFriendshipId(), ex.getMessage(), ex);
+                            event.getEventType(), event.getFriendshipId(), ex.getMessage(), ex);
                 }
             });
         } catch (Exception e) {
             log.error("Exception while publishing friend request event for friendship ID: {}. Error: {}",
-                     event.getFriendshipId(), e.getMessage(), e);
+                    event.getFriendshipId(), e.getMessage(), e);
         }
     }
 }

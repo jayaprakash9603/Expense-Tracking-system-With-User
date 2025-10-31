@@ -98,24 +98,21 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         /**
-         * Delete all notifications for a user
+         * Delete all notifications for a user using bulk DELETE query.
+         * Optimized to execute as single SQL DELETE - no N+1 problem.
          */
         @Override
         public void deleteAllNotifications(Integer userId) {
-                notificationRepository.deleteByUserId(userId);
+                notificationRepository.bulkDeleteByUserId(userId);
         }
 
         /**
-         * Mark all notifications as read for a user
+         * Mark all notifications as read for a user using bulk UPDATE query.
+         * Optimized to execute as single SQL UPDATE - no N+1 problem.
          */
         @Override
         public void markAllAsRead(Integer userId) {
-                List<Notification> notifications = notificationRepository.findByUserIdAndIsRead(userId, false);
-                notifications.forEach(notification -> {
-                        notification.setIsRead(true);
-                        notification.setReadAt(LocalDateTime.now());
-                });
-                notificationRepository.saveAll(notifications);
+                notificationRepository.bulkMarkAllAsRead(userId, LocalDateTime.now());
         }
 
         /**

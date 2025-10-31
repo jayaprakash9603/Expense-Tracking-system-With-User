@@ -698,13 +698,21 @@ public class NotificationEventConsumer {
 
     /**
      * Send notification to specific user via WebSocket
-     * Frontend subscribes to: /user/{userId}/queue/notifications
+     * Frontend subscribes to: /topic/user/{userId}/notifications
+     * Using convertAndSend with broadcast topic pattern (like Chat service)
+     * This pattern works without Principal and is proven to work in Chat service
      */
     private void sendNotificationToUser(Notification notification) {
         try {
-            String destination = String.format("/user/%d/queue/notifications", notification.getUserId());
-            messagingTemplate.convertAndSend(destination, notification);
-            log.info("Notification sent via WebSocket to user {}: {}", notification.getUserId(), destination);
+            // Use broadcast topic pattern like Chat service does with
+            // /topic/group/{groupId}
+            // This works without Principal - proven working pattern
+            String destination = "/topic/user/" + notification.getUserId() + "/notifications";
+            messagingTemplate.convertAndSend(
+                    destination,
+                    notification);
+            log.info("Notification sent via WebSocket to user {} using convertAndSend to {} - data {}",
+                    notification.getUserId(), destination, notification);
         } catch (Exception e) {
             log.error("Error sending notification via WebSocket: {}", e.getMessage(), e);
         }

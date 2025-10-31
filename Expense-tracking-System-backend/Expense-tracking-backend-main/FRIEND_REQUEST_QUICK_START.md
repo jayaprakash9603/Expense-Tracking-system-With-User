@@ -19,7 +19,7 @@ docker ps | grep kafka
 cd FriendShip-Service
 ./mvnw spring-boot:run
 
-# Terminal 2: Start Notification-Service  
+# Terminal 2: Start Notification-Service
 cd Notification-Service
 ./mvnw spring-boot:run
 ```
@@ -27,11 +27,13 @@ cd Notification-Service
 ### 3. Test the System
 
 #### Send Friend Request (User 1 → User 2)
+
 ```bash
 curl -X POST http://localhost:6009/api/friendships/send-request?requesterId=1&recipientId=2
 ```
 
 **What happens:**
+
 1. ✅ Friendship created in database (PENDING)
 2. ✅ Event published to Kafka: `friend-request-events`
 3. ✅ Notification-Service consumes event
@@ -40,11 +42,13 @@ curl -X POST http://localhost:6009/api/friendships/send-request?requesterId=1&re
 6. ✅ Frontend displays: "John Doe sent you a friend request"
 
 #### Accept Friend Request (User 2 responds)
+
 ```bash
 curl -X POST http://localhost:6009/api/friendships/respond?friendshipId=1&responderId=2&accept=true
 ```
 
 **What happens:**
+
 1. ✅ Friendship status updated to ACCEPTED
 2. ✅ Event published to Kafka: `FRIEND_REQUEST_ACCEPTED`
 3. ✅ Notification-Service consumes event
@@ -58,93 +62,96 @@ curl -X POST http://localhost:6009/api/friendships/respond?friendshipId=1&respon
 
 ### FriendShip-Service (Port: 6009)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/friendships/send-request` | Send friend request |
-| POST | `/api/friendships/respond` | Accept/Reject request |
-| GET | `/api/friendships/pending/{userId}` | Get pending requests |
-| GET | `/api/friendships/user/{userId}` | Get user friendships |
+| Method | Endpoint                            | Description           |
+| ------ | ----------------------------------- | --------------------- |
+| POST   | `/api/friendships/send-request`     | Send friend request   |
+| POST   | `/api/friendships/respond`          | Accept/Reject request |
+| GET    | `/api/friendships/pending/{userId}` | Get pending requests  |
+| GET    | `/api/friendships/user/{userId}`    | Get user friendships  |
 
 ### Notification-Service (Port: 6004)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/notifications/user/{userId}` | Get user notifications |
-| GET | `/api/notifications/user/{userId}/unread` | Get unread notifications |
-| PATCH | `/api/notifications/{id}/read` | Mark as read |
-| DELETE | `/api/notifications/{id}` | Delete notification |
-| WS | `/ws-notifications` | WebSocket endpoint |
+| Method | Endpoint                                  | Description              |
+| ------ | ----------------------------------------- | ------------------------ |
+| GET    | `/api/notifications/user/{userId}`        | Get user notifications   |
+| GET    | `/api/notifications/user/{userId}/unread` | Get unread notifications |
+| PATCH  | `/api/notifications/{id}/read`            | Mark as read             |
+| DELETE | `/api/notifications/{id}`                 | Delete notification      |
+| WS     | `/ws-notifications`                       | WebSocket endpoint       |
 
 ---
 
 ## 🔌 Frontend Integration (React)
 
 ### 1. Install Dependencies
+
 ```bash
 npm install sockjs-client @stomp/stompjs
 ```
 
 ### 2. Connect to WebSocket
+
 ```javascript
-import SockJS from 'sockjs-client';
-import { Stomp } from '@stomp/stompjs';
+import SockJS from "sockjs-client";
+import { Stomp } from "@stomp/stompjs";
 
 const connectWebSocket = (userId) => {
-    const socket = new SockJS('http://localhost:6004/ws-notifications');
-    const stompClient = Stomp.over(socket);
-    
-    stompClient.connect({}, (frame) => {
-        console.log('Connected:', frame);
-        
-        // Subscribe to user-specific notifications
-        stompClient.subscribe(`/user/${userId}/queue/notifications`, (message) => {
-            const notification = JSON.parse(message.body);
-            
-            // Handle notification
-            console.log('New notification:', notification);
-            addNotification(notification);
-            updateBadgeCount();
-            showToast(notification.title, notification.message);
-        });
+  const socket = new SockJS("http://localhost:6004/ws-notifications");
+  const stompClient = Stomp.over(socket);
+
+  stompClient.connect({}, (frame) => {
+    console.log("Connected:", frame);
+
+    // Subscribe to user-specific notifications
+    stompClient.subscribe(`/user/${userId}/queue/notifications`, (message) => {
+      const notification = JSON.parse(message.body);
+
+      // Handle notification
+      console.log("New notification:", notification);
+      addNotification(notification);
+      updateBadgeCount();
+      showToast(notification.title, notification.message);
     });
-    
-    return stompClient;
+  });
+
+  return stompClient;
 };
 ```
 
 ### 3. Use in Component
+
 ```javascript
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 function NotificationComponent({ userId }) {
-    const [stompClient, setStompClient] = useState(null);
-    const [notifications, setNotifications] = useState([]);
-    
-    useEffect(() => {
-        const client = connectWebSocket(userId);
-        setStompClient(client);
-        
-        return () => {
-            if (client) {
-                client.disconnect();
-            }
-        };
-    }, [userId]);
-    
-    const addNotification = (notification) => {
-        setNotifications(prev => [notification, ...prev]);
+  const [stompClient, setStompClient] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    const client = connectWebSocket(userId);
+    setStompClient(client);
+
+    return () => {
+      if (client) {
+        client.disconnect();
+      }
     };
-    
-    return (
-        <div>
-            {notifications.map(n => (
-                <div key={n.id}>
-                    <h4>{n.title}</h4>
-                    <p>{n.message}</p>
-                </div>
-            ))}
+  }, [userId]);
+
+  const addNotification = (notification) => {
+    setNotifications((prev) => [notification, ...prev]);
+  };
+
+  return (
+    <div>
+      {notifications.map((n) => (
+        <div key={n.id}>
+          <h4>{n.title}</h4>
+          <p>{n.message}</p>
         </div>
-    );
+      ))}
+    </div>
+  );
 }
 ```
 
@@ -155,29 +162,33 @@ function NotificationComponent({ userId }) {
 ### Backend Testing
 
 - [ ] **Kafka Running**
+
   ```bash
   docker ps | grep kafka  # Should show running container
   ```
 
 - [ ] **Topic Created**
+
   ```bash
   kafka-topics --list --bootstrap-server localhost:9092
   # Should show: friend-request-events
   ```
 
 - [ ] **Event Publishing**
+
   ```bash
   # Monitor events
   kafka-console-consumer --bootstrap-server localhost:9092 \
     --topic friend-request-events --from-beginning
-  
+
   # Send friend request (another terminal)
   curl -X POST http://localhost:6009/api/friendships/send-request?requesterId=1&recipientId=2
-  
+
   # Should see event in consumer terminal
   ```
 
 - [ ] **Event Consumption**
+
   ```bash
   # Check Notification-Service logs
   tail -f Notification-Service/logs/application.log
@@ -185,37 +196,41 @@ function NotificationComponent({ userId }) {
   ```
 
 - [ ] **Database Check**
+
   ```sql
   -- Check friendship created
   SELECT * FROM friendships WHERE requester_id = 1 AND recipient_id = 2;
-  
+
   -- Check notification created
-  SELECT * FROM notifications WHERE user_id = 2 
+  SELECT * FROM notifications WHERE user_id = 2
   ORDER BY created_at DESC LIMIT 1;
   ```
 
 ### Frontend Testing
 
 - [ ] **WebSocket Connection**
+
   ```javascript
   // In browser console
-  const socket = new SockJS('http://localhost:6004/ws-notifications');
+  const socket = new SockJS("http://localhost:6004/ws-notifications");
   const stomp = Stomp.over(socket);
-  stomp.connect({}, () => console.log('Connected!'));
+  stomp.connect({}, () => console.log("Connected!"));
   // Should see: "Connected!"
   ```
 
 - [ ] **Receive Notification**
+
   ```javascript
-  stomp.subscribe('/user/2/queue/notifications', (msg) => {
-      console.log('Received:', JSON.parse(msg.body));
+  stomp.subscribe("/user/2/queue/notifications", (msg) => {
+    console.log("Received:", JSON.parse(msg.body));
   });
-  
+
   // In another tab, send friend request to user 2
   // Should see notification in console
   ```
 
 - [ ] **Badge Update**
+
   - Send friend request to user
   - Check badge count increases
   - Mark as read
@@ -236,6 +251,7 @@ function NotificationComponent({ userId }) {
 **Trigger:** User A sends friend request to User B
 
 **Event Published:**
+
 ```json
 {
   "eventType": "FRIEND_REQUEST_SENT",
@@ -248,6 +264,7 @@ function NotificationComponent({ userId }) {
 **Notification Created For:** User B (recipient)
 
 **Frontend Display:**
+
 - Badge count: +1
 - Notification: "New Friend Request" from John Doe
 - Panel: Shows new unread notification
@@ -260,6 +277,7 @@ function NotificationComponent({ userId }) {
 **Trigger:** User B accepts friend request from User A
 
 **Event Published:**
+
 ```json
 {
   "eventType": "FRIEND_REQUEST_ACCEPTED",
@@ -272,6 +290,7 @@ function NotificationComponent({ userId }) {
 **Notification Created For:** User A (requester)
 
 **Frontend Display:**
+
 - Badge count: +1
 - Notification: "Friend Request Accepted" by Jane Smith
 - Panel: Shows new unread notification
@@ -285,6 +304,7 @@ function NotificationComponent({ userId }) {
 **Trigger:** User B rejects friend request from User A
 
 **Event Published:**
+
 ```json
 {
   "eventType": "FRIEND_REQUEST_REJECTED",
@@ -297,6 +317,7 @@ function NotificationComponent({ userId }) {
 **Notification Created For:** User A (requester)
 
 **Frontend Display:**
+
 - Badge count: +1
 - Notification: "Friend Request Declined"
 - Panel: Shows new unread notification
@@ -308,6 +329,7 @@ function NotificationComponent({ userId }) {
 ## 📊 Monitoring & Logs
 
 ### Kafka Monitoring
+
 ```bash
 # Consumer lag
 kafka-consumer-groups --bootstrap-server localhost:9092 \
@@ -321,12 +343,14 @@ kafka-topics --describe --topic friend-request-events \
 ### Service Logs
 
 **FriendShip-Service:**
+
 ```
 Publishing friend request event: FRIEND_REQUEST_SENT for friendship ID: 123
 Successfully published friend request event: FRIEND_REQUEST_SENT to topic: friend-request-events with offset: 42
 ```
 
 **Notification-Service:**
+
 ```
 Received friend request event: {"eventType":"FRIEND_REQUEST_SENT",...}
 Friend request received notification sent to user: 2
@@ -343,6 +367,7 @@ Friend request notifications processed for event: FRIEND_REQUEST_SENT
 **Symptoms:** No event in Kafka topic
 
 **Check:**
+
 ```bash
 # FriendShip-Service logs
 grep "Publishing friend request event" friendship-service.log
@@ -353,6 +378,7 @@ kafka-console-consumer --bootstrap-server localhost:9092 \
 ```
 
 **Fix:**
+
 - Verify Kafka running: `docker ps`
 - Check Kafka config in `application.yml`
 - Restart FriendShip-Service
@@ -364,6 +390,7 @@ kafka-console-consumer --bootstrap-server localhost:9092 \
 **Symptoms:** Event in Kafka but no notification created
 
 **Check:**
+
 ```bash
 # Notification-Service logs
 grep "Received friend request event" notification-service.log
@@ -374,6 +401,7 @@ kafka-consumer-groups --bootstrap-server localhost:9092 \
 ```
 
 **Fix:**
+
 - Check consumer configuration
 - Reset offset: `--reset-offsets --to-earliest`
 - Verify trusted packages in JsonDeserializer
@@ -385,12 +413,14 @@ kafka-consumer-groups --bootstrap-server localhost:9092 \
 **Symptoms:** Notification created but frontend doesn't receive
 
 **Check:**
+
 ```bash
 # Notification-Service logs
 grep "Notification sent via WebSocket" notification-service.log
 ```
 
 **Fix:**
+
 - Verify WebSocket connection in browser
 - Check CORS configuration
 - Verify subscription path: `/user/{userId}/queue/notifications`
@@ -403,6 +433,7 @@ grep "Notification sent via WebSocket" notification-service.log
 **Symptoms:** WebSocket receives notification but UI doesn't update
 
 **Fix:**
+
 - Check state management (Redux/Context)
 - Verify notification handler function
 - Console log received notifications
@@ -412,17 +443,18 @@ grep "Notification sent via WebSocket" notification-service.log
 
 ## 🎨 Notification Icons & Colors
 
-| Event Type | Icon | Color | Badge Color |
-|------------|------|-------|-------------|
-| FRIEND_REQUEST_SENT | 👤 | Primary | Blue |
-| FRIEND_REQUEST_ACCEPTED | ✓ | Success | Green |
-| FRIEND_REQUEST_REJECTED | ℹ️ | Info | Gray |
+| Event Type              | Icon | Color   | Badge Color |
+| ----------------------- | ---- | ------- | ----------- |
+| FRIEND_REQUEST_SENT     | 👤   | Primary | Blue        |
+| FRIEND_REQUEST_ACCEPTED | ✓    | Success | Green       |
+| FRIEND_REQUEST_REJECTED | ℹ️   | Info    | Gray        |
 
 ---
 
 ## 📈 Performance Tips
 
 ### Kafka Optimization
+
 ```yaml
 # FriendShip-Service application.yml
 spring:
@@ -434,6 +466,7 @@ spring:
 ```
 
 ### WebSocket Optimization
+
 ```java
 @Configuration
 public class WebSocketConfig {
@@ -451,18 +484,21 @@ public class WebSocketConfig {
 ## ✅ Success Indicators
 
 1. **Kafka Topic Has Messages**
+
    ```bash
    kafka-console-consumer --bootstrap-server localhost:9092 \
      --topic friend-request-events --from-beginning --max-messages 1
    ```
 
 2. **Notification Created in Database**
+
    ```sql
-   SELECT COUNT(*) FROM notifications 
+   SELECT COUNT(*) FROM notifications
    WHERE type = 'FRIEND_REQUEST_RECEIVED';
    ```
 
 3. **WebSocket Connection Established**
+
    - Browser console shows: "Connected: CONNECTED"
    - Network tab shows WebSocket connection
 

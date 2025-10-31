@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../../hooks/useTheme";
+import useNotifications from "../../hooks/useNotifications";
+import { useSelector } from "react-redux";
 import {
   Notifications as NotificationsIcon,
   CheckCircle as CheckCircleIcon,
@@ -17,19 +19,22 @@ import {
   MarkEmailRead as MarkEmailReadIcon,
   Delete as DeleteIcon,
   DeleteSweep as DeleteSweepIcon,
+  Wifi as WifiIcon,
+  WifiOff as WifiOffIcon,
 } from "@mui/icons-material";
 
 /**
  * NotificationsPanel Component
- * Displays user notifications with different types (info, success, warning, error)
+ * Displays real-time user notifications via WebSocket
  * Features:
- * - Real-time notification display
+ * - Real-time notification display via WebSocket
  * - Mark as read/unread
  * - Delete individual notifications
  * - Clear all notifications
  * - Filter by notification type
  * - Time-based grouping (Today, Yesterday, Earlier)
  * - Icon based on notification type
+ * - Connection status indicator
  * - Responsive design
  *
  * @param {boolean} isOpen - Controls panel visibility
@@ -40,79 +45,44 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
   const { colors, mode } = useTheme();
   const isDark = mode === "dark";
 
-  // State for notifications
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "budget_alert",
-      category: "warning",
-      title: "Budget Limit Alert",
-      message: "You've reached 85% of your monthly grocery budget",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      read: false,
-      icon: "warning",
+  // Get user ID from Redux store
+  const user = useSelector((state) => state.auth?.user);
+  const userId = user?.id || user?.userId;
+
+  // Use notifications hook
+  const {
+    notifications,
+    isConnected,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    clearAll,
+    requestNotificationPermission,
+  } = useNotifications({
+    userId,
+    autoConnect: true,
+    onNewNotification: (notification) => {
+      console.log("New notification received:", notification);
+      // Play notification sound (optional)
+      // const audio = new Audio("/notification-sound.mp3");
+      // audio.play().catch(console.error);
     },
-    {
-      id: 2,
-      type: "expense_added",
-      category: "success",
-      title: "Expense Added Successfully",
-      message: "Your expense of $45.50 for Coffee Shop has been recorded",
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-      read: false,
-      icon: "success",
-    },
-    {
-      id: 3,
-      type: "friend_request",
-      category: "info",
-      title: "New Friend Request",
-      message: "John Doe sent you a friend request",
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-      read: false,
-      icon: "person",
-    },
-    {
-      id: 4,
-      type: "weekly_report",
-      category: "info",
-      title: "Weekly Expense Report",
-      message: "Your weekly expense report is ready. Total spending: $425.30",
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      read: true,
-      icon: "report",
-    },
-    {
-      id: 5,
-      type: "bill_reminder",
-      category: "warning",
-      title: "Bill Payment Due",
-      message: "Your electricity bill of $120 is due in 3 days",
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      read: true,
-      icon: "bill",
-    },
-    {
-      id: 6,
-      type: "category_update",
-      category: "info",
-      title: "Smart Categorization",
-      message: "5 expenses were automatically categorized",
-      timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
-      read: true,
-      icon: "category",
-    },
-  ]);
+  });
 
   const [filter, setFilter] = useState("all"); // all, unread, read
 
+  // Request notification permission on mount
+  useEffect(() => {
+    requestNotificationPermission();
+  }, [requestNotificationPermission]);
+
   // Notify parent component of unread count changes
   useEffect(() => {
-    const unreadCount = notifications.filter((n) => !n.read).length;
     if (onNotificationRead) {
       onNotificationRead(unreadCount);
     }
-  }, [notifications, onNotificationRead]);
+  }, [unreadCount, onNotificationRead]);
 
   // Get icon component based on notification type
   const getNotificationIcon = (iconType, category) => {
@@ -158,17 +128,20 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
 
   // Format timestamp
   const formatTimestamp = (timestamp) => {
+    const date =
+      typeof timestamp === "string" ? new Date(timestamp) : timestamp;
     const now = new Date();
-    const diff = now - timestamp;
+    const diff = now - date;
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
+    if (minutes < 1) return "Just now";
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     if (days === 1) return "Yesterday";
     if (days < 7) return `${days}d ago`;
-    return timestamp.toLocaleDateString();
+    return date.toLocaleDateString();
   };
 
   // Group notifications by time
@@ -184,7 +157,10 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
     };
 
     notifs.forEach((notif) => {
-      const notifDate = new Date(notif.timestamp);
+      const notifDate =
+        typeof notif.timestamp === "string"
+          ? new Date(notif.timestamp)
+          : notif.timestamp;
       const notifDay = new Date(
         notifDate.getFullYear(),
         notifDate.getMonth(),
@@ -213,31 +189,8 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
     return notifications;
   };
 
-  // Mark notification as read
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  };
-
-  // Mark all as read
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  // Delete notification
-  const deleteNotification = (id) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
-
-  // Clear all notifications
-  const clearAll = () => {
-    setNotifications([]);
-  };
-
   const filteredNotifications = getFilteredNotifications();
   const groupedNotifications = groupNotifications(filteredNotifications);
-  const unreadCount = notifications.filter((n) => !n.read).length;
 
   if (!isOpen) return null;
 
@@ -289,6 +242,17 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
                   {unreadCount}
                 </span>
               )}
+              {/* Connection Status Indicator */}
+              <div
+                className="flex items-center gap-1"
+                title={isConnected ? "Connected" : "Disconnected"}
+              >
+                {isConnected ? (
+                  <WifiIcon sx={{ fontSize: "1rem", color: "#10b981" }} />
+                ) : (
+                  <WifiOffIcon sx={{ fontSize: "1rem", color: "#ef4444" }} />
+                )}
+              </div>
             </div>
             <button
               onClick={onClose}

@@ -29,6 +29,8 @@ import Reports from "./pages/Landingpage/Reports";
 import Cashflow from "./pages/expenses-view/CashFlow";
 import CalendarView from "./pages/Landingpage/CalendarView";
 import DayTransactionsView from "./pages/Landingpage/DayTransactionsView";
+// Import WebSocket Test Service
+import "./services/socketService";
 import CategoryFlow from "./pages/Landingpage/CategoryFlow";
 import CreateCategory from "./pages/Landingpage/CreateCategory";
 import EditCategory from "./pages/Landingpage/EditCategory";

@@ -26,7 +26,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private FriendRequestEventPublisher friendRequestEventPublisher;
     // @Autowired
@@ -90,7 +90,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         try {
             UserDto requester = helper.validateUser(friendship.getRequesterId());
             UserDto recipient = helper.validateUser(friendship.getRecipientId());
-            
+
             if (accept) {
                 publishFriendRequestAcceptedEvent(friendship, requester, recipient);
             } else {
@@ -1048,7 +1048,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
         return friends;
     }
-    
+
     /**
      * Helper method to publish friend request sent event
      */
@@ -1060,21 +1060,23 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .requesterId(requester.getId())
                 .requesterName(requester.getFirstName() + " " + requester.getLastName())
                 .requesterEmail(requester.getEmail())
-                .requesterImage(requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
+                .requesterImage(
+                        requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
                 .recipientId(recipient.getId())
                 .recipientName(recipient.getFirstName() + " " + recipient.getLastName())
                 .recipientEmail(recipient.getEmail())
-                .recipientImage(recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
+                .recipientImage(
+                        recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
                 .friendshipStatus(friendship.getStatus().name())
                 .timestamp(LocalDateTime.now())
                 .message(requester.getFirstName() + " sent you a friend request")
                 .source("FRIENDSHIP_SERVICE")
                 .notificationPriority(2) // MEDIUM priority
                 .build();
-        
+
         friendRequestEventPublisher.publishFriendRequestEvent(event);
     }
-    
+
     /**
      * Helper method to publish friend request accepted event
      */
@@ -1086,21 +1088,23 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .requesterId(requester.getId())
                 .requesterName(requester.getFirstName() + " " + requester.getLastName())
                 .requesterEmail(requester.getEmail())
-                .requesterImage(requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
+                .requesterImage(
+                        requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
                 .recipientId(recipient.getId())
                 .recipientName(recipient.getFirstName() + " " + recipient.getLastName())
                 .recipientEmail(recipient.getEmail())
-                .recipientImage(recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
+                .recipientImage(
+                        recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
                 .friendshipStatus(friendship.getStatus().name())
                 .timestamp(LocalDateTime.now())
                 .message(recipient.getFirstName() + " accepted your friend request")
                 .source("FRIENDSHIP_SERVICE")
                 .notificationPriority(2) // MEDIUM priority
                 .build();
-        
+
         friendRequestEventPublisher.publishFriendRequestEvent(event);
     }
-    
+
     /**
      * Helper method to publish friend request rejected event
      */
@@ -1112,18 +1116,20 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .requesterId(requester.getId())
                 .requesterName(requester.getFirstName() + " " + requester.getLastName())
                 .requesterEmail(requester.getEmail())
-                .requesterImage(requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
+                .requesterImage(
+                        requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
                 .recipientId(recipient.getId())
                 .recipientName(recipient.getFirstName() + " " + recipient.getLastName())
                 .recipientEmail(recipient.getEmail())
-                .recipientImage(recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
+                .recipientImage(
+                        recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
                 .friendshipStatus(friendship.getStatus().name())
                 .timestamp(LocalDateTime.now())
                 .message(recipient.getFirstName() + " declined your friend request")
                 .source("FRIENDSHIP_SERVICE")
                 .notificationPriority(3) // LOW priority
                 .build();
-        
+
         friendRequestEventPublisher.publishFriendRequestEvent(event);
     }
 }

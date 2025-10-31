@@ -5,7 +5,7 @@ export const API_BASE_URL = "http://localhost:8080";
 // Function to get the JWT token from localStorage
 const getJwtToken = () => {
   const jwtToken = localStorage.getItem("jwt");
-  console.log("JWT Token:", jwtToken);
+  // console.log("JWT Token:", jwtToken);
   return jwtToken;
 };
 
