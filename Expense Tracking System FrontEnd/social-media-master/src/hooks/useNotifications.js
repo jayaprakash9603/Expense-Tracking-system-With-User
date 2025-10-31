@@ -264,6 +264,22 @@ const useNotifications = ({
           console.log(
             "═══════════════════════════════════════════════════════════"
           );
+
+          // Filter out system/control messages (like SUBSCRIPTION_CONFIRMED)
+          if (
+            notification &&
+            (notification.type === "SUBSCRIPTION_CONFIRMED" ||
+              notification.type === "SYSTEM_MESSAGE" ||
+              notification.type === "CONNECTION_ACK")
+          ) {
+            console.log("🚫 Filtering out system message:", notification.type);
+            console.log("   This is a control message, not a user notification");
+            console.log(
+              "═══════════════════════════════════════════════════════════\n"
+            );
+            return; // Don't add system messages to notifications
+          }
+
           console.log("🔄 Passing to addNotification()...\n");
 
           addNotification(notification);
