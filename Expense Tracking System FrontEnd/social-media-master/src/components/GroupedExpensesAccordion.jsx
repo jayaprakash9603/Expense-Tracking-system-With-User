@@ -69,17 +69,17 @@ const GroupedExpensesAccordion = ({
   }, [sourceMethods, grandTotal]);
 
   const columns = [
-    { key: "date", label: "Date", width: "110px", value: (row) => row.date },
+    { key: "date", label: "Date", width: "100px", value: (row) => row.date },
     {
       key: "name",
       label: "Expense Name",
-      width: "240px",
+      width: "230px",
       value: (row) => row.details?.expenseName || "-",
     },
     {
       key: "amount",
       label: "Amount",
-      width: "110px",
+      width: "100px",
       value: (row) => row.details?.amount ?? row.details?.netAmount ?? 0,
       sortValue: (row) =>
         Number(row.details?.amount ?? row.details?.netAmount ?? 0),
@@ -96,7 +96,7 @@ const GroupedExpensesAccordion = ({
     {
       key: "netAmount",
       label: "Net",
-      width: "100px",
+      width: "90px",
       value: (row) => row.details?.netAmount ?? row.details?.amount ?? 0,
       sortValue: (row) =>
         Number(row.details?.netAmount ?? row.details?.amount ?? 0),
@@ -110,7 +110,7 @@ const GroupedExpensesAccordion = ({
     {
       key: "creditDue",
       label: "Credit Due",
-      width: "120px",
+      width: "110px",
       value: (row) =>
         row.details?.creditDue != null ? row.details.creditDue : "-",
       sortValue: (row) => Number(row.details?.creditDue ?? 0),
@@ -118,7 +118,7 @@ const GroupedExpensesAccordion = ({
     {
       key: "comments",
       label: "Comments",
-      width: "260px",
+      width: "240px",
       value: (row) => row.details?.comments || "",
     },
   ];
@@ -160,7 +160,7 @@ const GroupedExpensesAccordion = ({
                 {group.label}
               </span>
               <span className="metric-box tx" title="Transactions">
-               Count {group.count}
+                Count {group.count}
               </span>
               {group.creditDueTotal > 0 && (
                 <span className="metric-box credit" title="Total Credit Due">

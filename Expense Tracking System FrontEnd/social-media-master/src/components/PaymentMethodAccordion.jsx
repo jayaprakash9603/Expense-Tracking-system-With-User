@@ -78,17 +78,17 @@ export default function PaymentMethodAccordionGroup({
   });
 
   const columns = [
-    { key: "date", label: "Date", width: "110px", value: (row) => row.date },
+    { key: "date", label: "Date", width: "100px", value: (row) => row.date },
     {
       key: "name",
       label: "Name",
-      width: "280px",
+      width: "270px",
       value: (row) => row.details?.expenseName || "-",
     },
     {
       key: "amount",
       label: "Amount",
-      width: "110px",
+      width: "100px",
       value: (row) => {
         const amt = row.details?.amount ?? row.details?.netAmount ?? 0;
         return amt;
@@ -108,13 +108,13 @@ export default function PaymentMethodAccordionGroup({
     {
       key: "payment",
       label: "Payment",
-      width: "220px",
+      width: "200px",
       value: (row) => row.details?.paymentMethod,
     },
     {
       key: "creditDue",
       label: "Credit Due",
-      width: "120px",
+      width: "110px",
       value: (row) =>
         row.details?.creditDue != null ? row.details.creditDue : "-",
       sortValue: (row) => Number(row.details?.creditDue ?? 0),
