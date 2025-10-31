@@ -12,12 +12,14 @@ import {
 } from "recharts";
 import { BarChart3 } from "lucide-react";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTheme } from "../../hooks/useTheme";
 
 // Payment Methods Usage Analysis (Pareto-like: amount bars + cumulative % + transactions)
 // Expects data: [{ method, totalAmount, transactions, cumulative(optional) }]
 // We compute cumulative internally if not provided.
 const PaymentUsageChart = ({ data = [] }) => {
   const settings = useUserSettings();
+  const { colors, mode } = useTheme();
   const currencySymbol = settings.getCurrency().symbol;
 
   const total = data.reduce((s, d) => s + (d.totalAmount || 0), 0) || 0;
@@ -34,12 +36,34 @@ const PaymentUsageChart = ({ data = [] }) => {
   });
 
   return (
-    <div className="chart-container">
+    <div
+      className="chart-container"
+      style={{
+        background: colors.primary_bg,
+        border: `1px solid ${colors.border_color}`,
+        borderRadius: "12px",
+        padding: "24px",
+      }}
+    >
       <div className="chart-header">
-        <h3>
+        <h3
+          style={{
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
           <BarChart3 size={20} /> Payment Methods Usage Analysis
         </h3>
-        <div className="chart-subtitle">
+        <div
+          className="chart-subtitle"
+          style={{
+            color: mode === "dark" ? "#888" : "#666",
+            fontSize: "14px",
+            marginTop: "4px",
+          }}
+        >
           Bars: amount • Yellow line: cumulative % • Red line: transactions
         </div>
       </div>
@@ -48,20 +72,27 @@ const PaymentUsageChart = ({ data = [] }) => {
           data={composed}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={mode === "dark" ? "#2a2a2a" : "#e0e0e0"}
+          />
           <XAxis
             dataKey="method"
-            stroke="#888"
+            stroke={mode === "dark" ? "#888" : "#666"}
             fontSize={12}
             angle={-45}
             textAnchor="end"
             height={80}
           />
-          <YAxis yAxisId="left" stroke="#888" fontSize={12} />
+          <YAxis
+            yAxisId="left"
+            stroke={mode === "dark" ? "#888" : "#666"}
+            fontSize={12}
+          />
           <YAxis
             yAxisId="right"
             orientation="right"
-            stroke="#888"
+            stroke={mode === "dark" ? "#888" : "#666"}
             domain={[0, 100]}
             tickFormatter={(v) => `${v}%`}
           />
@@ -82,10 +113,10 @@ const PaymentUsageChart = ({ data = [] }) => {
               return [value, name];
             }}
             contentStyle={{
-              backgroundColor: "#1a1a1a",
-              border: "1px solid #14b8a6",
+              backgroundColor: mode === "dark" ? "#1a1a1a" : "#ffffff",
+              border: `1px solid ${colors.primary_accent}`,
               borderRadius: "8px",
-              color: "#fff",
+              color: colors.primary_text,
             }}
           />
           <Legend />

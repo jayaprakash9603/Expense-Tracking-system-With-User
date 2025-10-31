@@ -12,6 +12,7 @@ import PaymentMethodChart from "../Dashboard/PaymentMethodChart";
 import {
   ExpensesLoadingSkeleton,
   ChartSkeleton,
+  ReportHeaderSkeleton,
 } from "../../components/skeletons/CommonSkeletons";
 import { getChartColors } from "../../utils/chartColors";
 import { useTheme } from "../../hooks/useTheme";
