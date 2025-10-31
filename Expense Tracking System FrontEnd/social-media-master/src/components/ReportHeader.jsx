@@ -47,17 +47,32 @@ const ReportHeader = ({
   flowTypeOptions = DEFAULT_FLOW_TYPES,
   className = "",
 }) => {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
 
   return (
-    <div className={`report-header ${className}`.trim()}>
+    <div
+      className={`report-header ${className}`.trim()}
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "32px",
+        paddingBottom: "24px",  
+        borderBottom: `1px solid ${colors.border_color}`,
+        paddingTop: "24px",
+        position: "sticky",
+        top: 0,
+        zIndex: 9999,
+        background: colors.tertiary_bg,
+      }}
+    >
       <div
         className="header-left"
         style={{ display: "flex", alignItems: "center", gap: 12 }}
       >
         <IconButton
           sx={{
-            color: "#00DAC6",
+            color: colors.secondary_accent,
             backgroundColor: colors.primary_bg,
             "&:hover": { backgroundColor: colors.hover_bg },
             zIndex: 10,
@@ -75,7 +90,7 @@ const ReportHeader = ({
           >
             <path
               d="M15 18L9 12L15 6"
-              stroke="#00DAC6"
+              stroke={colors.secondary_accent}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -83,15 +98,50 @@ const ReportHeader = ({
           </svg>
         </IconButton>
         <div>
-          <h1 style={{ margin: 0 }}>{title}</h1>
-          {subtitle ? <p style={{ margin: "6px 0 0 0" }}>{subtitle}</p> : null}
+          <h1
+            style={{
+              margin: 0,
+              fontSize: "28px",
+              fontWeight: 700,
+              color: colors.primary_accent,
+            }}
+          >
+            {title}
+          </h1>
+          {subtitle ? (
+            <p
+              style={{
+                margin: "6px 0 0 0",
+                color: colors.secondary_text,
+                fontSize: "14px",
+              }}
+            >
+              {subtitle}
+            </p>
+          ) : null}
         </div>
       </div>
-      <div className="header-controls">
+      <div
+        className="header-controls"
+        style={{
+          display: "flex",
+          gap: "12px",
+          alignItems: "center",
+        }}
+      >
         <select
           value={flowType}
           onChange={(e) => onFlowTypeChange && onFlowTypeChange(e.target.value)}
           className="timeframe-selector"
+          style={{
+            background: colors.primary_bg,
+            border: `1px solid ${colors.border_color}`,
+            color: colors.primary_text,
+            padding: "8px 12px",
+            borderRadius: "6px",
+            fontSize: "14px",
+            cursor: "pointer",
+          }}
           aria-label="Flow type"
         >
           {flowTypeOptions.map((f) => (
@@ -106,6 +156,15 @@ const ReportHeader = ({
             onTimeframeChange && onTimeframeChange(e.target.value)
           }
           className="timeframe-selector"
+          style={{
+            background: colors.primary_bg,
+            border: `1px solid ${colors.border_color}`,
+            color: colors.primary_text,
+            padding: "8px 12px",
+            borderRadius: "6px",
+            fontSize: "14px",
+            cursor: "pointer",
+          }}
           aria-label="Timeframe"
         >
           {timeframeOptions.map((t) => (
@@ -114,11 +173,61 @@ const ReportHeader = ({
             </option>
           ))}
         </select>
-        <button onClick={onFilter} className="control-btn" type="button">
+        <button
+          onClick={onFilter}
+          className="control-btn"
+          type="button"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            background: colors.primary_bg,
+            border: `1px solid ${colors.border_color}`,
+            color: colors.primary_text,
+            padding: "8px 12px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "14px",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = colors.hover_bg;
+            e.currentTarget.style.borderColor = colors.primary_accent;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = colors.primary_bg;
+            e.currentTarget.style.borderColor = colors.border_color;
+          }}
+        >
           <Filter size={16} />
           Filter
         </button>
-        <button onClick={onExport} className="control-btn" type="button">
+        <button
+          onClick={onExport}
+          className="control-btn"
+          type="button"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            background: colors.primary_bg,
+            border: `1px solid ${colors.border_color}`,
+            color: colors.primary_text,
+            padding: "8px 12px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "14px",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = colors.hover_bg;
+            e.currentTarget.style.borderColor = colors.primary_accent;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = colors.primary_bg;
+            e.currentTarget.style.borderColor = colors.border_color;
+          }}
+        >
           <Download size={16} />
           Export
         </button>

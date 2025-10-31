@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Avatar } from "@mui/material";
+import { Avatar, Badge } from "@mui/material";
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
 import { logoutAction } from "../../Redux/Auth/auth.action";
 import { updateUserSettings } from "../../Redux/UserSettings/userSettings.action";
 import Modal from "../../pages/Landingpage/Modal";
+import NotificationsPanelRedux from "./NotificationsPanelRedux";
 
 /**
  * HeaderBar Component
- * Displays theme toggle, user profile with dropdown menu
+ * Displays notifications icon, theme toggle, user profile with dropdown menu
  * Used in the main layout when not in friend view
  */
 const HeaderBar = () => {
@@ -19,6 +20,8 @@ const HeaderBar = () => {
   const { mode } = useSelector((state) => state.theme || {});
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(5);
   const dropdownRef = useRef(null);
 
   const isDark = mode === "dark";
@@ -124,6 +127,44 @@ const HeaderBar = () => {
               </svg>
             )}
           </button>
+
+          {/* Notifications Button */}
+          <div className="relative">
+            <button
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
+                isDark
+                  ? "bg-gray-800 hover:bg-gray-700"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }`}
+              title="Notifications"
+            >
+              <Badge
+                badgeContent={unreadNotificationsCount}
+                color="error"
+                max={99}
+                sx={{
+                  "& .MuiBadge-badge": {
+                    fontSize: "0.625rem",
+                    height: "16px",
+                    minWidth: "16px",
+                    padding: "0 4px",
+                  },
+                }}
+              >
+                <svg
+                  className={`w-5 h-5 ${
+                    isDark ? "text-gray-300" : "text-gray-700"
+                  }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                </svg>
+              </Badge>
+            </button>
+          </div>
 
           {/* Profile Dropdown */}
           <div className="relative" ref={dropdownRef}>
@@ -303,6 +344,15 @@ const HeaderBar = () => {
         onDecline={() => setIsLogoutModalOpen(false)}
         approveText="Yes"
         declineText="No"
+      />
+
+      {/* Notifications Panel */}
+      <NotificationsPanelRedux
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        onNotificationRead={(unreadCount) =>
+          setUnreadNotificationsCount(unreadCount)
+        }
       />
     </>
   );

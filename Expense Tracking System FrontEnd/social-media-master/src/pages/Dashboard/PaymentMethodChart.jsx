@@ -12,12 +12,7 @@ const PaymentMethodChart = ({
   loading = false,
   skeleton = null,
 }) => {
-  {
-    console.log("data", data);
-  }
-  {
-    console.log("rawData", rawData);
-  }
+  
   const normalize = (raw) => {
     if (
       raw &&

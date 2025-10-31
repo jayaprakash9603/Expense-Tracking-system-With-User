@@ -1,6 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.dto.BatchShareRequestItem;
+import com.jaya.events.FriendRequestEvent;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,9 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private FriendRequestEventPublisher friendRequestEventPublisher;
     // @Autowired
     // private SocketService socketService;
 
@@ -47,6 +52,9 @@ public class FriendshipServiceImpl implements FriendshipService {
         Friendship friendship = new Friendship(null, requester.getId(), recipient.getId(), FriendshipStatus.PENDING,
                 AccessLevel.NONE, AccessLevel.NONE);
         friendship = friendshipRepository.save(friendship);
+
+        // Publish friend request event to Kafka
+        publishFriendRequestSentEvent(friendship, requester, recipient);
 
         // Notify recipient about the new friend request
         // socketService.notifyNewFriendRequest(friendship);
@@ -77,6 +85,21 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         friendship = friendshipRepository.save(friendship);
+
+        // Publish friend request response event to Kafka
+        try {
+            UserDto requester = helper.validateUser(friendship.getRequesterId());
+            UserDto recipient = helper.validateUser(friendship.getRecipientId());
+
+            if (accept) {
+                publishFriendRequestAcceptedEvent(friendship, requester, recipient);
+            } else {
+                publishFriendRequestRejectedEvent(friendship, requester, recipient);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the operation
+            System.err.println("Failed to publish friend request response event: " + e.getMessage());
+        }
 
         // Notify requester about the response
         // socketService.notifyFriendRequestResponse(friendship);
@@ -1024,5 +1047,89 @@ public class FriendshipServiceImpl implements FriendshipService {
             }
         }
         return friends;
+    }
+
+    /**
+     * Helper method to publish friend request sent event
+     */
+    private void publishFriendRequestSentEvent(Friendship friendship, UserDto requester, UserDto recipient) {
+        FriendRequestEvent event = FriendRequestEvent.builder()
+                .eventId(System.currentTimeMillis())
+                .eventType("FRIEND_REQUEST_SENT")
+                .friendshipId(friendship.getId())
+                .requesterId(requester.getId())
+                .requesterName(requester.getFirstName() + " " + requester.getLastName())
+                .requesterEmail(requester.getEmail())
+                .requesterImage(
+                        requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
+                .recipientId(recipient.getId())
+                .recipientName(recipient.getFirstName() + " " + recipient.getLastName())
+                .recipientEmail(recipient.getEmail())
+                .recipientImage(
+                        recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
+                .friendshipStatus(friendship.getStatus().name())
+                .timestamp(LocalDateTime.now())
+                .message(requester.getFirstName() + " sent you a friend request")
+                .source("FRIENDSHIP_SERVICE")
+                .notificationPriority(2) // MEDIUM priority
+                .build();
+
+        friendRequestEventPublisher.publishFriendRequestEvent(event);
+    }
+
+    /**
+     * Helper method to publish friend request accepted event
+     */
+    private void publishFriendRequestAcceptedEvent(Friendship friendship, UserDto requester, UserDto recipient) {
+        FriendRequestEvent event = FriendRequestEvent.builder()
+                .eventId(System.currentTimeMillis())
+                .eventType("FRIEND_REQUEST_ACCEPTED")
+                .friendshipId(friendship.getId())
+                .requesterId(requester.getId())
+                .requesterName(requester.getFirstName() + " " + requester.getLastName())
+                .requesterEmail(requester.getEmail())
+                .requesterImage(
+                        requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
+                .recipientId(recipient.getId())
+                .recipientName(recipient.getFirstName() + " " + recipient.getLastName())
+                .recipientEmail(recipient.getEmail())
+                .recipientImage(
+                        recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
+                .friendshipStatus(friendship.getStatus().name())
+                .timestamp(LocalDateTime.now())
+                .message(recipient.getFirstName() + " accepted your friend request")
+                .source("FRIENDSHIP_SERVICE")
+                .notificationPriority(2) // MEDIUM priority
+                .build();
+
+        friendRequestEventPublisher.publishFriendRequestEvent(event);
+    }
+
+    /**
+     * Helper method to publish friend request rejected event
+     */
+    private void publishFriendRequestRejectedEvent(Friendship friendship, UserDto requester, UserDto recipient) {
+        FriendRequestEvent event = FriendRequestEvent.builder()
+                .eventId(System.currentTimeMillis())
+                .eventType("FRIEND_REQUEST_REJECTED")
+                .friendshipId(friendship.getId())
+                .requesterId(requester.getId())
+                .requesterName(requester.getFirstName() + " " + requester.getLastName())
+                .requesterEmail(requester.getEmail())
+                .requesterImage(
+                        requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
+                .recipientId(recipient.getId())
+                .recipientName(recipient.getFirstName() + " " + recipient.getLastName())
+                .recipientEmail(recipient.getEmail())
+                .recipientImage(
+                        recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
+                .friendshipStatus(friendship.getStatus().name())
+                .timestamp(LocalDateTime.now())
+                .message(recipient.getFirstName() + " declined your friend request")
+                .source("FRIENDSHIP_SERVICE")
+                .notificationPriority(3) // LOW priority
+                .build();
+
+        friendRequestEventPublisher.publishFriendRequestEvent(event);
     }
 }

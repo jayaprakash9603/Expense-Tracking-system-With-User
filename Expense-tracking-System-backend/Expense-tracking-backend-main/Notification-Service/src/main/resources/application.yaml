@@ -1,6 +1,3 @@
-
-
-
 server:
   port: 6003
 
@@ -12,6 +9,13 @@ spring:
   cloud:
     compatibility-verifier:
       enabled: false
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 5000
+            loggerLevel: full
   datasource:
     url: jdbc:mysql://localhost:5000/notification_service
     username: root
@@ -25,6 +29,43 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+        # Batch processing configuration for optimal bulk operations
+        jdbc:
+          batch_size: 50 # Process 50 inserts/updates in a single batch
+        order_inserts: true # Order SQL inserts for better batching
+        order_updates: true # Order SQL updates for better batching
+        # Enable query plan cache for frequently executed queries
+        query:
+          plan_cache_max_size: 2048
+          plan_parameter_metadata_max_size: 128
+
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest # Changed from 'latest' to 'earliest' to not miss messages
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      enable-auto-commit: true
+      auto-commit-interval: 1000
+      max-poll-records: 100
+      fetch-min-size: 1
+      fetch-max-wait: 500
+      session-timeout: 30000
+      heartbeat-interval: 10000
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    listener:
+      concurrency: 3 # Run 3 concurrent consumers per topic for better throughput
+      ack-mode: batch
+      poll-timeout: 1000
 
 eureka:
   instance:

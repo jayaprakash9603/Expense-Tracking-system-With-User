@@ -1,5 +1,6 @@
 package com.jaya.service;
 
+import com.jaya.modal.Notification;
 import com.jaya.modal.UserDto;
 import com.jaya.modal.ExpenseDTO;
 import com.jaya.modal.BudgetDTO;
@@ -9,9 +10,26 @@ import java.util.Map;
 
 public interface NotificationService {
 
+    // New method for creating notifications from events
+    Notification createNotification(Notification notification);
+
+    // New methods for notification management
+    List<Notification> getUserNotifications(Integer userId, Boolean isRead, Integer limit, Integer offset);
+
+    Notification markAsRead(Integer notificationId, Integer userId);
+
+    void deleteNotification(Integer notificationId, Integer userId);
+
+    void deleteAllNotifications(Integer userId);
+
+    void markAllAsRead(Integer userId);
+
+    Long getUnreadCount(Integer userId);
+
     void sendBudgetDTOExceededAlert(UserDto UserDto, BudgetDTO BudgetDTO, double currentSpending);
 
-    void sendBudgetDTOWarningAlert(UserDto UserDto, BudgetDTO BudgetDTO, double currentSpending, double warningThreshold);
+    void sendBudgetDTOWarningAlert(UserDto UserDto, BudgetDTO BudgetDTO, double currentSpending,
+            double warningThreshold);
 
     void sendMonthlySpendingSummary(UserDto UserDto, LocalDate month);
 
@@ -44,5 +62,6 @@ public interface NotificationService {
     public void sendRecurringExpenseReminder(UserDto user, List<ExpenseDTO> recurringExpenses);
 
     public void updateNotificationPreferences(UserDto user, Map<String, Boolean> preferences);
-//    void updateNotificationPreferences(UserDto UserDto, Map<String, Boolean> preferences);
+    // void updateNotificationPreferences(UserDto UserDto, Map<String, Boolean>
+    // preferences);
 }

@@ -10,6 +10,7 @@ import PaymentUsageChart from "../../../components/charts/PaymentUsageChart";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import SharedDistributionChart from "../../../components/charts/SharedDistributionChart";
 import { getChartColors } from "../../../utils/chartColors";
+import { useTheme } from "../../../hooks/useTheme";
 
 const COLORS = getChartColors(10); // limit to first 10 for category distribution
 
@@ -19,6 +20,7 @@ const COLORS = getChartColors(10); // limit to first 10 for category distributio
 const CategoryReport = () => {
   const { friendId } = useParams();
   const navigate = useNavigate();
+  const { colors, mode } = useTheme();
   const {
     timeframe,
     flowType,
@@ -58,7 +60,13 @@ const CategoryReport = () => {
   }
 
   return (
-    <div className="category-report">
+    <div
+      className="category-report"
+      style={{
+        background: colors.secondary_bg,
+        color: colors.primary_text,
+      }}
+    >
       <ReportHeader
         className="category-report-header"
         title="📊 Category Analytics"
@@ -73,14 +81,46 @@ const CategoryReport = () => {
       />
 
       {error ? (
-        <div style={{ padding: 16, color: "#ff6b6b" }}>Error: {error}</div>
+        <div
+          style={{
+            padding: 16,
+            color: "#ff6b6b",
+            background:
+              mode === "dark"
+                ? "rgba(255, 107, 107, 0.1)"
+                : "rgba(255, 107, 107, 0.15)",
+            borderRadius: "8px",
+            border: `1px solid ${
+              mode === "dark"
+                ? "rgba(255, 107, 107, 0.3)"
+                : "rgba(255, 107, 107, 0.4)"
+            }`,
+            marginBottom: "16px",
+          }}
+        >
+          Error: {error}
+        </div>
       ) : null}
 
       <SharedOverviewCards data={categorySpending} mode="category" />
 
-      <div className="charts-grid">
+      <div
+        className="charts-grid"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "24px",
+        }}
+      >
         {/* Row 2: Usage Analysis (reused payment usage chart for categories) */}
-        <div className="chart-row full-width">
+        <div
+          className="chart-row full-width"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr",
+            gap: "24px",
+          }}
+        >
           <PaymentUsageChart
             data={(Array.isArray(categorySpending) ? categorySpending : []).map(
               (c) => ({
@@ -92,7 +132,14 @@ const CategoryReport = () => {
           />
         </div>
         {/* Row 1: Distribution and Spending Analysis */}
-        <div className="chart-row full-width">
+        <div
+          className="chart-row full-width"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr",
+            gap: "24px",
+          }}
+        >
           <SharedDistributionChart
             data={categorySpending}
             mode="category"
@@ -101,7 +148,14 @@ const CategoryReport = () => {
         </div>
 
         {/* Row 4: Full Width Category Expenses Accordion (replaces performance table) */}
-        <div className="chart-row full-width">
+        <div
+          className="chart-row full-width"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr",
+            gap: "24px",
+          }}
+        >
           <CategoryExpensesAccordion categories={categorySpending} />
         </div>
       </div>
