@@ -14,11 +14,13 @@ import PaymentUsageChart from "../../../components/charts/PaymentUsageChart";
 import TransactionSizeChart from "../../../components/charts/TransactionSizeChart";
 import CategoryPaymentBreakdown from "../../../components/charts/CategoryPaymentBreakdown";
 import { getChartColors } from "../../../utils/chartColors";
+import { useTheme } from "../../../hooks/useTheme";
 
 const COLORS = getChartColors();
 
 // Main Payment Methods Report Component
 const PaymentMethodsReport = () => {
+  const { colors, mode } = useTheme();
   const { friendId } = useParams();
   const navigate = useNavigate();
   const {
@@ -61,7 +63,10 @@ const PaymentMethodsReport = () => {
   }
 
   return (
-    <div className="payment-methods-report">
+    <div
+      className="payment-methods-report"
+      style={{ background: colors.secondary_bg }}
+    >
       <ReportHeader
         className="payment-methods-header"
         title="💳 Payment Methods Analytics"
@@ -76,7 +81,20 @@ const PaymentMethodsReport = () => {
       />
 
       {error ? (
-        <div style={{ padding: 16, color: "#ff6b6b" }}>Error: {error}</div>
+        <div
+          style={{
+            padding: 16,
+            color: "#ff6b6b",
+            background:
+              mode === "dark"
+                ? "rgba(255, 107, 107, 0.1)"
+                : "rgba(255, 107, 107, 0.05)",
+            borderRadius: "8px",
+            margin: "16px",
+          }}
+        >
+          Error: {error}
+        </div>
       ) : null}
 
       <SharedOverviewCards data={methodsData} mode="payment" />
@@ -120,10 +138,23 @@ const PaymentMethodsReport = () => {
 
         {/* Row 4: Payment Method Detailed Expenses (Accordion) */}
         <div className="chart-row full-width">
-          <div className="chart-container">
+          <div
+            className="chart-container"
+            style={{
+              background: colors.secondary_bg,
+              border: `1px solid ${colors.border_color}`,
+              borderRadius: "12px",
+              padding: "20px",
+            }}
+          >
             <div className="chart-header">
-              <h3>📂 Payment Method Expenses</h3>
-              <div className="chart-subtitle">
+              <h3 style={{ color: colors.primary_text }}>
+                📂 Payment Method Expenses
+              </h3>
+              <div
+                className="chart-subtitle"
+                style={{ color: mode === "dark" ? "#9ca3af" : "#6b7280" }}
+              >
                 Expand a method to view individual expenses (Loss / Gain tabs)
               </div>
             </div>

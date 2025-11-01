@@ -44,7 +44,6 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-
     @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Phone number should be valid")
     private String phoneNumber;
 
@@ -55,6 +54,20 @@ public class User {
 
     @Size(max = 500, message = "Bio must not exceed 500 characters")
     private String bio;
+
+    @Size(max = 1000, message = "Profile image URL must not exceed 1000 characters")
+    @Column(name = "profile_image")
+    private String profileImage;
+
+    @Size(max = 1000, message = "Cover image URL must not exceed 1000 characters")
+    @Column(name = "cover_image")
+    private String coverImage;
+
+    private String mobile;
+    private String occupation;
+
+    @Column(name = "date_of_birth")
+    private String dateOfBirth;
 
     @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
     private String firstName;
@@ -92,8 +105,7 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
 
-
-// In User.java
+    // In User.java
 
     public void addRole(String roleName) {
         if (roleName != null) {
@@ -109,7 +121,8 @@ public class User {
     }
 
     public boolean hasRole(String roleName) {
-        if (roleName == null) return false;
+        if (roleName == null)
+            return false;
         final String normalized;
         String temp = roleName.toUpperCase().trim();
         if (!temp.startsWith("ROLE_")) {
@@ -125,6 +138,7 @@ public class User {
             roles.removeIf(r -> r.equalsIgnoreCase(roleName.trim()));
         }
     }
+
     public boolean isValidForUpdate() {
         return id != null && email != null && !email.trim().isEmpty();
     }

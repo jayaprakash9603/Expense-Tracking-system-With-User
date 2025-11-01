@@ -15,6 +15,7 @@ import DateIndicator from "../DateIndicator";
 import JumpToTodayButton from "../JumpToTodayButton";
 import PropTypes from "prop-types";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 /**
  * ============================================================================
@@ -129,6 +130,7 @@ const SummaryCard = ({
   textColor,
   iconType = "down",
   isSmallScreen,
+  currencySymbol = "₹",
 }) => (
   <Box
     sx={{
@@ -235,7 +237,8 @@ const SummaryCard = ({
             mt: 0.5,
           }}
         >
-          ₹{formatAmount(amount)}
+          {currencySymbol}
+          {formatAmount(amount)}
         </Typography>
       </Box>
     </Box>
@@ -307,6 +310,7 @@ const CalendarDay = ({
   spendingKey = "spending",
   incomeKey = "income",
   colors,
+  currencySymbol = "₹",
 }) => {
   const spending = dayData?.[spendingKey] || 0;
   const income = dayData?.[incomeKey] || 0;
@@ -384,7 +388,8 @@ const CalendarDay = ({
                 textAlign: "center",
               }}
             >
-              ₹{Math.abs(spending).toFixed(0)}
+              {currencySymbol}
+              {Math.abs(spending).toFixed(0)}
             </Typography>
           )}
           {income !== 0 && (
@@ -401,7 +406,8 @@ const CalendarDay = ({
                 textAlign: "center",
               }}
             >
-              ₹{income.toFixed(0)}
+              {currencySymbol}
+              {income.toFixed(0)}
             </Typography>
           )}
         </Box>
@@ -457,6 +463,8 @@ const MonthlyCalendarView = ({
   const muiTheme = useMuiTheme();
   const isSmallScreen = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [monthOffset, setMonthOffset] = useState(initialOffset);
@@ -635,6 +643,7 @@ const MonthlyCalendarView = ({
           textColor={summaryConfig.spendingTextColor}
           iconType="down"
           isSmallScreen={isSmallScreen}
+          currencySymbol={currencySymbol}
         />
 
         {/* Month navigator */}
@@ -656,6 +665,7 @@ const MonthlyCalendarView = ({
           textColor={summaryConfig.incomeTextColor}
           iconType="up"
           isSmallScreen={isSmallScreen}
+          currencySymbol={currencySymbol}
         />
       </Box>
 
@@ -763,6 +773,7 @@ const MonthlyCalendarView = ({
                   spendingKey={summaryConfig.spendingKey}
                   incomeKey={summaryConfig.incomeKey}
                   colors={colors}
+                  currencySymbol={currencySymbol}
                 />
               </Grid>
             );
@@ -798,6 +809,7 @@ SummaryCard.propTypes = {
   textColor: PropTypes.string.isRequired,
   iconType: PropTypes.oneOf(["up", "down"]),
   isSmallScreen: PropTypes.bool,
+  currencySymbol: PropTypes.string,
 };
 
 MonthNavigator.propTypes = {
@@ -819,6 +831,7 @@ CalendarDay.propTypes = {
   spendingKey: PropTypes.string,
   incomeKey: PropTypes.string,
   colors: PropTypes.object,
+  currencySymbol: PropTypes.string,
 };
 
 MonthlyCalendarView.propTypes = {

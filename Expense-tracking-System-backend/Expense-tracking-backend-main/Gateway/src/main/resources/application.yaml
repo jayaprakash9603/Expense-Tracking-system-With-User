@@ -3,8 +3,8 @@ server:
 
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG         # For Gateway specific logs
-    org.springframework.cloud.openfeign: DEBUG       # For Feign client logs
+    org.springframework.cloud.gateway: DEBUG # For Gateway specific logs
+    org.springframework.cloud.openfeign: DEBUG # For Feign client logs
 
 spring:
   application:
@@ -17,57 +17,57 @@ spring:
     gateway:
       routes:
         - id: USER-SERVICE
-          uri: http://localhost:6001  # Replace with your actual service port
+          uri: http://localhost:6001 # Replace with your actual service port
           predicates:
             - Path=/auth/**, /user/**, /api/user/**, /api/admin/**, /api/roles/**, /api/permissions/**
         - id: BUDGET-SERVICE
-          uri: http://localhost:6005  # Replace with your actual service port
+          uri: http://localhost:6005 # Replace with your actual service port
           predicates:
             - Path= /api/budgets/**
         - id: CHAT-SERVICE
-          uri: http://localhost:7001  # Replace with your actual service port
+          uri: http://localhost:7001 # Replace with your actual service port
           predicates:
             - Path= /api/chats/**
         - id: FRIENDSHIP-SERVICE
-          uri: http://localhost:6009  # Replace with your actual service port
+          uri: http://localhost:6009 # Replace with your actual service port
           predicates:
             - Path= /api/friendships/**,/api/groups/**
         - id: PAYMENT-SERVICE
-          uri: http://localhost:6006  # Replace with your actual service port
+          uri: http://localhost:6006 # Replace with your actual service port
           predicates:
             - Path= /api/payment-methods/**
         - id: CATEGORY-SERVICE
-          uri: http://localhost:6008  # Replace with your actual service port
+          uri: http://localhost:6008 # Replace with your actual service port
           predicates:
             - Path= /api/categories/**
         - id: BILL-SERVICE
-          uri: http://localhost:6007  # Replace with your actual service port
+          uri: http://localhost:6007 # Replace with your actual service port
           predicates:
             - Path= /api/bills/**
         - id: AUDIT-SERVICE
-          uri: http://localhost:6004  # Replace with your actual service port
+          uri: http://localhost:6004 # Replace with your actual service port
           predicates:
             - Path=/api/audit-logs/**, /audit-logs/**
         - id: EXPENSE-TRACKING-SYSTEM
-          uri: http://localhost:6000  # Replace with your actual service port
+          uri: http://localhost:6000 # Replace with your actual service port
           predicates:
-            - Path= /api/expenses/**, /api/budgets/**, /api/bills/** , /api/categories/**,/daily-summary/**, /api/friendships/**, /api/investment/**,/api/payment-methods/**
+            - Path= /api/expenses/**, /api/settings/**, /api/budgets/**, /api/bills/** , /api/categories/**,/daily-summary/**, /api/friendships/**, /api/investment/**,/api/payment-methods/**
         - id: NOTIFICATION-SERVICE
-          uri: http://localhost:6003  # Replace with actual port
+          uri: http://localhost:6003 # Replace with actual port
           predicates:
             - Path=/api/notifications/**, /notifications/**
       default-filters:
         - name: DedupeResponseHeader
           args:
             name: "Access-Control-Allow-Origin"
-            strategy: "RETAIN_FIRST"  # Choose "RETAIN_FIRST", "RETAIN_LAST", or "RETAIN_UNIQUE"
+            strategy: "RETAIN_FIRST" # Choose "RETAIN_FIRST", "RETAIN_LAST", or "RETAIN_UNIQUE"
         - name: DedupeResponseHeader
           args:
             name: "Access-Control-Allow-Credentials"
             strategy: "RETAIN_FIRST"
       globalcors:
         cors-configurations:
-          '[/**]':
+          "[/**]":
             allowedOrigins: "*"
             allowedMethods: "*"
             allowedHeaders: "*"

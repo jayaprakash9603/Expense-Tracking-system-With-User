@@ -1,5 +1,6 @@
 import React from "react";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 import {
   TrendingUp,
   TrendingDown,
@@ -26,11 +27,13 @@ const MetricCard = ({
   icon,
   type,
   trend,
+  currencySymbol = "₹",
 }) => {
   const { colors } = useTheme();
 
   const formatValue = (val) => {
-    if (typeof val === "number") return `₹${formatNumber0(val)}`;
+    if (typeof val === "number")
+      return `${currencySymbol}${formatNumber0(val)}`;
     return val;
   };
 
@@ -166,7 +169,15 @@ const MetricCardSkeleton = () => {
 // Props:
 //  analyticsSummary: object from API
 //  loading: boolean
-const MetricsGrid = ({ analyticsSummary, loading }) => {
+//  currencySymbol: string (optional, will use user settings if not provided)
+const MetricsGrid = ({
+  analyticsSummary,
+  loading,
+  currencySymbol: propCurrencySymbol,
+}) => {
+  const settings = useUserSettings();
+  const currencySymbol = propCurrencySymbol || settings.getCurrency().symbol;
+
   if (loading) {
     return (
       <div className="metrics-grid">
@@ -197,6 +208,7 @@ const MetricsGrid = ({ analyticsSummary, loading }) => {
         icon={<Wallet />}
         type="primary"
         trend="up"
+        currencySymbol={currencySymbol}
       />
       <MetricCard
         title="Monthly Spending"
@@ -217,6 +229,7 @@ const MetricsGrid = ({ analyticsSummary, loading }) => {
         icon={<CurrencyExchange />}
         type="expense"
         trend="down"
+        currencySymbol={currencySymbol}
       />
       <MetricCard
         title="Credit Due"
@@ -236,6 +249,7 @@ const MetricsGrid = ({ analyticsSummary, loading }) => {
         icon={<CreditCard />}
         type="credit"
         trend="down"
+        currencySymbol={currencySymbol}
       />
       <MetricCard
         title="Credit Card Bill Paid"
@@ -267,6 +281,7 @@ const MetricsGrid = ({ analyticsSummary, loading }) => {
           if (t === "decrease") return "down";
           return "neutral";
         })()}
+        currencySymbol={currencySymbol}
       />
     </div>
   );

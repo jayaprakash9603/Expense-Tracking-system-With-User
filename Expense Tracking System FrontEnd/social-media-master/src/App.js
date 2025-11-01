@@ -5,6 +5,8 @@ import HomePage from "./pages/Home/HomePage";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { getProfileAction } from "./Redux/Auth/auth.action";
+import { fetchOrCreateUserSettings } from "./Redux/UserSettings/userSettings.action";
+import { setTheme } from "./Redux/Theme/theme.actions";
 import Parent from "./pages/DetailedExpensesTable/Parent";
 import Loader from "./components/Loaders/Loader";
 import CreateExpenses from "./components/CreateExpenses/CreateExpenses";
@@ -27,6 +29,8 @@ import Reports from "./pages/Landingpage/Reports";
 import Cashflow from "./pages/expenses-view/CashFlow";
 import CalendarView from "./pages/Landingpage/CalendarView";
 import DayTransactionsView from "./pages/Landingpage/DayTransactionsView";
+// Import WebSocket Test Service
+import "./services/socketService";
 import CategoryFlow from "./pages/Landingpage/CategoryFlow";
 import CreateCategory from "./pages/Landingpage/CreateCategory";
 import EditCategory from "./pages/Landingpage/EditCategory";
@@ -71,9 +75,25 @@ function App() {
 
   useEffect(() => {
     if (jwt) {
-      dispatch(getProfileAction(jwt)).finally(() => setLoading(false));
-
-      navigate("/");
+      dispatch(getProfileAction(jwt))
+        .then(() => {
+          // After successful profile fetch, get or create user settings
+          return dispatch(fetchOrCreateUserSettings());
+        })
+        .then((settings) => {
+          // Sync theme from user settings
+          if (settings?.themeMode) {
+            dispatch(setTheme(settings.themeMode));
+          }
+          // Navigate to home only after settings are loaded
+          navigate("/dashboard");
+        })
+        .catch((error) => {
+          console.error("Error loading user data:", error);
+          // Still navigate even if there's an error, to avoid blocking user
+          navigate("/dashboard");
+        })
+        .finally(() => setLoading(false));
     } else {
       setLoading(false);
     }

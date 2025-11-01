@@ -4,24 +4,33 @@ import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { getGroupById, leaveGroup } from "../../Redux/Groups/groupsActions";
 import { fetchUserGroups } from "../../Redux/Groups/groupsActions";
+import useUserSettings from "../../hooks/useUserSettings";
 
 const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
   const navigate = useNavigate();
   const userId = useSelector((state) => state.auth?.user?.id);
   const [openMenuId, setOpenMenuId] = useState(null);
   const dispatch = useDispatch();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   // Format amount to 1k, 1m, 1b, etc.
   const formatAmount = (amount) => {
-    if (amount == null) return "₹0";
+    if (amount == null) return `${currencySymbol}0`;
 
     if (amount >= 1_000_000_000)
-      return `₹${(amount / 1_000_000_000).toFixed(1).replace(/\.0$/, "")}b`;
+      return `${currencySymbol}${(amount / 1_000_000_000)
+        .toFixed(1)
+        .replace(/\.0$/, "")}b`;
     if (amount >= 1_000_000)
-      return `₹${(amount / 1_000_000).toFixed(1).replace(/\.0$/, "")}m`;
+      return `${currencySymbol}${(amount / 1_000_000)
+        .toFixed(1)
+        .replace(/\.0$/, "")}m`;
     if (amount >= 1_000)
-      return `₹${(amount / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
-    return `₹${amount}`;
+      return `${currencySymbol}${(amount / 1_000)
+        .toFixed(1)
+        .replace(/\.0$/, "")}k`;
+    return `${currencySymbol}${amount}`;
   };
 
   // Hide menu when clicking outside

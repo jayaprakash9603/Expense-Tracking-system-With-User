@@ -25,6 +25,7 @@ import { IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
+import useUserSettings from "../../hooks/useUserSettings";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -296,13 +297,16 @@ const FilterInfo = ({
 );
 
 // Summary Cards Component
-const SummaryCards = ({ analytics }) => (
+const SummaryCards = ({ analytics, currencySymbol = "₹" }) => (
   <div className="summary-cards">
     <div className="summary-card total">
       <div className="card-icon">💰</div>
       <div className="card-content">
         <h3>Total Expenses</h3>
-        <p className="amount">₹{analytics.totalExpenses.toFixed(2)}</p>
+        <p className="amount">
+          {currencySymbol}
+          {analytics.totalExpenses.toFixed(2)}
+        </p>
       </div>
     </div>
     <div className="summary-card bills">
@@ -316,7 +320,10 @@ const SummaryCards = ({ analytics }) => (
       <div className="card-icon">📈</div>
       <div className="card-content">
         <h3>Average per Bill</h3>
-        <p className="amount">₹{analytics.averageExpense.toFixed(2)}</p>
+        <p className="amount">
+          {currencySymbol}
+          {analytics.averageExpense.toFixed(2)}
+        </p>
       </div>
     </div>
     <div className="summary-card categories">
@@ -341,7 +348,7 @@ const NoDataMessage = () => (
 );
 
 // Category Bar Chart Component
-const CategoryBarChart = ({ categoryChartData }) => (
+const CategoryBarChart = ({ categoryChartData, currencySymbol = "₹" }) => (
   <div className="chart-container chart-half-width">
     <h3>💼 Expenses by Category</h3>
     <ResponsiveContainer width="100%" height={300}>
@@ -349,7 +356,9 @@ const CategoryBarChart = ({ categoryChartData }) => (
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
         <YAxis />
-        <Tooltip formatter={(value) => [`₹${value}`, "Amount"]} />
+        <Tooltip
+          formatter={(value) => [`${currencySymbol}${value}`, "Amount"]}
+        />
         <Legend />
         <Bar dataKey="amount" fill="#14b8a6" radius={[4, 4, 0, 0]} />
       </BarChart>
@@ -358,7 +367,11 @@ const CategoryBarChart = ({ categoryChartData }) => (
 );
 
 // Payment Method Pie Chart Component
-const PaymentMethodPieChart = ({ paymentMethodChartData, COLORS }) => (
+const PaymentMethodPieChart = ({
+  paymentMethodChartData,
+  COLORS,
+  currencySymbol = "₹",
+}) => (
   <div className="chart-container chart-half-width">
     <h3>💳 Payment Methods</h3>
     <ResponsiveContainer width="100%" height={300}>
@@ -379,7 +392,9 @@ const PaymentMethodPieChart = ({ paymentMethodChartData, COLORS }) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value) => [`₹${value}`, "Amount"]} />
+        <Tooltip
+          formatter={(value) => [`${currencySymbol}${value}`, "Amount"]}
+        />
       </PieChart>
     </ResponsiveContainer>
   </div>
@@ -392,6 +407,7 @@ const DailyTrendChart = ({
   trendCursor,
   onPrev,
   onNext,
+  currencySymbol = "₹",
 }) => (
   <div className="chart-container full-width">
     <div
@@ -444,8 +460,11 @@ const DailyTrendChart = ({
         <Tooltip
           formatter={(value, name) => {
             if (name === "average")
-              return [`₹${Number(value).toFixed(2)}`, "Running Avg"];
-            return [`₹${value}`, "Amount"];
+              return [
+                `${currencySymbol}${Number(value).toFixed(2)}`,
+                "Running Avg",
+              ];
+            return [`${currencySymbol}${value}`, "Amount"];
           }}
         />
         <Legend />
@@ -505,7 +524,11 @@ const TopItemsRadialChart = ({
 );
 
 // Top Items Bar Chart Component
-const TopItemsBarChart = ({ topItemsBarData, COLORS }) => (
+const TopItemsBarChart = ({
+  topItemsBarData,
+  COLORS,
+  currencySymbol = "₹",
+}) => (
   <div className="chart-container chart-half-width">
     <h3>📊 Top Expense Items</h3>
     <ResponsiveContainer width="100%" height={350}>
@@ -521,7 +544,7 @@ const TopItemsBarChart = ({ topItemsBarData, COLORS }) => (
         <YAxis />
         <Tooltip
           formatter={(value, name, props) => [
-            `₹${value}`,
+            `${currencySymbol}${value}`,
             "Amount",
             `Item: ${props.payload.fullName}`,
             `Quantity: ${props.payload.quantity}`,
@@ -538,7 +561,7 @@ const TopItemsBarChart = ({ topItemsBarData, COLORS }) => (
 );
 
 // Bills Table Component
-const BillsTable = ({ filteredBills }) => (
+const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => (
   <div className="bills-table-container mt-[30px]">
     <h3>📋 Recent Bills</h3>
     <div className="table-wrapper">
@@ -571,7 +594,8 @@ const BillsTable = ({ filteredBills }) => (
                   bill.type === "gain" ? "gain" : "loss"
                 }`}
               >
-                {bill.type === "gain" ? "+" : "-"}₹
+                {bill.type === "gain" ? "+" : "-"}
+                {currencySymbol}
                 {Math.abs(bill.amount).toFixed(2)}
               </td>
               <td>
@@ -587,7 +611,8 @@ const BillsTable = ({ filteredBills }) => (
                 <div className="items-list">
                   {bill.expenses.map((expense, idx) => (
                     <div key={idx} className="expense-item">
-                      {expense.itemName} (₹{expense.totalPrice})
+                      {expense.itemName} ({currencySymbol}
+                      {expense.totalPrice})
                     </div>
                   ))}
                 </div>
@@ -601,7 +626,7 @@ const BillsTable = ({ filteredBills }) => (
 );
 
 // Category Details Component
-const CategoryDetails = ({ analytics }) => (
+const CategoryDetails = ({ analytics, currencySymbol = "₹" }) => (
   <div className="category-details">
     <h3>📊 Category Breakdown</h3>
     <div className="category-grid">
@@ -609,12 +634,12 @@ const CategoryDetails = ({ analytics }) => (
         const stats = [
           {
             label: "Total Amount:",
-            value: `₹${data.total.toFixed(2)}`,
+            value: `${currencySymbol}${data.total.toFixed(2)}`,
           },
           { label: "Bills Count:", value: data.count },
           {
             label: "Avg per Bill:",
-            value: `₹${
+            value: `${currencySymbol}${
               data.count ? (data.total / data.count).toFixed(2) : "0.00"
             }`,
           },
@@ -729,6 +754,8 @@ const ExpenseReport = () => {
   const loading = useSelector((state) => state.bill.loading);
   const { friendId } = useParams();
   const navigate = useNavigate();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   const handleBack = () => {
     // Always go to bill root of current context
@@ -1067,7 +1094,7 @@ const ExpenseReport = () => {
     }));
 
   const renderRadialLabel = (entry) => {
-    return `₹${entry.amount}`;
+    return `${currencySymbol}${entry.amount}`;
   };
 
   const CustomRadialTooltip = ({ active, payload }) => {
@@ -1076,7 +1103,10 @@ const ExpenseReport = () => {
       return (
         <div className="custom-tooltip">
           <p className="tooltip-label">{data.fullName}</p>
-          <p className="tooltip-amount">Amount: ₹{data.amount}</p>
+          <p className="tooltip-amount">
+            Amount: {currencySymbol}
+            {data.amount}
+          </p>
           <p className="tooltip-quantity">Quantity: {data.quantity}</p>
           <p className="tooltip-percentage">{data.percentage}% of total</p>
         </div>
@@ -1121,13 +1151,17 @@ const ExpenseReport = () => {
         <>
           <div className="chart-report-grid">
             {categoryChartData.length > 0 && (
-              <CategoryBarChart categoryChartData={categoryChartData} />
+              <CategoryBarChart
+                categoryChartData={categoryChartData}
+                currencySymbol={currencySymbol}
+              />
             )}
 
             {paymentMethodChartData.length > 0 && (
               <PaymentMethodPieChart
                 paymentMethodChartData={paymentMethodChartData}
                 COLORS={COLORS}
+                currencySymbol={currencySymbol}
               />
             )}
 
@@ -1138,6 +1172,7 @@ const ExpenseReport = () => {
                 trendCursor={trendCursor}
                 onPrev={handleTrendPrev}
                 onNext={handleTrendNext}
+                currencySymbol={currencySymbol}
               />
             )}
 
@@ -1153,11 +1188,15 @@ const ExpenseReport = () => {
               <TopItemsBarChart
                 topItemsBarData={topItemsBarData}
                 COLORS={COLORS}
+                currencySymbol={currencySymbol}
               />
             )}
           </div>
 
-          <BillsTable filteredBills={pagedBills} />
+          <BillsTable
+            filteredBills={pagedBills}
+            currencySymbol={currencySymbol}
+          />
 
           {/* pagination controls for recent bills */}
           {filteredBills.length > itemsPerPage && (
@@ -1230,7 +1269,10 @@ const ExpenseReport = () => {
             </div>
           )}
 
-          <CategoryDetails analytics={analytics} />
+          <CategoryDetails
+            analytics={analytics}
+            currencySymbol={currencySymbol}
+          />
         </>
       )}
     </div>

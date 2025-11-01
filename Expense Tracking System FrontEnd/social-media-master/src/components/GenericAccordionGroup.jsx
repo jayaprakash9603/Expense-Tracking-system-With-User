@@ -1,10 +1,13 @@
 import React, { useState, useCallback, useEffect } from "react";
 import "./PaymentMethodAccordion.css";
 import { formatAmount as fmt } from "../utils/formatAmount";
+import useUserSettings from "../hooks/useUserSettings";
+import { useTheme } from "../hooks/useTheme";
 
 /**
  * GenericAccordionGroup
  * Configurable accordion + tabbed table component for grouped datasets.
+ * Supports light/dark theme via useTheme hook.
  */
 const DEFAULT_TABS = [
   { key: "all", label: "All" },
@@ -14,7 +17,7 @@ const DEFAULT_TABS = [
 
 export function GenericAccordionGroup({
   groups = [],
-  currencySymbol = "₹",
+  currencySymbol,
   defaultOpen = null,
   tabs = DEFAULT_TABS,
   columns,
@@ -29,6 +32,10 @@ export function GenericAccordionGroup({
   defaultGroupsPerPage = 8,
   groupPageSizeOptions = [8, 16, 24, 50],
 }) {
+  const settings = useUserSettings();
+  const { colors } = useTheme();
+  const displayCurrency = currencySymbol || settings.getCurrency().symbol;
+
   const initialOpen = (() => {
     if (defaultOpen == null) return null;
     if (typeof defaultOpen === "number") return defaultOpen;
@@ -94,10 +101,26 @@ export function GenericAccordionGroup({
     [onToggle, groups]
   );
 
-  const formatAmount = (v) => fmt(v, { currencySymbol });
+  const formatAmount = (v) => fmt(v, { currencySymbol: displayCurrency });
+
+  // Theme-aware styles
+  const themeStyles = {
+    accordionGroup: {
+      "--pm-bg-primary": colors.primary_bg,
+      "--pm-bg-secondary": colors.secondary_bg,
+      "--pm-bg-tertiary": colors.tertiary_bg,
+      "--pm-border-color": colors.border_color,
+      "--pm-text-primary": colors.primary_text,
+      "--pm-text-secondary": colors.secondary_text,
+      "--pm-text-tertiary": colors.tertiary_text,
+      "--pm-accent-color": colors.accent_color,
+      "--pm-scrollbar-thumb": colors.accent_color,
+      "--pm-scrollbar-track": colors.secondary_bg,
+    },
+  };
 
   return (
-    <div className="pm-accordion-group">
+    <div className="pm-accordion-group" style={themeStyles.accordionGroup}>
       <div
         className={`pm-groups-viewport ${
           scrollMode ? "scroll-mode" : "paged-mode"

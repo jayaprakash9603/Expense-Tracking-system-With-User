@@ -90,6 +90,8 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useTheme } from "../../../hooks/useTheme";
+import useUserSettings from "../../../hooks/useUserSettings";
 import dayjs from "dayjs";
 import "./BudgetReport.css";
 import { Target } from "lucide-react";
@@ -97,6 +99,10 @@ import { Target } from "lucide-react";
 const BudgetReport = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const { budgetId, friendId } = useParams();
 
   // State management
@@ -138,7 +144,7 @@ const BudgetReport = () => {
       { field: "paymentMethod", headerName: "Payment Method", flex: 1 },
       {
         field: "amount",
-        headerName: "Amount (₹)",
+        headerName: `Amount (${currencySymbol})`,
         type: "number",
         flex: 0.8,
         headerAlign: "right",
@@ -864,8 +870,8 @@ const BudgetReport = () => {
               {budgetData?.name} Report
             </Typography>
             <Typography variant="subtitle1" className="budget-report-subtitle">
-              {dayjs(budgetData?.startDate).format("MMM DD")} -{" "}
-              {dayjs(budgetData?.endDate).format("MMM DD, YYYY")}
+              {dayjs(budgetData?.startDate).format(dateFormat)} -{" "}
+              {dayjs(budgetData?.endDate).format(dateFormat)}
               <Chip
                 label={budgetData?.budgetType}
                 size="small"
@@ -2258,12 +2264,20 @@ const BudgetReport = () => {
                     rowHeight={txRowHeight}
                     headerHeight={txHeaderHeight}
                     sx={{
-                      backgroundColor: "transparent",
+                      backgroundColor: colors.secondary_bg,
+                      color: colors.primary_text,
                       "& .MuiDataGrid-virtualScroller": {
-                        backgroundColor: "transparent",
+                        backgroundColor: colors.secondary_bg,
                       },
                       "& .MuiDataGrid-footerContainer": {
-                        backgroundColor: "transparent",
+                        backgroundColor: colors.primary_bg,
+                        color: colors.primary_text,
+                      },
+                      "& .MuiTablePagination-root": {
+                        color: colors.primary_text,
+                      },
+                      "& .MuiSvgIcon-root": {
+                        color: colors.primary_text,
                       },
                     }}
                   />

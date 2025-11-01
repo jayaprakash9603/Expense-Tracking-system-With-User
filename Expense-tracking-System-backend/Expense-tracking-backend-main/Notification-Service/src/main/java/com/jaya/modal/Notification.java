@@ -28,11 +28,11 @@ public class Notification {
     private String message;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
+    @Column(name = "type", nullable = false, length = 50)
     private NotificationType type;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "priority", nullable = false)
+    @Column(name = "priority", nullable = false, length = 20)
     private NotificationPriority priority;
 
     @Column(name = "is_read", nullable = false)

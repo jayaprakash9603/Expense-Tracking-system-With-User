@@ -4,6 +4,7 @@ import "./PaymentMethodAccordion.css";
 import GenericAccordionGroup, {
   GenericAccordionGroup as Generic,
 } from "./GenericAccordionGroup";
+import useUserSettings from "../hooks/useUserSettings";
 
 /**
  * Generic accordion group component for displaying grouped expenses by a key (e.g. payment method).
@@ -44,13 +45,16 @@ import GenericAccordionGroup, {
 // where methodsData = [{ method:'cash', totalAmount: 1200, transactions: 5, expenses:[...] }, ...]
 export default function PaymentMethodAccordionGroup({
   methods = [],
-  currencySymbol = "₹",
+  currencySymbol,
   defaultOpen = null,
   onToggle,
   renderExpenseRow,
   defaultPageSize = 5,
   pageSizeOptions = [5, 10, 20, 50],
 }) {
+  const settings = useUserSettings();
+  const displayCurrency = currencySymbol || settings.getCurrency().symbol;
+
   // Compute grand total for percentage calculation
   const grandTotal = methods.reduce(
     (sum, m) => sum + Number(m.totalAmount || 0),
@@ -74,17 +78,17 @@ export default function PaymentMethodAccordionGroup({
   });
 
   const columns = [
-    { key: "date", label: "Date", width: "110px", value: (row) => row.date },
+    { key: "date", label: "Date", width: "100px", value: (row) => row.date },
     {
       key: "name",
       label: "Name",
-      width: "280px",
+      width: "270px",
       value: (row) => row.details?.expenseName || "-",
     },
     {
       key: "amount",
       label: "Amount",
-      width: "110px",
+      width: "100px",
       value: (row) => {
         const amt = row.details?.amount ?? row.details?.netAmount ?? 0;
         return amt;
@@ -104,13 +108,13 @@ export default function PaymentMethodAccordionGroup({
     {
       key: "payment",
       label: "Payment",
-      width: "220px",
+      width: "200px",
       value: (row) => row.details?.paymentMethod,
     },
     {
       key: "creditDue",
       label: "Credit Due",
-      width: "120px",
+      width: "110px",
       value: (row) =>
         row.details?.creditDue != null ? row.details.creditDue : "-",
       sortValue: (row) => Number(row.details?.creditDue ?? 0),
@@ -136,7 +140,7 @@ export default function PaymentMethodAccordionGroup({
     <Box>
       <GenericAccordionGroup
         groups={groups}
-        currencySymbol={currencySymbol}
+        currencySymbol={displayCurrency}
         defaultOpen={defaultOpen}
         classify={classify}
         onToggle={onToggle}
@@ -170,14 +174,16 @@ export default function PaymentMethodAccordionGroup({
                   title="Average per Transaction"
                   style={{ marginRight: 8 }}
                 >
-                  Avg - ₹{group.avgPerTransaction}
+                  Avg - {displayCurrency}
+                  {group.avgPerTransaction}
                 </span>
                 <span
                   className="metric-box amount"
                   title="Total Amount"
                   style={{ marginRight: 8 }}
                 >
-                  ₹{Number(group.totalAmount || 0).toLocaleString()} (
+                  {displayCurrency}
+                  {Number(group.totalAmount || 0).toLocaleString()} (
                   {group.percentage}%)
                 </span>
                 <span className="pm-chevron" aria-hidden>

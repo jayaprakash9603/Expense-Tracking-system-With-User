@@ -15,6 +15,7 @@ import {
   UPLOAD_TO_CLOUDINARY_REQUEST,
   UPLOAD_TO_CLOUDINARY_SUCCESS,
 } from "./auth.actionType";
+import { CLEAR_USER_SETTINGS } from "../UserSettings/userSettings.actionType";
 import axios from "axios";
 
 // Redirect helper function
@@ -139,18 +140,24 @@ export const updateProfileAction = (reqData) => async (dispatch) => {
       throw new Error("Authorization token is missing");
     }
 
-    const { data } = await axios.put(`${API_BASE_URL}/api/user`, reqData, {
+    const { data } = await api.put(`/api/user`, reqData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
-    dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: data });
+    // Extract user object from response (backend returns {message, user})
+    const updatedUser = data.user || data;
+    dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: updatedUser });
+
+    return { success: true, user: updatedUser };
   } catch (error) {
+    const errorMessage = error.response?.data?.error || error.message;
     dispatch({
       type: UPDATE_PROFILE_FAILURE,
-      payload: error.response?.data || error.message,
+      payload: errorMessage,
     });
+    return { success: false, message: errorMessage };
   }
 };
 
@@ -159,5 +166,6 @@ export const logoutAction = () => (dispatch) => {
   localStorage.removeItem("jwt");
 
   dispatch({ type: "LOGOUT" });
+  dispatch({ type: CLEAR_USER_SETTINGS }); // Clear user settings on logout
   updateAuthHeader();
 };

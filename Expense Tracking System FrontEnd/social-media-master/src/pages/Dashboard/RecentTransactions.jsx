@@ -1,6 +1,7 @@
 import React from "react";
 import ListSkeleton from "../../components/ListSkeleton";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 // Reusable Recent Transactions list
 // Props:
@@ -17,6 +18,8 @@ const RecentTransactions = ({
   skeletonCount = 5,
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   return (
     <div
@@ -98,7 +101,8 @@ const RecentTransactions = ({
                       : "#10b981",
                 }}
               >
-                {transaction.expense?.type === "loss" ? "-" : "+"}₹
+                {transaction.expense?.type === "loss" ? "-" : "+"}
+                {currencySymbol}
                 {Number(
                   Math.abs(transaction.expense?.amount || 0)
                 ).toLocaleString(undefined, {

@@ -2,13 +2,15 @@
 // These functions are extracted from the original component to keep UI lean.
 
 // Build transaction size histogram bins
-export const buildTxSizeBins = (methods = []) => {
+// Note: Bin labels now use dynamic currency symbol passed as parameter.
+// UI components should pass user's currency preference when calling this function.
+export const buildTxSizeBins = (methods = [], currencySymbol = "₹") => {
   const bins = [
-    { label: "₹0-100", min: 0, max: 100 },
-    { label: "₹100-500", min: 100, max: 500 },
-    { label: "₹500-1000", min: 500, max: 1000 },
-    { label: "₹1000-5000", min: 1000, max: 5000 },
-    { label: "₹5000+", min: 5000, max: Infinity },
+    { label: `${currencySymbol}0-100`, min: 0, max: 100 },
+    { label: `${currencySymbol}100-500`, min: 100, max: 500 },
+    { label: `${currencySymbol}500-1000`, min: 500, max: 1000 },
+    { label: `${currencySymbol}1000-5000`, min: 1000, max: 5000 },
+    { label: `${currencySymbol}5000+`, min: 5000, max: Infinity },
   ];
   const result = bins.map((b) => ({ range: b.label }));
   methods.forEach((m) => {
@@ -88,7 +90,12 @@ export const extractCategoriesFromExpenses = (methods = [], flow = "all") => {
 };
 
 // Assemble full report data from raw API response
-export const assemblePaymentReport = (raw, flowType = "all", colors = []) => {
+export const assemblePaymentReport = (
+  raw,
+  flowType = "all",
+  colors = [],
+  currencySymbol = "₹"
+) => {
   const summary = raw?.summary ?? { totalAmount: 0, paymentMethodTotals: {} };
   const totalAmount = Number(summary.totalAmount || 0);
 
@@ -117,7 +124,7 @@ export const assemblePaymentReport = (raw, flowType = "all", colors = []) => {
   });
   methods.sort((a, b) => b.totalAmount - a.totalAmount);
 
-  const txSizeData = buildTxSizeBins(methods);
+  const txSizeData = buildTxSizeBins(methods, currencySymbol);
   const categoryBreakdown = buildCategoryBreakdown(methods, flowType);
   const categories = extractCategoriesFromExpenses(methods, flowType);
 

@@ -10,6 +10,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Target } from "lucide-react";
+import useUserSettings from "../../hooks/useUserSettings";
+import { useTheme } from "../../hooks/useTheme";
 
 // Transaction Size Distribution Chart
 // Data shape: [{ range: '₹0-100', MethodA: count, MethodB: count, ... }]
@@ -28,6 +30,8 @@ const COLORS_FALLBACK = [
 ];
 
 const TransactionSizeChart = ({ data = [], methodsColors = [] }) => {
+  const { colors, mode } = useTheme();
+
   const keys = useMemo(() => {
     const first = data?.[0] || {};
     return Object.keys(first).filter((k) => k !== "range");
@@ -39,12 +43,23 @@ const TransactionSizeChart = ({ data = [], methodsColors = [] }) => {
   }, [methodsColors]);
 
   return (
-    <div className="chart-container">
+    <div
+      className="chart-container"
+      style={{
+        background: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+        borderRadius: "12px",
+        padding: "20px",
+      }}
+    >
       <div className="chart-header">
-        <h3>
+        <h3 style={{ color: colors.primary_text }}>
           <Target size={20} /> Transaction Size Distribution
         </h3>
-        <div className="chart-subtitle">
+        <div
+          className="chart-subtitle"
+          style={{ color: mode === "dark" ? "#9ca3af" : "#6b7280" }}
+        >
           Payment method usage by transaction amount ranges
         </div>
       </div>
@@ -53,15 +68,22 @@ const TransactionSizeChart = ({ data = [], methodsColors = [] }) => {
           data={data}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-          <XAxis dataKey="range" stroke="#888" fontSize={12} />
-          <YAxis stroke="#888" fontSize={12} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={mode === "dark" ? "#2a2a2a" : "#e5e7eb"}
+          />
+          <XAxis
+            dataKey="range"
+            stroke={mode === "dark" ? "#888" : "#6b7280"}
+            fontSize={12}
+          />
+          <YAxis stroke={mode === "dark" ? "#888" : "#6b7280"} fontSize={12} />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#1a1a1a",
-              border: "1px solid #14b8a6",
+              backgroundColor: colors.secondary_bg,
+              border: `1px solid ${colors.primary_accent}`,
               borderRadius: "8px",
-              color: "#fff",
+              color: colors.primary_text,
             }}
           />
           <Legend />

@@ -27,6 +27,7 @@ import createAppTheme from "./theme";
 import ToastNotification from "./ToastNotification";
 import Modal from "./Modal";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
+import { useTheme } from "../../hooks/useTheme";
 
 const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
   const dispatch = useDispatch();
@@ -34,7 +35,10 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
     (state) => state.expenses || {}
   );
 
-  // Get theme mode from Redux
+  // Get theme colors from useTheme hook
+  const { colors } = useTheme();
+
+  // Get theme mode from Redux for MUI ThemeProvider
   const themeMode = useSelector((state) => state.theme?.mode || "dark");
   const theme = React.useMemo(() => createAppTheme(themeMode), [themeMode]);
 
@@ -337,16 +341,16 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
         sx={{
           fontSize: isSmallScreen ? "0.75rem" : "0.875rem",
           "& .MuiInputBase-root": {
-            backgroundColor: "#1b1b1b",
-            color: "#ffffff",
+            backgroundColor: colors.primary_bg,
+            color: colors.primary_text,
             borderRadius: "8px",
           },
           "& .MuiInputBase-input::placeholder": {
-            color: "#666666",
+            color: colors.secondary_text,
           },
         }}
       />
-      <IconButton sx={{ color: "#00dac6" }}>
+      <IconButton sx={{ color: colors.primary_accent }}>
         <FilterListIcon fontSize={isSmallScreen ? "small" : "medium"} />
       </IconButton>
     </GridToolbarContainer>

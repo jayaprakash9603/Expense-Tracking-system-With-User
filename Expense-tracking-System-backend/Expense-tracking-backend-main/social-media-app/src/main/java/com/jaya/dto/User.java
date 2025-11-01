@@ -2,6 +2,9 @@ package com.jaya.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,12 +13,14 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class User {
 
+    @Id
     private Integer id;
 
     @JsonProperty("full_name")
@@ -24,7 +29,7 @@ public class User {
     private String email;
 
     // Password should not be included in DTOs for security
-     private String password;
+    private String password;
 
     @JsonProperty("phone_number")
     private String phoneNumber;
@@ -42,6 +47,7 @@ public class User {
 
     private String gender;
     private String image; // Added for profile image
+    private String coverImage; // Added for cover background image
 
     private Set<String> roles = new HashSet<>();
 
@@ -66,7 +72,8 @@ public class User {
     }
 
     public boolean hasRole(String roleName) {
-        if (roleName == null || roles == null) return false;
+        if (roleName == null || roles == null)
+            return false;
         final String normalized;
         String temp = roleName.toUpperCase().trim();
         if (!temp.startsWith("ROLE_")) {

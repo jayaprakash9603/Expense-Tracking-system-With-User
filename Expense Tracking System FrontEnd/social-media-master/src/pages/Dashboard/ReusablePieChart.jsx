@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 import {
   ResponsiveContainer,
   PieChart,
@@ -11,6 +12,7 @@ import {
   Label,
 } from "recharts";
 import PieChartTooltip from "../../components/charts/PieChartTooltip";
+import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 
 // Generic reusable Pie/Donut chart component
 // Props:
@@ -29,7 +31,7 @@ import PieChartTooltip from "../../components/charts/PieChartTooltip";
 //  innerRadius, outerRadius: override radii
 //  renderFooterTotal: bool - show Total footer
 //  footerPrefix: string - prefix for total (e.g. 'Total:')
-//  valuePrefix: currency symbol default '₹'
+//  valuePrefix: currency symbol default (uses user settings)
 //  skeleton: optional React node (caller passes while loading)
 
 const DEFAULT_COLORS = [
@@ -69,10 +71,12 @@ const ReusablePieChart = ({
   outerRadius,
   renderFooterTotal = true,
   footerPrefix = "Total:",
-  valuePrefix = "₹",
+  valuePrefix,
   skeleton = null,
 }) => {
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, mode: themeMode } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = valuePrefix || settings.getCurrency().symbol;
   const [activeIndex, setActiveIndex] = useState(null);
   const [legendTooltip, setLegendTooltip] = useState(null);
   const chartRef = useRef(null);
@@ -235,17 +239,22 @@ const ReusablePieChart = ({
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+
+    // Force the correct color based on theme
+    const textColor = themeMode === "light" ? "#1a1a1a" : "#ffffff";
+
     return (
       <text
         x={x}
         y={y}
-        fill={themeColors.primary_text}
+        fill={textColor}
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
         style={{
           fontSize: isMobile ? "10px" : "12px",
           fontWeight: activeIndex === index ? 700 : 600,
-          textShadow: "0 2px 4px rgba(0,0,0,0.8)",
+          textShadow:
+            themeMode === "dark" ? "0 1px 2px rgba(0,0,0,0.5)" : "none", // Remove shadow entirely for light theme
         }}
       >
         {`${(percent * 100).toFixed(2)}%`}
@@ -282,46 +291,14 @@ const ReusablePieChart = ({
               </select>
             )}
             {onFlowTypeChange && (
-              <div className="type-toggle">
-                <button
-                  type="button"
-                  className={`toggle-btn loss ${
-                    flowType === "loss" ? "active" : ""
-                  }`}
-                  onClick={() => onFlowTypeChange("loss")}
-                  aria-pressed={flowType === "loss"}
-                  style={{
-                    backgroundColor:
-                      flowType === "loss" ? "#ef4444" : themeColors.button_bg,
-                    color:
-                      flowType === "loss" ? "white" : themeColors.button_text,
-                    border: `1px solid ${
-                      flowType === "loss" ? "#ef4444" : themeColors.border_color
-                    }`,
-                  }}
-                >
-                  Loss
-                </button>
-                <button
-                  type="button"
-                  className={`toggle-btn gain ${
-                    flowType === "gain" ? "active" : ""
-                  }`}
-                  onClick={() => onFlowTypeChange("gain")}
-                  aria-pressed={flowType === "gain"}
-                  style={{
-                    backgroundColor:
-                      flowType === "gain" ? "#10b981" : themeColors.button_bg,
-                    color:
-                      flowType === "gain" ? "white" : themeColors.button_text,
-                    border: `1px solid ${
-                      flowType === "gain" ? "#10b981" : themeColors.border_color
-                    }`,
-                  }}
-                >
-                  Gain
-                </button>
-              </div>
+              <ChartTypeToggle
+                selectedType={flowType}
+                onToggle={onFlowTypeChange}
+                options={[
+                  { value: "loss", label: "Loss", color: "#ef4444" },
+                  { value: "gain", label: "Gain", color: "#10b981" },
+                ]}
+              />
             )}
           </div>
         )}
@@ -410,7 +387,7 @@ const ReusablePieChart = ({
           className="total-amount total-amount-bottom"
           style={{ color: themeColors.primary_text }}
         >
-          {footerPrefix} {valuePrefix}
+          {footerPrefix} {currencySymbol}
           {formatNumber0(totalAmount)}
         </div>
       )}

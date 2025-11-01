@@ -1,4 +1,6 @@
 import React from "react";
+import useUserSettings from "../../hooks/useUserSettings";
+import { useTheme } from "../../hooks/useTheme";
 
 /**
  * SharedOverviewCards
@@ -8,8 +10,11 @@ import React from "react";
 const SharedOverviewCards = ({
   data = [],
   mode = "payment",
-  currencySymbol = "₹",
+  currencySymbol,
 }) => {
+  const settings = useUserSettings();
+  const { colors, mode: themeMode } = useTheme();
+  const displayCurrency = currencySymbol || settings.getCurrency().symbol;
   const safe = Array.isArray(data) ? data : [];
   const isPayment = mode === "payment";
   const isCategory = mode === "category";
@@ -70,28 +75,124 @@ const SharedOverviewCards = ({
     return (amt / totalAmount) * 100;
   })().toFixed(2);
 
+  // Theme-aware styles
+  const cardStyle = {
+    background:
+      themeMode === "dark"
+        ? "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)"
+        : "linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)",
+    border: `1px solid ${colors.border_color}`,
+    borderRadius: "12px",
+    padding: "24px",
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+    transition: "transform 0.2s, box-shadow 0.2s",
+    minHeight: "120px",
+  };
+
+  const cardIconStyle = {
+    fontSize: "32px",
+    width: "60px",
+    height: "60px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background:
+      themeMode === "dark"
+        ? "rgba(20, 184, 166, 0.1)"
+        : "rgba(20, 184, 166, 0.15)",
+    borderRadius: "12px",
+  };
+
+  const cardTitleStyle = {
+    margin: "0 0 8px 0",
+    fontSize: "14px",
+    color: themeMode === "dark" ? "#888" : "#666",
+    fontWeight: 500,
+  };
+
+  const cardValueStyle = {
+    fontSize: "24px",
+    fontWeight: 700,
+    color: colors.primary_text,
+    marginBottom: "4px",
+  };
+
+  const cardChangeStyle = {
+    fontSize: "12px",
+    fontWeight: 500,
+  };
+
+  const borderColors = {
+    primary: "#14b8a6",
+    secondary: "#06d6a0",
+    tertiary: "#118ab2",
+    quaternary: "#ffd166",
+  };
+
+  const getCardStyleWithBorder = (borderColor) => ({
+    ...cardStyle,
+    borderLeft: `4px solid ${borderColor}`,
+  });
+
+  const hoverEffect = (e) => {
+    e.currentTarget.style.transform = "translateY(-2px)";
+    e.currentTarget.style.boxShadow = "0 8px 25px rgba(20, 184, 166, 0.15)";
+  };
+
+  const removeHoverEffect = (e) => {
+    e.currentTarget.style.transform = "translateY(0)";
+    e.currentTarget.style.boxShadow = "none";
+  };
+
   return (
-    <div className={`shared-overview-cards ${mode}-overview-cards`}>
+    <div
+      className={`shared-overview-cards ${mode}-overview-cards`}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+        gap: "20px",
+        marginBottom: "32px",
+      }}
+    >
       {/* Total Spending */}
-      <div className="overview-card primary" style={{ minHeight: "120px" }}>
-        <div className="card-icon">💰</div>
+      <div
+        className="overview-card primary"
+        style={getCardStyleWithBorder(borderColors.primary)}
+        onMouseEnter={hoverEffect}
+        onMouseLeave={removeHoverEffect}
+      >
+        <div className="card-icon" style={cardIconStyle}>
+          💰
+        </div>
         <div className="card-content">
-          <h3>Total Spending</h3>
-          <div className="card-value">
-            {currencySymbol}
+          <h3 style={cardTitleStyle}>Total Spending</h3>
+          <div className="card-value" style={cardValueStyle}>
+            {displayCurrency}
             {Number(totalAmount).toLocaleString()}
           </div>
-          <div className="card-change positive">
+          <div
+            className="card-change positive"
+            style={{ ...cardChangeStyle, color: "#10b981" }}
+          >
             +{isPayment ? "15.2" : isCategory ? "12.5" : "10.0"}% vs last period
           </div>
         </div>
       </div>
 
       {/* Top Item / Top Expense Name */}
-      <div className="overview-card secondary" style={{ minHeight: "120px" }}>
-        <div className="card-icon">🏆</div>
+      <div
+        className="overview-card secondary"
+        style={getCardStyleWithBorder(borderColors.secondary)}
+        onMouseEnter={hoverEffect}
+        onMouseLeave={removeHoverEffect}
+      >
+        <div className="card-icon" style={cardIconStyle}>
+          🏆
+        </div>
         <div className="card-content">
-          <h3>
+          <h3 style={cardTitleStyle}>
             {isExpenses
               ? "Top Expense Name"
               : isPayment
@@ -102,6 +203,7 @@ const SharedOverviewCards = ({
             className="card-value"
             title={isExpenses ? topExpenseName : topItem?.[nameKey]}
             style={{
+              ...cardValueStyle,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -111,8 +213,14 @@ const SharedOverviewCards = ({
           >
             {isExpenses ? topExpenseName : topItem?.[nameKey]}
           </div>
-          <div className="card-change">
-            {currencySymbol}
+          <div
+            className="card-change"
+            style={{
+              ...cardChangeStyle,
+              color: themeMode === "dark" ? "#888" : "#666",
+            }}
+          >
+            {displayCurrency}
             {(isExpenses
               ? Number(topExpenseAmount || 0)
               : Number(topItem?.[amountKey] || 0)
@@ -123,27 +231,49 @@ const SharedOverviewCards = ({
       </div>
 
       {/* Avg Transaction */}
-      <div className="overview-card tertiary" style={{ minHeight: "120px" }}>
-        <div className="card-icon">{isPayment || isExpenses ? "📊" : "📈"}</div>
+      <div
+        className="overview-card tertiary"
+        style={getCardStyleWithBorder(borderColors.tertiary)}
+        onMouseEnter={hoverEffect}
+        onMouseLeave={removeHoverEffect}
+      >
+        <div className="card-icon" style={cardIconStyle}>
+          {isPayment || isExpenses ? "📊" : "📈"}
+        </div>
         <div className="card-content">
-          <h3>Avg Transaction</h3>
-          <div className="card-value">
-            {currencySymbol}
+          <h3 style={cardTitleStyle}>Avg Transaction</h3>
+          <div className="card-value" style={cardValueStyle}>
+            {displayCurrency}
             {Math.round(avgTransactionValue)}
           </div>
-          <div className="card-change negative">
+          <div
+            className="card-change negative"
+            style={{ ...cardChangeStyle, color: "#ef4444" }}
+          >
             -{isPayment ? "3.1" : isCategory ? "5.2" : "4.0"}% vs last period
           </div>
         </div>
       </div>
 
       {/* Total Transactions */}
-      <div className="overview-card quaternary" style={{ minHeight: "120px" }}>
-        <div className="card-icon">🔢</div>
+      <div
+        className="overview-card quaternary"
+        style={getCardStyleWithBorder(borderColors.quaternary)}
+        onMouseEnter={hoverEffect}
+        onMouseLeave={removeHoverEffect}
+      >
+        <div className="card-icon" style={cardIconStyle}>
+          🔢
+        </div>
         <div className="card-content">
-          <h3>Total Transactions</h3>
-          <div className="card-value">{totalTransactions}</div>
-          <div className="card-change positive">
+          <h3 style={cardTitleStyle}>Total Transactions</h3>
+          <div className="card-value" style={cardValueStyle}>
+            {totalTransactions}
+          </div>
+          <div
+            className="card-change positive"
+            style={{ ...cardChangeStyle, color: "#10b981" }}
+          >
             +{isPayment ? "12.8" : isCategory ? "8.7" : "9.3"}% vs last period
           </div>
         </div>

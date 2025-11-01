@@ -1,477 +1,342 @@
 import React from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, Typography, Switch, Button } from "@mui/material";
-import { toggleTheme } from "../../Redux/Theme/theme.actions";
+import { Box, useMediaQuery } from "@mui/material";
+import { useTheme } from "../../hooks/useTheme";
+import ToastNotification from "./ToastNotification";
+
+// Import modular components
+import SettingsHeader from "./Settings/components/SettingsHeader";
+import SettingSection from "./Settings/components/SettingSection";
+import SettingItem from "./Settings/components/SettingItem";
+import AppInfoSection from "./Settings/components/AppInfoSection";
+import DeleteAccountDialog from "./Settings/components/DeleteAccountDialog";
+import ChangePasswordDialog from "./Settings/components/ChangePasswordDialog";
+
+// Import custom hooks
+import { useSnackbar } from "./Settings/hooks/useSnackbar";
+import { useDialogState } from "./Settings/hooks/useDialogState";
+import { useSettingsState } from "./Settings/hooks/useSettingsState";
+import { useSettingsActions } from "./Settings/hooks/useSettingsActions";
+
+// Import configuration and utilities
+import {
+  SETTINGS_SECTIONS,
+  PROFILE_VISIBILITY_MESSAGES,
+} from "./Settings/constants/settingsConfig";
+import {
+  getThemeIcon,
+  getThemeDescription,
+  getProfileVisibilityLabel,
+  getToggleMessage,
+} from "./Settings/utils/settingsHelpers";
 
 /**
- * Settings Page Component
- * Provides application settings and user preferences
+ * Settings Page Component - Refactored for Modularity
+ * Follows SOLID Principles:
+ * - Single Responsibility: Each component handles one concern
+ * - Open/Closed: Extensible through configuration
+ * - Liskov Substitution: Components are interchangeable
+ * - Interface Segregation: Clean, minimal interfaces
+ * - Dependency Inversion: Depends on abstractions (hooks)
+ *
+ * Follows DRY Principle:
+ * - Configuration-driven rendering
+ * - Reusable components and hooks
+ * - Centralized constants
  */
 const Settings = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { mode } = useSelector((state) => state.theme || {});
-  const { user } = useSelector((state) => state.auth || {});
-
+  const { colors, mode } = useTheme();
+  const { settings: userSettings } = useSelector(
+    (state) => state.userSettings || {}
+  );
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const isDark = mode === "dark";
 
-  const handleThemeToggle = () => {
-    dispatch(toggleTheme());
+  // Custom hooks for state management
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
+  const {
+    deleteDialogOpen,
+    passwordDialogOpen,
+    closeDeleteDialog,
+    closePasswordDialog,
+    setDeleteDialogOpen,
+    setPasswordDialogOpen,
+  } = useDialogState();
+  const { settingsState, updateSetting } = useSettingsState(
+    userSettings,
+    showSnackbar
+  );
+  const { handleThemeToggle, executeAction } = useSettingsActions(
+    navigate,
+    showSnackbar,
+    setDeleteDialogOpen,
+    setPasswordDialogOpen,
+    isDark
+  );
+
+  // Render switch-type setting
+  const renderSwitchSetting = (item) => {
+    const stateKey = item.stateKey;
+    const settingsKey = item.settingsKey;
+
+    return (
+      <SettingItem
+        key={item.id}
+        icon={item.icon}
+        title={item.title}
+        description={item.description}
+        isSwitch
+        switchChecked={settingsState[stateKey]}
+        onSwitchChange={(e) => {
+          const checked = e.target.checked;
+          updateSetting(stateKey, checked);
+          updateSetting(
+            settingsKey,
+            checked,
+            getToggleMessage(item.title, checked)
+          );
+        }}
+        colors={colors}
+      />
+    );
+  };
+
+  // Render select-type setting
+  const renderSelectSetting = (item) => {
+    const stateKey = item.stateKey;
+    const settingsKey = item.settingsKey;
+
+    return (
+      <SettingItem
+        key={item.id}
+        icon={item.icon}
+        title={item.title}
+        description={item.description}
+        isSelect
+        selectValue={settingsState[stateKey]}
+        selectOptions={item.options}
+        onSelectChange={(e) => {
+          const value = e.target.value;
+          updateSetting(stateKey, value);
+          const message = item.customMessage
+            ? PROFILE_VISIBILITY_MESSAGES[value]
+            : `${item.title} updated`;
+          updateSetting(settingsKey, value, message);
+        }}
+        colors={colors}
+      />
+    );
+  };
+
+  // Render button-type setting
+  const renderButtonSetting = (item) => (
+    <SettingItem
+      key={item.id}
+      icon={item.icon}
+      title={item.title}
+      description={item.description}
+      isButton
+      buttonText={item.buttonText}
+      onButtonClick={() => executeAction(item.action)}
+      isDanger={item.isDanger}
+      colors={colors}
+    />
+  );
+
+  // Render navigation-type setting
+  const renderNavigationSetting = (item) => (
+    <SettingItem
+      key={item.id}
+      icon={item.icon}
+      title={item.title}
+      description={item.description}
+      isNavigation
+      onNavigationClick={() => executeAction(item.action)}
+      colors={colors}
+    />
+  );
+
+  // Render slider-type setting
+  const renderSliderSetting = (item) => {
+    const stateKey = item.stateKey;
+    const settingsKey = item.settingsKey;
+
+    return (
+      <SettingItem
+        key={item.id}
+        icon={item.icon}
+        title={item.title}
+        description={item.description}
+        isSlider
+        sliderValue={settingsState[stateKey]}
+        sliderMin={item.min}
+        sliderMax={item.max}
+        sliderStep={item.step}
+        sliderMarks={item.marks}
+        onSliderChange={(e, value) => {
+          updateSetting(stateKey, value);
+          updateSetting(
+            settingsKey,
+            value,
+            `${item.title} updated to ${value}`
+          );
+        }}
+        colors={colors}
+      />
+    );
+  };
+
+  // Render setting item based on type
+  const renderSettingItem = (item) => {
+    // Special handling for theme toggle
+    if (item.id === "theme") {
+      return (
+        <SettingItem
+          key={item.id}
+          icon={getThemeIcon(isDark)}
+          title={item.title}
+          description={getThemeDescription(isDark)}
+          isSwitch
+          switchChecked={isDark}
+          onSwitchChange={handleThemeToggle}
+          colors={colors}
+        />
+      );
+    }
+
+    switch (item.type) {
+      case "switch":
+        return renderSwitchSetting(item);
+      case "select":
+        return renderSelectSetting(item);
+      case "button":
+        return renderButtonSetting(item);
+      case "navigation":
+        return renderNavigationSetting(item);
+      case "slider":
+        return renderSliderSetting(item);
+      default:
+        return null;
+    }
+  };
+
+  // Render settings section
+  const renderSection = (section) => {
+    if (section.type === "info") {
+      return <AppInfoSection key={section.id} colors={colors} />;
+    }
+
+    return (
+      <SettingSection
+        key={section.id}
+        icon={section.icon}
+        title={section.title}
+        colors={colors}
+        showChip={section.showChip}
+        chipLabel={
+          section.showChip
+            ? getProfileVisibilityLabel(settingsState.profileVisibility)
+            : ""
+        }
+      >
+        {section.items.map((item) => renderSettingItem(item))}
+      </SettingSection>
+    );
   };
 
   return (
-    <div
-      className={`min-h-screen p-4 sm:p-6 lg:p-8 transition-colors ${
-        isDark ? "bg-[#0b0b0b] text-white" : "bg-gray-50 text-gray-900"
-      }`}
+    <Box
+      sx={{
+        backgroundColor: colors.primary_bg,
+        width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
+        height: "calc(100vh - 100px)",
+        borderRadius: isSmallScreen ? 0 : "8px",
+        border: isSmallScreen ? "none" : `1px solid ${colors.border_color}`,
+        mr: isSmallScreen ? 0 : "20px",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
     >
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <Button
-            onClick={() => navigate(-1)}
-            className={`mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}
-          >
-            ← Back
-          </Button>
-          <Typography
-            variant="h4"
-            sx={{
-              color: isDark ? "white" : "#1f2937",
-              fontWeight: "bold",
-              mb: 1,
-            }}
-          >
-            Settings
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-          >
-            Manage your application preferences and settings
-          </Typography>
-        </div>
+      {/* Header */}
+      <SettingsHeader
+        colors={colors}
+        isSmallScreen={isSmallScreen}
+        onBack={() => navigate(-1)}
+      />
 
-        {/* Appearance Settings */}
-        <Card
-          sx={{
-            backgroundColor: isDark ? "#1a1a1a" : "white",
-            border: isDark
-              ? "1px solid rgba(20, 184, 166, 0.3)"
-              : "1px solid #e5e7eb",
-            mb: 3,
-          }}
-        >
-          <CardContent>
-            <Typography
-              variant="h6"
-              sx={{
-                color: isDark ? "white" : "#1f2937",
-                mb: 3,
-                fontWeight: "600",
-              }}
-            >
-              Appearance
-            </Typography>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <Typography
-                    variant="body1"
-                    sx={{ color: isDark ? "white" : "#1f2937" }}
-                  >
-                    Dark Mode
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: isDark ? "#9ca3af" : "#6b7280", mt: 0.5 }}
-                  >
-                    Toggle between light and dark theme
-                  </Typography>
-                </div>
-                <Switch
-                  checked={isDark}
-                  onChange={handleThemeToggle}
-                  sx={{
-                    "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: "#14b8a6",
-                    },
-                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "#14b8a6",
-                    },
-                  }}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Content - Scrollable */}
+      <Box
+        sx={{
+          flex: 1,
+          overflow: "auto",
+          p: isSmallScreen ? 2 : 3,
+          backgroundColor: colors.secondary_bg,
+        }}
+        className="custom-scrollbar"
+      >
+        <Box sx={{ maxWidth: 900, mx: "auto" }}>
+          {/* Render all sections dynamically */}
+          {Object.values(SETTINGS_SECTIONS).map((section) =>
+            renderSection(section)
+          )}
+        </Box>
+      </Box>
 
-        {/* Notification Settings */}
-        <Card
-          sx={{
-            backgroundColor: isDark ? "#1a1a1a" : "white",
-            border: isDark
-              ? "1px solid rgba(20, 184, 166, 0.3)"
-              : "1px solid #e5e7eb",
-            mb: 3,
-          }}
-        >
-          <CardContent>
-            <Typography
-              variant="h6"
-              sx={{
-                color: isDark ? "white" : "#1f2937",
-                mb: 3,
-                fontWeight: "600",
-              }}
-            >
-              Notifications
-            </Typography>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <Typography
-                    variant="body1"
-                    sx={{ color: isDark ? "white" : "#1f2937" }}
-                  >
-                    Email Notifications
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: isDark ? "#9ca3af" : "#6b7280", mt: 0.5 }}
-                  >
-                    Receive email updates about your expenses
-                  </Typography>
-                </div>
-                <Switch
-                  defaultChecked
-                  sx={{
-                    "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: "#14b8a6",
-                    },
-                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "#14b8a6",
-                    },
-                  }}
-                />
-              </div>
+      {/* Delete Account Dialog */}
+      <DeleteAccountDialog
+        open={deleteDialogOpen}
+        onClose={closeDeleteDialog}
+        onConfirm={() => {
+          closeDeleteDialog();
+          showSnackbar("Account deletion cancelled", "info");
+        }}
+        colors={colors}
+        isSmallScreen={isSmallScreen}
+      />
 
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <Typography
-                    variant="body1"
-                    sx={{ color: isDark ? "white" : "#1f2937" }}
-                  >
-                    Budget Alerts
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: isDark ? "#9ca3af" : "#6b7280", mt: 0.5 }}
-                  >
-                    Get notified when approaching budget limits
-                  </Typography>
-                </div>
-                <Switch
-                  defaultChecked
-                  sx={{
-                    "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: "#14b8a6",
-                    },
-                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "#14b8a6",
-                    },
-                  }}
-                />
-              </div>
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog
+        open={passwordDialogOpen}
+        onClose={closePasswordDialog}
+        onConfirm={(passwordData) => {
+          closePasswordDialog();
+          showSnackbar("Password changed successfully", "success");
+        }}
+        colors={colors}
+        isSmallScreen={isSmallScreen}
+      />
 
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <Typography
-                    variant="body1"
-                    sx={{ color: isDark ? "white" : "#1f2937" }}
-                  >
-                    Weekly Reports
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: isDark ? "#9ca3af" : "#6b7280", mt: 0.5 }}
-                  >
-                    Receive weekly expense summaries
-                  </Typography>
-                </div>
-                <Switch
-                  sx={{
-                    "& .MuiSwitch-switchBase.Mui-checked": {
-                      color: "#14b8a6",
-                    },
-                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                      backgroundColor: "#14b8a6",
-                    },
-                  }}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Toast Notification */}
+      <ToastNotification
+        open={snackbar.open}
+        message={snackbar.message}
+        onClose={closeSnackbar}
+        severity={snackbar.severity}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      />
 
-        {/* Privacy Settings */}
-        <Card
-          sx={{
-            backgroundColor: isDark ? "#1a1a1a" : "white",
-            border: isDark
-              ? "1px solid rgba(20, 184, 166, 0.3)"
-              : "1px solid #e5e7eb",
-            mb: 3,
-          }}
-        >
-          <CardContent>
-            <Typography
-              variant="h6"
-              sx={{
-                color: isDark ? "white" : "#1f2937",
-                mb: 3,
-                fontWeight: "600",
-              }}
-            >
-              Privacy
-            </Typography>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <Typography
-                    variant="body1"
-                    sx={{ color: isDark ? "white" : "#1f2937" }}
-                  >
-                    Profile Visibility
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: isDark ? "#9ca3af" : "#6b7280", mt: 0.5 }}
-                  >
-                    Control who can see your profile information
-                  </Typography>
-                </div>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    borderColor: "#14b8a6",
-                    color: "#14b8a6",
-                    "&:hover": {
-                      borderColor: "#0d9488",
-                      backgroundColor: "rgba(20, 184, 166, 0.1)",
-                    },
-                  }}
-                >
-                  Public
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between py-2">
-                <div>
-                  <Typography
-                    variant="body1"
-                    sx={{ color: isDark ? "white" : "#1f2937" }}
-                  >
-                    Two-Factor Authentication
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: isDark ? "#9ca3af" : "#6b7280", mt: 0.5 }}
-                  >
-                    Add an extra layer of security
-                  </Typography>
-                </div>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    borderColor: "#14b8a6",
-                    color: "#14b8a6",
-                    "&:hover": {
-                      borderColor: "#0d9488",
-                      backgroundColor: "rgba(20, 184, 166, 0.1)",
-                    },
-                  }}
-                >
-                  Enable
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Account Settings */}
-        <Card
-          sx={{
-            backgroundColor: isDark ? "#1a1a1a" : "white",
-            border: isDark
-              ? "1px solid rgba(20, 184, 166, 0.3)"
-              : "1px solid #e5e7eb",
-            mb: 3,
-          }}
-        >
-          <CardContent>
-            <Typography
-              variant="h6"
-              sx={{
-                color: isDark ? "white" : "#1f2937",
-                mb: 3,
-                fontWeight: "600",
-              }}
-            >
-              Account
-            </Typography>
-            <div className="space-y-3">
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => navigate("/profile")}
-                sx={{
-                  borderColor: isDark ? "#374151" : "#d1d5db",
-                  color: isDark ? "white" : "#1f2937",
-                  justifyContent: "flex-start",
-                  textTransform: "none",
-                  py: 1.5,
-                  "&:hover": {
-                    borderColor: "#14b8a6",
-                    backgroundColor: "rgba(20, 184, 166, 0.1)",
-                  },
-                }}
-              >
-                Edit Profile
-              </Button>
-
-              <Button
-                fullWidth
-                variant="outlined"
-                sx={{
-                  borderColor: isDark ? "#374151" : "#d1d5db",
-                  color: isDark ? "white" : "#1f2937",
-                  justifyContent: "flex-start",
-                  textTransform: "none",
-                  py: 1.5,
-                  "&:hover": {
-                    borderColor: "#14b8a6",
-                    backgroundColor: "rgba(20, 184, 166, 0.1)",
-                  },
-                }}
-              >
-                Change Password
-              </Button>
-
-              <Button
-                fullWidth
-                variant="outlined"
-                sx={{
-                  borderColor: "#ef4444",
-                  color: "#ef4444",
-                  justifyContent: "flex-start",
-                  textTransform: "none",
-                  py: 1.5,
-                  "&:hover": {
-                    borderColor: "#dc2626",
-                    backgroundColor: "rgba(239, 68, 68, 0.1)",
-                  },
-                }}
-              >
-                Delete Account
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* App Information */}
-        <Card
-          sx={{
-            backgroundColor: isDark ? "#1a1a1a" : "white",
-            border: isDark
-              ? "1px solid rgba(20, 184, 166, 0.3)"
-              : "1px solid #e5e7eb",
-          }}
-        >
-          <CardContent>
-            <Typography
-              variant="h6"
-              sx={{
-                color: isDark ? "white" : "#1f2937",
-                mb: 2,
-                fontWeight: "600",
-              }}
-            >
-              About
-            </Typography>
-            <div className="space-y-2">
-              <div className="flex justify-between py-1">
-                <Typography
-                  variant="body2"
-                  sx={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-                >
-                  Version
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: isDark ? "white" : "#1f2937" }}
-                >
-                  1.0.0
-                </Typography>
-              </div>
-              <div className="flex justify-between py-1">
-                <Typography
-                  variant="body2"
-                  sx={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-                >
-                  Last Updated
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: isDark ? "white" : "#1f2937" }}
-                >
-                  January 2024
-                </Typography>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-gray-700">
-              <Button
-                fullWidth
-                variant="text"
-                sx={{
-                  color: "#14b8a6",
-                  textTransform: "none",
-                  justifyContent: "flex-start",
-                }}
-              >
-                Terms of Service
-              </Button>
-              <Button
-                fullWidth
-                variant="text"
-                sx={{
-                  color: "#14b8a6",
-                  textTransform: "none",
-                  justifyContent: "flex-start",
-                }}
-              >
-                Privacy Policy
-              </Button>
-              <Button
-                fullWidth
-                variant="text"
-                sx={{
-                  color: "#14b8a6",
-                  textTransform: "none",
-                  justifyContent: "flex-start",
-                }}
-              >
-                Contact Support
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      {/* Custom Scrollbar Styles */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: ${colors.secondary_bg};
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: ${colors.primary_accent};
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: ${colors.primary_accent};
+          opacity: 0.8;
+        }
+      `}</style>
+    </Box>
   );
 };
 

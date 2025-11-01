@@ -22,9 +22,12 @@ import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
 
 const NewExpense = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
 
   // Dynamic styles based on theme
   const fieldStyles = `px-3 py-2 rounded w-full text-base sm:max-w-[300px] max-w-[200px] border-0 focus:outline-none focus:ring-2 focus:ring-[#00dac6]`;
@@ -448,7 +451,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               },
             }}
             disableFuture
-            format="DD-MM-YYYY"
+            format={dateFormat}
           />
         </LocalizationProvider>
       </div>
@@ -838,7 +841,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   position="right"
                   variant="gradient"
                   showTooltip={true}
-                  dateFormat="DD MMM YYYY"
+                  dateFormat={dateFormat}
                   label="Previously Added"
                   labelPosition="top"
                   icon="calendar"

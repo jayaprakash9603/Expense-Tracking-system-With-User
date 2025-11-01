@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { useTheme } from "../../hooks/useTheme";
 
 // Category-wise Payment Breakdown Chart
 // Data shape: [{ category: 'Food', MethodA: amount, MethodB: amount, ... }]
@@ -27,6 +28,8 @@ const COLORS_FALLBACK = [
 ];
 
 const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
+  const { colors, mode } = useTheme();
+
   const methodKeys = useMemo(() => {
     const first = data?.[0] || {};
     return Object.keys(first).filter((k) => k !== "category");
@@ -38,10 +41,23 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
   }, [methodsColors]);
 
   return (
-    <div className="chart-container">
+    <div
+      className="chart-container"
+      style={{
+        background: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
+        borderRadius: "12px",
+        padding: "20px",
+      }}
+    >
       <div className="chart-header">
-        <h3>🏷️ Category-wise Payment Breakdown</h3>
-        <div className="chart-subtitle">
+        <h3 style={{ color: colors.primary_text }}>
+          🏷️ Category-wise Payment Breakdown
+        </h3>
+        <div
+          className="chart-subtitle"
+          style={{ color: mode === "dark" ? "#9ca3af" : "#6b7280" }}
+        >
           Payment method preferences by spending category
         </div>
       </div>
@@ -50,22 +66,25 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
           data={data}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={mode === "dark" ? "#2a2a2a" : "#e5e7eb"}
+          />
           <XAxis
             dataKey="category"
-            stroke="#888"
+            stroke={mode === "dark" ? "#888" : "#6b7280"}
             fontSize={12}
             angle={-45}
             textAnchor="end"
             height={80}
           />
-          <YAxis stroke="#888" fontSize={12} />
+          <YAxis stroke={mode === "dark" ? "#888" : "#6b7280"} fontSize={12} />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#1a1a1a",
-              border: "1px solid #14b8a6",
+              backgroundColor: colors.secondary_bg,
+              border: `1px solid ${colors.primary_accent}`,
               borderRadius: "8px",
-              color: "#fff",
+              color: colors.primary_text,
             }}
           />
           <Legend />

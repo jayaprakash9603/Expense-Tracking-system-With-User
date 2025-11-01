@@ -16,6 +16,7 @@ import {
   uploadCategoriesFile,
 } from "../../Redux/Expenses/expense.action";
 import { useDispatch, useSelector } from "react-redux";
+import { useTheme } from "../../hooks/useTheme";
 import Loader from "../../components/Loaders/Loader";
 import Modal from "../../pages/Landingpage/Modal"; // Updated import path for Modal component
 import { useParams } from "react-router";
@@ -27,6 +28,7 @@ const FileUploadModal = ({
   onUploadStart,
   onSuccess,
 }) => {
+  const { colors } = useTheme();
   const [files, setFiles] = useState([]);
   const [progress, setProgress] = useState({});
   const [loading, setLoading] = useState(false);
@@ -161,13 +163,25 @@ const FileUploadModal = ({
 
   return (
     isOpen && (
-      <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4 sm:p-2">
-        <div className="bg-[#1b1b1b] text-white rounded-lg w-full max-w-2xl shadow-xl relative p-6 sm:p-4">
+      <div
+        className="fixed inset-0 flex justify-center items-center z-50 p-4 sm:p-2"
+        style={{
+          backgroundColor: `${colors.primary_bg}99`,
+        }}
+      >
+        <div
+          className="rounded-lg w-full max-w-2xl shadow-xl relative p-6 sm:p-4"
+          style={{
+            backgroundColor: colors.primary_bg,
+            color: colors.primary_text,
+          }}
+        >
           {/* Close Button */}
           <div className="flex justify-end">
             <button
               onClick={handleClose}
-              className="text-gray-400 hover:text-white"
+              className="hover:opacity-80 transition-opacity"
+              style={{ color: colors.secondary_text }}
             >
               <FaTimes className="text-2xl" />
             </button>
@@ -177,13 +191,27 @@ const FileUploadModal = ({
           <label
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="block mt-4 p-6 m-[30px] border-2  border-[#14b8a6] rounded-lg bg-[#383838] text-center cursor-pointer  transition"
+            className="block mt-4 p-6 m-[30px] border-2 rounded-lg text-center cursor-pointer transition"
+            style={{
+              borderColor: colors.primary_accent,
+              backgroundColor: colors.tertiary_bg,
+            }}
           >
             <input type="file" className="hidden" onChange={handleFileChange} />
             <div>
-              <i className="fas fa-cloud-upload-alt text-4xl text-[#14b8a6] mb-3"></i>
-              <p className="text-lg font-medium mb-1">Drag & drop file here</p>
-              <p className="text-sm text-gray-400">or click to browse</p>
+              <i
+                className="fas fa-cloud-upload-alt text-4xl mb-3"
+                style={{ color: colors.primary_accent }}
+              ></i>
+              <p
+                className="text-lg font-medium mb-1"
+                style={{ color: colors.primary_text }}
+              >
+                Drag & drop file here
+              </p>
+              <p className="text-sm" style={{ color: colors.secondary_text }}>
+                or click to browse
+              </p>
             </div>
           </label>
 
@@ -193,14 +221,24 @@ const FileUploadModal = ({
               {files.map((file) => (
                 <div
                   key={file.name}
-                  className="flex items-center justify-between p-3 bg-[#29282b] border border-[#383838] rounded-md mb-2 mx-auto"
-                  style={{ maxWidth: "calc(100% - 60px)" }} // Adjusted width and centered the div
+                  className="flex items-center justify-between p-3 border rounded-md mb-2 mx-auto"
+                  style={{
+                    maxWidth: "calc(100% - 60px)",
+                    backgroundColor: colors.tertiary_bg,
+                    borderColor: colors.border_color,
+                  }}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-[#14b8a6] text-xl">
+                    <span
+                      className="text-xl"
+                      style={{ color: colors.primary_accent }}
+                    >
                       {getFileIcon(file)}
                     </span>
-                    <span className="truncate max-w-full sm:max-w-full">
+                    <span
+                      className="truncate max-w-full sm:max-w-full"
+                      style={{ color: colors.primary_text }}
+                    >
                       {file.name}
                     </span>
                   </div>
@@ -221,10 +259,19 @@ const FileUploadModal = ({
               onClick={handleUploadClick}
               variant="contained"
               disabled={loading}
-              style={{
-                backgroundColor: "#14b8a6",
-                color: "#1b1b1b",
+              sx={{
+                backgroundColor: colors.primary_accent,
+                color: colors.button_text,
                 fontWeight: "bold",
+                "&:hover": {
+                  backgroundColor: colors.primary_accent,
+                  opacity: 0.9,
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: colors.tertiary_bg,
+                  color: colors.secondary_text,
+                  opacity: 0.6,
+                },
               }}
             >
               Upload

@@ -2,6 +2,7 @@ import React from "react";
 import dayjs from "dayjs";
 import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
+import useUserSettings from "../hooks/useUserSettings";
 
 /**
  * PreviousExpenseIndicator Component
@@ -57,6 +58,8 @@ const PreviousExpenseIndicator = ({
   ariaLabel = "Previously added expense information",
 }) => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   // Don't render if no expense data
   if (!expense) return null;
@@ -66,7 +69,8 @@ const PreviousExpenseIndicator = ({
     showAmount: true,
     showPaymentMethod: true,
     showType: true,
-    amountFormatter: (amount) => `₹${amount?.toLocaleString() || 0}`,
+    amountFormatter: (amount) =>
+      `${currencySymbol}${amount?.toLocaleString() || 0}`,
     paymentMethodFormatter: null,
     typeFormatter: null,
   };

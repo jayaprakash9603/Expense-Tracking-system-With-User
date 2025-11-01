@@ -22,7 +22,7 @@ const ListSkeleton = ({ count = 3, variant = "user", dense = false }) => {
             display: "flex",
             alignItems: "center",
             gap: 2,
-            background: colors.tertiary_bg,
+            background: colors.primary_bg,
             borderRadius: 2,
             padding: isSharing ? 2.2 : 1.6,
             minHeight: dense ? 70 : isSharing ? 130 : 110,

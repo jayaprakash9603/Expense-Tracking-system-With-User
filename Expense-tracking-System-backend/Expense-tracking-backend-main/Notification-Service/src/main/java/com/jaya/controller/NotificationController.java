@@ -39,32 +39,50 @@ public class NotificationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        UserDto user = userService.getuserProfile(jwt);
-        Page<Notification> notifications = notificationRepository
-                .findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size));
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            Page<Notification> notifications = notificationRepository
+                    .findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size));
 
-        return ResponseEntity.ok(notifications.getContent());
+            return ResponseEntity.ok(notifications.getContent());
+        } catch (Exception e) {
+            System.err.println("Error fetching user profile: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(List.of());
+        }
     }
 
     @GetMapping("/unread")
     public ResponseEntity<List<Notification>> getUnreadNotifications(
             @RequestHeader("Authorization") String jwt) {
 
-        UserDto user = userService.getuserProfile(jwt);
-        List<Notification> notifications = notificationRepository
-                .findByUserIdAndIsReadFalseOrderByCreatedAtDesc(user.getId());
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            List<Notification> notifications = notificationRepository
+                    .findByUserIdAndIsReadFalseOrderByCreatedAtDesc(user.getId());
 
-        return ResponseEntity.ok(notifications);
+            return ResponseEntity.ok(notifications);
+        } catch (Exception e) {
+            System.err.println("Error fetching user profile: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(List.of());
+        }
     }
 
     @GetMapping("/count/unread")
     public ResponseEntity<Map<String, Long>> getUnreadCount(
             @RequestHeader("Authorization") String jwt) {
 
-        UserDto user = userService.getuserProfile(jwt);
-        Long count = notificationRepository.countUnreadNotifications(user.getId());
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            Long count = notificationRepository.countUnreadNotifications(user.getId());
 
-        return ResponseEntity.ok(Map.of("unreadCount", count));
+            return ResponseEntity.ok(Map.of("unreadCount", count));
+        } catch (Exception e) {
+            System.err.println("Error fetching user profile: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(Map.of("unreadCount", 0L));
+        }
     }
 
     @PutMapping("/{notificationId}/read")
@@ -175,6 +193,33 @@ public class NotificationController {
 
         notificationRepository.deleteByUserIdAndCreatedAtBefore(user.getId(), cutoffDate);
         return ResponseEntity.ok("Old notifications cleaned up successfully");
+    }
+
+    /**
+     * Delete all notifications for the user
+     */
+    @DeleteMapping("/all")
+    public ResponseEntity<String> deleteAllNotifications(@RequestHeader("Authorization") String jwt) {
+        UserDto user = userService.getuserProfile(jwt);
+        notificationService.deleteAllNotifications(user.getId());
+        return ResponseEntity.ok("All notifications deleted successfully");
+    }
+
+    /**
+     * Get notifications with filtering and pagination
+     */
+    @GetMapping("/filter")
+    public ResponseEntity<List<Notification>> getFilteredNotifications(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Boolean isRead,
+            @RequestParam(defaultValue = "20") Integer limit,
+            @RequestParam(defaultValue = "0") Integer offset) {
+
+        UserDto user = userService.getuserProfile(jwt);
+        List<Notification> notifications = notificationService.getUserNotifications(
+                user.getId(), isRead, limit, offset);
+
+        return ResponseEntity.ok(notifications);
     }
 
     private NotificationPreferences createDefaultPreferences(Integer userId) {

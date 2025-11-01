@@ -20,19 +20,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
-
 @Service
-public class UserServiceImplementation implements UserService{
+public class UserServiceImplementation implements UserService {
 
     @Autowired
     private UserRepository userRepository;
-
 
     @Autowired
     private RoleRepository roleRepository;
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
     @Override
     public User getUserProfile(String jwt) {
         String email = JwtProvider.getEmailFromJwt(jwt);
@@ -59,21 +58,31 @@ public class UserServiceImplementation implements UserService{
 
     @Override
     public User getUserByEmail(String email) {
-       return  userRepository.findByEmail(email);
+        return userRepository.findByEmail(email);
     }
 
     public User updateUserProfile(String jwt, UserUpdateRequest updateRequest) {
         User reqUser = getUserProfile(jwt);
 
-        // Validation: User can only update their own profile unless they're admin
-        if (!canUpdateProfile(reqUser, updateRequest.getEmail())) {
-            throw new RuntimeException("You can only update your own profile");
+        if (reqUser == null) {
+            throw new RuntimeException("User not found");
         }
 
-        // Find the user to update
-        User userToUpdate = userRepository.findByEmail(updateRequest.getEmail());
-        if (userToUpdate == null) {
-            throw new RuntimeException("User not found");
+        // If email is provided in the request, validate permission to update that user
+        // Otherwise, update the requesting user's own profile
+        User userToUpdate;
+        if (updateRequest.getEmail() != null && !updateRequest.getEmail().isEmpty()) {
+            // Validation: User can only update their own profile unless they're admin
+            if (!canUpdateProfile(reqUser, updateRequest.getEmail())) {
+                throw new RuntimeException("You can only update your own profile");
+            }
+            userToUpdate = userRepository.findByEmail(updateRequest.getEmail());
+            if (userToUpdate == null) {
+                throw new RuntimeException("User not found");
+            }
+        } else {
+            // No email provided, update requesting user's own profile
+            userToUpdate = reqUser;
         }
 
         // Update user fields
@@ -107,6 +116,21 @@ public class UserServiceImplementation implements UserService{
 
         // Update bio
         applyIfPresent(updateRequest.getBio(), v -> userToUpdate.setBio(trim(v)));
+
+        // Update profile image URL
+        applyIfPresent(updateRequest.getProfileImage(), v -> userToUpdate.setProfileImage(trim(v)));
+
+        // Update cover image URL
+        applyIfPresent(updateRequest.getCoverImage(), v -> userToUpdate.setCoverImage(trim(v)));
+
+        // Update mobile
+        applyIfPresent(updateRequest.getMobile(), v -> userToUpdate.setMobile(trim(v)));
+
+        // Update occupation
+        applyIfPresent(updateRequest.getOccupation(), v -> userToUpdate.setOccupation(trim(v)));
+
+        // Update date of birth
+        applyIfPresent(updateRequest.getDateOfBirth(), v -> userToUpdate.setDateOfBirth(trim(v)));
 
         // Update first name
         applyIfHasText(updateRequest.getFirstName(), v -> userToUpdate.setFirstName(trim(v)));
@@ -147,14 +171,12 @@ public class UserServiceImplementation implements UserService{
 
     @Override
     public void deleteUser(Long userId) throws AccessDeniedException {
-        Optional<User> user=userRepository.findById(userId);
-        if(user.isEmpty())
-        {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
             throw new UsernameNotFoundException("User is not present");
         }
         userRepository.deleteById(userId);
     }
-
 
     @Override
     public boolean checkEmailAvailability(String email) {
@@ -165,6 +187,7 @@ public class UserServiceImplementation implements UserService{
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
     @Override
     public void updatePassword(User user, String newPassword) {
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -182,10 +205,14 @@ public class UserServiceImplementation implements UserService{
         String lastName = trim(signupRequest.getLastName());
         String password = signupRequest.getPassword();
 
-        if (!hasText(email)) throw new IllegalArgumentException("Email is required");
-        if (!hasText(firstName)) throw new IllegalArgumentException("First Name is required");
-        if (!hasText(lastName)) throw new IllegalArgumentException("Last Name is required");
-        if (!hasText(password)) throw new IllegalArgumentException("Password is required");
+        if (!hasText(email))
+            throw new IllegalArgumentException("Email is required");
+        if (!hasText(firstName))
+            throw new IllegalArgumentException("First Name is required");
+        if (!hasText(lastName))
+            throw new IllegalArgumentException("Last Name is required");
+        if (!hasText(password))
+            throw new IllegalArgumentException("Password is required");
 
         if (userRepository.findByEmail(email) != null) {
             throw new RuntimeException("User already exists with email: " + email);
@@ -204,7 +231,8 @@ public class UserServiceImplementation implements UserService{
 
         if (signupRequest.getRoles() != null && !signupRequest.getRoles().isEmpty()) {
             for (String roleName : signupRequest.getRoles()) {
-                if (!hasText(roleName)) continue;
+                if (!hasText(roleName))
+                    continue;
                 String normalizedRoleName = roleName.toUpperCase().trim();
                 Optional<Role> existingRole = roleRepository.findByName(normalizedRoleName);
                 Role role;
@@ -213,7 +241,8 @@ public class UserServiceImplementation implements UserService{
                 } else if (normalizedRoleName.equals("USER") || normalizedRoleName.equals("ADMIN")) {
                     role = roleRepository.save(new Role(normalizedRoleName, "Auto-created role"));
                 } else {
-                    throw new RuntimeException("Invalid role: " + roleName + ". Only USER and ADMIN roles are allowed during signup.");
+                    throw new RuntimeException(
+                            "Invalid role: " + roleName + ". Only USER and ADMIN roles are allowed during signup.");
                 }
                 userRoles.add(role.getName());
                 rolesToUpdate.add(role);
@@ -269,9 +298,11 @@ public class UserServiceImplementation implements UserService{
     // Pure: normalize role names to ROLE_* UPPER format
     private static Set<String> normalizeRoleNames(List<String> roleNames) {
         Set<String> result = new HashSet<>();
-        if (roleNames == null) return result;
+        if (roleNames == null)
+            return result;
         for (String roleName : roleNames) {
-            if (!hasText(roleName)) continue;
+            if (!hasText(roleName))
+                continue;
             String normalized = upperTrim(roleName);
             if (!normalized.startsWith("ROLE_")) {
                 normalized = "ROLE_" + normalized;
@@ -283,19 +314,22 @@ public class UserServiceImplementation implements UserService{
 
     // Pure: permission check for profile update
     private static boolean canUpdateProfile(User requestingUser, String targetEmail) {
-        if (requestingUser == null || !hasText(targetEmail)) return false;
+        if (requestingUser == null || !hasText(targetEmail))
+            return false;
         String reqEmail = requestingUser.getEmail();
         return (reqEmail != null && reqEmail.equals(targetEmail)) || requestingUser.hasRole("ADMIN");
     }
 
     // Reusable: apply setter if value is non-null
     private static void applyIfPresent(String value, Consumer<String> setter) {
-        if (value != null) setter.accept(value);
+        if (value != null)
+            setter.accept(value);
     }
 
     // Reusable: apply setter if value has text (non-empty after trim)
     private static void applyIfHasText(String value, Consumer<String> setter) {
-        if (hasText(value)) setter.accept(value);
+        if (hasText(value))
+            setter.accept(value);
     }
 
     // Reusable: update timestamp

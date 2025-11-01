@@ -43,7 +43,7 @@ const SharingCard = ({
   const incomingColor = colors?.primary_accent || "#14b8a6"; // teal brand
   const outgoingColor = "#e6a935"; // warm amber for contrast
   const accent = direction === "incoming" ? incomingColor : outgoingColor;
-  const baseBg = colors?.tertiary_bg || "#2a2a2a"; // keep consistent card base
+  const baseBg = colors?.primary_bg || "#2a2a2a"; // keep consistent card base
   const hoverBg = colors?.hover_bg || "#333333";
   const primaryText = colors?.primary_text || "white";
   const secondaryText = colors?.secondary_text || "#9ca3af";
@@ -68,16 +68,30 @@ const SharingCard = ({
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = baseBg)}
     >
       <div className="relative">
-        <div
-          className="text-sm font-bold w-12 h-12 rounded-full flex items-center justify-center"
-          style={{
-            backgroundColor: getAvatarColor(user.userId),
-            boxShadow: `0 0 0 2px ${accent}22`,
-            color: primaryText,
-          }}
-        >
-          {getInitials(user.name.split(" ")[0], user.name.split(" ")[1] || "")}
-        </div>
+        {user.profileImage || user.image ? (
+          <img
+            src={user.profileImage || user.image}
+            alt={user.name}
+            className="w-12 h-12 rounded-full object-cover"
+            style={{
+              boxShadow: `0 0 0 2px ${accent}22`,
+            }}
+          />
+        ) : (
+          <div
+            className="text-sm font-bold w-12 h-12 rounded-full flex items-center justify-center"
+            style={{
+              backgroundColor: getAvatarColor(user.userId),
+              boxShadow: `0 0 0 2px ${accent}22`,
+              color: primaryText,
+            }}
+          >
+            {getInitials(
+              user.name.split(" ")[0],
+              user.name.split(" ")[1] || ""
+            )}
+          </div>
+        )}
         <span
           className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow"
           style={{ backgroundColor: accent, color: baseBg }}
