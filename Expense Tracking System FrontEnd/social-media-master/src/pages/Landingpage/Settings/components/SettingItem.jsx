@@ -48,6 +48,7 @@ const SettingItem = ({
   isDanger = false,
   colors,
   hideBorder = false,
+  disabled = false, // NEW: Add disabled prop
 }) => {
   return (
     <Box
@@ -127,14 +128,18 @@ const SettingItem = ({
       <Box sx={{ ml: 2, flexShrink: 0 }}>
         {isSwitch && (
           <Switch
-            checked={switchChecked}
+            checked={disabled ? false : switchChecked} // Show as OFF when disabled
             onChange={onSwitchChange}
+            disabled={disabled} // Disable interaction when disabled
             sx={{
               "& .MuiSwitch-switchBase.Mui-checked": {
                 color: colors.primary_accent,
               },
               "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                 backgroundColor: colors.primary_accent,
+              },
+              "& .MuiSwitch-switchBase.Mui-disabled": {
+                opacity: 0.5,
               },
             }}
           />

@@ -78,6 +78,10 @@ const NotificationSettings = () => {
   // Helper function to check if a notification is enabled
   const isNotificationEnabled = (notificationId) => {
     if (!preferences) return false;
+
+    // If master toggle is OFF, all notifications appear disabled
+    if (!preferences.masterEnabled) return false;
+
     const camelCaseId = toCamelCase(notificationId);
     const fieldName = `${camelCaseId}Enabled`;
     return preferences[fieldName] || false;
@@ -86,6 +90,10 @@ const NotificationSettings = () => {
   // Helper function to check if a service is enabled
   const isServiceEnabled = (serviceId) => {
     if (!preferences) return false;
+
+    // If master toggle is OFF, all services appear disabled
+    if (!preferences.masterEnabled) return false;
+
     const camelCaseId = toCamelCase(serviceId);
     const fieldName = `${camelCaseId}Enabled`;
     return preferences[fieldName] || false;
@@ -307,6 +315,9 @@ const NotificationSettings = () => {
               borderRadius: "12px",
               p: 2,
               mb: 3,
+              opacity: preferences?.masterEnabled ? 1 : 0.5,
+              pointerEvents: preferences?.masterEnabled ? "auto" : "none",
+              transition: "opacity 0.3s ease",
             }}
           >
             <Typography
@@ -335,6 +346,7 @@ const NotificationSettings = () => {
                   updateGlobalSetting("doNotDisturb", e.target.checked)
                 }
                 colors={colors}
+                disabled={!preferences?.masterEnabled}
               />
 
               <Divider sx={{ my: 0.5, borderColor: colors.border_color }} />
@@ -352,6 +364,7 @@ const NotificationSettings = () => {
                   updateGlobalSetting("notificationSound", e.target.checked)
                 }
                 colors={colors}
+                disabled={!preferences?.masterEnabled}
               />
 
               <Divider sx={{ my: 0.5, borderColor: colors.border_color }} />
@@ -369,6 +382,7 @@ const NotificationSettings = () => {
                   updateGlobalSetting("browserNotifications", e.target.checked)
                 }
                 colors={colors}
+                disabled={!preferences?.masterEnabled}
               />
             </Box>
           </Box>
@@ -381,12 +395,23 @@ const NotificationSettings = () => {
               color: colors.text_primary,
               mb: 2,
               fontSize: "18px",
+              opacity: preferences?.masterEnabled ? 1 : 0.5,
+              transition: "opacity 0.3s ease",
             }}
           >
             Notifications by Service
           </Typography>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              opacity: preferences?.masterEnabled ? 1 : 0.5,
+              pointerEvents: preferences?.masterEnabled ? "auto" : "none",
+              transition: "opacity 0.3s ease",
+            }}
+          >
             {Object.values(NOTIFICATION_SERVICES).map((service) => {
               const notificationCount = service.notifications.length;
               const enabledCount = getEnabledNotificationsCount(service.id);

@@ -80,8 +80,9 @@ const NotificationItem = ({
         border: `1px solid ${colors.border_color}`,
         borderRadius: "8px",
         overflow: "hidden",
-        opacity: serviceEnabled && isEnabled ? 1 : 0.6,
+        opacity: serviceEnabled ? (isEnabled ? 1 : 0.6) : 0.5, // Lower opacity when service disabled
         transition: "all 0.2s ease",
+        pointerEvents: serviceEnabled ? "auto" : "none", // Disable interaction when service is off
         "&:hover": {
           borderColor: serviceEnabled ? serviceColor : colors.border_color,
         },
@@ -154,9 +155,9 @@ const NotificationItem = ({
 
         {/* Toggle */}
         <Switch
-          checked={isEnabled}
+          checked={serviceEnabled ? isEnabled : false} // Show as OFF when parent service is disabled
           onChange={(e) => onToggle(e.target.checked)}
-          disabled={!serviceEnabled}
+          disabled={!serviceEnabled} // Disable when parent service is disabled
           size="small"
           sx={{
             "& .MuiSwitch-switchBase.Mui-checked": {
@@ -164,6 +165,9 @@ const NotificationItem = ({
             },
             "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
               backgroundColor: serviceColor,
+            },
+            "& .MuiSwitch-switchBase.Mui-disabled": {
+              opacity: 0.5,
             },
           }}
         />
