@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
-
 
 @Service
 public class BudgetServiceImpl implements BudgetService {
@@ -21,17 +21,15 @@ public class BudgetServiceImpl implements BudgetService {
     @Autowired
     private BudgetRepository budgetRepository;
 
-
     @Autowired
     private ServiceHelper helper;
-
-
-
 
     @Autowired
     @Lazy
     private ExpenseService expenseService;
 
+    @Autowired
+    private BudgetNotificationService budgetNotificationService;
 
     @Override
     public Budget createBudget(Budget budget, Integer userId) throws Exception {
@@ -64,11 +62,12 @@ public class BudgetServiceImpl implements BudgetService {
         Set<Integer> validExpenseIds = new HashSet<>();
 
         for (Integer expenseId : budget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(expenseId,userId);
+            ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
 
             if (expense != null) {
                 LocalDate expenseDate = expense.getDate();
-                boolean isWithinDateRange = !expenseDate.isBefore(budget.getStartDate()) && !expenseDate.isAfter(budget.getEndDate());
+                boolean isWithinDateRange = !expenseDate.isBefore(budget.getStartDate())
+                        && !expenseDate.isAfter(budget.getEndDate());
 
                 if (isWithinDateRange) {
                     validExpenseIds.add(expenseId);
@@ -82,7 +81,7 @@ public class BudgetServiceImpl implements BudgetService {
         Budget savedBudget = budgetRepository.save(budget);
 
         for (Integer expenseId : savedBudget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(expenseId,userId);
+            ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
             if (expense != null) {
                 if (expense.getBudgetIds() == null) {
                     expense.setBudgetIds(new HashSet<>());
@@ -95,15 +94,20 @@ public class BudgetServiceImpl implements BudgetService {
             }
         }
 
-        // auditExpenseService.logAudit(convertToAuditEvent(user, savedBudget.getId(), "Budget Created", budget.getName()));
+        // Check budget thresholds and send notifications if needed
+        if (!validExpenseIds.isEmpty()) {
+            checkAndSendThresholdNotifications(savedBudget, userId);
+        }
+
+        // auditExpenseService.logAudit(convertToAuditEvent(user, savedBudget.getId(),
+        // "Budget Created", budget.getName()));
         return savedBudget;
     }
-
 
     @Override
     public Set<Budget> getBudgetsByBudgetIds(Set<Integer> budgetIds, Integer userId) throws Exception {
         Set<Budget> budgets = new HashSet<>();
-        for(Integer budgetId : budgetIds) {
+        for (Integer budgetId : budgetIds) {
             Budget budgetOpt = getBudgetById(budgetId, userId);
             if (budgetOpt != null) {
                 budgets.add(budgetOpt);
@@ -114,10 +118,10 @@ public class BudgetServiceImpl implements BudgetService {
         return budgets; // Return the populated list instead of List.of()
     }
 
-
     @Override
     @Transactional
-    public Set<Budget> editBudgetWithExpenseId(Set<Integer> budgetIds, Integer expenseId, Integer userId) throws Exception {
+    public Set<Budget> editBudgetWithExpenseId(Set<Integer> budgetIds, Integer expenseId, Integer userId)
+            throws Exception {
         Set<Budget> budgets = getBudgetsByBudgetIds(budgetIds, userId);
         Set<Budget> updatedBudgets = new HashSet<>();
 
@@ -128,17 +132,17 @@ public class BudgetServiceImpl implements BudgetService {
             }
             budget.getExpenseIds().add(expenseId);
 
-
-
             budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
 
             // Save the updated budget
             Budget savedBudget = budgetRepository.save(budget);
             updatedBudgets.add(savedBudget);
 
+            // Check budget thresholds after adding expense
+            checkAndSendThresholdNotifications(savedBudget, userId);
+
             System.out.println("Added expense ID: " + expenseId + " to budget ID: " + budget.getId());
         }
-
 
         System.out.println("Successfully updated " + updatedBudgets.size() + " budgets with expense ID: " + expenseId);
         return updatedBudgets;
@@ -148,7 +152,6 @@ public class BudgetServiceImpl implements BudgetService {
     public Budget save(Budget budget) {
         return budgetRepository.save(budget);
     }
-
 
     @Override
     @Transactional
@@ -185,7 +188,7 @@ public class BudgetServiceImpl implements BudgetService {
                 : new HashSet<>();
 
         for (Integer oldExpenseId : oldExpenseIds) {
-            ExpenseDTO oldExpense = expenseService.getExpenseById(oldExpenseId,userId);
+            ExpenseDTO oldExpense = expenseService.getExpenseById(oldExpenseId, userId);
             if (oldExpense != null && oldExpense.getBudgetIds() != null) {
                 oldExpense.getBudgetIds().remove(budgetId);
                 expenseService.save(oldExpense);
@@ -195,10 +198,11 @@ public class BudgetServiceImpl implements BudgetService {
         // Filter and add only valid new expenses
         Set<Integer> validExpenseIds = new HashSet<>();
         for (Integer newExpenseId : budget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(newExpenseId,userId);
+            ExpenseDTO expense = expenseService.getExpenseById(newExpenseId, userId);
             if (expense != null) {
                 LocalDate expenseDate = expense.getDate();
-                boolean isWithinRange = !expenseDate.isBefore(budget.getStartDate()) && !expenseDate.isAfter(budget.getEndDate());
+                boolean isWithinRange = !expenseDate.isBefore(budget.getStartDate())
+                        && !expenseDate.isAfter(budget.getEndDate());
 
                 if (isWithinRange) {
                     validExpenseIds.add(newExpenseId);
@@ -221,14 +225,13 @@ public class BudgetServiceImpl implements BudgetService {
         BudgetReport budgetReport = calculateBudgetReport(userId, budgetId);
         existingBudget.setRemainingAmount(budgetReport.getRemainingAmount());
 
+        Budget savedBudget = budgetRepository.save(existingBudget);
 
+        // Check budget thresholds after editing
+        checkAndSendThresholdNotifications(savedBudget, userId);
 
-        return budgetRepository.save(existingBudget);
+        return savedBudget;
     }
-
-
-
-
 
     @Override
     @Transactional
@@ -244,7 +247,7 @@ public class BudgetServiceImpl implements BudgetService {
         Set<Integer> expenseIds = budget.getExpenseIds();
         if (expenseIds != null) {
             for (Integer expenseId : expenseIds) {
-                ExpenseDTO expense = expenseService.getExpenseById(expenseId,userId);
+                ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
                 if (expense != null && expense.getBudgetIds() != null) {
                     expense.getBudgetIds().remove(budgetId);
                     expenseService.save(expense);
@@ -254,9 +257,7 @@ public class BudgetServiceImpl implements BudgetService {
 
         budgetRepository.delete(budget);
 
-
     }
-
 
     @Override
     @Transactional
@@ -271,7 +272,7 @@ public class BudgetServiceImpl implements BudgetService {
             Set<Integer> expenseIds = budget.getExpenseIds();
             if (expenseIds != null) {
                 for (Integer expenseId : expenseIds) {
-                    ExpenseDTO expense = expenseService.getExpenseById(expenseId,userId);
+                    ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
                     if (expense != null && expense.getBudgetIds() != null) {
                         expense.getBudgetIds().remove(budget.getId());
                         expenseService.save(expense);
@@ -282,9 +283,7 @@ public class BudgetServiceImpl implements BudgetService {
 
         budgetRepository.deleteAll(budgets);
 
-
     }
-
 
     @Override
     public boolean isBudgetValid(Integer budgetId) {
@@ -305,18 +304,15 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public Budget getBudgetById(Integer budgetId, Integer userId) throws Exception {
-        Optional<Budget> expense=  budgetRepository.findById(budgetId);
-        if(expense.isEmpty())
-        {
-            throw new Exception("budget is not present"+budgetId);
+        Optional<Budget> expense = budgetRepository.findById(budgetId);
+        if (expense.isEmpty()) {
+            throw new Exception("budget is not present" + budgetId);
         }
-        if(!expense.get().getUserId().equals(userId))
-        {
+        if (!expense.get().getUserId().equals(userId)) {
             throw new Exception("you cant get other users budget");
         }
         return expense.get();
     }
-
 
     @Override
     public Budget deductAmount(Integer userId, Integer budgetId, double expenseAmount) {
@@ -325,7 +321,7 @@ public class BudgetServiceImpl implements BudgetService {
         if (budgetOpt.isPresent()) {
             Budget budget = budgetOpt.get();
             if (isBudgetValid(budgetId)) {
-                budget.deductAmount( expenseAmount);
+                budget.deductAmount(expenseAmount);
                 return budgetRepository.save(budget);
             } else {
                 throw new RuntimeException("Budget is no longer valid");
@@ -335,15 +331,14 @@ public class BudgetServiceImpl implements BudgetService {
         }
     }
 
-
-
     @Override
     public List<ExpenseDTO> getExpensesForUserWithinBudgetDates(Integer userId, Integer budgetId) throws Exception {
         Budget budget = budgetRepository.findById(budgetId).orElseThrow(() -> new Exception("Budget not found"));
         if (!budget.getUserId().equals(userId)) {
             throw new Exception("You can't access another user's budget");
         }
-        return expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue( budget.getStartDate(), budget.getEndDate(),userId);
+        return expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(budget.getStartDate(),
+                budget.getEndDate(), userId);
     }
 
     @Override
@@ -363,7 +358,6 @@ public class BudgetServiceImpl implements BudgetService {
         return expenses;
     }
 
-
     @Override
     public BudgetReport calculateBudgetReport(Integer userId, Integer budgetId) throws Exception {
         Optional<Budget> optionalBudget = budgetRepository.findByUserIdAndId(userId, budgetId);
@@ -381,28 +375,23 @@ public class BudgetServiceImpl implements BudgetService {
         List<ExpenseDTO> expenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
                 budget.getStartDate(),
                 budget.getEndDate(),
-                userId
-        );
+                userId);
 
-      
-double totalCashLosses = expenses.stream()
-        .filter(expense ->
-                "cash".equalsIgnoreCase(expense.getExpense().getPaymentMethod()) &&
+        double totalCashLosses = expenses.stream()
+                .filter(expense -> "cash".equalsIgnoreCase(expense.getExpense().getPaymentMethod()) &&
                         "loss".equalsIgnoreCase(expense.getExpense().getType()))
-        .mapToDouble(expense -> expense.getExpense().getAmount())
-        .sum();
+                .mapToDouble(expense -> expense.getExpense().getAmount())
+                .sum();
 
-double totalCreditLosses = expenses.stream()
-        .filter(expense ->
-                "creditNeedToPaid".equalsIgnoreCase(expense.getExpense().getPaymentMethod()) &&
+        double totalCreditLosses = expenses.stream()
+                .filter(expense -> "creditNeedToPaid".equalsIgnoreCase(expense.getExpense().getPaymentMethod()) &&
                         "loss".equalsIgnoreCase(expense.getExpense().getType()))
-        .mapToDouble(expense -> expense.getExpense().getAmount())
-        .sum();
+                .mapToDouble(expense -> expense.getExpense().getAmount())
+                .sum();
 
+        double totalExpenses = totalCashLosses + totalCreditLosses;
 
-double totalExpenses = totalCashLosses + totalCreditLosses;
-
-double remainingAmount = budget.getAmount() - totalExpenses;
+        double remainingAmount = budget.getAmount() - totalExpenses;
 
         boolean isBudgetValid = isBudgetValid(budgetId);
 
@@ -414,15 +403,13 @@ double remainingAmount = budget.getAmount() - totalExpenses;
                 remainingAmount,
                 isBudgetValid,
                 totalCashLosses,
-                totalCreditLosses
-        );
+                totalCreditLosses);
     }
 
     @Override
     public List<Budget> getAllBudgetForUser(Integer userId) {
         return budgetRepository.findByUserId(userId);
     }
-
 
     @Override
     public List<BudgetReport> getAllBudgetReportsForUser(Integer userId) throws Exception {
@@ -440,17 +427,14 @@ double remainingAmount = budget.getAmount() - totalExpenses;
         return budgetRepository.findByUserIdAndStartDateLessThanEqualAndEndDateGreaterThanEqual(userId, date, date);
     }
 
-
     @Override
     public List<Budget> getBudgetsByDate(LocalDate date, Integer userId) {
         return budgetRepository.findBudgetsByDate(date, userId);
     }
 
-
-
     @Override
     public List<Budget> getBudgetsByExpenseId(Integer expenseId, Integer userId, LocalDate expenseDate) {
-        ExpenseDTO expense = expenseService.getExpenseById(expenseId,userId);
+        ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
 
         // Use the passed expenseDate instead of reading from the DB expense
         List<Budget> budgets = budgetRepository.findBudgetsByDate(expenseDate, userId);
@@ -464,5 +448,77 @@ double remainingAmount = budget.getAmount() - totalExpenses;
         return budgets;
     }
 
+    /**
+     * Calculate total expense amount for a budget
+     * 
+     * @param budget The budget to calculate expenses for
+     * @param userId The user ID
+     * @return Total expense amount as BigDecimal
+     */
+    private BigDecimal calculateTotalExpenseAmount(Budget budget, Integer userId) {
+        if (budget.getExpenseIds() == null || budget.getExpenseIds().isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        double total = 0.0;
+        for (Integer expenseId : budget.getExpenseIds()) {
+            try {
+                ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
+                if (expense != null && expense.getExpense() != null) {
+                    // Only count losses (cash and credit)
+                    String type = expense.getExpense().getType();
+                    String paymentMethod = expense.getExpense().getPaymentMethod();
+
+                    if ("loss".equalsIgnoreCase(type) &&
+                            ("cash".equalsIgnoreCase(paymentMethod)
+                                    || "creditNeedToPaid".equalsIgnoreCase(paymentMethod))) {
+                        total += expense.getExpense().getAmount();
+                    }
+                }
+            } catch (Exception e) {
+                // Log and continue if expense not found
+                System.err.println("Error fetching expense " + expenseId + ": " + e.getMessage());
+            }
+        }
+
+        return BigDecimal.valueOf(total);
+    }
+
+    /**
+     * Check budget thresholds and send appropriate notifications
+     * 
+     * @param budget The budget to check
+     * @param userId The user ID
+     */
+    private void checkAndSendThresholdNotifications(Budget budget, Integer userId) {
+        try {
+            // Calculate total spent amount
+            BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
+
+            // Calculate percentage used
+            if (budget.getAmount() <= 0) {
+                return; // Avoid division by zero
+            }
+
+            double percentage = (spent.doubleValue() / budget.getAmount()) * 100.0;
+
+            // Check thresholds and send notifications
+            if (percentage >= 100.0) {
+                // Budget exceeded - Critical
+                budgetNotificationService.sendBudgetExceededNotification(budget, spent);
+            } else if (percentage >= 80.0) {
+                // Budget warning at 80% - High priority
+                budgetNotificationService.sendBudgetWarningNotification(budget, spent);
+            } else if (percentage >= 50.0) {
+                // Approaching budget limit at 50% - Medium priority
+                budgetNotificationService.sendBudgetLimitApproachingNotification(budget, spent);
+            }
+            // Below 50% - No notification needed
+
+        } catch (Exception e) {
+            // Log error but don't fail the operation
+            System.err.println("Error checking budget thresholds for budget " + budget.getId() + ": " + e.getMessage());
+        }
+    }
 
 }
