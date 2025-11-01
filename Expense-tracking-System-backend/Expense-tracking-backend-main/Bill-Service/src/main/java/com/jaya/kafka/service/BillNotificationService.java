@@ -15,10 +15,13 @@ import java.util.Map;
 
 /**
  * Service for creating and sending bill notification events
- * Follows Single Responsibility Principle - only responsible for event creation and dispatch
+ * Follows Single Responsibility Principle - only responsible for event creation
+ * and dispatch
  * 
- * This service acts as a facade between the BillController/BillService and the Kafka infrastructure
- * It transforms Bill entities into BillNotificationEvent DTOs and sends them to Kafka
+ * This service acts as a facade between the BillController/BillService and the
+ * Kafka infrastructure
+ * It transforms Bill entities into BillNotificationEvent DTOs and sends them to
+ * Kafka
  */
 @Service
 @RequiredArgsConstructor
@@ -37,15 +40,14 @@ public class BillNotificationService {
         try {
             BillNotificationEvent event = buildBillEvent(
                     bill,
-                    BillNotificationEvent.Action.CREATE
-            );
-            
+                    BillNotificationEvent.Action.CREATE);
+
             billNotificationProducer.sendEvent(event);
-            log.info("Sent bill created notification for billId: {}, userId: {}", 
-                     bill.getId(), bill.getUserId());
+            log.info("Sent bill created notification for billId: {}, userId: {}",
+                    bill.getId(), bill.getUserId());
         } catch (Exception e) {
-            log.error("Failed to send bill created notification for billId: {}", 
-                      bill.getId(), e);
+            log.error("Failed to send bill created notification for billId: {}",
+                    bill.getId(), e);
             // Don't throw - notification failure shouldn't break main flow
         }
     }
@@ -59,23 +61,22 @@ public class BillNotificationService {
         try {
             BillNotificationEvent event = buildBillEvent(
                     bill,
-                    BillNotificationEvent.Action.UPDATE
-            );
-            
+                    BillNotificationEvent.Action.UPDATE);
+
             billNotificationProducer.sendEvent(event);
-            log.info("Sent bill updated notification for billId: {}, userId: {}", 
-                     bill.getId(), bill.getUserId());
+            log.info("Sent bill updated notification for billId: {}, userId: {}",
+                    bill.getId(), bill.getUserId());
         } catch (Exception e) {
-            log.error("Failed to send bill updated notification for billId: {}", 
-                      bill.getId(), e);
+            log.error("Failed to send bill updated notification for billId: {}",
+                    bill.getId(), e);
         }
     }
 
     /**
      * Send notification when bill is deleted
      * 
-     * @param billId ID of deleted bill
-     * @param userId User ID who owns the bill
+     * @param billId   ID of deleted bill
+     * @param userId   User ID who owns the bill
      * @param billName Name of the deleted bill
      */
     public void sendBillDeletedNotification(Integer billId, Integer userId, String billName) {
@@ -87,13 +88,13 @@ public class BillNotificationService {
                     .name(billName)
                     .timestamp(LocalDateTime.now())
                     .build();
-            
+
             billNotificationProducer.sendEvent(event);
-            log.info("Sent bill deleted notification for billId: {}, userId: {}", 
-                     billId, userId);
+            log.info("Sent bill deleted notification for billId: {}, userId: {}",
+                    billId, userId);
         } catch (Exception e) {
-            log.error("Failed to send bill deleted notification for billId: {}", 
-                      billId, e);
+            log.error("Failed to send bill deleted notification for billId: {}",
+                    billId, e);
         }
     }
 
@@ -106,15 +107,14 @@ public class BillNotificationService {
         try {
             BillNotificationEvent event = buildBillEvent(
                     bill,
-                    BillNotificationEvent.Action.PAID
-            );
-            
+                    BillNotificationEvent.Action.PAID);
+
             billNotificationProducer.sendEvent(event);
-            log.info("Sent bill paid notification for billId: {}, userId: {}", 
-                     bill.getId(), bill.getUserId());
+            log.info("Sent bill paid notification for billId: {}, userId: {}",
+                    bill.getId(), bill.getUserId());
         } catch (Exception e) {
-            log.error("Failed to send bill paid notification for billId: {}", 
-                      bill.getId(), e);
+            log.error("Failed to send bill paid notification for billId: {}",
+                    bill.getId(), e);
         }
     }
 
@@ -127,15 +127,14 @@ public class BillNotificationService {
         try {
             BillNotificationEvent event = buildBillEvent(
                     bill,
-                    BillNotificationEvent.Action.REMINDER
-            );
-            
+                    BillNotificationEvent.Action.REMINDER);
+
             billNotificationProducer.sendEvent(event);
-            log.info("Sent bill reminder notification for billId: {}, userId: {}", 
-                     bill.getId(), bill.getUserId());
+            log.info("Sent bill reminder notification for billId: {}, userId: {}",
+                    bill.getId(), bill.getUserId());
         } catch (Exception e) {
-            log.error("Failed to send bill reminder notification for billId: {}", 
-                      bill.getId(), e);
+            log.error("Failed to send bill reminder notification for billId: {}",
+                    bill.getId(), e);
         }
     }
 
@@ -148,22 +147,21 @@ public class BillNotificationService {
         try {
             BillNotificationEvent event = buildBillEvent(
                     bill,
-                    BillNotificationEvent.Action.OVERDUE
-            );
-            
+                    BillNotificationEvent.Action.OVERDUE);
+
             billNotificationProducer.sendEvent(event);
-            log.info("Sent bill overdue notification for billId: {}, userId: {}", 
-                     bill.getId(), bill.getUserId());
+            log.info("Sent bill overdue notification for billId: {}, userId: {}",
+                    bill.getId(), bill.getUserId());
         } catch (Exception e) {
-            log.error("Failed to send bill overdue notification for billId: {}", 
-                      bill.getId(), e);
+            log.error("Failed to send bill overdue notification for billId: {}",
+                    bill.getId(), e);
         }
     }
 
     /**
      * Build bill notification event from Bill entity
      * 
-     * @param bill Bill entity
+     * @param bill   Bill entity
      * @param action Action type
      * @return BillNotificationEvent
      */
@@ -195,12 +193,12 @@ public class BillNotificationService {
             metadata.put("creditDue", bill.getCreditDue());
             metadata.put("expenseId", bill.getExpenseId());
             metadata.put("budgetIds", bill.getBudgetIds());
-            
+
             // Add number of detailed expenses
             if (bill.getExpenses() != null) {
                 metadata.put("expenseCount", bill.getExpenses().size());
             }
-            
+
             String metadataJson = objectMapper.writeValueAsString(metadata);
             builder.metadata(metadataJson);
         } catch (JsonProcessingException e) {

@@ -27,8 +27,8 @@ public abstract class NotificationEventProducer<T> {
     protected final KafkaTemplate<String, Object> kafkaTemplate;
     protected final ObjectMapper objectMapper;
 
-    protected NotificationEventProducer(KafkaTemplate<String, Object> kafkaTemplate, 
-                                       ObjectMapper objectMapper) {
+    protected NotificationEventProducer(KafkaTemplate<String, Object> kafkaTemplate,
+            ObjectMapper objectMapper) {
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
     }
@@ -43,36 +43,35 @@ public abstract class NotificationEventProducer<T> {
         try {
             // Hook method - allow subclasses to validate
             validateEvent(event);
-            
+
             // Hook method - get topic name from subclass
             String topic = getTopicName();
-            
+
             // Hook method - generate partition key
             String key = generatePartitionKey(event);
-            
+
             // Hook method - before send
             beforeSend(event);
-            
+
             // Log event details
             logEventDetails(event);
-            
+
             // Send to Kafka
-            CompletableFuture<SendResult<String, Object>> future = 
-                kafkaTemplate.send(topic, key, event);
-            
+            CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, key, event);
+
             // Handle success/failure asynchronously
             future.whenComplete((result, ex) -> {
                 if (ex == null) {
                     afterSendSuccess(event, result);
-                    log.debug("Successfully sent {} event to topic {}", 
-                             getEventTypeName(), topic);
+                    log.debug("Successfully sent {} event to topic {}",
+                            getEventTypeName(), topic);
                 } else {
                     afterSendFailure(event, ex);
-                    log.error("Failed to send {} event to topic {}: {}", 
-                             getEventTypeName(), topic, ex.getMessage());
+                    log.error("Failed to send {} event to topic {}: {}",
+                            getEventTypeName(), topic, ex.getMessage());
                 }
             });
-            
+
         } catch (Exception e) {
             log.error("Error preparing {} event: {}", getEventTypeName(), e.getMessage(), e);
             throw new RuntimeException("Failed to send notification event", e);
@@ -92,14 +91,14 @@ public abstract class NotificationEventProducer<T> {
             String topic = getTopicName();
             String key = generatePartitionKey(event);
             beforeSend(event);
-            
+
             SendResult<String, Object> result = kafkaTemplate.send(topic, key, event).get();
             afterSendSuccess(event, result);
             log.info("Synchronously sent {} event to topic {}", getEventTypeName(), topic);
             return result;
         } catch (Exception e) {
-            log.error("Failed to send {} event synchronously: {}", 
-                     getEventTypeName(), e.getMessage(), e);
+            log.error("Failed to send {} event synchronously: {}",
+                    getEventTypeName(), e.getMessage(), e);
             throw new RuntimeException("Failed to send notification event", e);
         }
     }
@@ -108,12 +107,14 @@ public abstract class NotificationEventProducer<T> {
 
     /**
      * Get the Kafka topic name for this event type
+     * 
      * @return Topic name
      */
     protected abstract String getTopicName();
 
     /**
      * Get the event type name for logging
+     * 
      * @return Event type name (e.g., "Bill", "Expense")
      */
     protected abstract String getEventTypeName();
@@ -158,7 +159,7 @@ public abstract class NotificationEventProducer<T> {
      * Hook called after successful send
      * Override to add post-send logic
      * 
-     * @param event Event
+     * @param event  Event
      * @param result Send result
      */
     protected void afterSendSuccess(T event, SendResult<String, Object> result) {
@@ -169,7 +170,7 @@ public abstract class NotificationEventProducer<T> {
      * Hook called after failed send
      * Override to add error handling
      * 
-     * @param event Event
+     * @param event     Event
      * @param exception Exception
      */
     protected void afterSendFailure(T event, Throwable exception) {

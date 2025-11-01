@@ -25,8 +25,8 @@ public class BillNotificationProducer extends NotificationEventProducer<BillNoti
     @Value("${kafka.topics.bill-events:bill-events}")
     private String billEventsTopic;
 
-    public BillNotificationProducer(KafkaTemplate<String, Object> kafkaTemplate, 
-                                   ObjectMapper objectMapper) {
+    public BillNotificationProducer(KafkaTemplate<String, Object> kafkaTemplate,
+            ObjectMapper objectMapper) {
         super(kafkaTemplate, objectMapper);
     }
 
@@ -43,15 +43,15 @@ public class BillNotificationProducer extends NotificationEventProducer<BillNoti
     @Override
     protected void validateEvent(BillNotificationEvent event) {
         super.validateEvent(event);
-        
+
         if (event.getUserId() == null) {
             throw new IllegalArgumentException("Bill event must have a userId");
         }
-        
+
         if (event.getAction() == null || event.getAction().isEmpty()) {
             throw new IllegalArgumentException("Bill event must have an action");
         }
-        
+
         if (event.getTimestamp() == null) {
             throw new IllegalArgumentException("Bill event must have a timestamp");
         }
@@ -65,25 +65,25 @@ public class BillNotificationProducer extends NotificationEventProducer<BillNoti
 
     @Override
     protected void beforeSend(BillNotificationEvent event) {
-        log.debug("Preparing to send bill event: action={}, billId={}, userId={}", 
-                 event.getAction(), event.getBillId(), event.getUserId());
+        log.debug("Preparing to send bill event: action={}, billId={}, userId={}",
+                event.getAction(), event.getBillId(), event.getUserId());
     }
 
     @Override
     protected void afterSendSuccess(BillNotificationEvent event, SendResult<String, Object> result) {
-        log.info("Bill notification sent successfully: action={}, billId={}, userId={}, partition={}", 
-                event.getAction(), 
-                event.getBillId(), 
+        log.info("Bill notification sent successfully: action={}, billId={}, userId={}, partition={}",
+                event.getAction(),
+                event.getBillId(),
                 event.getUserId(),
                 result.getRecordMetadata().partition());
     }
 
     @Override
     protected void afterSendFailure(BillNotificationEvent event, Throwable exception) {
-        log.error("Failed to send bill notification: action={}, billId={}, userId={}, error={}", 
-                 event.getAction(), 
-                 event.getBillId(), 
-                 event.getUserId(),
-                 exception.getMessage());
+        log.error("Failed to send bill notification: action={}, billId={}, userId={}, error={}",
+                event.getAction(),
+                event.getBillId(),
+                event.getUserId(),
+                exception.getMessage());
     }
 }
