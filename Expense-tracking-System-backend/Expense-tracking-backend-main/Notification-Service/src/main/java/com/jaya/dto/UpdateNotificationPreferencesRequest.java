@@ -45,6 +45,9 @@ public class UpdateNotificationPreferencesRequest {
     private Boolean budgetUpdatedEnabled;
 
     // Bill Service Notifications
+    private Boolean billAddedEnabled;
+    private Boolean billUpdatedEnabled;
+    private Boolean billDeletedEnabled;
     private Boolean billDueReminderEnabled;
     private Boolean billOverdueEnabled;
     private Boolean billPaidEnabled;

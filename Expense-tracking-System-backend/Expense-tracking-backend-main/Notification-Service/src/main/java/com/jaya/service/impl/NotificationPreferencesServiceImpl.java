@@ -139,6 +139,9 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .budgetCreatedEnabled(false)
                 .budgetUpdatedEnabled(false)
                 // Bill Service Notifications
+                .billAddedEnabled(true)
+                .billUpdatedEnabled(true)
+                .billDeletedEnabled(false)
                 .billDueReminderEnabled(true)
                 .billOverdueEnabled(true)
                 .billPaidEnabled(true)
@@ -208,6 +211,9 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         preferences.setBudgetUpdatedEnabled(false);
 
         // Bill Service Notifications
+        preferences.setBillAddedEnabled(true);
+        preferences.setBillUpdatedEnabled(true);
+        preferences.setBillDeletedEnabled(false);
         preferences.setBillDueReminderEnabled(true);
         preferences.setBillOverdueEnabled(true);
         preferences.setBillPaidEnabled(true);
@@ -303,6 +309,12 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
             preferences.setBudgetUpdatedEnabled(request.getBudgetUpdatedEnabled());
 
         // Bill Service Notifications
+        if (request.getBillAddedEnabled() != null)
+            preferences.setBillAddedEnabled(request.getBillAddedEnabled());
+        if (request.getBillUpdatedEnabled() != null)
+            preferences.setBillUpdatedEnabled(request.getBillUpdatedEnabled());
+        if (request.getBillDeletedEnabled() != null)
+            preferences.setBillDeletedEnabled(request.getBillDeletedEnabled());
         if (request.getBillDueReminderEnabled() != null)
             preferences.setBillDueReminderEnabled(request.getBillDueReminderEnabled());
         if (request.getBillOverdueEnabled() != null)
@@ -402,6 +414,9 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .budgetCreatedEnabled(preferences.getBudgetCreatedEnabled())
                 .budgetUpdatedEnabled(preferences.getBudgetUpdatedEnabled())
                 // Bill Service Notifications
+                .billAddedEnabled(preferences.getBillAddedEnabled())
+                .billUpdatedEnabled(preferences.getBillUpdatedEnabled())
+                .billDeletedEnabled(preferences.getBillDeletedEnabled())
                 .billDueReminderEnabled(preferences.getBillDueReminderEnabled())
                 .billOverdueEnabled(preferences.getBillOverdueEnabled())
                 .billPaidEnabled(preferences.getBillPaidEnabled())

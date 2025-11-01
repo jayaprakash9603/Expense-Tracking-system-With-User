@@ -32,10 +32,12 @@ public class BillEventProcessor extends AbstractNotificationEventProcessor<BillE
                 return "billAdded";
             case "UPDATE":
                 return "billUpdated";
+            case "DELETE":
+                return "billDeleted";
             case "PAID":
                 return "billPaid";
             case "REMINDER":
-                return "billReminder";
+                return "billDueReminder";
             case "OVERDUE":
                 return "billOverdue";
             default:

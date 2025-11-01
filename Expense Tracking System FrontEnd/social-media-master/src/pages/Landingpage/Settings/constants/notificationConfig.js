@@ -227,6 +227,48 @@ export const NOTIFICATION_SERVICES = {
     color: "#ef4444",
     notifications: [
       {
+        id: "bill_added",
+        type: "BILL_ADDED",
+        title: "New Bill Added",
+        description: "Get notified when a new bill is created",
+        icon: ReceiptIcon,
+        priority: NOTIFICATION_PRIORITY.MEDIUM,
+        defaultEnabled: true,
+        methods: {
+          [NOTIFICATION_METHODS.IN_APP]: true,
+          [NOTIFICATION_METHODS.EMAIL]: false,
+          [NOTIFICATION_METHODS.PUSH]: true,
+        },
+      },
+      {
+        id: "bill_updated",
+        type: "BILL_UPDATED",
+        title: "Bill Updated",
+        description: "Get notified when a bill is modified",
+        icon: InfoIcon,
+        priority: NOTIFICATION_PRIORITY.LOW,
+        defaultEnabled: true,
+        methods: {
+          [NOTIFICATION_METHODS.IN_APP]: true,
+          [NOTIFICATION_METHODS.EMAIL]: false,
+          [NOTIFICATION_METHODS.PUSH]: false,
+        },
+      },
+      {
+        id: "bill_deleted",
+        type: "BILL_DELETED",
+        title: "Bill Deleted",
+        description: "Get notified when a bill is removed",
+        icon: InfoIcon,
+        priority: NOTIFICATION_PRIORITY.LOW,
+        defaultEnabled: false,
+        methods: {
+          [NOTIFICATION_METHODS.IN_APP]: true,
+          [NOTIFICATION_METHODS.EMAIL]: false,
+          [NOTIFICATION_METHODS.PUSH]: false,
+        },
+      },
+      {
         id: "bill_due_reminder",
         type: "BILL_DUE_REMINDER",
         title: "Bill Due Reminder",

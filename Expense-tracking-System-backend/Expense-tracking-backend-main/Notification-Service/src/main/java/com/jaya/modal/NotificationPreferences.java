@@ -120,6 +120,15 @@ public class NotificationPreferences {
     // BILL SERVICE NOTIFICATIONS
     // ============================================
 
+    @Column(name = "bill_added_enabled", nullable = false)
+    private Boolean billAddedEnabled = true;
+
+    @Column(name = "bill_updated_enabled", nullable = false)
+    private Boolean billUpdatedEnabled = true;
+
+    @Column(name = "bill_deleted_enabled", nullable = false)
+    private Boolean billDeletedEnabled = false;
+
     @Column(name = "bill_due_reminder_enabled", nullable = false)
     private Boolean billDueReminderEnabled = true;
 
