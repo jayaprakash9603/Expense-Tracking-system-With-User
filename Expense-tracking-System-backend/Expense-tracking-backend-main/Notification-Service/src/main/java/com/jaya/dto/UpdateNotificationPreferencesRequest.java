@@ -15,13 +15,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UpdateNotificationPreferencesRequest {
-    
+
     // Global Settings
     private Boolean masterEnabled;
     private Boolean doNotDisturb;
     private Boolean notificationSound;
     private Boolean browserNotifications;
-    
+
     // Service Level Toggles
     private Boolean expenseServiceEnabled;
     private Boolean budgetServiceEnabled;
@@ -30,48 +30,48 @@ public class UpdateNotificationPreferencesRequest {
     private Boolean friendServiceEnabled;
     private Boolean analyticsServiceEnabled;
     private Boolean systemNotificationsEnabled;
-    
+
     // Expense Service Notifications
     private Boolean expenseAddedEnabled;
     private Boolean expenseUpdatedEnabled;
     private Boolean expenseDeletedEnabled;
     private Boolean largeExpenseAlertEnabled;
-    
+
     // Budget Service Notifications
     private Boolean budgetExceededEnabled;
     private Boolean budgetWarningEnabled;
     private Boolean budgetLimitApproachingEnabled;
     private Boolean budgetCreatedEnabled;
     private Boolean budgetUpdatedEnabled;
-    
+
     // Bill Service Notifications
     private Boolean billDueReminderEnabled;
     private Boolean billOverdueEnabled;
     private Boolean billPaidEnabled;
-    
+
     // Payment Method Service Notifications
     private Boolean paymentMethodAddedEnabled;
     private Boolean paymentMethodUpdatedEnabled;
     private Boolean paymentMethodRemovedEnabled;
-    
+
     // Friend Service Notifications
     private Boolean friendRequestReceivedEnabled;
     private Boolean friendRequestAcceptedEnabled;
     private Boolean friendRequestRejectedEnabled;
-    
+
     // Analytics Service Notifications
     private Boolean weeklySummaryEnabled;
     private Boolean monthlyReportEnabled;
     private Boolean spendingTrendAlertEnabled;
-    
+
     // System Notifications
     private Boolean securityAlertEnabled;
     private Boolean appUpdateEnabled;
     private Boolean maintenanceNoticeEnabled;
-    
+
     // JSON Configuration
     private String notificationPreferencesJson;
-    
+
     // Legacy fields
     private Boolean budgetAlertsEnabled;
     private Boolean dailyRemindersEnabled;

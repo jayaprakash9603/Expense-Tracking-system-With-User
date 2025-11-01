@@ -139,7 +139,7 @@ const NotificationServiceCard = ({
         {/* Expand Icon */}
         <ExpandMoreIcon
           sx={{
-            color: colors.text_muted,
+            color: colors.icon_muted,
             transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.3s ease",
           }}

@@ -1,61 +1,32 @@
-import axios from 'axios';
-import * as actionTypes from './notificationPreferences.actionType';
-
-// Base API URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-
-// Helper to get auth headers
-const getAuthHeaders = (token) => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${token}`,
-});
-
-// Helper to get user ID from token or state
-const getUserId = (getState) => {
-  const state = getState();
-  return state.auth?.user?.id || state.auth?.jwt?.id;
-};
+import { api } from "../../config/api";
+import * as actionTypes from "./notificationPreferences.actionType";
 
 /**
  * Fetch notification preferences
  * Auto-creates defaults if none exist
  */
-export const fetchNotificationPreferences = () => async (dispatch, getState) => {
+export const fetchNotificationPreferences = (targetId) => async (dispatch) => {
+  dispatch({ type: actionTypes.FETCH_NOTIFICATION_PREFERENCES_REQUEST });
+
   try {
-    dispatch({ type: actionTypes.FETCH_NOTIFICATION_PREFERENCES_REQUEST });
-
-    const userId = getUserId(getState);
-    const token = localStorage.getItem('token');
-
-    if (!userId) {
-      throw new Error('User ID not found. Please login again.');
-    }
-
-    const response = await axios.get(
-      `${API_BASE_URL}/api/notification-preferences`,
-      {
-        headers: {
-          ...getAuthHeaders(token),
-          'X-User-Id': userId,
-        },
-      }
-    );
+    const { data } = await api.get("/api/notification-preferences", {
+      params: {
+        targetId: targetId || "",
+      },
+    });
 
     dispatch({
       type: actionTypes.FETCH_NOTIFICATION_PREFERENCES_SUCCESS,
-      payload: response.data,
+      payload: data,
     });
-
-    return response.data;
+    console.log("Fetched notification preferences:", data);
+    return data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch notification preferences';
-    
+    console.error("Error fetching notification preferences:", error);
     dispatch({
       type: actionTypes.FETCH_NOTIFICATION_PREFERENCES_FAILURE,
-      payload: errorMessage,
+      payload: error.response?.data?.message || error.message,
     });
-
-    throw error;
   }
 };
 
@@ -63,85 +34,62 @@ export const fetchNotificationPreferences = () => async (dispatch, getState) => 
  * Update notification preferences (partial update)
  * Only sends fields that need to be updated
  */
-export const updateNotificationPreference = (updates) => async (dispatch, getState) => {
-  try {
+export const updateNotificationPreference =
+  (updates, targetId) => async (dispatch) => {
     dispatch({ type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_REQUEST });
 
-    const userId = getUserId(getState);
-    const token = localStorage.getItem('token');
-
-    if (!userId) {
-      throw new Error('User ID not found. Please login again.');
-    }
-
-    const response = await axios.put(
-      `${API_BASE_URL}/api/notification-preferences`,
-      updates,
-      {
-        headers: {
-          ...getAuthHeaders(token),
-          'X-User-Id': userId,
+    try {
+      const { data } = await api.put("/api/notification-preferences", updates, {
+        params: {
+          targetId: targetId || "",
         },
-      }
-    );
+      });
 
-    dispatch({
-      type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_SUCCESS,
-      payload: response.data,
-    });
-
-    return response.data;
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Failed to update notification preference';
-    
-    dispatch({
-      type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_FAILURE,
-      payload: errorMessage,
-    });
-
-    throw error;
-  }
-};
+      dispatch({
+        type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_SUCCESS,
+        payload: data,
+      });
+      console.log("Updated notification preferences:", data);
+      return data;
+    } catch (error) {
+      console.error("Error updating notification preferences:", error);
+      dispatch({
+        type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_FAILURE,
+        payload: error.response?.data?.message || error.message,
+      });
+      throw error;
+    }
+  };
 
 /**
  * Reset notification preferences to defaults
  */
-export const resetNotificationPreferences = () => async (dispatch, getState) => {
+export const resetNotificationPreferences = (targetId) => async (dispatch) => {
+  dispatch({ type: actionTypes.RESET_NOTIFICATION_PREFERENCES_REQUEST });
+
   try {
-    dispatch({ type: actionTypes.RESET_NOTIFICATION_PREFERENCES_REQUEST });
-
-    const userId = getUserId(getState);
-    const token = localStorage.getItem('token');
-
-    if (!userId) {
-      throw new Error('User ID not found. Please login again.');
-    }
-
-    const response = await axios.post(
-      `${API_BASE_URL}/api/notification-preferences/reset`,
+    const { data } = await api.post(
+      "/api/notification-preferences/reset",
       null,
       {
-        headers: {
-          ...getAuthHeaders(token),
-          'X-User-Id': userId,
+        params: {
+          targetId: targetId || "",
         },
       }
     );
 
     dispatch({
       type: actionTypes.RESET_NOTIFICATION_PREFERENCES_SUCCESS,
-      payload: response.data,
+      payload: data,
     });
-
-    return response.data;
+    console.log("Reset notification preferences to defaults:", data);
+    return data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Failed to reset notification preferences';
-    
+    console.error("Error resetting notification preferences:", error);
     dispatch({
       type: actionTypes.RESET_NOTIFICATION_PREFERENCES_FAILURE,
-      payload: errorMessage,
+      payload: error.response?.data?.message || error.message,
     });
-
     throw error;
   }
 };
@@ -149,38 +97,26 @@ export const resetNotificationPreferences = () => async (dispatch, getState) => 
 /**
  * Delete notification preferences
  */
-export const deleteNotificationPreferences = () => async (dispatch, getState) => {
+export const deleteNotificationPreferences = (targetId) => async (dispatch) => {
+  dispatch({ type: actionTypes.DELETE_NOTIFICATION_PREFERENCES_REQUEST });
+
   try {
-    dispatch({ type: actionTypes.DELETE_NOTIFICATION_PREFERENCES_REQUEST });
-
-    const userId = getUserId(getState);
-    const token = localStorage.getItem('token');
-
-    if (!userId) {
-      throw new Error('User ID not found. Please login again.');
-    }
-
-    await axios.delete(
-      `${API_BASE_URL}/api/notification-preferences`,
-      {
-        headers: {
-          ...getAuthHeaders(token),
-          'X-User-Id': userId,
-        },
-      }
-    );
+    await api.delete("/api/notification-preferences", {
+      params: {
+        targetId: targetId || "",
+      },
+    });
 
     dispatch({
       type: actionTypes.DELETE_NOTIFICATION_PREFERENCES_SUCCESS,
     });
+    console.log("Deleted notification preferences successfully");
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Failed to delete notification preferences';
-    
+    console.error("Error deleting notification preferences:", error);
     dispatch({
       type: actionTypes.DELETE_NOTIFICATION_PREFERENCES_FAILURE,
-      payload: errorMessage,
+      payload: error.response?.data?.message || error.message,
     });
-
     throw error;
   }
 };
@@ -188,84 +124,70 @@ export const deleteNotificationPreferences = () => async (dispatch, getState) =>
 /**
  * Check if notification preferences exist
  */
-export const checkNotificationPreferencesExist = () => async (dispatch, getState) => {
-  try {
-    dispatch({ type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_REQUEST });
+export const checkNotificationPreferencesExist =
+  (targetId) => async (dispatch) => {
+    dispatch({
+      type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_REQUEST,
+    });
 
-    const userId = getUserId(getState);
-    const token = localStorage.getItem('token');
-
-    if (!userId) {
-      throw new Error('User ID not found. Please login again.');
-    }
-
-    const response = await axios.get(
-      `${API_BASE_URL}/api/notification-preferences/exists`,
-      {
-        headers: {
-          ...getAuthHeaders(token),
-          'X-User-Id': userId,
+    try {
+      const { data } = await api.get("/api/notification-preferences/exists", {
+        params: {
+          targetId: targetId || "",
         },
-      }
-    );
+      });
 
-    dispatch({
-      type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_SUCCESS,
-      payload: response.data,
-    });
-
-    return response.data;
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Failed to check notification preferences existence';
-    
-    dispatch({
-      type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_FAILURE,
-      payload: errorMessage,
-    });
-
-    throw error;
-  }
-};
+      dispatch({
+        type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_SUCCESS,
+        payload: data,
+      });
+      console.log("Notification preferences exist check:", data);
+      return data;
+    } catch (error) {
+      console.error(
+        "Error checking notification preferences existence:",
+        error
+      );
+      dispatch({
+        type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_FAILURE,
+        payload: error.response?.data?.message || error.message,
+      });
+      throw error;
+    }
+  };
 
 /**
  * Create default notification preferences
  */
-export const createDefaultNotificationPreferences = () => async (dispatch, getState) => {
-  try {
-    dispatch({ type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_REQUEST });
+export const createDefaultNotificationPreferences =
+  (targetId) => async (dispatch) => {
+    dispatch({
+      type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_REQUEST,
+    });
 
-    const userId = getUserId(getState);
-    const token = localStorage.getItem('token');
+    try {
+      const { data } = await api.post(
+        "/api/notification-preferences/default",
+        null,
+        {
+          params: {
+            targetId: targetId || "",
+          },
+        }
+      );
 
-    if (!userId) {
-      throw new Error('User ID not found. Please login again.');
+      dispatch({
+        type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_SUCCESS,
+        payload: data,
+      });
+      console.log("Created default notification preferences:", data);
+      return data;
+    } catch (error) {
+      console.error("Error creating default notification preferences:", error);
+      dispatch({
+        type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_FAILURE,
+        payload: error.response?.data?.message || error.message,
+      });
+      throw error;
     }
-
-    const response = await axios.post(
-      `${API_BASE_URL}/api/notification-preferences/default`,
-      null,
-      {
-        headers: {
-          ...getAuthHeaders(token),
-          'X-User-Id': userId,
-        },
-      }
-    );
-
-    dispatch({
-      type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_SUCCESS,
-      payload: response.data,
-    });
-
-    return response.data;
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message || 'Failed to create default notification preferences';
-    
-    dispatch({
-      type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_FAILURE,
-      payload: errorMessage,
-    });
-
-    throw error;
-  }
-};
+  };

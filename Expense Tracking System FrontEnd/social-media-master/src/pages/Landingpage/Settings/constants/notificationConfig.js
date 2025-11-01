@@ -123,7 +123,7 @@ export const NOTIFICATION_SERVICES = {
         },
       },
       {
-        id: "large_expense",
+        id: "large_expense_alert",
         type: "LARGE_EXPENSE_ALERT",
         title: "Large Expense Alert",
         description: "Get notified about expenses above a certain threshold",
@@ -463,7 +463,7 @@ export const NOTIFICATION_SERVICES = {
         },
       },
       {
-        id: "maintenance",
+        id: "maintenance_notice",
         type: "MAINTENANCE_NOTICE",
         title: "Maintenance Notices",
         description: "Scheduled maintenance and downtime alerts",

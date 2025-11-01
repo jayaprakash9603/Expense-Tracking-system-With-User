@@ -34,16 +34,15 @@ import {
 const NotificationSettings = () => {
   const navigate = useNavigate();
   const { colors, mode } = useTheme();
-  const { settings: userSettings } = useSelector(
-    (state) => state.userSettings || {}
-  );
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const isDark = mode === "dark";
 
   // Custom hooks
   const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
   const {
-    notificationPreferences,
+    preferences,
+    loading,
+    updating,
     updateMasterToggle,
     updateGlobalSetting,
     updateServiceToggle,
@@ -51,7 +50,7 @@ const NotificationSettings = () => {
     updateNotificationFrequency,
     updateNotificationMethod,
     resetToDefaults,
-  } = useNotificationSettings(userSettings, showSnackbar);
+  } = useNotificationSettings(showSnackbar);
 
   // Expanded state for service cards
   const [expandedServices, setExpandedServices] = useState({});
@@ -64,10 +63,101 @@ const NotificationSettings = () => {
     }));
   };
 
+  // Helper function to convert snake_case to camelCase
+  const toCamelCase = (str) => {
+    return str
+      .split("_")
+      .map((word, index) =>
+        index === 0
+          ? word.toLowerCase()
+          : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join("");
+  };
+
+  // Helper function to check if a notification is enabled
+  const isNotificationEnabled = (notificationId) => {
+    if (!preferences) return false;
+    const camelCaseId = toCamelCase(notificationId);
+    const fieldName = `${camelCaseId}Enabled`;
+    return preferences[fieldName] || false;
+  };
+
+  // Helper function to check if a service is enabled
+  const isServiceEnabled = (serviceId) => {
+    if (!preferences) return false;
+    const camelCaseId = toCamelCase(serviceId);
+    const fieldName = `${camelCaseId}Enabled`;
+    return preferences[fieldName] || false;
+  };
+
+  // Helper function to get notification frequency from JSON
+  const getNotificationFrequency = (notificationId) => {
+    if (!preferences?.notificationPreferencesJson) return "instant";
+
+    try {
+      const jsonPrefs = JSON.parse(preferences.notificationPreferencesJson);
+      return jsonPrefs?.frequency?.[notificationId] || "instant";
+    } catch (e) {
+      console.error("Error parsing notification preferences JSON:", e);
+      return "instant";
+    }
+  };
+
+  // Helper function to get delivery methods from JSON
+  const getDeliveryMethods = (notificationId) => {
+    console.log(`[getDeliveryMethods] Called for: ${notificationId}`);
+    console.log(`[getDeliveryMethods] preferences:`, preferences);
+    console.log(
+      `[getDeliveryMethods] JSON field:`,
+      preferences?.notificationPreferencesJson
+    );
+
+    if (!preferences?.notificationPreferencesJson) {
+      console.log(
+        `[getDeliveryMethods] No JSON preferences for ${notificationId}, using defaults`
+      );
+      return {
+        inApp: true,
+        email: false,
+        push: false,
+        sms: false,
+      };
+    }
+
+    try {
+      const jsonPrefs = JSON.parse(preferences.notificationPreferencesJson);
+      const methods = jsonPrefs?.deliveryMethods?.[notificationId] || [];
+
+      console.log(`[getDeliveryMethods] Parsed JSON:`, jsonPrefs);
+      console.log(
+        `[getDeliveryMethods] Methods array for ${notificationId}:`,
+        methods
+      );
+
+      const result = {
+        inApp: methods.includes("in_app"),
+        email: methods.includes("email"),
+        push: methods.includes("push"),
+        sms: methods.includes("sms"),
+      };
+
+      console.log(`[getDeliveryMethods] Returning:`, result);
+      return result;
+    } catch (e) {
+      console.error(`[getDeliveryMethods] Error parsing JSON:`, e);
+      return {
+        inApp: true,
+        email: false,
+        push: false,
+        sms: false,
+      };
+    }
+  };
+
   // Count enabled notifications for a service
   const getEnabledNotificationsCount = (serviceId) => {
-    const servicePrefs = notificationPreferences.services[serviceId];
-    if (!servicePrefs) return 0;
+    if (!preferences) return 0;
 
     const notifications =
       NOTIFICATION_SERVICES[
@@ -76,9 +166,8 @@ const NotificationSettings = () => {
         )
       ]?.notifications || [];
 
-    return notifications.filter(
-      (notif) => servicePrefs.notifications[notif.id]?.enabled
-    ).length;
+    return notifications.filter((notif) => isNotificationEnabled(notif.id))
+      .length;
   };
 
   return (
@@ -171,7 +260,7 @@ const NotificationSettings = () => {
                   title=""
                   description=""
                   isSwitch
-                  switchChecked={notificationPreferences.masterEnabled}
+                  switchChecked={preferences?.masterEnabled || false}
                   onSwitchChange={(e) => updateMasterToggle(e.target.checked)}
                   colors={colors}
                   hideBorder
@@ -241,7 +330,7 @@ const NotificationSettings = () => {
                   GLOBAL_NOTIFICATION_SETTINGS.DO_NOT_DISTURB.description
                 }
                 isSwitch
-                switchChecked={notificationPreferences.doNotDisturb}
+                switchChecked={preferences?.doNotDisturb || false}
                 onSwitchChange={(e) =>
                   updateGlobalSetting("doNotDisturb", e.target.checked)
                 }
@@ -258,7 +347,7 @@ const NotificationSettings = () => {
                   GLOBAL_NOTIFICATION_SETTINGS.NOTIFICATION_SOUND.description
                 }
                 isSwitch
-                switchChecked={notificationPreferences.notificationSound}
+                switchChecked={preferences?.notificationSound || false}
                 onSwitchChange={(e) =>
                   updateGlobalSetting("notificationSound", e.target.checked)
                 }
@@ -275,7 +364,7 @@ const NotificationSettings = () => {
                   GLOBAL_NOTIFICATION_SETTINGS.BROWSER_NOTIFICATIONS.description
                 }
                 isSwitch
-                switchChecked={notificationPreferences.browserNotifications}
+                switchChecked={preferences?.browserNotifications || false}
                 onSwitchChange={(e) =>
                   updateGlobalSetting("browserNotifications", e.target.checked)
                 }
@@ -299,15 +388,15 @@ const NotificationSettings = () => {
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {Object.values(NOTIFICATION_SERVICES).map((service) => {
-              const servicePrefs = notificationPreferences.services[service.id];
               const notificationCount = service.notifications.length;
               const enabledCount = getEnabledNotificationsCount(service.id);
+              const serviceEnabled = isServiceEnabled(service.id);
 
               return (
                 <NotificationServiceCard
                   key={service.id}
                   service={service}
-                  serviceEnabled={servicePrefs?.enabled ?? true}
+                  serviceEnabled={serviceEnabled}
                   onServiceToggle={(enabled) =>
                     updateServiceToggle(service.id, enabled)
                   }
@@ -325,33 +414,29 @@ const NotificationSettings = () => {
                       <NotificationItem
                         key={notification.id}
                         notification={notification}
-                        preferences={
-                          servicePrefs?.notifications[notification.id]
-                        }
+                        preferences={{
+                          enabled: isNotificationEnabled(notification.id),
+                          frequency: getNotificationFrequency(notification.id),
+                          methods: getDeliveryMethods(notification.id),
+                        }}
                         onToggle={(enabled) =>
-                          updateNotificationToggle(
-                            service.id,
-                            notification.id,
-                            enabled
-                          )
+                          updateNotificationToggle(notification.id, enabled)
                         }
                         onFrequencyChange={(frequency) =>
                           updateNotificationFrequency(
-                            service.id,
                             notification.id,
                             frequency
                           )
                         }
                         onMethodToggle={(method, enabled) =>
                           updateNotificationMethod(
-                            service.id,
                             notification.id,
                             method,
                             enabled
                           )
                         }
                         colors={colors}
-                        serviceEnabled={servicePrefs?.enabled ?? true}
+                        serviceEnabled={serviceEnabled}
                         serviceColor={service.color}
                       />
                     ))}

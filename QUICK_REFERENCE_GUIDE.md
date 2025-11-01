@@ -12,6 +12,7 @@
 ## 📁 File Locations
 
 ### Backend Files
+
 ```
 Notification-Service/
 ├── src/main/java/com/jaya/
@@ -35,6 +36,7 @@ Notification-Service/
 ```
 
 ### Frontend Files
+
 ```
 src/
 ├── config/
@@ -57,25 +59,28 @@ src/
 ## 🔌 API Endpoints
 
 ### Base URL
+
 ```
 http://localhost:8080/api/notification-preferences
 ```
 
 ### Endpoints
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/notification-preferences` | Get preferences |
-| PUT | `/api/notification-preferences` | Update preferences |
-| POST | `/api/notification-preferences/reset` | Reset to defaults |
-| DELETE | `/api/notification-preferences` | Delete preferences |
-| GET | `/api/notification-preferences/exists` | Check existence |
-| POST | `/api/notification-preferences/default` | Create defaults |
+
+| Method | Path                                    | Description        |
+| ------ | --------------------------------------- | ------------------ |
+| GET    | `/api/notification-preferences`         | Get preferences    |
+| PUT    | `/api/notification-preferences`         | Update preferences |
+| POST   | `/api/notification-preferences/reset`   | Reset to defaults  |
+| DELETE | `/api/notification-preferences`         | Delete preferences |
+| GET    | `/api/notification-preferences/exists`  | Check existence    |
+| POST   | `/api/notification-preferences/default` | Create defaults    |
 
 ---
 
 ## 💻 Code Snippets
 
 ### Backend: Get Preferences
+
 ```java
 // In Controller
 @GetMapping
@@ -87,6 +92,7 @@ public ResponseEntity<NotificationPreferencesResponseDTO> getPreferences(
 ```
 
 ### Backend: Update Preferences
+
 ```java
 // In Controller
 @PutMapping
@@ -99,30 +105,36 @@ public ResponseEntity<NotificationPreferencesResponseDTO> updatePreferences(
 ```
 
 ### Frontend: Fetch Preferences (Redux Action)
+
 ```javascript
-export const fetchNotificationPreferences = () => async (dispatch, getState) => {
-  try {
-    dispatch({ type: FETCH_PREFERENCES_REQUEST });
-    const { auth } = getState();
-    const preferences = await getNotificationPreferences(auth.user.id, auth.token);
-    dispatch({ type: FETCH_PREFERENCES_SUCCESS, payload: preferences });
-    return preferences;
-  } catch (error) {
-    dispatch({ type: FETCH_PREFERENCES_FAILURE, payload: error.message });
-    throw error;
-  }
-};
+export const fetchNotificationPreferences =
+  () => async (dispatch, getState) => {
+    try {
+      dispatch({ type: FETCH_PREFERENCES_REQUEST });
+      const { auth } = getState();
+      const preferences = await getNotificationPreferences(
+        auth.user.id,
+        auth.token
+      );
+      dispatch({ type: FETCH_PREFERENCES_SUCCESS, payload: preferences });
+      return preferences;
+    } catch (error) {
+      dispatch({ type: FETCH_PREFERENCES_FAILURE, payload: error.message });
+      throw error;
+    }
+  };
 ```
 
 ### Frontend: Update Preference (Redux Action)
+
 ```javascript
 export const updatePreference = (updates) => async (dispatch, getState) => {
   try {
     dispatch({ type: UPDATE_PREFERENCE_REQUEST });
     const { auth } = getState();
     const updated = await updateNotificationPreferences(
-      auth.user.id, 
-      auth.token, 
+      auth.user.id,
+      auth.token,
       updates
     );
     dispatch({ type: UPDATE_PREFERENCE_SUCCESS, payload: updated });
@@ -141,6 +153,7 @@ export const updatePreference = (updates) => async (dispatch, getState) => {
 ### cURL Examples
 
 **Get Preferences:**
+
 ```bash
 curl -X GET "http://localhost:8080/api/notification-preferences" \
   -H "X-User-Id: 1" \
@@ -148,6 +161,7 @@ curl -X GET "http://localhost:8080/api/notification-preferences" \
 ```
 
 **Update Master Toggle:**
+
 ```bash
 curl -X PUT "http://localhost:8080/api/notification-preferences" \
   -H "X-User-Id: 1" \
@@ -157,6 +171,7 @@ curl -X PUT "http://localhost:8080/api/notification-preferences" \
 ```
 
 **Reset to Defaults:**
+
 ```bash
 curl -X POST "http://localhost:8080/api/notification-preferences/reset" \
   -H "X-User-Id: 1" \
@@ -168,11 +183,13 @@ curl -X POST "http://localhost:8080/api/notification-preferences/reset" \
 ## 🗄️ Database
 
 ### Table Name
+
 ```
 notification_preferences
 ```
 
 ### Key Columns
+
 - `id` - Primary key (SERIAL)
 - `user_id` - User reference (INTEGER, UNIQUE, NOT NULL)
 - 40+ preference columns (BOOLEAN)
@@ -180,6 +197,7 @@ notification_preferences
 - `created_at`, `updated_at` (TIMESTAMP)
 
 ### Migration Script Location
+
 ```
 Notification-Service/src/main/resources/db/migration/
 V2__add_notification_preferences_fields.sql
@@ -192,17 +210,20 @@ V2__add_notification_preferences_fields.sql
 ### Add New Notification Type
 
 **1. Backend Entity:**
+
 ```java
 @Column(name = "new_notification_enabled")
 private Boolean newNotificationEnabled;
 ```
 
 **2. Backend Service (Defaults):**
+
 ```java
 .newNotificationEnabled(true)
 ```
 
 **3. Frontend Config:**
+
 ```javascript
 // In notificationConfig.js
 {
@@ -222,6 +243,7 @@ private Boolean newNotificationEnabled;
 ## ⚙️ Environment Setup
 
 ### Backend (.env or application.yml)
+
 ```yaml
 spring:
   datasource:
@@ -231,6 +253,7 @@ spring:
 ```
 
 ### Frontend (.env)
+
 ```env
 REACT_APP_API_URL=http://localhost:8080
 ```
@@ -240,24 +263,28 @@ REACT_APP_API_URL=http://localhost:8080
 ## 🔧 Common Tasks
 
 ### Start Backend Service
+
 ```bash
 cd Notification-Service
 mvn spring-boot:run
 ```
 
 ### Start Frontend
+
 ```bash
 cd "Expense Tracking System FrontEnd/social-media-master"
 npm start
 ```
 
 ### Build Backend
+
 ```bash
 cd Notification-Service
 mvn clean package
 ```
 
 ### Build Frontend
+
 ```bash
 cd "Expense Tracking System FrontEnd/social-media-master"
 npm run build
@@ -268,6 +295,7 @@ npm run build
 ## 🐛 Troubleshooting
 
 ### Backend Not Starting
+
 ```bash
 # Check if port 8080 is available
 netstat -ano | findstr :8080
@@ -277,6 +305,7 @@ psql -U your_username -d expense_db -c "SELECT 1;"
 ```
 
 ### Frontend Not Connecting
+
 ```bash
 # Check .env file
 cat .env
@@ -286,7 +315,9 @@ console.log(process.env.REACT_APP_API_URL)
 ```
 
 ### CORS Issues
+
 Add to backend `application.yml`:
+
 ```yaml
 spring:
   web:
@@ -302,6 +333,7 @@ spring:
 ### Check Logs
 
 **Backend:**
+
 ```bash
 tail -f logs/notification-service.log
 ```
@@ -314,11 +346,13 @@ Open browser console (F12) → Console tab
 ## 🚦 Status Indicators
 
 ### Backend Health Check
+
 ```bash
 curl http://localhost:8080/actuator/health
 ```
 
 ### Database Connection
+
 ```bash
 psql -U postgres -c "SELECT COUNT(*) FROM notification_preferences;"
 ```
@@ -327,24 +361,26 @@ psql -U postgres -c "SELECT COUNT(*) FROM notification_preferences;"
 
 ## 📝 Documentation Quick Links
 
-| Document | Purpose | Location |
-|----------|---------|----------|
-| API Documentation | Complete API reference | `NOTIFICATION_PREFERENCES_API_DOCUMENTATION.md` |
-| Backend Summary | Backend architecture | `BACKEND_IMPLEMENTATION_SUMMARY.md` |
-| Integration Guide | Frontend-Backend integration | `FRONTEND_BACKEND_INTEGRATION_GUIDE.md` |
-| Frontend Docs | Component documentation | `NOTIFICATION_SETTINGS_DOCUMENTATION.md` |
-| Complete Summary | Overall project summary | `NOTIFICATION_SETTINGS_COMPLETE_SUMMARY.md` |
+| Document          | Purpose                      | Location                                        |
+| ----------------- | ---------------------------- | ----------------------------------------------- |
+| API Documentation | Complete API reference       | `NOTIFICATION_PREFERENCES_API_DOCUMENTATION.md` |
+| Backend Summary   | Backend architecture         | `BACKEND_IMPLEMENTATION_SUMMARY.md`             |
+| Integration Guide | Frontend-Backend integration | `FRONTEND_BACKEND_INTEGRATION_GUIDE.md`         |
+| Frontend Docs     | Component documentation      | `NOTIFICATION_SETTINGS_DOCUMENTATION.md`        |
+| Complete Summary  | Overall project summary      | `NOTIFICATION_SETTINGS_COMPLETE_SUMMARY.md`     |
 
 ---
 
 ## 🎯 Key Features
 
 ### Multi-Level Control
+
 - ✅ Master toggle (all notifications)
 - ✅ Service-level toggles (7 services)
 - ✅ Individual notification toggles (25+ types)
 
 ### Advanced Settings
+
 - ✅ Do Not Disturb mode
 - ✅ Notification sound
 - ✅ Browser notifications
@@ -353,6 +389,7 @@ psql -U postgres -c "SELECT COUNT(*) FROM notification_preferences;"
 - ✅ Quiet hours
 
 ### Services Covered
+
 1. **Expense Service** (4 notification types)
 2. **Budget Service** (5 notification types)
 3. **Bill Service** (3 notification types)
@@ -385,6 +422,7 @@ psql -U postgres -c "SELECT COUNT(*) FROM notification_preferences;"
 ## ✅ Checklist for Deployment
 
 ### Pre-Deployment
+
 - [ ] All tests passing
 - [ ] Database migration script ready
 - [ ] Environment variables configured
@@ -392,6 +430,7 @@ psql -U postgres -c "SELECT COUNT(*) FROM notification_preferences;"
 - [ ] API Gateway routing configured (if applicable)
 
 ### Deployment
+
 - [ ] Deploy backend service
 - [ ] Run database migration
 - [ ] Deploy frontend
@@ -399,6 +438,7 @@ psql -U postgres -c "SELECT COUNT(*) FROM notification_preferences;"
 - [ ] Test all API endpoints
 
 ### Post-Deployment
+
 - [ ] Monitor logs for errors
 - [ ] Check performance metrics
 - [ ] Verify user preferences are saving
@@ -409,6 +449,7 @@ psql -U postgres -c "SELECT COUNT(*) FROM notification_preferences;"
 ## 🆘 Support
 
 ### Get Help
+
 1. Check documentation files (listed above)
 2. Review code comments (comprehensive JavaDoc)
 3. Check logs for error messages
@@ -416,7 +457,9 @@ psql -U postgres -c "SELECT COUNT(*) FROM notification_preferences;"
 5. Contact development team
 
 ### Report Issues
+
 Include:
+
 - Error message
 - Steps to reproduce
 - Expected vs actual behavior
@@ -428,6 +471,7 @@ Include:
 ## 📦 Package Structure
 
 ### Backend Packages
+
 ```
 com.jaya
 ├── modal          (Entities)
@@ -439,6 +483,7 @@ com.jaya
 ```
 
 ### Frontend Structure
+
 ```
 src
 ├── config         (Configuration)

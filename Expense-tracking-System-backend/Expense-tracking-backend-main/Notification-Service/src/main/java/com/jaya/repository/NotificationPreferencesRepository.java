@@ -16,6 +16,7 @@ public interface NotificationPreferencesRepository extends JpaRepository<Notific
 
     /**
      * Find notification preferences by user ID
+     * 
      * @param userId the user ID
      * @return Optional containing the notification preferences if found
      */
@@ -23,6 +24,7 @@ public interface NotificationPreferencesRepository extends JpaRepository<Notific
 
     /**
      * Check if notification preferences exist for a user
+     * 
      * @param userId the user ID
      * @return true if preferences exist, false otherwise
      */
@@ -30,6 +32,7 @@ public interface NotificationPreferencesRepository extends JpaRepository<Notific
 
     /**
      * Delete notification preferences by user ID
+     * 
      * @param userId the user ID
      */
     void deleteByUserId(Integer userId);

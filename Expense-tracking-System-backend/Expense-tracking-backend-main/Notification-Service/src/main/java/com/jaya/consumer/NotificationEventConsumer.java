@@ -5,6 +5,8 @@ import com.jaya.dto.events.*;
 import com.jaya.modal.Notification;
 import com.jaya.modal.NotificationPriority;
 import com.jaya.modal.NotificationType;
+import com.jaya.modal.NotificationPreferences;
+import com.jaya.repository.NotificationPreferencesRepository;
 import com.jaya.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +16,13 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Kafka Event Consumer for Notification Service
  * Listens to events from all services and creates notifications
  * Sends real-time notifications via WebSocket
+ * Respects user notification preferences
  */
 @Service
 @Slf4j
@@ -28,6 +32,7 @@ public class NotificationEventConsumer {
     private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
+    private final NotificationPreferencesRepository preferencesRepository;
 
     // =========================
     // HELPER METHODS

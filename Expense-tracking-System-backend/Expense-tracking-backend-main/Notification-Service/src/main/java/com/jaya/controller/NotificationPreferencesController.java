@@ -2,9 +2,12 @@ package com.jaya.controller;
 
 import com.jaya.dto.NotificationPreferencesResponseDTO;
 import com.jaya.dto.UpdateNotificationPreferencesRequest;
+import com.jaya.modal.UserDto;
 import com.jaya.service.NotificationPreferencesService;
+import com.jaya.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,98 +26,137 @@ public class NotificationPreferencesController {
 
     private final NotificationPreferencesService service;
 
+    @Autowired
+    private UserService userService;
+
     /**
      * Get notification preferences for the current user
      * Creates default preferences if none exist
      * 
-     * @param userId User ID from JWT token or request header
+     * @param jwt JWT token from Authorization header
      * @return Notification preferences for the user
      */
     @GetMapping
     public ResponseEntity<NotificationPreferencesResponseDTO> getPreferences(
-            @RequestHeader("X-User-Id") Integer userId) {
-        log.info("GET /api/notification-preferences - User: {}", userId);
-        
-        NotificationPreferencesResponseDTO preferences = service.getPreferences(userId);
-        return ResponseEntity.ok(preferences);
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            log.info("GET /api/notification-preferences - User: {}", user.getId());
+
+            NotificationPreferencesResponseDTO preferences = service.getPreferences(user.getId());
+            return ResponseEntity.ok(preferences);
+        } catch (Exception e) {
+            log.error("Error fetching notification preferences: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
      * Update notification preferences for the current user
      * Supports partial updates - only provided fields are updated
      * 
-     * @param userId User ID from JWT token or request header
+     * @param jwt     JWT token from Authorization header
      * @param request Update request with new preference values
      * @return Updated notification preferences
      */
     @PutMapping
     public ResponseEntity<NotificationPreferencesResponseDTO> updatePreferences(
-            @RequestHeader("X-User-Id") Integer userId,
+            @RequestHeader("Authorization") String jwt,
             @RequestBody UpdateNotificationPreferencesRequest request) {
-        log.info("PUT /api/notification-preferences - User: {}", userId);
-        
-        NotificationPreferencesResponseDTO updated = service.updatePreferences(userId, request);
-        return ResponseEntity.ok(updated);
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            log.info("PUT /api/notification-preferences - User: {}", user.getId());
+
+            NotificationPreferencesResponseDTO updated = service.updatePreferences(user.getId(), request);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            log.error("Error updating notification preferences: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
      * Reset notification preferences to default values
      * 
-     * @param userId User ID from JWT token or request header
+     * @param jwt JWT token from Authorization header
      * @return Default notification preferences
      */
     @PostMapping("/reset")
     public ResponseEntity<NotificationPreferencesResponseDTO> resetToDefaults(
-            @RequestHeader("X-User-Id") Integer userId) {
-        log.info("POST /api/notification-preferences/reset - User: {}", userId);
-        
-        NotificationPreferencesResponseDTO defaults = service.resetToDefaults(userId);
-        return ResponseEntity.ok(defaults);
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            log.info("POST /api/notification-preferences/reset - User: {}", user.getId());
+
+            NotificationPreferencesResponseDTO defaults = service.resetToDefaults(user.getId());
+            return ResponseEntity.ok(defaults);
+        } catch (Exception e) {
+            log.error("Error resetting notification preferences: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
      * Delete notification preferences for the current user
      * 
-     * @param userId User ID from JWT token or request header
+     * @param jwt JWT token from Authorization header
      * @return No content
      */
     @DeleteMapping
     public ResponseEntity<Void> deletePreferences(
-            @RequestHeader("X-User-Id") Integer userId) {
-        log.info("DELETE /api/notification-preferences - User: {}", userId);
-        
-        service.deletePreferences(userId);
-        return ResponseEntity.noContent().build();
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            log.info("DELETE /api/notification-preferences - User: {}", user.getId());
+
+            service.deletePreferences(user.getId());
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            log.error("Error deleting notification preferences: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
      * Check if notification preferences exist for the current user
      * 
-     * @param userId User ID from JWT token or request header
+     * @param jwt JWT token from Authorization header
      * @return True if preferences exist, false otherwise
      */
     @GetMapping("/exists")
     public ResponseEntity<Boolean> preferencesExist(
-            @RequestHeader("X-User-Id") Integer userId) {
-        log.debug("GET /api/notification-preferences/exists - User: {}", userId);
-        
-        boolean exists = service.preferencesExist(userId);
-        return ResponseEntity.ok(exists);
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            log.debug("GET /api/notification-preferences/exists - User: {}", user.getId());
+
+            boolean exists = service.preferencesExist(user.getId());
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            log.error("Error checking notification preferences existence: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
     }
 
     /**
      * Create default notification preferences for the current user
      * Returns existing preferences if already created
      * 
-     * @param userId User ID from JWT token or request header
+     * @param jwt JWT token from Authorization header
      * @return Created default preferences
      */
     @PostMapping("/default")
     public ResponseEntity<NotificationPreferencesResponseDTO> createDefaults(
-            @RequestHeader("X-User-Id") Integer userId) {
-        log.info("POST /api/notification-preferences/default - User: {}", userId);
-        
-        NotificationPreferencesResponseDTO defaults = service.createDefaultPreferences(userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(defaults);
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            log.info("POST /api/notification-preferences/default - User: {}", user.getId());
+
+            NotificationPreferencesResponseDTO defaults = service.createDefaultPreferences(user.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(defaults);
+        } catch (Exception e) {
+            log.error("Error creating default notification preferences: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

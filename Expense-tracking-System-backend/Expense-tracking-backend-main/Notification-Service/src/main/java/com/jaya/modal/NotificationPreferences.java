@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 /**
  * NotificationPreferences Entity
  * Stores comprehensive notification settings for each user
- * Supports multi-level configuration: global, service-level, and notification-level
+ * Supports multi-level configuration: global, service-level, and
+ * notification-level
  * 
  * Architecture:
  * - Master toggle for all notifications
@@ -37,7 +38,7 @@ public class NotificationPreferences {
     // ============================================
     // GLOBAL SETTINGS
     // ============================================
-    
+
     @Column(name = "master_enabled", nullable = false)
     private Boolean masterEnabled = true;
 
@@ -53,7 +54,7 @@ public class NotificationPreferences {
     // ============================================
     // SERVICE-LEVEL TOGGLES
     // ============================================
-    
+
     @Column(name = "expense_service_enabled", nullable = false)
     private Boolean expenseServiceEnabled = true;
 
@@ -78,7 +79,7 @@ public class NotificationPreferences {
     // ============================================
     // EXPENSE SERVICE NOTIFICATIONS
     // ============================================
-    
+
     @Column(name = "expense_added_enabled", nullable = false)
     private Boolean expenseAddedEnabled = true;
 
@@ -94,7 +95,7 @@ public class NotificationPreferences {
     // ============================================
     // BUDGET SERVICE NOTIFICATIONS
     // ============================================
-    
+
     @Column(name = "budget_exceeded_enabled", nullable = false)
     private Boolean budgetExceededEnabled = true;
 
@@ -113,7 +114,7 @@ public class NotificationPreferences {
     // ============================================
     // BILL SERVICE NOTIFICATIONS
     // ============================================
-    
+
     @Column(name = "bill_due_reminder_enabled", nullable = false)
     private Boolean billDueReminderEnabled = true;
 
@@ -126,7 +127,7 @@ public class NotificationPreferences {
     // ============================================
     // PAYMENT METHOD SERVICE NOTIFICATIONS
     // ============================================
-    
+
     @Column(name = "payment_method_added_enabled", nullable = false)
     private Boolean paymentMethodAddedEnabled = true;
 
@@ -139,7 +140,7 @@ public class NotificationPreferences {
     // ============================================
     // FRIEND SERVICE NOTIFICATIONS
     // ============================================
-    
+
     @Column(name = "friend_request_received_enabled", nullable = false)
     private Boolean friendRequestReceivedEnabled = true;
 
@@ -152,7 +153,7 @@ public class NotificationPreferences {
     // ============================================
     // ANALYTICS SERVICE NOTIFICATIONS
     // ============================================
-    
+
     @Column(name = "weekly_summary_enabled", nullable = false)
     private Boolean weeklySummaryEnabled = true;
 
@@ -165,7 +166,7 @@ public class NotificationPreferences {
     // ============================================
     // SYSTEM NOTIFICATIONS
     // ============================================
-    
+
     @Column(name = "security_alert_enabled", nullable = false)
     private Boolean securityAlertEnabled = true;
 
@@ -178,14 +179,14 @@ public class NotificationPreferences {
     // ============================================
     // DELIVERY METHODS (JSON format for flexibility)
     // ============================================
-    
+
     @Column(name = "notification_preferences_json", columnDefinition = "TEXT")
     private String notificationPreferencesJson;
 
     // ============================================
     // LEGACY FIELDS (Keep for backward compatibility)
     // ============================================
-    
+
     @Column(name = "budget_alerts_enabled", nullable = false)
     private Boolean budgetAlertsEnabled = true;
 

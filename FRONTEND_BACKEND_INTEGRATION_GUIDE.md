@@ -1,4 +1,5 @@
 # Frontend-Backend Integration Guide
+
 ## Notification Preferences System
 
 This guide walks through integrating the frontend notification settings with the backend API.
@@ -8,6 +9,7 @@ This guide walks through integrating the frontend notification settings with the
 ## Overview
 
 The notification preferences system is now fully implemented:
+
 - ✅ **Frontend:** React components, Redux hooks, configuration
 - ✅ **Backend:** REST API with full CRUD operations
 - ⏳ **Integration:** Connect frontend to backend (this guide)
@@ -39,10 +41,10 @@ Database (notification_preferences table)
 ### File: `src/services/notificationPreferencesApi.js`
 
 ```javascript
-import axios from 'axios';
+import axios from "axios";
 
 // Base URL - adjust according to your environment
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 const PREFERENCES_URL = `${BASE_URL}/api/notification-preferences`;
 
 /**
@@ -53,13 +55,13 @@ export const getNotificationPreferences = async (userId, token) => {
   try {
     const response = await axios.get(PREFERENCES_URL, {
       headers: {
-        'X-User-Id': userId,
-        'Authorization': `Bearer ${token}`
-      }
+        "X-User-Id": userId,
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data;
   } catch (error) {
-    console.error('Error fetching notification preferences:', error);
+    console.error("Error fetching notification preferences:", error);
     throw error;
   }
 };
@@ -72,14 +74,14 @@ export const updateNotificationPreferences = async (userId, token, updates) => {
   try {
     const response = await axios.put(PREFERENCES_URL, updates, {
       headers: {
-        'X-User-Id': userId,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+        "X-User-Id": userId,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
     return response.data;
   } catch (error) {
-    console.error('Error updating notification preferences:', error);
+    console.error("Error updating notification preferences:", error);
     throw error;
   }
 };
@@ -91,13 +93,13 @@ export const resetNotificationPreferences = async (userId, token) => {
   try {
     const response = await axios.post(`${PREFERENCES_URL}/reset`, null, {
       headers: {
-        'X-User-Id': userId,
-        'Authorization': `Bearer ${token}`
-      }
+        "X-User-Id": userId,
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data;
   } catch (error) {
-    console.error('Error resetting notification preferences:', error);
+    console.error("Error resetting notification preferences:", error);
     throw error;
   }
 };
@@ -109,12 +111,12 @@ export const deleteNotificationPreferences = async (userId, token) => {
   try {
     await axios.delete(PREFERENCES_URL, {
       headers: {
-        'X-User-Id': userId,
-        'Authorization': `Bearer ${token}`
-      }
+        "X-User-Id": userId,
+        Authorization: `Bearer ${token}`,
+      },
     });
   } catch (error) {
-    console.error('Error deleting notification preferences:', error);
+    console.error("Error deleting notification preferences:", error);
     throw error;
   }
 };
@@ -126,13 +128,13 @@ export const checkPreferencesExist = async (userId, token) => {
   try {
     const response = await axios.get(`${PREFERENCES_URL}/exists`, {
       headers: {
-        'X-User-Id': userId,
-        'Authorization': `Bearer ${token}`
-      }
+        "X-User-Id": userId,
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data;
   } catch (error) {
-    console.error('Error checking preferences existence:', error);
+    console.error("Error checking preferences existence:", error);
     throw error;
   }
 };
@@ -148,54 +150,55 @@ export const checkPreferencesExist = async (userId, token) => {
 import {
   getNotificationPreferences,
   updateNotificationPreferences,
-  resetNotificationPreferences
-} from '../services/notificationPreferencesApi';
+  resetNotificationPreferences,
+} from "../services/notificationPreferencesApi";
 
 // Action Types
-export const FETCH_PREFERENCES_REQUEST = 'FETCH_PREFERENCES_REQUEST';
-export const FETCH_PREFERENCES_SUCCESS = 'FETCH_PREFERENCES_SUCCESS';
-export const FETCH_PREFERENCES_FAILURE = 'FETCH_PREFERENCES_FAILURE';
+export const FETCH_PREFERENCES_REQUEST = "FETCH_PREFERENCES_REQUEST";
+export const FETCH_PREFERENCES_SUCCESS = "FETCH_PREFERENCES_SUCCESS";
+export const FETCH_PREFERENCES_FAILURE = "FETCH_PREFERENCES_FAILURE";
 
-export const UPDATE_PREFERENCE_REQUEST = 'UPDATE_PREFERENCE_REQUEST';
-export const UPDATE_PREFERENCE_SUCCESS = 'UPDATE_PREFERENCE_SUCCESS';
-export const UPDATE_PREFERENCE_FAILURE = 'UPDATE_PREFERENCE_FAILURE';
+export const UPDATE_PREFERENCE_REQUEST = "UPDATE_PREFERENCE_REQUEST";
+export const UPDATE_PREFERENCE_SUCCESS = "UPDATE_PREFERENCE_SUCCESS";
+export const UPDATE_PREFERENCE_FAILURE = "UPDATE_PREFERENCE_FAILURE";
 
-export const RESET_PREFERENCES_REQUEST = 'RESET_PREFERENCES_REQUEST';
-export const RESET_PREFERENCES_SUCCESS = 'RESET_PREFERENCES_SUCCESS';
-export const RESET_PREFERENCES_FAILURE = 'RESET_PREFERENCES_FAILURE';
+export const RESET_PREFERENCES_REQUEST = "RESET_PREFERENCES_REQUEST";
+export const RESET_PREFERENCES_SUCCESS = "RESET_PREFERENCES_SUCCESS";
+export const RESET_PREFERENCES_FAILURE = "RESET_PREFERENCES_FAILURE";
 
 /**
  * Fetch notification preferences
  * Auto-creates defaults if none exist
  */
-export const fetchNotificationPreferences = () => async (dispatch, getState) => {
-  try {
-    dispatch({ type: FETCH_PREFERENCES_REQUEST });
-    
-    const { auth } = getState();
-    const userId = auth.user?.id;
-    const token = auth.token || localStorage.getItem('token');
-    
-    if (!userId || !token) {
-      throw new Error('User not authenticated');
+export const fetchNotificationPreferences =
+  () => async (dispatch, getState) => {
+    try {
+      dispatch({ type: FETCH_PREFERENCES_REQUEST });
+
+      const { auth } = getState();
+      const userId = auth.user?.id;
+      const token = auth.token || localStorage.getItem("token");
+
+      if (!userId || !token) {
+        throw new Error("User not authenticated");
+      }
+
+      const preferences = await getNotificationPreferences(userId, token);
+
+      dispatch({
+        type: FETCH_PREFERENCES_SUCCESS,
+        payload: preferences,
+      });
+
+      return preferences;
+    } catch (error) {
+      dispatch({
+        type: FETCH_PREFERENCES_FAILURE,
+        payload: error.message,
+      });
+      throw error;
     }
-    
-    const preferences = await getNotificationPreferences(userId, token);
-    
-    dispatch({
-      type: FETCH_PREFERENCES_SUCCESS,
-      payload: preferences
-    });
-    
-    return preferences;
-  } catch (error) {
-    dispatch({
-      type: FETCH_PREFERENCES_FAILURE,
-      payload: error.message
-    });
-    throw error;
-  }
-};
+  };
 
 /**
  * Update notification preference (partial update)
@@ -204,31 +207,31 @@ export const fetchNotificationPreferences = () => async (dispatch, getState) => 
 export const updatePreference = (updates) => async (dispatch, getState) => {
   try {
     dispatch({ type: UPDATE_PREFERENCE_REQUEST });
-    
+
     const { auth } = getState();
     const userId = auth.user?.id;
-    const token = auth.token || localStorage.getItem('token');
-    
+    const token = auth.token || localStorage.getItem("token");
+
     if (!userId || !token) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
-    
+
     const updatedPreferences = await updateNotificationPreferences(
       userId,
       token,
       updates
     );
-    
+
     dispatch({
       type: UPDATE_PREFERENCE_SUCCESS,
-      payload: updatedPreferences
+      payload: updatedPreferences,
     });
-    
+
     return updatedPreferences;
   } catch (error) {
     dispatch({
       type: UPDATE_PREFERENCE_FAILURE,
-      payload: error.message
+      payload: error.message,
     });
     throw error;
   }
@@ -240,27 +243,30 @@ export const updatePreference = (updates) => async (dispatch, getState) => {
 export const resetPreferences = () => async (dispatch, getState) => {
   try {
     dispatch({ type: RESET_PREFERENCES_REQUEST });
-    
+
     const { auth } = getState();
     const userId = auth.user?.id;
-    const token = auth.token || localStorage.getItem('token');
-    
+    const token = auth.token || localStorage.getItem("token");
+
     if (!userId || !token) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
-    
-    const defaultPreferences = await resetNotificationPreferences(userId, token);
-    
+
+    const defaultPreferences = await resetNotificationPreferences(
+      userId,
+      token
+    );
+
     dispatch({
       type: RESET_PREFERENCES_SUCCESS,
-      payload: defaultPreferences
+      payload: defaultPreferences,
     });
-    
+
     return defaultPreferences;
   } catch (error) {
     dispatch({
       type: RESET_PREFERENCES_FAILURE,
-      payload: error.message
+      payload: error.message,
     });
     throw error;
   }
@@ -283,14 +289,14 @@ import {
   UPDATE_PREFERENCE_FAILURE,
   RESET_PREFERENCES_REQUEST,
   RESET_PREFERENCES_SUCCESS,
-  RESET_PREFERENCES_FAILURE
-} from './notificationPreferencesActions';
+  RESET_PREFERENCES_FAILURE,
+} from "./notificationPreferencesActions";
 
 const initialState = {
   preferences: null,
   loading: false,
   error: null,
-  updating: false
+  updating: false,
 };
 
 const notificationPreferencesReducer = (state = initialState, action) => {
@@ -299,68 +305,68 @@ const notificationPreferencesReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: true,
-        error: null
+        error: null,
       };
-    
+
     case FETCH_PREFERENCES_SUCCESS:
       return {
         ...state,
         preferences: action.payload,
         loading: false,
-        error: null
+        error: null,
       };
-    
+
     case FETCH_PREFERENCES_FAILURE:
       return {
         ...state,
         loading: false,
-        error: action.payload
+        error: action.payload,
       };
-    
+
     case UPDATE_PREFERENCE_REQUEST:
       return {
         ...state,
         updating: true,
-        error: null
+        error: null,
       };
-    
+
     case UPDATE_PREFERENCE_SUCCESS:
       return {
         ...state,
         preferences: action.payload,
         updating: false,
-        error: null
+        error: null,
       };
-    
+
     case UPDATE_PREFERENCE_FAILURE:
       return {
         ...state,
         updating: false,
-        error: action.payload
+        error: action.payload,
       };
-    
+
     case RESET_PREFERENCES_REQUEST:
       return {
         ...state,
         loading: true,
-        error: null
+        error: null,
       };
-    
+
     case RESET_PREFERENCES_SUCCESS:
       return {
         ...state,
         preferences: action.payload,
         loading: false,
-        error: null
+        error: null,
       };
-    
+
     case RESET_PREFERENCES_FAILURE:
       return {
         ...state,
         loading: false,
-        error: action.payload
+        error: action.payload,
       };
-    
+
     default:
       return state;
   }
@@ -376,8 +382,8 @@ export default notificationPreferencesReducer;
 ### File: `src/Redux/store.js` (or wherever your store is configured)
 
 ```javascript
-import { configureStore } from '@reduxjs/toolkit';
-import notificationPreferencesReducer from './notificationPreferencesReducer';
+import { configureStore } from "@reduxjs/toolkit";
+import notificationPreferencesReducer from "./notificationPreferencesReducer";
 // ... other imports
 
 const store = configureStore({
@@ -401,134 +407,148 @@ export default store;
 Replace the mock implementation with Redux integration:
 
 ```javascript
-import { useState, useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   fetchNotificationPreferences,
   updatePreference,
-  resetPreferences
-} from '../Redux/notificationPreferencesActions';
-import { useSnackbar } from './useSnackbar';
-import { NOTIFICATION_SERVICES, GLOBAL_NOTIFICATION_SETTINGS } from '../config/notificationConfig';
+  resetPreferences,
+} from "../Redux/notificationPreferencesActions";
+import { useSnackbar } from "./useSnackbar";
+import {
+  NOTIFICATION_SERVICES,
+  GLOBAL_NOTIFICATION_SETTINGS,
+} from "../config/notificationConfig";
 
 export const useNotificationSettings = () => {
   const dispatch = useDispatch();
   const { showSnackbar } = useSnackbar();
-  
+
   // Get preferences from Redux store
   const { preferences, loading, error, updating } = useSelector(
-    state => state.notificationPreferences
+    (state) => state.notificationPreferences
   );
-  
+
   const [localPreferences, setLocalPreferences] = useState(null);
-  
+
   // Fetch preferences on mount
   useEffect(() => {
     if (!preferences) {
-      dispatch(fetchNotificationPreferences())
-        .catch(err => {
-          showSnackbar('Failed to load notification preferences', 'error');
-        });
+      dispatch(fetchNotificationPreferences()).catch((err) => {
+        showSnackbar("Failed to load notification preferences", "error");
+      });
     }
   }, [dispatch, preferences, showSnackbar]);
-  
+
   // Sync local state with Redux
   useEffect(() => {
     if (preferences) {
       setLocalPreferences(preferences);
     }
   }, [preferences]);
-  
+
   /**
    * Update master toggle
    */
-  const updateMasterToggle = useCallback(async (enabled) => {
-    try {
-      // Optimistic update
-      setLocalPreferences(prev => ({ ...prev, masterEnabled: enabled }));
-      
-      await dispatch(updatePreference({ masterEnabled: enabled }));
-      showSnackbar(
-        enabled ? 'Notifications enabled' : 'Notifications disabled',
-        'success'
-      );
-    } catch (error) {
-      // Rollback on error
-      setLocalPreferences(preferences);
-      showSnackbar('Failed to update master toggle', 'error');
-    }
-  }, [dispatch, preferences, showSnackbar]);
-  
+  const updateMasterToggle = useCallback(
+    async (enabled) => {
+      try {
+        // Optimistic update
+        setLocalPreferences((prev) => ({ ...prev, masterEnabled: enabled }));
+
+        await dispatch(updatePreference({ masterEnabled: enabled }));
+        showSnackbar(
+          enabled ? "Notifications enabled" : "Notifications disabled",
+          "success"
+        );
+      } catch (error) {
+        // Rollback on error
+        setLocalPreferences(preferences);
+        showSnackbar("Failed to update master toggle", "error");
+      }
+    },
+    [dispatch, preferences, showSnackbar]
+  );
+
   /**
    * Update global setting
    */
-  const updateGlobalSetting = useCallback(async (key, value) => {
-    try {
-      // Optimistic update
-      setLocalPreferences(prev => ({ ...prev, [key]: value }));
-      
-      await dispatch(updatePreference({ [key]: value }));
-      showSnackbar('Setting updated successfully', 'success');
-    } catch (error) {
-      // Rollback on error
-      setLocalPreferences(preferences);
-      showSnackbar('Failed to update setting', 'error');
-    }
-  }, [dispatch, preferences, showSnackbar]);
-  
+  const updateGlobalSetting = useCallback(
+    async (key, value) => {
+      try {
+        // Optimistic update
+        setLocalPreferences((prev) => ({ ...prev, [key]: value }));
+
+        await dispatch(updatePreference({ [key]: value }));
+        showSnackbar("Setting updated successfully", "success");
+      } catch (error) {
+        // Rollback on error
+        setLocalPreferences(preferences);
+        showSnackbar("Failed to update setting", "error");
+      }
+    },
+    [dispatch, preferences, showSnackbar]
+  );
+
   /**
    * Update service toggle
    */
-  const updateServiceToggle = useCallback(async (serviceId, enabled) => {
-    try {
-      const key = `${serviceId}ServiceEnabled`;
-      
-      // Optimistic update
-      setLocalPreferences(prev => ({ ...prev, [key]: enabled }));
-      
-      await dispatch(updatePreference({ [key]: enabled }));
-      showSnackbar(
-        `${serviceId} notifications ${enabled ? 'enabled' : 'disabled'}`,
-        'success'
-      );
-    } catch (error) {
-      // Rollback on error
-      setLocalPreferences(preferences);
-      showSnackbar('Failed to update service toggle', 'error');
-    }
-  }, [dispatch, preferences, showSnackbar]);
-  
+  const updateServiceToggle = useCallback(
+    async (serviceId, enabled) => {
+      try {
+        const key = `${serviceId}ServiceEnabled`;
+
+        // Optimistic update
+        setLocalPreferences((prev) => ({ ...prev, [key]: enabled }));
+
+        await dispatch(updatePreference({ [key]: enabled }));
+        showSnackbar(
+          `${serviceId} notifications ${enabled ? "enabled" : "disabled"}`,
+          "success"
+        );
+      } catch (error) {
+        // Rollback on error
+        setLocalPreferences(preferences);
+        showSnackbar("Failed to update service toggle", "error");
+      }
+    },
+    [dispatch, preferences, showSnackbar]
+  );
+
   /**
    * Update notification toggle
    */
-  const updateNotificationToggle = useCallback(async (notificationId, enabled) => {
-    try {
-      const key = `${notificationId}Enabled`;
-      
-      // Optimistic update
-      setLocalPreferences(prev => ({ ...prev, [key]: enabled }));
-      
-      await dispatch(updatePreference({ [key]: enabled }));
-      showSnackbar('Notification preference updated', 'success');
-    } catch (error) {
-      // Rollback on error
-      setLocalPreferences(preferences);
-      showSnackbar('Failed to update notification', 'error');
-    }
-  }, [dispatch, preferences, showSnackbar]);
-  
+  const updateNotificationToggle = useCallback(
+    async (notificationId, enabled) => {
+      try {
+        const key = `${notificationId}Enabled`;
+
+        // Optimistic update
+        setLocalPreferences((prev) => ({ ...prev, [key]: enabled }));
+
+        await dispatch(updatePreference({ [key]: enabled }));
+        showSnackbar("Notification preference updated", "success");
+      } catch (error) {
+        // Rollback on error
+        setLocalPreferences(preferences);
+        showSnackbar("Failed to update notification", "error");
+      }
+    },
+    [dispatch, preferences, showSnackbar]
+  );
+
   /**
    * Reset to defaults
    */
   const handleResetToDefaults = useCallback(async () => {
     try {
       await dispatch(resetPreferences());
-      showSnackbar('Preferences reset to defaults', 'success');
+      showSnackbar("Preferences reset to defaults", "success");
     } catch (error) {
-      showSnackbar('Failed to reset preferences', 'error');
+      showSnackbar("Failed to reset preferences", "error");
     }
   }, [dispatch, showSnackbar]);
-  
+
   return {
     preferences: localPreferences,
     loading,
@@ -538,7 +558,7 @@ export const useNotificationSettings = () => {
     updateGlobalSetting,
     updateServiceToggle,
     updateNotificationToggle,
-    resetToDefaults: handleResetToDefaults
+    resetToDefaults: handleResetToDefaults,
   };
 };
 ```
@@ -564,28 +584,33 @@ REACT_APP_API_URL=http://localhost:8080
 ### Testing Checklist
 
 1. **Load Preferences**
+
    - Open notification settings page
    - Should auto-fetch preferences
    - Should display loading state
 
 2. **Toggle Master Switch**
+
    - Click master toggle
    - Should update UI immediately (optimistic)
    - Should persist to backend
    - Should show success toast
 
 3. **Toggle Service**
+
    - Toggle any service switch
    - Should update UI
    - Should persist to backend
    - Should show success message
 
 4. **Toggle Individual Notification**
+
    - Toggle specific notification
    - Should update UI
    - Should persist to backend
 
 5. **Reset to Defaults**
+
    - Click reset button
    - Confirm dialog
    - Should reset all settings
@@ -613,7 +638,7 @@ spring:
   # CORS configuration
   web:
     cors:
-      allowed-origins: 
+      allowed-origins:
         - http://localhost:3000
         - http://localhost:3001
       allowed-methods:
@@ -622,7 +647,7 @@ spring:
         - PUT
         - DELETE
         - OPTIONS
-      allowed-headers: '*'
+      allowed-headers: "*"
       allow-credentials: true
 ```
 
@@ -631,7 +656,7 @@ Or create a CORS configuration class:
 ```java
 @Configuration
 public class CorsConfiguration {
-    
+
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
@@ -739,7 +764,7 @@ ADD COLUMN IF NOT EXISTS notification_preferences_json TEXT;
 CREATE INDEX IF NOT EXISTS idx_notification_prefs_user_id ON notification_preferences(user_id);
 
 -- Add unique constraint if not exists
-ALTER TABLE notification_preferences 
+ALTER TABLE notification_preferences
 ADD CONSTRAINT unique_user_id UNIQUE (user_id);
 ```
 
@@ -748,27 +773,35 @@ ADD CONSTRAINT unique_user_id UNIQUE (user_id);
 ## Troubleshooting
 
 ### Issue: "Network Error" or CORS Error
+
 **Solution:**
+
 - Check backend is running on correct port
 - Verify CORS configuration in backend
 - Check API URL in `.env` file
 - Ensure API Gateway routing is correct
 
 ### Issue: "401 Unauthorized"
+
 **Solution:**
+
 - Verify JWT token is valid
 - Check `X-User-Id` header is being sent
 - Ensure authentication middleware is working
 
 ### Issue: Preferences Not Saving
+
 **Solution:**
+
 - Check browser console for errors
 - Verify API calls are reaching backend
 - Check backend logs for errors
 - Ensure database connection is active
 
 ### Issue: UI Not Updating
+
 **Solution:**
+
 - Check Redux state in React DevTools
 - Verify reducer is registered in store
 - Check action dispatching

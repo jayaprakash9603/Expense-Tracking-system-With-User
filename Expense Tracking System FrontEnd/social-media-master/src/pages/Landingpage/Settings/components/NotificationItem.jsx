@@ -266,12 +266,15 @@ const NotificationItem = ({
                   [NOTIFICATION_METHODS.SMS]: "SMS",
                 };
 
+                // Convert snake_case method key to camelCase for methods object
+                const methodKey = method === "in_app" ? "inApp" : method;
+
                 return (
                   <FormControlLabel
                     key={method}
                     control={
                       <Checkbox
-                        checked={methods[method] ?? false}
+                        checked={methods[methodKey] ?? false}
                         onChange={(e) =>
                           onMethodToggle(method, e.target.checked)
                         }

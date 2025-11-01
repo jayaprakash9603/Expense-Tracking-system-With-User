@@ -1,6 +1,7 @@
 # Notification Preferences Backend Implementation Summary
 
 ## Overview
+
 Complete backend implementation for notification preferences management in the Notification Service. This system provides comprehensive REST API endpoints for managing user notification settings with multi-level control (global, service-level, and notification-specific).
 
 ---
@@ -8,6 +9,7 @@ Complete backend implementation for notification preferences management in the N
 ## Architecture
 
 ### Design Pattern: MVC (Model-View-Controller)
+
 - **Model:** JPA entity with 40+ fields
 - **Repository:** Spring Data JPA interface
 - **Service:** Business logic layer with interface and implementation
@@ -15,31 +17,35 @@ Complete backend implementation for notification preferences management in the N
 - **DTO:** Request/Response data transfer objects
 
 ### Key Features
+
 ✅ **CRUD Operations:** Full create, read, update, delete support  
 ✅ **Partial Updates:** Update only specified fields  
 ✅ **Auto-Creation:** Default preferences created on first access  
 ✅ **Reset Functionality:** One-click reset to defaults  
 ✅ **Flexible Configuration:** JSON field for complex settings  
-✅ **Legacy Support:** Backward compatible with existing fields  
+✅ **Legacy Support:** Backward compatible with existing fields
 
 ---
 
 ## Files Created/Modified
 
 ### 1. Entity: `NotificationPreferences.java`
+
 **Location:** `src/main/java/com/jaya/modal/NotificationPreferences.java`  
 **Status:** ✅ Modified (Added @Builder annotation)
 
 **Changes:**
+
 - Added `@Builder` annotation for builder pattern support
 - Contains 40+ comprehensive fields:
-  * 4 global settings
-  * 7 service-level toggles
-  * 25+ individual notification types
-  * 1 JSON configuration field
-  * 11 legacy fields
+  - 4 global settings
+  - 7 service-level toggles
+  - 25+ individual notification types
+  - 1 JSON configuration field
+  - 11 legacy fields
 
 **Key Annotations:**
+
 ```java
 @Entity
 @Table(name = "notification_preferences")
@@ -52,18 +58,21 @@ Complete backend implementation for notification preferences management in the N
 ---
 
 ### 2. Repository: `NotificationPreferencesRepository.java`
+
 **Location:** `src/main/java/com/jaya/repository/NotificationPreferencesRepository.java`  
 **Status:** ✅ Enhanced (Added JavaDoc and existsByUserId method)
 
 **Methods:**
+
 - `findByUserId(Integer userId)` - Find by user ID
 - `existsByUserId(Integer userId)` - Check existence
 - `deleteByUserId(Integer userId)` - Delete by user ID
 
 **Interface:**
+
 ```java
 @Repository
-public interface NotificationPreferencesRepository 
+public interface NotificationPreferencesRepository
     extends JpaRepository<NotificationPreferences, Integer>
 ```
 
@@ -72,11 +81,13 @@ public interface NotificationPreferencesRepository
 ### 3. DTOs Created
 
 #### a. `NotificationPreferencesResponseDTO.java`
+
 **Location:** `src/main/java/com/jaya/dto/NotificationPreferencesResponseDTO.java`  
 **Status:** ✅ Created  
 **Purpose:** API response structure
 
 **Features:**
+
 - All 40+ preference fields
 - Lombok annotations for boilerplate reduction
 - Builder pattern support
@@ -85,11 +96,13 @@ public interface NotificationPreferencesRepository
 ---
 
 #### b. `UpdateNotificationPreferencesRequest.java`
+
 **Location:** `src/main/java/com/jaya/dto/UpdateNotificationPreferencesRequest.java`  
 **Status:** ✅ Created  
 **Purpose:** Update request structure
 
 **Features:**
+
 - All fields optional (supports partial updates)
 - Nullable fields for selective updates
 - Same structure as response DTO
@@ -98,10 +111,12 @@ public interface NotificationPreferencesRepository
 ---
 
 ### 4. Service Interface: `NotificationPreferencesService.java`
+
 **Location:** `src/main/java/com/jaya/service/NotificationPreferencesService.java`  
 **Status:** ✅ Created
 
 **Methods Defined:**
+
 ```java
 NotificationPreferencesResponseDTO getPreferences(Integer userId);
 NotificationPreferencesResponseDTO updatePreferences(Integer userId, UpdateNotificationPreferencesRequest request);
@@ -114,10 +129,12 @@ NotificationPreferencesResponseDTO createDefaultPreferences(Integer userId);
 ---
 
 ### 5. Service Implementation: `NotificationPreferencesServiceImpl.java`
+
 **Location:** `src/main/java/com/jaya/service/impl/NotificationPreferencesServiceImpl.java`  
 **Status:** ✅ Created
 
 **Key Features:**
+
 - ✅ Auto-creation of defaults on first access
 - ✅ Partial update support (only updates non-null fields)
 - ✅ Comprehensive default values aligned with frontend
@@ -126,6 +143,7 @@ NotificationPreferencesResponseDTO createDefaultPreferences(Integer userId);
 - ✅ Entity-DTO mapping methods
 
 **Default Values Logic:**
+
 ```java
 // High priority notifications: Enabled
 - Budget exceeded, Bill overdue, Security alerts
@@ -138,6 +156,7 @@ NotificationPreferencesResponseDTO createDefaultPreferences(Integer userId);
 ```
 
 **Update Strategy:**
+
 ```java
 // Partial update implementation
 if (request.getMasterEnabled() != null) {
@@ -149,6 +168,7 @@ if (request.getMasterEnabled() != null) {
 ---
 
 ### 6. Controller: `NotificationPreferencesController.java`
+
 **Location:** `src/main/java/com/jaya/controller/NotificationPreferencesController.java`  
 **Status:** ✅ Created
 
@@ -163,10 +183,12 @@ if (request.getMasterEnabled() != null) {
 | POST | `/api/notification-preferences/default` | Create defaults |
 
 **Authentication:**
+
 - Uses `@RequestHeader("X-User-Id")` for user identification
 - CORS enabled with `@CrossOrigin(origins = "*")`
 
 **Response Codes:**
+
 - 200 OK - Successful GET/PUT operations
 - 201 Created - Successful POST (create defaults)
 - 204 No Content - Successful DELETE
@@ -177,10 +199,12 @@ if (request.getMasterEnabled() != null) {
 ---
 
 ### 7. Documentation: `NOTIFICATION_PREFERENCES_API_DOCUMENTATION.md`
+
 **Location:** `Notification-Service/NOTIFICATION_PREFERENCES_API_DOCUMENTATION.md`  
 **Status:** ✅ Created
 
 **Contents:**
+
 - Complete API reference with examples
 - Request/response formats
 - Error handling guide
@@ -197,6 +221,7 @@ if (request.getMasterEnabled() != null) {
 ### Table: `notification_preferences`
 
 **Key Columns:**
+
 ```sql
 -- Primary Key & User Reference
 id                                  SERIAL PRIMARY KEY
@@ -237,6 +262,7 @@ updated_at                          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ```
 
 **Indexes:**
+
 - Primary key on `id`
 - Unique constraint on `user_id`
 - Index on `user_id` for fast lookups
@@ -246,6 +272,7 @@ updated_at                          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ## API Usage Examples
 
 ### 1. Get Preferences (Auto-Create)
+
 ```bash
 curl -X GET "http://localhost:8080/api/notification-preferences" \
   -H "X-User-Id: 123" \
@@ -253,6 +280,7 @@ curl -X GET "http://localhost:8080/api/notification-preferences" \
 ```
 
 **Response:**
+
 ```json
 {
   "userId": 123,
@@ -266,6 +294,7 @@ curl -X GET "http://localhost:8080/api/notification-preferences" \
 ---
 
 ### 2. Update Master Toggle
+
 ```bash
 curl -X PUT "http://localhost:8080/api/notification-preferences" \
   -H "X-User-Id: 123" \
@@ -277,6 +306,7 @@ curl -X PUT "http://localhost:8080/api/notification-preferences" \
 ---
 
 ### 3. Update Service-Level Toggle
+
 ```bash
 curl -X PUT "http://localhost:8080/api/notification-preferences" \
   -H "X-User-Id: 123" \
@@ -291,6 +321,7 @@ curl -X PUT "http://localhost:8080/api/notification-preferences" \
 ---
 
 ### 4. Update Individual Notification
+
 ```bash
 curl -X PUT "http://localhost:8080/api/notification-preferences" \
   -H "X-User-Id: 123" \
@@ -305,6 +336,7 @@ curl -X PUT "http://localhost:8080/api/notification-preferences" \
 ---
 
 ### 5. Reset to Defaults
+
 ```bash
 curl -X POST "http://localhost:8080/api/notification-preferences/reset" \
   -H "X-User-Id: 123" \
@@ -314,6 +346,7 @@ curl -X POST "http://localhost:8080/api/notification-preferences/reset" \
 ---
 
 ### 6. Delete Preferences
+
 ```bash
 curl -X DELETE "http://localhost:8080/api/notification-preferences" \
   -H "X-User-Id: 123" \
@@ -325,59 +358,66 @@ curl -X DELETE "http://localhost:8080/api/notification-preferences" \
 ## Integration with Frontend
 
 ### Redux Action Example
+
 ```javascript
 // actions/notificationPreferencesActions.js
-export const fetchNotificationPreferences = () => async (dispatch, getState) => {
-  try {
-    dispatch({ type: 'FETCH_PREFERENCES_REQUEST' });
-    
-    const { user } = getState().auth;
-    const response = await axios.get('/api/notification-preferences', {
-      headers: {
-        'X-User-Id': user.id,
-        'Authorization': `Bearer ${user.token}`
-      }
-    });
-    
-    dispatch({ 
-      type: 'FETCH_PREFERENCES_SUCCESS', 
-      payload: response.data 
-    });
-  } catch (error) {
-    dispatch({ 
-      type: 'FETCH_PREFERENCES_FAILURE', 
-      payload: error.message 
-    });
-  }
-};
+export const fetchNotificationPreferences =
+  () => async (dispatch, getState) => {
+    try {
+      dispatch({ type: "FETCH_PREFERENCES_REQUEST" });
 
-export const updateNotificationPreference = (field, value) => async (dispatch, getState) => {
-  try {
-    const { user } = getState().auth;
-    const response = await axios.put('/api/notification-preferences', {
-      [field]: value
-    }, {
-      headers: {
-        'X-User-Id': user.id,
-        'Authorization': `Bearer ${user.token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    dispatch({ 
-      type: 'UPDATE_PREFERENCE_SUCCESS', 
-      payload: response.data 
-    });
-    
-    return response.data;
-  } catch (error) {
-    dispatch({ 
-      type: 'UPDATE_PREFERENCE_FAILURE', 
-      payload: error.message 
-    });
-    throw error;
-  }
-};
+      const { user } = getState().auth;
+      const response = await axios.get("/api/notification-preferences", {
+        headers: {
+          "X-User-Id": user.id,
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      dispatch({
+        type: "FETCH_PREFERENCES_SUCCESS",
+        payload: response.data,
+      });
+    } catch (error) {
+      dispatch({
+        type: "FETCH_PREFERENCES_FAILURE",
+        payload: error.message,
+      });
+    }
+  };
+
+export const updateNotificationPreference =
+  (field, value) => async (dispatch, getState) => {
+    try {
+      const { user } = getState().auth;
+      const response = await axios.put(
+        "/api/notification-preferences",
+        {
+          [field]: value,
+        },
+        {
+          headers: {
+            "X-User-Id": user.id,
+            Authorization: `Bearer ${user.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      dispatch({
+        type: "UPDATE_PREFERENCE_SUCCESS",
+        payload: response.data,
+      });
+
+      return response.data;
+    } catch (error) {
+      dispatch({
+        type: "UPDATE_PREFERENCE_FAILURE",
+        payload: error.message,
+      });
+      throw error;
+    }
+  };
 ```
 
 ---
@@ -385,12 +425,14 @@ export const updateNotificationPreference = (field, value) => async (dispatch, g
 ## Testing Checklist
 
 ### Unit Tests
+
 - [ ] Service layer methods
 - [ ] Repository queries
 - [ ] DTO mappings
 - [ ] Default values creation
 
 ### Integration Tests
+
 - [ ] GET endpoint (auto-create)
 - [ ] PUT endpoint (partial update)
 - [ ] POST reset endpoint
@@ -399,6 +441,7 @@ export const updateNotificationPreference = (field, value) => async (dispatch, g
 - [ ] GET exists endpoint
 
 ### E2E Tests
+
 - [ ] User registration → auto-create preferences
 - [ ] Settings page load → fetch preferences
 - [ ] Toggle switches → update preferences
@@ -410,6 +453,7 @@ export const updateNotificationPreference = (field, value) => async (dispatch, g
 ## Next Steps
 
 ### 1. Database Migration ⏳
+
 ```sql
 -- Add new columns to existing notification_preferences table
 ALTER TABLE notification_preferences
@@ -421,23 +465,26 @@ ADD COLUMN browser_notifications BOOLEAN DEFAULT TRUE,
 ADD COLUMN notification_preferences_json TEXT;
 
 -- Create index
-CREATE INDEX IF NOT EXISTS idx_notification_prefs_user_id 
+CREATE INDEX IF NOT EXISTS idx_notification_prefs_user_id
 ON notification_preferences(user_id);
 ```
 
 ### 2. Frontend Integration ⏳
+
 - Update `useNotificationSettings` hook to call backend API
 - Replace mock data with actual API calls
 - Add error handling and loading states
 - Implement optimistic updates with rollback
 
 ### 3. Testing ⏳
+
 - Write unit tests for service layer
 - Create integration tests for API endpoints
 - Test with Postman collection
 - E2E testing with frontend
 
 ### 4. Deployment ⏳
+
 - Build and test in development environment
 - Deploy to staging for QA
 - Performance testing with load testing tools
@@ -448,6 +495,7 @@ ON notification_preferences(user_id);
 ## Performance Considerations
 
 ### Caching Strategy
+
 ```java
 @Cacheable(value = "notificationPreferences", key = "#userId")
 public NotificationPreferencesResponseDTO getPreferences(Integer userId) {
@@ -461,11 +509,13 @@ public NotificationPreferencesResponseDTO updatePreferences(Integer userId, ...)
 ```
 
 ### Database Optimization
+
 - Indexed `user_id` column for fast lookups
 - Unique constraint prevents duplicate entries
 - Minimal joins (single table design)
 
 ### API Optimization
+
 - Partial updates reduce payload size
 - Batch updates supported
 - Lazy loading for JSON field parsing
@@ -475,15 +525,18 @@ public NotificationPreferencesResponseDTO updatePreferences(Integer userId, ...)
 ## Security Considerations
 
 ### Authentication
+
 - JWT token validation on all endpoints
 - User ID extracted from authenticated context
 - Prevents cross-user access
 
 ### Authorization
+
 - Users can only access their own preferences
 - Admin endpoints (if needed) require ADMIN role
 
 ### Data Validation
+
 - Input validation on request DTOs
 - SQL injection prevention via JPA
 - XSS prevention on JSON fields
@@ -493,6 +546,7 @@ public NotificationPreferencesResponseDTO updatePreferences(Integer userId, ...)
 ## Monitoring & Logging
 
 ### Logging Levels
+
 ```java
 log.info("Fetching notification preferences for user: {}", userId);    // Info
 log.debug("Preferences exist for user {}: {}", userId, exists);        // Debug
@@ -501,6 +555,7 @@ log.error("Error updating preferences for user: {}", userId, ex);     // Error
 ```
 
 ### Metrics to Track
+
 - GET requests per second
 - Average update latency
 - Reset frequency
@@ -512,6 +567,7 @@ log.error("Error updating preferences for user: {}", userId, ex);     // Error
 ## Maintenance
 
 ### Adding New Notification Types
+
 1. Add field to entity with `@Column` annotation
 2. Add field to DTOs (request and response)
 3. Add to default values in service implementation
@@ -522,6 +578,7 @@ log.error("Error updating preferences for user: {}", userId, ex);     // Error
 8. Update documentation
 
 ### Deprecating Fields
+
 1. Mark field as `@Deprecated` in entity
 2. Keep in DTOs for backward compatibility
 3. Stop using in frontend
@@ -535,15 +592,19 @@ log.error("Error updating preferences for user: {}", userId, ex);     // Error
 ### Common Issues
 
 **Issue:** Preferences not saving
+
 - **Solution:** Check JWT token validity, verify X-User-Id header
 
 **Issue:** Defaults not applied
+
 - **Solution:** Verify service layer creates defaults on GET, check repository methods
 
 **Issue:** JSON field errors
+
 - **Solution:** Validate JSON structure, check TEXT column size in database
 
 **Issue:** Builder pattern not working
+
 - **Solution:** Ensure `@Builder` annotation is present on entity class
 
 ---
@@ -551,6 +612,7 @@ log.error("Error updating preferences for user: {}", userId, ex);     // Error
 ## Summary
 
 ### What Was Implemented ✅
+
 1. **Entity Enhancement:** Added @Builder annotation to NotificationPreferences
 2. **Repository:** Enhanced with JavaDoc and existsByUserId method
 3. **DTOs:** Created response and request DTOs with all 40+ fields
@@ -560,6 +622,7 @@ log.error("Error updating preferences for user: {}", userId, ex);     // Error
 7. **Documentation:** Comprehensive API documentation with examples
 
 ### Code Statistics
+
 - **Lines of Code:** ~1000+ lines
 - **Files Created:** 5 new files
 - **Files Modified:** 2 files
@@ -567,13 +630,14 @@ log.error("Error updating preferences for user: {}", userId, ex);     // Error
 - **Test Coverage:** Ready for testing (tests not yet written)
 
 ### Architecture Alignment
+
 ✅ Follows UserSettingsController pattern  
 ✅ SOLID principles applied  
 ✅ DRY principle (reusable components)  
 ✅ Transaction management  
 ✅ Comprehensive logging  
 ✅ Error handling  
-✅ API documentation  
+✅ API documentation
 
 ---
 
@@ -583,7 +647,7 @@ log.error("Error updating preferences for user: {}", userId, ex);     // Error
 **Frontend Documentation:** `NOTIFICATION_SETTINGS_DOCUMENTATION.md`  
 **Entity:** `com.jaya.modal.NotificationPreferences`  
 **Service:** `com.jaya.service.NotificationPreferencesService`  
-**Controller:** `com.jaya.controller.NotificationPreferencesController`  
+**Controller:** `com.jaya.controller.NotificationPreferencesController`
 
 ---
 
