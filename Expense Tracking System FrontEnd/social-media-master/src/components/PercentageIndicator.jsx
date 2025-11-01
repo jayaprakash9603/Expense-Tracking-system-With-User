@@ -1,7 +1,10 @@
 import React from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
+import { useTheme } from "../hooks/useTheme";
 
 const PercentageIndicator = ({ percentage }) => {
+  const { colors } = useTheme();
+
   return (
     <Box
       sx={{
@@ -15,9 +18,9 @@ const PercentageIndicator = ({ percentage }) => {
       <CircularProgress
         variant="determinate"
         value={percentage}
-        sx={{ color: "#14b8a6" }}
+        sx={{ color: colors.primary_accent }}
       />
-      <Typography variant="body2" sx={{ color: "#fff", fontWeight: 600 }}>
+      <Typography variant="body2" sx={{ color: colors.primary_text, fontWeight: 600 }}>
         {percentage}%
       </Typography>
     </Box>
