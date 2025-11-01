@@ -33,7 +33,7 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class FriendshipNotificationEvent implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
 
     // Action Constants
@@ -49,31 +49,31 @@ public class FriendshipNotificationEvent implements Serializable {
 
     // Core Identifiers
     private Integer friendshipId;
-    private Integer userId;           // The user who will receive this notification
-    private Integer actorId;          // The user who performed the action
-    
+    private Integer userId; // The user who will receive this notification
+    private Integer actorId; // The user who performed the action
+
     // Action Type
     private String action;
-    
+
     // Friendship Details
-    private Integer requesterId;      // Original requester
-    private Integer recipientId;      // Original recipient
-    private String friendshipStatus;  // PENDING, ACCEPTED, REJECTED, BLOCKED
-    
+    private Integer requesterId; // Original requester
+    private Integer recipientId; // Original recipient
+    private String friendshipStatus; // PENDING, ACCEPTED, REJECTED, BLOCKED
+
     // Access Level Information (for expense sharing)
-    private String requesterAccess;   // Access level given by recipient to requester
-    private String recipientAccess;   // Access level given by requester to recipient
-    private String oldAccessLevel;    // Previous access level (for ACCESS_LEVEL_CHANGED)
-    private String newAccessLevel;    // New access level (for ACCESS_LEVEL_CHANGED)
-    
+    private String requesterAccess; // Access level given by recipient to requester
+    private String recipientAccess; // Access level given by requester to recipient
+    private String oldAccessLevel; // Previous access level (for ACCESS_LEVEL_CHANGED)
+    private String newAccessLevel; // New access level (for ACCESS_LEVEL_CHANGED)
+
     // User Information (for display)
-    private String actorName;         // Name of the user who performed action
-    private String actorEmail;        // Email of the user who performed action
-    
+    private String actorName; // Name of the user who performed action
+    private String actorEmail; // Email of the user who performed action
+
     // Timestamp
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
-    
+
     // Additional metadata (optional)
     private Map<String, Object> metadata;
 

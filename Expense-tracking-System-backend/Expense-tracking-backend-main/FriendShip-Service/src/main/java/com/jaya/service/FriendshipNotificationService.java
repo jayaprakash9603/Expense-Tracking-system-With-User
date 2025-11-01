@@ -52,12 +52,12 @@ public class FriendshipNotificationService {
     @Async
     public void sendFriendRequestSentNotification(Friendship friendship, UserDto requester) {
         try {
-            log.debug("Preparing friend request received notification for recipient ID: {}", 
+            log.debug("Preparing friend request received notification for recipient ID: {}",
                     friendship.getRecipientId());
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(friendship.getRecipientId())  // Recipient receives notification
+                    .userId(friendship.getRecipientId()) // Recipient receives notification
                     .actorId(friendship.getRequesterId()) // Requester is the actor
                     .action(FriendshipNotificationEvent.FRIEND_REQUEST_RECEIVED)
                     .requesterId(friendship.getRequesterId())
@@ -88,12 +88,12 @@ public class FriendshipNotificationService {
     @Async
     public void sendFriendRequestAcceptedNotification(Friendship friendship, UserDto acceptor) {
         try {
-            log.debug("Preparing friend request accepted notification for requester ID: {}", 
+            log.debug("Preparing friend request accepted notification for requester ID: {}",
                     friendship.getRequesterId());
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(friendship.getRequesterId())  // Requester receives notification
+                    .userId(friendship.getRequesterId()) // Requester receives notification
                     .actorId(friendship.getRecipientId()) // Recipient (acceptor) is the actor
                     .action(FriendshipNotificationEvent.FRIEND_REQUEST_ACCEPTED)
                     .requesterId(friendship.getRequesterId())
@@ -126,12 +126,12 @@ public class FriendshipNotificationService {
     @Async
     public void sendFriendRequestRejectedNotification(Friendship friendship, UserDto rejector) {
         try {
-            log.debug("Preparing friend request rejected notification for requester ID: {}", 
+            log.debug("Preparing friend request rejected notification for requester ID: {}",
                     friendship.getRequesterId());
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(friendship.getRequesterId())  // Requester receives notification
+                    .userId(friendship.getRequesterId()) // Requester receives notification
                     .actorId(friendship.getRecipientId()) // Recipient (rejector) is the actor
                     .action(FriendshipNotificationEvent.FRIEND_REQUEST_REJECTED)
                     .requesterId(friendship.getRequesterId())
@@ -162,12 +162,12 @@ public class FriendshipNotificationService {
     @Async
     public void sendFriendRequestCancelledNotification(Friendship friendship, UserDto canceller) {
         try {
-            log.debug("Preparing friend request cancelled notification for recipient ID: {}", 
+            log.debug("Preparing friend request cancelled notification for recipient ID: {}",
                     friendship.getRecipientId());
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(friendship.getRecipientId())  // Recipient receives notification
+                    .userId(friendship.getRecipientId()) // Recipient receives notification
                     .actorId(friendship.getRequesterId()) // Requester (canceller) is the actor
                     .action(FriendshipNotificationEvent.FRIEND_REQUEST_CANCELLED)
                     .requesterId(friendship.getRequesterId())
@@ -203,8 +203,8 @@ public class FriendshipNotificationService {
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(otherId)                      // Other user receives notification
-                    .actorId(remover.getId())             // Remover is the actor
+                    .userId(otherId) // Other user receives notification
+                    .actorId(remover.getId()) // Remover is the actor
                     .action(FriendshipNotificationEvent.FRIENDSHIP_REMOVED)
                     .requesterId(friendship.getRequesterId())
                     .recipientId(friendship.getRecipientId())
@@ -228,23 +228,23 @@ public class FriendshipNotificationService {
      * Send notification when access level is changed
      * Notifies the OTHER user that their access level was modified
      * 
-     * @param friendship    The friendship entity
-     * @param changer       The user who changed the access level
-     * @param otherId       The other user's ID (who receives notification)
-     * @param oldAccess     Previous access level
-     * @param newAccess     New access level
+     * @param friendship The friendship entity
+     * @param changer    The user who changed the access level
+     * @param otherId    The other user's ID (who receives notification)
+     * @param oldAccess  Previous access level
+     * @param newAccess  New access level
      */
     @Async
-    public void sendAccessLevelChangedNotification(Friendship friendship, UserDto changer, 
-                                                   Integer otherId, AccessLevel oldAccess, 
-                                                   AccessLevel newAccess) {
+    public void sendAccessLevelChangedNotification(Friendship friendship, UserDto changer,
+            Integer otherId, AccessLevel oldAccess,
+            AccessLevel newAccess) {
         try {
             log.debug("Preparing access level changed notification for user ID: {}", otherId);
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(otherId)                      // Other user receives notification
-                    .actorId(changer.getId())             // Changer is the actor
+                    .userId(otherId) // Other user receives notification
+                    .actorId(changer.getId()) // Changer is the actor
                     .action(FriendshipNotificationEvent.ACCESS_LEVEL_CHANGED)
                     .requesterId(friendship.getRequesterId())
                     .recipientId(friendship.getRecipientId())
@@ -281,14 +281,14 @@ public class FriendshipNotificationService {
     public void sendUserBlockedNotification(Integer friendshipId, UserDto blocker, Integer blockedId) {
         try {
             log.debug("User {} blocked user {}", blocker.getId(), blockedId);
-            
+
             // Typically we don't notify blocked users for privacy/security
             // This method exists for system logging or admin purposes
-            
+
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendshipId)
-                    .userId(blockedId)                    // Blocked user (may not receive)
-                    .actorId(blocker.getId())             // Blocker is the actor
+                    .userId(blockedId) // Blocked user (may not receive)
+                    .actorId(blocker.getId()) // Blocker is the actor
                     .action(FriendshipNotificationEvent.USER_BLOCKED)
                     .friendshipStatus("BLOCKED")
                     .actorName(getFullName(blocker))
@@ -317,11 +317,11 @@ public class FriendshipNotificationService {
     public void sendUserUnblockedNotification(Integer friendshipId, UserDto unblocker, Integer unblockedId) {
         try {
             log.debug("User {} unblocked user {}", unblocker.getId(), unblockedId);
-            
+
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendshipId)
-                    .userId(unblockedId)                  // Unblocked user receives notification
-                    .actorId(unblocker.getId())           // Unblocker is the actor
+                    .userId(unblockedId) // Unblocked user receives notification
+                    .actorId(unblocker.getId()) // Unblocker is the actor
                     .action(FriendshipNotificationEvent.USER_UNBLOCKED)
                     .friendshipStatus("UNBLOCKED")
                     .actorName(getFullName(unblocker))
@@ -408,8 +408,8 @@ public class FriendshipNotificationService {
     /**
      * Build metadata for access level change
      */
-    private Map<String, Object> buildAccessChangedMetadata(Friendship friendship, UserDto changer, 
-                                                           AccessLevel oldAccess, AccessLevel newAccess) {
+    private Map<String, Object> buildAccessChangedMetadata(Friendship friendship, UserDto changer,
+            AccessLevel oldAccess, AccessLevel newAccess) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "access_level_changed");
         metadata.put("changerName", getFullName(changer));
@@ -462,7 +462,7 @@ public class FriendshipNotificationService {
         if (user == null) {
             return "Unknown User";
         }
-        
+
         String fullName = "";
         if (user.getFirstName() != null && !user.getFirstName().trim().isEmpty()) {
             fullName = user.getFirstName();
@@ -470,12 +470,12 @@ public class FriendshipNotificationService {
         if (user.getLastName() != null && !user.getLastName().trim().isEmpty()) {
             fullName = fullName.isEmpty() ? user.getLastName() : fullName + " " + user.getLastName();
         }
-        
+
         // Fallback to username if no name is set
         if (fullName.trim().isEmpty() && user.getUsername() != null) {
             fullName = user.getUsername();
         }
-        
+
         return fullName.trim().isEmpty() ? "User #" + user.getId() : fullName.trim();
     }
 }

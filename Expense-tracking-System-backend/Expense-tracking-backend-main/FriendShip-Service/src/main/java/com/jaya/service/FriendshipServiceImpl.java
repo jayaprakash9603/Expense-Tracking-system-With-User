@@ -29,7 +29,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Autowired
     private FriendRequestEventPublisher friendRequestEventPublisher;
-    
+
     @Autowired
     private FriendshipNotificationService friendshipNotificationService;
     // @Autowired
@@ -58,7 +58,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         // Publish friend request event to Kafka
         publishFriendRequestSentEvent(friendship, requester, recipient);
-        
+
         // Send notification to recipient
         friendshipNotificationService.sendFriendRequestSentNotification(friendship, requester);
 
@@ -145,12 +145,12 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         Friendship savedFriendship = friendshipRepository.save(friendship);
-        
+
         // Send notification to the other user about access level change
         try {
             UserDto changer = helper.validateUser(userId);
             friendshipNotificationService.sendAccessLevelChangedNotification(
-                savedFriendship, changer, otherUserId, oldAccess, accessLevel);
+                    savedFriendship, changer, otherUserId, oldAccess, accessLevel);
         } catch (Exception e) {
             System.err.println("Failed to send access level changed notification: " + e.getMessage());
         }
@@ -235,9 +235,9 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         // Determine the other user ID
-        Integer otherUserId = friendship.getRequesterId().equals(userId) 
-            ? friendship.getRecipientId() 
-            : friendship.getRequesterId();
+        Integer otherUserId = friendship.getRequesterId().equals(userId)
+                ? friendship.getRecipientId()
+                : friendship.getRequesterId();
 
         // Send notification to the other user before deleting
         try {
@@ -292,10 +292,11 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         friendshipRepository.save(friendship);
-        
+
         // Note: Typically we don't notify blocked users for privacy/security reasons
         // Uncomment below if you want to send notifications
-        // friendshipNotificationService.sendUserBlockedNotification(friendship.getId(), blocker, blockedId);
+        // friendshipNotificationService.sendUserBlockedNotification(friendship.getId(),
+        // blocker, blockedId);
     }
 
     @Override
@@ -318,7 +319,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         Friendship friendship = blockedFriendship.get();
-        
+
         // Send notification to unblocked user
         friendshipNotificationService.sendUserUnblockedNotification(friendship.getId(), unblocker, unblockedId);
 

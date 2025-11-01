@@ -16,7 +16,8 @@ import org.springframework.stereotype.Component;
  * SOLID Principles:
  * - Single Responsibility: Only handles friendship notification production
  * - Open/Closed: Extends base producer without modifying it
- * - Liskov Substitution: Can replace NotificationEventProducer<FriendshipNotificationEvent>
+ * - Liskov Substitution: Can replace
+ * NotificationEventProducer<FriendshipNotificationEvent>
  * - Dependency Inversion: Depends on KafkaTemplate abstraction
  * 
  * DRY Principle:
@@ -83,7 +84,8 @@ public class FriendshipNotificationProducer extends NotificationEventProducer<Fr
      */
     @Override
     protected void afterSendSuccess(FriendshipNotificationEvent event, SendResult<String, Object> result) {
-        log.info("Friendship {} notification sent successfully: User {} notified about action by {} (Topic: {}, Partition: {})",
+        log.info(
+                "Friendship {} notification sent successfully: User {} notified about action by {} (Topic: {}, Partition: {})",
                 event.getAction(),
                 event.getUserId(),
                 event.getActorName() != null ? event.getActorName() : event.getActorId(),

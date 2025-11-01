@@ -37,7 +37,7 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
                 return "friendRequestRejected";
             case "FRIEND_REMOVED":
                 return "friendRemoved";
-                
+
             // New format actions
             case "FRIEND_REQUEST_SENT":
                 return "friendRequestSent";
@@ -57,7 +57,7 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
                 return "userBlocked";
             case "USER_UNBLOCKED":
                 return "userUnblocked";
-                
+
             default:
                 log.warn("Unknown friend event action: {}", event.getAction());
                 return "friendRequestReceived";
@@ -124,7 +124,7 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
                 title = "🔐 Access Level Changed";
                 String oldLevel = event.getOldAccessLevel() != null ? event.getOldAccessLevel() : "NONE";
                 String newLevel = event.getNewAccessLevel() != null ? event.getNewAccessLevel() : "NONE";
-                message = String.format("%s changed your expense access from %s to %s", 
+                message = String.format("%s changed your expense access from %s to %s",
                         friendName, oldLevel, newLevel);
                 priority = "MEDIUM";
                 break;
