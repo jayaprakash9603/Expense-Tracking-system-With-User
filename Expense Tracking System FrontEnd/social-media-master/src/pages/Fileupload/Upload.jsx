@@ -705,7 +705,9 @@ const Upload = () => {
               showPercentage={true}
               processed={saveProcessed}
               total={saveTotal}
-              message={loadingMessage || "Please wait while we process your request..."}
+              message={
+                loadingMessage || "Please wait while we process your request..."
+              }
             />
           </Box>
         )}
