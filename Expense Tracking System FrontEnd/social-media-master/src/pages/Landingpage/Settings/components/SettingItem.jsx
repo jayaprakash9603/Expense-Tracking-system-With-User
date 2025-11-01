@@ -49,9 +49,11 @@ const SettingItem = ({
   colors,
   hideBorder = false,
   disabled = false, // NEW: Add disabled prop
+  statusChip = null, // NEW: Add statusChip prop for notification status
 }) => {
   return (
     <Box
+      onClick={isNavigation ? onNavigationClick : undefined}
       sx={{
         display: "flex",
         alignItems: "center",
@@ -59,6 +61,7 @@ const SettingItem = ({
         py: hideBorder ? 0 : 2.5,
         px: 0,
         transition: "all 0.2s",
+        cursor: isNavigation ? "pointer" : "default",
         "&:hover": !hideBorder && {
           backgroundColor: colors.hover_bg,
           mx: -2,
@@ -268,13 +271,15 @@ const SettingItem = ({
         )}
 
         {isNavigation && (
-          <IconButton
-            size="small"
-            sx={{ color: colors.secondary_text }}
-            onClick={onNavigationClick}
-          >
-            <ChevronRightIcon />
-          </IconButton>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {statusChip}
+            <IconButton
+              size="small"
+              sx={{ color: colors.secondary_text, pointerEvents: "none" }}
+            >
+              <ChevronRightIcon />
+            </IconButton>
+          </Box>
         )}
 
         {isSlider && (

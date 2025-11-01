@@ -71,6 +71,11 @@ export const useSettingsActions = (
       // Open shortcuts modal or navigate to shortcuts page
     },
 
+    // Notifications
+    notificationSettings: () => {
+      navigate("/settings/notifications");
+    },
+
     // Help & Support
     helpCenter: () => {
       showSnackbar("Opening help center...", "info");
