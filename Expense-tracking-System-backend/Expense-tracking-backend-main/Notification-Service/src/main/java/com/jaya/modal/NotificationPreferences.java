@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 /**
  * NotificationPreferences Entity
@@ -19,6 +20,9 @@ import lombok.NoArgsConstructor;
  * - Individual notification type preferences
  * - Delivery method preferences (in-app, email, push, SMS)
  * - Frequency settings (instant, hourly, daily, weekly)
+ * 
+ * Performance Optimization:
+ * - @DynamicUpdate: Only updates modified fields in SQL query
  */
 @Entity
 @Table(name = "notification_preferences")
@@ -26,6 +30,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+// @DynamicUpdate
 public class NotificationPreferences {
 
     @Id

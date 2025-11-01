@@ -34,17 +34,14 @@ public class NotificationWebSocketController {
     public void subscribeToNotifications(@Payload String userId, Principal principal) {
         try {
             log.info("User {} subscribed to notifications", userId);
-            log.info("Principal: {}", principal);
 
-            // Send acknowledgment using convertAndSend to broadcast topic (like Chat
-            // service)
-            // This sends to /topic/user/{userId}/notifications (no Principal needed)
+            // Send acknowledgment using broadcast pattern
             String destination = "/topic/user/" + userId + "/notifications";
             messagingTemplate.convertAndSend(
                     destination,
                     "{\"type\":\"SUBSCRIPTION_CONFIRMED\",\"message\":\"Successfully subscribed to notifications\"}");
 
-            log.info("Subscription confirmed for user {} using convertAndSend to {}", userId, destination);
+            log.debug("Subscription confirmed for user {}", userId);
         } catch (Exception e) {
             log.error("Error handling notification subscription: {}", e.getMessage(), e);
         }
@@ -59,7 +56,7 @@ public class NotificationWebSocketController {
     @MessageMapping("/notifications/read")
     public void markNotificationAsRead(@Payload String message) {
         try {
-            log.info("Received read acknowledgment: {}", message);
+            log.debug("Received read acknowledgment: {}", message);
             // Can be used to track notification delivery and read status
         } catch (Exception e) {
             log.error("Error handling read acknowledgment: {}", e.getMessage(), e);

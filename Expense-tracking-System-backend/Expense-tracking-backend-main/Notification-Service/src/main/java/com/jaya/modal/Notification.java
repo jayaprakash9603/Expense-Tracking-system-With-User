@@ -2,6 +2,7 @@ package com.jaya.modal;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Notification {
 
     @Id
@@ -36,9 +38,11 @@ public class Notification {
     private NotificationPriority priority;
 
     @Column(name = "is_read", nullable = false)
+    @Builder.Default
     private Boolean isRead = false;
 
     @Column(name = "is_sent", nullable = false)
+    @Builder.Default
     private Boolean isSent = false;
 
     @Column(name = "created_at", nullable = false)
@@ -55,6 +59,12 @@ public class Notification {
 
     @Column(name = "metadata", length = 2000)
     private String metadata; // JSON string for additional data
+
+    @Column(name = "related_entity_id")
+    private Integer relatedEntityId; // ID of the related entity (expense, budget, bill, etc.)
+
+    @Column(name = "related_entity_type", length = 50)
+    private String relatedEntityType; // Type of entity: EXPENSE, BUDGET, BILL, PAYMENT_METHOD, FRIENDSHIP
 
     @PrePersist
     protected void onCreate() {
