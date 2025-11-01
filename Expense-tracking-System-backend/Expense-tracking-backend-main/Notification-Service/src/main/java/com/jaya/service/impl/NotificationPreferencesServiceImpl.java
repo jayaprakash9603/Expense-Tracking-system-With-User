@@ -119,6 +119,7 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .doNotDisturb(false)
                 .notificationSound(true)
                 .browserNotifications(true)
+                .floatingNotifications(true)
                 // Service Level Toggles - All enabled by default
                 .expenseServiceEnabled(true)
                 .budgetServiceEnabled(true)
@@ -188,6 +189,7 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         preferences.setDoNotDisturb(false);
         preferences.setNotificationSound(true);
         preferences.setBrowserNotifications(true);
+        preferences.setFloatingNotifications(true);
 
         // Service Level Toggles - All enabled by default
         preferences.setExpenseServiceEnabled(true);
@@ -271,6 +273,8 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
             preferences.setNotificationSound(request.getNotificationSound());
         if (request.getBrowserNotifications() != null)
             preferences.setBrowserNotifications(request.getBrowserNotifications());
+        if (request.getFloatingNotifications() != null)
+            preferences.setFloatingNotifications(request.getFloatingNotifications());
 
         // Service Level Toggles
         if (request.getExpenseServiceEnabled() != null)
@@ -398,6 +402,7 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .doNotDisturb(preferences.getDoNotDisturb())
                 .notificationSound(preferences.getNotificationSound())
                 .browserNotifications(preferences.getBrowserNotifications())
+                .floatingNotifications(preferences.getFloatingNotifications())
                 // Service Level Toggles
                 .expenseServiceEnabled(preferences.getExpenseServiceEnabled())
                 .budgetServiceEnabled(preferences.getBudgetServiceEnabled())

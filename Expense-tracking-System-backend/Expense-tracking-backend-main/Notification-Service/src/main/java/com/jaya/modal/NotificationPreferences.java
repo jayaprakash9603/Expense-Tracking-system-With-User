@@ -59,6 +59,10 @@ public class NotificationPreferences {
     @Column(name = "browser_notifications", nullable = false)
     private Boolean browserNotifications = false;
 
+    @Builder.Default
+    @Column(name = "floating_notifications", nullable = false)
+    private Boolean floatingNotifications = true;
+
     // ============================================
     // SERVICE-LEVEL TOGGLES
     // ============================================

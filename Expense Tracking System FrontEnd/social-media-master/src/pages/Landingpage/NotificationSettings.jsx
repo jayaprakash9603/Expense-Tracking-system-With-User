@@ -384,6 +384,27 @@ const NotificationSettings = () => {
                 colors={colors}
                 disabled={!preferences?.masterEnabled}
               />
+
+              <Divider sx={{ my: 0.5, borderColor: colors.border_color }} />
+
+              {/* Floating Notifications */}
+              <SettingItem
+                icon={GLOBAL_NOTIFICATION_SETTINGS.FLOATING_NOTIFICATIONS.icon}
+                title={
+                  GLOBAL_NOTIFICATION_SETTINGS.FLOATING_NOTIFICATIONS.title
+                }
+                description={
+                  GLOBAL_NOTIFICATION_SETTINGS.FLOATING_NOTIFICATIONS
+                    .description
+                }
+                isSwitch
+                switchChecked={preferences?.floatingNotifications || false}
+                onSwitchChange={(e) =>
+                  updateGlobalSetting("floatingNotifications", e.target.checked)
+                }
+                colors={colors}
+                disabled={!preferences?.masterEnabled}
+              />
             </Box>
           </Box>
 

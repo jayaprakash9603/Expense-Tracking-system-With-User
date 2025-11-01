@@ -569,6 +569,13 @@ export const GLOBAL_NOTIFICATION_SETTINGS = {
     icon: NotificationsIcon,
     defaultEnabled: false,
   },
+  FLOATING_NOTIFICATIONS: {
+    id: "floating_notifications",
+    title: "Floating Notifications",
+    description: "Show notifications as floating popups on screen",
+    icon: NotificationsIcon,
+    defaultEnabled: true,
+  },
 };
 
 /**

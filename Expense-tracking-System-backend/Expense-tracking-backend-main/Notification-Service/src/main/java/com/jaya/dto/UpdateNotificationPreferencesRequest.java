@@ -21,6 +21,7 @@ public class UpdateNotificationPreferencesRequest {
     private Boolean doNotDisturb;
     private Boolean notificationSound;
     private Boolean browserNotifications;
+    private Boolean floatingNotifications;
 
     // Service Level Toggles
     private Boolean expenseServiceEnabled;
