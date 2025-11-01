@@ -60,6 +60,20 @@ const Settings = () => {
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const isDark = mode === "dark";
 
+  // Scroll position restoration
+  useEffect(() => {
+    // Restore scroll position when returning to this page
+    const savedScrollPosition = sessionStorage.getItem(
+      "settingsScrollPosition"
+    );
+    if (savedScrollPosition) {
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScrollPosition, 10));
+        sessionStorage.removeItem("settingsScrollPosition");
+      }, 0);
+    }
+  }, []);
+
   // Fetch notification preferences on mount
   useEffect(() => {
     if (userId) {

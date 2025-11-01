@@ -32,7 +32,7 @@ export const useSettingsActions = (
   // Action handlers mapped to action IDs
   const actionHandlers = {
     // Account Management
-    editProfile: () => navigate("/profile"),
+    editProfile: () => navigate("/profile", { state: { editMode: true } }),
     changePassword: () => setPasswordDialogOpen(true),
     exportData: () => {
       showSnackbar("Preparing data export...", "info");
@@ -73,6 +73,11 @@ export const useSettingsActions = (
 
     // Notifications
     notificationSettings: () => {
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString()
+      );
       navigate("/settings/notifications");
     },
 
