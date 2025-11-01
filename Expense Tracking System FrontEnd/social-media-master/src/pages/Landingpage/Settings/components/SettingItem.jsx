@@ -47,17 +47,22 @@ const SettingItem = ({
   onNavigationClick,
   isDanger = false,
   colors,
+  hideBorder = false,
+  disabled = false, // NEW: Add disabled prop
+  statusChip = null, // NEW: Add statusChip prop for notification status
 }) => {
   return (
     <Box
+      onClick={isNavigation ? onNavigationClick : undefined}
       sx={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        py: 2.5,
+        py: hideBorder ? 0 : 2.5,
         px: 0,
         transition: "all 0.2s",
-        "&:hover": {
+        cursor: isNavigation ? "pointer" : "default",
+        "&:hover": !hideBorder && {
           backgroundColor: colors.hover_bg,
           mx: -2,
           px: 2,
@@ -66,64 +71,78 @@ const SettingItem = ({
       }}
     >
       {/* Left Side - Icon and Text */}
-      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
+      {!hideBorder && (
         <Box
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: 2,
-            backgroundColor: isDanger
-              ? "rgba(239, 68, 68, 0.1)"
-              : `${colors.primary_accent}15`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
+          sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}
         >
-          <Icon
-            sx={{
-              fontSize: "1.3rem",
-              color: isDanger ? "#ef4444" : colors.primary_accent,
-            }}
-          />
+          {Icon && (
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2,
+                backgroundColor: isDanger
+                  ? "rgba(239, 68, 68, 0.1)"
+                  : `${colors.primary_accent}15`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Icon
+                sx={{
+                  fontSize: "1.3rem",
+                  color: isDanger ? "#ef4444" : colors.primary_accent,
+                }}
+              />
+            </Box>
+          )}
+          <Box sx={{ flex: 1 }}>
+            {title && (
+              <Typography
+                variant="body1"
+                sx={{
+                  color: isDanger ? "#ef4444" : colors.primary_text,
+                  fontWeight: 600,
+                  mb: 0.5,
+                }}
+              >
+                {title}
+              </Typography>
+            )}
+            {description && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: colors.secondary_text,
+                  fontSize: "0.85rem",
+                  lineHeight: 1.5,
+                }}
+              >
+                {description}
+              </Typography>
+            )}
+          </Box>
         </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography
-            variant="body1"
-            sx={{
-              color: isDanger ? "#ef4444" : colors.primary_text,
-              fontWeight: 600,
-              mb: 0.5,
-            }}
-          >
-            {title}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: colors.secondary_text,
-              fontSize: "0.85rem",
-              lineHeight: 1.4,
-            }}
-          >
-            {description}
-          </Typography>
-        </Box>
-      </Box>
+      )}
 
       {/* Right Side - Action Component */}
       <Box sx={{ ml: 2, flexShrink: 0 }}>
         {isSwitch && (
           <Switch
-            checked={switchChecked}
+            checked={disabled ? false : switchChecked} // Show as OFF when disabled
             onChange={onSwitchChange}
+            disabled={disabled} // Disable interaction when disabled
             sx={{
               "& .MuiSwitch-switchBase.Mui-checked": {
                 color: colors.primary_accent,
               },
               "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                 backgroundColor: colors.primary_accent,
+              },
+              "& .MuiSwitch-switchBase.Mui-disabled": {
+                opacity: 0.5,
               },
             }}
           />
@@ -252,13 +271,15 @@ const SettingItem = ({
         )}
 
         {isNavigation && (
-          <IconButton
-            size="small"
-            sx={{ color: colors.secondary_text }}
-            onClick={onNavigationClick}
-          >
-            <ChevronRightIcon />
-          </IconButton>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {statusChip}
+            <IconButton
+              size="small"
+              sx={{ color: colors.secondary_text, pointerEvents: "none" }}
+            >
+              <ChevronRightIcon />
+            </IconButton>
+          </Box>
         )}
 
         {isSlider && (

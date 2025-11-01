@@ -12,11 +12,14 @@ const PercentageLoader = ({
   label = "",
   processed = null,
   total = null,
+  message = "", // New prop for additional message
 }) => {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
 
   // Use theme colors if not explicitly provided
-  const finalTrackColor = trackColor || colors.hover_bg;
+  // Better track color based on theme mode
+  const defaultTrackColor = mode === "dark" ? "#2a2a2a" : "#e5e7eb";
+  const finalTrackColor = trackColor || defaultTrackColor;
   const finalProgressColor = progressColor || colors.primary_accent;
   const finalTextColor = textColor || colors.primary_text;
   // Size configurations
@@ -106,9 +109,41 @@ const PercentageLoader = ({
             color: finalTextColor,
             textAlign: "center",
             fontSize: config.fontSize,
+            fontWeight: 600,
           }}
         >
           {label || `${processed} / ${total}`}
+        </Typography>
+      )}
+
+      {/* Optional processed/total items text */}
+      {processed !== null && total !== null && total > 0 && (
+        <Typography
+          variant="caption"
+          sx={{
+            color: colors.secondary_text,
+            textAlign: "center",
+            fontSize: "0.8rem",
+          }}
+        >
+          {processed} / {total} items saved
+        </Typography>
+      )}
+
+      {/* Optional Message */}
+      {message && (
+        <Typography
+          variant="body2"
+          sx={{
+            color: colors.secondary_text,
+            textAlign: "center",
+            fontSize: "0.85rem",
+            maxWidth: 340,
+            lineHeight: 1.5,
+            mt: 1,
+          }}
+        >
+          {message}
         </Typography>
       )}
     </Box>

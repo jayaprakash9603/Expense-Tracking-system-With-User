@@ -671,11 +671,8 @@ const Upload = () => {
         sx={{
           color: "#fff",
           zIndex: (theme) => theme.zIndex.drawer + 1400,
-          backgroundColor:
-            colors.mode === "dark"
-              ? "rgba(0, 0, 0, 0.78)"
-              : "rgba(255, 255, 255, 0.78)",
-          backdropFilter: "blur(4px)",
+          backgroundColor: `${colors.primary_bg}dd`,
+          backdropFilter: "blur(8px)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -705,39 +702,13 @@ const Upload = () => {
             <PercentageLoader
               percentage={saveProgress}
               size="xl"
-              trackColor={colors.mode === "dark" ? "#2a2a2a" : "#e0e0e0"}
-              progressColor="#14b8a6"
-              textColor={colors.primary_text}
               showPercentage={true}
               processed={saveProcessed}
               total={saveTotal}
+              message={
+                loadingMessage || "Please wait while we process your request..."
+              }
             />
-            {saveTotal > 0 && (
-              <Box sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}>
-                {saveProcessed} / {saveTotal} items saved
-              </Box>
-            )}
-            {loadingMessage && (
-              <Box
-                sx={{
-                  color: colors.primary_text,
-                  fontSize: "1.1rem",
-                  fontWeight: 600,
-                }}
-              >
-                {loadingMessage}
-              </Box>
-            )}
-            <Box
-              sx={{
-                color: colors.secondary_text,
-                fontSize: "0.85rem",
-                maxWidth: 340,
-                lineHeight: 1.5,
-              }}
-            >
-              Please wait while we process your request...
-            </Box>
           </Box>
         )}
       </Backdrop>

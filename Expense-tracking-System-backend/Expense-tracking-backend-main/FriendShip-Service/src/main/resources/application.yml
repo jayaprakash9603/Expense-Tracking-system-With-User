@@ -35,6 +35,12 @@ spring:
         retry.backoff.ms: 1000
         max.in.flight.requests.per.connection: 5
         enable.idempotence: true
+        spring.json.add.type.headers: false
+
+# Kafka Topics Configuration
+kafka:
+  topics:
+    friendship-events: friendship-events
 
 eureka:
   instance:

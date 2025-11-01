@@ -55,7 +55,7 @@ spring:
         - id: NOTIFICATION-SERVICE
           uri: http://localhost:6003 # Replace with actual port
           predicates:
-            - Path=/api/notifications/**, /notifications/**
+            - Path=/api/notifications/**, /notifications/** , /api/notification-preferences/**
       default-filters:
         - name: DedupeResponseHeader
           args:

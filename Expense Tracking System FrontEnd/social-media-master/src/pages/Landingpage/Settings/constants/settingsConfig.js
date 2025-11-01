@@ -208,59 +208,6 @@ export const SETTINGS_SECTIONS = {
     ],
   },
 
-  NOTIFICATIONS: {
-    id: "notifications",
-    title: "Notifications",
-    icon: NotificationsIcon,
-    items: [
-      {
-        id: "emailNotifications",
-        icon: EmailIcon,
-        title: "Email Notifications",
-        description: "Receive email updates about expenses and activities",
-        type: "switch",
-        stateKey: "emailNotifications",
-        settingsKey: "emailNotifications",
-      },
-      {
-        id: "budgetAlerts",
-        icon: AssessmentIcon,
-        title: "Budget Alerts",
-        description: "Get notified when approaching budget limits",
-        type: "switch",
-        stateKey: "budgetAlerts",
-        settingsKey: "budgetAlerts",
-      },
-      {
-        id: "weeklyReports",
-        icon: DescriptionIcon,
-        title: "Weekly Reports",
-        description: "Receive weekly expense summaries via email",
-        type: "switch",
-        stateKey: "weeklyReports",
-        settingsKey: "weeklyReports",
-      },
-      {
-        id: "pushNotifications",
-        icon: NotificationsIcon,
-        title: "Push Notifications",
-        description: "Receive real-time notifications in your browser",
-        type: "switch",
-        stateKey: "pushNotifications",
-        settingsKey: "pushNotifications",
-      },
-      {
-        id: "friendRequests",
-        icon: PersonIcon,
-        title: "Friend Request Notifications",
-        description: "Get notified about new friend requests",
-        type: "switch",
-        stateKey: "friendRequests",
-        settingsKey: "friendRequestNotifications",
-      },
-    ],
-  },
-
   PREFERENCES: {
     id: "preferences",
     title: "Preferences",
@@ -522,6 +469,15 @@ export const SETTINGS_SECTIONS = {
     title: "Account Management",
     icon: AccountCircleIcon,
     items: [
+      {
+        id: "notificationSettings",
+        icon: NotificationImportantIcon,
+        title: "Notification Settings",
+        description: "Manage all notification preferences and channels",
+        type: "navigation",
+        action: "notificationSettings",
+        showStatus: true, // Special flag to show ON/OFF status
+      },
       {
         id: "editProfile",
         icon: PersonIcon,
