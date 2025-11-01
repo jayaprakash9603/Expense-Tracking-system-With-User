@@ -21,11 +21,14 @@ public enum NotificationType {
     EXPENSE_REJECTED,
     UNUSUAL_SPENDING,
     EXPENSE_LIMIT_REACHED,
+    LARGE_EXPENSE_ALERT, // Added for large expense detection
 
     // Bill Notifications
+    BILL_ADDED, // Added for bill creation
     BILL_CREATED,
     BILL_UPDATED,
     BILL_DELETED,
+    BILL_REMINDER, // Added for bill reminders
     BILL_DUE_REMINDER,
     BILL_OVERDUE,
     BILL_PAID,
@@ -44,6 +47,7 @@ public enum NotificationType {
     PAYMENT_METHOD_VERIFIED,
 
     // Friend/Social Notifications
+    FRIEND_REQUEST_SENT, // Added for friend request sent
     FRIEND_REQUEST_RECEIVED,
     FRIEND_REQUEST_ACCEPTED,
     FRIEND_REQUEST_REJECTED,

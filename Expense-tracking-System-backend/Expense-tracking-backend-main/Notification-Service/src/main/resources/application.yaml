@@ -67,6 +67,19 @@ spring:
       ack-mode: batch
       poll-timeout: 1000
 
+# Kafka Topics Configuration
+kafka:
+  topics:
+    expense-events: expense-events
+    budget-events: budget-events
+    bill-events: bill-events
+    payment-method-events: payment-method-events
+    friend-events: friend-events
+    friendship-events: friendship-events
+    friend-request-events: friend-request-events
+  consumer:
+    group-id: notification-service-group
+
 eureka:
   instance:
     prefer-ip-address: true
@@ -76,3 +89,8 @@ eureka:
     registry-fetch-interval: 5s
     serviceUrl:
       defaultZone: http://localhost:8761/eureka
+
+# Logging Configuration
+logging:
+  level:
+    com.jaya: INFO

@@ -23,6 +23,7 @@ import EditExpense from "./pages/Landingpage/EditExpense";
 import NewExpense from "./pages/Landingpage/NewExpense";
 import Profile from "./pages/Landingpage/Profile";
 import Settings from "./pages/Landingpage/Settings";
+import NotificationSettings from "./pages/Landingpage/NotificationSettings";
 import NewBudget from "./pages/Landingpage/NewBudget";
 import EditBudget from "./pages/Landingpage/EditBudget";
 import Reports from "./pages/Landingpage/Reports";
@@ -135,6 +136,10 @@ function App() {
             </Route>
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
+            <Route
+              path="settings/notifications"
+              element={<NotificationSettings />}
+            />
             <Route path="friends" element={<Friends />} />
             <Route path="payment-method">
               <Route index element={<PaymentMethodFlow />} />

@@ -13,15 +13,15 @@ const RECONNECT_DELAY = 5000; // 5 seconds
 
 // Notification topic patterns
 const NOTIFICATION_TOPICS = {
-  // User-specific notifications using BROADCAST TOPIC pattern (like Chat service)
-  // This pattern works without Principal - proven working in Groups/Chat
-  // Uses /topic/user/{userId}/notifications instead of /user/{userId}/queue/notifications
+  // User-specific notifications using BROADCAST pattern /topic/user/{userId}/notifications
+  // This works WITHOUT authentication/Principal (proven working in subscription confirmation)
+  // Backend uses: messagingTemplate.convertAndSend("/topic/user/" + userId + "/notifications", notification)
   USER_NOTIFICATIONS: (userId) => `/topic/user/${userId}/notifications`,
 
   // Broadcast topics
   SYSTEM_NOTIFICATIONS: "/topic/notifications",
 
-  // Legacy topic patterns (for backward compatibility) - now using broadcast pattern
+  // All specific notification types come through the main user topic
   FRIEND_REQUESTS: (userId) => `/topic/user/${userId}/notifications`,
   BUDGET_ALERTS: (userId) => `/topic/user/${userId}/notifications`,
   BILL_REMINDERS: (userId) => `/topic/user/${userId}/notifications`,

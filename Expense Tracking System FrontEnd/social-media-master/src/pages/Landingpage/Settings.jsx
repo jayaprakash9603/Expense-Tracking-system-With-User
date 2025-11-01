@@ -1,9 +1,10 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Box, useMediaQuery } from "@mui/material";
+import { Box, useMediaQuery, Chip } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import ToastNotification from "./ToastNotification";
+import { fetchNotificationPreferences } from "../../Redux/NotificationPreferences/notificationPreferences.action";
 
 // Import modular components
 import SettingsHeader from "./Settings/components/SettingsHeader";
@@ -47,12 +48,38 @@ import {
  */
 const Settings = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { colors, mode } = useTheme();
   const { settings: userSettings } = useSelector(
     (state) => state.userSettings || {}
   );
+  const notificationPreferences = useSelector(
+    (state) => state.notificationPreferences?.preferences
+  );
+  const userId = useSelector((state) => state.auth?.user?.id);
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const isDark = mode === "dark";
+
+  // Scroll position restoration
+  useEffect(() => {
+    // Restore scroll position when returning to this page
+    const savedScrollPosition = sessionStorage.getItem(
+      "settingsScrollPosition"
+    );
+    if (savedScrollPosition) {
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScrollPosition, 10));
+        sessionStorage.removeItem("settingsScrollPosition");
+      }, 0);
+    }
+  }, []);
+
+  // Fetch notification preferences on mount
+  useEffect(() => {
+    if (userId) {
+      dispatch(fetchNotificationPreferences());
+    }
+  }, [dispatch, userId]);
 
   // Custom hooks for state management
   const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
@@ -146,17 +173,43 @@ const Settings = () => {
   );
 
   // Render navigation-type setting
-  const renderNavigationSetting = (item) => (
-    <SettingItem
-      key={item.id}
-      icon={item.icon}
-      title={item.title}
-      description={item.description}
-      isNavigation
-      onNavigationClick={() => executeAction(item.action)}
-      colors={colors}
-    />
-  );
+  const renderNavigationSetting = (item) => {
+    // Check if this item should show status (notification settings)
+    const shouldShowStatus =
+      item.showStatus && item.id === "notificationSettings";
+    const masterEnabled = notificationPreferences?.masterEnabled ?? false;
+
+    return (
+      <SettingItem
+        key={item.id}
+        icon={item.icon}
+        title={item.title}
+        description={item.description}
+        isNavigation
+        onNavigationClick={() => executeAction(item.action)}
+        colors={colors}
+        statusChip={
+          shouldShowStatus ? (
+            <Chip
+              label={masterEnabled ? "ON" : "OFF"}
+              size="small"
+              sx={{
+                backgroundColor: masterEnabled ? "#14b8a6" : "#64748b",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: "0.75rem",
+                height: "22px",
+                marginRight: "8px",
+                "& .MuiChip-label": {
+                  padding: "0 8px",
+                },
+              }}
+            />
+          ) : null
+        }
+      />
+    );
+  };
 
   // Render slider-type setting
   const renderSliderSetting = (item) => {

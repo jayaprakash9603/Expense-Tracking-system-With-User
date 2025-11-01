@@ -1,6 +1,7 @@
 import React from "react";
 import { useTheme } from "../../hooks/useTheme";
 import { useMediaQuery, Box, CircularProgress } from "@mui/material";
+import { useLocation } from "react-router-dom";
 import {
   ProfileHeader,
   ProfileContent,
@@ -21,6 +22,7 @@ import ToastNotification from "./ToastNotification";
 const Profile = () => {
   const { colors } = useTheme();
   const isSmallScreen = useMediaQuery("(max-width:900px)");
+  const location = useLocation();
 
   // Use custom hook for profile form logic
   const {
@@ -42,6 +44,13 @@ const Profile = () => {
     handleCloseSnackbar,
     getInitials,
   } = useProfileForm();
+
+  // Auto-enable edit mode if navigated from settings
+  React.useEffect(() => {
+    if (location.state?.editMode) {
+      setIsEditMode(true);
+    }
+  }, [location.state, setIsEditMode]);
 
   // Loading state
   if (loading && !user) {

@@ -6,8 +6,15 @@ import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
  * SettingsHeader Component
  * Dedicated header component for Settings page
  * Follows Single Responsibility Principle
+ * Supports custom title and subtitle for reusability
  */
-const SettingsHeader = ({ colors, isSmallScreen, onBack }) => {
+const SettingsHeader = ({
+  colors,
+  isSmallScreen,
+  onBack,
+  title = "Settings",
+  subtitle = "Manage your preferences and account settings",
+}) => {
   return (
     <Box
       sx={{
@@ -41,7 +48,7 @@ const SettingsHeader = ({ colors, isSmallScreen, onBack }) => {
               letterSpacing: "-0.5px",
             }}
           >
-            Settings
+            {title}
           </Typography>
           <Typography
             variant="body2"
@@ -50,7 +57,7 @@ const SettingsHeader = ({ colors, isSmallScreen, onBack }) => {
               fontSize: "0.85rem",
             }}
           >
-            Manage your preferences and account settings
+            {subtitle}
           </Typography>
         </Box>
       </Box>
