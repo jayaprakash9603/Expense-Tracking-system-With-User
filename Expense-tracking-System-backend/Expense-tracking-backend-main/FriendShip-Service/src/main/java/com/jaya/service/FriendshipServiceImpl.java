@@ -29,6 +29,9 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Autowired
     private FriendRequestEventPublisher friendRequestEventPublisher;
+    
+    @Autowired
+    private FriendshipNotificationService friendshipNotificationService;
     // @Autowired
     // private SocketService socketService;
 
@@ -55,6 +58,9 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         // Publish friend request event to Kafka
         publishFriendRequestSentEvent(friendship, requester, recipient);
+        
+        // Send notification to recipient
+        friendshipNotificationService.sendFriendRequestSentNotification(friendship, requester);
 
         // Notify recipient about the new friend request
         // socketService.notifyNewFriendRequest(friendship);
@@ -86,15 +92,19 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         friendship = friendshipRepository.save(friendship);
 
-        // Publish friend request response event to Kafka
+        // Publish friend request response event to Kafka and send notifications
         try {
             UserDto requester = helper.validateUser(friendship.getRequesterId());
             UserDto recipient = helper.validateUser(friendship.getRecipientId());
 
             if (accept) {
                 publishFriendRequestAcceptedEvent(friendship, requester, recipient);
+                // Send notification to requester that their request was accepted
+                friendshipNotificationService.sendFriendRequestAcceptedNotification(friendship, recipient);
             } else {
                 publishFriendRequestRejectedEvent(friendship, requester, recipient);
+                // Send notification to requester that their request was rejected
+                friendshipNotificationService.sendFriendRequestRejectedNotification(friendship, recipient);
             }
         } catch (Exception e) {
             // Log error but don't fail the operation
@@ -116,17 +126,36 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Cannot set access level for non-accepted friendship");
         }
 
+        // Store old access level for notification
+        AccessLevel oldAccess = null;
+        Integer otherUserId = null;
+
         // Determine if the user is the requester or recipient and set the appropriate
         // access level
         if (friendship.getRequesterId().equals(userId)) {
+            oldAccess = friendship.getRecipientAccess();
             friendship.setRecipientAccess(accessLevel);
+            otherUserId = friendship.getRecipientId();
         } else if (friendship.getRecipientId().equals(userId)) {
+            oldAccess = friendship.getRequesterAccess();
             friendship.setRequesterAccess(accessLevel);
+            otherUserId = friendship.getRequesterId();
         } else {
             throw new RuntimeException("User is not a participant in this friendship");
         }
 
-        return friendshipRepository.save(friendship);
+        Friendship savedFriendship = friendshipRepository.save(friendship);
+        
+        // Send notification to the other user about access level change
+        try {
+            UserDto changer = helper.validateUser(userId);
+            friendshipNotificationService.sendAccessLevelChangedNotification(
+                savedFriendship, changer, otherUserId, oldAccess, accessLevel);
+        } catch (Exception e) {
+            System.err.println("Failed to send access level changed notification: " + e.getMessage());
+        }
+
+        return savedFriendship;
     }
 
     @Override
@@ -179,6 +208,14 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Only pending requests can be cancelled");
         }
 
+        // Send notification to recipient before deleting
+        try {
+            UserDto canceller = helper.validateUser(userId);
+            friendshipNotificationService.sendFriendRequestCancelledNotification(friendship, canceller);
+        } catch (Exception e) {
+            System.err.println("Failed to send friend request cancelled notification: " + e.getMessage());
+        }
+
         friendshipRepository.delete(friendship);
     }
 
@@ -195,6 +232,19 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         if (friendship.getStatus() != FriendshipStatus.ACCEPTED) {
             throw new RuntimeException("Only accepted friendships can be removed");
+        }
+
+        // Determine the other user ID
+        Integer otherUserId = friendship.getRequesterId().equals(userId) 
+            ? friendship.getRecipientId() 
+            : friendship.getRequesterId();
+
+        // Send notification to the other user before deleting
+        try {
+            UserDto remover = helper.validateUser(userId);
+            friendshipNotificationService.sendFriendshipRemovedNotification(friendship, remover, otherUserId);
+        } catch (Exception e) {
+            System.err.println("Failed to send friendship removed notification: " + e.getMessage());
         }
 
         friendshipRepository.delete(friendship);
@@ -242,6 +292,10 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         friendshipRepository.save(friendship);
+        
+        // Note: Typically we don't notify blocked users for privacy/security reasons
+        // Uncomment below if you want to send notifications
+        // friendshipNotificationService.sendUserBlockedNotification(friendship.getId(), blocker, blockedId);
     }
 
     @Override
@@ -263,8 +317,13 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("No blocking relationship found between these users");
         }
 
+        Friendship friendship = blockedFriendship.get();
+        
+        // Send notification to unblocked user
+        friendshipNotificationService.sendUserUnblockedNotification(friendship.getId(), unblocker, unblockedId);
+
         // Delete the blocked relationship
-        friendshipRepository.delete(blockedFriendship.get());
+        friendshipRepository.delete(friendship);
     }
 
     @Override

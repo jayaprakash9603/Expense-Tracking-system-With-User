@@ -129,6 +129,18 @@ public class NotificationPreferencesChecker {
                 return prefs.getFriendServiceEnabled() && prefs.getFriendRequestAcceptedEnabled();
             case "friendRequestRejected":
                 return prefs.getFriendServiceEnabled() && prefs.getFriendRequestRejectedEnabled();
+            case "friendRequestSent":
+                return prefs.getFriendServiceEnabled() && prefs.getFriendRequestSentEnabled();
+            case "friendRequestCancelled":
+                return prefs.getFriendServiceEnabled() && prefs.getFriendRequestCancelledEnabled();
+            case "friendRemoved":
+                return prefs.getFriendServiceEnabled() && prefs.getFriendRemovedEnabled();
+            case "accessLevelChanged":
+                return prefs.getFriendServiceEnabled() && prefs.getAccessLevelChangedEnabled();
+            case "userBlocked":
+                return prefs.getFriendServiceEnabled() && prefs.getUserBlockedEnabled();
+            case "userUnblocked":
+                return prefs.getFriendServiceEnabled() && prefs.getUserUnblockedEnabled();
 
             // Analytics Service Notifications
             case "weeklySummary":
