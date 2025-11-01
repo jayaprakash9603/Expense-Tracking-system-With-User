@@ -47,6 +47,7 @@ const SettingItem = ({
   onNavigationClick,
   isDanger = false,
   colors,
+  hideBorder = false,
 }) => {
   return (
     <Box
@@ -54,10 +55,10 @@ const SettingItem = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        py: 2.5,
+        py: hideBorder ? 0 : 2.5,
         px: 0,
         transition: "all 0.2s",
-        "&:hover": {
+        "&:hover": !hideBorder && {
           backgroundColor: colors.hover_bg,
           mx: -2,
           px: 2,
@@ -66,51 +67,61 @@ const SettingItem = ({
       }}
     >
       {/* Left Side - Icon and Text */}
-      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}>
+      {!hideBorder && (
         <Box
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: 2,
-            backgroundColor: isDanger
-              ? "rgba(239, 68, 68, 0.1)"
-              : `${colors.primary_accent}15`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
+          sx={{ display: "flex", alignItems: "flex-start", gap: 2, flex: 1 }}
         >
-          <Icon
-            sx={{
-              fontSize: "1.3rem",
-              color: isDanger ? "#ef4444" : colors.primary_accent,
-            }}
-          />
+          {Icon && (
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2,
+                backgroundColor: isDanger
+                  ? "rgba(239, 68, 68, 0.1)"
+                  : `${colors.primary_accent}15`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Icon
+                sx={{
+                  fontSize: "1.3rem",
+                  color: isDanger ? "#ef4444" : colors.primary_accent,
+                }}
+              />
+            </Box>
+          )}
+          <Box sx={{ flex: 1 }}>
+            {title && (
+              <Typography
+                variant="body1"
+                sx={{
+                  color: isDanger ? "#ef4444" : colors.primary_text,
+                  fontWeight: 600,
+                  mb: 0.5,
+                }}
+              >
+                {title}
+              </Typography>
+            )}
+            {description && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: colors.secondary_text,
+                  fontSize: "0.85rem",
+                  lineHeight: 1.5,
+                }}
+              >
+                {description}
+              </Typography>
+            )}
+          </Box>
         </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography
-            variant="body1"
-            sx={{
-              color: isDanger ? "#ef4444" : colors.primary_text,
-              fontWeight: 600,
-              mb: 0.5,
-            }}
-          >
-            {title}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: colors.secondary_text,
-              fontSize: "0.85rem",
-              lineHeight: 1.4,
-            }}
-          >
-            {description}
-          </Typography>
-        </Box>
-      </Box>
+      )}
 
       {/* Right Side - Action Component */}
       <Box sx={{ ml: 2, flexShrink: 0 }}>
