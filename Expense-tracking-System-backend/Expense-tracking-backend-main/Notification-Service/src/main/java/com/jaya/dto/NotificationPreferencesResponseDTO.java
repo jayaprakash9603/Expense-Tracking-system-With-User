@@ -45,6 +45,7 @@ public class NotificationPreferencesResponseDTO {
     private Boolean budgetLimitApproachingEnabled;
     private Boolean budgetCreatedEnabled;
     private Boolean budgetUpdatedEnabled;
+    private Boolean budgetDeletedEnabled;
 
     // Bill Service Notifications
     private Boolean billAddedEnabled;

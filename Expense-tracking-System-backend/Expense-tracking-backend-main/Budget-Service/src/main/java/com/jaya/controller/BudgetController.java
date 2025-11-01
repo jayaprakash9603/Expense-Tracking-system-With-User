@@ -13,7 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import com.jaya.service.BudgetNotificationService;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -27,7 +27,8 @@ public class BudgetController {
     @Autowired
     private UserService userService;
 
-
+    @Autowired
+    private BudgetNotificationService budgetNotificationService;
 
     @Autowired
     private FriendshipService friendshipService;
@@ -84,6 +85,10 @@ public class BudgetController {
 
             // Create budget
             Budget createdBudget = budgetService.createBudget(budget, targetUser.getId());
+            
+            // Send notification
+            budgetNotificationService.sendBudgetCreatedNotification(createdBudget);
+            
             return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget);
 
         } catch (IllegalArgumentException e) {
@@ -126,6 +131,10 @@ public class BudgetController {
 
             // Edit budget
             Budget updatedBudget = budgetService.editBudget(budgetId, budget, targetUser.getId());
+            
+            // Send notification
+            budgetNotificationService.sendBudgetUpdatedNotification(updatedBudget);
+            
             return ResponseEntity.ok(updatedBudget);
 
         } catch (IllegalArgumentException e) {
@@ -165,8 +174,16 @@ public class BudgetController {
                 }
             }
 
+            // Get budget name before deletion
+            Budget budget = budgetService.getBudgetById(budgetId, targetUser.getId());
+            String budgetName = budget.getName();
+            
             // Delete budget
             budgetService.deleteBudget(budgetId, targetUser.getId());
+            
+            // Send notification
+            budgetNotificationService.sendBudgetDeletedNotification(budgetId, budgetName, targetUser.getId());
+            
             return ResponseEntity.status(HttpStatus.NO_CONTENT)
                     .body("Budget is deleted successfully");
 

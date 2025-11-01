@@ -138,6 +138,7 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .budgetLimitApproachingEnabled(true)
                 .budgetCreatedEnabled(false)
                 .budgetUpdatedEnabled(false)
+                .budgetDeletedEnabled(false)
                 // Bill Service Notifications
                 .billAddedEnabled(true)
                 .billUpdatedEnabled(true)
@@ -209,6 +210,7 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         preferences.setBudgetLimitApproachingEnabled(true);
         preferences.setBudgetCreatedEnabled(false);
         preferences.setBudgetUpdatedEnabled(false);
+        preferences.setBudgetDeletedEnabled(false);
 
         // Bill Service Notifications
         preferences.setBillAddedEnabled(true);
@@ -307,6 +309,8 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
             preferences.setBudgetCreatedEnabled(request.getBudgetCreatedEnabled());
         if (request.getBudgetUpdatedEnabled() != null)
             preferences.setBudgetUpdatedEnabled(request.getBudgetUpdatedEnabled());
+        if (request.getBudgetDeletedEnabled() != null)
+            preferences.setBudgetDeletedEnabled(request.getBudgetDeletedEnabled());
 
         // Bill Service Notifications
         if (request.getBillAddedEnabled() != null)
@@ -413,6 +417,7 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .budgetLimitApproachingEnabled(preferences.getBudgetLimitApproachingEnabled())
                 .budgetCreatedEnabled(preferences.getBudgetCreatedEnabled())
                 .budgetUpdatedEnabled(preferences.getBudgetUpdatedEnabled())
+                .budgetDeletedEnabled(preferences.getBudgetDeletedEnabled())
                 // Bill Service Notifications
                 .billAddedEnabled(preferences.getBillAddedEnabled())
                 .billUpdatedEnabled(preferences.getBillUpdatedEnabled())

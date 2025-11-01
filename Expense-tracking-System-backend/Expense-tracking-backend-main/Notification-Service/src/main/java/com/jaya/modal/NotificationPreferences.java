@@ -116,6 +116,9 @@ public class NotificationPreferences {
     @Column(name = "budget_updated_enabled", nullable = false)
     private Boolean budgetUpdatedEnabled = false;
 
+    @Column(name = "budget_deleted_enabled", nullable = false)
+    private Boolean budgetDeletedEnabled = false;
+
     // ============================================
     // BILL SERVICE NOTIFICATIONS
     // ============================================

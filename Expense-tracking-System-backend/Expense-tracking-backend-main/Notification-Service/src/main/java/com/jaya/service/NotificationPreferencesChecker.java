@@ -97,6 +97,8 @@ public class NotificationPreferencesChecker {
                 return prefs.getBudgetServiceEnabled() && prefs.getBudgetCreatedEnabled();
             case "budgetUpdated":
                 return prefs.getBudgetServiceEnabled() && prefs.getBudgetUpdatedEnabled();
+            case "budgetDeleted":
+                return prefs.getBudgetServiceEnabled() && prefs.getBudgetDeletedEnabled();
 
             // Bill Service Notifications
             case "billAdded":

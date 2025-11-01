@@ -216,6 +216,20 @@ export const NOTIFICATION_SERVICES = {
           [NOTIFICATION_METHODS.PUSH]: false,
         },
       },
+      {
+        id: "budget_deleted",
+        type: "BUDGET_DELETED",
+        title: "Budget Deleted",
+        description: "Get notified when a budget is deleted",
+        icon: InfoIcon,
+        priority: NOTIFICATION_PRIORITY.LOW,
+        defaultEnabled: false,
+        methods: {
+          [NOTIFICATION_METHODS.IN_APP]: true,
+          [NOTIFICATION_METHODS.EMAIL]: false,
+          [NOTIFICATION_METHODS.PUSH]: false,
+        },
+      },
     ],
   },
 

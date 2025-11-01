@@ -29,6 +29,8 @@ public class BudgetEventProcessor extends AbstractNotificationEventProcessor<Bud
                 return "budgetCreated";
             case "UPDATE":
                 return "budgetUpdated";
+            case "DELETE":
+                return "budgetDeleted";
             case "EXCEEDED":
                 return "budgetExceeded";
             case "WARNING":
@@ -62,6 +64,12 @@ public class BudgetEventProcessor extends AbstractNotificationEventProcessor<Bud
             case "UPDATE":
                 title = "📝 Budget Updated";
                 message = String.format("Budget '%s' has been updated", event.getBudgetName());
+                priority = "LOW";
+                break;
+
+            case "DELETE":
+                title = "🗑️ Budget Deleted";
+                message = String.format("Budget '%s' has been deleted", event.getBudgetName());
                 priority = "LOW";
                 break;
 
