@@ -240,7 +240,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             className={fieldStyles}
             style={{
               height: "80px",
-              backgroundColor: colors.active_bg,
+              backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
               borderWidth: errors[id] ? "2px" : "1px",
@@ -256,7 +256,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             placeholder={`Enter ${id}`}
             className={fieldStyles}
             style={{
-              backgroundColor: colors.active_bg,
+              backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
               borderWidth: errors[id] ? "2px" : "1px",
@@ -290,7 +290,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           onChange={handleInputChange}
           className={fieldStyles}
           style={{
-            backgroundColor: colors.active_bg,
+            backgroundColor: colors.primary_bg,
             color: colors.primary_text,
             borderColor: colors.border_color,
             borderWidth: "1px",
@@ -345,7 +345,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             className: fieldStyles,
             style: {
               height: "52px",
-              backgroundColor: colors.active_bg,
+              backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               borderColor: errors.amount ? "#ff4d4f" : colors.border_color,
               borderWidth: errors.amount ? "2px" : "1px",
@@ -646,6 +646,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
               InputProps={{
                 ...params.InputProps,
                 className: fieldStyles,
+                style: {
+                  backgroundColor: colors.primary_bg,
+                  color: colors.primary_text,
+                },
               }}
             />
           )}
