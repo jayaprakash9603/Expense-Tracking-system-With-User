@@ -1588,8 +1588,8 @@ const Budget = () => {
                 onSortModelChange={setSortModel}
                 rowSelectionModel={selectedRows}
                 onRowSelectionModelChange={setSelectedRows}
-                rowHeight={58}
-                headerHeight={50}
+                rowHeight={50}
+                headerHeight={47}
                 sx={{
                   background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
                   color: colors.primary_text,

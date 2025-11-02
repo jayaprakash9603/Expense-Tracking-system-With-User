@@ -232,4 +232,3 @@ public class DetailedBudgetReport {
         private double amount;
     }
 }
-
