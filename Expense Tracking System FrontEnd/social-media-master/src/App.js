@@ -54,7 +54,7 @@ import CreateGroup from "./pages/Landingpage/CreateGroup";
 
 import GroupDetail from "./pages/Landingpage/GroupDetail";
 import Chat from "./services/Chat";
-import ExpenseReport from "./pages/Landingpage/ExpenseReport";
+import BillReport from "./pages/Landingpage/BillReport";
 import ExpenseDashboard from "./features/dashboard/ExpenseDashboard";
 import CategoryReport from "./pages/Landingpage/Category Report/CategoryReport";
 import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentReport";
@@ -164,8 +164,8 @@ function App() {
             <Route path="bill">
               <Route index element={<Bill />} />
               <Route path=":friendId" element={<Bill />} />
-              <Route path="report" element={<ExpenseReport />} />
-              <Route path="report/:friendId" element={<ExpenseReport />} />
+              <Route path="report" element={<BillReport />} />
+              <Route path="report/:friendId" element={<BillReport />} />
               <Route path="upload" element={<UploadBills />} />
               <Route path="upload/:friendId" element={<UploadBills />} />
               <Route path="create" element={<CreateBill />} />
