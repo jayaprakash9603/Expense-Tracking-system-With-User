@@ -411,7 +411,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
     <div
       className="fixed overflow-hidden flex flex-col rounded-2xl"
       style={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: isDarkMode ? colors.tertiary_bg : colors.secondary_bg,
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         right: "20px",
@@ -492,7 +492,11 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       {/* Header */}
       <div
         className="py-1 px-3 flex-shrink-0 text-center"
-        style={{ backgroundColor: colors.secondary_bg }}
+        style={{
+          backgroundColor: isDarkMode
+            ? colors.tertiary_bg
+            : colors.secondary_bg,
+        }}
       >
         <h2
           className="text-lg font-bold leading-tight"
@@ -507,7 +511,12 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
         {/* File Upload Section */}
         <div
           className="py-1.5 px-3 flex-shrink-0"
-          style={{ marginTop: "30px", backgroundColor: colors.primary_bg }}
+          style={{
+            marginTop: "30px",
+            backgroundColor: isDarkMode
+              ? colors.secondary_bg
+              : colors.primary_bg,
+          }}
         >
           <div className="flex items-center space-x-4">
             <div className="flex-1">
@@ -787,8 +796,12 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                             borderRadius: "12px !important",
                             "&:before": { display: "none" },
                             overflow: "hidden",
-                            backgroundColor: colors.secondary_bg,
-                            border: `1px solid ${colors.border_color}`,
+                            backgroundColor: isDarkMode
+                              ? colors.primary_bg
+                              : colors.secondary_bg,
+                            border: isDarkMode
+                              ? "none"
+                              : `1px solid ${colors.border_color}`,
                           }}
                         >
                           <AccordionSummary
@@ -798,7 +811,9 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                               />
                             }
                             sx={{
-                              backgroundColor: colors.primary_bg,
+                              backgroundColor: isDarkMode
+                                ? colors.tertiary_bg
+                                : colors.primary_bg,
                               borderRadius: "12px",
                               color: colors.primary_text,
                               minHeight: "56px",
@@ -902,7 +917,12 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                           </AccordionSummary>
 
                           <AccordionDetails
-                            sx={{ p: 2, backgroundColor: colors.primary_bg }}
+                            sx={{
+                              p: 2,
+                              backgroundColor: isDarkMode
+                                ? colors.primary_bg
+                                : colors.primary_bg,
+                            }}
                           >
                             <Grid container spacing={3}>
                               {/* Bill Summary */}
@@ -911,8 +931,12 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   sx={{
                                     p: 1.5,
                                     borderRadius: 2,
-                                    backgroundColor: colors.secondary_bg,
-                                    border: `1px solid ${colors.border_color}`,
+                                    backgroundColor: isDarkMode
+                                      ? colors.tertiary_bg
+                                      : colors.secondary_bg,
+                                    border: isDarkMode
+                                      ? "none"
+                                      : `1px solid ${colors.border_color}`,
                                   }}
                                 >
                                   <Typography
@@ -998,7 +1022,9 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   <Divider
                                     sx={{
                                       my: 1,
-                                      backgroundColor: colors.border_color,
+                                      backgroundColor: isDarkMode
+                                        ? colors.primary_accent
+                                        : colors.border_color,
                                     }}
                                   />
                                   <Box
@@ -1058,8 +1084,12 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   sx={{
                                     p: 1.5,
                                     borderRadius: 2,
-                                    backgroundColor: colors.secondary_bg,
-                                    border: `1px solid ${colors.border_color}`,
+                                    backgroundColor: isDarkMode
+                                      ? colors.tertiary_bg
+                                      : colors.secondary_bg,
+                                    border: isDarkMode
+                                      ? "none"
+                                      : `1px solid ${colors.border_color}`,
                                   }}
                                 >
                                   <Typography
@@ -1086,10 +1116,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                         <ListItem
                                           key={expIndex}
                                           sx={{
-                                            backgroundColor: colors.primary_bg,
+                                            backgroundColor: isDarkMode
+                                              ? colors.primary_bg
+                                              : colors.primary_bg,
                                             borderRadius: 1,
                                             mb: 1,
-                                            border: `1px solid ${colors.border_color}`,
+                                            border: isDarkMode
+                                              ? "none"
+                                              : `1px solid ${colors.border_color}`,
                                           }}
                                         >
                                           <ListItemText
@@ -1177,112 +1211,164 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             {/* Pagination */}
             {totalPages > 1 && (
               <div
-                className="py-1 px-2 flex-shrink-0"
+                className="py-2 px-2 flex-shrink-0"
                 style={{
-                  paddingTop: "15px",
-                  paddingBottom: "9px",
                   backgroundColor: colors.primary_bg,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
                 }}
               >
-                <div className="grid grid-cols-3 items-center">
-                  {/* Left spacer to allow centering */}
-                  <div></div>
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="rounded-lg transition-all duration-200"
+                  style={{
+                    backgroundColor: colors.primary_bg,
+                    color: colors.primary_text,
+                    border: `1px solid ${colors.border_color}`,
+                    padding: "4px 8px",
+                    fontSize: "14px",
+                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                    opacity: currentPage === 1 ? 0.45 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== 1) {
+                      e.currentTarget.style.backgroundColor = colors.hover_bg;
+                      e.currentTarget.style.borderColor = colors.primary_accent;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.primary_bg;
+                    e.currentTarget.style.borderColor = colors.border_color;
+                  }}
+                >
+                  Prev
+                </button>
 
-                  {/* Center pagination controls */}
-                  <div className="flex items-center justify-center space-x-2">
-                    <span
-                      className="text-xs"
-                      style={{ color: colors.secondary_text }}
-                    >
-                      {startIndex + 1}-
-                      {Math.min(endIndex, filteredAndSortedBills.length)} of{" "}
-                      {filteredAndSortedBills.length}
-                    </span>
-                    <div className="flex items-center space-x-1">
-                      <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        aria-disabled={currentPage === 1}
-                        className="p-0.5 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{
-                          color: colors.primary_text,
-                          backgroundColor: "transparent",
-                        }}
-                        onMouseEnter={(e) =>
-                          currentPage !== 1 &&
-                          (e.currentTarget.style.backgroundColor =
-                            colors.hover_bg)
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor =
-                            "transparent")
-                        }
-                      >
-                        <FaChevronLeft className="h-4 w-4" />
-                      </button>
-                      <span
-                        className="px-2 py-0.5 text-xs"
-                        style={{ color: colors.secondary_text }}
-                      >
-                        Page {currentPage} of {totalPages}
-                      </span>
-                      <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        aria-disabled={currentPage === totalPages}
-                        className="p-0.5 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{
-                          color: colors.primary_text,
-                          backgroundColor: "transparent",
-                        }}
-                        onMouseEnter={(e) =>
-                          currentPage !== totalPages &&
-                          (e.currentTarget.style.backgroundColor =
-                            colors.hover_bg)
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor =
-                            "transparent")
-                        }
-                      >
-                        <FaChevronRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  {(() => {
+                    const maxWindow = 2; // pages each side
+                    const elems = [];
 
-                  {/* Right: page size selector */}
-                  <div
-                    className="flex items-center justify-end space-x-2 text-xs"
-                    style={{ color: colors.secondary_text }}
-                  >
-                    <label htmlFor="page-size-select" className="sr-only">
-                      Bills per page
-                    </label>
-                    <select
-                      id="page-size-select"
-                      aria-label="Bills per page"
-                      value={itemsPerPage}
-                      onChange={handleItemsPerPageChange}
-                      className="px-2 py-1 rounded-md text-xs focus:outline-none focus:ring-1"
-                      style={{
-                        minWidth: "70px",
-                        backgroundColor: colors.primary_bg,
-                        color: colors.primary_text,
-                        border: `1px solid ${colors.primary_accent}`,
-                      }}
-                    >
-                      {[5, 10, 15, 20].map((size) => (
-                        <option
-                          key={size}
-                          value={size}
-                          style={{ backgroundColor: colors.primary_bg }}
+                    const push = (n) =>
+                      elems.push(
+                        <button
+                          key={n}
+                          onClick={() => handlePageChange(n)}
+                          className="rounded-lg transition-all duration-200"
+                          style={{
+                            backgroundColor:
+                              currentPage === n
+                                ? colors.primary_accent
+                                : colors.primary_bg,
+                            color:
+                              currentPage === n
+                                ? colors.button_text
+                                : colors.primary_text,
+                            border: `1px solid ${
+                              currentPage === n
+                                ? colors.primary_accent
+                                : colors.border_color
+                            }`,
+                            padding: "4px 8px",
+                            fontSize: "14px",
+                            minWidth: "32px",
+                            cursor: "pointer",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (currentPage !== n) {
+                              e.currentTarget.style.backgroundColor =
+                                colors.hover_bg;
+                              e.currentTarget.style.borderColor =
+                                colors.primary_accent;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (currentPage !== n) {
+                              e.currentTarget.style.backgroundColor =
+                                colors.primary_bg;
+                              e.currentTarget.style.borderColor =
+                                colors.border_color;
+                            }
+                          }}
                         >
-                          {size} / page
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                          {n}
+                        </button>
+                      );
+
+                    push(1);
+
+                    const left = Math.max(2, currentPage - maxWindow);
+                    const right = Math.min(
+                      totalPages - 1,
+                      currentPage + maxWindow
+                    );
+
+                    if (left > 2)
+                      elems.push(
+                        <span
+                          key="l-ell"
+                          style={{
+                            padding: "4px 6px",
+                            fontSize: "14px",
+                            color: colors.secondary_text,
+                          }}
+                        >
+                          ...
+                        </span>
+                      );
+
+                    for (let p = left; p <= right; p++) push(p);
+
+                    if (right < totalPages - 1)
+                      elems.push(
+                        <span
+                          key="r-ell"
+                          style={{
+                            padding: "4px 6px",
+                            fontSize: "14px",
+                            color: colors.secondary_text,
+                          }}
+                        >
+                          ...
+                        </span>
+                      );
+
+                    if (totalPages > 1) push(totalPages);
+
+                    return elems;
+                  })()}
                 </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="rounded-lg transition-all duration-200"
+                  style={{
+                    backgroundColor: colors.primary_bg,
+                    color: colors.primary_text,
+                    border: `1px solid ${colors.border_color}`,
+                    padding: "4px 8px",
+                    fontSize: "14px",
+                    cursor:
+                      currentPage === totalPages ? "not-allowed" : "pointer",
+                    opacity: currentPage === totalPages ? 0.45 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.currentTarget.style.backgroundColor = colors.hover_bg;
+                      e.currentTarget.style.borderColor = colors.primary_accent;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = colors.primary_bg;
+                    e.currentTarget.style.borderColor = colors.border_color;
+                  }}
+                >
+                  Next
+                </button>
               </div>
             )}
           </>
@@ -1291,7 +1377,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
       {/* Instructions Footer */}
       <div
-        className="p-3 flex items-center justify-between gap-3"
+        className="px-3 py-1.5 flex items-center justify-between gap-3"
         style={{
           backgroundColor: colors.secondary_bg,
           borderTop: `1px solid ${colors.border_color}`,
@@ -1309,7 +1395,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
           <button
             onClick={handleSaveBills}
             disabled={isSaving}
-            className="px-6 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+            className="px-4 py-1.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
             style={{
               backgroundColor: colors.primary_accent,
               color: colors.button_text,
