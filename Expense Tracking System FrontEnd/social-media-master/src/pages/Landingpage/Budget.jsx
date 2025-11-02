@@ -57,6 +57,7 @@ import {
   CalendarToday as CalendarIcon,
   Search as SearchIcon,
   Sort as SortIcon,
+  Clear as ClearIcon,
 } from "@mui/icons-material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -1189,7 +1190,7 @@ const Budget = () => {
               }}
             >
               {/* Date Filter with MUI DatePicker */}
-              <Box sx={{ flex: 1 }}>
+              <Box sx={{ flex: 1, display: "flex", gap: 1 }}>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     label="Filter by Date"
@@ -1201,7 +1202,7 @@ const Budget = () => {
                     }}
                     format={dateFormat}
                     sx={{
-                      width: "100%",
+                      flex: 1,
                       "& .MuiInputBase-root": {
                         bgcolor: colors.secondary_bg,
                         color: colors.primary_text,
@@ -1288,6 +1289,30 @@ const Budget = () => {
                     }}
                   />
                 </LocalizationProvider>
+                {filterDate && (
+                  <IconButton
+                    onClick={() => setFilterDate("")}
+                    sx={{
+                      color: colors.primary_text,
+                      bgcolor: colors.secondary_bg,
+                      border: `1.5px solid ${colors.border_color}`,
+                      borderRadius: "8px",
+                      width: 48,
+                      height: 48,
+                      flexShrink: 0,
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        bgcolor: colors.hover_bg,
+                        borderColor: colors.primary_accent,
+                        color: colors.primary_accent,
+                        transform: "translateY(-2px)",
+                        boxShadow: `0 4px 12px rgba(20, 184, 166, 0.3)`,
+                      },
+                    }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                )}
               </Box>
 
               {/* Sort Controls with MUI Select */}
