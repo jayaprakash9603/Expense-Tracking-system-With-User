@@ -20,6 +20,9 @@ import {
   GET_BUDGET_DATA_REQUEST,
   GET_BUDGET_DATA_SUCCESS,
   GET_BUDGET_REPORT_REQUEST,
+    GET_DETAILED_BUDGET_REPORT_REQUEST,
+  GET_DETAILED_BUDGET_REPORT_SUCCESS,
+  GET_DETAILED_BUDGET_REPORT_FAILURE,
   GET_LIST_BUDGETS_FAILURE,
   GET_LIST_BUDGETS_REQUEST,
   GET_LIST_BUDGETS_SUCCESS,
@@ -191,5 +194,25 @@ export const deleteBudgetData = (deleteId, targetId) => async (dispatch) => {
   } catch (error) {
     console.error("Error creating budget:", error);
     dispatch({ type: DELETE_BUDGET_FAILURE, payload: error });
+  }
+};
+
+export const getDetailedBudgetReport = (id, targetId) => async (dispatch) => {
+  dispatch({ type: GET_DETAILED_BUDGET_REPORT_REQUEST });
+
+  try {
+    const { data } = await api.get(`/api/budgets/detailed-report/${id}`, {
+      params: {
+        targetId: targetId || "",
+      },
+    });
+
+    console.log("Detailed Budget Report response:", data);
+    dispatch({ type: GET_DETAILED_BUDGET_REPORT_SUCCESS, payload: data });
+    return data;
+  } catch (error) {
+    console.error("Error fetching detailed budget report:", error);
+    dispatch({ type: GET_DETAILED_BUDGET_REPORT_FAILURE, payload: error });
+    throw error;
   }
 };

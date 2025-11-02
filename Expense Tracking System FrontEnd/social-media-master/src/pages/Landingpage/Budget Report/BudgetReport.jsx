@@ -90,6 +90,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { getDetailedBudgetReport } from "../../../Redux/Budget/budget.action";
 import { useTheme } from "../../../hooks/useTheme";
 import useUserSettings from "../../../hooks/useUserSettings";
 import dayjs from "dayjs";
@@ -215,513 +216,298 @@ const BudgetReport = () => {
     "#a29bfe",
   ];
 
-  // Enhanced mock data generation
-  useEffect(() => {
-    const fetchBudgetData = async () => {
-      setLoading(true);
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+  // Fetch real budget data from backend
+  const budgetState = useSelector((state) => state.budgets || {});
+  const {
+    detailedReport,
+    loading: reportLoading,
+    error: reportError,
+  } = budgetState;
 
-        // Enhanced mock budget data
-        const mockBudgetData = {
-          id: budgetId,
-          name: "Monthly Living Expenses",
-          amount: 50000,
-          remainingAmount: 18500,
-          spentAmount: 31500,
-          startDate: "2024-01-01",
-          endDate: "2024-01-31",
-          description:
-            "Budget for essential monthly expenses including food, transport, and utilities",
-          isValid: true,
-          progress: 63,
-          daysRemaining: 8,
-          totalDays: 31,
-          currency: "INR",
-          budgetType: "monthly",
-          tags: ["essential", "recurring", "personal"],
-          createdBy: "user123",
-          lastModified: "2024-01-15",
+  useEffect(() => {
+    if (budgetId) {
+      setLoading(true);
+      dispatch(getDetailedBudgetReport(budgetId, friendId));
+    }
+  }, [budgetId, friendId, dispatch]);
+
+  useEffect(() => {
+    if (detailedReport) {
+      try {
+        // Map BasicInfo and FinancialSummary to budgetData
+        const mappedBudgetData = {
+          id: detailedReport.budgetId,
+          name: detailedReport.budgetName,
+          amount: detailedReport.allocatedAmount,
+          remainingAmount: detailedReport.remainingAmount,
+          spentAmount: detailedReport.totalSpent,
+          startDate: detailedReport.startDate,
+          endDate: detailedReport.endDate,
+          description: detailedReport.description,
+          isValid: detailedReport.isValid,
+          progress: detailedReport.percentageUsed,
+          daysRemaining: detailedReport.daysRemaining,
+          totalDays: detailedReport.totalDays,
+          currency: currencySymbol,
+          budgetType: "custom",
         };
 
-        // Enhanced expense data with more details
-        const mockExpenseData = [
-          {
-            name: "Food & Dining",
-            amount: 12500,
-            percentage: 39.7,
-            color: "#ff6b6b",
-            count: 45,
-            avgPerTransaction: 278,
-            trend: 5.2,
-            budgetAllocated: 15000,
-            variance: -2500,
-            subcategories: [
-              { name: "Restaurants", amount: 7500, count: 25 },
-              { name: "Groceries", amount: 4000, count: 15 },
-              { name: "Takeout", amount: 1000, count: 5 },
-            ],
-          },
-          {
-            name: "Transportation",
-            amount: 8500,
-            percentage: 27.0,
-            color: "#4ecdc4",
-            count: 28,
-            avgPerTransaction: 304,
-            trend: -2.1,
-            budgetAllocated: 8000,
-            variance: 500,
-            subcategories: [
-              { name: "Fuel", amount: 5000, count: 12 },
-              { name: "Public Transport", amount: 2500, count: 10 },
-              { name: "Parking", amount: 1000, count: 6 },
-            ],
-          },
-          {
-            name: "Utilities",
-            amount: 4500,
-            percentage: 14.3,
-            color: "#45b7d1",
-            count: 12,
-            avgPerTransaction: 375,
-            trend: 1.8,
-            budgetAllocated: 5000,
-            variance: -500,
-            subcategories: [
-              { name: "Electricity", amount: 2000, count: 4 },
-              { name: "Internet", amount: 1500, count: 4 },
-              { name: "Water", amount: 1000, count: 4 },
-            ],
-          },
-          {
-            name: "Entertainment",
-            amount: 3500,
-            percentage: 11.1,
-            color: "#96ceb4",
-            count: 18,
-            avgPerTransaction: 194,
-            trend: 8.5,
-            budgetAllocated: 4000,
-            variance: -500,
-            subcategories: [
-              { name: "Movies", amount: 1500, count: 8 },
-              { name: "Games", amount: 1000, count: 5 },
-              { name: "Events", amount: 1000, count: 5 },
-            ],
-          },
-          {
-            name: "Healthcare",
-            amount: 2500,
-            percentage: 7.9,
-            color: "#feca57",
-            count: 8,
-            avgPerTransaction: 313,
-            trend: -15.2,
-            budgetAllocated: 3000,
-            variance: -500,
-            subcategories: [
-              { name: "Medicine", amount: 1500, count: 5 },
-              { name: "Doctor Visits", amount: 1000, count: 3 },
-            ],
-          },
-        ];
+        setBudgetData(mappedBudgetData);
 
-        // Enhanced payment method data
-        const mockPaymentMethodData = [
-          {
-            name: "Credit Card",
-            amount: 18500,
-            percentage: 58.7,
-            color: "#ff9ff3",
-            transactions: 65,
-            avgTransaction: 285,
-            cashback: 185,
-            fees: 50,
-          },
-          {
-            name: "Cash",
-            amount: 8500,
-            percentage: 27.0,
-            color: "#54a0ff",
-            transactions: 35,
-            avgTransaction: 243,
-            cashback: 0,
-            fees: 0,
-          },
-          {
-            name: "Debit Card",
-            amount: 4500,
-            percentage: 14.3,
-            color: "#5f27cd",
-            transactions: 25,
-            avgTransaction: 180,
-            cashback: 0,
-            fees: 25,
-          },
-        ];
+        // Map CategoryBreakdown to expenseData with colors
+        const mappedExpenseData =
+          detailedReport.categoryBreakdown?.map((cat, index) => ({
+            name: cat.categoryName,
+            amount: cat.amount,
+            percentage: cat.percentage,
+            color: expenseColors[index % expenseColors.length],
+            count: cat.transactionCount,
+            avgPerTransaction: cat.averagePerTransaction,
+            trend: 0,
+            subcategories:
+              cat.subcategories?.map((sub) => ({
+                name: sub.name,
+                amount: sub.amount,
+                count: sub.count,
+              })) || [],
+          })) || [];
 
-        // Weekly spending pattern
-        const mockWeeklyData = [
-          { week: "Week 1", spent: 7500, budget: 12500, efficiency: 60 },
-          { week: "Week 2", spent: 8200, budget: 12500, efficiency: 66 },
-          { week: "Week 3", spent: 9800, budget: 12500, efficiency: 78 },
-          { week: "Week 4", spent: 6000, budget: 12500, efficiency: 48 },
-        ];
+        setExpenseData(mappedExpenseData);
+        setCategoryBreakdown(mappedExpenseData);
+        setDetailedCategoryBreakdown(
+          mappedExpenseData.map((cat) => ({
+            category: cat.name,
+            amount: cat.amount,
+            transactions: cat.count,
+            color: cat.color,
+          }))
+        );
 
-        // Hourly spending pattern
-        const mockHourlySpending = Array.from({ length: 24 }, (_, i) => ({
+        // Map PaymentMethodBreakdown
+        const mappedPaymentMethodData =
+          detailedReport.paymentMethodBreakdown?.map((pm, index) => ({
+            name: pm.paymentMethod,
+            amount: pm.amount,
+            percentage: pm.percentage,
+            color: expenseColors[(index + 5) % expenseColors.length],
+            transactions: pm.transactionCount,
+            avgTransaction: pm.amount / (pm.transactionCount || 1),
+          })) || [];
+
+        setPaymentMethodData(mappedPaymentMethodData);
+        setExpensesByPayment(mappedPaymentMethodData);
+
+        // Map DailySpending to timelineData
+        const mappedTimelineData =
+          detailedReport.dailySpending?.map((day) => ({
+            date: dayjs(day.date).format("MMM DD"),
+            spent: day.amount,
+            day: dayjs(day.date).date(),
+            isWeekend:
+              dayjs(day.date).day() === 0 || dayjs(day.date).day() === 6,
+          })) || [];
+
+        setTimelineData(mappedTimelineData);
+        setExpensesByDate(
+          detailedReport.dailySpending?.map((day) => ({
+            date: day.date,
+            amount: day.amount,
+          })) || []
+        );
+
+        // Map WeeklySpending
+        const mappedWeeklyData =
+          detailedReport.weeklySpending?.map((week) => ({
+            week: week.week,
+            spent: week.amount,
+            budget: detailedReport.allocatedAmount / 4,
+            efficiency:
+              (week.amount / (detailedReport.allocatedAmount / 4)) * 100,
+          })) || [];
+
+        setWeeklyData(mappedWeeklyData);
+
+        // Map Transactions
+        const mappedTransactions =
+          detailedReport.transactions?.map((tx, index) => ({
+            id: tx.expenseId || index + 1,
+            date: tx.date,
+            categoryName: tx.categoryName,
+            expenseName: tx.expenseName,
+            paymentMethod: tx.paymentMethod,
+            amount: tx.amount,
+            comments: tx.comments || "",
+          })) || [];
+
+        setTransactions(mappedTransactions);
+
+        // Map BudgetHealth
+        const healthMetrics = detailedReport.healthMetrics || {};
+        const mappedBudgetHealth = {
+          status: healthMetrics.status || detailedReport.budgetStatus,
+          statusColor:
+            detailedReport.budgetStatus === "on-track"
+              ? colorScheme.success
+              : detailedReport.budgetStatus === "over-budget"
+              ? colorScheme.error
+              : colorScheme.warning,
+          statusText:
+            detailedReport.budgetStatus === "on-track"
+              ? "On Track"
+              : detailedReport.budgetStatus === "over-budget"
+              ? "Over Budget"
+              : "At Risk",
+          spentPercentage: detailedReport.percentageUsed,
+          healthPercentage: healthMetrics.paceScore || 0,
+          paceScore: healthMetrics.paceScore || 0,
+          riskLevel: detailedReport.riskLevel,
+          burnRate: healthMetrics.burnRate || 0,
+          projectedEndBalance: healthMetrics.projectedEndBalance || 0,
+          velocityScore: healthMetrics.paceScore || 0,
+        };
+
+        setBudgetHealth(mappedBudgetHealth);
+
+        // Map insights
+        const mappedInsights =
+          detailedReport.insights?.map((insight, index) => {
+            let icon = Info;
+            let color = colorScheme.info;
+            let type = "info";
+
+            if (
+              insight.toLowerCase().includes("alert") ||
+              insight.toLowerCase().includes("critical")
+            ) {
+              icon = Warning;
+              color = colorScheme.error;
+              type = "warning";
+            } else if (
+              insight.toLowerCase().includes("success") ||
+              insight.toLowerCase().includes("good")
+            ) {
+              icon = CheckCircle;
+              color = colorScheme.success;
+              type = "success";
+            } else if (insight.toLowerCase().includes("trend")) {
+              icon = TrendingUp;
+              color = colorScheme.secondary;
+              type = "trend";
+            }
+
+            return {
+              type,
+              title: `Insight ${index + 1}`,
+              message: insight,
+              icon,
+              color,
+              priority: index === 0 ? "high" : index === 1 ? "medium" : "low",
+              actionable: true,
+            };
+          }) || [];
+
+        setInsights(mappedInsights);
+
+        // Generate derived data for charts (hourly, patterns, goals, etc.)
+        // These are calculated from the real data
+        const hourlyMap = {};
+        mappedTransactions.forEach((tx) => {
+          const hour = new Date(tx.date).getHours();
+          if (!hourlyMap[hour]) hourlyMap[hour] = { amount: 0, count: 0 };
+          hourlyMap[hour].amount += tx.amount;
+          hourlyMap[hour].count += 1;
+        });
+
+        const mappedHourlySpending = Array.from({ length: 24 }, (_, i) => ({
           hour: i,
-          amount: Math.random() * 500 + 100,
-          transactions: Math.floor(Math.random() * 10) + 1,
+          amount: hourlyMap[i]?.amount || 0,
+          transactions: hourlyMap[i]?.count || 0,
         }));
 
-        // Category trends over months
-        const mockCategoryTrends = mockExpenseData.map((category) => ({
-          category: category.name,
-          data: Array.from({ length: 6 }, (_, i) => ({
-            month: dayjs()
-              .subtract(5 - i, "month")
-              .format("MMM"),
-            amount: category.amount * (0.8 + Math.random() * 0.4),
-          })),
+        setHourlySpending(mappedHourlySpending);
+
+        // Category trends (simplified - you could expand with historical data)
+        const mappedCategoryTrends = mappedExpenseData.map((cat) => ({
+          category: cat.name,
+          data: [{ month: "Current", amount: cat.amount }],
         }));
 
-        // Budget vs Previous Period Comparison
-        const mockComparisonData = [
-          {
-            category: "Food & Dining",
-            current: 12500,
-            previous: 11800,
-            change: 5.9,
-            status: "increased",
-          },
-          {
-            category: "Transportation",
-            current: 8500,
-            previous: 9200,
-            change: -7.6,
-            status: "decreased",
-          },
-          {
-            category: "Utilities",
-            current: 4500,
-            previous: 4300,
-            change: 4.7,
-            status: "increased",
-          },
-          {
-            category: "Entertainment",
-            current: 3500,
-            previous: 2800,
-            change: 25.0,
-            status: "increased",
-          },
-          {
-            category: "Healthcare",
-            current: 2500,
-            previous: 3100,
-            change: -19.4,
-            status: "decreased",
-          },
-        ];
+        setCategoryTrends(mappedCategoryTrends);
 
-        // Forecast data for next 7 days
-        const mockForecastData = Array.from({ length: 7 }, (_, i) => ({
+        // Spending patterns (derived from real data)
+        const weekendSpending = mappedTimelineData
+          .filter((d) => d.isWeekend)
+          .reduce((sum, d) => sum + d.spent, 0);
+        const weekdaySpending = mappedTimelineData
+          .filter((d) => !d.isWeekend)
+          .reduce((sum, d) => sum + d.spent, 0);
+
+        const patterns = [];
+        if (weekendSpending > weekdaySpending * 0.4) {
+          patterns.push({
+            pattern: "Weekend Spike",
+            description: "Higher spending detected on weekends",
+            impact: "medium",
+            recommendation: "Consider weekend spending limits",
+          });
+        }
+
+        setSpendingPatterns(patterns);
+
+        // Forecast data (simple projection based on current pace)
+        const dailyAverage = detailedReport.averageDailySpending || 0;
+        const mappedForecastData = Array.from({ length: 7 }, (_, i) => ({
           day: dayjs()
             .add(i + 1, "day")
             .format("MMM DD"),
-          predicted: Math.random() * 1500 + 800,
-          confidence: Math.random() * 20 + 75,
-          category:
-            mockExpenseData[Math.floor(Math.random() * mockExpenseData.length)]
-              .name,
+          predicted: dailyAverage,
+          confidence: 85,
         }));
 
-        // Spending patterns analysis
-        const mockSpendingPatterns = [
-          {
-            pattern: "Weekend Spike",
-            description: "Spending increases by 35% on weekends",
-            impact: "high",
-            recommendation: "Set weekend spending limits",
-          },
-          {
-            pattern: "Month-end Rush",
-            description: "40% of entertainment budget spent in last week",
-            impact: "medium",
-            recommendation: "Distribute entertainment spending evenly",
-          },
-          {
-            pattern: "Morning Purchases",
-            description: "60% of food expenses occur before 12 PM",
-            impact: "low",
-            recommendation: "Consider meal planning",
-          },
-        ];
+        setForecastData(mappedForecastData);
 
-        // Budget goals and achievements
-        const mockBudgetGoals = [
-          {
-            goal: "Reduce Food Spending",
-            target: 10000,
-            current: 12500,
-            progress: 80,
+        // Comparison data (simplified - could be enhanced with historical data)
+        const mappedComparisonData = mappedExpenseData.map((cat) => ({
+          category: cat.name,
+          current: cat.amount,
+          previous: cat.amount * 0.9, // Placeholder
+          change: 10,
+          status: "increased",
+        }));
+
+        setComparisonData(mappedComparisonData);
+
+        // Budget goals (simplified)
+        const goals = [];
+        if (
+          detailedReport.projectedTotalSpending > detailedReport.allocatedAmount
+        ) {
+          goals.push({
+            goal: "Stay Within Budget",
+            target: detailedReport.allocatedAmount,
+            current: detailedReport.totalSpent,
+            progress: detailedReport.percentageUsed,
             status: "behind",
-            deadline: "2024-01-31",
-          },
-          {
-            goal: "Increase Savings Rate",
-            target: 20000,
-            current: 18500,
-            progress: 92.5,
-            status: "on-track",
-            deadline: "2024-01-31",
-          },
-          {
-            goal: "Limit Entertainment",
-            target: 3000,
-            current: 3500,
-            progress: 85.7,
-            status: "exceeded",
-            deadline: "2024-01-31",
-          },
-        ];
+            deadline: detailedReport.endDate,
+          });
+        }
 
-        // Enhanced timeline data
-        const mockTimelineData = Array.from({ length: 31 }, (_, i) => ({
-          day: i + 1,
-          date: dayjs("2024-01-01").add(i, "day").format("MMM DD"),
-          spent: Math.random() * 2000 + 500,
-          budget: 50000 / 31,
-          cumulative: (i + 1) * (31500 / 31) + (Math.random() - 0.5) * 1000,
-          category:
-            mockExpenseData[Math.floor(Math.random() * mockExpenseData.length)]
-              .name,
-          paymentMethod:
-            mockPaymentMethodData[
-              Math.floor(Math.random() * mockPaymentMethodData.length)
-            ].name,
-          isWeekend:
-            dayjs("2024-01-01").add(i, "day").day() === 0 ||
-            dayjs("2024-01-01").add(i, "day").day() === 6,
-        }));
+        setBudgetGoals(goals);
 
-        // Enhanced insights
-        const mockInsights = [
-          {
-            type: "warning",
-            title: "High Spending Alert",
-            message: "You've spent 63% of your budget with 8 days remaining",
-            icon: Warning,
-            color: colorScheme.warning,
-            priority: "high",
-            actionable: true,
-            suggestion: "Consider reducing discretionary spending",
-          },
-          {
-            type: "info",
-            title: "Top Category Analysis",
-            message:
-              "Food & Dining accounts for 40% of your expenses, 25% above average",
-            icon: Info,
-            color: colorScheme.info,
-            priority: "medium",
-            actionable: true,
-            suggestion: "Review restaurant visits and consider meal planning",
-          },
-          {
-            type: "success",
-            title: "Payment Optimization",
-            message: "Credit card usage earned ₹185 in cashback this month",
-            icon: CheckCircle,
-            color: colorScheme.success,
-            priority: "low",
-            actionable: false,
-            suggestion: "Continue using credit card for eligible purchases",
-          },
-          {
-            type: "trend",
-            title: "Spending Pattern Detected",
-            message: "Weekend spending is 35% higher than weekdays",
-            icon: TrendingUp,
-            color: colorScheme.secondary,
-            priority: "medium",
-            actionable: true,
-            suggestion: "Set weekend spending limits or budget separately",
-          },
-          {
-            type: "forecast",
-            title: "Budget Projection",
-            message: "At current rate, you'll exceed budget by ₹8,000",
-            icon: Timeline,
-            color: colorScheme.error,
-            priority: "high",
-            actionable: true,
-            suggestion: "Reduce daily spending by ₹1,000 to stay on track",
-          },
-        ];
-
-        // Set all data
-        setBudgetData(mockBudgetData);
-        setExpenseData(mockExpenseData);
-        setPaymentMethodData(mockPaymentMethodData);
-        setTimelineData(mockTimelineData);
-        setInsights(mockInsights);
-        setComparisonData(mockComparisonData);
-        setForecastData(mockForecastData);
-        setSpendingPatterns(mockSpendingPatterns);
-        setBudgetGoals(mockBudgetGoals);
-        setWeeklyData(mockWeeklyData);
-        setHourlySpending(mockHourlySpending);
-        setCategoryTrends(mockCategoryTrends);
-
-        // Transactions mock data (including user-provided sample)
-        const mockTransactions = [
-          {
-            id: 1865,
-            date: "2025-10-24",
-            includeInBudget: false,
-            budgetIds: [],
-            categoryId: 151,
-            categoryName: "Food",
-            expense: {
-              id: 1865,
-              expenseName: "Weekend",
-              amount: 275.0,
-              type: "loss",
-              paymentMethod: "creditPaid",
-              netAmount: -275.0,
-              comments: "desccription",
-              creditDue: 0.0,
-            },
-            userId: 1,
-            bill: true,
-          },
-          // add more realistic transactions derived from timelineData
-          ...mockTimelineData.slice(0, 40).map((t, i) => ({
-            id: 2000 + i,
-            date: dayjs(t.date, "MMM DD").format("YYYY-MM-DD"),
-            includeInBudget: true,
-            budgetIds: [budgetId],
-            categoryId: 100 + (i % mockExpenseData.length),
-            categoryName:
-              mockExpenseData[i % mockExpenseData.length].name || "Other",
-            expense: {
-              id: 2000 + i,
-              expenseName: `${
-                mockExpenseData[i % mockExpenseData.length].name
-              } Purchase`,
-              amount: Math.round(t.spent),
-              type: "loss",
-              paymentMethod:
-                mockPaymentMethodData[i % mockPaymentMethodData.length].name ||
-                "Cash",
-              netAmount: -Math.round(t.spent),
-              comments: "auto-generated",
-              creditDue: 0.0,
-            },
-            userId: 1,
-            bill: false,
-          })),
-        ];
-
-        setTransactions(mockTransactions);
-
-        // Derived expense summaries for new Expenses tab
-        const byDate = {};
-        const byPayment = {};
-        const byCategory = {};
-
-        mockTransactions.forEach((tx) => {
-          const dateKey = tx.date;
-          const amt = Math.abs(tx.expense.netAmount || tx.expense.amount || 0);
-
-          byDate[dateKey] = (byDate[dateKey] || 0) + amt;
-
-          const pm = tx.expense.paymentMethod || "Unknown";
-          byPayment[pm] = (byPayment[pm] || 0) + amt;
-
-          const cat = tx.categoryName || "Uncategorized";
-          if (!byCategory[cat])
-            byCategory[cat] = { amount: 0, transactions: 0 };
-          byCategory[cat].amount += amt;
-          byCategory[cat].transactions += 1;
-        });
-
-        setExpensesByDate(
-          Object.keys(byDate)
-            .sort()
-            .map((d) => ({ date: d, amount: byDate[d] }))
-        );
-
-        setExpensesByPayment(
-          Object.keys(byPayment).map((k, i) => ({
-            name: k,
-            amount: byPayment[k],
-            color: expenseColors[i % expenseColors.length],
-          }))
-        );
-
-        setDetailedCategoryBreakdown(
-          Object.keys(byCategory).map((k, i) => ({
-            category: k,
-            amount: byCategory[k].amount,
-            transactions: byCategory[k].transactions,
-            color: expenseColors[i % expenseColors.length],
-          }))
-        );
-
-        // Calculate budget health
-        const health = calculateBudgetHealth(mockBudgetData, mockExpenseData);
-        setBudgetHealth(health);
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching budget data:", error);
-      } finally {
+        console.error("Error mapping budget data:", error);
         setLoading(false);
       }
-    };
-
-    fetchBudgetData();
-  }, [budgetId]);
-
-  // Calculate budget health metrics
-  const calculateBudgetHealth = (budget, expenses) => {
-    const spentPercentage = (budget.spentAmount / budget.amount) * 100;
-    const daysPassedPercentage =
-      ((budget.totalDays - budget.daysRemaining) / budget.totalDays) * 100;
-
-    let status = "good";
-    let statusColor = colorScheme.success;
-    let statusText = "On Track";
-
-    if (spentPercentage > daysPassedPercentage + 20) {
-      status = "critical";
-      statusColor = colorScheme.error;
-      statusText = "Over Budget";
-    } else if (spentPercentage > daysPassedPercentage + 10) {
-      status = "warning";
-      statusColor = colorScheme.warning;
-      statusText = "At Risk";
     }
+  }, [detailedReport, currencySymbol, dispatch]);
 
-    return {
-      status,
-      statusColor,
-      statusText,
-      spentPercentage,
-      daysPassedPercentage,
-      burnRate: budget.spentAmount / (budget.totalDays - budget.daysRemaining),
-      projectedSpend:
-        (budget.spentAmount / (budget.totalDays - budget.daysRemaining)) *
-        budget.totalDays,
-      efficiency: ((budget.amount - budget.spentAmount) / budget.amount) * 100,
-      velocityScore: Math.max(
-        0,
-        100 - (spentPercentage - daysPassedPercentage)
-      ),
-    };
-  };
+  useEffect(() => {
+    if (reportError) {
+      console.error("Error fetching detailed report:", reportError);
+      setLoading(false);
+    }
+  }, [reportError]);
 
   // Custom tooltip components
   const CustomTooltip = ({ active, payload, label }) => {

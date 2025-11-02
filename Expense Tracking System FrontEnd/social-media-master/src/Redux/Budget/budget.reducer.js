@@ -16,6 +16,9 @@ import {
   GET_BUDGET_DATA_FAILURE,
   GET_BUDGET_DATA_REQUEST,
   GET_BUDGET_DATA_SUCCESS,
+  GET_DETAILED_BUDGET_REPORT_REQUEST,
+  GET_DETAILED_BUDGET_REPORT_SUCCESS,
+  GET_DETAILED_BUDGET_REPORT_FAILURE,
   GET_LIST_BUDGETS_FAILURE,
   GET_LIST_BUDGETS_REQUEST,
   GET_LIST_BUDGETS_SUCCESS,
@@ -29,8 +32,8 @@ import {
 
 const initialState = {
   budgets: [],
-
-  budget: {}, // For single expense
+  budget: {}, // For single budget
+  detailedReport: null, // For detailed budget report
   loading: false,
   error: null,
   budgetExpenses: [],
@@ -46,6 +49,7 @@ export const budgetReducer = (state = initialState, action) => {
     case GET_LIST_BUDGETS_REQUEST:
     case GET_SELECT_BUDGETS_REQUEST:
     case GET_SELECT_BUDGETS_REQUEST_BY_EXPENSE_ID:
+    case GET_DETAILED_BUDGET_REPORT_REQUEST:
       return { ...state, error: null, loading: true };
     case GET_ALL_BUDGET_DATA_SUCCESS:
     case GET_LIST_BUDGETS_SUCCESS:
@@ -62,6 +66,13 @@ export const budgetReducer = (state = initialState, action) => {
       return {
         ...state,
         budget: action.payload,
+        loading: false,
+        error: null,
+      };
+    case GET_DETAILED_BUDGET_REPORT_SUCCESS:
+      return {
+        ...state,
+        detailedReport: action.payload,
         loading: false,
         error: null,
       };
@@ -88,6 +99,7 @@ export const budgetReducer = (state = initialState, action) => {
     case GET_LIST_BUDGETS_FAILURE:
     case GET_SELECT_BUDGETS_FAILURE:
     case GET_SELECT_BUDGETS_FAILURE_BY_EXPENSE_ID:
+    case GET_DETAILED_BUDGET_REPORT_FAILURE:
       return { ...state, error: action.payload, loading: false };
     default:
       return state;

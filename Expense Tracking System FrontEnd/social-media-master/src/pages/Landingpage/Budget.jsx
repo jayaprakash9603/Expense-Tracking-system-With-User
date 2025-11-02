@@ -6,6 +6,7 @@ import {
   getBudgetById,
   getBudgetReportById,
   getListOfBudgetsById,
+  getDetailedBudgetReport,
 } from "../../Redux/Budget/budget.action";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
@@ -275,13 +276,13 @@ const Budget = () => {
 
   const handleReport = async (budgetId) => {
     const id = budgetId || menuBudgetId;
-    await dispatch(getExpensesByBudgetId(id, friendId || ""));
-    await dispatch(getBudgetReportById(id, friendId || ""));
+    // Call the detailed budget report API
+    await dispatch(getDetailedBudgetReport(id, friendId || ""));
     handleMenuClose();
     if (friendId && friendId !== "undefined") {
-      navigate(`/budget/report/${id}/friend/${friendId}`);
+      navigate(`/budget-report/${id}/${friendId}`);
     } else {
-      navigate(`/budget/report/${id}`);
+      navigate(`/budget-report/${id}`);
     }
   };
 

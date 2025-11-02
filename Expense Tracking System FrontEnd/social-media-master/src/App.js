@@ -261,6 +261,11 @@ function App() {
                 element={<BudgetReport />}
               />
             </Route>
+            {/* Detailed Budget Report Routes */}
+            <Route path="/budget-report">
+              <Route path=":budgetId" element={<BudgetReport />} />
+              <Route path=":budgetId/:friendId" element={<BudgetReport />} />
+            </Route>
             <Route path="/calendar-view">
               <Route index element={<CalendarView />} />
               <Route path=":friendId" element={<CalendarView />} />
