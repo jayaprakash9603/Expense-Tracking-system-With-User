@@ -8,15 +8,12 @@ import {
 } from "@mui/icons-material";
 import { useTheme } from "../../../hooks/useTheme";
 
-const BillSummary = ({ billStats, selectedDate }) => {
+const BillSummary = ({ billStats, selectedDate, currencySymbol = "$" }) => {
   const { colors } = useTheme();
 
   // Utility functions
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
+    return `${currencySymbol}${parseFloat(amount).toFixed(2)}`;
   };
 
   const formatMonth = (date) => {

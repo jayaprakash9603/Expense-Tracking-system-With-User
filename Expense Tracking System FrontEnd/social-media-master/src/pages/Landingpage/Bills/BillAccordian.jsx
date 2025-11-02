@@ -46,6 +46,7 @@ const BillAccordion = ({
   onEditBill,
   onDeleteBill,
   hasWriteAccess,
+  currencySymbol = "$",
 }) => {
   const { colors } = useTheme();
 
@@ -75,10 +76,7 @@ const BillAccordion = ({
 
   // Utility functions
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
+    return `${currencySymbol}${parseFloat(amount).toFixed(2)}`;
   };
 
   const formatDate = (dateString) => {
