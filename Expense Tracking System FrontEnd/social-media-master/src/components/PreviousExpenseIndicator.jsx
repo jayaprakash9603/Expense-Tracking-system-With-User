@@ -41,8 +41,8 @@ const PreviousExpenseIndicator = ({
   colorScheme = {
     primary: "#00dac6",
     secondary: "#00b8a0",
-    text: "#ffffff",
-    subtext: "#9ca3af",
+    text: "#00dac6",
+    subtext: "#00dac6",
   },
 
   // Tooltip configuration
@@ -146,15 +146,38 @@ const PreviousExpenseIndicator = ({
 
   // Get variant styles
   const getVariantStyles = () => {
+    const baseStyles = {
+      borderLeftWidth: "4px",
+      borderLeftStyle: "solid",
+      borderLeftColor: "#00dac6",
+      borderRadius: "0 0.5rem 0.5rem 0",
+    };
+
     switch (variant) {
       case "gradient":
-        return `bg-gradient-to-r from-[${colorScheme.primary}]/20 to-[${colorScheme.secondary}]/20 border-l-4 border-[${colorScheme.primary}]`;
+        return {
+          ...baseStyles,
+          background:
+            "linear-gradient(to right, rgba(0, 218, 198, 0.2), rgba(0, 184, 160, 0.2))",
+        };
       case "solid":
-        return `bg-[${colorScheme.primary}]/10 border border-[${colorScheme.primary}]`;
+        return {
+          ...baseStyles,
+          backgroundColor: "rgba(0, 218, 198, 0.1)",
+          border: "1px solid #00dac6",
+        };
       case "outline":
-        return `bg-transparent border-2 border-[${colorScheme.primary}]`;
+        return {
+          ...baseStyles,
+          backgroundColor: "transparent",
+          border: "2px solid #00dac6",
+        };
       default:
-        return `bg-gradient-to-r from-[${colorScheme.primary}]/20 to-[${colorScheme.secondary}]/20 border-l-4 border-[${colorScheme.primary}]`;
+        return {
+          ...baseStyles,
+          background:
+            "linear-gradient(to right, rgba(0, 218, 198, 0.2), rgba(0, 184, 160, 0.2))",
+        };
     }
   };
 
@@ -215,12 +238,16 @@ const PreviousExpenseIndicator = ({
       <div
         className={`
           flex items-center gap-2 
-          ${getVariantStyles()}
-          rounded-r-lg px-4 py-2 
-          shadow-lg hover:shadow-[${colorScheme.primary}]/20 
+          px-4 py-2 
+          shadow-lg 
           transition-all duration-300
           ${onClick ? "cursor-pointer" : ""}
         `}
+        style={{
+          ...getVariantStyles(),
+          boxShadow:
+            "0 10px 15px -3px rgba(0, 218, 198, 0.2), 0 4px 6px -2px rgba(0, 218, 198, 0.1)",
+        }}
       >
         <div className="flex items-center gap-2">
           {/* Icon with glow effect */}
@@ -245,14 +272,14 @@ const PreviousExpenseIndicator = ({
             {labelPosition !== "none" && (
               <span
                 className="text-[10px] font-medium uppercase tracking-wider"
-                style={{ color: colorScheme.subtext }}
+                style={{ color: colorScheme.primary }}
               >
                 {label}
               </span>
             )}
             <span
               className="text-sm font-bold"
-              style={{ color: colorScheme.text }}
+              style={{ color: colorScheme.primary }}
             >
               {dayjs(expense.date).format(dateFormat)}
             </span>
@@ -282,13 +309,13 @@ const PreviousExpenseIndicator = ({
                   <div className="flex justify-between items-center">
                     <span
                       className="text-xs"
-                      style={{ color: colorScheme.subtext }}
+                      style={{ color: colorScheme.primary }}
                     >
                       Amount:
                     </span>
                     <span
                       className="text-sm font-bold"
-                      style={{ color: colorScheme.text }}
+                      style={{ color: colorScheme.primary }}
                     >
                       {mergedTooltipConfig.amountFormatter(
                         expense.expense.amount
@@ -303,13 +330,13 @@ const PreviousExpenseIndicator = ({
                   <div className="flex justify-between items-center">
                     <span
                       className="text-xs"
-                      style={{ color: colorScheme.subtext }}
+                      style={{ color: colorScheme.primary }}
                     >
                       Payment:
                     </span>
                     <span
                       className="text-xs font-medium"
-                      style={{ color: colorScheme.text }}
+                      style={{ color: colorScheme.primary }}
                     >
                       {formatPaymentMethod(expense.expense.paymentMethod)}
                     </span>
@@ -321,7 +348,7 @@ const PreviousExpenseIndicator = ({
                 <div className="flex justify-between items-center">
                   <span
                     className="text-xs"
-                    style={{ color: colorScheme.subtext }}
+                    style={{ color: colorScheme.primary }}
                   >
                     Type:
                   </span>
