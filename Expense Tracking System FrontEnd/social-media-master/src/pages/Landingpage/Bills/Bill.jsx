@@ -346,9 +346,9 @@ const Bill = () => {
         )}
 
         {filteredBills.length > 0 && (
-          <BillSummary 
-            billStats={billStats} 
-            selectedDate={selectedDate} 
+          <BillSummary
+            billStats={billStats}
+            selectedDate={selectedDate}
             currencySymbol={currencySymbol}
           />
         )}
