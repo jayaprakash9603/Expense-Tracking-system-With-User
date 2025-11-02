@@ -1,19 +1,19 @@
 /**
  * Date Formatter Usage Examples
- * 
+ *
  * This file demonstrates practical examples of using the date formatter utility
  * in various React components throughout the application.
  */
 
 import React from "react";
-import { 
-  formatDate, 
+import {
+  formatDate,
   formatDateTime,
   formatRelativeDate,
   getMonthName,
   getDayName,
   parseDate,
-  isValidDateFormat 
+  isValidDateFormat,
 } from "../utils/dateFormatter";
 import useUserSettings from "../hooks/useUserSettings";
 
@@ -148,7 +148,7 @@ export const DateInputExample = ({ value, onChange, label }) => {
 
   const handleChange = (e) => {
     const inputValue = e.target.value;
-    
+
     // Validate format
     if (!isValidDateFormat(inputValue, settings.dateFormat)) {
       setError(`Please use format: ${settings.dateFormat}`);
@@ -191,7 +191,7 @@ export const DateRangeDisplayExample = ({ startDate, endDate }) => {
     <div className="date-range">
       <span className="date-range-label">Period:</span>
       <span className="date-range-value">
-        {formatDate(startDate, settings.dateFormat)} 
+        {formatDate(startDate, settings.dateFormat)}
         {" to "}
         {formatDate(endDate, settings.dateFormat)}
       </span>
@@ -210,8 +210,8 @@ export const ParentComponentExample = () => {
   return (
     <div>
       <h1>Bills Report</h1>
-      <BillsListChild 
-        bills={bills} 
+      <BillsListChild
+        bills={bills}
         dateFormat={settings.dateFormat}
         currencySymbol={settings.getCurrency().symbol}
       />
@@ -226,7 +226,10 @@ const BillsListChild = ({ bills, dateFormat, currencySymbol }) => {
         <li key={bill.id}>
           <span>{formatDate(bill.date, dateFormat)}</span>
           <span>{bill.description}</span>
-          <span>{currencySymbol}{bill.amount}</span>
+          <span>
+            {currencySymbol}
+            {bill.amount}
+          </span>
         </li>
       ))}
     </ul>
@@ -243,24 +246,25 @@ export const SummaryCardExample = ({ bill }) => {
   return (
     <div className="bill-summary-card">
       <h3>{bill.name}</h3>
-      
+
       {/* Full formatted date */}
       <p className="bill-date">
         Date: {formatDate(bill.date, settings.dateFormat)}
       </p>
-      
+
       {/* Relative date */}
       <p className="bill-relative-date">
         {formatRelativeDate(bill.date, settings.dateFormat)}
       </p>
-      
+
       {/* With time */}
       <p className="bill-created">
         Created: {formatDateTime(bill.createdAt, settings.dateFormat, "12h")}
       </p>
-      
+
       <p className="bill-amount">
-        {settings.getCurrency().symbol}{bill.amount}
+        {settings.getCurrency().symbol}
+        {bill.amount}
       </p>
     </div>
   );
@@ -307,7 +311,10 @@ export const MonthSelectorExample = ({ selectedMonth, onMonthChange }) => {
   const settings = useUserSettings();
 
   return (
-    <select value={selectedMonth} onChange={(e) => onMonthChange(parseInt(e.target.value))}>
+    <select
+      value={selectedMonth}
+      onChange={(e) => onMonthChange(parseInt(e.target.value))}
+    >
       {Array.from({ length: 12 }, (_, i) => (
         <option key={i} value={i}>
           {getMonthName(i, settings.language, "long")}
@@ -343,7 +350,10 @@ export const ExpenseTimelineExample = ({ expenses }) => {
             {dateExpenses.map((expense) => (
               <div key={expense.id} className="timeline-expense">
                 <span>{expense.description}</span>
-                <span>{settings.getCurrency().symbol}{expense.amount}</span>
+                <span>
+                  {settings.getCurrency().symbol}
+                  {expense.amount}
+                </span>
               </div>
             ))}
           </div>
@@ -371,7 +381,12 @@ export const ExportToCSVExample = ({ data }) => {
     // Convert to CSV and download
     const csv = [
       ["Date", "Description", "Amount", "Category"],
-      ...csvData.map((row) => [row.date, row.description, row.amount, row.category]),
+      ...csvData.map((row) => [
+        row.date,
+        row.description,
+        row.amount,
+        row.category,
+      ]),
     ]
       .map((row) => row.join(","))
       .join("\n");
@@ -384,11 +399,7 @@ export const ExportToCSVExample = ({ data }) => {
     a.click();
   };
 
-  return (
-    <button onClick={handleExport}>
-      Export to CSV
-    </button>
-  );
+  return <button onClick={handleExport}>Export to CSV</button>;
 };
 
 // ============================================================================
@@ -397,7 +408,7 @@ export const ExportToCSVExample = ({ data }) => {
 
 /**
  * BEST PRACTICES:
- * 
+ *
  * 1. Always import formatDate from utils/dateFormatter
  * 2. Always use settings.dateFormat from useUserSettings hook
  * 3. Pass dateFormat as prop to child components

@@ -37,6 +37,9 @@ const PaymentMethodsReport = () => {
     refresh,
   } = usePaymentReportData({ friendId });
 
+  // Responsive detection
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
   const handleFilter = () => {
     console.log("Opening payment methods filters...");
   };
@@ -101,7 +104,15 @@ const PaymentMethodsReport = () => {
 
       <div className="charts-grid">
         {/* Row 1: Distribution (full width) */}
-        <div className="chart-row full-width">
+        <div
+          className="chart-row "
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr",
+            gap: isMobile ? 16 : 24,
+            width: "100%",
+          }}
+        >
           <SharedDistributionChart
             data={methodsData}
             mode="payment"
@@ -110,7 +121,15 @@ const PaymentMethodsReport = () => {
         </div>
 
         {/* Row 2: Usage Analysis (full width) */}
-        <div className="chart-row full-width">
+        <div
+          className="chart-row"
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr",
+            gap: isMobile ? 16 : 24,
+            width: "100%",
+          }}
+        >
           <PaymentUsageChart data={methodsData} />
         </div>
 

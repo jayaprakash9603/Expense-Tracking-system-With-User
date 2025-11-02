@@ -462,4 +462,4 @@ Uses:
 
 ---
 
-*Architecture designed for scalability, maintainability, and future enhancements.*
+_Architecture designed for scalability, maintainability, and future enhancements._

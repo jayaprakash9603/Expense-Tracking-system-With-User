@@ -23,14 +23,14 @@ src/utils/dateFormatter.js
 
 ## Supported Format Tokens
 
-| Token | Description | Example |
-|-------|-------------|---------|
-| YYYY | 4-digit year | 2024 |
-| YY | 2-digit year | 24 |
-| MM | 2-digit month (zero-padded) | 01, 12 |
-| M | Month without zero-padding | 1, 12 |
-| DD | 2-digit day (zero-padded) | 01, 31 |
-| D | Day without zero-padding | 1, 31 |
+| Token | Description                 | Example |
+| ----- | --------------------------- | ------- |
+| YYYY  | 4-digit year                | 2024    |
+| YY    | 2-digit year                | 24      |
+| MM    | 2-digit month (zero-padded) | 01, 12  |
+| M     | Month without zero-padding  | 1, 12   |
+| DD    | 2-digit day (zero-padded)   | 01, 31  |
+| D     | Day without zero-padding    | 1, 31   |
 
 ## Current Supported Formats
 
@@ -47,6 +47,7 @@ As defined in `settingsConfig.js`:
 Format a date according to a specified pattern.
 
 **Parameters:**
+
 - `dateString` (string|Date): The date to format (ISO string or Date object)
 - `format` (string): The format pattern (default: "DD/MM/YYYY")
 
@@ -58,12 +59,12 @@ Format a date according to a specified pattern.
 import { formatDate } from "../../utils/dateFormatter";
 
 // Basic formatting
-formatDate("2024-12-31", "DD/MM/YYYY");  // "31/12/2024"
-formatDate("2024-12-31", "MM/DD/YYYY");  // "12/31/2024"
-formatDate("2024-12-31", "YYYY-MM-DD");  // "2024-12-31"
+formatDate("2024-12-31", "DD/MM/YYYY"); // "31/12/2024"
+formatDate("2024-12-31", "MM/DD/YYYY"); // "12/31/2024"
+formatDate("2024-12-31", "YYYY-MM-DD"); // "2024-12-31"
 
 // With Date object
-formatDate(new Date(), "DD/MM/YYYY");    // Current date formatted
+formatDate(new Date(), "DD/MM/YYYY"); // Current date formatted
 
 // Using settings
 import useUserSettings from "../../hooks/useUserSettings";
@@ -79,6 +80,7 @@ const formattedDate = formatDate(bill.date, settings.dateFormat);
 Format a date with time according to specified patterns.
 
 **Parameters:**
+
 - `dateString` (string|Date): The date to format
 - `dateFormat` (string): The date format pattern (default: "DD/MM/YYYY")
 - `timeFormat` (string): "12h" or "24h" (default: "12h")
@@ -90,19 +92,15 @@ Format a date with time according to specified patterns.
 ```javascript
 import { formatDateTime } from "../../utils/dateFormatter";
 
-formatDateTime("2024-12-31T15:30:00", "DD/MM/YYYY", "12h");  
+formatDateTime("2024-12-31T15:30:00", "DD/MM/YYYY", "12h");
 // "31/12/2024 3:30 PM"
 
-formatDateTime("2024-12-31T15:30:00", "MM/DD/YYYY", "24h");  
+formatDateTime("2024-12-31T15:30:00", "MM/DD/YYYY", "24h");
 // "12/31/2024 15:30"
 
 // Using settings
 const settings = useUserSettings();
-formatDateTime(
-  bill.date, 
-  settings.dateFormat, 
-  settings.timeFormat
-);
+formatDateTime(bill.date, settings.dateFormat, settings.timeFormat);
 ```
 
 ---
@@ -112,6 +110,7 @@ formatDateTime(
 Parse a formatted date string back to a Date object.
 
 **Parameters:**
+
 - `dateString` (string): The formatted date string
 - `format` (string): The format pattern used (default: "DD/MM/YYYY")
 
@@ -122,12 +121,12 @@ Parse a formatted date string back to a Date object.
 ```javascript
 import { parseDate } from "../../utils/dateFormatter";
 
-parseDate("31/12/2024", "DD/MM/YYYY");  // Date object for Dec 31, 2024
-parseDate("12/31/2024", "MM/DD/YYYY");  // Date object for Dec 31, 2024
-parseDate("2024-12-31", "YYYY-MM-DD");  // Date object for Dec 31, 2024
+parseDate("31/12/2024", "DD/MM/YYYY"); // Date object for Dec 31, 2024
+parseDate("12/31/2024", "MM/DD/YYYY"); // Date object for Dec 31, 2024
+parseDate("2024-12-31", "YYYY-MM-DD"); // Date object for Dec 31, 2024
 
 // Invalid date returns null
-parseDate("invalid", "DD/MM/YYYY");     // null
+parseDate("invalid", "DD/MM/YYYY"); // null
 ```
 
 ---
@@ -137,6 +136,7 @@ parseDate("invalid", "DD/MM/YYYY");     // null
 Format a date with relative terms when recent.
 
 **Parameters:**
+
 - `dateString` (string|Date): The date to format
 - `format` (string): The format pattern for non-relative dates (default: "DD/MM/YYYY")
 
@@ -147,11 +147,11 @@ Format a date with relative terms when recent.
 ```javascript
 import { formatRelativeDate } from "../../utils/dateFormatter";
 
-formatRelativeDate(new Date(), "DD/MM/YYYY");           // "Today"
-formatRelativeDate(yesterdayDate, "DD/MM/YYYY");        // "Yesterday"
-formatRelativeDate(tomorrowDate, "DD/MM/YYYY");         // "Tomorrow"
-formatRelativeDate(twoDaysAgo, "DD/MM/YYYY");          // "2 days ago"
-formatRelativeDate(oldDate, "DD/MM/YYYY");             // "15/03/2024"
+formatRelativeDate(new Date(), "DD/MM/YYYY"); // "Today"
+formatRelativeDate(yesterdayDate, "DD/MM/YYYY"); // "Yesterday"
+formatRelativeDate(tomorrowDate, "DD/MM/YYYY"); // "Tomorrow"
+formatRelativeDate(twoDaysAgo, "DD/MM/YYYY"); // "2 days ago"
+formatRelativeDate(oldDate, "DD/MM/YYYY"); // "15/03/2024"
 ```
 
 ---
@@ -161,6 +161,7 @@ formatRelativeDate(oldDate, "DD/MM/YYYY");             // "15/03/2024"
 Get a localized month name.
 
 **Parameters:**
+
 - `monthIndex` (number): Month index (0-11)
 - `locale` (string): Locale code (default: "en")
 - `format` (string): "long" or "short" (default: "long")
@@ -172,9 +173,9 @@ Get a localized month name.
 ```javascript
 import { getMonthName } from "../../utils/dateFormatter";
 
-getMonthName(0, "en", "long");   // "January"
-getMonthName(0, "en", "short");  // "Jan"
-getMonthName(11, "es", "long");  // "Diciembre"
+getMonthName(0, "en", "long"); // "January"
+getMonthName(0, "en", "short"); // "Jan"
+getMonthName(11, "es", "long"); // "Diciembre"
 ```
 
 ---
@@ -184,6 +185,7 @@ getMonthName(11, "es", "long");  // "Diciembre"
 Get a localized day name.
 
 **Parameters:**
+
 - `dayIndex` (number): Day index (0-6, Sunday=0)
 - `locale` (string): Locale code (default: "en")
 - `format` (string): "long" or "short" (default: "long")
@@ -195,9 +197,9 @@ Get a localized day name.
 ```javascript
 import { getDayName } from "../../utils/dateFormatter";
 
-getDayName(0, "en", "long");   // "Sunday"
-getDayName(0, "en", "short");  // "Sun"
-getDayName(1, "es", "long");   // "Lunes"
+getDayName(0, "en", "long"); // "Sunday"
+getDayName(0, "en", "short"); // "Sun"
+getDayName(1, "es", "long"); // "Lunes"
 ```
 
 ---
@@ -207,6 +209,7 @@ getDayName(1, "es", "long");   // "Lunes"
 Validate if a date string matches a given format.
 
 **Parameters:**
+
 - `dateString` (string): The date string to validate
 - `format` (string): The expected format pattern (default: "DD/MM/YYYY")
 
@@ -217,9 +220,9 @@ Validate if a date string matches a given format.
 ```javascript
 import { isValidDateFormat } from "../../utils/dateFormatter";
 
-isValidDateFormat("31/12/2024", "DD/MM/YYYY");  // true
-isValidDateFormat("12/31/2024", "DD/MM/YYYY");  // false
-isValidDateFormat("2024-12-31", "YYYY-MM-DD");  // true
+isValidDateFormat("31/12/2024", "DD/MM/YYYY"); // true
+isValidDateFormat("12/31/2024", "DD/MM/YYYY"); // false
+isValidDateFormat("2024-12-31", "YYYY-MM-DD"); // true
 ```
 
 ---
@@ -229,6 +232,7 @@ isValidDateFormat("2024-12-31", "YYYY-MM-DD");  // true
 Extract the separator character from a format string.
 
 **Parameters:**
+
 - `format` (string): The format pattern (default: "DD/MM/YYYY")
 
 **Returns:** `string` - The separator character
@@ -238,9 +242,9 @@ Extract the separator character from a format string.
 ```javascript
 import { getDateSeparator } from "../../utils/dateFormatter";
 
-getDateSeparator("DD/MM/YYYY");  // "/"
-getDateSeparator("YYYY-MM-DD");  // "-"
-getDateSeparator("DD.MM.YYYY");  // "."
+getDateSeparator("DD/MM/YYYY"); // "/"
+getDateSeparator("YYYY-MM-DD"); // "-"
+getDateSeparator("DD.MM.YYYY"); // "."
 ```
 
 ---
@@ -250,6 +254,7 @@ getDateSeparator("DD.MM.YYYY");  // "."
 Get an example date in the given format.
 
 **Parameters:**
+
 - `format` (string): The format pattern (default: "DD/MM/YYYY")
 
 **Returns:** `string` - Example date string
@@ -259,9 +264,9 @@ Get an example date in the given format.
 ```javascript
 import { getFormatExample } from "../../utils/dateFormatter";
 
-getFormatExample("DD/MM/YYYY");  // "31/12/2024"
-getFormatExample("MM/DD/YYYY");  // "12/31/2024"
-getFormatExample("YYYY-MM-DD");  // "2024-12-31"
+getFormatExample("DD/MM/YYYY"); // "31/12/2024"
+getFormatExample("MM/DD/YYYY"); // "12/31/2024"
+getFormatExample("YYYY-MM-DD"); // "2024-12-31"
 ```
 
 ---
@@ -322,9 +327,9 @@ const ParentComponent = () => {
   const bills = [...];
 
   return (
-    <BillsTable 
-      bills={bills} 
-      dateFormat={settings.dateFormat} 
+    <BillsTable
+      bills={bills}
+      dateFormat={settings.dateFormat}
     />
   );
 };
@@ -368,7 +373,7 @@ import useUserSettings from "../../hooks/useUserSettings";
 
 const DateInput = ({ value, onChange }) => {
   const settings = useUserSettings();
-  
+
   const handleChange = (e) => {
     const inputValue = e.target.value;
     const parsedDate = parseDate(inputValue, settings.dateFormat);
@@ -415,8 +420,8 @@ Update the database constraint in your migration file to include the new format.
 
 ```javascript
 // New formats work automatically
-formatDate("2024-12-31", "DD.MM.YYYY");  // "31.12.2024"
-formatDate("2024-12-31", "YYYY/MM/DD");  // "2024/12/31"
+formatDate("2024-12-31", "DD.MM.YYYY"); // "31.12.2024"
+formatDate("2024-12-31", "YYYY/MM/DD"); // "2024/12/31"
 ```
 
 ---
@@ -527,6 +532,7 @@ import { formatDate } from "../../utils/dateFormatter";
 ## Support
 
 For issues or questions about date formatting, please refer to:
+
 1. This documentation
 2. The inline JSDoc comments in `dateFormatter.js`
 3. The user settings documentation in `useUserSettings.js`
@@ -536,6 +542,7 @@ For issues or questions about date formatting, please refer to:
 ## Changelog
 
 ### Version 1.0.0 (Current)
+
 - Initial release with support for DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
 - Token-based formatting system
 - Date parsing and validation
@@ -545,4 +552,4 @@ For issues or questions about date formatting, please refer to:
 
 ---
 
-*Last Updated: December 2024*
+_Last Updated: December 2024_
