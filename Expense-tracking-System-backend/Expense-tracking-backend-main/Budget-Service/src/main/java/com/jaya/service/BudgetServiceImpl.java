@@ -408,7 +408,22 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public List<Budget> getAllBudgetForUser(Integer userId) {
-        return budgetRepository.findByUserId(userId);
+        List<Budget> budgets = budgetRepository.findByUserId(userId);
+
+        // Calculate and update remaining amount for each budget
+        for (Budget budget : budgets) {
+            try {
+                BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
+                double remainingAmount = budget.getAmount() - spent.doubleValue();
+                budget.setRemainingAmount(remainingAmount);
+            } catch (Exception e) {
+                System.err.println(
+                        "Error calculating remaining amount for budget " + budget.getId() + ": " + e.getMessage());
+                // Keep the existing remainingAmount if calculation fails
+            }
+        }
+
+        return budgets;
     }
 
     @Override
@@ -429,7 +444,21 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public List<Budget> getBudgetsByDate(LocalDate date, Integer userId) {
-        return budgetRepository.findBudgetsByDate(date, userId);
+        List<Budget> budgets = budgetRepository.findBudgetsByDate(date, userId);
+
+        // Calculate and update remaining amount for each budget
+        for (Budget budget : budgets) {
+            try {
+                BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
+                double remainingAmount = budget.getAmount() - spent.doubleValue();
+                budget.setRemainingAmount(remainingAmount);
+            } catch (Exception e) {
+                System.err.println(
+                        "Error calculating remaining amount for budget " + budget.getId() + ": " + e.getMessage());
+            }
+        }
+
+        return budgets;
     }
 
     @Override
@@ -443,6 +472,16 @@ public class BudgetServiceImpl implements BudgetService {
 
         for (Budget budget : budgets) {
             budget.setIncludeInBudget(linkedBudgetIds.contains(budget.getId()));
+
+            // Calculate and update remaining amount for each budget
+            try {
+                BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
+                double remainingAmount = budget.getAmount() - spent.doubleValue();
+                budget.setRemainingAmount(remainingAmount);
+            } catch (Exception e) {
+                System.err.println(
+                        "Error calculating remaining amount for budget " + budget.getId() + ": " + e.getMessage());
+            }
         }
 
         return budgets;
