@@ -145,7 +145,10 @@ const ReusableAutocomplete = ({
       backgroundColor: colors.hover_bg,
     },
     "& .MuiAutocomplete-option[aria-selected='true']": {
-      backgroundColor: colors.active_bg,
+      backgroundColor: colors.hover_bg,
+    },
+    "& .MuiAutocomplete-option.Mui-focused": {
+      backgroundColor: colors.hover_bg,
     },
     "& .MuiAutocomplete-paper": {
       backgroundColor: colors.primary_bg,
