@@ -27,24 +27,7 @@ import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTheme } from "../../hooks/useTheme";
-
-// Helper function to format dates according to user settings
-const formatDate = (dateString, format = "DD/MM/YYYY") => {
-  const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-
-  switch (format) {
-    case "MM/DD/YYYY":
-      return `${month}/${day}/${year}`;
-    case "YYYY-MM-DD":
-      return `${year}-${month}-${day}`;
-    case "DD/MM/YYYY":
-    default:
-      return `${day}/${month}/${year}`;
-  }
-};
+import { formatDate } from "../../utils/dateFormatter";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -580,7 +563,11 @@ const TopItemsBarChart = ({
   </div>
 );
 
-const BillsTable = ({ filteredBills, currencySymbol = "₹", dateFormat = "DD/MM/YYYY" }) => (
+const BillsTable = ({
+  filteredBills,
+  currencySymbol = "₹",
+  dateFormat = "DD/MM/YYYY",
+}) => (
   <div className="bills-table-container mt-[30px]">
     <h3>📋 Recent Bills</h3>
     <div className="table-wrapper">
