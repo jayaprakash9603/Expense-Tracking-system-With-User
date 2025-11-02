@@ -1410,22 +1410,23 @@ const CreateBill = ({ onClose, onSuccess }) => {
                           tempExpenses[tempExpenses.length - 1]
                         )
                           ? "#00DAC6"
-                          : "#666",
+                          : colors.border_color,
                         color: isCurrentRowComplete(
                           tempExpenses[tempExpenses.length - 1]
                         )
                           ? "black"
-                          : "#999",
+                          : colors.icon_muted,
                         "&:hover": {
                           backgroundColor: isCurrentRowComplete(
                             tempExpenses[tempExpenses.length - 1]
                           )
                             ? "#00b8a0"
-                            : "#666",
+                            : colors.border_color,
                         },
                         "&:disabled": {
-                          backgroundColor: "#666",
-                          color: "#999",
+                          backgroundColor: colors.border_color,
+                          color: colors.icon_muted,
+                          opacity: 0.6,
                         },
                         fontSize: "0.875rem",
                         padding: "6px 12px",
