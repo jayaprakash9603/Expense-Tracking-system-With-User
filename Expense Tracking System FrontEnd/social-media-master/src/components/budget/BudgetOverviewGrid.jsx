@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
 import {
   TrendingUp,
@@ -19,6 +19,10 @@ import {
 const BudgetOverviewGrid = ({ budgets = [] }) => {
   const { colors, mode } = useTheme();
   const isDark = mode === "dark";
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [cardsPerPage, setCardsPerPage] = useState(8); // Default 8 cards
 
   /**
    * Calculate utilization percentage for a budget
@@ -385,61 +389,198 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
     );
   }
 
-  // Determine if scrolling is needed and calculate appropriate height
-  // Assuming 3 cards per row on desktop, 2 on tablet, 1 on mobile
-  // Calculate rows needed for current budgets
-  const cardsPerRow = 3; // Desktop default
-  const rowsNeeded = Math.ceil(budgets.length / cardsPerRow);
-  const needsScroll = rowsNeeded > 2;
+  // Pagination logic
+  const totalBudgets = budgets.length;
+  const totalPages = Math.ceil(totalBudgets / cardsPerPage);
+  const startIndex = (currentPage - 1) * cardsPerPage;
+  const endIndex = startIndex + cardsPerPage;
+  const currentBudgets = budgets.slice(startIndex, endIndex);
 
-  // Dynamic height based on actual content
-  // Each card is ~350px height + 20px gap
-  const maxHeight = needsScroll ? "750px" : "auto";
+  // Show pagination only if more than 8 cards
+  const showPagination = totalBudgets > 8;
+
+  // Enable scroll when per page > 8 to keep container size fixed
+  const enableScroll = cardsPerPage > 8;
+  // Fixed height for approximately 2-3 rows (8 cards)
+  const maxHeight = enableScroll ? "750px" : "auto";
 
   return (
-    <div
-      className="budget-overview-grid"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-        gap: "20px",
-        padding: "4px",
-        maxHeight: maxHeight,
-        minHeight: "auto",
-        overflowY: needsScroll ? "auto" : "visible",
-        overflowX: "hidden",
-        // Custom scrollbar styling
-        scrollbarWidth: "thin",
-        scrollbarColor: `${colors.primary_accent} ${
-          isDark ? "#1a1a1a" : "#f0f0f0"
-        }`,
-      }}
-    >
-      {budgets.map((budget, index) => (
-        <BudgetCard
-          key={budget.budgetId || budget.id || index}
-          budget={budget}
-        />
-      ))}
-      <style>
-        {`
-          .budget-overview-grid::-webkit-scrollbar {
-            width: 8px;
-          }
-          .budget-overview-grid::-webkit-scrollbar-track {
-            background: ${isDark ? "#1a1a1a" : "#f0f0f0"};
-            border-radius: 4px;
-          }
-          .budget-overview-grid::-webkit-scrollbar-thumb {
-            background: ${colors.primary_accent};
-            border-radius: 4px;
-          }
-          .budget-overview-grid::-webkit-scrollbar-thumb:hover {
-            background: ${colors.secondary_text};
-          }
-        `}
-      </style>
-    </div>
+    <>
+      <div
+        className="budget-overview-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+          gap: "20px",
+          padding: "4px",
+          maxHeight: maxHeight,
+          minHeight: "auto",
+          overflowY: enableScroll ? "auto" : "visible",
+          overflowX: "hidden",
+          scrollbarWidth: "thin",
+          scrollbarColor: `${colors.primary_accent} ${
+            isDark ? "#1a1a1a" : "#f0f0f0"
+          }`,
+        }}
+      >
+        {currentBudgets.map((budget, index) => (
+          <BudgetCard
+            key={budget.budgetId || budget.id || index}
+            budget={budget}
+          />
+        ))}
+      </div>
+
+      {/* Custom Scrollbar Styles */}
+      {enableScroll && (
+        <style>
+          {`
+            .budget-overview-grid::-webkit-scrollbar {
+              width: 8px;
+            }
+            .budget-overview-grid::-webkit-scrollbar-track {
+              background: ${isDark ? "#1a1a1a" : "#f0f0f0"};
+              border-radius: 4px;
+            }
+            .budget-overview-grid::-webkit-scrollbar-thumb {
+              background: ${colors.primary_accent};
+              border-radius: 4px;
+            }
+            .budget-overview-grid::-webkit-scrollbar-thumb:hover {
+              background: ${colors.secondary_text};
+            }
+          `}
+        </style>
+      )}
+
+      {/* Pagination Controls */}
+      {showPagination && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "20px",
+            padding: "16px",
+            background: isDark ? "#1a1a1a" : "#f8f9fa",
+            borderRadius: "8px",
+            border: `1px solid ${colors.border_color}`,
+          }}
+        >
+          <div style={{ flex: 1 }} />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              flex: 1,
+              justifyContent: "center",
+            }}
+          >
+            <button
+              type="button"
+              style={{
+                padding: "8px 12px",
+                background:
+                  currentPage <= 1
+                    ? isDark
+                      ? "#2a2a2a"
+                      : "#e0e0e0"
+                    : colors.primary_accent,
+                color: currentPage <= 1 ? colors.secondary_text : "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: currentPage <= 1 ? "not-allowed" : "pointer",
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "all 0.2s",
+              }}
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              ‹
+            </button>
+            <span
+              style={{
+                color: colors.primary_text,
+                fontSize: "14px",
+                fontWeight: 500,
+              }}
+            >
+              Budgets {startIndex + 1}-{Math.min(endIndex, totalBudgets)} of{" "}
+              {totalBudgets}
+            </span>
+            <button
+              type="button"
+              style={{
+                padding: "8px 12px",
+                background:
+                  currentPage >= totalPages
+                    ? isDark
+                      ? "#2a2a2a"
+                      : "#e0e0e0"
+                    : colors.primary_accent,
+                color:
+                  currentPage >= totalPages ? colors.secondary_text : "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: currentPage >= totalPages ? "not-allowed" : "pointer",
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "all 0.2s",
+              }}
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            >
+              ›
+            </button>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flex: 1,
+              justifyContent: "flex-end",
+            }}
+          >
+            <span
+              style={{
+                color: colors.secondary_text,
+                fontSize: "13px",
+              }}
+            >
+              Budgets per page:
+            </span>
+            <select
+              value={cardsPerPage}
+              onChange={(e) => {
+                setCardsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              style={{
+                padding: "6px 10px",
+                background: colors.primary_bg,
+                color: colors.primary_text,
+                border: `1px solid ${colors.border_color}`,
+                borderRadius: "6px",
+                fontSize: "13px",
+                cursor: "pointer",
+                outline: "none",
+              }}
+            >
+              <option value={8}>8</option>
+              <option value={12}>12</option>
+              <option value={16}>16</option>
+              <option value={20}>20</option>
+              <option value={40}>40</option>
+              <option value={80}>80</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
