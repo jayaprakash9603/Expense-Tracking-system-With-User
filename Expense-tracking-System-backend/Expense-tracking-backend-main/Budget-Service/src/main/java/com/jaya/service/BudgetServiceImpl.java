@@ -1498,20 +1498,108 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public Map<String, Object> getSingleBudgetDetailedReport(Integer userId, Integer budgetId) throws Exception {
+    public Map<String, Object> getSingleBudgetDetailedReport(Integer userId, Integer budgetId, LocalDate fromDate,
+            LocalDate toDate, String rangeType, int offset, String flowType) throws Exception {
         Budget budget = getBudgetById(budgetId, userId);
         if (budget == null) {
             throw new IllegalArgumentException("Budget not found with ID: " + budgetId);
         }
 
+        // Determine date range: prioritize explicit fromDate/toDate, then rangeType
+        LocalDate effectiveFromDate = fromDate;
+        LocalDate effectiveToDate = toDate;
+
+        // If explicit dates not provided, calculate from rangeType
+        if ((effectiveFromDate == null || effectiveToDate == null) && rangeType != null
+                && !rangeType.equalsIgnoreCase("all")) {
+            LocalDate today = LocalDate.now();
+            switch (rangeType.toLowerCase()) {
+                case "day":
+                    effectiveFromDate = today.plusDays(offset);
+                    effectiveToDate = effectiveFromDate;
+                    break;
+                case "week":
+                    LocalDate weekStart = today.plusWeeks(offset).with(java.time.DayOfWeek.MONDAY);
+                    effectiveFromDate = weekStart;
+                    effectiveToDate = weekStart.plusDays(6);
+                    break;
+                case "month":
+                    LocalDate monthBase = today.plusMonths(offset);
+                    effectiveFromDate = monthBase.withDayOfMonth(1);
+                    effectiveToDate = monthBase.withDayOfMonth(monthBase.lengthOfMonth());
+                    break;
+                case "quarter":
+                    // Calculate the current quarter (1-4)
+                    int currentMonth = today.getMonthValue();
+                    int currentQuarter = (currentMonth - 1) / 3; // 0-3
+                    // Add offset to quarters
+                    int targetQuarter = currentQuarter + offset;
+                    int yearAdjustment = targetQuarter / 4;
+                    targetQuarter = targetQuarter % 4;
+                    if (targetQuarter < 0) {
+                        targetQuarter += 4;
+                        yearAdjustment--;
+                    }
+                    LocalDate quarterBase = today.plusYears(yearAdjustment);
+                    // Quarter start months: Q1=1, Q2=4, Q3=7, Q4=10
+                    int quarterStartMonth = targetQuarter * 3 + 1;
+                    effectiveFromDate = LocalDate.of(quarterBase.getYear(), quarterStartMonth, 1);
+                    effectiveToDate = effectiveFromDate.plusMonths(2).withDayOfMonth(
+                            effectiveFromDate.plusMonths(2).lengthOfMonth());
+                    break;
+                case "year":
+                    LocalDate yearBase = today.plusYears(offset);
+                    effectiveFromDate = yearBase.withDayOfYear(1);
+                    effectiveToDate = yearBase.withDayOfYear(yearBase.lengthOfYear());
+                    break;
+                case "budget":
+                    // Use the budget's start and end dates
+                    effectiveFromDate = budget.getStartDate();
+                    effectiveToDate = budget.getEndDate();
+                    break;
+                default:
+                    // "all" or unsupported - no date filtering
+                    break;
+            }
+        }
+
         List<ExpenseDTO> budgetExpenses = getExpensesForUserByBudgetId(userId, budgetId);
+
+        // Apply date range filter if specified
+        if (effectiveFromDate != null && effectiveToDate != null) {
+            final LocalDate finalFromDate = effectiveFromDate;
+            final LocalDate finalToDate = effectiveToDate;
+            budgetExpenses = budgetExpenses.stream()
+                    .filter(dto -> {
+                        LocalDate expenseDate = dto.getDate();
+                        return !expenseDate.isBefore(finalFromDate) && !expenseDate.isAfter(finalToDate);
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // Apply flowType filter: if not provided or "all", include both loss and gain
+        if (flowType != null && !flowType.equalsIgnoreCase("all")) {
+            final String targetType = flowType.equalsIgnoreCase("loss") ? "loss" : "gain";
+            budgetExpenses = budgetExpenses.stream()
+                    .filter(dto -> dto.getExpense() != null &&
+                            targetType.equalsIgnoreCase(dto.getExpense().getType()))
+                    .collect(Collectors.toList());
+        }
+        // If flowType is null or "all", include all expenses (both loss and gain)
 
         double totalAmount = 0.0;
         int totalExpenses = budgetExpenses.size();
         Set<String> uniqueExpenseNames = new LinkedHashSet<>();
         Set<String> uniquePaymentMethods = new LinkedHashSet<>();
-        Map<String, Double> expenseNameTotals = new LinkedHashMap<>();
-        Map<String, Double> paymentMethodTotals = new LinkedHashMap<>();
+
+        // Track counts and amounts for expense names, payment methods and categories
+        Map<String, Double> expenseNameAmountMap = new LinkedHashMap<>();
+        Map<String, Integer> expenseNameCountMap = new LinkedHashMap<>();
+        Map<String, Double> paymentMethodAmountMap = new LinkedHashMap<>();
+        Map<String, Integer> paymentMethodCountMap = new LinkedHashMap<>();
+        Map<String, Double> categoryAmountMap = new LinkedHashMap<>();
+        Map<String, Integer> categoryCountMap = new LinkedHashMap<>();
+
         Map<String, Map<String, Object>> expenseGroups = new LinkedHashMap<>();
 
         for (ExpenseDTO dto : budgetExpenses) {
@@ -1527,11 +1615,23 @@ public class BudgetServiceImpl implements BudgetService {
                 uniquePaymentMethods.add(paymentMethod);
             }
 
-            expenseNameTotals.put(expenseName, round2(expenseNameTotals.getOrDefault(expenseName, 0.0) + amount));
+            // Track expense name totals and counts
+            expenseNameAmountMap.put(expenseName, round2(expenseNameAmountMap.getOrDefault(expenseName, 0.0) + amount));
+            expenseNameCountMap.put(expenseName, expenseNameCountMap.getOrDefault(expenseName, 0) + 1);
+
+            // Track payment method totals and counts
             if (paymentMethod != null && !paymentMethod.isEmpty()) {
-                paymentMethodTotals.put(paymentMethod,
-                        round2(paymentMethodTotals.getOrDefault(paymentMethod, 0.0) + amount));
+                paymentMethodAmountMap.put(paymentMethod,
+                        round2(paymentMethodAmountMap.getOrDefault(paymentMethod, 0.0) + amount));
+                paymentMethodCountMap.put(paymentMethod, paymentMethodCountMap.getOrDefault(paymentMethod, 0) + 1);
             }
+
+            // Track category totals and counts
+            String category = dto.getCategoryName() != null && !dto.getCategoryName().isEmpty()
+                    ? dto.getCategoryName()
+                    : "Uncategorized";
+            categoryAmountMap.put(category, round2(categoryAmountMap.getOrDefault(category, 0.0) + amount));
+            categoryCountMap.put(category, categoryCountMap.getOrDefault(category, 0) + 1);
 
             expenseGroups.computeIfAbsent(expenseName, k -> {
                 Map<String, Object> g = new LinkedHashMap<>();
@@ -1573,18 +1673,50 @@ public class BudgetServiceImpl implements BudgetService {
             expList.add(expenseDetails);
         }
 
+        // Convert expense name totals to array format
+        List<Map<String, Object>> expenseNameTotals = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : expenseNameAmountMap.entrySet()) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("expenseName", entry.getKey());
+            item.put("totalAmount", entry.getValue());
+            item.put("count", expenseNameCountMap.get(entry.getKey()));
+            expenseNameTotals.add(item);
+        }
+
+        // Convert payment method totals to array format
+        List<Map<String, Object>> paymentMethodTotals = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : paymentMethodAmountMap.entrySet()) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("paymentMethod", entry.getKey());
+            item.put("totalAmount", entry.getValue());
+            item.put("count", paymentMethodCountMap.get(entry.getKey()));
+            paymentMethodTotals.add(item);
+        }
+
+        // Convert category totals to array format (mirror paymentMethodTotals shape)
+        List<Map<String, Object>> categoryTotals = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : categoryAmountMap.entrySet()) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("category", entry.getKey());
+            item.put("totalAmount", entry.getValue());
+            item.put("count", categoryCountMap.get(entry.getKey()));
+            categoryTotals.add(item);
+        }
+
         Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("budgetName", budget.getName());
         summary.put("totalAmount", round2(totalAmount));
-        Map<String, Object> dateRange = new LinkedHashMap<>();
-        dateRange.put("fromDate", budget.getStartDate().toString());
-        dateRange.put("toDate", budget.getEndDate().toString());
-        dateRange.put("flowType", null);
-        summary.put("dateRange", dateRange);
+        String dateRangeStr = budget.getStartDate().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) +
+                " - " +
+                budget.getEndDate().format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
+        summary.put("dateRange", dateRangeStr);
         summary.put("totalExpenseNames", uniqueExpenseNames.size());
         summary.put("totalExpenses", totalExpenses);
         summary.put("expenseNameTotals", expenseNameTotals);
         summary.put("totalPaymentMethods", uniquePaymentMethods.size());
         summary.put("paymentMethodTotals", paymentMethodTotals);
+        summary.put("totalCategories", categoryAmountMap.size());
+        summary.put("categoryTotals", categoryTotals);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("summary", summary);

@@ -86,10 +86,16 @@ public interface BudgetService {
      * Get single budget detailed report with expenses grouped by expense name.
      * Similar to getFilteredBudgetsWithExpenses but for a single budget.
      *
-     * @param userId   the user whose budget to fetch
-     * @param budgetId the specific budget ID
+     * @param userId    the user whose budget to fetch
+     * @param budgetId  the specific budget ID
+     * @param fromDate  optional start date filter
+     * @param toDate    optional end date filter
+     * @param rangeType optional range type (day/week/month/year/all)
+     * @param offset    offset for range type
+     * @param flowType  optional flow type filter (loss/gain/all)
      * @return Map containing summary and expenses grouped by expense name
      * @throws Exception on validation or data access errors
      */
-    Map<String, Object> getSingleBudgetDetailedReport(Integer userId, Integer budgetId) throws Exception;
+    Map<String, Object> getSingleBudgetDetailedReport(Integer userId, Integer budgetId, LocalDate fromDate,
+            LocalDate toDate, String rangeType, int offset, String flowType) throws Exception;
 }

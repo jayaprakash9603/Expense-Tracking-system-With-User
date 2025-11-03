@@ -200,25 +200,50 @@ export const deleteBudgetData = (deleteId, targetId) => async (dispatch) => {
   }
 };
 
-export const getDetailedBudgetReport = (id, targetId) => async (dispatch) => {
-  dispatch({ type: GET_DETAILED_BUDGET_REPORT_REQUEST });
+export const getDetailedBudgetReport =
+  (
+    id,
+    targetId,
+    rangeType = "all",
+    offset = 0,
+    flowType = "all",
+    fromDate = null,
+    toDate = null
+  ) =>
+  async (dispatch) => {
+    dispatch({ type: GET_DETAILED_BUDGET_REPORT_REQUEST });
 
-  try {
-    const { data } = await api.get(`/api/budgets/detailed-report/${id}`, {
-      params: {
+    try {
+      const params = {
         targetId: targetId || "",
-      },
-    });
+      };
 
-    console.log("Detailed Budget Report response:", data);
-    dispatch({ type: GET_DETAILED_BUDGET_REPORT_SUCCESS, payload: data });
-    return data;
-  } catch (error) {
-    console.error("Error fetching detailed budget report:", error);
-    dispatch({ type: GET_DETAILED_BUDGET_REPORT_FAILURE, payload: error });
-    throw error;
-  }
-};
+      // Prefer explicit dates if provided
+      if (fromDate && toDate) {
+        params.fromDate = fromDate;
+        params.toDate = toDate;
+      } else {
+        params.rangeType = rangeType;
+        params.offset = offset;
+      }
+
+      if (flowType && flowType !== "all") {
+        params.flowType = flowType;
+      }
+
+      const { data } = await api.get(`/api/budgets/detailed-report/${id}`, {
+        params,
+      });
+
+      console.log("Detailed Budget Report response:", data);
+      dispatch({ type: GET_DETAILED_BUDGET_REPORT_SUCCESS, payload: data });
+      return data;
+    } catch (error) {
+      console.error("Error fetching detailed budget report:", error);
+      dispatch({ type: GET_DETAILED_BUDGET_REPORT_FAILURE, payload: error });
+      throw error;
+    }
+  };
 
 export const getFilteredBudgetsReport =
   ({ fromDate, toDate, rangeType, offset = 0, flowType, targetId }) =>

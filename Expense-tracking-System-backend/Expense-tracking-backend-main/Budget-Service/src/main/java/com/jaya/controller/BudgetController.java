@@ -471,7 +471,12 @@ public class BudgetController {
     public ResponseEntity<?> getDetailedBudgetReport(
             @PathVariable Integer budgetId,
             @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) Integer targetId) {
+            @RequestParam(required = false) Integer targetId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false, defaultValue = "all") String rangeType,
+            @RequestParam(required = false, defaultValue = "0") int offset,
+            @RequestParam(required = false, defaultValue = "all") String flowType) {
         try {
             // Validate JWT
             UserDto reqUser = userService.getuserProfile(jwt);
@@ -498,8 +503,14 @@ public class BudgetController {
 
             // Return single budget grouped detailed report (expense name grouping +
             // summary)
-            Map<String, Object> groupedBudget = budgetService.getSingleBudgetDetailedReport(targetUser.getId(),
-                    budgetId);
+            Map<String, Object> groupedBudget = budgetService.getSingleBudgetDetailedReport(
+                    targetUser.getId(),
+                    budgetId,
+                    fromDate,
+                    toDate,
+                    rangeType,
+                    offset,
+                    flowType);
             return ResponseEntity.ok(groupedBudget);
 
         } catch (IllegalArgumentException e) {
