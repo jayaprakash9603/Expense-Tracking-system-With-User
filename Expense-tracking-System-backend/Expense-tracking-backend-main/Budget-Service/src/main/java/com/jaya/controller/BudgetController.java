@@ -496,10 +496,11 @@ public class BudgetController {
                 }
             }
 
-            // Get detailed budget report
-            DetailedBudgetReport detailedReport = budgetService.calculateDetailedBudgetReport(targetUser.getId(),
+            // Return single budget grouped detailed report (expense name grouping +
+            // summary)
+            Map<String, Object> groupedBudget = budgetService.getSingleBudgetDetailedReport(targetUser.getId(),
                     budgetId);
-            return ResponseEntity.ok(detailedReport);
+            return ResponseEntity.ok(groupedBudget);
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Invalid request: " + e.getMessage());

@@ -81,4 +81,15 @@ public interface BudgetService {
             String rangeType,
             int offset,
             String flowType) throws Exception;
+
+    /**
+     * Get single budget detailed report with expenses grouped by expense name.
+     * Similar to getFilteredBudgetsWithExpenses but for a single budget.
+     *
+     * @param userId   the user whose budget to fetch
+     * @param budgetId the specific budget ID
+     * @return Map containing summary and expenses grouped by expense name
+     * @throws Exception on validation or data access errors
+     */
+    Map<String, Object> getSingleBudgetDetailedReport(Integer userId, Integer budgetId) throws Exception;
 }

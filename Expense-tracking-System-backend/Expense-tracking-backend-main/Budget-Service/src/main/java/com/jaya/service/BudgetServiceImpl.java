@@ -1497,4 +1497,109 @@ public class BudgetServiceImpl implements BudgetService {
         return response;
     }
 
+    @Override
+    public Map<String, Object> getSingleBudgetDetailedReport(Integer userId, Integer budgetId) throws Exception {
+        Budget budget = getBudgetById(budgetId, userId);
+        if (budget == null) {
+            throw new IllegalArgumentException("Budget not found with ID: " + budgetId);
+        }
+
+        List<ExpenseDTO> budgetExpenses = getExpensesForUserByBudgetId(userId, budgetId);
+
+        double totalAmount = 0.0;
+        int totalExpenses = budgetExpenses.size();
+        Set<String> uniqueExpenseNames = new LinkedHashSet<>();
+        Set<String> uniquePaymentMethods = new LinkedHashSet<>();
+        Map<String, Double> expenseNameTotals = new LinkedHashMap<>();
+        Map<String, Double> paymentMethodTotals = new LinkedHashMap<>();
+        Map<String, Map<String, Object>> expenseGroups = new LinkedHashMap<>();
+
+        for (ExpenseDTO dto : budgetExpenses) {
+            if (dto.getExpense() == null)
+                continue;
+            String expenseName = dto.getExpense().getExpenseName();
+            String paymentMethod = dto.getExpense().getPaymentMethod();
+            double amount = dto.getExpense().getAmount();
+
+            totalAmount += amount;
+            uniqueExpenseNames.add(expenseName);
+            if (paymentMethod != null && !paymentMethod.isEmpty()) {
+                uniquePaymentMethods.add(paymentMethod);
+            }
+
+            expenseNameTotals.put(expenseName, round2(expenseNameTotals.getOrDefault(expenseName, 0.0) + amount));
+            if (paymentMethod != null && !paymentMethod.isEmpty()) {
+                paymentMethodTotals.put(paymentMethod,
+                        round2(paymentMethodTotals.getOrDefault(paymentMethod, 0.0) + amount));
+            }
+
+            expenseGroups.computeIfAbsent(expenseName, k -> {
+                Map<String, Object> g = new LinkedHashMap<>();
+                g.put("expenseCount", 0);
+                g.put("totalAmount", 0.0);
+                g.put("expenseName", expenseName);
+                g.put("paymentMethod", expenseName); // use expense name label similar to sample
+                g.put("paymentMethods", new LinkedHashSet<String>());
+                g.put("expenses", new ArrayList<Map<String, Object>>());
+                return g;
+            });
+
+            Map<String, Object> group = expenseGroups.get(expenseName);
+            group.put("expenseCount", ((Number) group.get("expenseCount")).intValue() + 1);
+            group.put("totalAmount", round2(((Number) group.get("totalAmount")).doubleValue() + amount));
+            @SuppressWarnings("unchecked")
+            Set<String> pmSet = (Set<String>) group.get("paymentMethods");
+            if (paymentMethod != null && !paymentMethod.isEmpty()) {
+                pmSet.add(paymentMethod);
+            }
+
+            Map<String, Object> expenseDetails = new LinkedHashMap<>();
+            expenseDetails.put("date", dto.getDate().toString());
+            expenseDetails.put("id", dto.getId());
+
+            Map<String, Object> details = new LinkedHashMap<>();
+            details.put("amount", round2(dto.getExpense().getAmount()));
+            details.put("comments", dto.getExpense().getComments());
+            details.put("netAmount", round2(dto.getExpense().getNetAmount()));
+            details.put("paymentMethod", dto.getExpense().getPaymentMethod());
+            details.put("id", dto.getId());
+            details.put("type", dto.getExpense().getType());
+            details.put("expenseName", dto.getExpense().getExpenseName());
+            details.put("creditDue", round2(dto.getExpense().getCreditDue()));
+            expenseDetails.put("details", details);
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> expList = (List<Map<String, Object>>) group.get("expenses");
+            expList.add(expenseDetails);
+        }
+
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("totalAmount", round2(totalAmount));
+        Map<String, Object> dateRange = new LinkedHashMap<>();
+        dateRange.put("fromDate", budget.getStartDate().toString());
+        dateRange.put("toDate", budget.getEndDate().toString());
+        dateRange.put("flowType", null);
+        summary.put("dateRange", dateRange);
+        summary.put("totalExpenseNames", uniqueExpenseNames.size());
+        summary.put("totalExpenses", totalExpenses);
+        summary.put("expenseNameTotals", expenseNameTotals);
+        summary.put("totalPaymentMethods", uniquePaymentMethods.size());
+        summary.put("paymentMethodTotals", paymentMethodTotals);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("summary", summary);
+        for (Map.Entry<String, Map<String, Object>> entry : expenseGroups.entrySet()) {
+            // convert paymentMethods set to list for JSON friendliness
+            @SuppressWarnings("unchecked")
+            Set<String> pmSet = (Set<String>) entry.getValue().get("paymentMethods");
+            entry.getValue().put("paymentMethods", new ArrayList<>(pmSet));
+            response.put(entry.getKey(), entry.getValue());
+        }
+        return response;
+    }
+
+    private double round2(double v) {
+        return Math.round(v * 100.0) / 100.0;
+    }
+
 }
