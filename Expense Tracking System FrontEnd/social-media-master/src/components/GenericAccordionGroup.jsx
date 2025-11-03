@@ -68,8 +68,9 @@ export function GenericAccordionGroup({
   const BASE_GROUPS_PER_PAGE = 8;
   const totalGroups = groups.length;
   // If total groups < BASE_GROUPS_PER_PAGE we no longer render placeholders and allow container to shrink.
+  // Also, if groupsPerPage is set to 5 (as in budget report), don't add placeholders
   const missingPlaceholders =
-    totalGroups < BASE_GROUPS_PER_PAGE
+    totalGroups < BASE_GROUPS_PER_PAGE || groupsPerPage <= 5
       ? 0
       : groupsPerPage === BASE_GROUPS_PER_PAGE
       ? Math.max(
@@ -124,7 +125,11 @@ export function GenericAccordionGroup({
       <div
         className={`pm-groups-viewport ${
           scrollMode ? "scroll-mode" : "paged-mode"
-        } ${totalGroups < BASE_GROUPS_PER_PAGE ? "compact" : ""}`}
+        } ${
+          totalGroups < BASE_GROUPS_PER_PAGE || groupsPerPage <= 5
+            ? "compact"
+            : ""
+        }`}
       >
         {visibleGroups.map((group, localIdx) => {
           const idx = startGroup + localIdx; // original global index

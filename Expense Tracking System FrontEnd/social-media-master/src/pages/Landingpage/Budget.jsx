@@ -248,9 +248,9 @@ const Budget = () => {
 
   const handleNavigateReports = () => {
     if (friendId && friendId !== "undefined") {
-      navigate(`/reports/friend/${friendId}`);
+      navigate(`/budget/reports/${friendId}`);
     } else {
-      navigate(`/reports`);
+      navigate(`/budget/reports`);
     }
   };
 
@@ -1006,6 +1006,28 @@ const Budget = () => {
 
           {/* Action Buttons */}
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            <Button
+              variant="outlined"
+              startIcon={<ReportIcon fontSize="small" />}
+              onClick={handleNavigateReports}
+              sx={{
+                textTransform: "none",
+                color: colors.primary_accent,
+                borderColor: colors.primary_accent,
+                fontWeight: 600,
+                px: 2,
+                py: 0.75,
+                fontSize: "0.875rem",
+                borderRadius: "6px",
+                "&:hover": {
+                  bgcolor: colors.hover_bg,
+                  borderColor: colors.tertiary_accent,
+                  color: colors.tertiary_accent,
+                },
+              }}
+            >
+              Reports
+            </Button>
             {hasWriteAccess && (
               <Button
                 variant="contained"

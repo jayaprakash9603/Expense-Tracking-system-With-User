@@ -1203,4 +1203,298 @@ public class BudgetServiceImpl implements BudgetService {
         return trends;
     }
 
+    @Override
+    public Map<String, Object> getFilteredBudgetsWithExpenses(Integer userId,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String rangeType,
+            int offset,
+            String flowType) throws Exception {
+
+        // Determine date range if rangeType provided
+        if ((fromDate == null || toDate == null) && rangeType != null) {
+            LocalDate today = LocalDate.now();
+            switch (rangeType.toLowerCase()) {
+                case "day":
+                    fromDate = today.plusDays(offset);
+                    toDate = fromDate;
+                    break;
+                case "week":
+                    // ISO week: Monday start
+                    LocalDate weekStart = today.plusWeeks(offset).with(java.time.DayOfWeek.MONDAY);
+                    fromDate = weekStart;
+                    toDate = weekStart.plusDays(6);
+                    break;
+                case "month":
+                    LocalDate monthBase = today.plusMonths(offset);
+                    fromDate = monthBase.withDayOfMonth(1);
+                    toDate = monthBase.withDayOfMonth(monthBase.lengthOfMonth());
+                    break;
+                case "year":
+                    LocalDate yearBase = today.plusYears(offset);
+                    fromDate = yearBase.withDayOfYear(1);
+                    toDate = yearBase.withDayOfYear(yearBase.lengthOfYear());
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported rangeType: " + rangeType);
+            }
+        }
+
+        if (fromDate == null || toDate == null) {
+            throw new IllegalArgumentException("Either provide fromDate & toDate or a valid rangeType.");
+        }
+
+        if (fromDate.isAfter(toDate)) {
+            throw new IllegalArgumentException("fromDate cannot be after toDate");
+        }
+
+        List<Budget> allBudgets = budgetRepository.findByUserId(userId);
+        List<Map<String, Object>> budgetData = new ArrayList<>();
+
+        double grandTotalSpent = 0.0;
+        int grandTotalTransactions = 0;
+
+        // Overall aggregations across all budgets
+        Map<String, Map<String, Object>> overallCategoryBreakdown = new LinkedHashMap<>();
+        Map<String, Map<String, Object>> overallPaymentMethodBreakdown = new LinkedHashMap<>();
+        double overallTotalLoss = 0.0;
+        double overallTotalGain = 0.0;
+
+        for (Budget budget : allBudgets) {
+            // Budget active overlap with requested range
+            LocalDate budgetStart = budget.getStartDate();
+            LocalDate budgetEnd = budget.getEndDate();
+            boolean overlaps = !(budgetEnd.isBefore(fromDate) || budgetStart.isAfter(toDate));
+            if (!overlaps) {
+                continue; // skip budgets outside window
+            }
+
+            // Compute effective intersection range for expenses
+            LocalDate effectiveStart = budgetStart.isAfter(fromDate) ? budgetStart : fromDate;
+            LocalDate effectiveEnd = budgetEnd.isBefore(toDate) ? budgetEnd : toDate;
+
+            // Fetch all loss/gain expenses within intersection (we fetch all and then
+            // filter type)
+            List<ExpenseDTO> windowExpenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
+                    effectiveStart, effectiveEnd, userId);
+
+            System.out.println("expenses count" + windowExpenses.size());
+
+            // Reduce to those linked to this budget via expenseIds set
+            Set<Integer> expenseIds = budget.getExpenseIds() != null ? budget.getExpenseIds() : Collections.emptySet();
+            List<ExpenseDTO> budgetExpenses = new ArrayList<>();
+            for (ExpenseDTO e : windowExpenses) {
+                if (expenseIds.contains(e.getId()) && e.getExpense() != null) {
+                    // Flow type filter
+                    if (flowType != null && !flowType.isEmpty() && !"all".equalsIgnoreCase(flowType)) {
+                        if (!flowType.equalsIgnoreCase(e.getExpense().getType())) {
+                            continue;
+                        }
+                    }
+                    budgetExpenses.add(e);
+                }
+            }
+
+            double totalSpent = 0.0;
+            double totalGain = 0.0;
+            double totalLoss = 0.0;
+            // Dynamic payment method tracking for this budget
+            Map<String, Double> budgetPaymentMethodLoss = new LinkedHashMap<>();
+
+            for (ExpenseDTO e : budgetExpenses) {
+                double amt = e.getExpense().getAmount();
+                String type = e.getExpense().getType();
+                String pm = e.getExpense().getPaymentMethod();
+                if ("loss".equalsIgnoreCase(type)) {
+                    totalLoss += amt;
+                    // Track all payment methods dynamically
+                    if (pm != null && !pm.isEmpty()) {
+                        budgetPaymentMethodLoss.put(pm, budgetPaymentMethodLoss.getOrDefault(pm, 0.0) + amt);
+                    }
+                } else if ("gain".equalsIgnoreCase(type)) {
+                    totalGain += amt;
+                }
+
+                // Aggregate for overall category breakdown
+                String cat = (e.getCategoryName() != null && !e.getCategoryName().isEmpty()) ? e.getCategoryName()
+                        : "Uncategorized";
+                overallCategoryBreakdown.computeIfAbsent(cat, k -> new LinkedHashMap<>(Map.of(
+                        "amount", 0.0,
+                        "transactions", 0,
+                        "percentage", 0.0)));
+                Map<String, Object> catData = overallCategoryBreakdown.get(cat);
+                double newAmt = ((Number) catData.get("amount")).doubleValue() + amt;
+                int newTx = ((Number) catData.get("transactions")).intValue() + 1;
+                catData.put("amount", newAmt);
+                catData.put("transactions", newTx);
+
+                // Aggregate for overall payment method breakdown
+                if ("loss".equalsIgnoreCase(type) && pm != null && !pm.isEmpty()) {
+                    overallPaymentMethodBreakdown.computeIfAbsent(pm, k -> new LinkedHashMap<>(Map.of(
+                            "amount", 0.0,
+                            "transactions", 0,
+                            "percentage", 0.0)));
+                    Map<String, Object> pmData = overallPaymentMethodBreakdown.get(pm);
+                    double pmAmt = ((Number) pmData.get("amount")).doubleValue() + amt;
+                    int pmTx = ((Number) pmData.get("transactions")).intValue() + 1;
+                    pmData.put("amount", pmAmt);
+                    pmData.put("transactions", pmTx);
+                }
+            }
+            totalSpent = totalLoss; // spent relevant for budgets (losses)
+
+            // Aggregate overall totals
+            overallTotalLoss += totalLoss;
+            overallTotalGain += totalGain;
+
+            grandTotalSpent += totalSpent;
+            grandTotalTransactions += budgetExpenses.size();
+
+            // Payment method breakdown (losses only) - dynamic for all payment methods
+            Map<String, Object> paymentBreakdown = new LinkedHashMap<>();
+            for (Map.Entry<String, Double> entry : budgetPaymentMethodLoss.entrySet()) {
+                String pmKey = entry.getKey();
+                double pmAmount = entry.getValue();
+
+                // Determine display name
+                String displayName;
+                if ("cash".equalsIgnoreCase(pmKey)) {
+                    displayName = "Cash";
+                } else if ("creditNeedToPaid".equalsIgnoreCase(pmKey)) {
+                    displayName = "Credit Need To Paid";
+                } else if ("creditPaid".equalsIgnoreCase(pmKey)) {
+                    displayName = "Credit Paid";
+                } else {
+                    // Keep original name for any other payment methods
+                    displayName = pmKey;
+                }
+
+                long txCount = budgetExpenses.stream()
+                        .filter(x -> pmKey.equalsIgnoreCase(x.getExpense().getPaymentMethod())
+                                && "loss".equalsIgnoreCase(x.getExpense().getType()))
+                        .count();
+
+                paymentBreakdown.put(displayName, Map.of(
+                        "amount", Math.round(pmAmount * 100.0) / 100.0,
+                        "percentage", totalLoss > 0 ? Math.round((pmAmount / totalLoss) * 100 * 100.0) / 100.0 : 0.0,
+                        "transactions", txCount));
+            }
+
+            // Category breakdown similar to detailed report
+            Map<String, Map<String, Object>> categoryBreakdown = new LinkedHashMap<>();
+            for (ExpenseDTO e : budgetExpenses) {
+                String cat = (e.getCategoryName() != null && !e.getCategoryName().isEmpty()) ? e.getCategoryName()
+                        : "Uncategorized";
+                categoryBreakdown.computeIfAbsent(cat, k -> new LinkedHashMap<>(Map.of(
+                        "amount", 0.0,
+                        "transactions", 0,
+                        "percentage", 0.0)));
+                Map<String, Object> catData = categoryBreakdown.get(cat);
+                double newAmt = ((Number) catData.get("amount")).doubleValue() + e.getExpense().getAmount();
+                int newTx = ((Number) catData.get("transactions")).intValue() + 1;
+                catData.put("amount", newAmt);
+                catData.put("transactions", newTx);
+            }
+            for (Map.Entry<String, Map<String, Object>> entry : categoryBreakdown.entrySet()) {
+                double amt = ((Number) entry.getValue().get("amount")).doubleValue();
+                entry.getValue().put("amount", Math.round(amt * 100.0) / 100.0);
+                entry.getValue().put("percentage",
+                        totalLoss > 0 ? Math.round((amt / totalLoss) * 100 * 100.0) / 100.0 : 0.0);
+            }
+
+            // Transactions list (brief)
+            List<Map<String, Object>> transactions = new ArrayList<>();
+            for (ExpenseDTO e : budgetExpenses) {
+                transactions.add(Map.of(
+                        "expenseId", e.getId(),
+                        "name", e.getExpense().getExpenseName(),
+                        "category",
+                        (e.getCategoryName() != null && !e.getCategoryName().isEmpty()) ? e.getCategoryName()
+                                : "Uncategorized",
+                        "amount", e.getExpense().getAmount(),
+                        "paymentMethod", e.getExpense().getPaymentMethod(),
+                        "type", e.getExpense().getType(),
+                        "date", e.getDate().toString(),
+                        "comments", e.getExpense().getComments()));
+            }
+
+            Map<String, Object> singleBudget = new LinkedHashMap<>();
+            singleBudget.put("budgetId", budget.getId());
+            singleBudget.put("budgetName", budget.getName());
+            singleBudget.put("allocatedAmount", Math.round(budget.getAmount() * 100.0) / 100.0);
+            singleBudget.put("startDate", budgetStart.toString());
+            singleBudget.put("endDate", budgetEnd.toString());
+            singleBudget.put("valid", isBudgetValid(budget.getId()));
+            singleBudget.put("totalLoss", Math.round(totalLoss * 100.0) / 100.0);
+            singleBudget.put("totalGain", Math.round(totalGain * 100.0) / 100.0);
+            singleBudget.put("remainingAmount", Math.round((budget.getAmount() - totalLoss) * 100.0) / 100.0);
+
+            // Add individual payment method losses dynamically (for backward compatibility)
+            for (Map.Entry<String, Double> pmEntry : budgetPaymentMethodLoss.entrySet()) {
+                String pmKey = pmEntry.getKey();
+                if ("cash".equalsIgnoreCase(pmKey)) {
+                    singleBudget.put("cashLoss", Math.round(pmEntry.getValue() * 100.0) / 100.0);
+                } else if ("creditNeedToPaid".equalsIgnoreCase(pmKey)) {
+                    singleBudget.put("creditNeedToPaidLoss", Math.round(pmEntry.getValue() * 100.0) / 100.0);
+                } else if ("creditPaid".equalsIgnoreCase(pmKey)) {
+                    singleBudget.put("creditPaidLoss", Math.round(pmEntry.getValue() * 100.0) / 100.0);
+                }
+            }
+
+            singleBudget.put("transactions", budgetExpenses.size());
+            singleBudget.put("paymentMethodBreakdown", paymentBreakdown);
+            singleBudget.put("categoryBreakdown", categoryBreakdown);
+            singleBudget.put("expenses", transactions);
+            singleBudget.put("percentageUsed",
+                    budget.getAmount() > 0 ? Math.round((totalLoss / budget.getAmount()) * 100 * 100.0) / 100.0 : 0.0);
+
+            budgetData.add(singleBudget);
+        }
+
+        // Sort budgets by percentage used descending for prioritization
+        budgetData.sort((a, b) -> Double.compare(
+                ((Number) b.get("percentageUsed")).doubleValue(),
+                ((Number) a.get("percentageUsed")).doubleValue()));
+
+        // Calculate overall category percentages
+        for (Map.Entry<String, Map<String, Object>> entry : overallCategoryBreakdown.entrySet()) {
+            double amt = ((Number) entry.getValue().get("amount")).doubleValue();
+            entry.getValue().put("amount", Math.round(amt * 100.0) / 100.0);
+            entry.getValue().put("percentage",
+                    overallTotalLoss > 0 ? Math.round((amt / overallTotalLoss) * 100 * 100.0) / 100.0 : 0.0);
+        }
+
+        // Calculate overall payment method breakdown percentages (already aggregated
+        // during expense processing)
+        for (Map.Entry<String, Map<String, Object>> entry : overallPaymentMethodBreakdown.entrySet()) {
+            double amt = ((Number) entry.getValue().get("amount")).doubleValue();
+            entry.getValue().put("amount", Math.round(amt * 100.0) / 100.0);
+            entry.getValue().put("percentage",
+                    overallTotalLoss > 0 ? Math.round((amt / overallTotalLoss) * 100 * 100.0) / 100.0 : 0.0);
+        }
+
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("userId", userId);
+        summary.put("fromDate", fromDate.toString());
+        summary.put("toDate", toDate.toString());
+        summary.put("rangeType", rangeType != null ? rangeType : "custom");
+        summary.put("offset", offset);
+        summary.put("flowType", flowType != null ? flowType : "all");
+        summary.put("totalBudgets", budgetData.size());
+        summary.put("grandTotalSpent", Math.round(grandTotalSpent * 100.0) / 100.0);
+        summary.put("grandTotalTransactions", grandTotalTransactions);
+        summary.put("overallTotalLoss", Math.round(overallTotalLoss * 100.0) / 100.0);
+        summary.put("overallTotalGain", Math.round(overallTotalGain * 100.0) / 100.0);
+        summary.put("overallCategoryBreakdown", overallCategoryBreakdown);
+        summary.put("overallPaymentMethodBreakdown", overallPaymentMethodBreakdown);
+        summary.put("averageSpentPerBudget",
+                budgetData.size() > 0 ? Math.round((grandTotalSpent / budgetData.size()) * 100.0) / 100.0 : 0.0);
+        summary.put("generatedAt", LocalDate.now().toString());
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("summary", summary);
+        response.put("budgets", budgetData);
+        return response;
+    }
+
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import com.jaya.service.BudgetNotificationService;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/budgets")
@@ -588,6 +589,48 @@ public class BudgetController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error fetching budgets: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/all-with-expenses/detailed/filtered")
+    public ResponseEntity<?> getAllBudgetsWithExpensesDetailedFiltered(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String rangeType,
+            @RequestParam(required = false, defaultValue = "0") int offset,
+            @RequestParam(required = false) String flowType,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            UserDto reqUser = userService.getuserProfile(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or expired token"));
+            }
+
+            UserDto targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("error", "Target user not found"));
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", e.getMessage()));
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, Object> response = budgetService.getFilteredBudgetsWithExpenses(targetUser.getId(), fromDate,
+                    toDate, rangeType, offset, flowType);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error fetching filtered budgets: " + e.getMessage()));
         }
     }
 

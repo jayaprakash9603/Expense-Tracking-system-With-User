@@ -1,0 +1,166 @@
+import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getFilteredBudgetsReport } from "../Redux/Budget/budget.action";
+import { getChartColors } from "../utils/chartColors";
+
+const COLORS = getChartColors();
+
+/**
+ * Custom hook to fetch and transform budget report data with filters
+ * Similar to usePaymentReportData but for budgets
+ */
+const useBudgetReportData = ({ friendId }) => {
+  const dispatch = useDispatch();
+  const [timeframe, setTimeframe] = useState("month");
+  const [flowType, setFlowType] = useState("loss");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const { filteredBudgetsReport } = useSelector((state) => state.budgets);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await dispatch(
+        getFilteredBudgetsReport({
+          rangeType: timeframe,
+          offset: 0,
+          flowType: flowType === "all" ? null : flowType,
+          targetId: friendId || null,
+        })
+      );
+    } catch (err) {
+      console.error("Error fetching budget report:", err);
+      setError(err.message || "Failed to fetch budget report");
+    } finally {
+      setLoading(false);
+    }
+  }, [dispatch, timeframe, flowType, friendId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Transform budget data for charts
+  const transformBudgetData = useCallback(() => {
+    if (!filteredBudgetsReport?.budgets) {
+      return {
+        budgetsData: [],
+        categoryBreakdown: [],
+        paymentMethodBreakdown: [],
+        summary: {},
+      };
+    }
+
+    const { budgets, summary } = filteredBudgetsReport;
+
+    // Transform budgets for overview cards and accordion
+    const budgetsData = budgets.map((budget, index) => ({
+      budgetId: budget.budgetId,
+      budgetName: budget.budgetName,
+      name: budget.budgetName, // For BudgetOverviewGrid compatibility
+      method: budget.budgetName, // For compatibility with shared components
+      allocatedAmount: budget.allocatedAmount || 0,
+      totalLoss: budget.totalLoss || 0,
+      totalSpent: budget.totalLoss || 0, // Alias for BudgetOverviewGrid
+      totalGain: budget.totalGain || 0,
+      remainingAmount: budget.remainingAmount || 0,
+      amount: budget.totalLoss || 0,
+      percentage: budget.percentageUsed || 0,
+      percentageUsed: budget.percentageUsed || 0,
+      transactions: budget.transactions || 0,
+      totalTransactions: budget.transactions || 0, // Alias for BudgetOverviewGrid
+      cashLoss: budget.cashLoss || 0,
+      creditNeedToPaidLoss: budget.creditNeedToPaidLoss || 0,
+      creditPaidLoss: budget.creditPaidLoss || 0,
+      color: COLORS[index % COLORS.length],
+      startDate: budget.startDate,
+      endDate: budget.endDate,
+      valid: budget.valid,
+      isExpired: budget.valid === false, // For BudgetOverviewGrid
+      expenses: budget.expenses || [],
+      paymentMethodBreakdown: budget.paymentMethodBreakdown || {},
+      categoryBreakdown: budget.categoryBreakdown || {},
+    }));
+
+    // Use overall category breakdown from backend response
+    const categoryBreakdown = summary.overallCategoryBreakdown
+      ? Object.entries(summary.overallCategoryBreakdown)
+          .map(([catName, catData], index) => ({
+            name: catName, // Use 'name' property for SharedDistributionChart
+            category: catName, // Keep for backward compatibility
+            amount: catData.amount || 0,
+            transactions: catData.transactions || 0,
+            percentage: catData.percentage || 0,
+            color: COLORS[index % COLORS.length],
+          }))
+          .sort((a, b) => b.amount - a.amount)
+      : [];
+
+    // Use overall payment method breakdown from backend response
+    const paymentMethodBreakdown = summary.overallPaymentMethodBreakdown
+      ? Object.entries(summary.overallPaymentMethodBreakdown)
+          .map(([method, methodData], index) => {
+            // Assign colors based on payment method type
+            let color;
+            if (method === "Cash") {
+              color = "#4ECDC4"; // Cyan
+            } else if (method === "Credit Need To Paid") {
+              color = "#FF6B6B"; // Red
+            } else if (method === "Credit Paid") {
+              color = "#FFA94D"; // Orange
+            } else if (method.toLowerCase().includes("upi")) {
+              color = "#9B59B6"; // Purple
+            } else if (method.toLowerCase().includes("card")) {
+              color = "#3498DB"; // Blue
+            } else if (method.toLowerCase().includes("bank")) {
+              color = "#1ABC9C"; // Teal
+            } else {
+              // Use chart colors for unknown payment methods
+              color = COLORS[index % COLORS.length];
+            }
+
+            return {
+              method,
+              amount: methodData.amount || 0,
+              transactions: methodData.transactions || 0,
+              percentage: methodData.percentage || 0,
+              color,
+            };
+          })
+          .sort((a, b) => b.amount - a.amount)
+      : [];
+
+    return {
+      budgetsData,
+      categoryBreakdown,
+      paymentMethodBreakdown,
+      summary: summary || {},
+    };
+  }, [filteredBudgetsReport]);
+
+  const { budgetsData, categoryBreakdown, paymentMethodBreakdown, summary } =
+    transformBudgetData();
+
+  const refresh = useCallback(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return {
+    timeframe,
+    flowType,
+    setTimeframe,
+    setFlowType,
+    loading,
+    error,
+    budgetsData,
+    categoryBreakdown,
+    paymentMethodBreakdown,
+    summary,
+    refresh,
+  };
+};
+
+export default useBudgetReportData;

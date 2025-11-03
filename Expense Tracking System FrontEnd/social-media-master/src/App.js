@@ -59,6 +59,7 @@ import ExpenseDashboard from "./features/dashboard/ExpenseDashboard";
 import CategoryReport from "./pages/Landingpage/Category Report/CategoryReport";
 import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentReport";
 import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
+import AllBudgetsReport from "./pages/Landingpage/Budget Report/AllBudgetsReport";
 import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard/AdminDashboard";
 import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
 import Bill from "./pages/Landingpage/Bills/Bill";
@@ -260,6 +261,8 @@ function App() {
                 path="report/:id/friend/:friendId"
                 element={<BudgetReport />}
               />
+              <Route path="reports" element={<AllBudgetsReport />} />
+              <Route path="reports/:friendId" element={<AllBudgetsReport />} />
             </Route>
             {/* Detailed Budget Report Routes */}
             <Route path="/budget-report">

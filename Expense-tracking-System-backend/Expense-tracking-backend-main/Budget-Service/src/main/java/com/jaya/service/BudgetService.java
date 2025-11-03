@@ -7,6 +7,7 @@ import com.jaya.models.Budget;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface BudgetService {
@@ -56,4 +57,28 @@ public interface BudgetService {
 
     // Calculate detailed budget report with all analytics
     DetailedBudgetReport calculateDetailedBudgetReport(Integer userId, Integer budgetId) throws Exception;
+
+    /**
+     * Get all budgets for a user with their filtered expenses aggregated.
+     * Supports either an explicit date range (fromDate & toDate) or a relative
+     * range
+     * using rangeType + offset (e.g., week/month with offset navigation).
+     * Optionally filter by flowType (loss/gain/all) similar to expense endpoints.
+     *
+     * @param userId    the user whose budgets to fetch
+     * @param fromDate  optional start date (inclusive) when explicit range used
+     * @param toDate    optional end date (inclusive) when explicit range used
+     * @param rangeType optional relative range type (e.g., day, week, month, year)
+     * @param offset    relative offset for the range (0 current, -1 previous, +1
+     *                  next)
+     * @param flowType  optional flow filter (loss, gain, all/null)
+     * @return Map containing summary and list of budgets with expense breakdowns
+     * @throws Exception on validation or data access errors
+     */
+    Map<String, Object> getFilteredBudgetsWithExpenses(Integer userId,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String rangeType,
+            int offset,
+            String flowType) throws Exception;
 }

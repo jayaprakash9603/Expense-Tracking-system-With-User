@@ -57,12 +57,12 @@ const ReportHeader = ({
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: "32px",
-        paddingBottom: "24px",  
+        paddingBottom: "24px",
         borderBottom: `1px solid ${colors.border_color}`,
         paddingTop: "24px",
         position: "sticky",
         top: 0,
-        zIndex: 9999,
+        zIndex: 10,
         background: colors.tertiary_bg,
       }}
     >

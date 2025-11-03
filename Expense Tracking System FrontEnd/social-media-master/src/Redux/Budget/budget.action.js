@@ -20,9 +20,12 @@ import {
   GET_BUDGET_DATA_REQUEST,
   GET_BUDGET_DATA_SUCCESS,
   GET_BUDGET_REPORT_REQUEST,
-    GET_DETAILED_BUDGET_REPORT_REQUEST,
+  GET_DETAILED_BUDGET_REPORT_REQUEST,
   GET_DETAILED_BUDGET_REPORT_SUCCESS,
   GET_DETAILED_BUDGET_REPORT_FAILURE,
+  GET_FILTERED_BUDGETS_REPORT_REQUEST,
+  GET_FILTERED_BUDGETS_REPORT_SUCCESS,
+  GET_FILTERED_BUDGETS_REPORT_FAILURE,
   GET_LIST_BUDGETS_FAILURE,
   GET_LIST_BUDGETS_REQUEST,
   GET_LIST_BUDGETS_SUCCESS,
@@ -216,3 +219,45 @@ export const getDetailedBudgetReport = (id, targetId) => async (dispatch) => {
     throw error;
   }
 };
+
+export const getFilteredBudgetsReport =
+  ({ fromDate, toDate, rangeType, offset = 0, flowType, targetId }) =>
+  async (dispatch) => {
+    dispatch({ type: GET_FILTERED_BUDGETS_REPORT_REQUEST });
+
+    try {
+      const params = {
+        targetId: targetId || "",
+      };
+
+      if (fromDate && toDate) {
+        params.fromDate = fromDate;
+        params.toDate = toDate;
+      } else if (rangeType) {
+        params.rangeType = rangeType;
+        params.offset = offset;
+      }
+
+      if (flowType && flowType !== "all") {
+        params.flowType = flowType;
+      }
+
+      const { data } = await api.get(
+        `/api/budgets/all-with-expenses/detailed/filtered`,
+        {
+          params,
+        }
+      );
+
+      console.log("Filtered Budgets Report response:", data);
+      dispatch({ type: GET_FILTERED_BUDGETS_REPORT_SUCCESS, payload: data });
+      return data;
+    } catch (error) {
+      console.error("Error fetching filtered budgets report:", error);
+      dispatch({
+        type: GET_FILTERED_BUDGETS_REPORT_FAILURE,
+        payload: error.response?.data || error.message,
+      });
+      throw error;
+    }
+  };
