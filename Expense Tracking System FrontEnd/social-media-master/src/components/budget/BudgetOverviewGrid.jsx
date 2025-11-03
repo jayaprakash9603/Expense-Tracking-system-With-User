@@ -77,18 +77,18 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
         style={{
           background: isDark ? "#2a2a2a" : "#f5f5f5",
           border: `1px solid ${colors.border_color}`,
-          borderRadius: "12px",
-          padding: "20px",
+          borderRadius: "10px",
+          padding: "14px",
           transition: "all 0.3s ease",
           cursor: "pointer",
           position: "relative",
           overflow: "hidden",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-4px)";
+          e.currentTarget.style.transform = "translateY(-2px)";
           e.currentTarget.style.boxShadow = isDark
-            ? "0 8px 24px rgba(0, 0, 0, 0.4)"
-            : "0 8px 24px rgba(0, 0, 0, 0.1)";
+            ? "0 6px 16px rgba(0, 0, 0, 0.4)"
+            : "0 6px 16px rgba(0, 0, 0, 0.1)";
           e.currentTarget.style.borderColor = colors.primary_accent;
         }}
         onMouseLeave={(e) => {
@@ -112,19 +112,19 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
         {/* Budget Header */}
         <div
           style={{
-            marginBottom: "20px",
+            marginBottom: "12px",
           }}
         >
           <h4
             style={{
               color: colors.primary_text,
-              fontSize: "18px",
+              fontSize: "15px",
               fontWeight: 600,
-              margin: "0 0 12px 0",
+              margin: "0 0 8px 0",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
-              letterSpacing: "0.3px",
+              letterSpacing: "0.2px",
             }}
             title={budgetName}
           >
@@ -134,7 +134,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "6px",
               flexWrap: "wrap",
             }}
           >
@@ -142,15 +142,15 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
+                gap: "4px",
                 color: colors.secondary_text,
-                fontSize: "13px",
+                fontSize: "11px",
                 background: isDark ? "#1a1a1a" : "#e8e8e8",
-                padding: "6px 10px",
-                borderRadius: "6px",
+                padding: "4px 8px",
+                borderRadius: "4px",
               }}
             >
-              <Calendar size={14} />
+              <Calendar size={12} />
               <span style={{ fontWeight: 500 }}>
                 {startDate} - {endDate}
               </span>
@@ -160,9 +160,9 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
                 style={{
                   background: "#ff6b6b",
                   color: "white",
-                  padding: "4px 8px",
+                  padding: "3px 6px",
                   borderRadius: "4px",
-                  fontSize: "11px",
+                  fontSize: "10px",
                   fontWeight: 600,
                   letterSpacing: "0.3px",
                 }}
@@ -174,19 +174,19 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
         </div>
 
         {/* Progress Bar */}
-        <div style={{ marginBottom: "16px" }}>
+        <div style={{ marginBottom: "10px" }}>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: "8px",
+              marginBottom: "6px",
             }}
           >
             <span
               style={{
                 color: colors.secondary_text,
-                fontSize: "13px",
+                fontSize: "11px",
                 fontWeight: 500,
               }}
             >
@@ -195,7 +195,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
             <span
               style={{
                 color: statusColor,
-                fontSize: "14px",
+                fontSize: "12px",
                 fontWeight: 600,
               }}
             >
@@ -205,9 +205,9 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           <div
             style={{
               width: "100%",
-              height: "8px",
+              height: "6px",
               background: isDark ? "#1a1a1a" : "#f0f0f0",
-              borderRadius: "4px",
+              borderRadius: "3px",
               overflow: "hidden",
             }}
           >
@@ -216,7 +216,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
                 width: `${Math.min(utilization, 100)}%`,
                 height: "100%",
                 background: statusColor,
-                borderRadius: "4px",
+                borderRadius: "3px",
                 transition: "width 0.3s ease",
               }}
             />
@@ -228,35 +228,35 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: "12px",
-            marginBottom: "12px",
+            gap: "8px",
+            marginBottom: "8px",
           }}
         >
           {/* Spent */}
           <div
             style={{
               background: isDark ? "#1a1a1a" : "#f8f9fa",
-              padding: "12px",
-              borderRadius: "8px",
+              padding: "8px",
+              borderRadius: "6px",
             }}
           >
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
+                gap: "4px",
                 color: colors.secondary_text,
-                fontSize: "12px",
-                marginBottom: "4px",
+                fontSize: "10px",
+                marginBottom: "3px",
               }}
             >
-              <TrendingUp size={14} />
+              <TrendingUp size={11} />
               <span>Spent</span>
             </div>
             <div
               style={{
                 color: "#ff6b6b",
-                fontSize: "16px",
+                fontSize: "13px",
                 fontWeight: 600,
               }}
             >
@@ -268,27 +268,27 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           <div
             style={{
               background: isDark ? "#1a1a1a" : "#f8f9fa",
-              padding: "12px",
-              borderRadius: "8px",
+              padding: "8px",
+              borderRadius: "6px",
             }}
           >
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
+                gap: "4px",
                 color: colors.secondary_text,
-                fontSize: "12px",
-                marginBottom: "4px",
+                fontSize: "10px",
+                marginBottom: "3px",
               }}
             >
-              <Target size={14} />
+              <Target size={11} />
               <span>Allocated</span>
             </div>
             <div
               style={{
                 color: colors.primary_text,
-                fontSize: "16px",
+                fontSize: "13px",
                 fontWeight: 600,
               }}
             >
@@ -303,7 +303,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: "12px",
+            padding: "8px",
             background: isOverBudget
               ? isDark
                 ? "rgba(255, 107, 107, 0.1)"
@@ -311,29 +311,29 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
               : isDark
               ? "rgba(81, 207, 102, 0.1)"
               : "rgba(81, 207, 102, 0.05)",
-            borderRadius: "8px",
+            borderRadius: "6px",
           }}
         >
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "6px",
+              gap: "4px",
               color: colors.secondary_text,
-              fontSize: "13px",
+              fontSize: "11px",
             }}
           >
             {isOverBudget ? (
-              <TrendingDown size={16} />
+              <TrendingDown size={13} />
             ) : (
-              <DollarSign size={16} />
+              <DollarSign size={13} />
             )}
             <span>{isOverBudget ? "Over Budget" : "Remaining"}</span>
           </div>
           <span
             style={{
               color: isOverBudget ? "#ff6b6b" : "#51cf66",
-              fontSize: "15px",
+              fontSize: "13px",
               fontWeight: 600,
             }}
           >
@@ -344,8 +344,8 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
         {/* Transaction Count */}
         <div
           style={{
-            marginTop: "12px",
-            paddingTop: "12px",
+            marginTop: "8px",
+            paddingTop: "8px",
             borderTop: `1px solid ${colors.border_color}`,
             display: "flex",
             justifyContent: "space-between",
@@ -355,7 +355,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           <span
             style={{
               color: colors.secondary_text,
-              fontSize: "13px",
+              fontSize: "11px",
             }}
           >
             Transactions
@@ -363,7 +363,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           <span
             style={{
               color: colors.primary_text,
-              fontSize: "14px",
+              fontSize: "12px",
               fontWeight: 600,
             }}
           >
