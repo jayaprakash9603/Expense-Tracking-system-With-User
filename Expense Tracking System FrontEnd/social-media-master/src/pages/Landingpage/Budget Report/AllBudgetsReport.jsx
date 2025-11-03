@@ -99,133 +99,22 @@ const AllBudgetsReport = () => {
       ) : null}
 
       {/* Summary Cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: isMobile
-            ? "1fr"
-            : "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "16px",
-          padding: "0 24px 24px 24px",
-        }}
-      >
-        <div
-          style={{
-            background: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
-            borderRadius: "12px",
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "14px",
-              color: colors.secondary_text,
-              marginBottom: "8px",
-            }}
-          >
-            Total Budgets
-          </div>
-          <div
-            style={{
-              fontSize: "28px",
-              fontWeight: 600,
-              color: colors.primary_text,
-            }}
-          >
-            {summary.totalBudgets || 0}
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
-            borderRadius: "12px",
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "14px",
-              color: colors.secondary_text,
-              marginBottom: "8px",
-            }}
-          >
-            Total Spent
-          </div>
-          <div
-            style={{
-              fontSize: "28px",
-              fontWeight: 600,
-              color: "#ff6b6b",
-            }}
-          >
-            ₹{(summary.grandTotalSpent || 0).toFixed(2)}
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
-            borderRadius: "12px",
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "14px",
-              color: colors.secondary_text,
-              marginBottom: "8px",
-            }}
-          >
-            Total Transactions
-          </div>
-          <div
-            style={{
-              fontSize: "28px",
-              fontWeight: 600,
-              color: colors.primary_text,
-            }}
-          >
-            {summary.grandTotalTransactions || 0}
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
-            borderRadius: "12px",
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "14px",
-              color: colors.secondary_text,
-              marginBottom: "8px",
-            }}
-          >
-            Average per Budget
-          </div>
-          <div
-            style={{
-              fontSize: "28px",
-              fontWeight: 600,
-              color: colors.primary_text,
-            }}
-          >
-            ₹
-            {summary.totalBudgets > 0
-              ? ((summary.grandTotalSpent || 0) / summary.totalBudgets).toFixed(
-                  2
-                )
-              : "0.00"}
-          </div>
-        </div>
-      </div>
+      <SharedOverviewCards
+        data={[
+          {
+            totalBudgets: summary.totalBudgets || 0,
+            activeBudgets:
+              budgetsData.filter((b) => !b.isExpired).length || 0,
+            totalSpent: summary.grandTotalSpent || 0,
+            totalRemaining:
+              budgetsData.reduce(
+                (sum, b) => sum + (b.allocatedAmount - b.totalSpent),
+                0
+              ) || 0,
+          },
+        ]}
+        mode="budget"
+      />
 
       <div className="charts-grid">
         {/* Row 1: Category Distribution */}
