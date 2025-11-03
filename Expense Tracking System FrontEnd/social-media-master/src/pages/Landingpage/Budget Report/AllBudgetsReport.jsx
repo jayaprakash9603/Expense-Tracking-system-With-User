@@ -103,8 +103,7 @@ const AllBudgetsReport = () => {
         data={[
           {
             totalBudgets: summary.totalBudgets || 0,
-            activeBudgets:
-              budgetsData.filter((b) => !b.isExpired).length || 0,
+            activeBudgets: budgetsData.filter((b) => !b.isExpired).length || 0,
             totalSpent: summary.grandTotalSpent || 0,
             totalRemaining:
               budgetsData.reduce(
