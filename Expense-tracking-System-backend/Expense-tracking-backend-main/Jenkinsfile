@@ -352,6 +352,199 @@ pipeline {
                     echo "╚════════════════════════════════════════════════════════════╝"
                     echo "📊 Total JARs copied: ${copiedCount}"
                     echo "📂 Location: ${outputFolder}"
+                    
+                    // Create batch file to run all services
+                    echo ""
+                    echo "📝 Creating batch file to run all services..."
+                    
+                    def batContent = """@echo off
+REM ===============================================================================
+REM  Expense Tracker - Run All Microservices
+REM  This script assumes it is in the same directory as all the JAR files.
+REM  It will start all microservices in the correct order.
+REM ===============================================================================
+
+setlocal enabledelayedexpansion
+
+REM Get the directory where this batch file is located. This is where the JARs should be.
+set "JAR_DIR=%~dp0"
+
+REM Remove trailing backslash if present
+if "%JAR_DIR:~-1%"=="\\" set "JAR_DIR=%JAR_DIR:~0,-1%"
+
+echo.
+echo ========================================================================
+echo   Expense Tracker Microservices Launcher
+echo ========================================================================
+echo.
+echo [INFO] Running from JAR Directory: %JAR_DIR%
+echo.
+
+REM Check if Java is installed
+java -version >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] Java is not installed or not in PATH!
+    echo Please install Java 17 or higher and try again.
+    pause
+    exit /b 1
+)
+
+echo [INFO] Java found. Starting services...
+echo.
+
+REM Set Java options for all services
+set JAVA_OPTS=-Xms256m -Xmx512m
+
+REM Check if Windows Terminal is available
+where wt >nul 2>nul
+if %ERRORLEVEL% EQU 0 (
+    echo [INFO] Windows Terminal detected. Starting services in new tabs...
+    echo.
+    
+    REM Start all services in Windows Terminal with multiple tabs, ensuring we are in the correct directory
+    start "" wt new-tab --title "Eureka Server" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar eureka-server-0.0.1.jar" ^
+    ; new-tab --title "API Gateway" cmd /k "cd /d "%JAR_DIR%" && timeout /t 30 /nobreak && java %JAVA_OPTS% -jar gateway-0.0.1-SNAPSHOT.jar" ^
+    ; new-tab --title "User Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 50 /nobreak && java %JAVA_OPTS% -jar User-service-0.0.1.jar" ^
+    ; new-tab --title "Expense Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 50 /nobreak && java %JAVA_OPTS% -jar expenses-service-0.0.1.jar" ^
+    ; new-tab --title "Category Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 55 /nobreak && java %JAVA_OPTS% -jar Category-Service-0.0.1-SNAPSHOT.jar" ^
+    ; new-tab --title "Payment Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 55 /nobreak && java %JAVA_OPTS% -jar Payment-Method-0.0.1-SNAPSHOT.jar" ^
+    ; new-tab --title "Budget Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 60 /nobreak && java %JAVA_OPTS% -jar Budget-Service-0.0.1-SNAPSHOT.jar" ^
+    ; new-tab --title "Bill Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 60 /nobreak && java %JAVA_OPTS% -jar Bill-Service-0.0.1-SNAPSHOT.jar" ^
+    ; new-tab --title "Notification Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 65 /nobreak && java %JAVA_OPTS% -jar Notification-Service-0.0.1-SNAPSHOT.jar" ^
+    ; new-tab --title "Friendship Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 65 /nobreak && java %JAVA_OPTS% -jar FriendShip-Service-0.0.1-SNAPSHOT.jar" ^
+    ; new-tab --title "Chat Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 70 /nobreak && java %JAVA_OPTS% -jar Chat-Service-0.0.1.jar" ^
+    ; new-tab --title "Event Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 70 /nobreak && java %JAVA_OPTS% -jar Event-Service-0.0.1-SNAPSHOT.jar" ^
+    ; new-tab --title "Audit Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 75 /nobreak && java %JAVA_OPTS% -jar Audit-Service-0.0.1-SNAPSHOT.jar" ^
+    ; new-tab --title "Analytics Service" cmd /k "cd /d "%JAR_DIR%" && timeout /t 75 /nobreak && java %JAVA_OPTS% -jar Analytics-Service-0.0.1-SNAPSHOT.jar"
+    
+    echo [SUCCESS] All services are starting in Windows Terminal!
+    
+) else (
+    echo [INFO] Windows Terminal not found. Starting services in separate windows...
+    echo.
+    
+    REM Start services in separate command windows
+    start "Eureka Server" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar eureka-server-0.0.1.jar"
+    
+    timeout /t 30 /nobreak
+    start "API Gateway" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar gateway-0.0.1-SNAPSHOT.jar"
+    
+    timeout /t 20 /nobreak
+    start "User Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar User-service-0.0.1.jar"
+    start "Expense Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar expenses-service-0.0.1.jar"
+    
+    timeout /t 5 /nobreak
+    start "Category Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar Category-Service-0.0.1-SNAPSHOT.jar"
+    start "Payment Method Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar Payment-Method-0.0.1-SNAPSHOT.jar"
+    
+    timeout /t 5 /nobreak
+    start "Budget Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar Budget-Service-0.0.1-SNAPSHOT.jar"
+    start "Bill Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar Bill-Service-0.0.1-SNAPSHOT.jar"
+    
+    timeout /t 5 /nobreak
+    start "Notification Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar Notification-Service-0.0.1-SNAPSHOT.jar"
+    start "Friendship Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar FriendShip-Service-0.0.1-SNAPSHOT.jar"
+    
+    timeout /t 5 /nobreak
+    start "Chat Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar Chat-Service-0.0.1.jar"
+    start "Event Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar Event-Service-0.0.1-SNAPSHOT.jar"
+    
+    timeout /t 5 /nobreak
+    start "Audit Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar Audit-Service-0.0.1-SNAPSHOT.jar"
+    start "Analytics Service" cmd /k "cd /d "%JAR_DIR%" && java %JAVA_OPTS% -jar Analytics-Service-0.0.1-SNAPSHOT.jar"
+    
+    echo [SUCCESS] All services are starting in separate windows!
+)
+
+echo.
+echo ========================================================================
+echo   Startup Complete
+echo ========================================================================
+echo.
+echo Important Service URLs:
+echo   - Eureka Dashboard:  http://localhost:8761
+echo   - API Gateway:       http://localhost:8080
+echo   - User Service:      http://localhost:8081
+echo   - Expense Service:   http://localhost:8082
+echo.
+echo NOTE: 
+echo   - Services will take 1-2 minutes to fully start.
+echo   - Check Eureka Dashboard to see when all services are registered.
+echo   - Each service runs in its own window/tab.
+echo   - Close the windows or press Ctrl+C to stop individual services.
+echo.
+echo This batch file is running from: %JAR_DIR%
+"""
+                    
+                    // Write the batch file
+                    def batFilePath = "${outputFolder}\\run-all-services.bat"
+                    writeFile file: batFilePath, text: batContent
+                    
+                    echo "✅ Batch file created: run-all-services.bat"
+                    
+                    // Create a README file
+                    def readmeContent = '''# Expense Tracker - JAR Files
+Generated: ''' + timestamp + '''
+Location: ''' + outputFolder + '''
+
+## Contents
+This folder contains all the compiled JAR files for the Expense Tracker microservices.
+
+## How to Run
+
+### Quick Start
+1. Double-click run-all-services.bat
+2. Wait for all services to start (1-2 minutes)
+3. Access Eureka Dashboard: http://localhost:8761
+
+### What Happens
+- If Windows Terminal is installed: All services open in one window with multiple tabs
+- Otherwise: Each service opens in a separate command window
+
+## Service List (14 Services)
+1. Eureka Server (Service Registry) - Port 8761
+2. API Gateway - Port 8080
+3. User Service - Port 8081
+4. Expense Service - Port 8082
+5. Category Service
+6. Payment Method Service
+7. Budget Service
+8. Bill Service
+9. Notification Service
+10. Friendship Service
+11. Chat Service
+12. Event Service
+13. Audit Service
+14. Analytics Service
+
+## Prerequisites
+- Java 17 or higher must be installed
+- All ports must be available (not in use)
+
+## Troubleshooting
+- If a service fails to start, check if the port is already in use
+- Wait for Eureka Server to fully start before other services connect
+- Check individual service logs in their respective windows/tabs
+
+## Stopping Services
+- Windows Terminal: Close the entire window to stop all services
+- Separate Windows: Close each window individually
+- Or press Ctrl+C in each window
+
+## Notes
+- Services start with staggered delays to ensure proper initialization
+- Eureka Server must start first (dependency for all other services)
+- Gateway starts second (required for routing)
+- All other services can start in parallel
+
+Generated by Jenkins Build Pipeline
+Build Timestamp: ''' + timestamp + '''
+'''
+                    
+                    def readmeFilePath = "${outputFolder}\\README.txt"
+                    writeFile file: readmeFilePath, text: readmeContent
+                    
+                    echo "✅ README file created: README.txt"
                     echo "═══════════════════════════════════════════════════════════════"
                     
                     // Save the folder path for later reference
