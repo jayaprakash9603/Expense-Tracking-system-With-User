@@ -1,4 +1,5 @@
 import {
+  GET_PROFILE_FAILURE,
   GET_PROFILE_REQUEST,
   GET_PROFILE_SUCCESS,
   LOGIN_FAILURE,
@@ -63,6 +64,7 @@ export const authReducer = (state = initialState, action) => {
       return { ...state, jwt: action.payload, loading: false, error: null };
     case LOGIN_FAILURE:
     case REGISTER_FAILURE:
+    case GET_PROFILE_FAILURE:
       return { ...state, loading: false, error: action.payload };
     case "LOGOUT":
       return { ...state, user: null, jwt: null };
