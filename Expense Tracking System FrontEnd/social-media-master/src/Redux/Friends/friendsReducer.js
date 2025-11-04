@@ -29,6 +29,45 @@ import {
   FETCH_FRIENDS_EXPENSES_FAILURE,
   FETCH_FRIENDSHIP_SUCCESS,
   FETCH_FRIENDSHIP_FAILURE,
+  CANCEL_FRIEND_REQUEST_REQUEST,
+  CANCEL_FRIEND_REQUEST_SUCCESS,
+  CANCEL_FRIEND_REQUEST_FAILURE,
+  REMOVE_FRIENDSHIP_REQUEST,
+  REMOVE_FRIENDSHIP_SUCCESS,
+  REMOVE_FRIENDSHIP_FAILURE,
+  BLOCK_USER_REQUEST,
+  BLOCK_USER_SUCCESS,
+  BLOCK_USER_FAILURE,
+  UNBLOCK_USER_REQUEST,
+  UNBLOCK_USER_SUCCESS,
+  UNBLOCK_USER_FAILURE,
+  FETCH_BLOCKED_USERS_REQUEST,
+  FETCH_BLOCKED_USERS_SUCCESS,
+  FETCH_BLOCKED_USERS_FAILURE,
+  FETCH_FRIENDSHIP_STATS_REQUEST,
+  FETCH_FRIENDSHIP_STATS_SUCCESS,
+  FETCH_FRIENDSHIP_STATS_FAILURE,
+  FETCH_MUTUAL_FRIENDS_REQUEST,
+  FETCH_MUTUAL_FRIENDS_SUCCESS,
+  FETCH_MUTUAL_FRIENDS_FAILURE,
+  SEARCH_FRIENDS_REQUEST,
+  SEARCH_FRIENDS_SUCCESS,
+  SEARCH_FRIENDS_FAILURE,
+  FETCH_OUTGOING_REQUESTS_REQUEST,
+  FETCH_OUTGOING_REQUESTS_SUCCESS,
+  FETCH_OUTGOING_REQUESTS_FAILURE,
+  FETCH_EXPENSE_SHARING_SUMMARY_REQUEST,
+  FETCH_EXPENSE_SHARING_SUMMARY_SUCCESS,
+  FETCH_EXPENSE_SHARING_SUMMARY_FAILURE,
+  QUICK_SHARE_EXPENSES_REQUEST,
+  QUICK_SHARE_EXPENSES_SUCCESS,
+  QUICK_SHARE_EXPENSES_FAILURE,
+  BATCH_SHARE_EXPENSES_REQUEST,
+  BATCH_SHARE_EXPENSES_SUCCESS,
+  BATCH_SHARE_EXPENSES_FAILURE,
+  FETCH_RECOMMENDED_TO_SHARE_REQUEST,
+  FETCH_RECOMMENDED_TO_SHARE_SUCCESS,
+  FETCH_RECOMMENDED_TO_SHARE_FAILURE,
 } from "./friendsActionTypes";
 
 const initialState = {
@@ -76,6 +115,55 @@ const initialState = {
 
   friendship: null,
   friendshipError: null,
+
+  // Blocked users
+  blockedUsers: [],
+  loadingBlockedUsers: false,
+  blockedUsersError: null,
+  blockingUser: false,
+  unblockingUser: false,
+
+  // Friendship stats
+  friendshipStats: null,
+  loadingFriendshipStats: false,
+  friendshipStatsError: null,
+
+  // Mutual friends
+  mutualFriends: {},
+  loadingMutualFriends: false,
+  mutualFriendsError: null,
+
+  // Search friends
+  searchResults: [],
+  searchingFriends: false,
+  searchFriendsError: null,
+
+  // Outgoing requests
+  outgoingRequests: [],
+  loadingOutgoingRequests: false,
+  outgoingRequestsError: null,
+
+  // Expense sharing summary
+  expenseSharingSummary: null,
+  loadingExpenseSharingSummary: false,
+  expenseSharingSummaryError: null,
+
+  // Quick share
+  quickSharingExpenses: false,
+  quickShareError: null,
+
+  // Batch share
+  batchSharingExpenses: false,
+  batchShareError: null,
+
+  // Recommended to share
+  recommendedToShare: [],
+  loadingRecommendedToShare: false,
+  recommendedToShareError: null,
+
+  // Cancel/Remove operations
+  cancellingRequest: false,
+  removingFriendship: false,
 };
 
 const friendsReducer = (state = initialState, action) => {
@@ -319,6 +407,302 @@ const friendsReducer = (state = initialState, action) => {
       return {
         ...state,
         friendsExpensesError: action.payload,
+      };
+
+    // Cancel friend request cases
+    case CANCEL_FRIEND_REQUEST_REQUEST:
+      return {
+        ...state,
+        cancellingRequest: true,
+      };
+
+    case CANCEL_FRIEND_REQUEST_SUCCESS:
+      return {
+        ...state,
+        cancellingRequest: false,
+        friendRequests: state.friendRequests.filter(
+          (request) => request.id !== action.payload
+        ),
+        outgoingRequests: state.outgoingRequests.filter(
+          (request) => request.id !== action.payload
+        ),
+      };
+
+    case CANCEL_FRIEND_REQUEST_FAILURE:
+      return {
+        ...state,
+        cancellingRequest: false,
+        error: action.payload,
+      };
+
+    // Remove friendship cases
+    case REMOVE_FRIENDSHIP_REQUEST:
+      return {
+        ...state,
+        removingFriendship: true,
+      };
+
+    case REMOVE_FRIENDSHIP_SUCCESS:
+      return {
+        ...state,
+        removingFriendship: false,
+        friends: state.friends.filter(
+          (friend) =>
+            friend.friendshipId !== action.payload &&
+            friend.id !== action.payload
+        ),
+      };
+
+    case REMOVE_FRIENDSHIP_FAILURE:
+      return {
+        ...state,
+        removingFriendship: false,
+        error: action.payload,
+      };
+
+    // Block user cases
+    case BLOCK_USER_REQUEST:
+      return {
+        ...state,
+        blockingUser: true,
+      };
+
+    case BLOCK_USER_SUCCESS:
+      return {
+        ...state,
+        blockingUser: false,
+        friends: state.friends.filter(
+          (friend) => friend.userId !== action.payload
+        ),
+      };
+
+    case BLOCK_USER_FAILURE:
+      return {
+        ...state,
+        blockingUser: false,
+        error: action.payload,
+      };
+
+    // Unblock user cases
+    case UNBLOCK_USER_REQUEST:
+      return {
+        ...state,
+        unblockingUser: true,
+      };
+
+    case UNBLOCK_USER_SUCCESS:
+      return {
+        ...state,
+        unblockingUser: false,
+        blockedUsers: state.blockedUsers.filter(
+          (user) => user.id !== action.payload
+        ),
+      };
+
+    case UNBLOCK_USER_FAILURE:
+      return {
+        ...state,
+        unblockingUser: false,
+        error: action.payload,
+      };
+
+    // Blocked users cases
+    case FETCH_BLOCKED_USERS_REQUEST:
+      return {
+        ...state,
+        loadingBlockedUsers: true,
+        blockedUsersError: null,
+      };
+
+    case FETCH_BLOCKED_USERS_SUCCESS:
+      return {
+        ...state,
+        loadingBlockedUsers: false,
+        blockedUsers: action.payload,
+      };
+
+    case FETCH_BLOCKED_USERS_FAILURE:
+      return {
+        ...state,
+        loadingBlockedUsers: false,
+        blockedUsersError: action.payload,
+      };
+
+    // Friendship stats cases
+    case FETCH_FRIENDSHIP_STATS_REQUEST:
+      return {
+        ...state,
+        loadingFriendshipStats: true,
+        friendshipStatsError: null,
+      };
+
+    case FETCH_FRIENDSHIP_STATS_SUCCESS:
+      return {
+        ...state,
+        loadingFriendshipStats: false,
+        friendshipStats: action.payload,
+      };
+
+    case FETCH_FRIENDSHIP_STATS_FAILURE:
+      return {
+        ...state,
+        loadingFriendshipStats: false,
+        friendshipStatsError: action.payload,
+      };
+
+    // Mutual friends cases
+    case FETCH_MUTUAL_FRIENDS_REQUEST:
+      return {
+        ...state,
+        loadingMutualFriends: true,
+        mutualFriendsError: null,
+      };
+
+    case FETCH_MUTUAL_FRIENDS_SUCCESS:
+      return {
+        ...state,
+        loadingMutualFriends: false,
+        mutualFriends: {
+          ...state.mutualFriends,
+          [action.payload.userId]: action.payload.mutualFriends,
+        },
+      };
+
+    case FETCH_MUTUAL_FRIENDS_FAILURE:
+      return {
+        ...state,
+        loadingMutualFriends: false,
+        mutualFriendsError: action.payload,
+      };
+
+    // Search friends cases
+    case SEARCH_FRIENDS_REQUEST:
+      return {
+        ...state,
+        searchingFriends: true,
+        searchFriendsError: null,
+      };
+
+    case SEARCH_FRIENDS_SUCCESS:
+      return {
+        ...state,
+        searchingFriends: false,
+        searchResults: action.payload,
+      };
+
+    case SEARCH_FRIENDS_FAILURE:
+      return {
+        ...state,
+        searchingFriends: false,
+        searchFriendsError: action.payload,
+      };
+
+    // Outgoing requests cases
+    case FETCH_OUTGOING_REQUESTS_REQUEST:
+      return {
+        ...state,
+        loadingOutgoingRequests: true,
+        outgoingRequestsError: null,
+      };
+
+    case FETCH_OUTGOING_REQUESTS_SUCCESS:
+      return {
+        ...state,
+        loadingOutgoingRequests: false,
+        outgoingRequests: action.payload,
+      };
+
+    case FETCH_OUTGOING_REQUESTS_FAILURE:
+      return {
+        ...state,
+        loadingOutgoingRequests: false,
+        outgoingRequestsError: action.payload,
+      };
+
+    // Expense sharing summary cases
+    case FETCH_EXPENSE_SHARING_SUMMARY_REQUEST:
+      return {
+        ...state,
+        loadingExpenseSharingSummary: true,
+        expenseSharingSummaryError: null,
+      };
+
+    case FETCH_EXPENSE_SHARING_SUMMARY_SUCCESS:
+      return {
+        ...state,
+        loadingExpenseSharingSummary: false,
+        expenseSharingSummary: action.payload,
+      };
+
+    case FETCH_EXPENSE_SHARING_SUMMARY_FAILURE:
+      return {
+        ...state,
+        loadingExpenseSharingSummary: false,
+        expenseSharingSummaryError: action.payload,
+      };
+
+    // Quick share expenses cases
+    case QUICK_SHARE_EXPENSES_REQUEST:
+      return {
+        ...state,
+        quickSharingExpenses: true,
+        quickShareError: null,
+      };
+
+    case QUICK_SHARE_EXPENSES_SUCCESS:
+      return {
+        ...state,
+        quickSharingExpenses: false,
+      };
+
+    case QUICK_SHARE_EXPENSES_FAILURE:
+      return {
+        ...state,
+        quickSharingExpenses: false,
+        quickShareError: action.payload,
+      };
+
+    // Batch share expenses cases
+    case BATCH_SHARE_EXPENSES_REQUEST:
+      return {
+        ...state,
+        batchSharingExpenses: true,
+        batchShareError: null,
+      };
+
+    case BATCH_SHARE_EXPENSES_SUCCESS:
+      return {
+        ...state,
+        batchSharingExpenses: false,
+      };
+
+    case BATCH_SHARE_EXPENSES_FAILURE:
+      return {
+        ...state,
+        batchSharingExpenses: false,
+        batchShareError: action.payload,
+      };
+
+    // Recommended to share cases
+    case FETCH_RECOMMENDED_TO_SHARE_REQUEST:
+      return {
+        ...state,
+        loadingRecommendedToShare: true,
+        recommendedToShareError: null,
+      };
+
+    case FETCH_RECOMMENDED_TO_SHARE_SUCCESS:
+      return {
+        ...state,
+        loadingRecommendedToShare: false,
+        recommendedToShare: action.payload,
+      };
+
+    case FETCH_RECOMMENDED_TO_SHARE_FAILURE:
+      return {
+        ...state,
+        loadingRecommendedToShare: false,
+        recommendedToShareError: action.payload,
       };
 
     default:
