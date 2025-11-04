@@ -1,0 +1,528 @@
+pipeline {
+    agent any
+    
+    tools {
+        maven 'Maven-3.9.0' // Configure this in Jenkins Global Tool Configuration
+        jdk 'JDK-17'        // Configure this in Jenkins Global Tool Configuration
+    }
+    
+   environment {
+    // Maven configuration (Java 8+ compatible)
+    MAVEN_OPTS = '-Xmx3072m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -Djava.awt.headless=true'
+    MAVEN_CLI_OPTS = '--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true'
+    
+    // Build configuration
+    SKIP_TESTS = 'true'
+    PARALLEL_BUILD = 'true'
+    
+    // Logging
+    BUILD_TIMESTAMP = bat(script: "@echo %date:~-4,4%-%date:~-10,2%-%date:~-7,2%_%time:~0,2%-%time:~3,2%-%time:~6,2%", returnStdout: true).trim()
+    LOG_LEVEL = 'INFO'
+}
+    
+    options {
+        // Keep builds for 30 days or last 10 builds
+        buildDiscarder(logRotator(numToKeepStr: '10', daysToKeepStr: '30'))
+        
+        // Timeout for entire pipeline
+        timeout(time: 60, unit: 'MINUTES')
+        
+        // Disable concurrent builds
+        disableConcurrentBuilds()
+        
+        // Add timestamps to console output
+        timestamps()
+    }
+    
+    parameters {
+        string(
+            name: 'BACKEND_BASE_PATH',
+            defaultValue: 'C:\\Users\\jayapraj\\Downloads\\Expense-Tracking-system-With-User\\Expense-tracking-System-backend\\Expense-tracking-backend-main',
+            description: 'Absolute path to backend services directory'
+        )
+        booleanParam(
+            name: 'SKIP_TESTS', 
+            defaultValue: true, 
+            description: 'Skip running tests during build'
+        )
+        booleanParam(
+            name: 'CLEAN_BUILD', 
+            defaultValue: true, 
+            description: 'Perform clean build (mvn clean)'
+        )
+        booleanParam(
+            name: 'BUILD_ALL_SERVICES', 
+            defaultValue: true, 
+            description: 'Build all services in parallel'
+        )
+        choice( 
+            name: 'LOG_LEVEL', 
+            choices: ['INFO', 'DEBUG', 'WARN', 'ERROR'], 
+            description: 'Maven build log level'
+        )
+    }
+    
+    stages {
+        stage('📋 Initialization') {
+            steps {
+                script {
+                    echo "═══════════════════════════════════════════════════════════════"
+                    echo "🚀 EXPENSE TRACKER BACKEND SERVICES - BUILD PIPELINE"
+                    echo "═══════════════════════════════════════════════════════════════"
+                    echo "📅 Build Date: ${BUILD_TIMESTAMP}"
+                    echo "🔧 Jenkins Build: #${BUILD_NUMBER}"
+                    echo "🌿 Branch: ${env.GIT_BRANCH ?: 'N/A'}"
+                    echo "👤 Started by: ${currentBuild.getBuildCauses()[0]?.userId ?: 'System'}"
+                    echo "⚙️  Skip Tests: ${params.SKIP_TESTS}"
+                    echo "🧹 Clean Build: ${params.CLEAN_BUILD}"
+                    echo "📊 Log Level: ${params.LOG_LEVEL}"
+                    echo "═══════════════════════════════════════════════════════════════"
+                    
+                    // Set dynamic environment variables
+                    env.SKIP_TESTS = params.SKIP_TESTS
+                    env.CLEAN_BUILD = params.CLEAN_BUILD
+                    env.LOG_LEVEL = params.LOG_LEVEL
+                }
+            }
+        }
+        
+        stage('🔍 Pre-Build Validation') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════════════════╗"
+                    echo "║               PRE-BUILD VALIDATION                         ║"
+                    echo "╚════════════════════════════════════════════════════════════╝"
+                    
+                    // Check Maven installation
+                    echo "✓ Checking Maven installation..."
+                    bat 'mvn --version'
+                    
+                    // Check Java installation
+                    echo "✓ Checking Java installation..."
+                    bat 'java -version'
+                    
+                    // Check workspace
+                    echo "✓ Checking backend base path..."
+                    echo "📂 Backend Path: ${params.BACKEND_BASE_PATH}"
+                    bat "dir \"${params.BACKEND_BASE_PATH}\" /b"
+                    
+                    echo "✅ Pre-build validation completed successfully"
+                }
+            }
+        }
+        
+        stage('🏗️  Build Services') {
+            when {
+                expression { params.BUILD_ALL_SERVICES }
+            }
+            parallel {
+                stage('🔐 User Service') {
+                    steps {
+                        script {
+                            buildService('user-service', '🔐')
+                        }
+                    }
+                }
+                
+                stage('📱 Social Media App') {
+                    steps {
+                        script {
+                            buildService('social-media-app', '📱')
+                        }
+                    }
+                }
+                
+                stage('🌐 Eureka Server') {
+                    steps {
+                        script {
+                            buildService('eureka-server', '🌐')
+                        }
+                    }
+                }
+                
+                stage('🚪 Gateway') {
+                    steps {
+                        script {
+                            buildService('Gateway', '🚪')
+                        }
+                    }
+                }
+                
+                stage('💰 Budget Service') {
+                    steps {
+                        script {
+                            buildService('Budget-Service', '💰')
+                        }
+                    }
+                }
+                
+                stage('📋 Category Service') {
+                    steps {
+                        script {
+                            buildService('Category-Service', '📋')
+                        }
+                    }
+                }
+                
+                stage('💳 Payment Method Service') {
+                    steps {
+                        script {
+                            buildService('Payment-method-Service', '💳')
+                        }
+                    }
+                }
+                
+                stage('🧾 Bill Service') {
+                    steps {
+                        script {
+                            buildService('Bill-Service', '🧾')
+                        }
+                    }
+                }
+                
+                stage('🔔 Notification Service') {
+                    steps {
+                        script {
+                            buildService('Notification-Service', '🔔')
+                        }
+                    }
+                }
+                
+                stage('👥 Friendship Service') {
+                    steps {
+                        script {
+                            buildService('FriendShip-Service', '👥')
+                        }
+                    }
+                }
+                
+                stage('💬 Chat Service') {
+                    steps {
+                        script {
+                            buildService('Chat-Service', '💬')
+                        }
+                    }
+                }
+                
+                stage('📅 Event Service') {
+                    steps {
+                        script {
+                            buildService('Event-Service', '📅')
+                        }
+                    }
+                }
+                
+                stage('🔍 Audit Service') {
+                    steps {
+                        script {
+                            buildService('Audit-Service', '🔍')
+                        }
+                    }
+                }
+                
+                stage('📊 Analytics Service') {
+                    steps {
+                        script {
+                            buildService('AnalyticsService', '📊')
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('📦 Artifact Collection') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════════════════╗"
+                    echo "║              COLLECTING BUILD ARTIFACTS                    ║"
+                    echo "╚════════════════════════════════════════════════════════════╝"
+                    
+                    def services = [
+                        'user-service', 'social-media-app', 'eureka-server', 'Gateway',
+                        'Budget-Service', 'Category-Service', 'Payment-method-Service',
+                        'Bill-Service', 'Notification-Service', 'FriendShip-Service',
+                        'Chat-Service', 'Event-Service', 'Audit-Service', 'AnalyticsService'
+                    ]
+                    
+                    services.each { service ->
+                        def jarPath = "${params.BACKEND_BASE_PATH}\\${service}\\target\\*.jar"
+                        def jarExists = bat(
+                            script: "@echo off & if exist \"${jarPath}\" (echo FOUND) else (echo NOTFOUND)",
+                            returnStdout: true
+                        ).trim()
+                        
+                        if (jarExists.contains('FOUND')) {
+                            echo "✓ ${service}: JAR found"
+                            archiveArtifacts artifacts: "${params.BACKEND_BASE_PATH}\\${service}\\target\\*.jar", 
+                                           allowEmptyArchive: true,
+                                           fingerprint: true
+                        } else {
+                            echo "⚠ ${service}: No JAR file found (might be a POM project)"
+                        }
+                    }
+                    
+                    echo "✅ Artifact collection completed"
+                }
+            }
+        }
+        
+        stage('📊 Build Summary') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════════════════╗"
+                    echo "║                   BUILD SUMMARY                            ║"
+                    echo "╚════════════════════════════════════════════════════════════╝"
+                    
+                    try {
+                        // Safe calculation
+                        long buildDurationMillis = currentBuild.duration ?: 0
+                        long buildDurationSeconds = buildDurationMillis / 1000L
+                        long minutes = buildDurationSeconds / 60L
+                        long seconds = buildDurationSeconds % 60L
+                        
+                        echo "⏱️  Total Build Time: ${minutes}m ${seconds}s"
+                        echo "📊 Build Status: ${currentBuild.result ?: 'SUCCESS'}"
+                        echo "🔢 Build Number: #${BUILD_NUMBER}"
+                        echo "📅 Timestamp: ${BUILD_TIMESTAMP}"
+                        echo ""
+                        echo "✅ All services built successfully!"
+                    } catch (Exception e) {
+                        echo "⚠️  Could not calculate build duration: ${e.message}"
+                    }
+                    
+                    echo "═══════════════════════════════════════════════════════════════"
+                }
+            }
+        }
+        
+        stage('📁 Copy JARs to Downloads') {
+            steps {
+                script {
+                    echo "╔════════════════════════════════════════════════════════════╗"
+                    echo "║            COPYING JARS TO DOWNLOADS FOLDER                ║"
+                    echo "╚════════════════════════════════════════════════════════════╝"
+                    
+                    // Create timestamp for folder name
+                    def timestamp = new Date().format('yyyyMMdd_HHmmss')
+                    def outputFolder = "C:\\Users\\jayapraj\\Downloads\\expense-tracker-jars-${timestamp}"
+                    
+                    echo "📂 Creating output folder: ${outputFolder}"
+                    bat "mkdir \"${outputFolder}\""
+                    
+                    def services = [
+                        'user-service', 'social-media-app', 'eureka-server', 'Gateway',
+                        'Budget-Service', 'Category-Service', 'Payment-method-Service',
+                        'Bill-Service', 'Notification-Service', 'FriendShip-Service',
+                        'Chat-Service', 'Event-Service', 'Audit-Service', 'AnalyticsService'
+                    ]
+                    
+                    def copiedCount = 0
+                    
+                    services.each { service ->
+                        def sourcePath = "${params.BACKEND_BASE_PATH}\\${service}\\target"
+                        echo "🔍 Checking ${service}..."
+                        
+                        // Check if target folder exists
+                        def targetExists = bat(
+                            script: "@echo off & if exist \"${sourcePath}\" (echo EXISTS) else (echo NOTFOUND)",
+                            returnStdout: true
+                        ).trim()
+                        
+                        if (targetExists.contains('EXISTS')) {
+                            // Copy all JAR files from this service
+                            def copyResult = bat(
+                                script: "@echo off & xcopy \"${sourcePath}\\*.jar\" \"${outputFolder}\\\" /Y /Q 2>nul & echo COPIED",
+                                returnStatus: true
+                            )
+                            
+                            if (copyResult == 0) {
+                                echo "✅ ${service}: JAR copied"
+                                copiedCount++
+                            } else {
+                                echo "⚠️  ${service}: No JAR file found or copy failed"
+                            }
+                        } else {
+                            echo "⚠️  ${service}: Target folder not found"
+                        }
+                    }
+                    
+                    echo ""
+                    echo "╔════════════════════════════════════════════════════════════╗"
+                    echo "║                    COPY COMPLETE                           ║"
+                    echo "╚════════════════════════════════════════════════════════════╝"
+                    echo "📊 Total JARs copied: ${copiedCount}"
+                    echo "📂 Location: ${outputFolder}"
+                    echo "═══════════════════════════════════════════════════════════════"
+                    
+                    // Save the folder path for later reference
+                    env.JAR_OUTPUT_FOLDER = outputFolder
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                echo "═══════════════════════════════════════════════════════════════"
+                echo "🧹 CLEANUP AND FINALIZATION"
+                echo "═══════════════════════════════════════════════════════════════"
+            }
+            
+            // Clean up workspace if needed
+            cleanWs(
+                cleanWhenNotBuilt: false,
+                deleteDirs: true,
+                disableDeferredWipeout: true,
+                notFailBuild: true,
+                patterns: [
+                    [pattern: '**/target', type: 'INCLUDE'],
+                    [pattern: '**/.mvn', type: 'INCLUDE']
+                ]
+            )
+        }
+        
+        success {
+            script {
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║                 ✅ BUILD SUCCESSFUL! ✅                    ║"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                echo "🎉 All backend services built successfully!"
+                echo "📦 Build artifacts are ready for deployment"
+                echo ""
+                if (env.JAR_OUTPUT_FOLDER) {
+                    echo "📂 All JAR files copied to:"
+                    echo "   ${env.JAR_OUTPUT_FOLDER}"
+                    echo ""
+                    echo "💡 You can find all JARs in your Downloads folder!"
+                }
+                echo "═══════════════════════════════════════════════════════════════"
+            }
+            
+            // Archive build logs
+            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+        }
+        
+        failure {
+            script {
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║                  ❌ BUILD FAILED! ❌                       ║"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                echo "💥 One or more services failed to build"
+                echo "📋 Check the logs above for detailed error messages"
+                echo "═══════════════════════════════════════════════════════════════"
+            }
+            
+            // Send notification (configure email/Slack as needed)
+            // emailext (
+            //     subject: "❌ Build Failed: ${env.JOB_NAME} - #${env.BUILD_NUMBER}",
+            //     body: "Build ${env.BUILD_NUMBER} failed. Check console output.",
+            //     to: "${env.DEFAULT_RECIPIENTS}"
+            // )
+        }
+        
+        unstable {
+            script {
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║                 ⚠️  BUILD UNSTABLE! ⚠️                     ║"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                echo "⚠️  Build completed with warnings"
+                echo "═══════════════════════════════════════════════════════════════"
+            }
+        }
+        
+        aborted {
+            script {
+                echo "╔════════════════════════════════════════════════════════════╗"
+                echo "║                  🛑 BUILD ABORTED! 🛑                      ║"
+                echo "╚════════════════════════════════════════════════════════════╝"
+                echo "Build was manually aborted"
+                echo "═══════════════════════════════════════════════════════════════"
+            }
+        }
+    }
+}
+
+// Helper function to build individual services
+def buildService(String serviceName, String emoji = '📦') {
+    def startTime = System.currentTimeMillis()
+    
+    try {
+        echo ""
+        echo "┌─────────────────────────────────────────────────────────────┐"
+        echo "│ ${emoji} Building: ${serviceName}"
+        echo "└─────────────────────────────────────────────────────────────┘"
+        
+        def servicePath = "${params.BACKEND_BASE_PATH}\\${serviceName}"
+        echo "📍 Service Path: ${servicePath}"
+        
+        dir(servicePath) {
+            // Check if pom.xml exists
+            if (!fileExists('pom.xml')) {
+                echo "⚠️  WARNING: No pom.xml found for ${serviceName}, skipping..."
+                return
+            }
+            
+            echo "📍 Working Directory: ${pwd()}"
+            
+            // Determine Maven command
+            def mvnCmd = 'mvn'
+            def cleanPhase = params.CLEAN_BUILD ? 'clean' : ''
+            def testSkip = params.SKIP_TESTS ? '-DskipTests' : ''
+            
+            // Build command
+            def buildCommand = "${mvnCmd} ${cleanPhase} package ${testSkip} ${MAVEN_CLI_OPTS}"
+            
+            echo "🔨 Executing: ${buildCommand}"
+            echo "⏳ Build in progress..."
+            
+            // Execute build (use bat for Windows)
+            def buildResult = bat(
+                script: buildCommand,
+                returnStatus: true
+            )
+            
+            // Calculate build time
+            def endTime = System.currentTimeMillis()
+            def duration = (endTime - startTime) / 1000
+            
+            if (buildResult == 0) {
+                echo "✅ ${serviceName} built successfully in ${duration}s"
+                
+                // Check for JAR file (Windows command)
+                def jarFile = bat(
+                    script: "@echo off & dir /b target\\*.jar 2>nul",
+                    returnStdout: true
+                ).trim()
+                
+                if (jarFile && jarFile != '') {
+                    echo "📦 Artifact: ${jarFile}"
+                }
+                
+                echo "└─────────────────────────────────────────────────────────────┘"
+            } else {
+                echo "❌ ${serviceName} build FAILED after ${duration}s"
+                echo "└─────────────────────────────────────────────────────────────┘"
+                error("Build failed for ${serviceName}")
+            }
+        }
+    } catch (Exception e) {
+        echo "💥 ERROR in ${serviceName}: ${e.getMessage()}"
+        echo "└─────────────────────────────────────────────────────────────┘"
+        throw e
+    }
+}
+
+// Helper function for logging with levels
+def log(String level, String message) {
+    def timestamp = new Date().format('yyyy-MM-dd HH:mm:ss')
+    def levelEmoji = [
+        'DEBUG': '🐛',
+        'INFO': 'ℹ️',
+        'WARN': '⚠️',
+        'ERROR': '❌',
+        'SUCCESS': '✅'
+    ]
+    
+    echo "[${timestamp}] ${levelEmoji[level] ?: '📝'} [${level}] ${message}"
+}
