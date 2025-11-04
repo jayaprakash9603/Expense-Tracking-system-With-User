@@ -6,7 +6,7 @@ import useSingleBudgetReport from "../../../hooks/useSingleBudgetReport";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import SharedDistributionChart from "../../../components/charts/SharedDistributionChart";
 import GroupedExpensesAccordion from "../../../components/GroupedExpensesAccordion";
-import { PaymentLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
+import { BudgetReportLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
 import ReportHeader from "../../../components/ReportHeader";
 import { getChartColors } from "../../../utils/chartColors";
 
@@ -69,7 +69,7 @@ const BudgetReport = () => {
   const bgColor = mode === "dark" ? "#1f2937" : "#ffffff";
 
   if (loading) {
-    return <PaymentLoadingSkeleton />;
+    return <BudgetReportLoadingSkeleton />;
   }
 
   if (error) {

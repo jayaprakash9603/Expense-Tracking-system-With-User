@@ -651,6 +651,41 @@ export const PaymentLoadingSkeleton = () => {
   );
 };
 
+// Budget-specific loading skeleton combining header, overview, category/payment distributions, and expenses accordion
+export const BudgetReportLoadingSkeleton = () => {
+  const { colors } = useTheme();
+
+  return (
+    <div className="budget-report" style={{ background: colors.secondary_bg }}>
+      <ReportHeaderSkeleton rootClassName="budget-report-header" />
+      <div className="budget-overview-cards">
+        {[...Array(4)].map((_, i) => (
+          <OverviewCardSkeleton key={i} />
+        ))}
+      </div>
+
+      {/* Category + Payment distributions */}
+      <div className="chart-row full-width" style={{ marginBottom: 32 }}>
+        <PieChartSkeleton height={360} />
+      </div>
+      <div className="charts-grid">
+        <div className="chart-row full-width">
+          <ChartSkeleton height={300} />
+        </div>
+
+        <div className="chart-row">
+          <ChartSkeleton height={400} />
+          <ChartSkeleton height={400} />
+        </div>
+
+        <div className="chart-row full-width">
+          <AccordionSkeleton items={8} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const ExpensesLoadingSkeleton = () => {
   const { colors } = useTheme();
 
@@ -698,5 +733,6 @@ export default {
   AccordionSkeleton,
   CategoryLoadingSkeleton,
   PaymentLoadingSkeleton,
+  BudgetReportLoadingSkeleton,
   ExpensesLoadingSkeleton,
 };

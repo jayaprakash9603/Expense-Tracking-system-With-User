@@ -32,8 +32,16 @@ const useSingleBudgetReport = (
         let toDate = null;
         const now = new Date();
 
+        // Helper to format date in LOCAL time (avoids UTC shift causing previous day like 31st of last month)
+        const formatLocalDate = (d) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return `${y}-${m}-${day}`;
+        };
+
         if (timeFrame !== "all") {
-          toDate = now.toISOString().split("T")[0]; // Today's date in YYYY-MM-DD format
+          toDate = formatLocalDate(now); // Local date (YYYY-MM-DD) to avoid UTC off-by-one
 
           switch (timeFrame.toLowerCase()) {
             case "day":
@@ -43,7 +51,7 @@ const useSingleBudgetReport = (
             case "week":
               const startOfWeek = new Date(now);
               startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
-              fromDate = startOfWeek.toISOString().split("T")[0];
+              fromDate = formatLocalDate(startOfWeek);
               break;
             case "month":
               const startOfMonth = new Date(
@@ -51,7 +59,7 @@ const useSingleBudgetReport = (
                 now.getMonth(),
                 1
               );
-              fromDate = startOfMonth.toISOString().split("T")[0];
+              fromDate = formatLocalDate(startOfMonth);
               break;
             case "quarter":
               const currentQuarter = Math.floor(now.getMonth() / 3);
@@ -60,11 +68,11 @@ const useSingleBudgetReport = (
                 currentQuarter * 3,
                 1
               );
-              fromDate = startOfQuarter.toISOString().split("T")[0];
+              fromDate = formatLocalDate(startOfQuarter);
               break;
             case "year":
               const startOfYear = new Date(now.getFullYear(), 0, 1);
-              fromDate = startOfYear.toISOString().split("T")[0];
+              fromDate = formatLocalDate(startOfYear);
               break;
             case "budget":
               // For budget period, we'll use rangeType as we need budget start/end dates from backend
