@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getFilteredBudgetsReport } from "../Redux/Budget/budget.action";
+import {
+  getFilteredBudgetsReport,
+  clearFilteredBudgetsReport,
+} from "../Redux/Budget/budget.action";
 import { getChartColors } from "../utils/chartColors";
 
 const COLORS = getChartColors();
@@ -41,7 +44,11 @@ const useBudgetReportData = ({ friendId }) => {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    // Cleanup on unmount/navigation to prevent stale duplication
+    return () => {
+      dispatch(clearFilteredBudgetsReport());
+    };
+  }, [fetchData, dispatch]);
 
   // Transform budget data for charts
   const transformBudgetData = useCallback(() => {
@@ -56,8 +63,20 @@ const useBudgetReportData = ({ friendId }) => {
 
     const { budgets, summary } = filteredBudgetsReport;
 
+    // Defensive deduplication: navigation between pages was producing duplicated budget entries
+    // Ensure uniqueness by budgetId (fallback to name if id missing)
+    const seen = new Map();
+    const uniqueBudgets = [];
+    for (const b of budgets) {
+      const key = b.budgetId ?? b.budgetName;
+      if (!seen.has(key)) {
+        seen.set(key, true);
+        uniqueBudgets.push(b);
+      }
+    }
+
     // Transform budgets for overview cards and accordion
-    const budgetsData = budgets.map((budget, index) => ({
+    const budgetsData = uniqueBudgets.map((budget, index) => ({
       budgetId: budget.budgetId,
       budgetName: budget.budgetName,
       name: budget.budgetName, // For BudgetOverviewGrid compatibility

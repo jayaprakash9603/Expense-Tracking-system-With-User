@@ -22,6 +22,7 @@ import {
   GET_FILTERED_BUDGETS_REPORT_REQUEST,
   GET_FILTERED_BUDGETS_REPORT_SUCCESS,
   GET_FILTERED_BUDGETS_REPORT_FAILURE,
+  CLEAR_FILTERED_BUDGETS_REPORT,
   GET_LIST_BUDGETS_FAILURE,
   GET_LIST_BUDGETS_REQUEST,
   GET_LIST_BUDGETS_SUCCESS,
@@ -87,6 +88,12 @@ export const budgetReducer = (state = initialState, action) => {
         filteredBudgetsReport: action.payload,
         loading: false,
         error: null,
+      };
+    case CLEAR_FILTERED_BUDGETS_REPORT:
+      return {
+        ...state,
+        filteredBudgetsReport: null,
+        loading: false,
       };
     case DELETE_BUDGET_SUCCESS:
       const updatedBudgets = { ...state.budgets };

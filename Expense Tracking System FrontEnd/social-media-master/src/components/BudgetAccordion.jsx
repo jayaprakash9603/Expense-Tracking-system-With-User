@@ -33,8 +33,17 @@ const BudgetAccordionGroup = ({ budgets }) => {
     );
   }
 
-  // Transform budgets to GenericAccordionGroup format
-  const groups = budgets.map((budget) => ({
+  // Transform budgets to GenericAccordionGroup format with defensive deduplication
+  const uniqueBudgets = [];
+  const seenBudgetKeys = new Set();
+  for (const b of budgets) {
+    const key = b.budgetId ?? b.budgetName;
+    if (!seenBudgetKeys.has(key)) {
+      seenBudgetKeys.add(key);
+      uniqueBudgets.push(b);
+    }
+  }
+  const groups = uniqueBudgets.map((budget) => ({
     label: budget.budgetName,
     count: budget.transactions || budget.expenses?.length || 0,
     totalAmount: budget.totalLoss,

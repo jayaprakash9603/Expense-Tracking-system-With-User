@@ -57,3 +57,6 @@ export const GET_FILTERED_BUDGETS_REPORT_SUCCESS =
   "GET_FILTERED_BUDGETS_REPORT_SUCCESS";
 export const GET_FILTERED_BUDGETS_REPORT_FAILURE =
   "GET_FILTERED_BUDGETS_REPORT_FAILURE";
+
+// Clear filtered budgets report (used on navigation/unmount to prevent duplicate carry-over)
+export const CLEAR_FILTERED_BUDGETS_REPORT = "CLEAR_FILTERED_BUDGETS_REPORT";

@@ -26,6 +26,7 @@ import {
   GET_FILTERED_BUDGETS_REPORT_REQUEST,
   GET_FILTERED_BUDGETS_REPORT_SUCCESS,
   GET_FILTERED_BUDGETS_REPORT_FAILURE,
+  CLEAR_FILTERED_BUDGETS_REPORT,
   GET_LIST_BUDGETS_FAILURE,
   GET_LIST_BUDGETS_REQUEST,
   GET_LIST_BUDGETS_SUCCESS,
@@ -286,3 +287,7 @@ export const getFilteredBudgetsReport =
       throw error;
     }
   };
+
+export const clearFilteredBudgetsReport = () => (dispatch) => {
+  dispatch({ type: CLEAR_FILTERED_BUDGETS_REPORT });
+};
