@@ -79,56 +79,76 @@ export default function DashboardContent() {
         currencySymbol={currencySymbol}
       />
 
-      <div className="charts-grid">
-        <div className="chart-row">
+      <div
+        className="charts-grid"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: isMobile ? 16 : 24,
+        }}
+      >
+        {/* Row 1: Daily Spending (full width) */}
+        <div className="chart-row full-width" style={{ width: "100%" }}>
           <DailySpendingContainer
             height={isMobile ? 200 : isTablet ? 240 : 100}
-            refreshTrigger={Math.random()} /* can use refreshKey from context later */
+            refreshTrigger={Math.random()}
             showSkeleton={analyticsLoading}
           />
-          <div style={{ gridColumn: "1 / -1" }}>
-            <QuickAccess />
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: !isMobile ? "1fr 1fr" : "1fr",
-              gap: !isMobile ? 24 : 16,
-              gridColumn: "1 / -1",
-            }}
-          >
-            <SummaryOverview
-              summary={{
-                groupsCreated: 3,
-                groupsMember: 5,
-                pendingInvitations: 2,
-                friendsCount: 12,
-                pendingFriendRequests: 1,
-              }}
-            />
-            <CategoryBreakdownChart
-              data={categoryDistribution}
-              timeframe={categoryTimeframe}
-              onTimeframeChange={setCategoryTimeframe}
-              flowType={categoryFlowType}
-              onFlowTypeChange={setCategoryFlowType}
-              loading={categoryLoading}
-              skeleton={
-                analyticsLoading ? (
-                  <ChartSkeleton
-                    height={isMobile ? 380 : 560}
-                    variant="pie"
-                    noHeader
-                  />
-                ) : null
-              }
-            />
-          </div>
         </div>
-        <div className="chart-row">
+        {/* Row 2: Quick Access (full width) */}
+        <div className="chart-row full-width" style={{ width: "100%" }}>
+          <QuickAccess />
+        </div>
+        {/* Row 3: Summary Overview + Category Breakdown side-by-side */}
+        <div
+          className="chart-row"
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            gap: isMobile ? 16 : 24,
+            width: "100%",
+          }}
+        >
+          <SummaryOverview
+            summary={{
+              groupsCreated: 3,
+              groupsMember: 5,
+              pendingInvitations: 2,
+              friendsCount: 12,
+              pendingFriendRequests: 1,
+            }}
+          />
+          <CategoryBreakdownChart
+            data={categoryDistribution}
+            timeframe={categoryTimeframe}
+            onTimeframeChange={setCategoryTimeframe}
+            flowType={categoryFlowType}
+            onFlowTypeChange={setCategoryFlowType}
+            loading={categoryLoading}
+            skeleton={
+              analyticsLoading ? (
+                <ChartSkeleton
+                  height={isMobile ? 380 : 560}
+                  variant="pie"
+                  noHeader
+                />
+              ) : null
+            }
+          />
+        </div>
+        {/* Row 4: Monthly Trend + Payment Methods side-by-side */}
+        <div
+          className="chart-row"
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            gap: isMobile ? 16 : 24,
+            width: "100%",
+          }}
+        >
           <MonthlyTrendContainer
             initialYear={currentYear}
-            refreshTrigger={Math.random()} /* context already manages; placeholder for integration */
+            refreshTrigger={Math.random()}
             height={isMobile ? 260 : isTablet ? 380 : 600}
             maxYear={currentYear}
             showSkeleton={analyticsLoading}

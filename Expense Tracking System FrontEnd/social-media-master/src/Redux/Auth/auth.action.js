@@ -126,7 +126,18 @@ export const getProfileAction = (jwt) => async (dispatch) => {
     console.log("First Name:", firstName);
     dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
   } catch (error) {
+    console.error("Get profile error:", error);
+
+    // If profile fetch fails (401, 403, or connection error), clear JWT and logout
+    const status = error.response?.status;
+    if (status === 401 || status === 403 || !error.response) {
+      console.log("Invalid or expired token, clearing JWT and logging out");
+      localStorage.removeItem("jwt");
+      dispatch({ type: "LOGOUT" });
+    }
+
     dispatch({ type: GET_PROFILE_FAILURE, payload: error });
+    throw error; // Re-throw so App.js can catch it
   }
 };
 

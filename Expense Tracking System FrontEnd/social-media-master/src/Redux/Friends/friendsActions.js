@@ -31,6 +31,45 @@ import {
   FETCH_FRIENDS_EXPENSES_FAILURE,
   FETCH_FRIENDSHIP_SUCCESS,
   FETCH_FRIENDSHIP_FAILURE,
+  CANCEL_FRIEND_REQUEST_REQUEST,
+  CANCEL_FRIEND_REQUEST_SUCCESS,
+  CANCEL_FRIEND_REQUEST_FAILURE,
+  REMOVE_FRIENDSHIP_REQUEST,
+  REMOVE_FRIENDSHIP_SUCCESS,
+  REMOVE_FRIENDSHIP_FAILURE,
+  BLOCK_USER_REQUEST,
+  BLOCK_USER_SUCCESS,
+  BLOCK_USER_FAILURE,
+  UNBLOCK_USER_REQUEST,
+  UNBLOCK_USER_SUCCESS,
+  UNBLOCK_USER_FAILURE,
+  FETCH_BLOCKED_USERS_REQUEST,
+  FETCH_BLOCKED_USERS_SUCCESS,
+  FETCH_BLOCKED_USERS_FAILURE,
+  FETCH_FRIENDSHIP_STATS_REQUEST,
+  FETCH_FRIENDSHIP_STATS_SUCCESS,
+  FETCH_FRIENDSHIP_STATS_FAILURE,
+  FETCH_MUTUAL_FRIENDS_REQUEST,
+  FETCH_MUTUAL_FRIENDS_SUCCESS,
+  FETCH_MUTUAL_FRIENDS_FAILURE,
+  SEARCH_FRIENDS_REQUEST,
+  SEARCH_FRIENDS_SUCCESS,
+  SEARCH_FRIENDS_FAILURE,
+  FETCH_OUTGOING_REQUESTS_REQUEST,
+  FETCH_OUTGOING_REQUESTS_SUCCESS,
+  FETCH_OUTGOING_REQUESTS_FAILURE,
+  FETCH_EXPENSE_SHARING_SUMMARY_REQUEST,
+  FETCH_EXPENSE_SHARING_SUMMARY_SUCCESS,
+  FETCH_EXPENSE_SHARING_SUMMARY_FAILURE,
+  QUICK_SHARE_EXPENSES_REQUEST,
+  QUICK_SHARE_EXPENSES_SUCCESS,
+  QUICK_SHARE_EXPENSES_FAILURE,
+  BATCH_SHARE_EXPENSES_REQUEST,
+  BATCH_SHARE_EXPENSES_SUCCESS,
+  BATCH_SHARE_EXPENSES_FAILURE,
+  FETCH_RECOMMENDED_TO_SHARE_REQUEST,
+  FETCH_RECOMMENDED_TO_SHARE_SUCCESS,
+  FETCH_RECOMMENDED_TO_SHARE_FAILURE,
 } from "./friendsActionTypes";
 
 // Fetch friend suggestions
@@ -364,5 +403,384 @@ export const fetchFriendsDetailed = () => async (dispatch) => {
       type: FETCH_FRIENDS_FAILURE, // Ensure this matches the constant
       payload: error.response?.data?.message || error.message,
     });
+  }
+};
+
+// Cancel friend request
+export const cancelFriendRequest = (friendshipId) => async (dispatch) => {
+  dispatch({ type: CANCEL_FRIEND_REQUEST_REQUEST });
+
+  try {
+    const response = await api.delete(
+      `/api/friendships/request/${friendshipId}/cancel`
+    );
+
+    dispatch({
+      type: CANCEL_FRIEND_REQUEST_SUCCESS,
+      payload: friendshipId,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error cancelling friend request:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to cancel friend request";
+
+    dispatch({
+      type: CANCEL_FRIEND_REQUEST_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Remove friendship
+export const removeFriendship = (friendshipId) => async (dispatch) => {
+  dispatch({ type: REMOVE_FRIENDSHIP_REQUEST });
+
+  try {
+    const response = await api.delete(`/api/friendships/${friendshipId}`);
+
+    dispatch({
+      type: REMOVE_FRIENDSHIP_SUCCESS,
+      payload: friendshipId,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error removing friendship:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to remove friendship";
+
+    dispatch({
+      type: REMOVE_FRIENDSHIP_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Block user
+export const blockUser = (userId) => async (dispatch) => {
+  dispatch({ type: BLOCK_USER_REQUEST });
+
+  try {
+    const response = await api.post(`/api/friendships/block/${userId}`);
+
+    dispatch({
+      type: BLOCK_USER_SUCCESS,
+      payload: userId,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error blocking user:", error);
+    const errorMessage =
+      error.response?.data?.message || error.message || "Failed to block user";
+
+    dispatch({
+      type: BLOCK_USER_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Unblock user
+export const unblockUser = (userId) => async (dispatch) => {
+  dispatch({ type: UNBLOCK_USER_REQUEST });
+
+  try {
+    const response = await api.post(`/api/friendships/unblock/${userId}`);
+
+    dispatch({
+      type: UNBLOCK_USER_SUCCESS,
+      payload: userId,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error unblocking user:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to unblock user";
+
+    dispatch({
+      type: UNBLOCK_USER_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Get blocked users
+export const fetchBlockedUsers = () => async (dispatch) => {
+  dispatch({ type: FETCH_BLOCKED_USERS_REQUEST });
+
+  try {
+    const response = await api.get("/api/friendships/blocked");
+
+    dispatch({
+      type: FETCH_BLOCKED_USERS_SUCCESS,
+      payload: response.data,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching blocked users:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch blocked users";
+
+    dispatch({
+      type: FETCH_BLOCKED_USERS_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Get friendship stats
+export const fetchFriendshipStats = () => async (dispatch) => {
+  dispatch({ type: FETCH_FRIENDSHIP_STATS_REQUEST });
+
+  try {
+    const response = await api.get("/api/friendships/stats");
+
+    dispatch({
+      type: FETCH_FRIENDSHIP_STATS_SUCCESS,
+      payload: response.data,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching friendship stats:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch friendship stats";
+
+    dispatch({
+      type: FETCH_FRIENDSHIP_STATS_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Get mutual friends
+export const fetchMutualFriends = (userId) => async (dispatch) => {
+  dispatch({ type: FETCH_MUTUAL_FRIENDS_REQUEST });
+
+  try {
+    const response = await api.get(`/api/friendships/mutual/${userId}`);
+
+    dispatch({
+      type: FETCH_MUTUAL_FRIENDS_SUCCESS,
+      payload: { userId, mutualFriends: response.data },
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching mutual friends:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch mutual friends";
+
+    dispatch({
+      type: FETCH_MUTUAL_FRIENDS_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Search friends
+export const searchFriends = (query) => async (dispatch) => {
+  dispatch({ type: SEARCH_FRIENDS_REQUEST });
+
+  try {
+    const response = await api.get(`/api/friendships/search?query=${query}`);
+
+    dispatch({
+      type: SEARCH_FRIENDS_SUCCESS,
+      payload: response.data,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error searching friends:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to search friends";
+
+    dispatch({
+      type: SEARCH_FRIENDS_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Get outgoing requests
+export const fetchOutgoingRequests = () => async (dispatch) => {
+  dispatch({ type: FETCH_OUTGOING_REQUESTS_REQUEST });
+
+  try {
+    const response = await api.get("/api/friendships/pending/outgoing");
+
+    dispatch({
+      type: FETCH_OUTGOING_REQUESTS_SUCCESS,
+      payload: response.data,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching outgoing requests:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch outgoing requests";
+
+    dispatch({
+      type: FETCH_OUTGOING_REQUESTS_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Get expense sharing summary
+export const fetchExpenseSharingSummary = () => async (dispatch) => {
+  dispatch({ type: FETCH_EXPENSE_SHARING_SUMMARY_REQUEST });
+
+  try {
+    const response = await api.get("/api/friendships/expense-sharing-summary");
+
+    dispatch({
+      type: FETCH_EXPENSE_SHARING_SUMMARY_SUCCESS,
+      payload: response.data,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching expense sharing summary:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch expense sharing summary";
+
+    dispatch({
+      type: FETCH_EXPENSE_SHARING_SUMMARY_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Quick share expenses
+export const quickShareExpenses = (userId, accessLevel) => async (dispatch) => {
+  dispatch({ type: QUICK_SHARE_EXPENSES_REQUEST });
+
+  try {
+    const response = await api.put(
+      `/api/friendships/quick-share/${userId}?accessLevel=${accessLevel}`
+    );
+
+    dispatch({
+      type: QUICK_SHARE_EXPENSES_SUCCESS,
+      payload: { userId, accessLevel, response: response.data },
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error quick sharing expenses:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to share expenses";
+
+    dispatch({
+      type: QUICK_SHARE_EXPENSES_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Batch share expenses
+export const batchShareExpenses = (requests) => async (dispatch) => {
+  dispatch({ type: BATCH_SHARE_EXPENSES_REQUEST });
+
+  try {
+    const response = await api.post("/api/friendships/batch-share", requests);
+
+    dispatch({
+      type: BATCH_SHARE_EXPENSES_SUCCESS,
+      payload: response.data,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error batch sharing expenses:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to batch share expenses";
+
+    dispatch({
+      type: BATCH_SHARE_EXPENSES_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Get recommended to share
+export const fetchRecommendedToShare = () => async (dispatch) => {
+  dispatch({ type: FETCH_RECOMMENDED_TO_SHARE_REQUEST });
+
+  try {
+    const response = await api.get("/api/friendships/recommended-to-share");
+
+    dispatch({
+      type: FETCH_RECOMMENDED_TO_SHARE_SUCCESS,
+      payload: response.data,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching recommended to share:", error);
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch recommendations";
+
+    dispatch({
+      type: FETCH_RECOMMENDED_TO_SHARE_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
   }
 };

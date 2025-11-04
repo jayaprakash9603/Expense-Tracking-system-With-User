@@ -54,11 +54,12 @@ import CreateGroup from "./pages/Landingpage/CreateGroup";
 
 import GroupDetail from "./pages/Landingpage/GroupDetail";
 import Chat from "./services/Chat";
-import ExpenseReport from "./pages/Landingpage/ExpenseReport";
+import BillReport from "./pages/Landingpage/BillReport";
 import ExpenseDashboard from "./features/dashboard/ExpenseDashboard";
 import CategoryReport from "./pages/Landingpage/Category Report/CategoryReport";
 import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentReport";
 import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
+import AllBudgetsReport from "./pages/Landingpage/Budget Report/AllBudgetsReport";
 import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard/AdminDashboard";
 import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
 import Bill from "./pages/Landingpage/Bills/Bill";
@@ -164,8 +165,8 @@ function App() {
             <Route path="bill">
               <Route index element={<Bill />} />
               <Route path=":friendId" element={<Bill />} />
-              <Route path="report" element={<ExpenseReport />} />
-              <Route path="report/:friendId" element={<ExpenseReport />} />
+              <Route path="report" element={<BillReport />} />
+              <Route path="report/:friendId" element={<BillReport />} />
               <Route path="upload" element={<UploadBills />} />
               <Route path="upload/:friendId" element={<UploadBills />} />
               <Route path="create" element={<CreateBill />} />
@@ -260,6 +261,13 @@ function App() {
                 path="report/:id/friend/:friendId"
                 element={<BudgetReport />}
               />
+              <Route path="reports" element={<AllBudgetsReport />} />
+              <Route path="reports/:friendId" element={<AllBudgetsReport />} />
+            </Route>
+            {/* Detailed Budget Report Routes */}
+            <Route path="/budget-report">
+              <Route path=":budgetId" element={<BudgetReport />} />
+              <Route path=":budgetId/:friendId" element={<BudgetReport />} />
             </Route>
             <Route path="/calendar-view">
               <Route index element={<CalendarView />} />

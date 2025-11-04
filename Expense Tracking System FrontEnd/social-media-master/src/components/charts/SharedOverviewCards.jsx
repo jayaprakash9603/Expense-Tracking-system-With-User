@@ -4,8 +4,9 @@ import { useTheme } from "../../hooks/useTheme";
 
 /**
  * SharedOverviewCards
- * Modes: payment | category | expenses
+ * Modes: payment | category | expenses | budget
  * For expenses mode we show: Total Spending, Top Expense Name, Avg Transaction, Total Transactions
+ * For budget mode we show: Total Budgets, Active Budgets, Total Spent, Total Remaining
  */
 const SharedOverviewCards = ({
   data = [],
@@ -19,6 +20,7 @@ const SharedOverviewCards = ({
   const isPayment = mode === "payment";
   const isCategory = mode === "category";
   const isExpenses = mode === "expenses";
+  const isBudget = mode === "budget";
 
   const amountKey = isPayment || isExpenses ? "totalAmount" : "amount";
   const nameKey = isPayment ? "method" : isCategory ? "name" : "method"; // expenses receives payment-method style objects
@@ -145,6 +147,130 @@ const SharedOverviewCards = ({
     e.currentTarget.style.transform = "translateY(0)";
     e.currentTarget.style.boxShadow = "none";
   };
+
+  // Budget mode renders different cards entirely
+  if (isBudget) {
+    // Extract budget stats from the parent component
+    // Expecting data to contain budget statistics
+    const budgetData = safe[0] || {};
+    const totalBudgets = budgetData.totalBudgets || 0;
+    const activeBudgets = budgetData.activeBudgets || 0;
+    const totalSpent = budgetData.totalSpent || 0;
+    const totalRemaining = budgetData.totalRemaining || 0;
+
+    return (
+      <div
+        className="shared-overview-cards budget-overview-cards"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: "20px",
+          marginBottom: "32px",
+        }}
+      >
+        {/* Total Budgets */}
+        <div
+          className="overview-card primary"
+          style={getCardStyleWithBorder(borderColors.primary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📊
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Budgets</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {totalBudgets}
+            </div>
+            <div
+              className="card-change positive"
+              style={{ ...cardChangeStyle, color: "#10b981" }}
+            >
+              All budgets created
+            </div>
+          </div>
+        </div>
+
+        {/* Active Budgets */}
+        <div
+          className="overview-card secondary"
+          style={getCardStyleWithBorder(borderColors.secondary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            ✅
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Active Budgets</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {activeBudgets}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: themeMode === "dark" ? "#888" : "#666",
+              }}
+            >
+              Currently active
+            </div>
+          </div>
+        </div>
+
+        {/* Total Spent */}
+        <div
+          className="overview-card tertiary"
+          style={getCardStyleWithBorder(borderColors.tertiary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            💸
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Spent</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {displayCurrency}
+              {Number(totalSpent).toLocaleString()}
+            </div>
+            <div
+              className="card-change negative"
+              style={{ ...cardChangeStyle, color: "#ef4444" }}
+            >
+              From all budgets
+            </div>
+          </div>
+        </div>
+
+        {/* Total Remaining */}
+        <div
+          className="overview-card quaternary"
+          style={getCardStyleWithBorder(borderColors.quaternary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            💰
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Remaining</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {displayCurrency}
+              {Number(totalRemaining).toLocaleString()}
+            </div>
+            <div
+              className="card-change positive"
+              style={{ ...cardChangeStyle, color: "#10b981" }}
+            >
+              Available budget
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

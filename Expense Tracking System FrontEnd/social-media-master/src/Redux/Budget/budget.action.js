@@ -20,6 +20,13 @@ import {
   GET_BUDGET_DATA_REQUEST,
   GET_BUDGET_DATA_SUCCESS,
   GET_BUDGET_REPORT_REQUEST,
+  GET_DETAILED_BUDGET_REPORT_REQUEST,
+  GET_DETAILED_BUDGET_REPORT_SUCCESS,
+  GET_DETAILED_BUDGET_REPORT_FAILURE,
+  GET_FILTERED_BUDGETS_REPORT_REQUEST,
+  GET_FILTERED_BUDGETS_REPORT_SUCCESS,
+  GET_FILTERED_BUDGETS_REPORT_FAILURE,
+  CLEAR_FILTERED_BUDGETS_REPORT,
   GET_LIST_BUDGETS_FAILURE,
   GET_LIST_BUDGETS_REQUEST,
   GET_LIST_BUDGETS_SUCCESS,
@@ -192,4 +199,95 @@ export const deleteBudgetData = (deleteId, targetId) => async (dispatch) => {
     console.error("Error creating budget:", error);
     dispatch({ type: DELETE_BUDGET_FAILURE, payload: error });
   }
+};
+
+export const getDetailedBudgetReport =
+  (
+    id,
+    targetId,
+    rangeType = "all",
+    offset = 0,
+    flowType = "all",
+    fromDate = null,
+    toDate = null
+  ) =>
+  async (dispatch) => {
+    dispatch({ type: GET_DETAILED_BUDGET_REPORT_REQUEST });
+
+    try {
+      const params = {
+        targetId: targetId || "",
+      };
+
+      // Prefer explicit dates if provided
+      if (fromDate && toDate) {
+        params.fromDate = fromDate;
+        params.toDate = toDate;
+      } else {
+        params.rangeType = rangeType;
+        params.offset = offset;
+      }
+
+      if (flowType && flowType !== "all") {
+        params.flowType = flowType;
+      }
+
+      const { data } = await api.get(`/api/budgets/detailed-report/${id}`, {
+        params,
+      });
+
+      console.log("Detailed Budget Report response:", data);
+      dispatch({ type: GET_DETAILED_BUDGET_REPORT_SUCCESS, payload: data });
+      return data;
+    } catch (error) {
+      console.error("Error fetching detailed budget report:", error);
+      dispatch({ type: GET_DETAILED_BUDGET_REPORT_FAILURE, payload: error });
+      throw error;
+    }
+  };
+
+export const getFilteredBudgetsReport =
+  ({ fromDate, toDate, rangeType, offset = 0, flowType, targetId }) =>
+  async (dispatch) => {
+    dispatch({ type: GET_FILTERED_BUDGETS_REPORT_REQUEST });
+
+    try {
+      const params = {
+        targetId: targetId || "",
+      };
+
+      if (fromDate && toDate) {
+        params.fromDate = fromDate;
+        params.toDate = toDate;
+      } else if (rangeType) {
+        params.rangeType = rangeType;
+        params.offset = offset;
+      }
+
+      if (flowType && flowType !== "all") {
+        params.flowType = flowType;
+      }
+
+      const { data } = await api.get(
+        `/api/budgets/all-with-expenses/detailed/filtered`,
+        {
+          params,
+        }
+      );
+
+      console.log("Filtered Budgets Report response:", data);
+      dispatch({ type: GET_FILTERED_BUDGETS_REPORT_SUCCESS, payload: data });
+      return data;
+    } catch (error) {
+      console.error("Error fetching filtered budgets report:", error);
+      dispatch({
+        type: GET_FILTERED_BUDGETS_REPORT_FAILURE,
+        payload: error.response?.data || error.message,
+      });
+      throw error;
+    }
+  };
+
+export const clearFilteredBudgetsReport = () => (dispatch) => {
+  dispatch({ type: CLEAR_FILTERED_BUDGETS_REPORT });
 };

@@ -2625,7 +2625,7 @@ public class ExpenseController extends BaseExpenseController {
             @PathVariable LocalDate endDate,
             @RequestParam Integer userId) {
 
-        List<Expense> expenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
+        List<Expense> expenses = expenseService.getExpensesByDateRange(
                 startDate, endDate, userId);
 
         return new ResponseEntity<>(expenses, HttpStatus.OK);

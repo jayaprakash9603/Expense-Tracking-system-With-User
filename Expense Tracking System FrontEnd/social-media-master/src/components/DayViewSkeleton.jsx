@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Skeleton, Typography } from "@mui/material";
+import { useTheme } from "../hooks/useTheme";
 
 /**
  * DayViewSkeleton - Reusable loader/empty placeholder for day-based views (transactions, bills)
@@ -19,6 +20,8 @@ const DayViewSkeleton = ({
   emptySubtitle = "",
   iconSrc,
 }) => {
+  const { colors } = useTheme();
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
@@ -27,28 +30,28 @@ const DayViewSkeleton = ({
             key={i}
             sx={{
               width: 260,
-              background: "#0b0b0b",
+              background: colors.secondary_bg,
               borderRadius: 2,
               p: 2,
-              border: "1px solid #1e1e1e",
+              border: `1px solid ${colors.border_color}`,
             }}
           >
             <Skeleton
               variant="text"
               width={140}
               height={20}
-              sx={{ bgcolor: "#2a2a2a" }}
+              sx={{ bgcolor: colors.hover_bg }}
             />
             <Skeleton
               variant="text"
               width={100}
               height={18}
-              sx={{ bgcolor: "#262626" }}
+              sx={{ bgcolor: colors.hover_bg }}
             />
             <Skeleton
               variant="rectangular"
               height={52}
-              sx={{ mt: 1, borderRadius: 1, bgcolor: "#1f1f1f" }}
+              sx={{ mt: 1, borderRadius: 1, bgcolor: colors.hover_bg }}
             />
           </Box>
         ))}
@@ -82,16 +85,24 @@ const DayViewSkeleton = ({
             }}
           />
         )}
-        <Typography variant="h6" color="#fff" fontWeight={700}>
+        <Typography variant="h6" color={colors.primary_text} fontWeight={700}>
           {emptyTitle}
         </Typography>
         {emptySubtitle && (
-          <Typography variant="body2" color="#b0b6c3" sx={{ mt: 0.5 }}>
+          <Typography
+            variant="body2"
+            color={colors.secondary_text}
+            sx={{ mt: 0.5 }}
+          >
             {emptySubtitle}
           </Typography>
         )}
         {showAddHint && (
-          <Typography variant="body2" color="#b0b6c3" sx={{ mt: 0.5 }}>
+          <Typography
+            variant="body2"
+            color={colors.secondary_text}
+            sx={{ mt: 0.5 }}
+          >
             Click + to add one.
           </Typography>
         )}

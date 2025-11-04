@@ -404,12 +404,12 @@ const createAppTheme = (mode = "dark") => {
               color: isDark ? "#ffffff" : "#1a1a1a",
             },
             '&[aria-selected="true"]': {
-              backgroundColor: "#00dac6",
-              color: isDark ? "#1b1b1b" : "#ffffff",
+              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
+              color: isDark ? "#ffffff" : "#1a1a1a",
               fontWeight: 600,
             },
             "&:active": {
-              backgroundColor: "#00b8a9",
+              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
             },
           },
           noOptions: {

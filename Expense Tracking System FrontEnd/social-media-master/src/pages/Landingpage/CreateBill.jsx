@@ -604,7 +604,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
             width: "100%",
             maxWidth: "300px",
             "& .MuiInputBase-root": {
-              backgroundColor: colors.secondary_bg,
+              backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               fontSize: "16px",
             },
@@ -650,7 +650,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
             onChange={handleDateChange}
             format={dateFormat}
             sx={{
-              background: colors.secondary_bg,
+              background: colors.primary_bg,
               borderRadius: 2,
               color: colors.primary_text,
               ".MuiInputBase-input": {
@@ -766,7 +766,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
               error={errors.type}
               sx={{
                 "& .MuiInputBase-root": {
-                  backgroundColor: colors.secondary_bg,
+                  backgroundColor: colors.primary_bg,
                   color: colors.primary_text,
                   height: "56px",
                   fontSize: "16px",
@@ -1206,7 +1206,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       style={{
                         backgroundColor: isIncomplete
                           ? "rgba(255, 68, 68, 0.1)"
-                          : colors.primary_bg,
+                          : colors.secondary_bg,
                         borderColor: isIncomplete
                           ? "#ef4444"
                           : colors.border_color,
@@ -1259,7 +1259,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                               (!expense.quantity ||
                                 parseFloat(expense.quantity) <= 0)
                                 ? "rgba(255, 68, 68, 0.1)"
-                                : colors.secondary_bg,
+                                : colors.primary_bg,
                             color: colors.primary_text,
                             borderColor:
                               hasItemName &&
@@ -1311,7 +1311,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                           style={{
                             backgroundColor: isIncomplete
                               ? "rgba(255, 68, 68, 0.1)"
-                              : colors.secondary_bg,
+                              : colors.primary_bg,
                             color: colors.primary_text,
                             borderColor: isIncomplete
                               ? "#ef4444"
@@ -1357,7 +1357,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                           }
                           className="w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm"
                           style={{
-                            backgroundColor: colors.secondary_bg,
+                            backgroundColor: colors.primary_bg,
                             color: colors.primary_text,
                           }}
                           onFocus={(e) =>
@@ -1410,22 +1410,23 @@ const CreateBill = ({ onClose, onSuccess }) => {
                           tempExpenses[tempExpenses.length - 1]
                         )
                           ? "#00DAC6"
-                          : "#666",
+                          : colors.border_color,
                         color: isCurrentRowComplete(
                           tempExpenses[tempExpenses.length - 1]
                         )
                           ? "black"
-                          : "#999",
+                          : colors.icon_muted,
                         "&:hover": {
                           backgroundColor: isCurrentRowComplete(
                             tempExpenses[tempExpenses.length - 1]
                           )
                             ? "#00b8a0"
-                            : "#666",
+                            : colors.border_color,
                         },
                         "&:disabled": {
-                          backgroundColor: "#666",
-                          color: "#999",
+                          backgroundColor: colors.border_color,
+                          color: colors.icon_muted,
+                          opacity: 0.6,
                         },
                         fontSize: "0.875rem",
                         padding: "6px 12px",

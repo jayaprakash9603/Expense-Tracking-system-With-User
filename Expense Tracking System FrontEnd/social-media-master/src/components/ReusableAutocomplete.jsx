@@ -93,7 +93,7 @@ const ReusableAutocomplete = ({
 
   // Use theme colors as defaults if no custom colors provided
   const effectiveBgColor =
-    backgroundColor === "#29282b" ? colors.active_bg : backgroundColor;
+    backgroundColor === "#29282b" ? colors.primary_bg : backgroundColor;
   const effectiveTextColor =
     textColor === "#fff" ? colors.primary_text : textColor;
   const effectiveBorderColor =
@@ -145,7 +145,10 @@ const ReusableAutocomplete = ({
       backgroundColor: colors.hover_bg,
     },
     "& .MuiAutocomplete-option[aria-selected='true']": {
-      backgroundColor: colors.active_bg,
+      backgroundColor: colors.hover_bg,
+    },
+    "& .MuiAutocomplete-option.Mui-focused": {
+      backgroundColor: colors.hover_bg,
     },
     "& .MuiAutocomplete-paper": {
       backgroundColor: colors.primary_bg,

@@ -162,7 +162,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     public List<Friendship> getUserFriendships(Integer userId) throws Exception {
         UserDto user = helper.validateUser(userId);
 
-        List<Friendship> friendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId(), user.getId());
+        List<Friendship> friendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId());
         return friendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
                 .collect(Collectors.toList());
@@ -172,8 +172,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     public List<Friendship> getPendingRequests(Integer userId) throws Exception {
         UserDto user = helper.validateUser(userId);
 
-        List<Friendship> allFriendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId(),
-                user.getId());
+        List<Friendship> allFriendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId());
         return allFriendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.PENDING)
                 .collect(Collectors.toList());
@@ -329,7 +328,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public List<UserDto> getBlockedUsers(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        helper.validateUser(userId);
 
         List<Friendship> blockedRelationships = friendshipRepository.findByRequesterIdAndStatus(userId,
                 FriendshipStatus.BLOCKED);
@@ -347,33 +346,33 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public int getTotalFriendsCount(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        helper.validateUser(userId);
 
         List<Friendship> friendships = friendshipRepository.findByRequesterIdOrRecipientIdAndStatus(
-                user.getId(), user.getId(), FriendshipStatus.ACCEPTED);
+                userId, FriendshipStatus.ACCEPTED);
 
         return friendships.size();
     }
 
     @Override
     public int getIncomingRequestsCount(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        helper.validateUser(userId);
 
-        return friendshipRepository.countByRecipientIdAndStatus(user.getId(), FriendshipStatus.PENDING);
+        return friendshipRepository.countByRecipientIdAndStatus(userId, FriendshipStatus.PENDING);
     }
 
     @Override
     public int getOutgoingRequestsCount(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        helper.validateUser(userId);
 
-        return friendshipRepository.countByRequesterIdAndStatus(user.getId(), FriendshipStatus.PENDING);
+        return friendshipRepository.countByRequesterIdAndStatus(userId, FriendshipStatus.PENDING);
     }
 
     @Override
     public int getBlockedUsersCount(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        helper.validateUser(userId);
 
-        return friendshipRepository.countByRequesterIdAndStatus(user.getId(), FriendshipStatus.BLOCKED);
+        return friendshipRepository.countByRequesterIdAndStatus(userId, FriendshipStatus.BLOCKED);
     }
 
     @Override
@@ -458,15 +457,15 @@ public class FriendshipServiceImpl implements FriendshipService {
     public List<Friendship> getAllUserFriendships(Integer userId) throws Exception {
         UserDto user = helper.validateUser(userId);
 
-        return friendshipRepository.findByRequesterIdOrRecipientId(user.getId(), user.getId());
+        return friendshipRepository.findByRequesterIdOrRecipientId(user.getId());
     }
 
     @Override
     public List<UserDto> getFriendSuggestions(Integer userId, int limit) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        helper.validateUser(userId);
 
         // Get all current friends and pending requests
-        List<Friendship> allRelationships = friendshipRepository.findByRequesterIdOrRecipientId(userId, userId);
+        List<Friendship> allRelationships = friendshipRepository.findByRequesterIdOrRecipientId(userId);
 
         // Extract all user IDs that should be excluded from suggestions
         Set<Integer> excludedUserIds = new HashSet<>();
@@ -821,7 +820,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public Map<String, Object> getExpenseSharingSummary(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        helper.validateUser(userId);
 
         List<Friendship> friendships = getUserFriendships(userId);
 
@@ -1091,7 +1090,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     @Override
     public List<UserDto> getFriendsOfUser(Integer userId) throws Exception {
         UserDto user = helper.validateUser(userId);
-        List<Friendship> friendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId(), user.getId());
+        List<Friendship> friendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId());
         List<UserDto> friends = new ArrayList<>();
         for (Friendship friendship : friendships) {
             if (friendship.getStatus() == FriendshipStatus.ACCEPTED) {

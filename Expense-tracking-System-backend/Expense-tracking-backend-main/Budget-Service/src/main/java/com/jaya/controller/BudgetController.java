@@ -1,6 +1,7 @@
 package com.jaya.controller;
 
 import com.jaya.dto.BudgetReport;
+import com.jaya.dto.DetailedBudgetReport;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import com.jaya.service.BudgetNotificationService;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/budgets")
@@ -33,7 +35,8 @@ public class BudgetController {
     @Autowired
     private FriendshipService friendshipService;
 
-    private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess) throws Exception {
+    private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess)
+            throws Exception {
         if (targetId == null) {
             return reqUser;
         }
@@ -43,9 +46,8 @@ public class BudgetController {
             throw new RuntimeException("Target user not found");
         }
 
-        boolean hasAccess = needWriteAccess ?
-                friendshipService.canUserModifyExpenses(targetId, reqUser.getId()):
-                friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
+        boolean hasAccess = needWriteAccess ? friendshipService.canUserModifyExpenses(targetId, reqUser.getId())
+                : friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
 
         if (!hasAccess) {
             String action = needWriteAccess ? "modify" : "access";
@@ -54,6 +56,7 @@ public class BudgetController {
 
         return targetUser;
     }
+
     @PostMapping("")
     public ResponseEntity<?> createBudget(
             @RequestBody @Valid Budget budget,
@@ -85,10 +88,10 @@ public class BudgetController {
 
             // Create budget
             Budget createdBudget = budgetService.createBudget(budget, targetUser.getId());
-            
+
             // Send notification
             budgetNotificationService.sendBudgetCreatedNotification(createdBudget);
-            
+
             return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget);
 
         } catch (IllegalArgumentException e) {
@@ -131,10 +134,10 @@ public class BudgetController {
 
             // Edit budget
             Budget updatedBudget = budgetService.editBudget(budgetId, budget, targetUser.getId());
-            
+
             // Send notification
             budgetNotificationService.sendBudgetUpdatedNotification(updatedBudget);
-            
+
             return ResponseEntity.ok(updatedBudget);
 
         } catch (IllegalArgumentException e) {
@@ -177,13 +180,13 @@ public class BudgetController {
             // Get budget name before deletion
             Budget budget = budgetService.getBudgetById(budgetId, targetUser.getId());
             String budgetName = budget.getName();
-            
+
             // Delete budget
             budgetService.deleteBudget(budgetId, targetUser.getId());
-            
+
             // Send notification
             budgetNotificationService.sendBudgetDeletedNotification(budgetId, budgetName, targetUser.getId());
-            
+
             return ResponseEntity.status(HttpStatus.NO_CONTENT)
                     .body("Budget is deleted successfully");
 
@@ -280,42 +283,25 @@ public class BudgetController {
     @GetMapping("/get-by-id")
     public Budget getBudgetByBudgetID(
             @RequestParam Integer budgetId,
-            @RequestParam Integer userId
-           ) throws Exception {
+            @RequestParam Integer userId) throws Exception {
 
-
-
-
-
-            return budgetService.getBudgetById(budgetId, userId);
-
+        return budgetService.getBudgetById(budgetId, userId);
 
     }
+
     @PostMapping("/save")
     public Budget save(
-            @RequestBody Budget budget
-    ) throws Exception {
-
-
-
-
+            @RequestBody Budget budget) throws Exception {
 
         return budgetService.save(budget);
-
 
     }
 
     @GetMapping("/user")
     public List<Budget> getAllBudgetForUser(
-           @RequestParam Integer userId
-    ) throws Exception {
-
-
-
-
+            @RequestParam Integer userId) throws Exception {
 
         return budgetService.getBudgetsForUser(userId);
-
 
     }
 
@@ -347,7 +333,7 @@ public class BudgetController {
                 }
             }
 
-            // Get all budgets for user
+            // Get all budgets for user (optimized batch expense retrieval)
             List<Budget> budgets = budgetService.getAllBudgetForUser(targetUser.getId());
             return ResponseEntity.ok(budgets);
 
@@ -481,7 +467,59 @@ public class BudgetController {
         }
     }
 
+    @GetMapping("/detailed-report/{budgetId}")
+    public ResponseEntity<?> getDetailedBudgetReport(
+            @PathVariable Integer budgetId,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false, defaultValue = "all") String rangeType,
+            @RequestParam(required = false, defaultValue = "0") int offset,
+            @RequestParam(required = false, defaultValue = "all") String flowType) {
+        try {
+            // Validate JWT
+            UserDto reqUser = userService.getuserProfile(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid or expired token");
+            }
 
+            // Validate and get target user with read permission
+            UserDto targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Target user not found");
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
+
+            // Return single budget grouped detailed report (expense name grouping +
+            // summary)
+            Map<String, Object> groupedBudget = budgetService.getSingleBudgetDetailedReport(
+                    targetUser.getId(),
+                    budgetId,
+                    fromDate,
+                    toDate,
+                    rangeType,
+                    offset,
+                    flowType);
+            return ResponseEntity.ok(groupedBudget);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Invalid request: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching detailed budget report: " + e.getMessage());
+        }
+    }
 
     @GetMapping("/filter-by-date")
     public ResponseEntity<?> getBudgetsByDate(
@@ -566,6 +604,46 @@ public class BudgetController {
         }
     }
 
+    @GetMapping("/all-with-expenses/detailed/filtered")
+    public ResponseEntity<?> getAllBudgetsWithExpensesDetailedFiltered(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String rangeType,
+            @RequestParam(required = false, defaultValue = "0") int offset,
+            @RequestParam(required = false) String flowType,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            UserDto reqUser = userService.getuserProfile(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or expired token"));
+            }
 
+            UserDto targetUser;
+            try {
+                targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("not found")) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("error", "Target user not found"));
+                } else if (e.getMessage().contains("permission")) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", e.getMessage()));
+                } else {
+                    throw e;
+                }
+            }
+
+            Map<String, Object> response = budgetService.getFilteredBudgetsWithExpenses(targetUser.getId(), fromDate,
+                    toDate, rangeType, offset, flowType);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error fetching filtered budgets: " + e.getMessage()));
+        }
+    }
 
 }

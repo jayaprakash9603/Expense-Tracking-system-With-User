@@ -211,6 +211,7 @@ const DayUnifiedView = ({
     position: "relative",
     display: "flex",
     flexDirection: "column",
+    backgroundColor: colors.tertiary_bg,
   };
 
   // Summary card configuration (Spending & Income)
@@ -299,7 +300,7 @@ const DayUnifiedView = ({
           position: "absolute",
           top: 16,
           left: 16,
-          color: "#00DAC6",
+          color: colors.secondary_accent,
           backgroundColor: colors.primary_bg,
           "&:hover": { backgroundColor: colors.hover_bg },
           zIndex: 10,
@@ -320,7 +321,7 @@ const DayUnifiedView = ({
         >
           <path
             d="M15 18L9 12L15 6"
-            stroke="#00DAC6"
+            stroke={colors.secondary_accent}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -336,7 +337,7 @@ const DayUnifiedView = ({
           transform: "translateX(-50%)",
           fontWeight: 700,
           textAlign: "center",
-          color: "#fff",
+          color: colors.primary_text,
           m: 0,
           zIndex: 15,
           letterSpacing: 0.5,
@@ -417,7 +418,7 @@ const DayUnifiedView = ({
                     <circle cx="16" cy="16" r="15" fill={c.iconBg} />
                     <path
                       d={c.svgPath}
-                      stroke="#fff"
+                      stroke={colors.button_text}
                       strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -447,7 +448,7 @@ const DayUnifiedView = ({
                   </Typography>
                   <Typography
                     variant="h6"
-                    color="#fff"
+                    color={colors.button_text}
                     fontWeight={700}
                     sx={{
                       lineHeight: 1.2,
@@ -478,7 +479,7 @@ const DayUnifiedView = ({
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <IconButton
               onClick={handlePrevDay}
-              sx={{ color: "#00dac6", mr: 1 }}
+              sx={{ color: colors.secondary_accent, mr: 1 }}
             >
               <ArrowBackIcon />
             </IconButton>
@@ -489,22 +490,22 @@ const DayUnifiedView = ({
                   if (newValue) goToDay(newValue);
                 }}
                 sx={{
-                  background: "#23243a",
+                  background: colors.secondary_bg,
                   borderRadius: 2,
-                  color: "#fff",
+                  color: colors.primary_text,
                   ".MuiInputBase-input": {
-                    color: "#fff",
+                    color: colors.primary_text,
                     fontSize: 14,
                     fontWeight: 600,
                   },
-                  ".MuiSvgIcon-root": { color: "#00dac6" },
+                  ".MuiSvgIcon-root": { color: colors.secondary_accent },
                   width: 180,
                 }}
                 slotProps={{
                   textField: {
                     size: "small",
                     variant: "outlined",
-                    sx: { color: "#fff" },
+                    sx: { color: colors.primary_text },
                   },
                 }}
                 disableFuture
@@ -513,7 +514,7 @@ const DayUnifiedView = ({
             </LocalizationProvider>
             <IconButton
               onClick={handleNextDay}
-              sx={{ color: "#00dac6", ml: 1 }}
+              sx={{ color: colors.secondary_accent, ml: 1 }}
             >
               <ArrowBackIcon style={{ transform: "scaleX(-1)" }} />
             </IconButton>
@@ -576,7 +577,7 @@ const DayUnifiedView = ({
                     <circle cx="16" cy="16" r="15" fill={c.iconBg} />
                     <path
                       d={c.svgPath}
-                      stroke="#fff"
+                      stroke={colors.button_text}
                       strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -606,7 +607,7 @@ const DayUnifiedView = ({
                   </Typography>
                   <Typography
                     variant="h6"
-                    color="#fff"
+                    color={colors.button_text}
                     fontWeight={700}
                     sx={{
                       lineHeight: 1.2,
@@ -701,7 +702,7 @@ const DayUnifiedView = ({
                       className="font-semibold text-lg truncate min-w-0"
                       title={item.expense?.expenseName || item.name || "-"}
                       sx={{
-                        color: "#fff",
+                        color: colors.primary_text,
                         maxWidth: "60%",
                         fontWeight: 700,
                         fontSize: 16,
@@ -746,7 +747,7 @@ const DayUnifiedView = ({
                     className="text-gray-300 text-sm"
                     title={item.expense?.comments || item.comments || ""}
                     sx={{
-                      color: "#b0b6c3",
+                      color: colors.secondary_text,
                       fontSize: 14,
                       mt: 1,
                       overflow: "hidden",
@@ -770,7 +771,7 @@ const DayUnifiedView = ({
                         display: "flex",
                         gap: 1,
                         zIndex: 2,
-                        background: "#23243a",
+                        background: colors.secondary_bg,
                         borderRadius: 1,
                         p: 0.5,
                         boxShadow: 1,
@@ -779,7 +780,7 @@ const DayUnifiedView = ({
                     >
                       <IconButton
                         size="small"
-                        sx={{ color: "#5b7fff", p: "4px" }}
+                        sx={{ color: colors.secondary_accent, p: "4px" }}
                         onClick={() => handleEdit(item)}
                       >
                         <EditIcon fontSize="small" />
@@ -804,8 +805,8 @@ const DayUnifiedView = ({
               position: "fixed",
               right: 60,
               bottom: 100,
-              background: "#23243a",
-              color: "#5b7fff",
+              background: colors.secondary_bg,
+              color: colors.secondary_accent,
               borderRadius: "50%",
               width: 56,
               height: 56,
@@ -815,7 +816,10 @@ const DayUnifiedView = ({
               justifyContent: "center",
               boxShadow: 4,
               transition: "background 0.2s, color 0.2s",
-              "&:hover": { background: "#2e335a", color: "#fff" },
+              "&:hover": {
+                background: colors.hover_bg,
+                color: colors.primary_accent,
+              },
             }}
             onClick={addNew}
             aria-label="Add Item"
@@ -831,19 +835,19 @@ const DayUnifiedView = ({
                 cx="12"
                 cy="12"
                 r="10"
-                stroke="#5b7fff"
+                stroke={colors.secondary_accent}
                 strokeWidth="2"
-                fill="#23243a"
+                fill={colors.secondary_bg}
               />
               <path
                 d="M12 8V16"
-                stroke="#5b7fff"
+                stroke={colors.secondary_accent}
                 strokeWidth="2"
                 strokeLinecap="round"
               />
               <path
                 d="M8 12H16"
-                stroke="#5b7fff"
+                stroke={colors.secondary_accent}
                 strokeWidth="2"
                 strokeLinecap="round"
               />

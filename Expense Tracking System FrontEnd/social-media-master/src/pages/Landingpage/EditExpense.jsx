@@ -295,7 +295,7 @@ const EditExpense = ({}) => {
             className={fieldStyles}
             style={{
               height: "80px",
-              backgroundColor: colors.active_bg,
+              backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
               borderWidth: errors[id] ? "2px" : "1px",
@@ -311,7 +311,7 @@ const EditExpense = ({}) => {
             placeholder={`Enter ${id}`}
             className={fieldStyles}
             style={{
-              backgroundColor: colors.active_bg,
+              backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
               borderWidth: errors[id] ? "2px" : "1px",
@@ -346,7 +346,7 @@ const EditExpense = ({}) => {
           onChange={handleInputChange}
           className={fieldStyles}
           style={{
-            backgroundColor: colors.active_bg,
+            backgroundColor: colors.primary_bg,
             color: colors.primary_text,
           }}
         >
@@ -385,7 +385,7 @@ const EditExpense = ({}) => {
               }
             }}
             sx={{
-              background: colors.active_bg,
+              background: colors.primary_bg,
               borderRadius: 2,
               color: colors.primary_text,
               ".MuiInputBase-input": {
@@ -740,7 +740,7 @@ const EditExpense = ({}) => {
                   className: fieldStyles,
                   style: {
                     height: "52px",
-                    backgroundColor: colors.active_bg,
+                    backgroundColor: colors.primary_bg,
                     color: colors.primary_text,
                     borderColor: errors.amount
                       ? "#ff4d4f"
@@ -751,6 +751,9 @@ const EditExpense = ({}) => {
                 sx={{
                   width: "100%",
                   maxWidth: "300px",
+                  "& .MuiInputBase-input": {
+                    color: colors.primary_text,
+                  },
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
                       borderColor: errors.amount
@@ -864,7 +867,7 @@ const EditExpense = ({}) => {
                       ...params.InputProps,
                       className: fieldStyles,
                       style: {
-                        backgroundColor: colors.active_bg,
+                        backgroundColor: colors.primary_bg,
                         color: colors.primary_text,
                       },
                     }}
@@ -930,7 +933,7 @@ const EditExpense = ({}) => {
                   className: fieldStyles,
                   style: {
                     height: "auto",
-                    backgroundColor: colors.active_bg,
+                    backgroundColor: colors.primary_bg,
                     color: colors.primary_text,
                   },
                 }}

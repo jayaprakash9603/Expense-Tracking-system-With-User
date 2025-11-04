@@ -1,0 +1,100 @@
+// Simplified Jenkins Pipeline for Quick Setup
+// This is a streamlined version without parallel builds for easier debugging
+
+pipeline {
+    agent any
+    
+    tools {
+        maven 'Maven-3.9.0'
+        jdk 'JDK-17'
+    }
+    
+    environment {
+        MAVEN_OPTS = '-Xmx3072m'
+    }
+    
+    options {
+        timestamps()
+        timeout(time: 90, unit: 'MINUTES')
+    }
+    
+    parameters {
+        string(
+            name: 'BACKEND_BASE_PATH', 
+            defaultValue: 'C:\\Users\\jayapraj\\Downloads\\Expense-Tracking-system-With-User\\Expense-tracking-System-backend\\Expense-tracking-backend-main',
+            description: 'Absolute path to backend services directory'
+        )
+        booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Skip tests')
+        booleanParam(name: 'CLEAN_BUILD', defaultValue: true, description: 'Clean build')
+    }
+    
+    stages {
+        stage('Build All Services') {
+            steps {
+                script {
+                    echo "═══════════════════════════════════════════════════════════════"
+                    echo "🚀 Building Expense Tracker Backend Services"
+                    echo "📂 Base Path: ${params.BACKEND_BASE_PATH}"
+                    echo "═══════════════════════════════════════════════════════════════"
+                    
+                    def services = [
+                        'eureka-server',
+                        'Gateway', 
+                        'user-service',
+                        'social-media-app',
+                        'Budget-Service',
+                        'Category-Service',
+                        'Payment-method-Service',
+                        'Bill-Service',
+                        'Notification-Service',
+                        'FriendShip-Service',
+                        'Chat-Service',
+                        'Event-Service',
+                        'Audit-Service',
+                        'AnalyticsService'
+                    ]
+                    
+                    def cleanPhase = params.CLEAN_BUILD ? 'clean' : ''
+                    def testSkip = params.SKIP_TESTS ? '-DskipTests' : ''
+                    
+                    services.each { service ->
+                        echo "Building ${service}..."
+                        def servicePath = "${params.BACKEND_BASE_PATH}\\${service}"
+                        echo "📍 Service Path: ${servicePath}"
+                        
+                        dir(servicePath) {
+                            if (fileExists('pom.xml')) {
+                                bat "mvn ${cleanPhase} package ${testSkip} --batch-mode"
+                                echo "✅ ${service} completed"
+                            } else {
+                                echo "⚠️ No pom.xml found for ${service} at ${servicePath}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Archive Artifacts') {
+            steps {
+                script {
+                    def artifactPattern = "${params.BACKEND_BASE_PATH}\\**\\target\\*.jar"
+                    echo "📦 Looking for artifacts: ${artifactPattern}"
+                    
+                    archiveArtifacts artifacts: artifactPattern,
+                                   allowEmptyArchive: true,
+                                   fingerprint: true
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '✅ All services built successfully!'
+        }
+        failure {
+            echo '❌ Build failed! Check logs for details.'
+        }
+    }
+}

@@ -10,6 +10,7 @@ import {
 import dayjs from "dayjs";
 import { useNavigate, useParams, useLocation } from "react-router";
 import { useTheme as useAppTheme } from "../../../hooks/useTheme";
+import useUserSettings from "../../../hooks/useUserSettings";
 
 // Custom hooks
 import { useBillData } from "./useBillData";
@@ -36,6 +37,8 @@ const Bill = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const { colors } = useAppTheme();
+  const settings = useUserSettings();
+  const currencySymbol = settings.getCurrency().symbol;
 
   // State management
   const [activeTab, setActiveTab] = useState(0);
@@ -307,6 +310,7 @@ const Bill = () => {
                 onEditBill={handleEditBill}
                 onDeleteBill={handleDeleteBill}
                 hasWriteAccess={hasWriteAccess}
+                currencySymbol={currencySymbol}
               />
             ))
           ) : (
@@ -342,7 +346,11 @@ const Bill = () => {
         )}
 
         {filteredBills.length > 0 && (
-          <BillSummary billStats={billStats} selectedDate={selectedDate} />
+          <BillSummary
+            billStats={billStats}
+            selectedDate={selectedDate}
+            currencySymbol={currencySymbol}
+          />
         )}
       </Box>
     </Box>
