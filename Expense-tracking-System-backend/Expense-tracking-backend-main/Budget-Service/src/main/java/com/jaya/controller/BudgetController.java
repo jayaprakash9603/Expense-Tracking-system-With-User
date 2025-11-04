@@ -333,7 +333,7 @@ public class BudgetController {
                 }
             }
 
-            // Get all budgets for user
+            // Get all budgets for user (optimized batch expense retrieval)
             List<Budget> budgets = budgetService.getAllBudgetForUser(targetUser.getId());
             return ResponseEntity.ok(budgets);
 

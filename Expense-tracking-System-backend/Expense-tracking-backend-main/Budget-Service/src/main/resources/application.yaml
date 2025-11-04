@@ -40,8 +40,10 @@ spring:
           # region:
           #   factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
         # Connection pool optimization
-        connection:
-          provider_disables_autocommit: true
+        # Remove misleading autocommit override. Let Hibernate disable autocommit itself.
+        # Fix for 'Can't call commit when autocommit=true' error.
+        # connection:
+        #   provider_disables_autocommit: false
         # Query optimization
         query:
           in_clause_parameter_padding: true

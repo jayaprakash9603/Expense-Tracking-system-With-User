@@ -415,17 +415,52 @@ public class BudgetServiceImpl implements BudgetService {
     public List<Budget> getAllBudgetForUser(Integer userId) {
         List<Budget> budgets = budgetRepository.findByUserId(userId);
 
-        // Calculate and update remaining amount for each budget
-        for (Budget budget : budgets) {
-            try {
-                BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
-                double remainingAmount = budget.getAmount() - spent.doubleValue();
-                budget.setRemainingAmount(remainingAmount);
-            } catch (Exception e) {
-                System.err.println(
-                        "Error calculating remaining amount for budget " + budget.getId() + ": " + e.getMessage());
-                // Keep the existing remainingAmount if calculation fails
+        if (budgets.isEmpty()) {
+            return budgets;
+        }
+
+        // Collect all expense IDs across budgets (union) for batch retrieval
+        Set<Integer> allExpenseIds = new HashSet<>();
+        for (Budget b : budgets) {
+            if (b.getExpenseIds() != null && !b.getExpenseIds().isEmpty()) {
+                allExpenseIds.addAll(b.getExpenseIds());
             }
+        }
+
+        // Early exit if no expenses linked
+        Map<Integer, ExpenseDTO> expenseMap = Collections.emptyMap();
+        if (!allExpenseIds.isEmpty()) {
+            try {
+                // Single remote call instead of per-expense N+1
+                List<ExpenseDTO> expenseDTOs = expenseService.getExpensesByIds(userId, allExpenseIds);
+                expenseMap = expenseDTOs.stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toMap(ExpenseDTO::getId, e -> e));
+            } catch (Exception e) {
+                System.err.println("Batch expense fetch failed: " + e.getMessage());
+                expenseMap = Collections.emptyMap();
+            }
+        }
+
+        // Compute remaining amounts using in-memory aggregation
+        for (Budget budget : budgets) {
+            double total = 0.0;
+            Set<Integer> expenseIds = budget.getExpenseIds();
+            if (expenseIds != null && !expenseIds.isEmpty()) {
+                for (Integer expId : expenseIds) {
+                    ExpenseDTO dto = expenseMap.get(expId);
+                    if (dto != null && dto.getExpense() != null) {
+                        String type = dto.getExpense().getType();
+                        String paymentMethod = dto.getExpense().getPaymentMethod();
+                        if ("loss".equalsIgnoreCase(type) &&
+                                ("cash".equalsIgnoreCase(paymentMethod) ||
+                                        "creditNeedToPaid".equalsIgnoreCase(paymentMethod))) {
+                            total += dto.getExpense().getAmount();
+                        }
+                    }
+                }
+            }
+            budget.setRemainingAmount(budget.getAmount() - total);
         }
 
         return budgets;
