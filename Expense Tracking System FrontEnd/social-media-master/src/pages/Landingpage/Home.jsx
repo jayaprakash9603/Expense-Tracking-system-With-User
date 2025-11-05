@@ -9,6 +9,7 @@ import {
   fetchFriendsDetailed,
 } from "../../Redux/Friends/friendsActions";
 import { useTheme } from "../../hooks/useTheme";
+import { FloatingNotificationContainer } from "../../components/common/FloatingNotifications";
 
 const Home = () => {
   const { colors } = useTheme();
@@ -52,7 +53,13 @@ const Home = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen" style={{ backgroundColor: colors.primary_bg }}>
+    <div
+      className="flex flex-col md:flex-row min-h-screen"
+      style={{ backgroundColor: colors.primary_bg }}
+    >
+      {/* Global Floating Notifications - Visible across all pages */}
+      <FloatingNotificationContainer />
+
       <div className="md:w-[400px] lg:w-[450px]">
         <Left />
       </div>

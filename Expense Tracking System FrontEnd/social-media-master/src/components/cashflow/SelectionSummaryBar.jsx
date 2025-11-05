@@ -64,8 +64,7 @@ const SelectionSummaryBar = ({
                   : "Expand selection stats"
               }
               style={{
-                background:
-                  colors.mode === "dark" ? "#2a2a2a" : "#ffffff",
+                background: colors.primary_bg,
                 border: `1px solid ${colors.border_color}`,
                 color: colors.active_text,
                 width: 34,
@@ -78,9 +77,7 @@ const SelectionSummaryBar = ({
                 fontSize: 16,
                 fontWeight: 600,
                 boxShadow:
-                  colors.mode === "dark"
-                    ? "0 2px 6px -2px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05)"
-                    : "0 2px 4px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(0,0,0,0.05)",
+                  "0 2px 6px -2px #0009, inset 0 0 0 1px rgba(255,255,255,0.03)",
                 transition: "all .35s cubic-bezier(.4,0,.2,1)",
               }}
               title={summaryExpanded ? "Hide stats" : "Show stats"}
