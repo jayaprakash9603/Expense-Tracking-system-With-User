@@ -249,4 +249,5 @@ public class KafkaConfig {
         factory.getContainerProperties().setPollTimeout(1000);
         return factory;
     }
+
 }
