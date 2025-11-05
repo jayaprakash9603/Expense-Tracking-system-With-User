@@ -3,6 +3,7 @@ package com.jaya.service;
 import com.jaya.dto.BudgetReport;
 import com.jaya.dto.DetailedBudgetReport;
 import com.jaya.dto.ExpenseDTO;
+import com.jaya.exceptions.BudgetNotFoundException;
 import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
 import com.jaya.repository.BudgetRepository;
@@ -308,14 +309,14 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public Budget getBudgetById(Integer budgetId, Integer userId) throws Exception {
+    public Budget getBudgetById(Integer budgetId, Integer userId) throws  BudgetNotFoundException {
         Optional<Budget> expense = budgetRepository.findById(budgetId);
         if (expense.isEmpty()) {
-            throw new Exception("budget is not present" + budgetId);
+            throw new BudgetNotFoundException("budget not Found" + budgetId);
         }
-        if (!expense.get().getUserId().equals(userId)) {
-            throw new Exception("you cant get other users budget");
-        }
+        // if (!expense.get().getUserId().equals(userId)) {
+        //     throw new Exception("you cant get other users budget");
+        // }
         return expense.get();
     }
 
