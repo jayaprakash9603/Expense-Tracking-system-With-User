@@ -179,6 +179,9 @@ public interface ExpenseService {
 
     Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date);
 
+        
+        Expense getExpenseBeforeDateValidated(Integer userId, String expenseName, String dateString);
+
     void sendEmailWithAttachment(String toEmail, String subject, String body, String attachmentPath) throws MessagingException;
 
     ResponseEntity<String> generateAndSendMonthlyReport(ReportRequest request);

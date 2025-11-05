@@ -119,7 +119,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<Expense> addMultipleExpensesWithProgress(List<Expense> expenses, Integer userId, String jobId) throws Exception {
+    public List<Expense> addMultipleExpensesWithProgress(List<Expense> expenses, Integer userId, String jobId)
+            throws Exception {
         return expenseCoreService.addMultipleExpensesWithProgress(expenses, userId, jobId);
     }
 
@@ -228,8 +229,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate,
-                                        String type, String paymentMethod, Double minAmount, Double maxAmount, Integer userId) {
-        return expenseQueryService.filterExpenses(expenseName, startDate, endDate, type, paymentMethod, minAmount, maxAmount, userId);
+            String type, String paymentMethod, Double minAmount, Double maxAmount, Integer userId) {
+        return expenseQueryService.filterExpenses(expenseName, startDate, endDate, type, paymentMethod, minAmount,
+                maxAmount, userId);
     }
 
     // Type and payment method queries
@@ -292,8 +294,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByCategories(Integer userId, String rangeType, int offset, String flowType) throws Exception {
-        return expenseQueryService.getFilteredExpensesByCategories(userId,rangeType,offset,flowType);
+    public Map<String, Object> getFilteredExpensesByCategories(Integer userId, String rangeType, int offset,
+            String flowType) throws Exception {
+        return expenseQueryService.getFilteredExpensesByCategories(userId, rangeType, offset, flowType);
     }
 
     @Override
@@ -308,35 +311,46 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<Expense> getExpensesWithinRange(Integer userId, LocalDate startDate, LocalDate endDate, String flowType) {
+    public Expense getExpenseBeforeDateValidated(Integer userId, String expenseName, String dateString) {
+
+        LocalDate parsedDate = LocalDate.parse(dateString);
+        return expenseQueryService.getExpensesBeforeDate(userId, expenseName.trim(), parsedDate);
+
+    }
+
+    @Override
+    public List<Expense> getExpensesWithinRange(Integer userId, LocalDate startDate, LocalDate endDate,
+            String flowType) {
         return expenseQueryService.getExpensesWithinRange(userId, startDate, endDate, flowType);
     }
 
     @Override
-    public List<Expense> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(LocalDate from, LocalDate to, Integer userId) {
+    public List<Expense> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(LocalDate from, LocalDate to,
+            Integer userId) {
         return expenseQueryService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(from, to, userId);
     }
 
     @Override
     public List<Expense> getExpensesInBudgetRangeWithIncludeFlag(LocalDate startDate, LocalDate endDate,
-                                                                 Integer budgetId, Integer userId) throws Exception {
+            Integer budgetId, Integer userId) throws Exception {
         return expenseQueryService.getExpensesInBudgetRangeWithIncludeFlag(startDate, endDate, budgetId, userId);
     }
 
-
-
     @Override
-    public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) throws Exception {
+    public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate,
+            String flowType) throws Exception {
         return expenseQueryService.getFilteredExpensesByDateRange(userId, fromDate, toDate, flowType);
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) {
+    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, LocalDate fromDate, LocalDate toDate,
+            String flowType) {
         return expenseQueryService.getFilteredExpensesByPaymentMethod(userId, fromDate, toDate, flowType);
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset, String flowType) {
+    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset,
+            String flowType) {
         return expenseQueryService.getFilteredExpensesByPaymentMethod(userId, rangeType, offset, flowType);
     }
 
@@ -352,7 +366,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth, Integer endYear, Integer endMonth, Integer userId) {
+    public List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth, Integer endYear,
+            Integer endMonth, Integer userId) {
         return expenseAnalyticsService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth, userId);
     }
 
@@ -429,7 +444,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate, LocalDate endDate, Integer userId) {
+    public Map<String, Map<String, Double>> getTotalByExpenseNameAndPaymentMethodForDateRange(LocalDate startDate,
+            LocalDate endDate, Integer userId) {
         return expenseAnalyticsService.getTotalByExpenseNameAndPaymentMethodForDateRange(startDate, endDate, userId);
     }
 
@@ -495,7 +511,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String type) {
+    public List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate,
+            String type) {
         return expenseAnalyticsService.getDailySpendingByDateRange(userId, fromDate, toDate, type);
     }
 
@@ -567,19 +584,23 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId, String sortOrder,
-                                                                                         int page, int size, String sortBy) throws Exception {
+    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId,
+            String sortOrder,
+            int page, int size, String sortBy) throws Exception {
         return expenseQueryService.getExpensesGroupedByDateWithPagination(userId, sortOrder, page, size, sortBy);
     }
 
     @Override
-    public Map<String, Object> getExpensesGroupedByDateWithValidation(Integer userId, int page, int size, String sortBy, String sortOrder) throws Exception {
+    public Map<String, Object> getExpensesGroupedByDateWithValidation(Integer userId, int page, int size, String sortBy,
+            String sortOrder) throws Exception {
         return expenseQueryService.getExpensesGroupedByDateWithValidation(userId, page, size, sortBy, sortOrder);
     }
 
     @Override
-    public Map<String, Object> getPaymentMethodDistributionByDateRange(Integer userId, LocalDate startDate, LocalDate endDate,String flowType,String type) {
-        return expenseAnalyticsService.getPaymentMethodDistributionByDateRange(userId,startDate,endDate,flowType,type);
+    public Map<String, Object> getPaymentMethodDistributionByDateRange(Integer userId, LocalDate startDate,
+            LocalDate endDate, String flowType, String type) {
+        return expenseAnalyticsService.getPaymentMethodDistributionByDateRange(userId, startDate, endDate, flowType,
+                type);
     }
 
     // Comments management
@@ -605,7 +626,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public void sendEmailWithAttachment(String toEmail, String subject, String body, String attachmentPath) throws MessagingException {
+    public void sendEmailWithAttachment(String toEmail, String subject, String body, String attachmentPath)
+            throws MessagingException {
         expenseReportService.sendEmailWithAttachment(toEmail, subject, body, attachmentPath);
     }
 

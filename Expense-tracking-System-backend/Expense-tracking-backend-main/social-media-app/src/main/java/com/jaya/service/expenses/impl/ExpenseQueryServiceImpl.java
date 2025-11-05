@@ -22,9 +22,9 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
+
 @Service
 public class ExpenseQueryServiceImpl implements ExpenseQueryService {
-
 
     public static final String OTHERS = "Others";
     private static final String CREDIT_NEED_TO_PAID = "creditNeedToPaid";
@@ -33,9 +33,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     private static final String MONTH = "month";
     private static final String YEAR = "year";
     private static final String WEEK = "week";
-
-
-
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseReportRepository expenseReportRepository;
@@ -51,11 +48,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Autowired
     private ServiceHelper helper;
 
-    public ExpenseQueryServiceImpl(ExpenseRepository expenseRepository, ExpenseReportRepository expenseReportRepository) {
+    public ExpenseQueryServiceImpl(ExpenseRepository expenseRepository,
+            ExpenseReportRepository expenseReportRepository) {
         this.expenseRepository = expenseRepository;
         this.expenseReportRepository = expenseReportRepository;
     }
-
 
     @Override
     public List<Expense> getExpensesByDate(LocalDate date, Integer userId) {
@@ -89,11 +86,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     public List<Expense> getExpensesForCurrentMonth(Integer userId) {
         LocalDate today = LocalDate.now();
 
-
         LocalDate firstDayOfCurrentMonth = today.withDayOfMonth(1);
 
         LocalDate lastDayOfCurrentMonth = today.withDayOfMonth(today.lengthOfMonth());
-
 
         return expenseRepository.findByUserIdAndDateBetween(userId, firstDayOfCurrentMonth, lastDayOfCurrentMonth);
     }
@@ -103,11 +98,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         LocalDate today = LocalDate.now();
 
-
         LocalDate firstDayOfLastMonth = today.withDayOfMonth(1).minusMonths(1);
 
         LocalDate lastDayOfLastMonth = firstDayOfLastMonth.withDayOfMonth(firstDayOfLastMonth.lengthOfMonth());
-
 
         return expenseRepository.findByUserIdAndDateBetween(userId, firstDayOfLastMonth, lastDayOfLastMonth);
     }
@@ -144,8 +137,10 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount, Integer userId) {
-        return expenseRepository.filterExpensesByUser(userId, expenseName, startDate, endDate, type, paymentMethod, minAmount, maxAmount);
+    public List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type,
+            String paymentMethod, Double minAmount, Double maxAmount, Integer userId) {
+        return expenseRepository.filterExpensesByUser(userId, expenseName, startDate, endDate, type, paymentMethod,
+                minAmount, maxAmount);
     }
 
     @Override
@@ -205,12 +200,148 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Override
     public Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date) {
 
-        List<Expense> expensesBeforeDate = expenseRepository.findByUserAndExpenseNameBeforeDate(userId, expenseName, date);
-        return expensesBeforeDate.get(0);
+        List<Expense> expensesBeforeDate = expenseRepository.findByUserAndExpenseNameBeforeDate(userId, expenseName,
+                date);
+        Expense created = new Expense();
+        ExpenseDetails details = new ExpenseDetails();
+        Expense result = expensesBeforeDate.get(0);
+
+        Map<String, Integer> expenseData = new HashMap<>();
+
+        List<Expense> list = searchExpensesByName(expenseName, userId);
+        Map<String, Object> stats = computeFieldFrequency(list, "category");
+        Map<String, Object> typeStats = computeFieldFrequency(list, "type");
+        Map<String, Object> paymentStats = computeFieldFrequency(list, "paymentmethod");
+        String topCategory = (String) stats.get("mostUsed");
+        Integer topCategoryId = (Integer) stats.get("mostUsedId");
+        String topType = (String) typeStats.get("mostUsed");
+        String topPaymentMethod = (String) paymentStats.get("mostUsed");
+        result.setCategoryName(topCategory);
+        result.setCategoryId(topCategoryId);
+        result.getExpense().setType(topType);  
+        result.getExpense().setPaymentMethod(topPaymentMethod); 
+       
+
+        return result;
+    }
+
+    // ...existing code...
+    @Override
+    public Map<String, Object> computeFieldFrequency(List<Expense> expenses, String fieldName) {
+        Map<String, Object> result = new HashMap<>();
+        if (expenses == null || expenses.isEmpty()) {
+            result.put("counts", Collections.emptyMap());
+            result.put("mostUsed", null);
+            result.put("mostUsedCount", 0L);
+            result.put("mostUsedId", null);
+            result.put("valueIds", Collections.emptyMap());
+            result.put("total", 0);
+            return result;
+        }
+        if (fieldName == null || fieldName.trim().isEmpty()) {
+            result.put("error", "fieldName cannot be empty");
+            return result;
+        }
+
+        String normalized = fieldName.trim().toLowerCase();
+        Map<String, Long> counts = new HashMap<>();
+        Map<String, Integer> valueIds = new HashMap<>(); // name/value -> id (where applicable)
+
+        for (Expense e : expenses) {
+            if (e == null)
+                continue;
+            String value = extractFieldValue(e, normalized);
+            Integer id = null;
+
+            if ("category".equals(normalized) || "categoryid".equals(normalized)) {
+                // Prefer categoryId from entity
+                if (e.getCategoryId() != null) {
+                    id = e.getCategoryId();
+                }
+                // If name resolved from service and id missing, try again
+                if (id == null && e.getCategoryId() != null) {
+                    id = e.getCategoryId();
+                }
+            } else if ("paymentmethod".equals(normalized)) {
+                if (e.getExpense() != null && e.getExpense().getPaymentMethod() != null) {
+                    try {
+                        PaymentMethod pm = paymentMethodService.getByNameWithService(e.getUserId(),
+                                e.getExpense().getPaymentMethod());
+                        if (pm != null)
+                            id = pm.getId();
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+
+            if (value == null || value.isEmpty()) {
+                value = "Unknown";
+            }
+            counts.merge(value, 1L, Long::sum);
+            if (id != null) {
+                valueIds.putIfAbsent(value, id);
+            }
+        }
+
+        LinkedHashMap<String, Long> sorted = counts.entrySet().stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), LinkedHashMap::putAll);
+
+        String mostUsed = sorted.isEmpty() ? null : sorted.keySet().iterator().next();
+        Long mostUsedCount = sorted.isEmpty() ? 0L : sorted.values().iterator().next();
+        Integer mostUsedId = mostUsed != null ? valueIds.get(mostUsed) : null;
+
+        result.put("counts", sorted);
+        result.put("mostUsed", mostUsed);
+        result.put("mostUsedCount", mostUsedCount);
+        result.put("mostUsedId", mostUsedId);
+        result.put("valueIds", valueIds);
+        result.put("total", expenses.size());
+        result.put("field", normalized);
+
+        return result;
+    }
+
+    public String getMostFrequentValue(List<Expense> expenses, String fieldName) {
+        Map<String, Object> freq = computeFieldFrequency(expenses, fieldName);
+        return (String) freq.get("mostUsed");
+    }
+
+    private String extractFieldValue(Expense e, String field) {
+        switch (field) {
+            case "expensename":
+                return e.getExpense() != null ? safeLower(e.getExpense().getExpenseName()) : null;
+            case "type":
+                return e.getExpense() != null ? safeLower(e.getExpense().getType()) : null;
+            case "paymentmethod":
+                return e.getExpense() != null ? safeLower(e.getExpense().getPaymentMethod()) : null;
+            case "category":
+                // Prefer already populated categoryName
+                if (e.getCategoryName() != null)
+                    return e.getCategoryName();
+                if (e.getCategoryId() != null) {
+                    try {
+                        Category c = categoryService.getById(e.getCategoryId(), e.getUserId());
+                        if (c != null)
+                            return c.getName();
+                    } catch (Exception ignored) {
+                    }
+                }
+                return null;
+            case "categoryid":
+                return e.getCategoryId() != null ? String.valueOf(e.getCategoryId()) : null;
+            default:
+                return null;
+        }
+    }
+
+    private String safeLower(String v) {
+        return v == null ? null : v.trim();
     }
 
     @Override
-    public List<Expense> getExpensesWithinRange(Integer userId, LocalDate startDate, LocalDate endDate, String flowType) {
+    public List<Expense> getExpensesWithinRange(Integer userId, LocalDate startDate, LocalDate endDate,
+            String flowType) {
 
         List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
 
@@ -230,12 +361,14 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public List<Expense> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(LocalDate from, LocalDate to, Integer userId) {
+    public List<Expense> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(LocalDate from, LocalDate to,
+            Integer userId) {
         return expenseRepository.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(userId, from, to);
     }
 
     @Override
-    public List<Expense> getExpensesInBudgetRangeWithIncludeFlag(LocalDate startDate, LocalDate endDate, Integer budgetId, Integer userId) throws Exception {
+    public List<Expense> getExpensesInBudgetRangeWithIncludeFlag(LocalDate startDate, LocalDate endDate,
+            Integer budgetId, Integer userId) throws Exception {
 
         Budget optionalBudget = budgetService.getBudgetById(budgetId, userId);
         if (optionalBudget == null) {
@@ -244,11 +377,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         Budget budget = optionalBudget;
 
-
         LocalDate effectiveStartDate = (startDate != null) ? startDate : budget.getStartDate();
         LocalDate effectiveEndDate = (endDate != null) ? endDate : budget.getEndDate();
 
-        List<Expense> expensesInRange = expenseRepository.findByUserIdAndDateBetween(userId, effectiveStartDate, effectiveEndDate);
+        List<Expense> expensesInRange = expenseRepository.findByUserIdAndDateBetween(userId, effectiveStartDate,
+                effectiveEndDate);
 
         for (Expense expense : expensesInRange) {
             boolean isIncluded = expense.getBudgetIds() != null && expense.getBudgetIds().contains(budgetId);
@@ -259,7 +392,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByCategories(Integer userId, String rangeType, int offset, String flowType) throws Exception {
+    public Map<String, Object> getFilteredExpensesByCategories(Integer userId, String rangeType, int offset,
+            String flowType) throws Exception {
 
         LocalDate now = LocalDate.now();
         LocalDate startDate;
@@ -279,26 +413,22 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
                 break;
             case "custom":
-                startDate = now.minusDays(30);  // Default to last 30 days
+                startDate = now.minusDays(30); // Default to last 30 days
                 endDate = now;
                 break;
             default:
                 throw new IllegalArgumentException("Invalid rangeType. Valid options are: week, month, year, custom");
         }
 
-
         List<Category> userCategories = categoryService.getAllForUser(userId);
 
-
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, startDate, endDate, flowType);
-
 
         Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
 
         for (Category category : userCategories) {
             categoryExpensesMap.put(category, new ArrayList<>());
         }
-
 
         for (Expense expense : filteredExpenses) {
             for (Category category : userCategories) {
@@ -314,11 +444,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
         }
 
-
         categoryExpensesMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
 
         Map<String, Object> response = new HashMap<>();
-
 
         int totalCategories = categoryExpensesMap.size();
         int totalExpenses = 0;
@@ -330,7 +458,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             List<Expense> expenses = entry.getValue();
             totalExpenses += expenses.size();
 
-
             double categoryTotal = 0.0;
             for (Expense expense : expenses) {
                 if (expense.getExpense() != null) {
@@ -340,20 +467,18 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             categoryTotals.put(category.getName(), categoryTotal);
 
-
             Map<String, Object> categoryDetails = buildCategoryDetailsMap(category, expenses, categoryTotal);
-
 
             response.put(category.getName(), categoryDetails);
         }
-
 
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalCategories", totalCategories);
         summary.put("totalExpenses", totalExpenses);
         summary.put("totalAmount", totalAmount);
         summary.put("categoryTotals", categoryTotals);
-        summary.put("dateRange", Map.of("startDate", startDate, "endDate", endDate, "rangeType", rangeType, "offset", offset, "flowType", flowType != null ? flowType : "all"));
+        summary.put("dateRange", Map.of("startDate", startDate, "endDate", endDate, "rangeType", rangeType, "offset",
+                offset, "flowType", flowType != null ? flowType : "all"));
 
         response.put("summary", summary);
 
@@ -361,22 +486,18 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) throws Exception {
-
+    public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate,
+            String flowType) throws Exception {
 
         List<Category> userCategories = categoryService.getAllForUser(userId);
 
-
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
 
-
         Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
-
 
         for (Category category : userCategories) {
             categoryExpensesMap.put(category, new ArrayList<>());
         }
-
 
         for (Expense expense : filteredExpenses) {
             if (flowType != null && !flowType.isEmpty()) {
@@ -386,7 +507,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     continue;
                 } else if (flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase("loss")) {
                     continue;
-                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase(flowType)) {
+                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow")
+                        && !expenseType.equalsIgnoreCase(flowType)) {
                     continue;
                 }
             }
@@ -404,9 +526,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
         }
 
-
         categoryExpensesMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
-
 
         Map<String, Object> response = new HashMap<>();
 
@@ -429,13 +549,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             categoryTotals.put(category.getName(), categoryTotal);
 
-
             Map<String, Object> categoryDetails = new HashMap<>();
             categoryDetails.put("id", category.getId());
             categoryDetails.put("name", category.getName());
             categoryDetails.put("description", category.getDescription());
             categoryDetails.put("isGlobal", category.isGlobal());
-
 
             if (category.getColor() != null) {
                 categoryDetails.put("color", category.getColor());
@@ -447,9 +565,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             categoryDetails.put("userIds", category.getUserIds());
             categoryDetails.put("editUserIds", category.getEditUserIds());
 
-
             categoryDetails.put("expenseIds", category.getExpenseIds());
-
 
             List<Map<String, Object>> formattedExpenses = new ArrayList<>();
             for (Expense expense : expenses) {
@@ -479,17 +595,14 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             categoryDetails.put("totalAmount", categoryTotal);
             categoryDetails.put("expenseCount", expenses.size());
 
-
             response.put(category.getName(), categoryDetails);
         }
-
 
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalCategories", totalCategories);
         summary.put("totalExpenses", totalExpenses);
         summary.put("totalAmount", totalAmount);
         summary.put("categoryTotals", categoryTotals);
-
 
         Map<String, Object> dateRangeInfo = new HashMap<>();
         dateRangeInfo.put("fromDate", fromDate);
@@ -503,7 +616,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) {
+    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, LocalDate fromDate, LocalDate toDate,
+            String flowType) {
 
         // Get filtered expenses for the user
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
@@ -517,11 +631,14 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     continue;
                 } else if (flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase("loss")) {
                     continue;
-                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase(flowType)) {
+                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow")
+                        && !expenseType.equalsIgnoreCase(flowType)) {
                     continue;
                 }
             }
-            String paymentMethod = expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null ? expense.getExpense().getPaymentMethod() : "Unknown";
+            String paymentMethod = expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null
+                    ? expense.getExpense().getPaymentMethod()
+                    : "Unknown";
             paymentMethodExpensesMap.computeIfAbsent(paymentMethod, k -> new ArrayList<>()).add(expense);
         }
 
@@ -567,9 +684,10 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             paymentMethodTotals.put(paymentMethod, methodTotal);
 
-            // Fetch PaymentMethod entity to get additional details (description, color, icon, etc.)
+            // Fetch PaymentMethod entity to get additional details (description, color,
+            // icon, etc.)
             PaymentMethod pmEntity = paymentMethodService.getByNameWithService(userId, paymentMethod);
-            
+
             Map<String, Object> methodDetails = new HashMap<>();
             methodDetails.put("id", pmEntity != null ? pmEntity.getId() : null);
             methodDetails.put("name", pmEntity != null ? pmEntity.getName() : paymentMethod);
@@ -578,8 +696,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             methodDetails.put("isGlobal", pmEntity != null && pmEntity.isGlobal());
             methodDetails.put("icon", pmEntity != null ? pmEntity.getIcon() : "");
             methodDetails.put("color", pmEntity != null ? pmEntity.getColor() : "");
-            methodDetails.put("editUserIds", pmEntity != null && pmEntity.getEditUserIds() != null ? pmEntity.getEditUserIds() : new ArrayList<>());
-            methodDetails.put("userIds", pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
+            methodDetails.put("editUserIds",
+                    pmEntity != null && pmEntity.getEditUserIds() != null ? pmEntity.getEditUserIds()
+                            : new ArrayList<>());
+            methodDetails.put("userIds",
+                    pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
             methodDetails.put("expenseCount", expenses.size());
             methodDetails.put("totalAmount", methodTotal);
             methodDetails.put("expenses", formattedExpenses);
@@ -607,7 +728,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset, String flowType) {
+    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset,
+            String flowType) {
         LocalDate now = LocalDate.now();
         LocalDate startDate;
         LocalDate endDate;
@@ -637,7 +759,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         Map<String, List<Expense>> paymentMethodExpensesMap = new HashMap<>();
 
         for (Expense expense : filteredExpenses) {
-            String pmName = (expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null) ? expense.getExpense().getPaymentMethod() : "Unknown";
+            String pmName = (expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null)
+                    ? expense.getExpense().getPaymentMethod()
+                    : "Unknown";
             paymentMethodExpensesMap.computeIfAbsent(pmName, k -> new ArrayList<>()).add(expense);
         }
 
@@ -671,8 +795,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             methodDetails.put("isGlobal", pmEntity != null && pmEntity.isGlobal());
             methodDetails.put("icon", pmEntity != null ? pmEntity.getIcon() : "");
             methodDetails.put("color", pmEntity != null ? pmEntity.getColor() : "");
-            methodDetails.put("editUserIds", pmEntity != null && pmEntity.getEditUserIds() != null ? pmEntity.getEditUserIds() : new ArrayList<>());
-            methodDetails.put("userIds", pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
+            methodDetails.put("editUserIds",
+                    pmEntity != null && pmEntity.getEditUserIds() != null ? pmEntity.getEditUserIds()
+                            : new ArrayList<>());
+            methodDetails.put("userIds",
+                    pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
             methodDetails.put("expenseCount", expenses.size());
             methodDetails.put("totalAmount", methodTotal);
             methodDetails.put("expenses", formatExpensesForResponse(expenses));
@@ -685,14 +812,16 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         summary.put("totalExpenses", totalExpenses);
         summary.put("totalAmount", totalAmount);
         summary.put("paymentMethodTotals", paymentMethodTotals);
-        summary.put("dateRange", Map.of("startDate", startDate, "endDate", endDate, "rangeType", rangeType, "offset", offset, "flowType", flowType != null ? flowType : "all"));
+        summary.put("dateRange", Map.of("startDate", startDate, "endDate", endDate, "rangeType", rangeType, "offset",
+                offset, "flowType", flowType != null ? flowType : "all"));
         response.put("summary", summary);
 
         return response;
     }
 
     @Override
-    public Map<String, Object> getExpensesGroupedByDateWithValidation(Integer userId, int page, int size, String sortBy, String sortOrder) throws Exception {
+    public Map<String, Object> getExpensesGroupedByDateWithValidation(Integer userId, int page, int size, String sortBy,
+            String sortOrder) throws Exception {
         // Validate sort fields
         List<String> validSortFields = Arrays.asList("date", "amount", "expenseName", "paymentMethod");
         if (!validSortFields.contains(sortBy)) {
@@ -713,7 +842,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }
 
         // Get grouped expenses
-        Map<String, List<Map<String, Object>>> groupedExpenses = getExpensesGroupedByDateWithPagination(userId, sortOrder, page, size, sortBy);
+        Map<String, List<Map<String, Object>>> groupedExpenses = getExpensesGroupedByDateWithPagination(userId,
+                sortOrder, page, size, sortBy);
 
         if (groupedExpenses.isEmpty()) {
             return Collections.emptyMap();
@@ -730,37 +860,13 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return response;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    private Map<String, Object> buildCategoryDetailsMap(Category category, List<Expense> expenses, double categoryTotal) {
+    private Map<String, Object> buildCategoryDetailsMap(Category category, List<Expense> expenses,
+            double categoryTotal) {
         Map<String, Object> categoryDetails = new HashMap<>();
         categoryDetails.put("id", category.getId());
         categoryDetails.put("name", category.getName());
         categoryDetails.put("description", category.getDescription());
         categoryDetails.put("isGlobal", category.isGlobal());
-
 
         if (category.getColor() != null) {
             categoryDetails.put("color", category.getColor());
@@ -769,13 +875,10 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             categoryDetails.put("icon", category.getIcon());
         }
 
-
         categoryDetails.put("userIds", category.getUserIds());
         categoryDetails.put("editUserIds", category.getEditUserIds());
 
-
         categoryDetails.put("expenseIds", category.getExpenseIds());
-
 
         List<Map<String, Object>> formattedExpenses = formatExpensesForResponse(expenses);
 
@@ -813,11 +916,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return formattedExpenses;
     }
 
-
-
-
-@Override
-    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId, String sortOrder, int page, int size, String sortBy) throws Exception {
+    @Override
+    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId,
+            String sortOrder, int page, int size, String sortBy) throws Exception {
         Sort sort = Sort.by(Sort.Order.by(sortBy).with(Sort.Direction.fromString(sortOrder)));
         User user = helper.validateUser(userId);
         Pageable pageable = PageRequest.of(page, size, sort);

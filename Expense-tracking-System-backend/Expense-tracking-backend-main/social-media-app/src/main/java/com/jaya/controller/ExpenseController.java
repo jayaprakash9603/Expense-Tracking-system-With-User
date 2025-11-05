@@ -2111,51 +2111,19 @@ public class ExpenseController extends BaseExpenseController {
             @PathVariable String date,
             @RequestParam(required = false) Integer targetId) {
         try {
-            // Validate input parameters
-            if (expenseName == null || expenseName.trim().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Expense name cannot be empty");
-            }
-
-            // Parse and validate date
-            LocalDate parsedDate;
-            try {
-                parsedDate = LocalDate.parse(date);
-            } catch (DateTimeParseException e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Invalid date format. Please use yyyy-MM-dd format");
-            }
-
-            // Get authenticated user
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Invalid or expired token");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
-
-            // Determine target user (if admin is viewing another user's expenses)
-            User targetUser;
-
-            targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-
-            // Get expense before date
-            Expense expense;
-            try {
-                expense = expenseService.getExpensesBeforeDate(targetUser.getId(), expenseName.trim(), parsedDate);
-            } catch (IndexOutOfBoundsException e) {
-                // Handle case when no expenses exist before the given date
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-            }
-
-            // Handle case when no expense is found
+            User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            Expense expense = expenseService.getExpenseBeforeDateValidated(targetUser.getId(), expenseName, date);
             if (expense == null) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
             }
-
             return ResponseEntity.ok(expense);
-
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         } catch (Exception e) {
-            // Log the error
             System.out.println("Error retrieving expense before date: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

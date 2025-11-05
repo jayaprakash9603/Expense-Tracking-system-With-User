@@ -60,6 +60,18 @@ const NewExpense = ({ onClose, onSuccess }) => {
     creditDue: "",
   });
   const [errors, setErrors] = useState({});
+  const [autoFilledFields, setAutoFilledFields] = useState({
+    category: false,
+    paymentMethod: false,
+    transactionType: false,
+  });
+  const [lastAutoFilledExpenseName, setLastAutoFilledExpenseName] =
+    useState("");
+  const [userModifiedFields, setUserModifiedFields] = useState({
+    category: false,
+    paymentMethod: false,
+    transactionType: false,
+  });
   // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
@@ -74,6 +86,80 @@ const NewExpense = ({ onClose, onSuccess }) => {
     expenseData.date,
     friendId
   );
+
+  // Auto-populate fields when previous expense is found
+  useEffect(() => {
+    if (previousExpense && expenseData.expenseName?.trim().length >= 2) {
+      // Check if this is a new expense name (different from last auto-filled)
+      const isNewExpenseName =
+        expenseData.expenseName.trim() !== lastAutoFilledExpenseName;
+
+      // Only auto-populate if fields are empty, default, or expense name changed
+      const updates = {};
+      const newAutoFilled = { ...autoFilledFields };
+
+      // Auto-populate category if:
+      // - Previous expense has categoryId AND
+      // - (Current is empty OR expense name changed and user hasn't manually modified it)
+      if (
+        previousExpense.categoryId &&
+        (!expenseData.category ||
+          (isNewExpenseName && !userModifiedFields.category))
+      ) {
+        updates.category = previousExpense.categoryId;
+        newAutoFilled.category = true;
+      }
+
+      // Auto-populate payment method if:
+      // - Previous expense has paymentMethod AND
+      // - (Current is default OR expense name changed and user hasn't manually modified it)
+      if (
+        previousExpense.expense?.paymentMethod &&
+        (expenseData.paymentMethod === "cash" ||
+          (isNewExpenseName && !userModifiedFields.paymentMethod))
+      ) {
+        updates.paymentMethod = previousExpense.expense.paymentMethod;
+        newAutoFilled.paymentMethod = true;
+      }
+
+      // Auto-populate type if:
+      // - Previous expense has type AND
+      // - (Current is default OR expense name changed and user hasn't manually modified it)
+      if (
+        previousExpense.expense?.type &&
+        (expenseData.transactionType === "loss" ||
+          (isNewExpenseName && !userModifiedFields.transactionType))
+      ) {
+        updates.transactionType = previousExpense.expense.type;
+        newAutoFilled.transactionType = true;
+      }
+
+      // Apply updates if any
+      if (Object.keys(updates).length > 0) {
+        setExpenseData((prev) => ({ ...prev, ...updates }));
+        setAutoFilledFields(newAutoFilled);
+        setLastAutoFilledExpenseName(expenseData.expenseName.trim());
+
+        // Reset user modification flags if expense name changed
+        if (isNewExpenseName) {
+          setUserModifiedFields({
+            category: false,
+            paymentMethod: false,
+            transactionType: false,
+          });
+        }
+
+        // Clear auto-filled indicators after 3 seconds
+        setTimeout(() => {
+          setAutoFilledFields({
+            category: false,
+            paymentMethod: false,
+            transactionType: false,
+          });
+        }, 3000);
+      }
+    }
+  }, [previousExpense, expenseData.expenseName]);
 
   // Updated redirect base paths to /friends/expenses*
   useRedirectIfReadOnly(friendId, {
@@ -495,7 +581,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   const renderCategoryAutocomplete = () => (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+      <div className="flex items-center relative">
         <label
           htmlFor="category"
           style={{
@@ -507,25 +593,49 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           Category
         </label>
-        <CategoryAutocomplete
-          value={expenseData.category}
-          onChange={(categoryId) => {
-            setExpenseData((prev) => ({
-              ...prev,
-              category: categoryId,
-            }));
-          }}
-          friendId={friendId}
-          placeholder="Search category"
-          size="medium"
-        />
+        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+          <CategoryAutocomplete
+            value={expenseData.category}
+            onChange={(categoryId) => {
+              setExpenseData((prev) => ({
+                ...prev,
+                category: categoryId,
+              }));
+              // Mark as user-modified and clear auto-filled indicator
+              setUserModifiedFields((prev) => ({ ...prev, category: true }));
+              if (autoFilledFields.category) {
+                setAutoFilledFields((prev) => ({ ...prev, category: false }));
+              }
+            }}
+            friendId={friendId}
+            placeholder="Search category"
+            size="medium"
+          />
+          {autoFilledFields.category && (
+            <div
+              className="absolute top-0 right-[-8px] transform translate-x-full"
+              style={{
+                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
+                color: "#fff",
+                fontSize: "0.65rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                fontWeight: "600",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+              }}
+            >
+              Auto-filled
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 
   const renderPaymentMethodAutocomplete = () => (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+      <div className="flex items-center relative">
         <label
           htmlFor="paymentMethod"
           style={{
@@ -537,19 +647,49 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           Payment Method
         </label>
-        <PaymentMethodAutocomplete
-          value={expenseData.paymentMethod}
-          onChange={(paymentMethodValue) => {
-            setExpenseData((prev) => ({
-              ...prev,
-              paymentMethod: paymentMethodValue,
-            }));
-          }}
-          transactionType={expenseData.transactionType}
-          friendId={friendId}
-          placeholder="Select payment method"
-          size="medium"
-        />
+        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+          <PaymentMethodAutocomplete
+            value={expenseData.paymentMethod}
+            onChange={(paymentMethodValue) => {
+              setExpenseData((prev) => ({
+                ...prev,
+                paymentMethod: paymentMethodValue,
+              }));
+              // Mark as user-modified and clear auto-filled indicator
+              setUserModifiedFields((prev) => ({
+                ...prev,
+                paymentMethod: true,
+              }));
+              if (autoFilledFields.paymentMethod) {
+                setAutoFilledFields((prev) => ({
+                  ...prev,
+                  paymentMethod: false,
+                }));
+              }
+            }}
+            transactionType={expenseData.transactionType}
+            friendId={friendId}
+            placeholder="Select payment method"
+            size="medium"
+          />
+          {autoFilledFields.paymentMethod && (
+            <div
+              className="absolute top-0 right-[-8px] transform translate-x-full"
+              style={{
+                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
+                color: "#fff",
+                fontSize: "0.65rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                fontWeight: "600",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+              }}
+            >
+              Auto-filled
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -558,7 +698,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   const renderTransactionTypeAutocomplete = () => (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+      <div className="flex items-center relative">
         <label
           htmlFor="transactionType"
           style={{
@@ -570,107 +710,144 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           Transaction Type<span className="text-red-500"> *</span>
         </label>
-        <Autocomplete
-          autoHighlight
-          options={typeOptions}
-          getOptionLabel={(option) =>
-            option.charAt(0).toUpperCase() + option.slice(1)
-          }
-          value={(expenseData.transactionType || "loss").toLowerCase()}
-          onInputChange={(event, newValue) => {
-            setExpenseData((prev) => ({
-              ...prev,
-              transactionType: (newValue || "").toLowerCase(),
-            }));
-
-            // Clear the error when the user types
-            if (errors.transactionType) {
-              setErrors({ ...errors, transactionType: false });
+        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+          <Autocomplete
+            autoHighlight
+            options={typeOptions}
+            getOptionLabel={(option) =>
+              option.charAt(0).toUpperCase() + option.slice(1)
             }
-          }}
-          onChange={(event, newValue) => {
-            setExpenseData((prev) => ({
-              ...prev,
-              transactionType: (newValue || "").toLowerCase(),
-            }));
+            value={(expenseData.transactionType || "loss").toLowerCase()}
+            onInputChange={(event, newValue) => {
+              setExpenseData((prev) => ({
+                ...prev,
+                transactionType: (newValue || "").toLowerCase(),
+              }));
 
-            // Clear the error when the user selects a value
-            if (errors.transactionType) {
-              setErrors({ ...errors, transactionType: false });
-            }
-          }}
-          noOptionsText="No options found"
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiAutocomplete-option": {
-              fontSize: "0.92rem",
-              paddingTop: "4px",
-              paddingBottom: "4px",
-            },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: errors.transactionType
-                  ? "#ff4d4f"
-                  : "rgb(75, 85, 99)",
-                borderWidth: errors.transactionType ? "2px" : "1px",
-                borderStyle: "solid",
-              },
-              "&:hover fieldset": {
-                borderColor: errors.transactionType
-                  ? "#ff4d4f"
-                  : "rgb(75, 85, 99)",
-                borderWidth: errors.transactionType ? "2px" : "1px",
-                borderStyle: "solid",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: errors.transactionType ? "#ff4d4f" : "#00dac6",
-                borderWidth: errors.transactionType ? "2px" : "2px",
-                borderStyle: "solid",
-              },
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: errors.transactionType
-                  ? "#ff4d4f"
-                  : "rgb(75, 85, 99)",
-                borderWidth: errors.transactionType ? "2px" : "1px",
-                borderStyle: "solid",
-              },
-            },
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select transaction type"
-              variant="outlined"
-              error={errors.transactionType}
-              InputProps={{
-                ...params.InputProps,
-                className: fieldStyles,
-                style: {
-                  backgroundColor: colors.primary_bg,
-                  color: colors.primary_text,
-                },
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => (
-            <li
-              {...props}
-              style={{
+              // Clear the error when the user types
+              if (errors.transactionType) {
+                setErrors({ ...errors, transactionType: false });
+              }
+              // Mark as user-modified and clear auto-filled indicator
+              setUserModifiedFields((prev) => ({
+                ...prev,
+                transactionType: true,
+              }));
+              if (autoFilledFields.transactionType) {
+                setAutoFilledFields((prev) => ({
+                  ...prev,
+                  transactionType: false,
+                }));
+              }
+            }}
+            onChange={(event, newValue) => {
+              setExpenseData((prev) => ({
+                ...prev,
+                transactionType: (newValue || "").toLowerCase(),
+              }));
+
+              // Clear the error when the user selects a value
+              if (errors.transactionType) {
+                setErrors({ ...errors, transactionType: false });
+              }
+              // Clear auto-filled indicator when user manually changes
+              if (autoFilledFields.transactionType) {
+                setAutoFilledFields((prev) => ({
+                  ...prev,
+                  transactionType: false,
+                }));
+              }
+            }}
+            noOptionsText="No options found"
+            sx={{
+              width: "100%",
+              maxWidth: "300px",
+              "& .MuiAutocomplete-option": {
                 fontSize: "0.92rem",
-                paddingTop: 4,
-                paddingBottom: 12,
+                paddingTop: "4px",
+                paddingBottom: "4px",
+              },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: errors.transactionType
+                    ? "#ff4d4f"
+                    : "rgb(75, 85, 99)",
+                  borderWidth: errors.transactionType ? "2px" : "1px",
+                  borderStyle: "solid",
+                },
+                "&:hover fieldset": {
+                  borderColor: errors.transactionType
+                    ? "#ff4d4f"
+                    : "rgb(75, 85, 99)",
+                  borderWidth: errors.transactionType ? "2px" : "1px",
+                  borderStyle: "solid",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: errors.transactionType ? "#ff4d4f" : "#00dac6",
+                  borderWidth: errors.transactionType ? "2px" : "2px",
+                  borderStyle: "solid",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: errors.transactionType
+                    ? "#ff4d4f"
+                    : "rgb(75, 85, 99)",
+                  borderWidth: errors.transactionType ? "2px" : "1px",
+                  borderStyle: "solid",
+                },
+              },
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Select transaction type"
+                variant="outlined"
+                error={errors.transactionType}
+                InputProps={{
+                  ...params.InputProps,
+                  className: fieldStyles,
+                  style: {
+                    backgroundColor: colors.primary_bg,
+                    color: colors.primary_text,
+                  },
+                }}
+              />
+            )}
+            renderOption={(props, option, { inputValue }) => (
+              <li
+                {...props}
+                style={{
+                  fontSize: "0.92rem",
+                  paddingTop: 4,
+                  paddingBottom: 12,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: 300,
+                }}
+                title={option}
+              >
+                {highlightText(option, inputValue)}
+              </li>
+            )}
+          />
+          {autoFilledFields.transactionType && (
+            <div
+              className="absolute top-0 right-[-8px] transform translate-x-full"
+              style={{
+                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
+                color: "#fff",
+                fontSize: "0.65rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                fontWeight: "600",
                 whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 300,
+                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
               }}
-              title={option}
             >
-              {highlightText(option, inputValue)}
-            </li>
+              Auto-filled
+            </div>
           )}
-        />
+        </div>
       </div>
     </div>
   );

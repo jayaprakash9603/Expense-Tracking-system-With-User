@@ -61,4 +61,11 @@ public interface ExpenseQueryService {
     // Pagination and grouping
     Map<String, Object> getExpensesGroupedByDateWithValidation(Integer userId, int page, int size, String sortBy, String sortOrder) throws Exception;
     Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId, String sortOrder, int page, int size, String sortBy) throws Exception;
+
+
+
+     Map<String, Object> computeFieldFrequency(List<Expense> expenses, String fieldName);
+
+    
+    String getMostFrequentValue(List<Expense> expenses, String fieldName);
 }
