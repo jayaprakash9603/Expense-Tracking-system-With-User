@@ -15,6 +15,8 @@ public interface BudgetService {
     // Create a new budget
     Budget createBudget(Budget budget, Integer userId) throws Exception;
 
+    Budget createBudgetForFriend(Budget budget, Integer userId, Integer friendId) throws Exception;
+
     Set<Budget> editBudgetWithExpenseId(Set<Integer> budgetIds, Integer expenseId, Integer userId) throws Exception;
 
     Budget save(Budget budget);

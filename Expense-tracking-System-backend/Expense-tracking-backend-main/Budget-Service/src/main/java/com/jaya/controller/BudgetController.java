@@ -67,9 +67,14 @@ public class BudgetController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-        Budget createdBudget = budgetService.createBudget(budget, targetUser.getId());
-        budgetNotificationService.sendBudgetCreatedNotification(createdBudget);
+        Budget createdBudget;
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            createdBudget = budgetService.createBudgetForFriend(budget, reqUser.getId(), targetId);
+        } else {
+            createdBudget = budgetService.createBudget(budget, reqUser.getId());
+        }
+
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget);
     }
 

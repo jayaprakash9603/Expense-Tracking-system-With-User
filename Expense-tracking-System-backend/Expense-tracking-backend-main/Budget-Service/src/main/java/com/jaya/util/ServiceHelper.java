@@ -31,7 +31,13 @@ public class ServiceHelper {
         }
         return reqUser;
     }
-
+ private UserDto authenticate(String jwt) {
+        UserDto reqUser = userService.getuserProfile(jwt);
+        if (reqUser == null) {
+            throw new com.jaya.exceptions.UnauthorizedException("Invalid or expired token");
+        }
+        return reqUser;
+    }
 
 
 

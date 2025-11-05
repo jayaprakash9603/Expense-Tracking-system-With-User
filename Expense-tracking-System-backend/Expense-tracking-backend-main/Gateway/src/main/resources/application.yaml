@@ -94,3 +94,9 @@ eureka:
     registry-fetch-interval: 5s
     serviceUrl:
       defaultZone: http://localhost:8761/eureka
+
+gateway:
+  rate-limit:
+    enabled: true
+    requests: 10
+    window-seconds: 60

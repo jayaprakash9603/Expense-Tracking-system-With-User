@@ -71,6 +71,47 @@ public class BudgetNotificationService {
         }
     }
 
+    
+    @Async
+    public void sendBudgetCreatedNotification(Budget budget, Integer creatorUserId, boolean friendCreation) {
+        try {
+            log.debug("Preparing contextual budget created notification for budget ID: {}", budget.getId());
+
+            // Base metadata
+            Map<String, Object> metadata = buildMetadata("created", budget);
+            metadata.put("created_by_user_id", creatorUserId);
+            metadata.put("creation_type", friendCreation ? "FRIEND_CREATED" : "SELF_CREATED");
+            metadata.put("owner_user_id", budget.getUserId());
+            if (!friendCreation) {
+                metadata.put("message", "Your budget '" + budget.getName() + "' has been created.");
+            } else {
+                metadata.put("message", "A friend created the budget '" + budget.getName() + "' for you.");
+            }
+
+            BudgetNotificationEvent event = BudgetNotificationEvent.builder()
+                    .budgetId(budget.getId())
+                    .userId(budget.getUserId())
+                    .action(BudgetNotificationEvent.CREATE)
+                    .budgetName(budget.getName())
+                    .amount(budget.getAmount())
+                    .spentAmount(BigDecimal.ZERO)
+                    .remainingAmount(BigDecimal.valueOf(budget.getAmount()))
+                    .percentageUsed(0.0)
+                    .startDate(budget.getStartDate())
+                    .endDate(budget.getEndDate())
+                    .timestamp(LocalDateTime.now())
+                    .metadata(metadata)
+                    .build();
+
+            producer.sendEvent(event);
+            log.info("Contextual budget created notification sent for budget: {} (Owner: {}, Creator: {}, Type: {})",
+                    budget.getName(), budget.getUserId(), creatorUserId,
+                    friendCreation ? "FRIEND_CREATED" : "SELF_CREATED");
+        } catch (Exception e) {
+            log.error("Failed to send contextual budget created notification: {}", e.getMessage(), e);
+        }
+    }
+
     /**
      * Send notification when a budget is updated
      * 
