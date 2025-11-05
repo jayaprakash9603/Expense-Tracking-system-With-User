@@ -728,17 +728,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               if (errors.transactionType) {
                 setErrors({ ...errors, transactionType: false });
               }
-              // Mark as user-modified and clear auto-filled indicator
-              setUserModifiedFields((prev) => ({
-                ...prev,
-                transactionType: true,
-              }));
-              if (autoFilledFields.transactionType) {
-                setAutoFilledFields((prev) => ({
-                  ...prev,
-                  transactionType: false,
-                }));
-              }
+              // Note: Don't clear auto-filled indicator here as this fires during auto-fill
             }}
             onChange={(event, newValue) => {
               setExpenseData((prev) => ({
@@ -750,6 +740,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
               if (errors.transactionType) {
                 setErrors({ ...errors, transactionType: false });
               }
+              // Mark as user-modified when user manually selects from dropdown
+              setUserModifiedFields((prev) => ({
+                ...prev,
+                transactionType: true,
+              }));
               // Clear auto-filled indicator when user manually changes
               if (autoFilledFields.transactionType) {
                 setAutoFilledFields((prev) => ({
