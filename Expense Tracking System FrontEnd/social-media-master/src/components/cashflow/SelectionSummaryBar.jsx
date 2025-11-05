@@ -36,12 +36,17 @@ const SelectionSummaryBar = ({
             display: "flex",
             alignItems: "stretch",
             gap: 8,
-            background: colors.primary_bg,
+            background:
+              colors.mode === "dark"
+                ? colors.primary_bg
+                : "rgba(255, 255, 255, 0.95)",
             backdropFilter: "blur(10px) saturate(140%)",
             WebkitBackdropFilter: "blur(10px) saturate(140%)",
             border: `1px solid ${colors.border_color}`,
             boxShadow:
-              "0 4px 18px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.6)",
+              colors.mode === "dark"
+                ? "0 4px 18px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.6)"
+                : "0 4px 18px -4px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.1)",
             borderRadius: 14,
             padding: "10px 14px",
             position: "relative",
@@ -64,7 +69,8 @@ const SelectionSummaryBar = ({
                   : "Expand selection stats"
               }
               style={{
-                background: colors.primary_bg,
+                background:
+                  colors.mode === "dark" ? colors.active_bg : "#ffffff",
                 border: `1px solid ${colors.border_color}`,
                 color: colors.active_text,
                 width: 34,
@@ -77,7 +83,9 @@ const SelectionSummaryBar = ({
                 fontSize: 16,
                 fontWeight: 600,
                 boxShadow:
-                  "0 2px 6px -2px #0009, inset 0 0 0 1px rgba(255,255,255,0.03)",
+                  colors.mode === "dark"
+                    ? "0 2px 6px -2px #0009, inset 0 0 0 1px rgba(255,255,255,0.03)"
+                    : "0 2px 4px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(0,0,0,0.05)",
                 transition: "all .35s cubic-bezier(.4,0,.2,1)",
               }}
               title={summaryExpanded ? "Hide stats" : "Show stats"}

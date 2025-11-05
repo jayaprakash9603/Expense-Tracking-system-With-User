@@ -89,6 +89,19 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   // Auto-populate fields when previous expense is found
   useEffect(() => {
+    // When expense name is cleared or too short, reset auto-filled indicators and last name
+    if (!expenseData.expenseName || expenseData.expenseName.trim().length < 2) {
+      if (lastAutoFilledExpenseName) {
+        setLastAutoFilledExpenseName("");
+        setAutoFilledFields({
+          category: false,
+          paymentMethod: false,
+          transactionType: false,
+        });
+      }
+      return;
+    }
+
     if (previousExpense && expenseData.expenseName?.trim().length >= 2) {
       // Check if this is a new expense name (different from last auto-filled)
       const isNewExpenseName =
