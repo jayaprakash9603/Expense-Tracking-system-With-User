@@ -193,6 +193,7 @@ const ExpenseNameAutocomplete = ({
         filterOptions={filterOptions}
         renderOption={renderOption}
         placeholder={placeholder}
+        placeholderColor="#9ca3af"
         error={error}
         helperText={helperText}
         disabled={disabled}

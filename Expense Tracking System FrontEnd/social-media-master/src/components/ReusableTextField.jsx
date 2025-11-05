@@ -83,7 +83,7 @@ const ReusableTextField = ({
   const effectiveFocusBorderColor =
     focusBorderColor === "#00dac6" ? "#00dac6" : focusBorderColor;
   const effectivePlaceholderColor =
-    placeholderColor === "#9ca3af" ? colors.secondary_text : placeholderColor;
+    placeholderColor === "#9ca3af" ? colors.placeholder_text : placeholderColor;
 
   const defaultSx = {
     width: fullWidth ? "100%" : "auto",
