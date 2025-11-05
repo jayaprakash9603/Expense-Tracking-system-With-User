@@ -165,7 +165,7 @@ public class BudgetServiceImpl implements BudgetService {
         Optional<Budget> existingBudgetOpt = budgetRepository.findByUserIdAndId(userId, budgetId);
 
         if (existingBudgetOpt.isEmpty()) {
-            throw new RuntimeException("Budget not found");
+            throw new BudgetNotFoundException("Budget not found");
         }
 
         Budget existingBudget = existingBudgetOpt.get();

@@ -2,6 +2,9 @@ package com.jaya.exceptions;
 
 import com.jaya.dto.ErrorResponse;
 import com.jaya.dto.ValidationErrorResponse;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -78,6 +81,42 @@ public class GlobalExceptionHandler {
         }
 
         /**
+         * Extract a clean message from a Feign remote service exception body.
+         * Prioritizes JSON field 'message'; falls back to regex; last resort raw body.
+         */
+        private String extractFeignMessage(FeignException ex) {
+                String body = null;
+                try {
+                        body = ex.contentUTF8();
+                } catch (Exception ignored) {
+                }
+                if (body == null || body.isBlank()) {
+                        return ex.getMessage();
+                }
+                // Try Jackson JSON parsing
+                try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode node = mapper.readTree(body.trim());
+                        if (node.has("message")) {
+                                return node.get("message").asText();
+                        }
+                        // Some services may wrap errors in an array
+                        if (node.isArray() && node.size() > 0 && node.get(0).has("message")) {
+                                return node.get(0).get("message").asText();
+                        }
+                } catch (Exception parseIgnored) {
+                        // fallback regex
+                        java.util.regex.Matcher m = java.util.regex.Pattern
+                                        .compile("\\\"message\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"")
+                                        .matcher(body);
+                        if (m.find()) {
+                                return m.group(1);
+                        }
+                }
+                return body; // raw body fallback
+        }
+
+        /**
          * Build a ValidationErrorResponse using provided field errors. Uses metadata to
          * derive error code/status and defaults for message when override is blank.
          */
@@ -116,6 +155,23 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(AccessDeniedException.class)
         public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
                 return buildErrorResponse(ErrorMetadata.ACCESS_DENIED, ex.getMessage(), request, null);
+        }
+
+        @ExceptionHandler(FeignException.class)
+        public ResponseEntity<ErrorResponse> handleFeignException(FeignException ex, WebRequest request) {
+                int status = ex.status();
+                String remoteMessage = extractFeignMessage(ex);
+                if (status == 401) {
+                        // Map to UNAUTHORIZED with remote message preserved
+                        return buildErrorResponse(ErrorMetadata.UNAUTHORIZED, remoteMessage, request, null);
+                } else if (status == 403) {
+                        return buildErrorResponse(ErrorMetadata.ACCESS_DENIED, remoteMessage, request, null);
+                } else if (status >= 400 && status < 500) {
+                        // Other client errors -> ILLEGAL_ARGUMENT (generic client side issue)
+                        return buildErrorResponse(ErrorMetadata.ILLEGAL_ARGUMENT, remoteMessage, request, null);
+                }
+                // Server/unknown errors from remote service
+                return buildErrorResponse(ErrorMetadata.EXTERNAL_SERVICE_ERROR, remoteMessage, request, null);
         }
 
         @ExceptionHandler(BudgetNotFoundException.class)

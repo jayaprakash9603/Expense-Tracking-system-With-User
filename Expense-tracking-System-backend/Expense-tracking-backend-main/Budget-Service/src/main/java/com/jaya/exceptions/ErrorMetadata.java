@@ -24,6 +24,8 @@ public enum ErrorMetadata {
             org.springframework.http.HttpStatus.UNAUTHORIZED),
     ACCESS_DENIED("ACCESS_DENIED", "You do not have permission to perform this action",
             org.springframework.http.HttpStatus.FORBIDDEN),
+    EXTERNAL_SERVICE_ERROR("EXTERNAL_SERVICE_ERROR", "An external service call failed",
+            org.springframework.http.HttpStatus.BAD_GATEWAY),
     // 5xx (Server) errors
     RUNTIME_ERROR("RUNTIME_ERROR", "An unexpected runtime error occurred",
             org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR),
