@@ -9,13 +9,13 @@ const SummaryPill = ({ label, value, icon }) => {
   return (
     <span
       style={{
-        background: colors.mode === "dark" ? colors.active_bg : "#f5f5f5",
+        background: colors.primary_bg,
         border: `1px solid ${colors.border_color}`,
         borderRadius: 8,
         padding: "6px 10px",
         fontSize: 11,
         fontWeight: 600,
-        color: colors.primary_text,
+        color: colors.secondary_text,
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
@@ -23,9 +23,7 @@ const SummaryPill = ({ label, value, icon }) => {
         position: "relative",
         minHeight: 30,
         boxShadow:
-          colors.mode === "dark"
-            ? "0 2px 4px -1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.03)"
-            : "0 1px 3px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(0,0,0,0.05)",
+          "0 2px 4px -1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.03)",
       }}
     >
       {icon && (
@@ -40,14 +38,7 @@ const SummaryPill = ({ label, value, icon }) => {
           {icon}
         </span>
       )}
-      <span
-        style={{
-          opacity: colors.mode === "dark" ? 0.55 : 0.65,
-          fontWeight: 500,
-        }}
-      >
-        {label}
-      </span>
+      <span style={{ opacity: 0.55, fontWeight: 500 }}>{label}</span>
       <span
         style={{
           color: colors.active_text,
