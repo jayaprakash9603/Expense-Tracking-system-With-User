@@ -221,8 +221,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         String topType = (String) typeStats.get("mostUsed");
         String topPaymentMethod = (String) paymentStats.get("mostUsed");
 
-        // Find most common comment prefix for auto-suggestion
-        String suggestedComment = findMostCommonCommentPrefix(expensesBeforeDate);
+        // Find most common comment prefix for auto-suggestion with intelligent month
+        // detection
+        String suggestedComment = findMostCommonCommentPrefix(expensesBeforeDate, date);
 
         // Set fields safely
         result.setCategoryName(topCategory);
@@ -241,17 +242,25 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     /**
-     * Find the most commonly used comment prefix from a list of expenses.
+     * Find the most commonly used comment pattern from a list of expenses with
+     * intelligent month detection.
      * This helps provide auto-completion suggestions to users.
      * 
      * Algorithm:
      * 1. Extract all non-empty comments
-     * 2. Normalize them (trim, handle case)
-     * 3. Find all possible prefixes (word-by-word)
-     * 4. Count frequency of each prefix
-     * 5. Return the longest prefix with highest frequency
+     * 2. Detect if comments differ only by month names
+     * 3. Analyze temporal patterns: Does user enter current month or next month?
+     * 4. If month pattern detected: Build template and insert appropriate month
+     * (current or next)
+     * 5. Otherwise: Use word-by-word prefix matching (original logic)
+     * 6. Return the most relevant suggestion
+     * 
+     * @param expenses    List of historical expenses with comments
+     * @param expenseDate The date of the current expense (used to extract month
+     *                    name)
+     * @return Suggested comment based on patterns, or null if no pattern found
      */
-    private String findMostCommonCommentPrefix(List<Expense> expenses) {
+    private String findMostCommonCommentPrefix(List<Expense> expenses, LocalDate expenseDate) {
         if (expenses == null || expenses.isEmpty()) {
             return null;
         }
@@ -272,6 +281,267 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return comments.get(0);
         }
 
+        // STEP 1: Try intelligent month-based pattern detection with temporal analysis
+        String monthBasedSuggestion = detectMonthBasedPatternWithOffset(expenses, expenseDate);
+        if (monthBasedSuggestion != null && !monthBasedSuggestion.isEmpty()) {
+            return monthBasedSuggestion;
+        }
+
+        // STEP 2: Fallback to original word-by-word prefix matching
+        return findPrefixBasedPattern(comments);
+    }
+
+    /**
+     * Detect if comments follow a pattern where only month names vary.
+     * Also detects temporal patterns: Does user enter current month or future month
+     * (next month)?
+     * 
+     * Examples:
+     * - "Deducted for Professional Tax in May Month" -> "Deducted for Professional
+     * Tax in {MONTH} Month"
+     * - "Salary Credited For April Month" -> "Salary Credited For {MONTH} Month"
+     * - "Expenses to Mother for May Month" (entered in April) -> User plans ahead
+     * (next month pattern)
+     * 
+     * @param comments    List of comment strings from historical expenses
+     * @param expenseDate Current expense date (to extract month name)
+     * @return Complete comment with appropriate month inserted, or null if no
+     *         pattern detected
+     */
+    private String detectMonthBasedPattern(List<String> comments, LocalDate expenseDate) {
+        if (comments == null || comments.size() < 2 || expenseDate == null) {
+            return null;
+        }
+
+        // Map to store templates (with {MONTH} placeholder) -> TemplateInfo with month
+        // offset tracking
+        Map<String, TemplateInfoWithOffset> templateFrequency = new HashMap<>();
+
+        // We need the full Expense objects to access their dates
+        // Unfortunately, we only have comments here. We'll need to pass expenses
+        // instead.
+        // For now, let's enhance to track month offsets when we have the data
+
+        for (String comment : comments) {
+            // Replace all month names with {MONTH} placeholder
+            String template = replaceMonthsWithPlaceholder(comment);
+
+            // Only consider if we actually found and replaced a month
+            if (!template.equals(comment) && template.contains("{MONTH}")) {
+                TemplateInfoWithOffset info = templateFrequency.get(template.toLowerCase());
+                if (info == null) {
+                    templateFrequency.put(template.toLowerCase(), new TemplateInfoWithOffset(template, 1));
+                } else {
+                    info.incrementCount();
+                }
+            }
+        }
+
+        if (templateFrequency.isEmpty()) {
+            return null;
+        }
+
+        // Find most common template (must appear in at least 30% of comments)
+        int minFrequencyThreshold = Math.max(2, comments.size() / 3);
+
+        TemplateInfoWithOffset bestTemplate = templateFrequency.values().stream()
+                .filter(info -> info.count >= minFrequencyThreshold)
+                .max(Comparator.comparingInt((TemplateInfoWithOffset info) -> info.count)
+                        .thenComparingInt(info -> info.template.length()))
+                .orElse(null);
+
+        if (bestTemplate == null) {
+            return null;
+        }
+
+        // Get current month name from expense date
+        String currentMonthName = expenseDate.getMonth().toString();
+        // Convert to proper case (e.g., "JANUARY" -> "January")
+        currentMonthName = currentMonthName.charAt(0) + currentMonthName.substring(1).toLowerCase();
+
+        // Replace {MONTH} placeholder with actual month name
+        return bestTemplate.template.replace("{MONTH}", currentMonthName);
+    }
+
+    /**
+     * Enhanced version that analyzes temporal patterns (current month vs next
+     * month).
+     * This is the improved implementation that tracks month offsets.
+     * 
+     * @param expenses    List of historical expenses with both comments and dates
+     * @param expenseDate Current expense date
+     * @return Complete comment with appropriate month (current or next), or null if
+     *         no pattern detected
+     */
+    private String detectMonthBasedPatternWithOffset(List<Expense> expenses, LocalDate expenseDate) {
+        if (expenses == null || expenses.size() < 2 || expenseDate == null) {
+            return null;
+        }
+
+        // Map to store templates with offset analysis
+        Map<String, TemplateInfoWithOffset> templateFrequency = new HashMap<>();
+
+        for (Expense expense : expenses) {
+            if (expense.getExpense() == null || expense.getExpense().getComments() == null) {
+                continue;
+            }
+
+            String comment = expense.getExpense().getComments().trim();
+            if (comment.isEmpty()) {
+                continue;
+            }
+
+            LocalDate expenseEntryDate = expense.getDate();
+            if (expenseEntryDate == null) {
+                continue;
+            }
+
+            // Replace all month names with {MONTH} placeholder
+            String template = replaceMonthsWithPlaceholder(comment);
+            String extractedMonth = extractMonthFromComment(comment);
+
+            // Only consider if we actually found and replaced a month
+            if (!template.equals(comment) && template.contains("{MONTH}") && extractedMonth != null) {
+                String templateKey = template.toLowerCase();
+                TemplateInfoWithOffset info = templateFrequency.get(templateKey);
+
+                if (info == null) {
+                    info = new TemplateInfoWithOffset(template, 0);
+                    templateFrequency.put(templateKey, info);
+                }
+
+                info.incrementCount();
+
+                // Calculate month offset: How many months ahead was the mentioned month?
+                int mentionedMonthValue = getMonthNumber(extractedMonth);
+                int entryMonthValue = expenseEntryDate.getMonthValue();
+
+                // Calculate offset (handling year wrapping)
+                int monthOffset = mentionedMonthValue - entryMonthValue;
+                if (monthOffset < -6) {
+                    monthOffset += 12; // Wrapped to next year
+                } else if (monthOffset > 6) {
+                    monthOffset -= 12; // Wrapped from previous year
+                }
+
+                info.addMonthOffset(monthOffset);
+            }
+        }
+
+        if (templateFrequency.isEmpty()) {
+            return null;
+        }
+
+        // Find most common template (must appear in at least 30% of comments)
+        int minFrequencyThreshold = Math.max(2, expenses.size() / 3);
+
+        TemplateInfoWithOffset bestTemplate = templateFrequency.values().stream()
+                .filter(info -> info.count >= minFrequencyThreshold)
+                .max(Comparator.comparingInt((TemplateInfoWithOffset info) -> info.count)
+                        .thenComparingInt(info -> info.template.length()))
+                .orElse(null);
+
+        if (bestTemplate == null) {
+            return null;
+        }
+
+        // Determine the most common month offset for this pattern
+        int avgMonthOffset = bestTemplate.getAverageMonthOffset();
+
+        // Apply offset to current expense date
+        LocalDate targetDate = expenseDate.plusMonths(avgMonthOffset);
+        String targetMonthName = targetDate.getMonth().toString();
+        targetMonthName = targetMonthName.charAt(0) + targetMonthName.substring(1).toLowerCase();
+
+        // Replace {MONTH} placeholder with target month name
+        return bestTemplate.template.replace("{MONTH}", targetMonthName);
+    }
+
+    /**
+     * Extract the first month name found in a comment.
+     * 
+     * @param comment The comment text
+     * @return Month name if found, null otherwise
+     */
+    private String extractMonthFromComment(String comment) {
+        if (comment == null || comment.isEmpty()) {
+            return null;
+        }
+
+        String[] months = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        for (String month : months) {
+            if (comment.matches("(?i).*\\b" + month + "\\b.*")) {
+                return month;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get month number (1-12) from month name.
+     * 
+     * @param monthName Month name (e.g., "January", "january", "JANUARY")
+     * @return Month number (1-12), or 0 if invalid
+     */
+    private int getMonthNumber(String monthName) {
+        if (monthName == null) {
+            return 0;
+        }
+
+        String[] months = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        for (int i = 0; i < months.length; i++) {
+            if (months[i].equalsIgnoreCase(monthName)) {
+                return i + 1;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Replace all month names in a string with {MONTH} placeholder.
+     * Handles full month names (January-December) in any case.
+     * 
+     * @param text Input text potentially containing month names
+     * @return Text with month names replaced by {MONTH}
+     */
+    private String replaceMonthsWithPlaceholder(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        // List of all month names
+        String[] months = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        String result = text;
+        for (String month : months) {
+            // Case-insensitive replacement but preserve surrounding text structure
+            result = result.replaceAll("(?i)\\b" + month + "\\b", "{MONTH}");
+        }
+
+        return result;
+    }
+
+    /**
+     * Original prefix-based pattern detection (fallback method).
+     * Finds the longest common word-by-word prefix across comments.
+     * 
+     * @param comments List of comment strings
+     * @return Most common prefix, or null if none found
+     */
+    private String findPrefixBasedPattern(List<String> comments) {
         // Map to store normalized prefix (lowercase) -> original prefix with count
         Map<String, PrefixInfo> prefixFrequency = new HashMap<>();
 
@@ -337,6 +607,72 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                         .thenComparingInt(info -> info.originalPrefix.length()))
                 .map(info -> info.originalPrefix)
                 .orElse(null);
+    }
+
+    /**
+     * Helper class to store template information for month-based patterns
+     */
+    private static class TemplateInfo {
+        String template;
+        int count;
+
+        TemplateInfo(String template, int count) {
+            this.template = template;
+            this.count = count;
+        }
+
+        void incrementCount() {
+            this.count++;
+        }
+    }
+
+    /**
+     * Enhanced helper class to store template information with temporal offset
+     * tracking.
+     * Tracks whether users typically enter current month (offset=0) or future month
+     * (offset=+1).
+     */
+    private static class TemplateInfoWithOffset {
+        String template;
+        int count;
+        List<Integer> monthOffsets; // Track all observed month offsets
+
+        TemplateInfoWithOffset(String template, int count) {
+            this.template = template;
+            this.count = count;
+            this.monthOffsets = new ArrayList<>();
+        }
+
+        void incrementCount() {
+            this.count++;
+        }
+
+        void addMonthOffset(int offset) {
+            this.monthOffsets.add(offset);
+        }
+
+        /**
+         * Calculate the most common month offset for this pattern.
+         * Returns the average offset rounded to nearest integer.
+         * 
+         * @return Average month offset (0 = current month, +1 = next month, -1 =
+         *         previous month)
+         */
+        int getAverageMonthOffset() {
+            if (monthOffsets.isEmpty()) {
+                return 0; // Default to current month
+            }
+
+            // Calculate average
+            double sum = 0;
+            for (int offset : monthOffsets) {
+                sum += offset;
+            }
+            double average = sum / monthOffsets.size();
+
+            // Round to nearest integer
+            return (int) Math.round(average);
+        }
     }
 
     /**
