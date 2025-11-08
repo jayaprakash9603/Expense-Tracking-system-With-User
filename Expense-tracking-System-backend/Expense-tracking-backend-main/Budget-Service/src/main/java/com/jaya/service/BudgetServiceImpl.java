@@ -8,8 +8,11 @@ import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
 import com.jaya.repository.BudgetRepository;
 import com.jaya.util.ServiceHelper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +31,9 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Autowired
     private BudgetRepository budgetRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private ServiceHelper helper;
@@ -187,6 +193,7 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "budgets", allEntries = true)
     public Budget editBudget(Integer budgetId, Budget budget, Integer userId) throws Exception {
         Optional<Budget> existingBudgetOpt = budgetRepository.findByUserIdAndId(userId, budgetId);
 
@@ -259,10 +266,18 @@ public class BudgetServiceImpl implements BudgetService {
 
         Budget savedBudget = budgetRepository.save(existingBudget);
 
-        // Check budget thresholds after editing
-        checkAndSendThresholdNotifications(savedBudget, userId);
+        // Force flush and clear to ensure database update
+        entityManager.flush();
+        entityManager.clear();
 
-        return savedBudget;
+        // Refetch to get fresh data
+        Optional<Budget> refreshedBudget = budgetRepository.findByUserIdAndId(userId, budgetId);
+        Budget finalBudget = refreshedBudget.orElse(savedBudget);
+
+        // Check budget thresholds after editing
+        checkAndSendThresholdNotifications(finalBudget, userId);
+
+        return finalBudget;
     }
 
     @Override

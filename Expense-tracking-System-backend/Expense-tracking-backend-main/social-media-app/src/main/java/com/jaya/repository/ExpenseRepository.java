@@ -245,7 +245,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         @Param("maxAmount") Double maxAmount);
 
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = ?1 AND e.expense.expenseName = ?2 AND e.date < ?3 ORDER BY e.date DESC")
-        List<Expense> findByUserAndExpenseNameBeforeDate(Integer userId, String expenseName, LocalDate date, Pageable pageable);
+        List<Expense> findByUserAndExpenseNameBeforeDate(Integer userId, String expenseName, LocalDate date,
+                        Pageable pageable);
 
         @Query("SELECT ed.expenseName, SUM(ed.amount) as total " +
                         "FROM Expense e JOIN e.expense ed " +
