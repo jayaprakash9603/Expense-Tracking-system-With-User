@@ -272,8 +272,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return comments.get(0);
         }
 
-        // Map to store prefix -> frequency count
-        Map<String, Integer> prefixFrequency = new HashMap<>();
+        // Map to store normalized prefix (lowercase) -> original prefix with count
+        Map<String, PrefixInfo> prefixFrequency = new HashMap<>();
 
         // For each comment, extract all word-based prefixes
         for (String comment : comments) {
@@ -290,7 +290,14 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 // Only consider prefixes with at least 2 words for meaningful suggestions
                 if (i >= 1) {
                     String currentPrefix = prefix.toString();
-                    prefixFrequency.merge(currentPrefix, 1, Integer::sum);
+                    String normalizedKey = currentPrefix.toLowerCase();
+
+                    PrefixInfo info = prefixFrequency.get(normalizedKey);
+                    if (info == null) {
+                        prefixFrequency.put(normalizedKey, new PrefixInfo(currentPrefix, 1));
+                    } else {
+                        info.incrementCount();
+                    }
                 }
             }
         }
@@ -300,7 +307,15 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             for (String comment : comments) {
                 String[] words = comment.split("\\s+");
                 if (words.length > 0) {
-                    prefixFrequency.merge(words[0], 1, Integer::sum);
+                    String word = words[0];
+                    String normalizedKey = word.toLowerCase();
+
+                    PrefixInfo info = prefixFrequency.get(normalizedKey);
+                    if (info == null) {
+                        prefixFrequency.put(normalizedKey, new PrefixInfo(word, 1));
+                    } else {
+                        info.incrementCount();
+                    }
                 }
             }
         }
@@ -315,13 +330,30 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         // 3. Must appear in at least 30% of comments to be meaningful
         int minFrequencyThreshold = Math.max(2, comments.size() / 3);
 
-        return prefixFrequency.entrySet().stream()
-                .filter(entry -> entry.getValue() >= minFrequencyThreshold)
+        return prefixFrequency.values().stream()
+                .filter(info -> info.count >= minFrequencyThreshold)
                 .max(Comparator
-                        .comparingInt(Map.Entry<String, Integer>::getValue)
-                        .thenComparingInt(e -> e.getKey().length()))
-                .map(Map.Entry::getKey)
+                        .comparingInt((PrefixInfo info) -> info.count)
+                        .thenComparingInt(info -> info.originalPrefix.length()))
+                .map(info -> info.originalPrefix)
                 .orElse(null);
+    }
+
+    /**
+     * Helper class to store prefix information with case-insensitive matching
+     */
+    private static class PrefixInfo {
+        String originalPrefix;
+        int count;
+
+        PrefixInfo(String originalPrefix, int count) {
+            this.originalPrefix = originalPrefix;
+            this.count = count;
+        }
+
+        void incrementCount() {
+            this.count++;
+        }
     }
 
     @Override
