@@ -21,6 +21,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +39,10 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseReportRepository expenseReportRepository;
+
+    // Thread pool for parallel processing - optimized for I/O-bound operations
+    private final ExecutorService executorService = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors() * 2);
 
     @Autowired
     private BudgetServices budgetService;
@@ -212,18 +219,38 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         Expense result = expensesBeforeDate.get(0);
 
-        // Use the already-fetched list instead of re-querying
-        Map<String, Object> stats = computeFieldFrequency(expensesBeforeDate, "category");
-        Map<String, Object> typeStats = computeFieldFrequency(expensesBeforeDate, "type");
-        Map<String, Object> paymentStats = computeFieldFrequency(expensesBeforeDate, "paymentmethod");
+        // OPTIMIZED: Execute all frequency computations in parallel using
+        // CompletableFuture
+        CompletableFuture<Map<String, Object>> categoryStatsFuture = CompletableFuture.supplyAsync(
+                () -> computeFieldFrequency(expensesBeforeDate, "category"),
+                executorService);
+
+        CompletableFuture<Map<String, Object>> typeStatsFuture = CompletableFuture.supplyAsync(
+                () -> computeFieldFrequency(expensesBeforeDate, "type"),
+                executorService);
+
+        CompletableFuture<Map<String, Object>> paymentStatsFuture = CompletableFuture.supplyAsync(
+                () -> computeFieldFrequency(expensesBeforeDate, "paymentmethod"),
+                executorService);
+
+        CompletableFuture<String> commentSuggestionFuture = CompletableFuture.supplyAsync(
+                () -> findMostCommonCommentPrefix(expensesBeforeDate, date),
+                executorService);
+
+        // Wait for all parallel operations to complete
+        CompletableFuture.allOf(categoryStatsFuture, typeStatsFuture, paymentStatsFuture, commentSuggestionFuture)
+                .join();
+
+        // Retrieve results from futures
+        Map<String, Object> stats = categoryStatsFuture.join();
+        Map<String, Object> typeStats = typeStatsFuture.join();
+        Map<String, Object> paymentStats = paymentStatsFuture.join();
+        String suggestedComment = commentSuggestionFuture.join();
+
         String topCategory = (String) stats.get("mostUsed");
         Integer topCategoryId = (Integer) stats.get("mostUsedId");
         String topType = (String) typeStats.get("mostUsed");
         String topPaymentMethod = (String) paymentStats.get("mostUsed");
-
-        // Find most common comment prefix for auto-suggestion with intelligent month
-        // detection
-        String suggestedComment = findMostCommonCommentPrefix(expensesBeforeDate, date);
 
         // Set fields safely
         result.setCategoryName(topCategory);
@@ -265,8 +292,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return null;
         }
 
-        // Extract all non-empty comments
-        List<String> comments = expenses.stream()
+        // OPTIMIZED: Use parallel stream for faster filtering
+        List<String> comments = expenses.parallelStream()
                 .filter(e -> e.getExpense() != null && e.getExpense().getComments() != null)
                 .map(e -> e.getExpense().getComments().trim())
                 .filter(c -> !c.isEmpty())
@@ -915,44 +942,49 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }
 
         String normalized = fieldName.trim().toLowerCase();
+
+        // OPTIMIZED: Use parallel stream for faster processing on large datasets
         Map<String, Long> counts = new HashMap<>();
-        Map<String, Integer> valueIds = new HashMap<>(); // name/value -> id (where applicable)
+        Map<String, Integer> valueIds = new HashMap<>();
 
-        for (Expense e : expenses) {
-            if (e == null)
-                continue;
-            String value = extractFieldValue(e, normalized);
-            Integer id = null;
+        // Process expenses in parallel and collect results
+        expenses.parallelStream()
+                .filter(e -> e != null)
+                .forEach(e -> {
+                    String value = extractFieldValue(e, normalized);
+                    Integer id = null;
 
-            if ("category".equals(normalized) || "categoryid".equals(normalized)) {
-                // Prefer categoryId from entity
-                if (e.getCategoryId() != null) {
-                    id = e.getCategoryId();
-                }
-                // If name resolved from service and id missing, try again
-                if (id == null && e.getCategoryId() != null) {
-                    id = e.getCategoryId();
-                }
-            } else if ("paymentmethod".equals(normalized)) {
-                if (e.getExpense() != null && e.getExpense().getPaymentMethod() != null) {
-                    try {
-                        PaymentMethod pm = paymentMethodService.getByNameWithService(e.getUserId(),
-                                e.getExpense().getPaymentMethod());
-                        if (pm != null)
-                            id = pm.getId();
-                    } catch (Exception ignored) {
+                    if ("category".equals(normalized) || "categoryid".equals(normalized)) {
+                        if (e.getCategoryId() != null) {
+                            id = e.getCategoryId();
+                        }
+                    } else if ("paymentmethod".equals(normalized)) {
+                        if (e.getExpense() != null && e.getExpense().getPaymentMethod() != null) {
+                            try {
+                                PaymentMethod pm = paymentMethodService.getByNameWithService(e.getUserId(),
+                                        e.getExpense().getPaymentMethod());
+                                if (pm != null)
+                                    id = pm.getId();
+                            } catch (Exception ignored) {
+                            }
+                        }
                     }
-                }
-            }
 
-            if (value == null || value.isEmpty()) {
-                value = "Unknown";
-            }
-            counts.merge(value, 1L, Long::sum);
-            if (id != null) {
-                valueIds.putIfAbsent(value, id);
-            }
-        }
+                    if (value == null || value.isEmpty()) {
+                        value = "Unknown";
+                    }
+
+                    // Thread-safe operations using synchronized blocks
+                    synchronized (counts) {
+                        counts.merge(value, 1L, Long::sum);
+                    }
+
+                    if (id != null) {
+                        synchronized (valueIds) {
+                            valueIds.putIfAbsent(value, id);
+                        }
+                    }
+                });
 
         LinkedHashMap<String, Long> sorted = counts.entrySet().stream()
                 .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))

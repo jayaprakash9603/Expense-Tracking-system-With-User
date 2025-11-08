@@ -1293,7 +1293,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
         {budgetError && (
           <div className="text-red-500 text-sm mt-4">
-            Error: {budgetError.message || "Failed to load budgets."}
+            Error: {typeof budgetError === 'string' ? budgetError : (budgetError.message || budgetError.error || "Failed to load budgets.")}
           </div>
         )}
 
