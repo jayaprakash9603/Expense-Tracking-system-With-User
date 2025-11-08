@@ -200,27 +200,34 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Override
     public Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date) {
 
+        // Limit to last 50 expenses for performance - enough for meaningful statistics
+        Pageable pageable = PageRequest.of(0, 50);
         List<Expense> expensesBeforeDate = expenseRepository.findByUserAndExpenseNameBeforeDate(userId, expenseName,
-                date);
-        Expense created = new Expense();
-        ExpenseDetails details = new ExpenseDetails();
+                date, pageable);
+
+        // Handle empty list case
+        if (expensesBeforeDate == null || expensesBeforeDate.isEmpty()) {
+            return null;
+        }
+
         Expense result = expensesBeforeDate.get(0);
 
-        Map<String, Integer> expenseData = new HashMap<>();
-
-        List<Expense> list = searchExpensesByName(expenseName, userId);
-        Map<String, Object> stats = computeFieldFrequency(list, "category");
-        Map<String, Object> typeStats = computeFieldFrequency(list, "type");
-        Map<String, Object> paymentStats = computeFieldFrequency(list, "paymentmethod");
+        // Use the already-fetched list instead of re-querying
+        Map<String, Object> stats = computeFieldFrequency(expensesBeforeDate, "category");
+        Map<String, Object> typeStats = computeFieldFrequency(expensesBeforeDate, "type");
+        Map<String, Object> paymentStats = computeFieldFrequency(expensesBeforeDate, "paymentmethod");
         String topCategory = (String) stats.get("mostUsed");
         Integer topCategoryId = (Integer) stats.get("mostUsedId");
         String topType = (String) typeStats.get("mostUsed");
         String topPaymentMethod = (String) paymentStats.get("mostUsed");
+
+        // Set fields safely
         result.setCategoryName(topCategory);
         result.setCategoryId(topCategoryId);
-        result.getExpense().setType(topType);  
-        result.getExpense().setPaymentMethod(topPaymentMethod); 
-       
+        if (result.getExpense() != null) {
+            result.getExpense().setType(topType);
+            result.getExpense().setPaymentMethod(topPaymentMethod);
+        }
 
         return result;
     }

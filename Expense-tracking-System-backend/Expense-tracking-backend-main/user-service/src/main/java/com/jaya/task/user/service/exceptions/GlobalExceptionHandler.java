@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -62,6 +63,19 @@ public class GlobalExceptionHandler {
         Map<String, Object> errorResponse = createErrorResponse(
                 HttpStatus.UNAUTHORIZED,
                 "Invalid token signature.",
+                request.getDescription(false)
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingHeaderException(
+            MissingRequestHeaderException ex, WebRequest request) {
+
+        Map<String, Object> errorResponse = createErrorResponse(
+                HttpStatus.UNAUTHORIZED,
+                ex.getMessage(),
                 request.getDescription(false)
         );
 

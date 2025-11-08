@@ -10,6 +10,8 @@ import com.jaya.service.*;
 import com.jaya.util.UserPermissionHelper;
 import com.jaya.util.BulkProgressTracker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
@@ -40,6 +42,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/expenses")
 public class ExpenseController extends BaseExpenseController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ExpenseController.class);
 
     public static final String INVALID_OR_EXPIRED_TOKEN = "Invalid or expired token";
     private final ExpenseService expenseService;
@@ -320,7 +324,7 @@ public class ExpenseController extends BaseExpenseController {
         Expense updatedExpense = expenseService.updateExpense(id, expense, targetUser.getId());
 
         // Send notification asynchronously
-        expenseNotificationService.sendExpenseUpdatedNotification(updatedExpense);
+        // expenseNotificationService.sendExpenseUpdatedNotification(updatedExpense);
 
         return ResponseEntity.ok(updatedExpense);
 
@@ -2118,14 +2122,14 @@ public class ExpenseController extends BaseExpenseController {
             User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
             Expense expense = expenseService.getExpenseBeforeDateValidated(targetUser.getId(), expenseName, date);
             if (expense == null) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("No expense found with name '" + expenseName + "' before date " + date);
             }
             return ResponseEntity.ok(expense);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         } catch (Exception e) {
-            System.out.println("Error retrieving expense before date: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error retrieving expense before date: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error retrieving expense before date: " + e.getMessage());
         }

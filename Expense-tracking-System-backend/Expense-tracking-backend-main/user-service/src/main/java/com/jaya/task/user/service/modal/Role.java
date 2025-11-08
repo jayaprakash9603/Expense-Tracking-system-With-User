@@ -21,7 +21,7 @@ public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @NotBlank(message = "Role name is mandatory")
     @Size(min = 2, max = 50, message = "Role name must be between 2 and 50 characters")

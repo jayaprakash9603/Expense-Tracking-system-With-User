@@ -15,6 +15,6 @@ public interface UserService {
     public User getuserProfile(@RequestHeader("Authorization") String jwt);
 
 
-    @GetMapping("/auth/{userId}")
+    @GetMapping("/auth/user/{userId}")
     public User getUserProfileById(@PathVariable("userId") Integer id) throws UserNotFoundException;
 }

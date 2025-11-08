@@ -1,6 +1,7 @@
 package com.jaya.task.user.service.service;
 
 import com.jaya.task.user.service.config.JwtProvider;
+import com.jaya.task.user.service.exceptions.UserAlreadyExistsException;
 import com.jaya.task.user.service.modal.Role;
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.repository.RoleRepository;
@@ -170,7 +171,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public void deleteUser(Long userId) throws AccessDeniedException {
+    public void deleteUser(Integer userId) throws AccessDeniedException {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User is not present");
@@ -215,7 +216,7 @@ public class UserServiceImplementation implements UserService {
             throw new IllegalArgumentException("Password is required");
 
         if (userRepository.findByEmail(email) != null) {
-            throw new RuntimeException("User already exists with email: " + email);
+            throw new UserAlreadyExistsException("User already exists with email: " + email);
         }
 
         User newUser = new User();

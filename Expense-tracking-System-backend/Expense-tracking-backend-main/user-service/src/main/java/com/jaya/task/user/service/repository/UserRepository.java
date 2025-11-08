@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Integer> {
 
     @EntityGraph(attributePaths = "roles")
     User findByEmail(String email);
@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Custom query to fetch user by ID with roles
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.id = :id")
-    User findByIdWithRoles(@Param("id") Long id);
+    User findByIdWithRoles(@Param("id") Integer id);
 
     // Find all users with roles
     @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles")
