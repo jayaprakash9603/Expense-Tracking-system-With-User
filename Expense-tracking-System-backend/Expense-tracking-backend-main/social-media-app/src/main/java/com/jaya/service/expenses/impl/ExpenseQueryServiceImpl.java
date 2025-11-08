@@ -398,10 +398,18 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
             // Replace all month names with {MONTH} placeholder
             String template = replaceMonthsWithPlaceholder(comment);
+
+            // Replace other variable parts (locations, apps, items, etc.)
+            template = replaceVariablePartsWithPlaceholders(template);
+
             String extractedMonth = extractMonthFromComment(comment);
 
-            // Only consider if we actually found and replaced a month
-            if (!template.equals(comment) && template.contains("{MONTH}") && extractedMonth != null) {
+            // Only consider if we actually found and replaced something
+            if (!template.equals(comment) &&
+                    (template.contains("{MONTH}") || template.contains("{LOCATION}") ||
+                            template.contains("{APP}") || template.contains("{ITEM}") ||
+                            template.contains("{PERSON}"))) {
+
                 String templateKey = template.toLowerCase();
                 TemplateInfoWithOffset info = templateFrequency.get(templateKey);
 
@@ -412,19 +420,24 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
                 info.incrementCount();
 
-                // Calculate month offset: How many months ahead was the mentioned month?
-                int mentionedMonthValue = getMonthNumber(extractedMonth);
-                int entryMonthValue = expenseEntryDate.getMonthValue();
+                // Calculate month offset only if there's a month in the comment
+                if (extractedMonth != null && template.contains("{MONTH}")) {
+                    int mentionedMonthValue = getMonthNumber(extractedMonth);
+                    int entryMonthValue = expenseEntryDate.getMonthValue();
 
-                // Calculate offset (handling year wrapping)
-                int monthOffset = mentionedMonthValue - entryMonthValue;
-                if (monthOffset < -6) {
-                    monthOffset += 12; // Wrapped to next year
-                } else if (monthOffset > 6) {
-                    monthOffset -= 12; // Wrapped from previous year
+                    // Calculate offset (handling year wrapping)
+                    int monthOffset = mentionedMonthValue - entryMonthValue;
+                    if (monthOffset < -6) {
+                        monthOffset += 12; // Wrapped to next year
+                    } else if (monthOffset > 6) {
+                        monthOffset -= 12; // Wrapped from previous year
+                    }
+
+                    info.addMonthOffset(monthOffset);
                 }
 
-                info.addMonthOffset(monthOffset);
+                // Store the original comment for learning common values
+                info.addOriginalComment(comment);
             }
         }
 
@@ -445,16 +458,51 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return null;
         }
 
-        // Determine the most common month offset for this pattern
-        int avgMonthOffset = bestTemplate.getAverageMonthOffset();
+        // Build the suggested comment by replacing placeholders
+        String suggestion = bestTemplate.template;
 
-        // Apply offset to current expense date
-        LocalDate targetDate = expenseDate.plusMonths(avgMonthOffset);
-        String targetMonthName = targetDate.getMonth().toString();
-        targetMonthName = targetMonthName.charAt(0) + targetMonthName.substring(1).toLowerCase();
+        // Replace {MONTH} with appropriate month (considering offset)
+        if (suggestion.contains("{MONTH}")) {
+            int avgMonthOffset = bestTemplate.getAverageMonthOffset();
+            LocalDate targetDate = expenseDate.plusMonths(avgMonthOffset);
+            String targetMonthName = targetDate.getMonth().toString();
+            targetMonthName = targetMonthName.charAt(0) + targetMonthName.substring(1).toLowerCase();
+            suggestion = suggestion.replace("{MONTH}", targetMonthName);
+        }
 
-        // Replace {MONTH} placeholder with target month name
-        return bestTemplate.template.replace("{MONTH}", targetMonthName);
+        // Replace {LOCATION} with most common location
+        if (suggestion.contains("{LOCATION}")) {
+            String commonLocation = bestTemplate.getMostCommonValueForPlaceholder("location");
+            if (commonLocation != null) {
+                suggestion = suggestion.replace("{LOCATION}", commonLocation);
+            }
+        }
+
+        // Replace {APP} with most common app
+        if (suggestion.contains("{APP}")) {
+            String commonApp = bestTemplate.getMostCommonValueForPlaceholder("app");
+            if (commonApp != null) {
+                suggestion = suggestion.replace("{APP}", commonApp);
+            }
+        }
+
+        // Replace {ITEM} with most common item
+        if (suggestion.contains("{ITEM}")) {
+            String commonItem = bestTemplate.getMostCommonValueForPlaceholder("item");
+            if (commonItem != null) {
+                suggestion = suggestion.replace("{ITEM}", commonItem);
+            }
+        }
+
+        // Replace {PERSON} with most common person
+        if (suggestion.contains("{PERSON}")) {
+            String commonPerson = bestTemplate.getMostCommonValueForPlaceholder("person");
+            if (commonPerson != null) {
+                suggestion = suggestion.replace("{PERSON}", commonPerson);
+            }
+        }
+
+        return suggestion;
     }
 
     /**
@@ -529,6 +577,60 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         for (String month : months) {
             // Case-insensitive replacement but preserve surrounding text structure
             result = result.replaceAll("(?i)\\b" + month + "\\b", "{MONTH}");
+        }
+
+        return result;
+    }
+
+    /**
+     * Replace variable parts (locations, apps, items, etc.) with placeholders.
+     * This creates more flexible pattern templates beyond just months.
+     * 
+     * @param text Input text
+     * @return Text with variable parts replaced by placeholders
+     */
+    private String replaceVariablePartsWithPlaceholders(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        String result = text;
+
+        // Common locations (from auto charges patterns)
+        String[] locations = {
+                "Seasons Mall", "seasons mall", "Avenue Mall", "avenue mall",
+                "Dmart", "dmart", "DMart", "Movie Theatre", "movie theatre",
+                "railway station", "Railway Station", "Pune Station", "pune station",
+                "Hotel", "hotel", "pg", "PG"
+        };
+        for (String location : locations) {
+            result = result.replaceAll("(?i)\\b" + location + "\\b", "{LOCATION}");
+        }
+
+        // Common apps (from cashback patterns)
+        String[] apps = {
+                "KIWI", "Kiwi", "kiwi", "CRED", "Cred", "cred",
+                "Google Pay", "google pay", "Super Money", "super money",
+                "Jupiter", "jupiter"
+        };
+        for (String app : apps) {
+            result = result.replaceAll("(?i)\\b" + app + "\\b", "{APP}");
+        }
+
+        // Common items (from shopping patterns)
+        String[] items = {
+                "Bread Jam", "bread jam", "Bread-Jam", "bread-jam",
+                "Dry Fruits", "dry fruits", "Dry fruits",
+                "Bread and Jam", "bread and jam"
+        };
+        for (String item : items) {
+            result = result.replaceAll("(?i)" + item, "{ITEM}");
+        }
+
+        // Common people
+        String[] people = { "Mother", "mother", "Daddy", "daddy" };
+        for (String person : people) {
+            result = result.replaceAll("(?i)\\b" + person + "\\b", "{PERSON}");
         }
 
         return result;
@@ -631,16 +733,19 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
      * tracking.
      * Tracks whether users typically enter current month (offset=0) or future month
      * (offset=+1).
+     * Also stores original comments to learn most common values for placeholders.
      */
     private static class TemplateInfoWithOffset {
         String template;
         int count;
         List<Integer> monthOffsets; // Track all observed month offsets
+        List<String> originalComments; // Store original comments to extract common values
 
         TemplateInfoWithOffset(String template, int count) {
             this.template = template;
             this.count = count;
             this.monthOffsets = new ArrayList<>();
+            this.originalComments = new ArrayList<>();
         }
 
         void incrementCount() {
@@ -649,6 +754,12 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         void addMonthOffset(int offset) {
             this.monthOffsets.add(offset);
+        }
+
+        void addOriginalComment(String comment) {
+            if (comment != null && !comment.isEmpty()) {
+                this.originalComments.add(comment);
+            }
         }
 
         /**
@@ -672,6 +783,100 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
             // Round to nearest integer
             return (int) Math.round(average);
+        }
+
+        /**
+         * Extract the most common value for a specific placeholder type.
+         * Analyzes original comments to find frequently used locations, apps, items,
+         * etc.
+         * 
+         * @param placeholderType Type of placeholder: "location", "app", "item",
+         *                        "person"
+         * @return Most common value for this placeholder, or null if none found
+         */
+        String getMostCommonValueForPlaceholder(String placeholderType) {
+            if (originalComments.isEmpty()) {
+                return null;
+            }
+
+            Map<String, Integer> valueFrequency = new HashMap<>();
+
+            for (String comment : originalComments) {
+                List<String> values = extractValuesForPlaceholder(comment, placeholderType);
+                for (String value : values) {
+                    valueFrequency.put(value, valueFrequency.getOrDefault(value, 0) + 1);
+                }
+            }
+
+            // Find most common value
+            return valueFrequency.entrySet().stream()
+                    .max(Comparator.comparingInt(Map.Entry::getValue))
+                    .map(Map.Entry::getKey)
+                    .orElse(null);
+        }
+
+        /**
+         * Extract values from comment for a specific placeholder type.
+         */
+        private List<String> extractValuesForPlaceholder(String comment, String placeholderType) {
+            List<String> values = new ArrayList<>();
+
+            if (comment == null || comment.isEmpty()) {
+                return values;
+            }
+
+            switch (placeholderType.toLowerCase()) {
+                case "location":
+                    String[] locations = {
+                            "Seasons Mall", "seasons mall", "Avenue Mall", "avenue mall",
+                            "Dmart", "dmart", "DMart", "Movie Theatre", "movie theatre",
+                            "railway station", "Railway Station", "Pune Station", "pune station",
+                            "Hotel", "hotel", "pg", "PG"
+                    };
+                    for (String loc : locations) {
+                        if (comment.matches("(?i).*\\b" + loc + "\\b.*")) {
+                            values.add(loc);
+                        }
+                    }
+                    break;
+
+                case "app":
+                    String[] apps = {
+                            "KIWI", "Kiwi", "kiwi", "CRED", "Cred", "cred",
+                            "Google Pay", "google pay", "Super Money", "super money",
+                            "Jupiter", "jupiter"
+                    };
+                    for (String app : apps) {
+                        if (comment.matches("(?i).*\\b" + app + "\\b.*")) {
+                            values.add(app);
+                        }
+                    }
+                    break;
+
+                case "item":
+                    String[] items = {
+                            "Bread Jam", "bread jam", "Bread-Jam", "bread-jam",
+                            "Dry Fruits", "dry fruits", "Dry fruits",
+                            "Bread and Jam", "bread and jam"
+                    };
+                    for (String item : items) {
+                        if (comment.matches("(?i).*" + item + ".*")) {
+                            values.add(item);
+                        }
+                    }
+                    break;
+
+                case "person":
+                    String[] people = { "Mother", "mother", "Daddy", "daddy" };
+                    for (String person : people) {
+                        if (comment.matches("(?i).*\\b" + person + "\\b.*")) {
+                            values.add(person);
+                        }
+                    }
+                    break;
+            }
+
+            return values;
         }
     }
 
