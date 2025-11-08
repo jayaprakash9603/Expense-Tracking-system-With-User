@@ -64,6 +64,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     category: false,
     paymentMethod: false,
     transactionType: false,
+    comments: false,
   });
   const [lastAutoFilledExpenseName, setLastAutoFilledExpenseName] =
     useState("");
@@ -71,6 +72,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     category: false,
     paymentMethod: false,
     transactionType: false,
+    comments: false,
   });
   // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
@@ -97,6 +99,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           category: false,
           paymentMethod: false,
           transactionType: false,
+          comments: false,
         });
       }
       return;
@@ -147,6 +150,26 @@ const NewExpense = ({ onClose, onSuccess }) => {
         newAutoFilled.transactionType = true;
       }
 
+      // Auto-populate comments if:
+      // - Previous expense has comments AND
+      // - (Current is empty OR expense name changed and user hasn't manually modified it)
+      if (
+        previousExpense.expense?.comments &&
+        (!expenseData.comments ||
+          (isNewExpenseName && !userModifiedFields.comments))
+      ) {
+        updates.comments = previousExpense.expense.comments;
+        newAutoFilled.comments = true;
+      } else if (
+        !previousExpense.expense?.comments &&
+        isNewExpenseName &&
+        !userModifiedFields.comments
+      ) {
+        // Clear comments if no suggestion available for new expense name
+        updates.comments = "";
+        newAutoFilled.comments = false;
+      }
+
       // Apply updates if any
       if (Object.keys(updates).length > 0) {
         setExpenseData((prev) => ({ ...prev, ...updates }));
@@ -159,6 +182,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             category: false,
             paymentMethod: false,
             transactionType: false,
+            comments: false,
           });
         }
 
@@ -168,6 +192,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             category: false,
             paymentMethod: false,
             transactionType: false,
+            comments: false,
           });
         }, 3000);
       }
@@ -311,7 +336,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
   };
   const renderInput = (id, type = "text", isTextarea = false) => (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+      <div className="flex items-start relative">
         <label
           htmlFor={id}
           style={{
@@ -319,6 +344,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             color: colors.primary_text,
             fontSize: "0.875rem",
             fontWeight: "600",
+            paddingTop: isTextarea ? "8px" : "0px",
           }}
         >
           {id
@@ -328,40 +354,79 @@ const NewExpense = ({ onClose, onSuccess }) => {
             id
           ) && <span className="text-red-500"> *</span>}
         </label>
-        {isTextarea ? (
-          <textarea
-            id={id}
-            name={id}
-            value={expenseData[id]}
-            onChange={handleInputChange}
-            placeholder={`Enter ${id}`}
-            rows="3"
-            className={fieldStyles}
-            style={{
-              height: "80px",
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-              borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
-              borderWidth: errors[id] ? "2px" : "1px",
-            }}
-          />
-        ) : (
-          <input
-            id={id}
-            name={id}
-            type={type}
-            value={expenseData[id]}
-            onChange={handleInputChange}
-            placeholder={`Enter ${id}`}
-            className={fieldStyles}
-            style={{
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-              borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
-              borderWidth: errors[id] ? "2px" : "1px",
-            }}
-          />
-        )}
+        <div
+          className="relative flex-1"
+          style={{ maxWidth: isTextarea ? "100%" : "300px" }}
+        >
+          {id === "comments" && autoFilledFields.comments && (
+            <div
+              className="absolute top-[-20px] left-[300px]"
+              style={{
+                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
+                color: "#fff",
+                fontSize: "0.65rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                fontWeight: "600",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                zIndex: 10,
+              }}
+            >
+              Auto-filled
+            </div>
+          )}
+          {isTextarea ? (
+            <textarea
+              id={id}
+              name={id}
+              value={expenseData[id]}
+              onChange={(e) => {
+                handleInputChange(e);
+                // Mark comments as user-modified when manually edited
+                if (id === "comments") {
+                  setUserModifiedFields((prev) => ({
+                    ...prev,
+                    comments: true,
+                  }));
+                  if (autoFilledFields.comments) {
+                    setAutoFilledFields((prev) => ({
+                      ...prev,
+                      comments: false,
+                    }));
+                  }
+                }
+              }}
+              placeholder={`Enter ${id}`}
+              rows="3"
+              className={fieldStyles}
+              style={{
+                height: "80px",
+                backgroundColor: colors.primary_bg,
+                color: colors.primary_text,
+                borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
+                borderWidth: errors[id] ? "2px" : "1px",
+                width: "100%",
+              }}
+            />
+          ) : (
+            <input
+              id={id}
+              name={id}
+              type={type}
+              value={expenseData[id]}
+              onChange={handleInputChange}
+              placeholder={`Enter ${id}`}
+              className={fieldStyles}
+              style={{
+                backgroundColor: colors.primary_bg,
+                color: colors.primary_text,
+                borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
+                borderWidth: errors[id] ? "2px" : "1px",
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

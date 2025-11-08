@@ -221,18 +221,109 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         String topType = (String) typeStats.get("mostUsed");
         String topPaymentMethod = (String) paymentStats.get("mostUsed");
 
+        // Find most common comment prefix for auto-suggestion
+        String suggestedComment = findMostCommonCommentPrefix(expensesBeforeDate);
+
         // Set fields safely
         result.setCategoryName(topCategory);
         result.setCategoryId(topCategoryId);
         if (result.getExpense() != null) {
             result.getExpense().setType(topType);
             result.getExpense().setPaymentMethod(topPaymentMethod);
+
+            // Set suggested comment if found
+            if (suggestedComment != null && !suggestedComment.isEmpty()) {
+                result.getExpense().setComments(suggestedComment);
+            }
         }
 
         return result;
     }
 
-    // ...existing code...
+    /**
+     * Find the most commonly used comment prefix from a list of expenses.
+     * This helps provide auto-completion suggestions to users.
+     * 
+     * Algorithm:
+     * 1. Extract all non-empty comments
+     * 2. Normalize them (trim, handle case)
+     * 3. Find all possible prefixes (word-by-word)
+     * 4. Count frequency of each prefix
+     * 5. Return the longest prefix with highest frequency
+     */
+    private String findMostCommonCommentPrefix(List<Expense> expenses) {
+        if (expenses == null || expenses.isEmpty()) {
+            return null;
+        }
+
+        // Extract all non-empty comments
+        List<String> comments = expenses.stream()
+                .filter(e -> e.getExpense() != null && e.getExpense().getComments() != null)
+                .map(e -> e.getExpense().getComments().trim())
+                .filter(c -> !c.isEmpty())
+                .collect(Collectors.toList());
+
+        if (comments.isEmpty()) {
+            return null;
+        }
+
+        // If only one comment, return it as-is
+        if (comments.size() == 1) {
+            return comments.get(0);
+        }
+
+        // Map to store prefix -> frequency count
+        Map<String, Integer> prefixFrequency = new HashMap<>();
+
+        // For each comment, extract all word-based prefixes
+        for (String comment : comments) {
+            String[] words = comment.split("\\s+");
+            StringBuilder prefix = new StringBuilder();
+
+            // Build prefixes word by word
+            for (int i = 0; i < words.length; i++) {
+                if (i > 0) {
+                    prefix.append(" ");
+                }
+                prefix.append(words[i]);
+
+                // Only consider prefixes with at least 2 words for meaningful suggestions
+                if (i >= 1) {
+                    String currentPrefix = prefix.toString();
+                    prefixFrequency.merge(currentPrefix, 1, Integer::sum);
+                }
+            }
+        }
+
+        // If no multi-word prefixes found, try single words
+        if (prefixFrequency.isEmpty()) {
+            for (String comment : comments) {
+                String[] words = comment.split("\\s+");
+                if (words.length > 0) {
+                    prefixFrequency.merge(words[0], 1, Integer::sum);
+                }
+            }
+        }
+
+        if (prefixFrequency.isEmpty()) {
+            return null;
+        }
+
+        // Find the best prefix based on:
+        // 1. Highest frequency
+        // 2. Longest length (if frequencies are equal)
+        // 3. Must appear in at least 30% of comments to be meaningful
+        int minFrequencyThreshold = Math.max(2, comments.size() / 3);
+
+        return prefixFrequency.entrySet().stream()
+                .filter(entry -> entry.getValue() >= minFrequencyThreshold)
+                .max(Comparator
+                        .comparingInt(Map.Entry<String, Integer>::getValue)
+                        .thenComparingInt(e -> e.getKey().length()))
+                .map(Map.Entry::getKey)
+                .orElse(null);
+    }
+
     @Override
     public Map<String, Object> computeFieldFrequency(List<Expense> expenses, String fieldName) {
         Map<String, Object> result = new HashMap<>();
