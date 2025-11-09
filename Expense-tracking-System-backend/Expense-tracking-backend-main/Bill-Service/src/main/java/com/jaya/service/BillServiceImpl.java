@@ -271,10 +271,29 @@ public class BillServiceImpl implements BillService {
     @Override
     public String deleteAllBillsForUser(Integer userId) throws Exception {
         helper.validateUser(userId);
-        List<Bill>getAllUserBills=billRepository.findByUserId(userId);
+        List<Bill> getAllUserBills = billRepository.findByUserId(userId);
+        
+        // Extract expense IDs before deleting bills, filtering out nulls
+        List<Integer> expenseIds = getAllUserBills.stream()
+                .map(Bill::getExpenseId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        // Delete all bills first
         getAllUserBills.forEach(bill -> billRepository.deleteById(bill.getId()));
-        List<Integer>expenseIds=getAllUserBills.stream().map(Bill::getExpenseId).collect(Collectors.toList());
-        expenseService.deleteExpensesByIdsWithBillService(expenseIds, userId);
+        
+        // Only try to delete expenses if there are valid expense IDs
+        if (!expenseIds.isEmpty()) {
+            try {
+                expenseService.deleteExpensesByIdsWithBillService(expenseIds, userId);
+            } catch (Exception e) {
+                // Log the error but don't fail the entire operation
+                System.err.println("Warning: Failed to delete some expenses: " + e.getMessage());
+                // Bills are already deleted, so we can continue
+            }
+        }
+        
         return "All bills are deleted successfully";
     }
 
