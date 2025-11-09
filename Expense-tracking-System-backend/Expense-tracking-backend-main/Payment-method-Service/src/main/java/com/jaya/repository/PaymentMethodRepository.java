@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, Integer> {
 
-    PaymentMethod findByUserIdAndId(Integer userId, Integer id);
+    Optional<PaymentMethod> findByUserIdAndId(Integer userId, Integer id);
 
 
     List<PaymentMethod> findByUserId(@Param("userId") Integer userId);

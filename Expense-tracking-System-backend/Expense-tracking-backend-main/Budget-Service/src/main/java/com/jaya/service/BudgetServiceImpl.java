@@ -47,74 +47,28 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public Budget createBudget(Budget budget, Integer userId) throws Exception {
-        if (budget.getStartDate() == null || budget.getEndDate() == null) {
-            throw new IllegalArgumentException("Start date and end date must not be null.");
-        }
+        
 
-        if (budget.getStartDate().isAfter(budget.getEndDate())) {
-            throw new IllegalArgumentException("Start date cannot be after end date.");
-        }
+        UserDto user= helper.validateUser(userId);
 
-        if (budget.getAmount() < 0) {
-            throw new IllegalArgumentException("Budget amount cannot be negative.");
-        }
+        budget=helper.validateBudget(budget,user.getId());
+     
+        Set<Integer> validExpenseIds = helper.getValidBudgetIds(budget,userId,expenseService);
 
-        if (budget.getName() == null || budget.getName().isEmpty()) {
-            throw new IllegalArgumentException("Budget name cannot be empty.");
-        }
-
-        if (budget.getRemainingAmount() <= 0) {
-            budget.setRemainingAmount(budget.getAmount());
-        }
-
-        UserDto user = helper.validateUser(userId);
-        if (user == null) {
-            throw new Exception("User not found.");
-        }
-
-        budget.setUserId(userId);
-        Set<Integer> validExpenseIds = new HashSet<>();
-
-        for (Integer expenseId : budget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-
-            if (expense != null) {
-                LocalDate expenseDate = expense.getDate();
-                boolean isWithinDateRange = !expenseDate.isBefore(budget.getStartDate())
-                        && !expenseDate.isAfter(budget.getEndDate());
-
-                if (isWithinDateRange) {
-                    validExpenseIds.add(expenseId);
-                }
-            }
-        }
-
+        
         budget.setExpenseIds(validExpenseIds);
         budget.setBudgetHasExpenses(!validExpenseIds.isEmpty());
 
         Budget savedBudget = budgetRepository.save(budget);
 
-        for (Integer expenseId : savedBudget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-            if (expense != null) {
-                if (expense.getBudgetIds() == null) {
-                    expense.setBudgetIds(new HashSet<>());
-                }
-
-                if (!expense.getBudgetIds().contains(savedBudget.getId())) {
-                    expense.getBudgetIds().add(savedBudget.getId());
-                    expenseService.save(expense);
-                }
-            }
-        }
+        helper.addBudgetIdInExpenses(budget,expenseService,userId);
 
         // Check budget thresholds and send notifications if needed
         if (!validExpenseIds.isEmpty()) {
             checkAndSendThresholdNotifications(savedBudget, userId);
         }
 
-        // auditExpenseService.logAudit(convertToAuditEvent(user, savedBudget.getId(),
-        // "Budget Created", budget.getName()));
+        
         return savedBudget;
     }
 
@@ -195,13 +149,9 @@ public class BudgetServiceImpl implements BudgetService {
     @Transactional
     @CacheEvict(value = "budgets", allEntries = true)
     public Budget editBudget(Integer budgetId, Budget budget, Integer userId) throws Exception {
-        Optional<Budget> existingBudgetOpt = budgetRepository.findByUserIdAndId(userId, budgetId);
 
-        if (existingBudgetOpt.isEmpty()) {
-            throw new BudgetNotFoundException("Budget not found");
-        }
 
-        Budget existingBudget = existingBudgetOpt.get();
+        Budget existingBudget = getBudgetById(budgetId,userId);
 
         if (budget.getStartDate().isAfter(budget.getEndDate())) {
             throw new IllegalArgumentException("Start date cannot be after end date.");
@@ -283,27 +233,9 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     @Transactional
     public void deleteBudget(Integer budgetId, Integer userId) {
-        Optional<Budget> existingBudgetOpt = budgetRepository.findByUserIdAndId(userId, budgetId);
-
-        if (existingBudgetOpt.isEmpty()) {
-            throw new RuntimeException("Budget not found");
-        }
-
-        Budget budget = existingBudgetOpt.get();
-
-        Set<Integer> expenseIds = budget.getExpenseIds();
-        if (expenseIds != null) {
-            for (Integer expenseId : expenseIds) {
-                ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-                if (expense != null && expense.getBudgetIds() != null) {
-                    expense.getBudgetIds().remove(budgetId);
-                    expenseService.save(expense);
-                }
-            }
-        }
-
+        Budget budget = getBudgetById(budgetId,userId);
+        helper.deleteBudgetIdInExpenses(budget,expenseService,userId,budgetId);
         budgetRepository.delete(budget);
-
     }
 
     @Override
@@ -315,18 +247,19 @@ public class BudgetServiceImpl implements BudgetService {
             throw new RuntimeException("No budgets found");
         }
 
-        for (Budget budget : budgets) {
-            Set<Integer> expenseIds = budget.getExpenseIds();
-            if (expenseIds != null) {
-                for (Integer expenseId : expenseIds) {
-                    ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-                    if (expense != null && expense.getBudgetIds() != null) {
-                        expense.getBudgetIds().remove(budget.getId());
-                        expenseService.save(expense);
-                    }
-                }
-            }
-        }
+        helper.removeBudgetsIdsInAllExpenses(budgets,expenseService,userId);
+//        for (Budget budget : budgets) {
+//            Set<Integer> expenseIds = budget.getExpenseIds();
+//            if (expenseIds != null) {
+//                for (Integer expenseId : expenseIds) {
+//                    ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
+//                    if (expense != null && expense.getBudgetIds() != null) {
+//                        expense.getBudgetIds().remove(budget.getId());
+//                        expenseService.save(expense);
+//                    }
+//                }
+//            }
+//        }
 
         budgetRepository.deleteAll(budgets);
 

@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Integer> {
@@ -53,6 +54,9 @@ public interface BudgetRepository extends JpaRepository<Budget, Integer> {
         })
         @Query("SELECT b FROM Budget b WHERE b.userId = :userId AND b.id = :budgetId")
         Optional<Budget> findByUserIdAndId(@Param("userId") Integer userId, @Param("budgetId") Integer budgetId);
+
+
+
 
         /**
          * Find budgets by user and date range - Optimized for date filtering
