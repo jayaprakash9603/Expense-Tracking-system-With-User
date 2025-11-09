@@ -97,6 +97,21 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const [checkboxStates, setCheckboxStates] = useState([]);
   const [selectedBudgets, setSelectedBudgets] = useState([]);
 
+  // Auto-fill tracking states
+  const [autoFilledFields, setAutoFilledFields] = useState({
+    category: false,
+    paymentMethod: false,
+    type: false,
+    description: false,
+  });
+  const [lastAutoFilledBillName, setLastAutoFilledBillName] = useState("");
+  const [userModifiedFields, setUserModifiedFields] = useState({
+    category: false,
+    paymentMethod: false,
+    type: false,
+    description: false,
+  });
+
   // Use custom hook for previous expense functionality
   const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
     billData.name,
@@ -106,6 +121,115 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
   // Type options
   const typeOptions = ["gain", "loss"];
+
+  // Auto-populate fields when previous expense is found
+  useEffect(() => {
+    // When bill name is cleared or too short, reset auto-filled indicators and last name
+    if (!billData.name || billData.name.trim().length < 2) {
+      if (lastAutoFilledBillName) {
+        setLastAutoFilledBillName("");
+        setAutoFilledFields({
+          category: false,
+          paymentMethod: false,
+          type: false,
+          description: false,
+        });
+      }
+      return;
+    }
+
+    if (previousExpense && billData.name?.trim().length >= 2) {
+      // Check if this is a new bill name (different from last auto-filled)
+      const isNewBillName = billData.name.trim() !== lastAutoFilledBillName;
+
+      // Only auto-populate if fields are empty, default, or bill name changed
+      const updates = {};
+      const newAutoFilled = { ...autoFilledFields };
+
+      // Auto-populate category if:
+      // - Previous expense has categoryId AND
+      // - (Current is empty OR bill name changed and user hasn't manually modified it)
+      if (
+        previousExpense.categoryId &&
+        (!billData.categoryId ||
+          (isNewBillName && !userModifiedFields.category))
+      ) {
+        updates.categoryId = previousExpense.categoryId;
+        newAutoFilled.category = true;
+      }
+
+      // Auto-populate payment method if:
+      // - Previous expense has paymentMethod AND
+      // - (Current is default OR bill name changed and user hasn't manually modified it)
+      if (
+        previousExpense.expense?.paymentMethod &&
+        (billData.paymentMethod === "cash" ||
+          (isNewBillName && !userModifiedFields.paymentMethod))
+      ) {
+        updates.paymentMethod = previousExpense.expense.paymentMethod;
+        newAutoFilled.paymentMethod = true;
+      }
+
+      // Auto-populate type if:
+      // - Previous expense has type AND
+      // - (Current is default OR bill name changed and user hasn't manually modified it)
+      if (
+        previousExpense.expense?.type &&
+        (billData.type === "loss" ||
+          (isNewBillName && !userModifiedFields.type))
+      ) {
+        updates.type = previousExpense.expense.type;
+        newAutoFilled.type = true;
+      }
+
+      // Auto-populate description if:
+      // - Previous expense has comments AND
+      // - (Current is empty OR bill name changed and user hasn't manually modified it)
+      if (
+        previousExpense.expense?.comments &&
+        (!billData.description ||
+          (isNewBillName && !userModifiedFields.description))
+      ) {
+        updates.description = previousExpense.expense.comments;
+        newAutoFilled.description = true;
+      } else if (
+        !previousExpense.expense?.comments &&
+        isNewBillName &&
+        !userModifiedFields.description
+      ) {
+        // Clear description if no suggestion available for new bill name
+        updates.description = "";
+        newAutoFilled.description = false;
+      }
+
+      // Apply updates if any
+      if (Object.keys(updates).length > 0) {
+        setBillData((prev) => ({ ...prev, ...updates }));
+        setAutoFilledFields(newAutoFilled);
+        setLastAutoFilledBillName(billData.name.trim());
+
+        // Reset user modification flags if bill name changed
+        if (isNewBillName) {
+          setUserModifiedFields({
+            category: false,
+            paymentMethod: false,
+            type: false,
+            description: false,
+          });
+        }
+
+        // Clear auto-filled indicators after 3 seconds
+        setTimeout(() => {
+          setAutoFilledFields({
+            category: false,
+            paymentMethod: false,
+            type: false,
+            description: false,
+          });
+        }, 3000);
+      }
+    }
+  }, [previousExpense, billData.name]);
 
   // Validation function for expense items
 
@@ -583,7 +707,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
   const renderDescriptionInput = () => (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+      <div className="flex items-center relative">
         <label
           htmlFor="description"
           className={labelStyle}
@@ -591,45 +715,78 @@ const CreateBill = ({ onClose, onSuccess }) => {
         >
           Description
         </label>
-        <TextField
-          id="description"
-          name="description"
-          value={billData.description}
-          onChange={handleInputChange}
-          placeholder="Enter description"
-          variant="outlined"
-          multiline
-          rows={1}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiInputBase-root": {
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-              fontSize: "16px",
-            },
-            "& .MuiInputBase-input": {
-              color: colors.primary_text,
-              "&::placeholder": {
-                color: colors.placeholder_text,
-                opacity: 1,
+        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+          {autoFilledFields.description && (
+            <div
+              className="absolute top-[-24px] right-0"
+              style={{
+                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
+                color: "#fff",
+                fontSize: "0.65rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                fontWeight: "600",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                zIndex: 10,
+              }}
+            >
+              Auto-filled
+            </div>
+          )}
+          <TextField
+            id="description"
+            name="description"
+            value={billData.description}
+            onChange={(e) => {
+              handleInputChange(e);
+              // Mark as user-modified and clear auto-filled indicator
+              setUserModifiedFields((prev) => ({
+                ...prev,
+                description: true,
+              }));
+              if (autoFilledFields.description) {
+                setAutoFilledFields((prev) => ({
+                  ...prev,
+                  description: false,
+                }));
+              }
+            }}
+            placeholder="Enter description"
+            variant="outlined"
+            multiline
+            rows={1}
+            sx={{
+              width: "100%",
+              maxWidth: "300px",
+              "& .MuiInputBase-root": {
+                backgroundColor: colors.primary_bg,
+                color: colors.primary_text,
+                fontSize: "16px",
               },
-            },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: colors.border_color,
-                borderWidth: "1px",
+              "& .MuiInputBase-input": {
+                color: colors.primary_text,
+                "&::placeholder": {
+                  color: colors.placeholder_text,
+                  opacity: 1,
+                },
               },
-              "&:hover fieldset": {
-                borderColor: colors.border_color,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: colors.border_color,
+                  borderWidth: "1px",
+                },
+                "&:hover fieldset": {
+                  borderColor: colors.border_color,
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: colors.secondary_accent,
+                  borderWidth: "2px",
+                },
               },
-              "&.Mui-focused fieldset": {
-                borderColor: colors.secondary_accent,
-                borderWidth: "2px",
-              },
-            },
-          }}
-        />
+            }}
+          />
+        </div>
       </div>
     </div>
   );
@@ -715,7 +872,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
   const renderPaymentMethodAutocomplete = () => (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+      <div className="flex items-center relative">
         <label
           htmlFor="paymentMethod"
           className={labelStyle}
@@ -723,26 +880,57 @@ const CreateBill = ({ onClose, onSuccess }) => {
         >
           Payment Method
         </label>
-        <PaymentMethodAutocomplete
-          value={billData.paymentMethod}
-          onChange={(paymentMethodValue) => {
-            setBillData((prev) => ({
-              ...prev,
-              paymentMethod: paymentMethodValue,
-            }));
-          }}
-          transactionType={billData.type}
-          friendId={friendId}
-          placeholder="Select payment method"
-          size="medium"
-        />
+        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+          <PaymentMethodAutocomplete
+            value={billData.paymentMethod}
+            onChange={(paymentMethodValue) => {
+              setBillData((prev) => ({
+                ...prev,
+                paymentMethod: paymentMethodValue,
+              }));
+              // Mark as user-modified and clear auto-filled indicator
+              setUserModifiedFields((prev) => ({
+                ...prev,
+                paymentMethod: true,
+              }));
+              if (autoFilledFields.paymentMethod) {
+                setAutoFilledFields((prev) => ({
+                  ...prev,
+                  paymentMethod: false,
+                }));
+              }
+            }}
+            transactionType={billData.type}
+            friendId={friendId}
+            placeholder="Select payment method"
+            size="medium"
+          />
+          {autoFilledFields.paymentMethod && (
+            <div
+              className="absolute top-[-24px] right-0"
+              style={{
+                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
+                color: "#fff",
+                fontSize: "0.65rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                fontWeight: "600",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                zIndex: 10,
+              }}
+            >
+              Auto-filled
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 
   const renderTypeAutocomplete = () => (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+      <div className="flex items-center relative">
         <label
           htmlFor="type"
           className={labelStyle}
@@ -750,64 +938,95 @@ const CreateBill = ({ onClose, onSuccess }) => {
         >
           Type<span className="text-red-500"> *</span>
         </label>
-        <Autocomplete
-          autoHighlight
-          options={typeOptions}
-          getOptionLabel={(option) =>
-            option.charAt(0).toUpperCase() + option.slice(1)
-          }
-          value={billData.type || ""}
-          onChange={handleTypeChange} // Use the new handler
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder="Select type"
-              variant="outlined"
-              error={errors.type}
-              sx={{
-                "& .MuiInputBase-root": {
-                  backgroundColor: colors.primary_bg,
-                  color: colors.primary_text,
-                  height: "56px",
-                  fontSize: "16px",
-                },
-                "& .MuiInputBase-input": {
-                  color: colors.primary_text,
-                  "&::placeholder": {
-                    color: colors.placeholder_text,
-                    opacity: 1,
+        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+          <Autocomplete
+            autoHighlight
+            options={typeOptions}
+            getOptionLabel={(option) =>
+              option.charAt(0).toUpperCase() + option.slice(1)
+            }
+            value={billData.type || ""}
+            onChange={(event, newValue) => {
+              handleTypeChange(event, newValue);
+              // Mark as user-modified and clear auto-filled indicator
+              setUserModifiedFields((prev) => ({ ...prev, type: true }));
+              if (autoFilledFields.type) {
+                setAutoFilledFields((prev) => ({ ...prev, type: false }));
+              }
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Select type"
+                variant="outlined"
+                error={errors.type}
+                sx={{
+                  "& .MuiInputBase-root": {
+                    backgroundColor: colors.primary_bg,
+                    color: colors.primary_text,
+                    height: "56px",
+                    fontSize: "16px",
                   },
-                },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: errors.type ? "#ff4d4f" : colors.border_color,
-                    borderWidth: "1px",
+                  "& .MuiInputBase-input": {
+                    color: colors.primary_text,
+                    "&::placeholder": {
+                      color: colors.placeholder_text,
+                      opacity: 1,
+                    },
                   },
-                  "&:hover fieldset": {
-                    borderColor: errors.type ? "#ff4d4f" : colors.border_color,
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderColor: errors.type
+                        ? "#ff4d4f"
+                        : colors.border_color,
+                      borderWidth: "1px",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: errors.type
+                        ? "#ff4d4f"
+                        : colors.border_color,
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: errors.type
+                        ? "#ff4d4f"
+                        : colors.secondary_accent,
+                      borderWidth: "2px",
+                    },
                   },
-                  "&.Mui-focused fieldset": {
-                    borderColor: errors.type
-                      ? "#ff4d4f"
-                      : colors.secondary_accent,
-                    borderWidth: "2px",
-                  },
-                },
+                }}
+              />
+            )}
+            sx={{
+              width: "100%",
+              maxWidth: "300px",
+            }}
+          />
+          {autoFilledFields.type && (
+            <div
+              className="absolute top-[-24px] right-0"
+              style={{
+                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
+                color: "#fff",
+                fontSize: "0.65rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                fontWeight: "600",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                zIndex: 10,
               }}
-            />
+            >
+              Auto-filled
+            </div>
           )}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-          }}
-        />
+        </div>
       </div>
     </div>
   );
 
   const renderCategoryAutocomplete = () => (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+      <div className="flex items-center relative">
         <label
           htmlFor="category"
           className={labelStyle}
@@ -815,18 +1034,43 @@ const CreateBill = ({ onClose, onSuccess }) => {
         >
           Category
         </label>
-        <CategoryAutocomplete
-          value={billData.categoryId}
-          onChange={(categoryId) => {
-            setBillData((prev) => ({
-              ...prev,
-              categoryId: categoryId,
-            }));
-          }}
-          friendId={friendId}
-          placeholder="Search category"
-          size="medium"
-        />
+        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+          <CategoryAutocomplete
+            value={billData.categoryId}
+            onChange={(categoryId) => {
+              setBillData((prev) => ({
+                ...prev,
+                categoryId: categoryId,
+              }));
+              // Mark as user-modified and clear auto-filled indicator
+              setUserModifiedFields((prev) => ({ ...prev, category: true }));
+              if (autoFilledFields.category) {
+                setAutoFilledFields((prev) => ({ ...prev, category: false }));
+              }
+            }}
+            friendId={friendId}
+            placeholder="Search category"
+            size="medium"
+          />
+          {autoFilledFields.category && (
+            <div
+              className="absolute top-[-24px] right-0"
+              style={{
+                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
+                color: "#fff",
+                fontSize: "0.65rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                fontWeight: "600",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                zIndex: 10,
+              }}
+            >
+              Auto-filled
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
