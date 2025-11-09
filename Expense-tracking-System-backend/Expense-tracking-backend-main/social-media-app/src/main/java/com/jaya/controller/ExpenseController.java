@@ -10,6 +10,8 @@ import com.jaya.service.*;
 import com.jaya.util.UserPermissionHelper;
 import com.jaya.util.BulkProgressTracker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
@@ -41,14 +43,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/expenses")
 public class ExpenseController extends BaseExpenseController {
 
+
+
     public static final String INVALID_OR_EXPIRED_TOKEN = "Invalid or expired token";
-    private final ExpenseService expenseService;
+
 
     public static String ERROR_SENDING_EMAIL = "Error sending email: ";
 
     private final ExpenseServiceHelper helper;
     private final UserService userService;
-    private final FriendShipService friendshipService;
+
     private final ExcelService excelService;
     private final EmailService emailService;
     private final UserPermissionHelper permissionHelper;
@@ -69,10 +73,8 @@ public class ExpenseController extends BaseExpenseController {
             BulkProgressTracker progressTracker,
             TaskExecutor taskExecutor,
             ExpenseNotificationService expenseNotificationService) {
-        this.expenseService = expenseService;
         this.helper = helper;
         this.userService = userService;
-        this.friendshipService = friendshipService;
         this.excelService = excelService;
         this.emailService = emailService;
         this.permissionHelper = permissionHelper;
@@ -81,26 +83,14 @@ public class ExpenseController extends BaseExpenseController {
         this.expenseNotificationService = expenseNotificationService;
     }
 
-    /**
-     * Handle runtime exceptions consistently
-     */
 
-    private ResponseEntity<?> handleRuntimeException(Exception e) {
-        if (e.getMessage().contains("not found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } else if (e.getMessage().contains("permission")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
 
     @PostMapping("/add-expense")
     public ResponseEntity<Expense> addExpense(@Validated @RequestBody Expense expense,
             @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) Integer targetId) throws Exception {
+            @RequestParam(required = false) Integer targetId) throws Exception  {
 
-        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         Expense createdExpense = expenseService.addExpense(expense, targetUser.getId());
 
         // Send notification asynchronously
@@ -116,7 +106,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         Expense createdExpense = expenseService.copyExpense(targetUser.getId(), expenseId);
         return ResponseEntity.ok(createdExpense);
 
@@ -134,62 +124,16 @@ public class ExpenseController extends BaseExpenseController {
         return handleFriendExpenseAccess(userId, viewer);
     }
 
-    private ResponseEntity<?> handleFriendExpenseAccess(Integer userId, User viewer) throws Exception {
-        if (!friendshipService.canUserAccessExpenses(userId, viewer.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You don't have permission to view this user's expenses");
-        }
 
-        AccessLevel accessLevel = friendshipService.getUserAccessLevel(userId, viewer.getId());
-        User targetUser = userService.findUserById(userId);
 
-        if (targetUser == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
 
-        switch (accessLevel) {
-            case READ:
-            case WRITE:
-            case FULL:
-                return ResponseEntity.ok(expenseService.getAllExpenses(targetUser.getId()));
-
-            case SUMMARY:
-                Map<String, MonthlySummary> yearlySummary = expenseService.getYearlySummary(
-                        LocalDate.now().getYear(), targetUser.getId());
-                return ResponseEntity.ok(yearlySummary);
-
-            case LIMITED:
-                return ResponseEntity.ok(createLimitedExpenseData(targetUser));
-
-            default:
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("You don't have permission to view this user's expenses");
-        }
-    }
-
-    private Map<String, Object> createLimitedExpenseData(User targetUser) {
-        MonthlySummary currentMonthSummary = expenseService.getMonthlySummary(
-                LocalDate.now().getYear(),
-                LocalDate.now().getMonthValue(),
-                targetUser.getId());
-
-        Map<String, Double> simplifiedSummary = new HashMap<>();
-        simplifiedSummary.put("totalIncome", currentMonthSummary.getTotalAmount().doubleValue());
-        simplifiedSummary.put("totalExpense", currentMonthSummary.getCash().getDifference().doubleValue());
-        simplifiedSummary.put("balance", currentMonthSummary.getBalanceRemaining().doubleValue());
-
-        Map<String, Object> limitedData = new HashMap<>();
-        limitedData.put("currentMonth", simplifiedSummary);
-        return limitedData;
-    }
 
     @PostMapping("/add-multiple")
     public ResponseEntity<List<Expense>> addMultipleExpenses(@RequestHeader("Authorization") String jwt,
             @RequestBody List<Expense> expenses,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = helper.authenticateUser(jwt);
-        User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> savedExpenses = expenseService.addMultipleExpenses(expenses, targetUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(savedExpenses);
 
@@ -200,8 +144,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<Map<String, String>> addMultipleExpensesTracked(@RequestHeader("Authorization") String jwt,
             @RequestBody List<Expense> expenses,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
 
         String jobId = progressTracker.start(targetUser.getId(), expenses != null ? expenses.size() : 0,
                 "Bulk import started");
@@ -244,9 +187,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> allExpenses = expenseService.getAllExpenses(targetUser.getId());
         expenseService.deleteAllExpenses(targetUser.getId(), allExpenses);
         return new ResponseEntity<>("all expense are deleted", HttpStatus.NO_CONTENT);
@@ -258,9 +199,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         return new ResponseEntity<>(expenseService.getExpenseById(id, targetUser.getId()), HttpStatus.OK);
     }
 
@@ -269,9 +208,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam LocalDate to,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         return new ResponseEntity<>(expenseService.getExpensesByDateRange(from, to, targetUser.getId()), HttpStatus.OK);
     }
 
@@ -281,10 +218,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam(defaultValue = "desc") String sort,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
 
         List<Expense> expenses = sort.equalsIgnoreCase("asc")
                 ? expenseService.getExpensesByUserAndSort(targetUser.getId(), "asc")
@@ -299,9 +233,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         Map<String, Object> summary = expenseService.generateExpenseSummary(targetUser.getId());
         return ResponseEntity.ok(summary);
 
@@ -314,13 +246,11 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         Expense updatedExpense = expenseService.updateExpense(id, expense, targetUser.getId());
 
         // Send notification asynchronously
-        expenseNotificationService.sendExpenseUpdatedNotification(updatedExpense);
+        // expenseNotificationService.sendExpenseUpdatedNotification(updatedExpense);
 
         return ResponseEntity.ok(updatedExpense);
 
@@ -332,9 +262,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> updatedExpenses = expenseService.updateMultipleExpenses(targetUser.getId(), expenses);
         return ResponseEntity.ok(updatedExpenses);
 
@@ -346,9 +274,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
 
         // Get expense details before deletion for notification
         Expense expense = expenseService.getExpenseById(id, targetUser.getId());
@@ -358,8 +284,6 @@ public class ExpenseController extends BaseExpenseController {
         }
 
         expenseService.deleteExpense(id, targetUser.getId());
-
-        // Send notification asynchronously
         expenseNotificationService.sendExpenseDeletedNotification(id, targetUser.getId(), description);
 
         return ResponseEntity.ok("Expense deleted successfully");
@@ -371,10 +295,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestBody List<Integer> ids,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         expenseService.deleteExpensesByIds(ids, targetUser.getId());
         return ResponseEntity.ok("Expenses deleted successfully");
 
@@ -386,11 +307,7 @@ public class ExpenseController extends BaseExpenseController {
             @PathVariable Integer month,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         MonthlySummary summary = expenseService.getMonthlySummary(year, month, targetUser.getId());
         return ResponseEntity.ok(summary);
@@ -403,10 +320,8 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
 
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt,targetId,false);
 
         Map<String, MonthlySummary> yearlySummary = expenseService.getYearlySummary(year, targetUser.getId());
         return ResponseEntity.ok(yearlySummary);
@@ -422,9 +337,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<MonthlySummary> summaries = expenseService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth,
                 targetUser.getId());
         return ResponseEntity.ok(summaries);
@@ -437,9 +350,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> topExpenses = expenseService.getTopNExpenses(n, targetUser.getId());
         return ResponseEntity.ok(topExpenses);
     }
@@ -450,9 +361,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> expenses = expenseService.searchExpensesByName(expenseName, targetUser.getId());
         return ResponseEntity.ok(expenses);
     }
@@ -469,9 +378,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> filteredExpenses = expenseService.filterExpenses(expenseName, startDate, endDate, type,
                 paymentMethod, minAmount, maxAmount, targetUser.getId());
         return ResponseEntity.ok(filteredExpenses);
@@ -483,10 +390,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<String> topExpenseNames = expenseService.getTopExpenseNames(topN, targetUser.getId());
         return ResponseEntity.ok(topExpenseNames);
     }
@@ -498,10 +402,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Map<String, Object> insights = expenseService.getMonthlySpendingInsights(year, month, targetUser.getId());
         return ResponseEntity.ok(insights);
@@ -512,10 +413,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<String> paymentMethods = expenseService.getPaymentMethods(targetUser.getId());
         return ResponseEntity.ok(paymentMethods);
@@ -526,9 +424,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         Map<String, Map<String, Double>> paymentMethodSummary = expenseService
                 .getPaymentMethodSummary(targetUser.getId());
         return ResponseEntity.ok(paymentMethodSummary);
@@ -539,10 +435,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByType("gain", targetUser.getId());
         return ResponseEntity.ok(expenses);
@@ -553,10 +446,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> lossExpenses = expenseService.getLossExpenses(targetUser.getId());
         if (lossExpenses.isEmpty()) {
@@ -571,10 +461,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByPaymentMethod(paymentMethod, targetUser.getId());
         if (expenses.isEmpty()) {
@@ -590,10 +477,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByTypeAndPaymentMethod(type, paymentMethod,
                 targetUser.getId());
@@ -611,10 +495,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<String> topPaymentMethods = expenseService.getTopPaymentMethods(targetUser.getId());
         return ResponseEntity.ok(topPaymentMethods);
@@ -625,10 +506,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> topGains = expenseService.getTopGains(targetUser.getId());
         return ResponseEntity.ok(topGains);
     }
@@ -638,10 +516,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> topLosses = expenseService.getTopLosses(targetUser.getId());
         return ResponseEntity.ok(topLosses);
@@ -654,10 +529,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByMonthAndYear(month, year, targetUser.getId());
         return ResponseEntity.ok(expenses);
@@ -669,10 +541,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         // Fetch the unique top 'gain' expenses
         List<String> topGains = expenseService.getUniqueTopExpensesByGain(targetUser.getId(), limit);
@@ -692,10 +561,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<String> topLosses = expenseService.getUniqueTopExpensesByLoss(targetUser.getId(), limit);
 
@@ -713,10 +579,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesForToday(targetUser.getId());
         return ResponseEntity.ok(expenses);
@@ -728,9 +591,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> expenses = expenseService.getExpensesForLastMonth(targetUser.getId());
         return ResponseEntity.ok(expenses);
 
@@ -741,9 +602,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> expenses = expenseService.getExpensesForCurrentMonth(targetUser.getId());
         return ResponseEntity.ok(expenses);
 
@@ -755,10 +614,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         String comments = expenseService.getCommentsForExpense(id, targetUser.getId());
         return ResponseEntity.ok(comments);
@@ -771,10 +627,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         String result = expenseService.removeCommentFromExpense(id, targetUser.getId());
 
@@ -788,10 +641,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         // Generate the report using the service layer
         ExpenseReport report = expenseService.generateExpenseReport(id, targetUser.getId());
@@ -806,10 +656,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<ExpenseDetails> expenseDetails = expenseService.getExpenseDetailsByAmount(amount, targetUser.getId());
         return ResponseEntity.ok(expenseDetails);
 
@@ -822,9 +669,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> expenseDetails = expenseService.getExpenseDetailsByAmountRange(minAmount, maxAmount,
                 targetUser.getId());
         return ResponseEntity.ok(expenseDetails);
@@ -837,10 +682,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<ExpenseDetails> expenses = expenseService.getExpensesByName(expenseName, targetUser.getId());
         Double totalExpense = expenseService.getTotalExpenseByName(expenseName);
@@ -868,10 +710,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Map<String, Object>> categoryTotals = expenseService.getTotalByCategory(targetUser.getId());
 
@@ -883,10 +722,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Map<String, Double> totalByDate = expenseService.getTotalByDate(targetUser.getId());
 
@@ -898,10 +734,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Double totalToday = expenseService.getTotalForToday(targetUser.getId());
 
@@ -913,10 +746,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Double totalCurrentMonth = expenseService.getTotalForCurrentMonth(targetUser.getId());
 
@@ -930,9 +760,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Double total = expenseService.getTotalForMonthAndYear(month, year, targetUser.getId());
 
@@ -950,9 +778,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         Double total = expenseService.getTotalByDateRange(startDate, endDate, targetUser.getId());
         return new ResponseEntity<>(total, HttpStatus.OK);
     }
@@ -962,9 +788,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForCurrentMonth(targetUser.getId());
 
@@ -976,9 +800,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForLastMonth(targetUser.getId());
 
@@ -991,10 +813,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam("endDate") String endDate,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         // Parse the string date into LocalDate
         LocalDate start = LocalDate.parse(startDate);
@@ -1014,9 +833,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         Map<String, Double> paymentWiseTotals = expenseService.getPaymentWiseTotalForMonth(month, year,
                 targetUser.getId());
         return ResponseEntity.ok(paymentWiseTotals);
@@ -1028,9 +845,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam("year") int year,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         Map<String, Map<String, Double>> result = expenseService.getTotalByExpenseNameAndPaymentMethod(month, year,
                 targetUser.getId());
         return ResponseEntity.ok(result);
@@ -1043,9 +858,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         LocalDate startDate = LocalDate.parse(startDateStr);
         LocalDate endDate = LocalDate.parse(endDateStr);
 
@@ -1060,10 +873,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Map<String, Map<String, Double>> result = expenseService
                 .getTotalExpensesGroupedByPaymentMethod(targetUser.getId());
@@ -1076,10 +886,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         String reportPath = expenseService.generateExcelReport(targetUser.getId());
 
@@ -1092,9 +899,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         String filePath = expenseService.generateExcelReport(targetUser.getId());
         expenseService.sendEmailWithAttachment(toEmail, "Expense Report", "Please find the attached expense report.",
                 filePath);
@@ -1111,10 +916,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<InputStreamResource> getCurrentMonthExpensesExcel(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesForCurrentMonth(targetUser.getId());
         ByteArrayInputStream in = excelService.generateExcel(expenses);
@@ -1135,9 +937,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesForCurrentMonth(targetUser.getId());
         ByteArrayInputStream in = excelService.generateExcel(expenses);
@@ -1158,16 +958,10 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<?> sendLastMonthExpensesEmail(
             @RequestParam String email,
             @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.findUserByJwt(jwt);
-            User targetUser;
+            @RequestParam(required = false) Integer targetId) throws Exception{
 
-            try {
-                targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            } catch (RuntimeException e) {
-                return handleRuntimeException(e);
-            }
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+
 
             List<Expense> expenses = expenseService.getExpensesForLastMonth(targetUser.getId());
             ByteArrayInputStream in = excelService.generateExcel(expenses);
@@ -1182,14 +976,7 @@ public class ExpenseController extends BaseExpenseController {
                     "last_month_expenses.xlsx");
 
             return ResponseEntity.ok("Email sent successfully");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error generating Excel: " + e.getMessage());
-        } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
-        }
+
     }
 
     @GetMapping("/by-month/email")
@@ -1200,10 +987,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam String email,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByMonthAndYear(month, year, targetUser.getId());
         ByteArrayInputStream in = excelService.generateExcel(expenses);
@@ -1225,16 +1009,10 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<?> sendAllExpensesEmail(
             @RequestParam String email,
             @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.findUserByJwt(jwt);
-            User targetUser;
+            @RequestParam(required = false) Integer targetId) throws Exception {
 
-            try {
-                targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            } catch (RuntimeException e) {
-                return handleRuntimeException(e);
-            }
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+
 
             List<Expense> expenses = expenseService.getAllExpenses(targetUser.getId());
             ByteArrayInputStream in = excelService.generateExcel(expenses);
@@ -1249,14 +1027,7 @@ public class ExpenseController extends BaseExpenseController {
                     "all_expenses.xlsx");
 
             return ResponseEntity.ok("Email sent successfully");
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error generating Excel: " + e.getMessage());
-        } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_SENDING_EMAIL + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
-        }
+
     }
 
     @GetMapping("/{type}/{paymentMethod}/email")
@@ -1267,10 +1038,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByTypeAndPaymentMethod(type, paymentMethod,
                 targetUser.getId());
@@ -1302,10 +1070,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam String email,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByDateRange(from, to, targetUser.getId());
         if (expenses.isEmpty()) {
@@ -1333,10 +1098,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByType("gain", targetUser.getId());
 
@@ -1361,10 +1123,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getLossExpenses(targetUser.getId());
         if (expenses.isEmpty()) {
@@ -1392,11 +1151,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> expenses = expenseService.getExpensesForToday(targetUser.getId());
 
         ByteArrayInputStream in;
@@ -1426,10 +1181,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam String email,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByPaymentMethod(paymentMethod, targetUser.getId());
 
@@ -1460,10 +1212,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenseDetails = expenseService.getExpenseDetailsByAmountRange(minAmount, maxAmount,
                 targetUser.getId());
@@ -1496,10 +1245,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.searchExpensesByName(expenseName, targetUser.getId());
 
@@ -1530,10 +1276,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         MonthlySummary summary = expenseService.getMonthlySummary(year, month, targetUser.getId());
 
@@ -1557,10 +1300,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Map<String, Map<String, Double>> summary = expenseService.getPaymentMethodSummary(targetUser.getId());
 
@@ -1585,10 +1325,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         Map<String, MonthlySummary> summary = expenseService.getYearlySummary(year, targetUser.getId());
 
@@ -1616,10 +1353,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<MonthlySummary> summaries = expenseService.getSummaryBetweenDates(startYear, startMonth, endYear, endMonth,
                 targetUser.getId());
@@ -1668,10 +1402,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByDate(LocalDate.now().minusDays(1), targetUser.getId());
 
@@ -1685,8 +1416,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByDateString(date, targetUser.getId());
         return ResponseEntity.ok(expenses);
@@ -1734,10 +1464,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByDate(LocalDate.now().minusDays(1), targetUser.getId());
 
@@ -1768,10 +1495,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         LocalDate specificDate;
 
@@ -1842,10 +1566,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
-        User targetUser;
-
-        targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
         List<Expense> expenses = expenseService.getExpensesByLastWeek(targetUser.getId());
 
@@ -2050,7 +1771,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<?> getGroupedExpenses(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(value = "sortOrder", defaultValue = "desc") String sortOrder,
-            @RequestParam(required = false) Integer targetId) {
+            @RequestParam(required = false) Integer targetId) throws Exception {
 
         // Validate sort order parameter
         if (!sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
@@ -2067,11 +1788,9 @@ public class ExpenseController extends BaseExpenseController {
 
         // Determine target user (if admin is viewing another user's expenses)
         User targetUser;
-        try {
+
             targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-        } catch (Exception e) {
-            return handleRuntimeException(e);
-        }
+
 
         // Get grouped expenses
         Map<String, List<Map<String, Object>>> groupedExpenses = expenseService
@@ -2109,58 +1828,20 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable String expenseName,
             @PathVariable String date,
-            @RequestParam(required = false) Integer targetId) {
-        try {
-            // Validate input parameters
-            if (expenseName == null || expenseName.trim().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Expense name cannot be empty");
-            }
+            @RequestParam(required = false) Integer targetId) throws Exception {
 
-            // Parse and validate date
-            LocalDate parsedDate;
-            try {
-                parsedDate = LocalDate.parse(date);
-            } catch (DateTimeParseException e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Invalid date format. Please use yyyy-MM-dd format");
-            }
-
-            // Get authenticated user
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Invalid or expired token");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
-
-            // Determine target user (if admin is viewing another user's expenses)
-            User targetUser;
-
-            targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-
-            // Get expense before date
-            Expense expense;
-            try {
-                expense = expenseService.getExpensesBeforeDate(targetUser.getId(), expenseName.trim(), parsedDate);
-            } catch (IndexOutOfBoundsException e) {
-                // Handle case when no expenses exist before the given date
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-            }
-
-            // Handle case when no expense is found
+            User targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            Expense expense = expenseService.getExpenseBeforeDateValidated(targetUser.getId(), expenseName, date);
             if (expense == null) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body("No expense found with name '" + expenseName + "' before date " + date);
             }
-
             return ResponseEntity.ok(expense);
 
-        } catch (Exception e) {
-            // Log the error
-            System.out.println("Error retrieving expense before date: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error retrieving expense before date: " + e.getMessage());
-        }
     }
 
     @GetMapping("/current-month-top-expenses")
@@ -2254,8 +1935,8 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(value = "year", defaultValue = "0") int year,
             @RequestParam(required = false) Integer targetId,
-            @RequestParam(required = false) String flowType) {
-        try {
+            @RequestParam(required = false) String flowType) throws Exception {
+
             // Get authenticated user
             User reqUser = userService.findUserByJwt(jwt);
             if (reqUser == null) {
@@ -2265,11 +1946,9 @@ public class ExpenseController extends BaseExpenseController {
 
             // Determine target user (if admin is viewing another user's expenses)
             User targetUser;
-            try {
+
                 targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            } catch (RuntimeException e) {
-                return handleRuntimeException(e);
-            }
+
 
             // Use current year if not specified
             if (year == 0) {
@@ -2286,16 +1965,7 @@ public class ExpenseController extends BaseExpenseController {
             Map<String, Object> result = expenseService.getExpenseByName(targetUser.getId(), year);
 
             return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid request parameters: " + e.getMessage());
-        } catch (Exception e) {
-            // Log the error
-            System.out.println("Error retrieving expenses by name: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error retrieving expenses by name: " + e.getMessage());
-        }
+
     }
 
     @GetMapping("/monthly")
@@ -2312,11 +1982,9 @@ public class ExpenseController extends BaseExpenseController {
         }
 
         User targetUser;
-        try {
+
             targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-        } catch (Exception e) {
-            return handleRuntimeException(e);
-        }
+
 
         if (year == 0) {
             year = Year.now().getValue();
@@ -2664,11 +2332,9 @@ public class ExpenseController extends BaseExpenseController {
         }
 
         User targetUser;
-        try {
+
             targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
-        } catch (Exception e) {
-            return handleRuntimeException(e);
-        }
+
 
         List<Expense> expenses = expenseService.getExpensesInBudgetRangeWithIncludeFlag(
                 startDate,

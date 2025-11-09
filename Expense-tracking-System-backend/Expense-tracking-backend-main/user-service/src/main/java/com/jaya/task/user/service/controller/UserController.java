@@ -1,6 +1,7 @@
 package com.jaya.task.user.service.controller;
 
 import com.jaya.task.user.service.config.JwtProvider;
+import com.jaya.task.user.service.exceptions.UserNotFoundException;
 import com.jaya.task.user.service.modal.Role;
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.repository.RoleRepository;
@@ -34,7 +35,6 @@ import java.util.*;
 @AllArgsConstructor
 public class UserController {
 
-
     private UserService userService;
     private UserRepository userRepository;
     private RoleRepository roleRepository;
@@ -47,7 +47,6 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-
     @GetMapping("/email")
     public ResponseEntity<User> getUserByEmail(
             @RequestHeader("Authorization") String jwt,
@@ -57,15 +56,18 @@ public class UserController {
         return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
-
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(
-            @PathVariable @NotNull @Positive(message = "User ID must be positive") Long id,
+            @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer id,
             @RequestHeader("Authorization") String jwt) {
 
-        try {
+        
             // Get the current user from JWT
+
+            if(id<=0)
+            {
+                throw new UserNotFoundException("user not found");
+            }
             User currentUser = userService.getUserProfile(jwt);
 
             // Check if user is admin or accessing their own profile
@@ -82,11 +84,9 @@ public class UserController {
             return user.map(u -> ResponseEntity.ok(u))
                     .orElse(ResponseEntity.notFound().build());
 
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error retrieving user: " + e.getMessage()));
-        }
+        
     }
+
     @PutMapping()
     public ResponseEntity<?> updateUser(
             @RequestHeader("Authorization") String jwt,
@@ -97,8 +97,7 @@ public class UserController {
 
             return ResponseEntity.ok(Map.of(
                     "message", "User updated successfully",
-                    "user", updatedUser
-            ));
+                    "user", updatedUser));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -108,7 +107,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(
-            @PathVariable @NotNull @Positive(message = "User ID must be positive") Long id,
+            @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer id,
             @RequestHeader("Authorization") String jwt) throws AccessDeniedException {
 
         try {
@@ -120,7 +119,9 @@ public class UserController {
                     .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
 
             // Check if user is deleting their own account
-            boolean isOwnAccount = reqUser.getId().equals(id);
+            boolean isOwnAccount = reqUser.getId().intValue() == id;
+
+           
 
             if (isOwnAccount || isAdmin) {
                 // Additional validation: Check if user exists
@@ -163,8 +164,8 @@ public class UserController {
     @PostMapping("/{userId}/roles/{roleId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> addRoleToUser(
-            @PathVariable @NotNull @Positive(message = "User ID must be positive") Long userId,
-            @PathVariable @NotNull @Positive(message = "Role ID must be positive") Long roleId,
+            @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer userId,
+            @PathVariable @NotNull @Positive(message = "Role ID must be positive") Integer roleId,
             @RequestHeader("Authorization") String jwt) {
 
         try {
@@ -221,8 +222,7 @@ public class UserController {
                 Authentication authentication = new UsernamePasswordAuthenticationToken(
                         userDetails.getUsername(),
                         null,
-                        userDetails.getAuthorities()
-                );
+                        userDetails.getAuthorities());
                 newToken = JwtProvider.generateToken(authentication);
             }
 
@@ -245,8 +245,8 @@ public class UserController {
     @DeleteMapping("/{userId}/roles/{roleId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> removeRoleFromUser(
-            @PathVariable @NotNull @Positive(message = "User ID must be positive") Long userId,
-            @PathVariable @NotNull @Positive(message = "Role ID must be positive") Long roleId,
+            @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer userId,
+            @PathVariable @NotNull @Positive(message = "Role ID must be positive") Integer roleId,
             @RequestHeader("Authorization") String jwt) {
 
         try {
@@ -278,7 +278,8 @@ public class UserController {
                         .body(Map.of("error", "User doesn't have role: " + role.getName()));
             }
 
-            // Get current user roles and remove the specified role (same logic as direct set manipulation)
+            // Get current user roles and remove the specified role (same logic as direct
+            // set manipulation)
             Set<String> userRoles = new HashSet<>(user.getRoles());
             userRoles.remove(normalizedRoleName);
             user.setRoles(userRoles);
@@ -287,7 +288,8 @@ public class UserController {
             // Save the user with updated roles
             User savedUser = userRepository.save(user);
 
-            // Update the role's users set by removing the user's ID (same logic as signup but reverse)
+            // Update the role's users set by removing the user's ID (same logic as signup
+            // but reverse)
             if (role.getUsers() != null) {
                 role.getUsers().remove(savedUser.getId().intValue());
                 roleRepository.save(role);
@@ -295,17 +297,12 @@ public class UserController {
 
             return ResponseEntity.ok(Map.of(
                     "message", "Role removed successfully",
-                    "user", savedUser
-            ));
+                    "user", savedUser));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to remove role: " + e.getMessage()));
         }
     }
-
-
-
-
 
 }

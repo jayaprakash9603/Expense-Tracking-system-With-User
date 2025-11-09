@@ -346,9 +346,18 @@ export const fetchPreviousExpenses =
     } catch (error) {
       console.log("Error fetching previous expenses:", error);
 
+      // Extract error message safely
+      const errorMessage =
+        typeof error.response?.data === "string"
+          ? error.response.data
+          : error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Failed to fetch previous expenses";
+
       dispatch({
         type: FETCH_PREVIOUS_EXPENSES_FAILURE,
-        payload: error.response?.data || error.message,
+        payload: errorMessage,
       });
     }
   };

@@ -61,7 +61,14 @@ export const createBudgetAction =
       dispatch({ type: CREATE_BUDGET_SUCCESS, payload: data });
     } catch (error) {
       console.error("Error creating budget:", error);
-      dispatch({ type: CREATE_BUDGET_FAILURE, payload: error });
+      const errorMessage =
+        typeof error.response?.data === "string"
+          ? error.response.data
+          : error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Failed to create budget";
+      dispatch({ type: CREATE_BUDGET_FAILURE, payload: errorMessage });
     }
   };
 
@@ -79,7 +86,14 @@ export const getBudgetData = (targetId) => async (dispatch) => {
     dispatch({ type: GET_ALL_BUDGET_DATA_SUCCESS, payload: data });
   } catch (error) {
     console.error("Error creating budget:", error);
-    dispatch({ type: GET_ALL_BUDGET_DATA_FAILURE, payload: error });
+    const errorMessage =
+      typeof error.response?.data === "string"
+        ? error.response.data
+        : error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch budgets";
+    dispatch({ type: GET_ALL_BUDGET_DATA_FAILURE, payload: errorMessage });
   }
 };
 
@@ -97,7 +111,14 @@ export const getBudgetById = (id, targetId) => async (dispatch) => {
     dispatch({ type: GET_BUDGET_DATA_SUCCESS, payload: data });
   } catch (error) {
     console.error("Error creating budget:", error);
-    dispatch({ type: GET_BUDGET_DATA_FAILURE, payload: error });
+    const errorMessage =
+      typeof error.response?.data === "string"
+        ? error.response.data
+        : error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch budget";
+    dispatch({ type: GET_BUDGET_DATA_FAILURE, payload: errorMessage });
   }
 };
 
@@ -116,7 +137,14 @@ export const getListOfBudgetsById = (date, targetId) => async (dispatch) => {
     dispatch({ type: GET_LIST_BUDGETS_SUCCESS, payload: data });
   } catch (error) {
     console.error("Error creating budget:", error);
-    dispatch({ type: GET_LIST_BUDGETS_FAILURE, payload: error });
+    const errorMessage =
+      typeof error.response?.data === "string"
+        ? error.response.data
+        : error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch budgets by date";
+    dispatch({ type: GET_LIST_BUDGETS_FAILURE, payload: errorMessage });
   }
 };
 
@@ -159,7 +187,14 @@ export const getBudgetReportById = (id, targetId) => async (dispatch) => {
     dispatch({ type: GET_BUDGET_SUCCESS, payload: data });
   } catch (error) {
     console.error("Error creating budget:", error);
-    dispatch({ type: GET_BUDGET_FAILURE, payload: error });
+    const errorMessage =
+      typeof error.response?.data === "string"
+        ? error.response.data
+        : error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch budget report";
+    dispatch({ type: GET_BUDGET_FAILURE, payload: errorMessage });
   }
 };
 export const editBudgetAction =
@@ -197,7 +232,14 @@ export const deleteBudgetData = (deleteId, targetId) => async (dispatch) => {
     dispatch({ type: DELETE_BUDGET_SUCCESS, payload: data });
   } catch (error) {
     console.error("Error creating budget:", error);
-    dispatch({ type: DELETE_BUDGET_FAILURE, payload: error });
+    const errorMessage =
+      typeof error.response?.data === "string"
+        ? error.response.data
+        : error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to delete budget";
+    dispatch({ type: DELETE_BUDGET_FAILURE, payload: errorMessage });
   }
 };
 
@@ -241,7 +283,17 @@ export const getDetailedBudgetReport =
       return data;
     } catch (error) {
       console.error("Error fetching detailed budget report:", error);
-      dispatch({ type: GET_DETAILED_BUDGET_REPORT_FAILURE, payload: error });
+      const errorMessage =
+        typeof error.response?.data === "string"
+          ? error.response.data
+          : error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Failed to fetch detailed budget report";
+      dispatch({
+        type: GET_DETAILED_BUDGET_REPORT_FAILURE,
+        payload: errorMessage,
+      });
       throw error;
     }
   };

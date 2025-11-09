@@ -3,11 +3,14 @@ import com.jaya.dto.User;
 import com.jaya.exceptions.UserException;
 import com.jaya.service.FriendShipService;
 import com.jaya.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
+
 
 @Component
 public class UserPermissionHelper {
@@ -15,30 +18,80 @@ public class UserPermissionHelper {
     private final UserService userService;
     private final FriendShipService friendshipService;
 
+    private final Logger logger= LoggerFactory.getLogger(UserPermissionHelper.class);
+
     @Autowired
     public UserPermissionHelper(UserService userService, FriendShipService friendshipService) {
         this.userService = userService;
         this.friendshipService = friendshipService;
     }
 
-    public User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) throws Exception {
-        if (targetId == null) {
-            return reqUser;
-        }
-        User targetUser = userService.findUserById(targetId);
-        if (targetUser == null) {
-            throw new RuntimeException("Target user not found");
-        }
 
-        boolean hasAccess = needWriteAccess ?
-                friendshipService.canUserModifyExpenses(targetId, reqUser.getId()) :
-                friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
+    public User validateUser(String jwt) throws Exception {
 
-        if (!hasAccess) {
-            String action = needWriteAccess ? "modify" : "access";
-            throw new RuntimeException("You don't have permission to " + action + " this user's expenses");
+        User reqUser = userService.findUserByJwt(jwt);
+        if (reqUser == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
         }
-        return targetUser;
+        return reqUser;
+    }
+    public User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess)  {
+
+        try {
+            if (targetId == null) {
+                return reqUser;
+            }
+            User targetUser = userService.findUserById(targetId);
+            if (targetUser == null) {
+                throw new RuntimeException("Target user not found");
+            }
+
+            boolean hasAccess = needWriteAccess ?
+                    friendshipService.canUserModifyExpenses(targetId, reqUser.getId()) :
+                    friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
+
+            if (!hasAccess) {
+                String action = needWriteAccess ? "modify" : "access";
+                throw new RuntimeException("You don't have permission to " + action + " this user's expenses");
+            }
+            return targetUser;
+        }
+        catch (Exception e)
+        {
+            logger.error("Exception occurred"+e);
+        }
+        return reqUser;
+    }
+
+
+    public User getTargetUserWithPermissionCheck(Integer targetId, String jwt, boolean needWriteAccess) throws Exception {
+
+        User reqUser=validateUser(jwt);
+
+        try {
+            if (targetId == null) {
+                return reqUser;
+            }
+            User targetUser = userService.findUserById(targetId);
+            if (targetUser == null) {
+                throw new RuntimeException("Target user not found");
+            }
+
+            boolean hasAccess = needWriteAccess ?
+                    friendshipService.canUserModifyExpenses(targetId, reqUser.getId()) :
+                    friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
+
+            if (!hasAccess) {
+                String action = needWriteAccess ? "modify" : "access";
+                throw new RuntimeException("You don't have permission to " + action + " this user's expenses");
+            }
+            return targetUser;
+        }
+        catch (Exception e)
+        {
+            logger.error("Exception occurred"+e);
+        }
+        return reqUser;
     }
 
     public <T> ResponseEntity<?> executeWithPermissionCheck(String jwt, Integer targetId, boolean needWriteAccess,

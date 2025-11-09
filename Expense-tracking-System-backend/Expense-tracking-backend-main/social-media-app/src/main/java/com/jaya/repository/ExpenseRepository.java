@@ -24,10 +24,17 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         List<Expense> findByDateBetween(LocalDate from, LocalDate to);
 
         // Optimized single expense fetch with details to avoid lazy loading N+1 when
-        // serializing
+        // serializing (READ ONLY - for display purposes only)
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "1"),
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
+        })
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.id = :id")
+        Expense findByUserIdAndIdReadOnly(@Param("userId") Integer userId, @Param("id") Integer id);
+
+        // For updates - fetches entity in write mode
+        @QueryHints({
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "1")
         })
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.id = :id")
         Expense findByUserIdAndId(@Param("userId") Integer userId, @Param("id") Integer id);
@@ -237,8 +244,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         @Param("minAmount") Double minAmount,
                         @Param("maxAmount") Double maxAmount);
 
-        @Query("SELECT e FROM Expense e WHERE e.userId = ?1 AND e.expense.expenseName = ?2 AND e.date < ?3 ORDER BY e.date DESC")
-        List<Expense> findByUserAndExpenseNameBeforeDate(Integer userId, String expenseName, LocalDate date);
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = ?1 AND e.expense.expenseName = ?2 AND e.date < ?3 ORDER BY e.date DESC")
+        List<Expense> findByUserAndExpenseNameBeforeDate(Integer userId, String expenseName, LocalDate date,
+                        Pageable pageable);
 
         @Query("SELECT ed.expenseName, SUM(ed.amount) as total " +
                         "FROM Expense e JOIN e.expense ed " +

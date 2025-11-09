@@ -156,7 +156,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
         updateBudgetExpenseLinks(savedExpense, validBudgetIds, user);
 
-        updateExpenseCache(savedExpense, user.getId());
+        // updateExpenseCache(savedExpense, user.getId());
 
         publishExpenseAuditEvent("CREATE", savedExpense, user, null, expenseToMap(savedExpense), "Expense created",
                 "SUCCESS");
@@ -203,6 +203,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Override
     @Transactional
+    @CacheEvict(value = { "expenses", "categories", "budgets", "paymentMethods" }, allEntries = true)
     public Expense updateExpense(Integer id, Expense updatedExpense, Integer userId) throws Exception {
         Expense existingExpense = expenseRepository.findByUserIdAndId(userId, id);
         if (existingExpense == null) {
@@ -211,56 +212,43 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         if (existingExpense.isBill()) {
             throw new RuntimeException("Cannot update a bill expense. Please use the Bill Id for updates.");
         }
+
         Map<String, Object> oldValues = expenseToMap(existingExpense);
         User user = helper.validateUser(userId);
         Expense savedExpense = updateExpenseInternal(existingExpense, updatedExpense, userId);
 
-        // Update cache - first remove old expense, then add updated one
-        Cache cache = cacheManager.getCache("expenses");
-        if (cache != null) {
-            // Remove old expense from individual cache
-            cache.evict(id);
+        entityManager.flush();
+        entityManager.clear();
 
-            // Update user's expense list cache
-            List<Expense> cachedExpenses = cache.get(userId, List.class);
-            if (cachedExpenses != null) {
-                // First, remove the old expense from the cached list
-                cachedExpenses.removeIf(expense -> expense.getId().equals(id));
+        Expense refreshedExpense = expenseRepository.findByUserIdAndId(userId, id);
 
-                // Then, add the updated expense to the cached list
-                cachedExpenses.add(savedExpense);
-
-                // Update the cache with the modified list
-                cache.put(userId, cachedExpenses);
-                logger.info("Removed old expense ID {} and added updated expense to cache for user: {}", id, userId);
-            } else {
-                // If no cached list exists, evict to force fresh fetch next time
-                cache.evict(userId);
-                logger.info("Evicted cache for user: {} due to missing cached list", userId);
-            }
-
-            // Add updated expense to individual cache
-            cache.put(savedExpense.getId(), savedExpense);
-        }
-
-        publishExpenseAuditEvent("UPDATE", savedExpense, user, oldValues, expenseToMap(savedExpense), "Expense updated",
+        publishExpenseAuditEvent("UPDATE", refreshedExpense, user, oldValues, expenseToMap(refreshedExpense),
+                "Expense updated",
                 "SUCCESS");
-        return savedExpense;
+        return refreshedExpense;
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = { "expenses", "categories", "budgets", "paymentMethods" }, allEntries = true)
     public Expense updateExpenseWithBillService(Integer id, Expense updatedExpense, Integer userId) throws Exception {
         Expense existingExpense = expenseRepository.findByUserIdAndId(userId, id);
         if (existingExpense == null) {
             throw new RuntimeException("Expense not found with ID: " + id);
         }
+
         Map<String, Object> oldValues = expenseToMap(existingExpense);
         User user = helper.validateUser(userId);
         Expense saved = updateExpenseInternal(existingExpense, updatedExpense, userId);
-        publishExpenseAuditEvent("UPDATE", saved, user, oldValues, expenseToMap(saved),
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Expense refreshedExpense = expenseRepository.findByUserIdAndId(userId, id);
+
+        publishExpenseAuditEvent("UPDATE", refreshedExpense, user, oldValues, expenseToMap(refreshedExpense),
                 "Expense (bill service) updated", "SUCCESS");
-        return saved;
+        return refreshedExpense;
     }
 
     @Override
@@ -1664,10 +1652,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         validateExpenseData(updatedExpense);
         ExpenseDetails newDetails = updatedExpense.getExpense();
 
-        updateCategory(existingExpense, updatedExpense, userId);
-        updatePaymentMethod(existingExpense, newDetails, userId);
-
         ExpenseDetails existingDetails = existingExpense.getExpense();
+        if (existingDetails == null) {
+            throw new RuntimeException("Expense details cannot be null");
+        }
+
         existingDetails.setExpenseName(newDetails.getExpenseName());
         existingDetails.setAmount(newDetails.getAmount());
         existingDetails.setType(newDetails.getType());
@@ -1682,11 +1671,22 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         Set<Integer> validBudgetIds = extractValidBudgetIds(updatedExpense, userId);
         removeOldBudgetLinks(existingExpense, validBudgetIds, userId);
         existingExpense.setBudgetIds(validBudgetIds);
-        Expense savedExpense = expenseRepository.save(existingExpense);
-        updateCategoryExpenseIds(savedExpense, userId);
-        updateBudgetLinks(savedExpense, validBudgetIds, userId);
 
-        return savedExpense;
+        Expense savedExpense = expenseRepository.save(existingExpense);
+        entityManager.flush();
+
+        entityManager.detach(savedExpense);
+        Expense verified = expenseRepository.findById(savedExpense.getId())
+                .orElseThrow(() -> new RuntimeException("Expense not found after save"));
+
+        updateCategory(verified, updatedExpense, userId);
+        updatePaymentMethod(verified, newDetails, userId);
+        updateCategoryExpenseIds(verified, userId);
+        updateBudgetLinks(verified, validBudgetIds, userId);
+
+        entityManager.flush();
+
+        return verified;
     }
 
     private Set<Integer> extractValidBudgetIds(Expense updatedExpense, Integer userId) throws Exception {

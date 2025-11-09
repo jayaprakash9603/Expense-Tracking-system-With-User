@@ -20,17 +20,13 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
-
 @Service
 @RequiredArgsConstructor
 public class BillServiceImpl implements BillService {
 
     private final BillRepository billRepository;
 
-
     private final ExpenseService expenseService;
-
 
     private final ServiceHelper helper;
 
@@ -38,7 +34,6 @@ public class BillServiceImpl implements BillService {
 
     // lazy-loaded backup items
     private static volatile List<String> cachedBackupItems = null;
-
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -62,8 +57,6 @@ public class BillServiceImpl implements BillService {
                 throw new Exception("Failed to save bill");
             }
 
-
-
             return savedBill;
 
         } catch (IllegalArgumentException e) {
@@ -72,7 +65,6 @@ public class BillServiceImpl implements BillService {
             throw new Exception("Error creating bill: " + e.getMessage());
         }
     }
-
 
     @Override
     @Transactional
@@ -88,8 +80,6 @@ public class BillServiceImpl implements BillService {
                 throw new Exception("Associated expense not found for bill ID: " + bill.getId());
             }
 
-
-            
             // Update expense properties
             expense.setDate(bill.getDate());
 
@@ -121,7 +111,8 @@ public class BillServiceImpl implements BillService {
             expenseDetails.setCreditDue(bill.getCreditDue());
 
             // Update the expense using the bill service method
-            ExpenseDTO savedExpense = expenseService.updateExpenseWithBillService(existingBill.getExpenseId(), expense, user.getId());
+            ExpenseDTO savedExpense = expenseService.updateExpenseWithBillService(existingBill.getExpenseId(), expense,
+                    user.getId());
 
             // Update the bill with the saved expense data
             existingBill.setUserId(userId);
@@ -176,7 +167,7 @@ public class BillServiceImpl implements BillService {
         try {
             helper.validateBillId(id);
             UserDto user = helper.validateUser(userId);
-            Bill bill =getByBillId(id,userId);
+            Bill bill = getByBillId(id, userId);
             expenseService.deleteExpensesByIdsWithBillService(Arrays.asList(bill.getExpenseId()), user.getId());
 
             billRepository.deleteById(id);
@@ -189,17 +180,16 @@ public class BillServiceImpl implements BillService {
     @Override
     public List<Bill> getAllBillsForUser(Integer userId) throws Exception {
         try {
-           helper.validateUser(userId);
+            helper.validateUser(userId);
 
-           List<Bill>bills=     billRepository.findByUserId(userId);
+            List<Bill> bills = billRepository.findByUserId(userId);
 
-           System.out.print("bills size"+bills.size());
-           return bills;
+            System.out.print("bills size" + bills.size());
+            return bills;
         } catch (Exception e) {
             throw new Exception("Error retrieving bills: " + e.getMessage());
         }
     }
-
 
     @Override
     public List<Bill> getAllBillsForUser(Integer userId, int month, int year) throws Exception {
@@ -223,9 +213,6 @@ public class BillServiceImpl implements BillService {
                 .skip(offset)
                 .collect(Collectors.toList());
     }
-
-
-
 
     @Override
     public List<Bill> getAllBillsForUser(Integer userId, String range, int offset) throws Exception {
@@ -260,24 +247,42 @@ public class BillServiceImpl implements BillService {
     @Override
     public Bill getBillIdByExpenseId(Integer userId, Integer expenseid) throws Exception {
 
-        Bill bill=billRepository.findByExpenseId(expenseid);
+        Bill bill = billRepository.findByExpenseId(expenseid);
         if (bill == null) {
             throw new Exception("Bill not found for expense ID: " + expenseid);
         }
-        System.out.println("bill id"+bill.getId()+"expense id "+bill.getExpenseId());
+        System.out.println("bill id" + bill.getId() + "expense id " + bill.getExpenseId());
         return bill;
     }
 
     @Override
     public String deleteAllBillsForUser(Integer userId) throws Exception {
         helper.validateUser(userId);
-        List<Bill>getAllUserBills=billRepository.findByUserId(userId);
+        List<Bill> getAllUserBills = billRepository.findByUserId(userId);
+
+        // Extract expense IDs before deleting bills, filtering out nulls
+        List<Integer> expenseIds = getAllUserBills.stream()
+                .map(Bill::getExpenseId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Delete all bills first
         getAllUserBills.forEach(bill -> billRepository.deleteById(bill.getId()));
-        List<Integer>expenseIds=getAllUserBills.stream().map(Bill::getExpenseId).collect(Collectors.toList());
-        expenseService.deleteExpensesByIdsWithBillService(expenseIds, userId);
+
+        // Only try to delete expenses if there are valid expense IDs
+        if (!expenseIds.isEmpty()) {
+            try {
+                expenseService.deleteExpensesByIdsWithBillService(expenseIds, userId);
+            } catch (Exception e) {
+                // Log the error but don't fail the entire operation
+                System.err.println("Warning: Failed to delete some expenses: " + e.getMessage());
+                // Bills are already deleted, so we can continue
+            }
+        }
+
         return "All bills are deleted successfully";
     }
-
 
     @Override
     public List<Bill> getBillsWithinRange(Integer userId, LocalDate startDate, LocalDate endDate) throws Exception {
@@ -287,15 +292,17 @@ public class BillServiceImpl implements BillService {
                         (startDate.equals(endDate)
                                 ? bill.getDate().isEqual(startDate)
                                 : (bill.getDate().isEqual(startDate) || bill.getDate().isAfter(startDate)) &&
-                                (bill.getDate().isEqual(endDate) || bill.getDate().isBefore(endDate))))
+                                        (bill.getDate().isEqual(endDate) || bill.getDate().isBefore(endDate))))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<ExpenseDTO> getAllExpensesForBill(Integer userId, LocalDate startDate, LocalDate endDate) throws Exception {
+    public List<ExpenseDTO> getAllExpensesForBill(Integer userId, LocalDate startDate, LocalDate endDate)
+            throws Exception {
 
         List<Bill> bills = getBillsWithinRange(userId, startDate, endDate);
-        return bills.stream().map(bill->expenseService.getExpenseById(bill.getExpenseId(),userId)).collect(Collectors.toList());
+        return bills.stream().map(bill -> expenseService.getExpenseById(bill.getExpenseId(), userId))
+                .collect(Collectors.toList());
 
     }
 
@@ -316,6 +323,7 @@ public class BillServiceImpl implements BillService {
             throw new Exception("Error retrieving unique item names: " + e.getMessage());
         }
     }
+
     @Override
     public List<String> getUserAndBackupItems(Integer userId) throws Exception {
         try {
@@ -328,9 +336,11 @@ public class BillServiceImpl implements BillService {
                 synchronized (BillServiceImpl.class) {
                     if (cachedBackupItems == null) {
                         java.util.List<String> backup = new java.util.ArrayList<>();
-                        try (java.io.InputStream is = getClass().getClassLoader().getResourceAsStream("backup_item_names.txt")) {
+                        try (java.io.InputStream is = getClass().getClassLoader()
+                                .getResourceAsStream("backup_item_names.txt")) {
                             if (is != null) {
-                                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(is))) {
+                                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                                        new java.io.InputStreamReader(is))) {
                                     backup = reader.lines()
                                             .map(String::trim)
                                             .filter(s -> s != null && !s.isEmpty())
@@ -348,10 +358,12 @@ public class BillServiceImpl implements BillService {
 
             // merge userItems (first) and backupItems, deduplicated while preserving order
             java.util.LinkedHashSet<String> merged = new java.util.LinkedHashSet<>();
-            if (userItems != null) merged.addAll(userItems);
+            if (userItems != null)
+                merged.addAll(userItems);
             if (cachedBackupItems != null) {
                 for (String b : cachedBackupItems) {
-                    if (b != null && !b.trim().isEmpty()) merged.add(b.trim());
+                    if (b != null && !b.trim().isEmpty())
+                        merged.add(b.trim());
                 }
             }
 
@@ -365,7 +377,8 @@ public class BillServiceImpl implements BillService {
     @Transactional
     public List<Bill> addMultipleBills(List<Bill> bills, Integer userId) throws Exception {
         UserDto user = helper.validateUser(userId);
-        if (bills == null || bills.isEmpty()) return java.util.Collections.emptyList();
+        if (bills == null || bills.isEmpty())
+            return java.util.Collections.emptyList();
 
         final int batchSize = 500;
         int count = 0;
@@ -376,7 +389,7 @@ public class BillServiceImpl implements BillService {
 
             // Create and save corresponding expense first
             ExpenseDTO expenseDto = helper.createExpenseFromBill(bill, user);
-           ExpenseDTO savedExpense = expenseService.addExpense(expenseDto, userId);
+            ExpenseDTO savedExpense = expenseService.addExpense(expenseDto, userId);
 
             Bill toSave = helper.mapExpenseToBill(bill, savedExpense);
             billRepository.save(toSave);
@@ -384,7 +397,8 @@ public class BillServiceImpl implements BillService {
 
             if (++count % batchSize == 0) {
                 // Use repository flush via JPA if available
-                // entityManager is not injected here; repository flush is fine for batch boundaries
+                // entityManager is not injected here; repository flush is fine for batch
+                // boundaries
             }
         }
         return savedBills;
@@ -394,7 +408,8 @@ public class BillServiceImpl implements BillService {
     @Transactional
     public List<Bill> addMultipleBillsWithProgress(List<Bill> bills, Integer userId, String jobId) throws Exception {
         UserDto user = helper.validateUser(userId);
-        if (bills == null || bills.isEmpty()) return Collections.emptyList();
+        if (bills == null || bills.isEmpty())
+            return Collections.emptyList();
 
         final int progressStep = 250;
         int sinceLast = 0;
@@ -405,7 +420,7 @@ public class BillServiceImpl implements BillService {
                 helper.validateBillData(bill);
 
                 ExpenseDTO expenseDto = helper.createExpenseFromBill(bill, user);
-                System.out.println(("category id in bill"+expenseDto.getCategoryId()));
+                System.out.println(("category id in bill" + expenseDto.getCategoryId()));
                 ExpenseDTO savedExpense = expenseService.addExpense(expenseDto, userId);
 
                 Bill toSave = helper.mapExpenseToBill(bill, savedExpense);
@@ -417,7 +432,8 @@ public class BillServiceImpl implements BillService {
                     sinceLast = 0;
                 }
             }
-            if (sinceLast > 0) progressTracker.increment(jobId, sinceLast);
+            if (sinceLast > 0)
+                progressTracker.increment(jobId, sinceLast);
             return savedBills;
         } catch (Exception ex) {
             progressTracker.fail(jobId, ex.getMessage());

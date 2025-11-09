@@ -18,7 +18,7 @@ public interface UserService {
 
     public User updateUserProfile(String jwt, UserUpdateRequest updateRequest);
 
-    void  deleteUser(Long id) throws AccessDeniedException;
+    void  deleteUser(Integer id) throws AccessDeniedException;
 
     public boolean checkEmailAvailability(String email);
 

@@ -22,6 +22,7 @@ export const THEME_COLORS = {
     // Text colors
     primary_text: "#ffffff", // Main text color
     secondary_text: "#ffffff", // Muted text, disabled states (changed to white for better readability)
+    placeholder_text: "#9ca3af", // Placeholder text color (light gray)
     active_text: "#00DAC6", // Active menu item text (primary teal)
     brand_text: "#14b8a6", // Brand color text
 
@@ -68,6 +69,7 @@ export const THEME_COLORS = {
     // Text colors
     primary_text: "#1a1a1a", // Main text color (dark gray/black)
     secondary_text: "#2a2a2a", // Muted text, chart axis labels (very dark for high visibility)
+    placeholder_text: "#9ca3af", // Placeholder text color (medium gray)
     active_text: "#14b8a6", // Active menu item text (primary teal)
     brand_text: "#14b8a6", // Brand color text
 

@@ -44,7 +44,7 @@ public class RoleServiceImplementation implements RoleService {
     }
 
     @Override
-    public Optional<Role> getRoleById(Long id) {
+    public Optional<Role> getRoleById(Integer id) {
         return roleRepository.findById(id);
     }
 
@@ -54,7 +54,7 @@ public class RoleServiceImplementation implements RoleService {
     }
 
     @Override
-    public Role updateRole(Long id, Role role) {
+    public Role updateRole(Integer id, Role role) {
         if (id == null) {
             throw new RuntimeException("Role id is required for update");
         }
@@ -84,7 +84,7 @@ public class RoleServiceImplementation implements RoleService {
     }
 
     @Override
-    public void deleteRole(Long id) {
+    public void deleteRole(Integer id) {
         if (id != null && roleRepository.existsById(id)) {
             roleRepository.deleteById(id);
         } else {
@@ -99,7 +99,7 @@ public class RoleServiceImplementation implements RoleService {
 
     // ===================== Small reusable helpers =====================
 
-    private Role getExistingRoleOrThrow(Long id) {
+    private Role getExistingRoleOrThrow(Integer id) {
         return roleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found with id: " + id));
     }
@@ -110,7 +110,7 @@ public class RoleServiceImplementation implements RoleService {
         }
     }
 
-    private void assertUniqueNameForUpdate(Long id, String name) {
+    private void assertUniqueNameForUpdate(Integer id, String name) {
         Optional<Role> byName = getRoleByName(name);
         if (byName.isPresent() && !Objects.equals(byName.get().getId(), id)) {
             throw new RuntimeException("Role with name '" + name + "' already exists");

@@ -8,6 +8,7 @@ import com.jaya.task.user.service.request.LoginRequest;
 import com.jaya.task.user.service.request.SignupRequest;
 import com.jaya.task.user.service.response.AuthResponse;
 import com.jaya.task.user.service.service.CustomUserServiceImplementation;
+import com.jaya.task.user.service.exceptions.MissingRequestHeaderException;
 import com.jaya.task.user.service.exceptions.UserAlreadyExistsException;
 import com.jaya.task.user.service.service.OtpService;
 import com.jaya.task.user.service.service.UserService;
@@ -24,12 +25,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
 @RestController
 @RequestMapping("/auth")
+@Validated
 public class AuthController {
 
     @Autowired
@@ -49,7 +52,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest) {
-        try {
+       
             User savedUser = userService.signup(signupRequest);
 
             UserDetails userDetails = customUserService.loadUserByUsername(savedUser.getEmail());
@@ -69,14 +72,7 @@ public class AuthController {
 
             return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
 
-        } catch (UserAlreadyExistsException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Registration failed: " + e.getMessage()));
-        }
+        
     }
     @PostMapping("/signin")
     public ResponseEntity<AuthResponse> signin(@RequestBody LoginRequest loginRequest) {
@@ -120,7 +116,11 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestHeader("Authorization") String jwt) {
-        try {
+       
+            if(jwt==null)
+            {
+                throw new MissingRequestHeaderException("Jwt is missing");
+            }
             // Extract email from current JWT
             String email = JwtProvider.getEmailFromJwt(jwt);
 
@@ -144,17 +144,25 @@ public class AuthController {
 
             return ResponseEntity.ok(authResponse);
 
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to refresh token: " + e.getMessage()));
-        }
+        
     }
 
 
-    @GetMapping("/{userId}")
+    @GetMapping("user/{userId}")
     public User findUserById(@PathVariable("userId") Integer id) throws Exception
     {
-        Optional<User> userOptional = userRepository.findById(Long.valueOf(id));
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            return userOptional.get();
+        } else {
+            throw new Exception("User not found with id: " + id);
+        }
+    }
+
+    @GetMapping("/{userId}")
+    public User findUserByIds(@PathVariable("userId") Integer id) throws Exception
+    {
+        Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             return userOptional.get();
         } else {

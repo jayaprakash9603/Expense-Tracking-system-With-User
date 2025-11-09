@@ -18,9 +18,29 @@ public class GlobalExceptions {
 	@ExceptionHandler(UserException.class)
 	public ResponseEntity<ErrorDetails>userExceptionHandler(UserException ue,WebRequest req)
 	{
-		
 		ErrorDetails error=new ErrorDetails(ue.getMessage(),req.getDescription(false),LocalDateTime.now());
-		
+		return new ResponseEntity<ErrorDetails>(error,HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ErrorDetails>IllegalArgumentHandler(IllegalArgumentException ue,WebRequest req)
+	{
+		ErrorDetails error=new ErrorDetails(ue.getMessage(),req.getDescription(false),LocalDateTime.now());
+		return new ResponseEntity<ErrorDetails>(error,HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+	public ResponseEntity<ErrorDetails>IllegalArgumentHandler(HttpRequestMethodNotSupportedException ue,WebRequest req)
+	{
+		ErrorDetails error=new ErrorDetails(ue.getMessage(),req.getDescription(false),LocalDateTime.now());
+		return new ResponseEntity<ErrorDetails>(error,HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(MissingRequestHeaderException.class)
+	public ResponseEntity<ErrorDetails>missingHeaderHandler(MissingRequestHeaderException ue,WebRequest req)
+	{
+
+		ErrorDetails error=new ErrorDetails(ue.getMessage(),req.getDescription(false),LocalDateTime.now());
 		return new ResponseEntity<ErrorDetails>(error,HttpStatus.BAD_REQUEST);
 	}
 	@ExceptionHandler(Exception.class)

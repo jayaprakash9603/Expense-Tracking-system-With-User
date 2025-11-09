@@ -21,10 +21,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+
 @Service
 public class ExpenseQueryServiceImpl implements ExpenseQueryService {
-
 
     public static final String OTHERS = "Others";
     private static final String CREDIT_NEED_TO_PAID = "creditNeedToPaid";
@@ -34,11 +37,12 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     private static final String YEAR = "year";
     private static final String WEEK = "week";
 
-
-
-
     private final ExpenseRepository expenseRepository;
     private final ExpenseReportRepository expenseReportRepository;
+
+    // Thread pool for parallel processing - optimized for I/O-bound operations
+    private final ExecutorService executorService = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors() * 2);
 
     @Autowired
     private BudgetServices budgetService;
@@ -51,11 +55,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Autowired
     private ServiceHelper helper;
 
-    public ExpenseQueryServiceImpl(ExpenseRepository expenseRepository, ExpenseReportRepository expenseReportRepository) {
+    public ExpenseQueryServiceImpl(ExpenseRepository expenseRepository,
+            ExpenseReportRepository expenseReportRepository) {
         this.expenseRepository = expenseRepository;
         this.expenseReportRepository = expenseReportRepository;
     }
-
 
     @Override
     public List<Expense> getExpensesByDate(LocalDate date, Integer userId) {
@@ -89,11 +93,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     public List<Expense> getExpensesForCurrentMonth(Integer userId) {
         LocalDate today = LocalDate.now();
 
-
         LocalDate firstDayOfCurrentMonth = today.withDayOfMonth(1);
 
         LocalDate lastDayOfCurrentMonth = today.withDayOfMonth(today.lengthOfMonth());
-
 
         return expenseRepository.findByUserIdAndDateBetween(userId, firstDayOfCurrentMonth, lastDayOfCurrentMonth);
     }
@@ -103,11 +105,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         LocalDate today = LocalDate.now();
 
-
         LocalDate firstDayOfLastMonth = today.withDayOfMonth(1).minusMonths(1);
 
         LocalDate lastDayOfLastMonth = firstDayOfLastMonth.withDayOfMonth(firstDayOfLastMonth.lengthOfMonth());
-
 
         return expenseRepository.findByUserIdAndDateBetween(userId, firstDayOfLastMonth, lastDayOfLastMonth);
     }
@@ -144,8 +144,10 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type, String paymentMethod, Double minAmount, Double maxAmount, Integer userId) {
-        return expenseRepository.filterExpensesByUser(userId, expenseName, startDate, endDate, type, paymentMethod, minAmount, maxAmount);
+    public List<Expense> filterExpenses(String expenseName, LocalDate startDate, LocalDate endDate, String type,
+            String paymentMethod, Double minAmount, Double maxAmount, Integer userId) {
+        return expenseRepository.filterExpensesByUser(userId, expenseName, startDate, endDate, type, paymentMethod,
+                minAmount, maxAmount);
     }
 
     @Override
@@ -205,12 +207,844 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Override
     public Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date) {
 
-        List<Expense> expensesBeforeDate = expenseRepository.findByUserAndExpenseNameBeforeDate(userId, expenseName, date);
-        return expensesBeforeDate.get(0);
+        // Limit to last 50 expenses for performance - enough for meaningful statistics
+        Pageable pageable = PageRequest.of(0, 50);
+        List<Expense> expensesBeforeDate = expenseRepository.findByUserAndExpenseNameBeforeDate(userId, expenseName,
+                date, pageable);
+
+        // Handle empty list case
+        if (expensesBeforeDate == null || expensesBeforeDate.isEmpty()) {
+            return null;
+        }
+
+        Expense result = expensesBeforeDate.get(0);
+
+        // OPTIMIZED: Execute all frequency computations in parallel using
+        // CompletableFuture
+        CompletableFuture<Map<String, Object>> categoryStatsFuture = CompletableFuture.supplyAsync(
+                () -> computeFieldFrequency(expensesBeforeDate, "category"),
+                executorService);
+
+        CompletableFuture<Map<String, Object>> typeStatsFuture = CompletableFuture.supplyAsync(
+                () -> computeFieldFrequency(expensesBeforeDate, "type"),
+                executorService);
+
+        CompletableFuture<Map<String, Object>> paymentStatsFuture = CompletableFuture.supplyAsync(
+                () -> computeFieldFrequency(expensesBeforeDate, "paymentmethod"),
+                executorService);
+
+        CompletableFuture<String> commentSuggestionFuture = CompletableFuture.supplyAsync(
+                () -> findMostCommonCommentPrefix(expensesBeforeDate, date),
+                executorService);
+
+        // Wait for all parallel operations to complete
+        CompletableFuture.allOf(categoryStatsFuture, typeStatsFuture, paymentStatsFuture, commentSuggestionFuture)
+                .join();
+
+        // Retrieve results from futures
+        Map<String, Object> stats = categoryStatsFuture.join();
+        Map<String, Object> typeStats = typeStatsFuture.join();
+        Map<String, Object> paymentStats = paymentStatsFuture.join();
+        String suggestedComment = commentSuggestionFuture.join();
+
+        String topCategory = (String) stats.get("mostUsed");
+        Integer topCategoryId = (Integer) stats.get("mostUsedId");
+        String topType = (String) typeStats.get("mostUsed");
+        String topPaymentMethod = (String) paymentStats.get("mostUsed");
+
+        // Set fields safely
+        result.setCategoryName(topCategory);
+        result.setCategoryId(topCategoryId);
+        if (result.getExpense() != null) {
+            result.getExpense().setType(topType);
+            result.getExpense().setPaymentMethod(topPaymentMethod);
+
+            // Set suggested comment if found
+            if (suggestedComment != null && !suggestedComment.isEmpty()) {
+                result.getExpense().setComments(suggestedComment);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Find the most commonly used comment pattern from a list of expenses with
+     * intelligent month detection.
+     * This helps provide auto-completion suggestions to users.
+     * 
+     * Algorithm:
+     * 1. Extract all non-empty comments
+     * 2. Detect if comments differ only by month names
+     * 3. Analyze temporal patterns: Does user enter current month or next month?
+     * 4. If month pattern detected: Build template and insert appropriate month
+     * (current or next)
+     * 5. Otherwise: Use word-by-word prefix matching (original logic)
+     * 6. Return the most relevant suggestion
+     * 
+     * @param expenses    List of historical expenses with comments
+     * @param expenseDate The date of the current expense (used to extract month
+     *                    name)
+     * @return Suggested comment based on patterns, or null if no pattern found
+     */
+    private String findMostCommonCommentPrefix(List<Expense> expenses, LocalDate expenseDate) {
+        if (expenses == null || expenses.isEmpty()) {
+            return null;
+        }
+
+        // OPTIMIZED: Use parallel stream for faster filtering
+        List<String> comments = expenses.parallelStream()
+                .filter(e -> e.getExpense() != null && e.getExpense().getComments() != null)
+                .map(e -> e.getExpense().getComments().trim())
+                .filter(c -> !c.isEmpty())
+                .collect(Collectors.toList());
+
+        if (comments.isEmpty()) {
+            return null;
+        }
+
+        // If only one comment, return it as-is
+        if (comments.size() == 1) {
+            return comments.get(0);
+        }
+
+        // STEP 1: Try intelligent month-based pattern detection with temporal analysis
+        String monthBasedSuggestion = detectMonthBasedPatternWithOffset(expenses, expenseDate);
+        if (monthBasedSuggestion != null && !monthBasedSuggestion.isEmpty()) {
+            return monthBasedSuggestion;
+        }
+
+        // STEP 2: Fallback to original word-by-word prefix matching
+        return findPrefixBasedPattern(comments);
+    }
+
+    /**
+     * Detect if comments follow a pattern where only month names vary.
+     * Also detects temporal patterns: Does user enter current month or future month
+     * (next month)?
+     * 
+     * Examples:
+     * - "Deducted for Professional Tax in May Month" -> "Deducted for Professional
+     * Tax in {MONTH} Month"
+     * - "Salary Credited For April Month" -> "Salary Credited For {MONTH} Month"
+     * - "Expenses to Mother for May Month" (entered in April) -> User plans ahead
+     * (next month pattern)
+     * 
+     * @param comments    List of comment strings from historical expenses
+     * @param expenseDate Current expense date (to extract month name)
+     * @return Complete comment with appropriate month inserted, or null if no
+     *         pattern detected
+     */
+    private String detectMonthBasedPattern(List<String> comments, LocalDate expenseDate) {
+        if (comments == null || comments.size() < 2 || expenseDate == null) {
+            return null;
+        }
+
+        // Map to store templates (with {MONTH} placeholder) -> TemplateInfo with month
+        // offset tracking
+        Map<String, TemplateInfoWithOffset> templateFrequency = new HashMap<>();
+
+        // We need the full Expense objects to access their dates
+        // Unfortunately, we only have comments here. We'll need to pass expenses
+        // instead.
+        // For now, let's enhance to track month offsets when we have the data
+
+        for (String comment : comments) {
+            // Replace all month names with {MONTH} placeholder
+            String template = replaceMonthsWithPlaceholder(comment);
+
+            // Only consider if we actually found and replaced a month
+            if (!template.equals(comment) && template.contains("{MONTH}")) {
+                TemplateInfoWithOffset info = templateFrequency.get(template.toLowerCase());
+                if (info == null) {
+                    templateFrequency.put(template.toLowerCase(), new TemplateInfoWithOffset(template, 1));
+                } else {
+                    info.incrementCount();
+                }
+            }
+        }
+
+        if (templateFrequency.isEmpty()) {
+            return null;
+        }
+
+        // Find most common template (must appear in at least 30% of comments)
+        int minFrequencyThreshold = Math.max(2, comments.size() / 3);
+
+        TemplateInfoWithOffset bestTemplate = templateFrequency.values().stream()
+                .filter(info -> info.count >= minFrequencyThreshold)
+                .max(Comparator.comparingInt((TemplateInfoWithOffset info) -> info.count)
+                        .thenComparingInt(info -> info.template.length()))
+                .orElse(null);
+
+        if (bestTemplate == null) {
+            return null;
+        }
+
+        // Get current month name from expense date
+        String currentMonthName = expenseDate.getMonth().toString();
+        // Convert to proper case (e.g., "JANUARY" -> "January")
+        currentMonthName = currentMonthName.charAt(0) + currentMonthName.substring(1).toLowerCase();
+
+        // Replace {MONTH} placeholder with actual month name
+        return bestTemplate.template.replace("{MONTH}", currentMonthName);
+    }
+
+    /**
+     * Enhanced version that analyzes temporal patterns (current month vs next
+     * month).
+     * This is the improved implementation that tracks month offsets.
+     * 
+     * @param expenses    List of historical expenses with both comments and dates
+     * @param expenseDate Current expense date
+     * @return Complete comment with appropriate month (current or next), or null if
+     *         no pattern detected
+     */
+    private String detectMonthBasedPatternWithOffset(List<Expense> expenses, LocalDate expenseDate) {
+        if (expenses == null || expenses.size() < 2 || expenseDate == null) {
+            return null;
+        }
+
+        // Map to store templates with offset analysis
+        Map<String, TemplateInfoWithOffset> templateFrequency = new HashMap<>();
+
+        for (Expense expense : expenses) {
+            if (expense.getExpense() == null || expense.getExpense().getComments() == null) {
+                continue;
+            }
+
+            String comment = expense.getExpense().getComments().trim();
+            if (comment.isEmpty()) {
+                continue;
+            }
+
+            LocalDate expenseEntryDate = expense.getDate();
+            if (expenseEntryDate == null) {
+                continue;
+            }
+
+            // Replace all month names with {MONTH} placeholder
+            String template = replaceMonthsWithPlaceholder(comment);
+
+            // Replace other variable parts (locations, apps, items, etc.)
+            template = replaceVariablePartsWithPlaceholders(template);
+
+            String extractedMonth = extractMonthFromComment(comment);
+
+            // Only consider if we actually found and replaced something
+            if (!template.equals(comment) &&
+                    (template.contains("{MONTH}") || template.contains("{LOCATION}") ||
+                            template.contains("{APP}") || template.contains("{ITEM}") ||
+                            template.contains("{PERSON}"))) {
+
+                String templateKey = template.toLowerCase();
+                TemplateInfoWithOffset info = templateFrequency.get(templateKey);
+
+                if (info == null) {
+                    info = new TemplateInfoWithOffset(template, 0);
+                    templateFrequency.put(templateKey, info);
+                }
+
+                info.incrementCount();
+
+                // Calculate month offset only if there's a month in the comment
+                if (extractedMonth != null && template.contains("{MONTH}")) {
+                    int mentionedMonthValue = getMonthNumber(extractedMonth);
+                    int entryMonthValue = expenseEntryDate.getMonthValue();
+
+                    // Calculate offset (handling year wrapping)
+                    int monthOffset = mentionedMonthValue - entryMonthValue;
+                    if (monthOffset < -6) {
+                        monthOffset += 12; // Wrapped to next year
+                    } else if (monthOffset > 6) {
+                        monthOffset -= 12; // Wrapped from previous year
+                    }
+
+                    info.addMonthOffset(monthOffset);
+                }
+
+                // Store the original comment for learning common values
+                info.addOriginalComment(comment);
+            }
+        }
+
+        if (templateFrequency.isEmpty()) {
+            return null;
+        }
+
+        // Find most common template (must appear in at least 30% of comments)
+        int minFrequencyThreshold = Math.max(2, expenses.size() / 3);
+
+        TemplateInfoWithOffset bestTemplate = templateFrequency.values().stream()
+                .filter(info -> info.count >= minFrequencyThreshold)
+                .max(Comparator.comparingInt((TemplateInfoWithOffset info) -> info.count)
+                        .thenComparingInt(info -> info.template.length()))
+                .orElse(null);
+
+        if (bestTemplate == null) {
+            return null;
+        }
+
+        // Build the suggested comment by replacing placeholders
+        String suggestion = bestTemplate.template;
+
+        // Replace {MONTH} with appropriate month (considering offset)
+        if (suggestion.contains("{MONTH}")) {
+            int avgMonthOffset = bestTemplate.getAverageMonthOffset();
+            LocalDate targetDate = expenseDate.plusMonths(avgMonthOffset);
+            String targetMonthName = targetDate.getMonth().toString();
+            targetMonthName = targetMonthName.charAt(0) + targetMonthName.substring(1).toLowerCase();
+            suggestion = suggestion.replace("{MONTH}", targetMonthName);
+        }
+
+        // Replace {LOCATION} with most common location
+        if (suggestion.contains("{LOCATION}")) {
+            String commonLocation = bestTemplate.getMostCommonValueForPlaceholder("location");
+            if (commonLocation != null) {
+                suggestion = suggestion.replace("{LOCATION}", commonLocation);
+            }
+        }
+
+        // Replace {APP} with most common app
+        if (suggestion.contains("{APP}")) {
+            String commonApp = bestTemplate.getMostCommonValueForPlaceholder("app");
+            if (commonApp != null) {
+                suggestion = suggestion.replace("{APP}", commonApp);
+            }
+        }
+
+        // Replace {ITEM} with most common item
+        if (suggestion.contains("{ITEM}")) {
+            String commonItem = bestTemplate.getMostCommonValueForPlaceholder("item");
+            if (commonItem != null) {
+                suggestion = suggestion.replace("{ITEM}", commonItem);
+            }
+        }
+
+        // Replace {PERSON} with most common person
+        if (suggestion.contains("{PERSON}")) {
+            String commonPerson = bestTemplate.getMostCommonValueForPlaceholder("person");
+            if (commonPerson != null) {
+                suggestion = suggestion.replace("{PERSON}", commonPerson);
+            }
+        }
+
+        return suggestion;
+    }
+
+    /**
+     * Extract the first month name found in a comment.
+     * 
+     * @param comment The comment text
+     * @return Month name if found, null otherwise
+     */
+    private String extractMonthFromComment(String comment) {
+        if (comment == null || comment.isEmpty()) {
+            return null;
+        }
+
+        String[] months = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        for (String month : months) {
+            if (comment.matches("(?i).*\\b" + month + "\\b.*")) {
+                return month;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get month number (1-12) from month name.
+     * 
+     * @param monthName Month name (e.g., "January", "january", "JANUARY")
+     * @return Month number (1-12), or 0 if invalid
+     */
+    private int getMonthNumber(String monthName) {
+        if (monthName == null) {
+            return 0;
+        }
+
+        String[] months = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        for (int i = 0; i < months.length; i++) {
+            if (months[i].equalsIgnoreCase(monthName)) {
+                return i + 1;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Replace all month names in a string with {MONTH} placeholder.
+     * Handles full month names (January-December) in any case.
+     * 
+     * @param text Input text potentially containing month names
+     * @return Text with month names replaced by {MONTH}
+     */
+    private String replaceMonthsWithPlaceholder(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        // List of all month names
+        String[] months = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        String result = text;
+        for (String month : months) {
+            // Case-insensitive replacement but preserve surrounding text structure
+            result = result.replaceAll("(?i)\\b" + month + "\\b", "{MONTH}");
+        }
+
+        return result;
+    }
+
+    /**
+     * Replace variable parts (locations, apps, items, etc.) with placeholders.
+     * This creates more flexible pattern templates beyond just months.
+     * 
+     * @param text Input text
+     * @return Text with variable parts replaced by placeholders
+     */
+    private String replaceVariablePartsWithPlaceholders(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        String result = text;
+
+        // Common locations (from auto charges patterns)
+        String[] locations = {
+                "Seasons Mall", "seasons mall", "Avenue Mall", "avenue mall",
+                "Dmart", "dmart", "DMart", "Movie Theatre", "movie theatre",
+                "railway station", "Railway Station", "Pune Station", "pune station",
+                "Hotel", "hotel", "pg", "PG"
+        };
+        for (String location : locations) {
+            result = result.replaceAll("(?i)\\b" + location + "\\b", "{LOCATION}");
+        }
+
+        // Common apps (from cashback patterns)
+        String[] apps = {
+                "KIWI", "Kiwi", "kiwi", "CRED", "Cred", "cred",
+                "Google Pay", "google pay", "Super Money", "super money",
+                "Jupiter", "jupiter"
+        };
+        for (String app : apps) {
+            result = result.replaceAll("(?i)\\b" + app + "\\b", "{APP}");
+        }
+
+        // Common items (from shopping patterns)
+        String[] items = {
+                "Bread Jam", "bread jam", "Bread-Jam", "bread-jam",
+                "Dry Fruits", "dry fruits", "Dry fruits",
+                "Bread and Jam", "bread and jam"
+        };
+        for (String item : items) {
+            result = result.replaceAll("(?i)" + item, "{ITEM}");
+        }
+
+        // Common people
+        String[] people = { "Mother", "mother", "Daddy", "daddy" };
+        for (String person : people) {
+            result = result.replaceAll("(?i)\\b" + person + "\\b", "{PERSON}");
+        }
+
+        return result;
+    }
+
+    /**
+     * Original prefix-based pattern detection (fallback method).
+     * Finds the longest common word-by-word prefix across comments.
+     * 
+     * @param comments List of comment strings
+     * @return Most common prefix, or null if none found
+     */
+    private String findPrefixBasedPattern(List<String> comments) {
+        // Map to store normalized prefix (lowercase) -> original prefix with count
+        Map<String, PrefixInfo> prefixFrequency = new HashMap<>();
+
+        // For each comment, extract all word-based prefixes
+        for (String comment : comments) {
+            String[] words = comment.split("\\s+");
+            StringBuilder prefix = new StringBuilder();
+
+            // Build prefixes word by word
+            for (int i = 0; i < words.length; i++) {
+                if (i > 0) {
+                    prefix.append(" ");
+                }
+                prefix.append(words[i]);
+
+                // Only consider prefixes with at least 2 words for meaningful suggestions
+                if (i >= 1) {
+                    String currentPrefix = prefix.toString();
+                    String normalizedKey = currentPrefix.toLowerCase();
+
+                    PrefixInfo info = prefixFrequency.get(normalizedKey);
+                    if (info == null) {
+                        prefixFrequency.put(normalizedKey, new PrefixInfo(currentPrefix, 1));
+                    } else {
+                        info.incrementCount();
+                    }
+                }
+            }
+        }
+
+        // If no multi-word prefixes found, try single words
+        if (prefixFrequency.isEmpty()) {
+            for (String comment : comments) {
+                String[] words = comment.split("\\s+");
+                if (words.length > 0) {
+                    String word = words[0];
+                    String normalizedKey = word.toLowerCase();
+
+                    PrefixInfo info = prefixFrequency.get(normalizedKey);
+                    if (info == null) {
+                        prefixFrequency.put(normalizedKey, new PrefixInfo(word, 1));
+                    } else {
+                        info.incrementCount();
+                    }
+                }
+            }
+        }
+
+        if (prefixFrequency.isEmpty()) {
+            return null;
+        }
+
+        // Find the best prefix based on:
+        // 1. Highest frequency
+        // 2. Longest length (if frequencies are equal)
+        // 3. Must appear in at least 30% of comments to be meaningful
+        int minFrequencyThreshold = Math.max(2, comments.size() / 3);
+
+        return prefixFrequency.values().stream()
+                .filter(info -> info.count >= minFrequencyThreshold)
+                .max(Comparator
+                        .comparingInt((PrefixInfo info) -> info.count)
+                        .thenComparingInt(info -> info.originalPrefix.length()))
+                .map(info -> info.originalPrefix)
+                .orElse(null);
+    }
+
+    /**
+     * Helper class to store template information for month-based patterns
+     */
+    private static class TemplateInfo {
+        String template;
+        int count;
+
+        TemplateInfo(String template, int count) {
+            this.template = template;
+            this.count = count;
+        }
+
+        void incrementCount() {
+            this.count++;
+        }
+    }
+
+    /**
+     * Enhanced helper class to store template information with temporal offset
+     * tracking.
+     * Tracks whether users typically enter current month (offset=0) or future month
+     * (offset=+1).
+     * Also stores original comments to learn most common values for placeholders.
+     */
+    private static class TemplateInfoWithOffset {
+        String template;
+        int count;
+        List<Integer> monthOffsets; // Track all observed month offsets
+        List<String> originalComments; // Store original comments to extract common values
+
+        TemplateInfoWithOffset(String template, int count) {
+            this.template = template;
+            this.count = count;
+            this.monthOffsets = new ArrayList<>();
+            this.originalComments = new ArrayList<>();
+        }
+
+        void incrementCount() {
+            this.count++;
+        }
+
+        void addMonthOffset(int offset) {
+            this.monthOffsets.add(offset);
+        }
+
+        void addOriginalComment(String comment) {
+            if (comment != null && !comment.isEmpty()) {
+                this.originalComments.add(comment);
+            }
+        }
+
+        /**
+         * Calculate the most common month offset for this pattern.
+         * Returns the average offset rounded to nearest integer.
+         * 
+         * @return Average month offset (0 = current month, +1 = next month, -1 =
+         *         previous month)
+         */
+        int getAverageMonthOffset() {
+            if (monthOffsets.isEmpty()) {
+                return 0; // Default to current month
+            }
+
+            // Calculate average
+            double sum = 0;
+            for (int offset : monthOffsets) {
+                sum += offset;
+            }
+            double average = sum / monthOffsets.size();
+
+            // Round to nearest integer
+            return (int) Math.round(average);
+        }
+
+        /**
+         * Extract the most common value for a specific placeholder type.
+         * Analyzes original comments to find frequently used locations, apps, items,
+         * etc.
+         * 
+         * @param placeholderType Type of placeholder: "location", "app", "item",
+         *                        "person"
+         * @return Most common value for this placeholder, or null if none found
+         */
+        String getMostCommonValueForPlaceholder(String placeholderType) {
+            if (originalComments.isEmpty()) {
+                return null;
+            }
+
+            Map<String, Integer> valueFrequency = new HashMap<>();
+
+            for (String comment : originalComments) {
+                List<String> values = extractValuesForPlaceholder(comment, placeholderType);
+                for (String value : values) {
+                    valueFrequency.put(value, valueFrequency.getOrDefault(value, 0) + 1);
+                }
+            }
+
+            // Find most common value
+            return valueFrequency.entrySet().stream()
+                    .max(Comparator.comparingInt(Map.Entry::getValue))
+                    .map(Map.Entry::getKey)
+                    .orElse(null);
+        }
+
+        /**
+         * Extract values from comment for a specific placeholder type.
+         */
+        private List<String> extractValuesForPlaceholder(String comment, String placeholderType) {
+            List<String> values = new ArrayList<>();
+
+            if (comment == null || comment.isEmpty()) {
+                return values;
+            }
+
+            switch (placeholderType.toLowerCase()) {
+                case "location":
+                    String[] locations = {
+                            "Seasons Mall", "seasons mall", "Avenue Mall", "avenue mall",
+                            "Dmart", "dmart", "DMart", "Movie Theatre", "movie theatre",
+                            "railway station", "Railway Station", "Pune Station", "pune station",
+                            "Hotel", "hotel", "pg", "PG"
+                    };
+                    for (String loc : locations) {
+                        if (comment.matches("(?i).*\\b" + loc + "\\b.*")) {
+                            values.add(loc);
+                        }
+                    }
+                    break;
+
+                case "app":
+                    String[] apps = {
+                            "KIWI", "Kiwi", "kiwi", "CRED", "Cred", "cred",
+                            "Google Pay", "google pay", "Super Money", "super money",
+                            "Jupiter", "jupiter"
+                    };
+                    for (String app : apps) {
+                        if (comment.matches("(?i).*\\b" + app + "\\b.*")) {
+                            values.add(app);
+                        }
+                    }
+                    break;
+
+                case "item":
+                    String[] items = {
+                            "Bread Jam", "bread jam", "Bread-Jam", "bread-jam",
+                            "Dry Fruits", "dry fruits", "Dry fruits",
+                            "Bread and Jam", "bread and jam"
+                    };
+                    for (String item : items) {
+                        if (comment.matches("(?i).*" + item + ".*")) {
+                            values.add(item);
+                        }
+                    }
+                    break;
+
+                case "person":
+                    String[] people = { "Mother", "mother", "Daddy", "daddy" };
+                    for (String person : people) {
+                        if (comment.matches("(?i).*\\b" + person + "\\b.*")) {
+                            values.add(person);
+                        }
+                    }
+                    break;
+            }
+
+            return values;
+        }
+    }
+
+    /**
+     * Helper class to store prefix information with case-insensitive matching
+     */
+    private static class PrefixInfo {
+        String originalPrefix;
+        int count;
+
+        PrefixInfo(String originalPrefix, int count) {
+            this.originalPrefix = originalPrefix;
+            this.count = count;
+        }
+
+        void incrementCount() {
+            this.count++;
+        }
     }
 
     @Override
-    public List<Expense> getExpensesWithinRange(Integer userId, LocalDate startDate, LocalDate endDate, String flowType) {
+    public Map<String, Object> computeFieldFrequency(List<Expense> expenses, String fieldName) {
+        Map<String, Object> result = new HashMap<>();
+        if (expenses == null || expenses.isEmpty()) {
+            result.put("counts", Collections.emptyMap());
+            result.put("mostUsed", null);
+            result.put("mostUsedCount", 0L);
+            result.put("mostUsedId", null);
+            result.put("valueIds", Collections.emptyMap());
+            result.put("total", 0);
+            return result;
+        }
+        if (fieldName == null || fieldName.trim().isEmpty()) {
+            result.put("error", "fieldName cannot be empty");
+            return result;
+        }
+
+        String normalized = fieldName.trim().toLowerCase();
+
+        // OPTIMIZED: Use parallel stream for faster processing on large datasets
+        Map<String, Long> counts = new HashMap<>();
+        Map<String, Integer> valueIds = new HashMap<>();
+
+        // Process expenses in parallel and collect results
+        expenses.parallelStream()
+                .filter(e -> e != null)
+                .forEach(e -> {
+                    String value = extractFieldValue(e, normalized);
+                    Integer id = null;
+
+                    if ("category".equals(normalized) || "categoryid".equals(normalized)) {
+                        if (e.getCategoryId() != null) {
+                            id = e.getCategoryId();
+                        }
+                    } else if ("paymentmethod".equals(normalized)) {
+                        if (e.getExpense() != null && e.getExpense().getPaymentMethod() != null) {
+                            try {
+                                PaymentMethod pm = paymentMethodService.getByNameWithService(e.getUserId(),
+                                        e.getExpense().getPaymentMethod());
+                                if (pm != null)
+                                    id = pm.getId();
+                            } catch (Exception ignored) {
+                            }
+                        }
+                    }
+
+                    if (value == null || value.isEmpty()) {
+                        value = "Unknown";
+                    }
+
+                    // Thread-safe operations using synchronized blocks
+                    synchronized (counts) {
+                        counts.merge(value, 1L, Long::sum);
+                    }
+
+                    if (id != null) {
+                        synchronized (valueIds) {
+                            valueIds.putIfAbsent(value, id);
+                        }
+                    }
+                });
+
+        LinkedHashMap<String, Long> sorted = counts.entrySet().stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .collect(LinkedHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), LinkedHashMap::putAll);
+
+        String mostUsed = sorted.isEmpty() ? null : sorted.keySet().iterator().next();
+        Long mostUsedCount = sorted.isEmpty() ? 0L : sorted.values().iterator().next();
+        Integer mostUsedId = mostUsed != null ? valueIds.get(mostUsed) : null;
+
+        result.put("counts", sorted);
+        result.put("mostUsed", mostUsed);
+        result.put("mostUsedCount", mostUsedCount);
+        result.put("mostUsedId", mostUsedId);
+        result.put("valueIds", valueIds);
+        result.put("total", expenses.size());
+        result.put("field", normalized);
+
+        return result;
+    }
+
+    public String getMostFrequentValue(List<Expense> expenses, String fieldName) {
+        Map<String, Object> freq = computeFieldFrequency(expenses, fieldName);
+        return (String) freq.get("mostUsed");
+    }
+
+    private String extractFieldValue(Expense e, String field) {
+        switch (field) {
+            case "expensename":
+                return e.getExpense() != null ? safeLower(e.getExpense().getExpenseName()) : null;
+            case "type":
+                return e.getExpense() != null ? safeLower(e.getExpense().getType()) : null;
+            case "paymentmethod":
+                return e.getExpense() != null ? safeLower(e.getExpense().getPaymentMethod()) : null;
+            case "category":
+                // Prefer already populated categoryName
+                if (e.getCategoryName() != null)
+                    return e.getCategoryName();
+                if (e.getCategoryId() != null) {
+                    try {
+                        Category c = categoryService.getById(e.getCategoryId(), e.getUserId());
+                        if (c != null)
+                            return c.getName();
+                    } catch (Exception ignored) {
+                    }
+                }
+                return null;
+            case "categoryid":
+                return e.getCategoryId() != null ? String.valueOf(e.getCategoryId()) : null;
+            default:
+                return null;
+        }
+    }
+
+    private String safeLower(String v) {
+        return v == null ? null : v.trim();
+    }
+
+    @Override
+    public List<Expense> getExpensesWithinRange(Integer userId, LocalDate startDate, LocalDate endDate,
+            String flowType) {
 
         List<Expense> expenses = expenseRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
 
@@ -230,12 +1064,14 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public List<Expense> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(LocalDate from, LocalDate to, Integer userId) {
+    public List<Expense> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(LocalDate from, LocalDate to,
+            Integer userId) {
         return expenseRepository.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(userId, from, to);
     }
 
     @Override
-    public List<Expense> getExpensesInBudgetRangeWithIncludeFlag(LocalDate startDate, LocalDate endDate, Integer budgetId, Integer userId) throws Exception {
+    public List<Expense> getExpensesInBudgetRangeWithIncludeFlag(LocalDate startDate, LocalDate endDate,
+            Integer budgetId, Integer userId) throws Exception {
 
         Budget optionalBudget = budgetService.getBudgetById(budgetId, userId);
         if (optionalBudget == null) {
@@ -244,11 +1080,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         Budget budget = optionalBudget;
 
-
         LocalDate effectiveStartDate = (startDate != null) ? startDate : budget.getStartDate();
         LocalDate effectiveEndDate = (endDate != null) ? endDate : budget.getEndDate();
 
-        List<Expense> expensesInRange = expenseRepository.findByUserIdAndDateBetween(userId, effectiveStartDate, effectiveEndDate);
+        List<Expense> expensesInRange = expenseRepository.findByUserIdAndDateBetween(userId, effectiveStartDate,
+                effectiveEndDate);
 
         for (Expense expense : expensesInRange) {
             boolean isIncluded = expense.getBudgetIds() != null && expense.getBudgetIds().contains(budgetId);
@@ -259,7 +1095,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByCategories(Integer userId, String rangeType, int offset, String flowType) throws Exception {
+    public Map<String, Object> getFilteredExpensesByCategories(Integer userId, String rangeType, int offset,
+            String flowType) throws Exception {
 
         LocalDate now = LocalDate.now();
         LocalDate startDate;
@@ -279,26 +1116,22 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
                 break;
             case "custom":
-                startDate = now.minusDays(30);  // Default to last 30 days
+                startDate = now.minusDays(30); // Default to last 30 days
                 endDate = now;
                 break;
             default:
                 throw new IllegalArgumentException("Invalid rangeType. Valid options are: week, month, year, custom");
         }
 
-
         List<Category> userCategories = categoryService.getAllForUser(userId);
 
-
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, startDate, endDate, flowType);
-
 
         Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
 
         for (Category category : userCategories) {
             categoryExpensesMap.put(category, new ArrayList<>());
         }
-
 
         for (Expense expense : filteredExpenses) {
             for (Category category : userCategories) {
@@ -314,11 +1147,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
         }
 
-
         categoryExpensesMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
 
         Map<String, Object> response = new HashMap<>();
-
 
         int totalCategories = categoryExpensesMap.size();
         int totalExpenses = 0;
@@ -330,7 +1161,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             List<Expense> expenses = entry.getValue();
             totalExpenses += expenses.size();
 
-
             double categoryTotal = 0.0;
             for (Expense expense : expenses) {
                 if (expense.getExpense() != null) {
@@ -340,20 +1170,18 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             categoryTotals.put(category.getName(), categoryTotal);
 
-
             Map<String, Object> categoryDetails = buildCategoryDetailsMap(category, expenses, categoryTotal);
-
 
             response.put(category.getName(), categoryDetails);
         }
-
 
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalCategories", totalCategories);
         summary.put("totalExpenses", totalExpenses);
         summary.put("totalAmount", totalAmount);
         summary.put("categoryTotals", categoryTotals);
-        summary.put("dateRange", Map.of("startDate", startDate, "endDate", endDate, "rangeType", rangeType, "offset", offset, "flowType", flowType != null ? flowType : "all"));
+        summary.put("dateRange", Map.of("startDate", startDate, "endDate", endDate, "rangeType", rangeType, "offset",
+                offset, "flowType", flowType != null ? flowType : "all"));
 
         response.put("summary", summary);
 
@@ -361,22 +1189,18 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) throws Exception {
-
+    public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate,
+            String flowType) throws Exception {
 
         List<Category> userCategories = categoryService.getAllForUser(userId);
 
-
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
 
-
         Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
-
 
         for (Category category : userCategories) {
             categoryExpensesMap.put(category, new ArrayList<>());
         }
-
 
         for (Expense expense : filteredExpenses) {
             if (flowType != null && !flowType.isEmpty()) {
@@ -386,7 +1210,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     continue;
                 } else if (flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase("loss")) {
                     continue;
-                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase(flowType)) {
+                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow")
+                        && !expenseType.equalsIgnoreCase(flowType)) {
                     continue;
                 }
             }
@@ -404,9 +1229,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
         }
 
-
         categoryExpensesMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
-
 
         Map<String, Object> response = new HashMap<>();
 
@@ -429,13 +1252,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             categoryTotals.put(category.getName(), categoryTotal);
 
-
             Map<String, Object> categoryDetails = new HashMap<>();
             categoryDetails.put("id", category.getId());
             categoryDetails.put("name", category.getName());
             categoryDetails.put("description", category.getDescription());
             categoryDetails.put("isGlobal", category.isGlobal());
-
 
             if (category.getColor() != null) {
                 categoryDetails.put("color", category.getColor());
@@ -447,9 +1268,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             categoryDetails.put("userIds", category.getUserIds());
             categoryDetails.put("editUserIds", category.getEditUserIds());
 
-
             categoryDetails.put("expenseIds", category.getExpenseIds());
-
 
             List<Map<String, Object>> formattedExpenses = new ArrayList<>();
             for (Expense expense : expenses) {
@@ -479,17 +1298,14 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             categoryDetails.put("totalAmount", categoryTotal);
             categoryDetails.put("expenseCount", expenses.size());
 
-
             response.put(category.getName(), categoryDetails);
         }
-
 
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalCategories", totalCategories);
         summary.put("totalExpenses", totalExpenses);
         summary.put("totalAmount", totalAmount);
         summary.put("categoryTotals", categoryTotals);
-
 
         Map<String, Object> dateRangeInfo = new HashMap<>();
         dateRangeInfo.put("fromDate", fromDate);
@@ -503,7 +1319,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, LocalDate fromDate, LocalDate toDate, String flowType) {
+    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, LocalDate fromDate, LocalDate toDate,
+            String flowType) {
 
         // Get filtered expenses for the user
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
@@ -517,11 +1334,14 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     continue;
                 } else if (flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase("loss")) {
                     continue;
-                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase(flowType)) {
+                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow")
+                        && !expenseType.equalsIgnoreCase(flowType)) {
                     continue;
                 }
             }
-            String paymentMethod = expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null ? expense.getExpense().getPaymentMethod() : "Unknown";
+            String paymentMethod = expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null
+                    ? expense.getExpense().getPaymentMethod()
+                    : "Unknown";
             paymentMethodExpensesMap.computeIfAbsent(paymentMethod, k -> new ArrayList<>()).add(expense);
         }
 
@@ -567,9 +1387,10 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             paymentMethodTotals.put(paymentMethod, methodTotal);
 
-            // Fetch PaymentMethod entity to get additional details (description, color, icon, etc.)
+            // Fetch PaymentMethod entity to get additional details (description, color,
+            // icon, etc.)
             PaymentMethod pmEntity = paymentMethodService.getByNameWithService(userId, paymentMethod);
-            
+
             Map<String, Object> methodDetails = new HashMap<>();
             methodDetails.put("id", pmEntity != null ? pmEntity.getId() : null);
             methodDetails.put("name", pmEntity != null ? pmEntity.getName() : paymentMethod);
@@ -578,8 +1399,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             methodDetails.put("isGlobal", pmEntity != null && pmEntity.isGlobal());
             methodDetails.put("icon", pmEntity != null ? pmEntity.getIcon() : "");
             methodDetails.put("color", pmEntity != null ? pmEntity.getColor() : "");
-            methodDetails.put("editUserIds", pmEntity != null && pmEntity.getEditUserIds() != null ? pmEntity.getEditUserIds() : new ArrayList<>());
-            methodDetails.put("userIds", pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
+            methodDetails.put("editUserIds",
+                    pmEntity != null && pmEntity.getEditUserIds() != null ? pmEntity.getEditUserIds()
+                            : new ArrayList<>());
+            methodDetails.put("userIds",
+                    pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
             methodDetails.put("expenseCount", expenses.size());
             methodDetails.put("totalAmount", methodTotal);
             methodDetails.put("expenses", formattedExpenses);
@@ -607,7 +1431,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     }
 
     @Override
-    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset, String flowType) {
+    public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset,
+            String flowType) {
         LocalDate now = LocalDate.now();
         LocalDate startDate;
         LocalDate endDate;
@@ -637,7 +1462,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         Map<String, List<Expense>> paymentMethodExpensesMap = new HashMap<>();
 
         for (Expense expense : filteredExpenses) {
-            String pmName = (expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null) ? expense.getExpense().getPaymentMethod() : "Unknown";
+            String pmName = (expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null)
+                    ? expense.getExpense().getPaymentMethod()
+                    : "Unknown";
             paymentMethodExpensesMap.computeIfAbsent(pmName, k -> new ArrayList<>()).add(expense);
         }
 
@@ -671,8 +1498,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             methodDetails.put("isGlobal", pmEntity != null && pmEntity.isGlobal());
             methodDetails.put("icon", pmEntity != null ? pmEntity.getIcon() : "");
             methodDetails.put("color", pmEntity != null ? pmEntity.getColor() : "");
-            methodDetails.put("editUserIds", pmEntity != null && pmEntity.getEditUserIds() != null ? pmEntity.getEditUserIds() : new ArrayList<>());
-            methodDetails.put("userIds", pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
+            methodDetails.put("editUserIds",
+                    pmEntity != null && pmEntity.getEditUserIds() != null ? pmEntity.getEditUserIds()
+                            : new ArrayList<>());
+            methodDetails.put("userIds",
+                    pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
             methodDetails.put("expenseCount", expenses.size());
             methodDetails.put("totalAmount", methodTotal);
             methodDetails.put("expenses", formatExpensesForResponse(expenses));
@@ -685,14 +1515,16 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         summary.put("totalExpenses", totalExpenses);
         summary.put("totalAmount", totalAmount);
         summary.put("paymentMethodTotals", paymentMethodTotals);
-        summary.put("dateRange", Map.of("startDate", startDate, "endDate", endDate, "rangeType", rangeType, "offset", offset, "flowType", flowType != null ? flowType : "all"));
+        summary.put("dateRange", Map.of("startDate", startDate, "endDate", endDate, "rangeType", rangeType, "offset",
+                offset, "flowType", flowType != null ? flowType : "all"));
         response.put("summary", summary);
 
         return response;
     }
 
     @Override
-    public Map<String, Object> getExpensesGroupedByDateWithValidation(Integer userId, int page, int size, String sortBy, String sortOrder) throws Exception {
+    public Map<String, Object> getExpensesGroupedByDateWithValidation(Integer userId, int page, int size, String sortBy,
+            String sortOrder) throws Exception {
         // Validate sort fields
         List<String> validSortFields = Arrays.asList("date", "amount", "expenseName", "paymentMethod");
         if (!validSortFields.contains(sortBy)) {
@@ -713,7 +1545,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }
 
         // Get grouped expenses
-        Map<String, List<Map<String, Object>>> groupedExpenses = getExpensesGroupedByDateWithPagination(userId, sortOrder, page, size, sortBy);
+        Map<String, List<Map<String, Object>>> groupedExpenses = getExpensesGroupedByDateWithPagination(userId,
+                sortOrder, page, size, sortBy);
 
         if (groupedExpenses.isEmpty()) {
             return Collections.emptyMap();
@@ -730,37 +1563,13 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return response;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    private Map<String, Object> buildCategoryDetailsMap(Category category, List<Expense> expenses, double categoryTotal) {
+    private Map<String, Object> buildCategoryDetailsMap(Category category, List<Expense> expenses,
+            double categoryTotal) {
         Map<String, Object> categoryDetails = new HashMap<>();
         categoryDetails.put("id", category.getId());
         categoryDetails.put("name", category.getName());
         categoryDetails.put("description", category.getDescription());
         categoryDetails.put("isGlobal", category.isGlobal());
-
 
         if (category.getColor() != null) {
             categoryDetails.put("color", category.getColor());
@@ -769,13 +1578,10 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             categoryDetails.put("icon", category.getIcon());
         }
 
-
         categoryDetails.put("userIds", category.getUserIds());
         categoryDetails.put("editUserIds", category.getEditUserIds());
 
-
         categoryDetails.put("expenseIds", category.getExpenseIds());
-
 
         List<Map<String, Object>> formattedExpenses = formatExpensesForResponse(expenses);
 
@@ -813,11 +1619,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return formattedExpenses;
     }
 
-
-
-
-@Override
-    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId, String sortOrder, int page, int size, String sortBy) throws Exception {
+    @Override
+    public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId,
+            String sortOrder, int page, int size, String sortBy) throws Exception {
         Sort sort = Sort.by(Sort.Order.by(sortBy).with(Sort.Direction.fromString(sortOrder)));
         User user = helper.validateUser(userId);
         Pageable pageable = PageRequest.of(page, size, sort);

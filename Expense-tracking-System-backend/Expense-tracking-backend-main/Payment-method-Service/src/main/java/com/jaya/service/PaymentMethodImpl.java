@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,13 +26,13 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
     @Override
     public PaymentMethod getById(Integer userId, Integer id) throws Exception {
-        List<PaymentMethod> paymentMethods = getAllPaymentMethods(userId);
-        if (paymentMethods == null) {
-            throw new Exception("Payment method not found " + id);
+        Optional<PaymentMethod> paymentMethod = paymentMethodRepository.findByUserIdAndId(userId,id);
+
+        if(paymentMethod.isEmpty())
+        {
+            throw  new Exception("Payment method not found");
         }
-        return paymentMethods.stream().filter(paymentMethod -> paymentMethod.getId()==id)
-                .findFirst()
-                .orElseThrow(() -> new Exception("Payment method not found with ID: " + id));
+        return paymentMethod.get();
     }
 
 

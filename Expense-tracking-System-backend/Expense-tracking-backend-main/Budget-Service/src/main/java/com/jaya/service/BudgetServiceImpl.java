@@ -3,12 +3,16 @@ package com.jaya.service;
 import com.jaya.dto.BudgetReport;
 import com.jaya.dto.DetailedBudgetReport;
 import com.jaya.dto.ExpenseDTO;
+import com.jaya.exceptions.BudgetNotFoundException;
 import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
 import com.jaya.repository.BudgetRepository;
 import com.jaya.util.ServiceHelper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +27,13 @@ import java.util.stream.Collectors;
 @Service
 public class BudgetServiceImpl implements BudgetService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BudgetServiceImpl.class);
+
     @Autowired
     private BudgetRepository budgetRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private ServiceHelper helper;
@@ -38,89 +47,61 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public Budget createBudget(Budget budget, Integer userId) throws Exception {
-        if (budget.getStartDate() == null || budget.getEndDate() == null) {
-            throw new IllegalArgumentException("Start date and end date must not be null.");
-        }
+        
 
-        if (budget.getStartDate().isAfter(budget.getEndDate())) {
-            throw new IllegalArgumentException("Start date cannot be after end date.");
-        }
+        UserDto user= helper.validateUser(userId);
 
-        if (budget.getAmount() < 0) {
-            throw new IllegalArgumentException("Budget amount cannot be negative.");
-        }
+        budget=helper.validateBudget(budget,user.getId());
+     
+        Set<Integer> validExpenseIds = helper.getValidBudgetIds(budget,userId,expenseService);
 
-        if (budget.getName() == null || budget.getName().isEmpty()) {
-            throw new IllegalArgumentException("Budget name cannot be empty.");
-        }
-
-        if (budget.getRemainingAmount() <= 0) {
-            budget.setRemainingAmount(budget.getAmount());
-        }
-
-        UserDto user = helper.validateUser(userId);
-        if (user == null) {
-            throw new Exception("User not found.");
-        }
-
-        budget.setUserId(userId);
-        Set<Integer> validExpenseIds = new HashSet<>();
-
-        for (Integer expenseId : budget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-
-            if (expense != null) {
-                LocalDate expenseDate = expense.getDate();
-                boolean isWithinDateRange = !expenseDate.isBefore(budget.getStartDate())
-                        && !expenseDate.isAfter(budget.getEndDate());
-
-                if (isWithinDateRange) {
-                    validExpenseIds.add(expenseId);
-                }
-            }
-        }
-
+        
         budget.setExpenseIds(validExpenseIds);
         budget.setBudgetHasExpenses(!validExpenseIds.isEmpty());
 
         Budget savedBudget = budgetRepository.save(budget);
 
-        for (Integer expenseId : savedBudget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-            if (expense != null) {
-                if (expense.getBudgetIds() == null) {
-                    expense.setBudgetIds(new HashSet<>());
-                }
-
-                if (!expense.getBudgetIds().contains(savedBudget.getId())) {
-                    expense.getBudgetIds().add(savedBudget.getId());
-                    expenseService.save(expense);
-                }
-            }
-        }
+        helper.addBudgetIdInExpenses(budget,expenseService,userId);
 
         // Check budget thresholds and send notifications if needed
         if (!validExpenseIds.isEmpty()) {
             checkAndSendThresholdNotifications(savedBudget, userId);
         }
 
-        // auditExpenseService.logAudit(convertToAuditEvent(user, savedBudget.getId(),
-        // "Budget Created", budget.getName()));
+        
         return savedBudget;
+    }
+
+    @Override
+    public Budget createBudgetForFriend(Budget budget, Integer userId, Integer friendId) throws Exception {
+        Budget createdBudget = createBudget(budget, friendId);
+        // Send contextual notification indicating this budget was created by a friend
+        budgetNotificationService.sendBudgetCreatedNotification(createdBudget, userId, true);
+        return createdBudget;
+
     }
 
     @Override
     public Set<Budget> getBudgetsByBudgetIds(Set<Integer> budgetIds, Integer userId) throws Exception {
         Set<Budget> budgets = new HashSet<>();
+        if (budgetIds == null || budgetIds.isEmpty()) {
+            return budgets;
+        }
         for (Integer budgetId : budgetIds) {
-            Budget budgetOpt = getBudgetById(budgetId, userId);
-            if (budgetOpt != null) {
-                budgets.add(budgetOpt);
-            } else {
-                throw new RuntimeException("Budget not found with ID: " + budgetId);
+            try {
+                Budget b = getBudgetById(budgetId, userId);
+                if (b != null) {
+                    budgets.add(b);
+                }
+            } catch (BudgetNotFoundException ex) {
+                // Soft fail: log and continue so Kafka consumer doesn't endlessly retry
+                log.warn("Skipping missing budgetId={} for userId={}: {}", budgetId, userId, ex.getMessage());
             }
         }
-        return budgets; // Return the populated list instead of List.of()
+        if (budgets.isEmpty()) {
+            log.warn("No valid budgets resolved for userId={} from incoming set {}", userId, budgetIds);
+        }
+        return budgets;
     }
 
     @Override
@@ -129,6 +110,12 @@ public class BudgetServiceImpl implements BudgetService {
             throws Exception {
         Set<Budget> budgets = getBudgetsByBudgetIds(budgetIds, userId);
         Set<Budget> updatedBudgets = new HashSet<>();
+
+        if (budgets.isEmpty()) {
+            log.warn("editBudgetWithExpenseId: No budgets found to update for expenseId={} userId={} incomingIds={}",
+                    expenseId, userId, budgetIds);
+            return updatedBudgets; // early return, nothing to do
+        }
 
         for (Budget budget : budgets) {
             // Add the expense ID to the budget's expense list
@@ -146,10 +133,10 @@ public class BudgetServiceImpl implements BudgetService {
             // Check budget thresholds after adding expense
             checkAndSendThresholdNotifications(savedBudget, userId);
 
-            System.out.println("Added expense ID: " + expenseId + " to budget ID: " + budget.getId());
+            log.info("Added expenseId={} to budgetId={} for userId={}", expenseId, budget.getId(), userId);
         }
-
-        System.out.println("Successfully updated " + updatedBudgets.size() + " budgets with expense ID: " + expenseId);
+        log.info("Successfully updated {} budgets with expenseId={} for userId={}", updatedBudgets.size(), expenseId,
+                userId);
         return updatedBudgets;
     }
 
@@ -160,14 +147,11 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "budgets", allEntries = true)
     public Budget editBudget(Integer budgetId, Budget budget, Integer userId) throws Exception {
-        Optional<Budget> existingBudgetOpt = budgetRepository.findByUserIdAndId(userId, budgetId);
 
-        if (existingBudgetOpt.isEmpty()) {
-            throw new RuntimeException("Budget not found");
-        }
 
-        Budget existingBudget = existingBudgetOpt.get();
+        Budget existingBudget = getBudgetById(budgetId,userId);
 
         if (budget.getStartDate().isAfter(budget.getEndDate())) {
             throw new IllegalArgumentException("Start date cannot be after end date.");
@@ -232,36 +216,26 @@ public class BudgetServiceImpl implements BudgetService {
 
         Budget savedBudget = budgetRepository.save(existingBudget);
 
-        // Check budget thresholds after editing
-        checkAndSendThresholdNotifications(savedBudget, userId);
+        // Force flush and clear to ensure database update
+        entityManager.flush();
+        entityManager.clear();
 
-        return savedBudget;
+        // Refetch to get fresh data
+        Optional<Budget> refreshedBudget = budgetRepository.findByUserIdAndId(userId, budgetId);
+        Budget finalBudget = refreshedBudget.orElse(savedBudget);
+
+        // Check budget thresholds after editing
+        checkAndSendThresholdNotifications(finalBudget, userId);
+
+        return finalBudget;
     }
 
     @Override
     @Transactional
     public void deleteBudget(Integer budgetId, Integer userId) {
-        Optional<Budget> existingBudgetOpt = budgetRepository.findByUserIdAndId(userId, budgetId);
-
-        if (existingBudgetOpt.isEmpty()) {
-            throw new RuntimeException("Budget not found");
-        }
-
-        Budget budget = existingBudgetOpt.get();
-
-        Set<Integer> expenseIds = budget.getExpenseIds();
-        if (expenseIds != null) {
-            for (Integer expenseId : expenseIds) {
-                ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-                if (expense != null && expense.getBudgetIds() != null) {
-                    expense.getBudgetIds().remove(budgetId);
-                    expenseService.save(expense);
-                }
-            }
-        }
-
+        Budget budget = getBudgetById(budgetId,userId);
+        helper.deleteBudgetIdInExpenses(budget,expenseService,userId,budgetId);
         budgetRepository.delete(budget);
-
     }
 
     @Override
@@ -273,18 +247,19 @@ public class BudgetServiceImpl implements BudgetService {
             throw new RuntimeException("No budgets found");
         }
 
-        for (Budget budget : budgets) {
-            Set<Integer> expenseIds = budget.getExpenseIds();
-            if (expenseIds != null) {
-                for (Integer expenseId : expenseIds) {
-                    ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-                    if (expense != null && expense.getBudgetIds() != null) {
-                        expense.getBudgetIds().remove(budget.getId());
-                        expenseService.save(expense);
-                    }
-                }
-            }
-        }
+        helper.removeBudgetsIdsInAllExpenses(budgets,expenseService,userId);
+//        for (Budget budget : budgets) {
+//            Set<Integer> expenseIds = budget.getExpenseIds();
+//            if (expenseIds != null) {
+//                for (Integer expenseId : expenseIds) {
+//                    ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
+//                    if (expense != null && expense.getBudgetIds() != null) {
+//                        expense.getBudgetIds().remove(budget.getId());
+//                        expenseService.save(expense);
+//                    }
+//                }
+//            }
+//        }
 
         budgetRepository.deleteAll(budgets);
 
@@ -308,14 +283,14 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public Budget getBudgetById(Integer budgetId, Integer userId) throws Exception {
+    public Budget getBudgetById(Integer budgetId, Integer userId) throws BudgetNotFoundException {
         Optional<Budget> expense = budgetRepository.findById(budgetId);
         if (expense.isEmpty()) {
-            throw new Exception("budget is not present" + budgetId);
+            throw new BudgetNotFoundException("budget not Found" + budgetId);
         }
-        if (!expense.get().getUserId().equals(userId)) {
-            throw new Exception("you cant get other users budget");
-        }
+        // if (!expense.get().getUserId().equals(userId)) {
+        // throw new Exception("you cant get other users budget");
+        // }
         return expense.get();
     }
 
@@ -527,13 +502,6 @@ public class BudgetServiceImpl implements BudgetService {
         return budgets;
     }
 
-    /**
-     * Calculate total expense amount for a budget
-     * 
-     * @param budget The budget to calculate expenses for
-     * @param userId The user ID
-     * @return Total expense amount as BigDecimal
-     */
     private BigDecimal calculateTotalExpenseAmount(Budget budget, Integer userId) {
         if (budget.getExpenseIds() == null || budget.getExpenseIds().isEmpty()) {
             return BigDecimal.ZERO;
@@ -563,12 +531,6 @@ public class BudgetServiceImpl implements BudgetService {
         return BigDecimal.valueOf(total);
     }
 
-    /**
-     * Check budget thresholds and send appropriate notifications
-     * 
-     * @param budget The budget to check
-     * @param userId The user ID
-     */
     private void checkAndSendThresholdNotifications(Budget budget, Integer userId) {
         try {
             // Calculate total spent amount
@@ -1532,237 +1494,536 @@ public class BudgetServiceImpl implements BudgetService {
         return response;
     }
 
+    // ==================== Constants ====================
+    private static final String RANGE_TYPE_DAY = "day";
+    private static final String RANGE_TYPE_WEEK = "week";
+    private static final String RANGE_TYPE_MONTH = "month";
+    private static final String RANGE_TYPE_QUARTER = "quarter";
+    private static final String RANGE_TYPE_YEAR = "year";
+    private static final String RANGE_TYPE_BUDGET = "budget";
+    private static final String RANGE_TYPE_ALL = "all";
+    private static final String FLOW_TYPE_ALL = "all";
+    private static final String FLOW_TYPE_LOSS = "loss";
+    private static final String FLOW_TYPE_GAIN = "gain";
+    private static final String DEFAULT_CATEGORY = "Uncategorized";
+    private static final int DAYS_IN_WEEK = 6;
+    private static final int MONTHS_IN_QUARTER = 2;
+    private static final int QUARTERS_PER_YEAR = 4;
+    private static final int MONTHS_PER_QUARTER = 3;
+
     @Override
     public Map<String, Object> getSingleBudgetDetailedReport(Integer userId, Integer budgetId, LocalDate fromDate,
             LocalDate toDate, String rangeType, int offset, String flowType) throws Exception {
+
         Budget budget = getBudgetById(budgetId, userId);
+        validateBudgetExists(budget, budgetId);
+
+        DateRange effectiveDateRange = calculateEffectiveDateRange(fromDate, toDate, rangeType, offset, budget);
+        List<ExpenseDTO> filteredExpenses = getFilteredExpenses(userId, budgetId, effectiveDateRange, flowType);
+
+        ExpenseAggregationData aggregationData = aggregateExpenseData(filteredExpenses);
+        Map<String, Object> summary = buildReportSummary(budget, aggregationData);
+        Map<String, Map<String, Object>> expenseGroups = buildExpenseGroups(aggregationData);
+
+        return buildFinalResponse(summary, expenseGroups);
+    }
+
+    /**
+     * Validates that budget exists
+     */
+    private void validateBudgetExists(Budget budget, Integer budgetId) {
         if (budget == null) {
             throw new IllegalArgumentException("Budget not found with ID: " + budgetId);
         }
+    }
 
-        // Determine date range: prioritize explicit fromDate/toDate, then rangeType
-        LocalDate effectiveFromDate = fromDate;
-        LocalDate effectiveToDate = toDate;
+    /**
+     * Calculates the effective date range based on rangeType or explicit dates
+     */
+    private DateRange calculateEffectiveDateRange(LocalDate fromDate, LocalDate toDate,
+            String rangeType, int offset, Budget budget) {
 
-        // If explicit dates not provided, calculate from rangeType
-        if ((effectiveFromDate == null || effectiveToDate == null) && rangeType != null
-                && !rangeType.equalsIgnoreCase("all")) {
-            LocalDate today = LocalDate.now();
-            switch (rangeType.toLowerCase()) {
-                case "day":
-                    effectiveFromDate = today.plusDays(offset);
-                    effectiveToDate = effectiveFromDate;
-                    break;
-                case "week":
-                    LocalDate weekStart = today.plusWeeks(offset).with(java.time.DayOfWeek.MONDAY);
-                    effectiveFromDate = weekStart;
-                    effectiveToDate = weekStart.plusDays(6);
-                    break;
-                case "month":
-                    LocalDate monthBase = today.plusMonths(offset);
-                    effectiveFromDate = monthBase.withDayOfMonth(1);
-                    effectiveToDate = monthBase.withDayOfMonth(monthBase.lengthOfMonth());
-                    break;
-                case "quarter":
-                    // Calculate the current quarter (1-4)
-                    int currentMonth = today.getMonthValue();
-                    int currentQuarter = (currentMonth - 1) / 3; // 0-3
-                    // Add offset to quarters
-                    int targetQuarter = currentQuarter + offset;
-                    int yearAdjustment = targetQuarter / 4;
-                    targetQuarter = targetQuarter % 4;
-                    if (targetQuarter < 0) {
-                        targetQuarter += 4;
-                        yearAdjustment--;
-                    }
-                    LocalDate quarterBase = today.plusYears(yearAdjustment);
-                    // Quarter start months: Q1=1, Q2=4, Q3=7, Q4=10
-                    int quarterStartMonth = targetQuarter * 3 + 1;
-                    effectiveFromDate = LocalDate.of(quarterBase.getYear(), quarterStartMonth, 1);
-                    effectiveToDate = effectiveFromDate.plusMonths(2).withDayOfMonth(
-                            effectiveFromDate.plusMonths(2).lengthOfMonth());
-                    break;
-                case "year":
-                    LocalDate yearBase = today.plusYears(offset);
-                    effectiveFromDate = yearBase.withDayOfYear(1);
-                    effectiveToDate = yearBase.withDayOfYear(yearBase.lengthOfYear());
-                    break;
-                case "budget":
-                    // Use the budget's start and end dates
-                    effectiveFromDate = budget.getStartDate();
-                    effectiveToDate = budget.getEndDate();
-                    break;
-                default:
-                    // "all" or unsupported - no date filtering
-                    break;
-            }
+        if (fromDate != null && toDate != null) {
+            return new DateRange(fromDate, toDate);
         }
 
-        List<ExpenseDTO> budgetExpenses = getExpensesForUserByBudgetId(userId, budgetId);
-
-        // Apply date range filter if specified
-        if (effectiveFromDate != null && effectiveToDate != null) {
-            final LocalDate finalFromDate = effectiveFromDate;
-            final LocalDate finalToDate = effectiveToDate;
-            budgetExpenses = budgetExpenses.stream()
-                    .filter(dto -> {
-                        LocalDate expenseDate = dto.getDate();
-                        return !expenseDate.isBefore(finalFromDate) && !expenseDate.isAfter(finalToDate);
-                    })
-                    .collect(Collectors.toList());
+        if (rangeType == null || RANGE_TYPE_ALL.equalsIgnoreCase(rangeType)) {
+            return new DateRange(null, null);
         }
 
-        // Apply flowType filter: if not provided or "all", include both loss and gain
-        if (flowType != null && !flowType.equalsIgnoreCase("all")) {
-            final String targetType = flowType.equalsIgnoreCase("loss") ? "loss" : "gain";
-            budgetExpenses = budgetExpenses.stream()
-                    .filter(dto -> dto.getExpense() != null &&
-                            targetType.equalsIgnoreCase(dto.getExpense().getType()))
-                    .collect(Collectors.toList());
+        return calculateDateRangeByType(rangeType, offset, budget);
+    }
+
+    /**
+     * Calculates date range based on range type
+     */
+    private DateRange calculateDateRangeByType(String rangeType, int offset, Budget budget) {
+        LocalDate today = LocalDate.now();
+
+        switch (rangeType.toLowerCase()) {
+            case RANGE_TYPE_DAY:
+                return calculateDayRange(today, offset);
+
+            case RANGE_TYPE_WEEK:
+                return calculateWeekRange(today, offset);
+
+            case RANGE_TYPE_MONTH:
+                return calculateMonthRange(today, offset);
+
+            case RANGE_TYPE_QUARTER:
+                return calculateQuarterRange(today, offset);
+
+            case RANGE_TYPE_YEAR:
+                return calculateYearRange(today, offset);
+
+            case RANGE_TYPE_BUDGET:
+                return new DateRange(budget.getStartDate(), budget.getEndDate());
+
+            default:
+                return new DateRange(null, null);
         }
-        // If flowType is null or "all", include all expenses (both loss and gain)
+    }
 
-        double totalAmount = 0.0;
-        int totalExpenses = budgetExpenses.size();
-        Set<String> uniqueExpenseNames = new LinkedHashSet<>();
-        Set<String> uniquePaymentMethods = new LinkedHashSet<>();
+    /**
+     * Calculates day range
+     */
+    private DateRange calculateDayRange(LocalDate baseDate, int offset) {
+        LocalDate targetDate = baseDate.plusDays(offset);
+        return new DateRange(targetDate, targetDate);
+    }
 
-        // Track counts and amounts for expense names, payment methods and categories
-        Map<String, Double> expenseNameAmountMap = new LinkedHashMap<>();
-        Map<String, Integer> expenseNameCountMap = new LinkedHashMap<>();
-        Map<String, Double> paymentMethodAmountMap = new LinkedHashMap<>();
-        Map<String, Integer> paymentMethodCountMap = new LinkedHashMap<>();
-        Map<String, Double> categoryAmountMap = new LinkedHashMap<>();
-        Map<String, Integer> categoryCountMap = new LinkedHashMap<>();
+    /**
+     * Calculates week range (Monday to Sunday)
+     */
+    private DateRange calculateWeekRange(LocalDate baseDate, int offset) {
+        LocalDate weekStart = baseDate.plusWeeks(offset).with(java.time.DayOfWeek.MONDAY);
+        LocalDate weekEnd = weekStart.plusDays(DAYS_IN_WEEK);
+        return new DateRange(weekStart, weekEnd);
+    }
 
-        Map<String, Map<String, Object>> expenseGroups = new LinkedHashMap<>();
+    /**
+     * Calculates month range
+     */
+    private DateRange calculateMonthRange(LocalDate baseDate, int offset) {
+        LocalDate monthBase = baseDate.plusMonths(offset);
+        LocalDate monthStart = monthBase.withDayOfMonth(1);
+        LocalDate monthEnd = monthBase.withDayOfMonth(monthBase.lengthOfMonth());
+        return new DateRange(monthStart, monthEnd);
+    }
 
-        for (ExpenseDTO dto : budgetExpenses) {
-            if (dto.getExpense() == null)
+    /**
+     * Calculates quarter range
+     */
+    private DateRange calculateQuarterRange(LocalDate baseDate, int offset) {
+        int currentMonth = baseDate.getMonthValue();
+        int currentQuarter = (currentMonth - 1) / MONTHS_PER_QUARTER;
+        int targetQuarter = currentQuarter + offset;
+        int yearAdjustment = targetQuarter / QUARTERS_PER_YEAR;
+
+        targetQuarter = targetQuarter % QUARTERS_PER_YEAR;
+        if (targetQuarter < 0) {
+            targetQuarter += QUARTERS_PER_YEAR;
+            yearAdjustment--;
+        }
+
+        LocalDate quarterBase = baseDate.plusYears(yearAdjustment);
+        int quarterStartMonth = targetQuarter * MONTHS_PER_QUARTER + 1;
+        LocalDate quarterStart = LocalDate.of(quarterBase.getYear(), quarterStartMonth, 1);
+        LocalDate quarterEnd = quarterStart.plusMonths(MONTHS_IN_QUARTER)
+                .withDayOfMonth(quarterStart.plusMonths(MONTHS_IN_QUARTER).lengthOfMonth());
+
+        return new DateRange(quarterStart, quarterEnd);
+    }
+
+    /**
+     * Calculates year range
+     */
+    private DateRange calculateYearRange(LocalDate baseDate, int offset) {
+        LocalDate yearBase = baseDate.plusYears(offset);
+        LocalDate yearStart = yearBase.withDayOfYear(1);
+        LocalDate yearEnd = yearBase.withDayOfYear(yearBase.lengthOfYear());
+        return new DateRange(yearStart, yearEnd);
+    }
+
+    /**
+     * Retrieves and filters expenses based on date range and flow type
+     */
+    private List<ExpenseDTO> getFilteredExpenses(Integer userId, Integer budgetId,
+            DateRange dateRange, String flowType) throws Exception {
+
+        List<ExpenseDTO> expenses = getExpensesForUserByBudgetId(userId, budgetId);
+        expenses = filterExpensesByDateRange(expenses, dateRange);
+        expenses = filterExpensesByFlowType(expenses, flowType);
+
+        return expenses;
+    }
+
+    /**
+     * Filters expenses by date range
+     */
+    private List<ExpenseDTO> filterExpensesByDateRange(List<ExpenseDTO> expenses, DateRange dateRange) {
+        if (dateRange.getFromDate() == null || dateRange.getToDate() == null) {
+            return expenses;
+        }
+
+        return expenses.stream()
+                .filter(dto -> {
+                    LocalDate expenseDate = dto.getDate();
+                    return !expenseDate.isBefore(dateRange.getFromDate())
+                            && !expenseDate.isAfter(dateRange.getToDate());
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Filters expenses by flow type (loss/gain/all)
+     */
+    private List<ExpenseDTO> filterExpensesByFlowType(List<ExpenseDTO> expenses, String flowType) {
+        if (flowType == null || FLOW_TYPE_ALL.equalsIgnoreCase(flowType)) {
+            return expenses;
+        }
+
+        String targetType = FLOW_TYPE_LOSS.equalsIgnoreCase(flowType) ? FLOW_TYPE_LOSS : FLOW_TYPE_GAIN;
+        return expenses.stream()
+                .filter(dto -> dto.getExpense() != null
+                        && targetType.equalsIgnoreCase(dto.getExpense().getType()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Aggregates expense data into structured format
+     */
+    private ExpenseAggregationData aggregateExpenseData(List<ExpenseDTO> expenses) {
+        ExpenseAggregationData data = new ExpenseAggregationData();
+
+        for (ExpenseDTO dto : expenses) {
+            if (dto.getExpense() == null) {
                 continue;
-            String expenseName = dto.getExpense().getExpenseName();
-            String paymentMethod = dto.getExpense().getPaymentMethod();
-            double amount = dto.getExpense().getAmount();
-
-            totalAmount += amount;
-            uniqueExpenseNames.add(expenseName);
-            if (paymentMethod != null && !paymentMethod.isEmpty()) {
-                uniquePaymentMethods.add(paymentMethod);
             }
 
-            // Track expense name totals and counts
-            expenseNameAmountMap.put(expenseName, round2(expenseNameAmountMap.getOrDefault(expenseName, 0.0) + amount));
-            expenseNameCountMap.put(expenseName, expenseNameCountMap.getOrDefault(expenseName, 0) + 1);
+            processExpenseForAggregation(dto, data);
+        }
 
-            // Track payment method totals and counts
-            if (paymentMethod != null && !paymentMethod.isEmpty()) {
-                paymentMethodAmountMap.put(paymentMethod,
-                        round2(paymentMethodAmountMap.getOrDefault(paymentMethod, 0.0) + amount));
-                paymentMethodCountMap.put(paymentMethod, paymentMethodCountMap.getOrDefault(paymentMethod, 0) + 1);
-            }
+        return data;
+    }
 
-            // Track category totals and counts
-            String category = dto.getCategoryName() != null && !dto.getCategoryName().isEmpty()
-                    ? dto.getCategoryName()
-                    : "Uncategorized";
+    /**
+     * Processes single expense for aggregation
+     */
+    private void processExpenseForAggregation(ExpenseDTO dto, ExpenseAggregationData data) {
+        String expenseName = dto.getExpense().getExpenseName();
+        String paymentMethod = dto.getExpense().getPaymentMethod();
+        String category = getCategoryName(dto);
+        double amount = dto.getExpense().getAmount();
+
+        data.addTotalAmount(amount);
+        data.addUniqueExpenseName(expenseName);
+
+        if (isValidString(paymentMethod)) {
+            data.addUniquePaymentMethod(paymentMethod);
+        }
+
+        updateAggregationMaps(data, expenseName, paymentMethod, category, amount);
+        updateExpenseGroups(data, dto, expenseName, paymentMethod, amount);
+    }
+
+    /**
+     * Updates aggregation maps with expense data
+     */
+    private void updateAggregationMaps(ExpenseAggregationData data, String expenseName,
+            String paymentMethod, String category, double amount) {
+
+        data.updateExpenseNameMap(expenseName, amount);
+
+        if (isValidString(paymentMethod)) {
+            data.updatePaymentMethodMap(paymentMethod, amount);
+        }
+
+        data.updateCategoryMap(category, amount);
+    }
+
+    /**
+     * Updates expense groups with expense details
+     */
+    private void updateExpenseGroups(ExpenseAggregationData data, ExpenseDTO dto,
+            String expenseName, String paymentMethod, double amount) {
+
+        Map<String, Object> group = data.getOrCreateExpenseGroup(expenseName);
+        incrementGroupCounters(group, amount);
+
+        if (isValidString(paymentMethod)) {
+            addPaymentMethodToGroup(group, paymentMethod);
+        }
+
+        addExpenseDetailsToGroup(group, dto);
+    }
+
+    /**
+     * Increments group counters
+     */
+    private void incrementGroupCounters(Map<String, Object> group, double amount) {
+        group.put("expenseCount", ((Number) group.get("expenseCount")).intValue() + 1);
+        group.put("totalAmount", round2(((Number) group.get("totalAmount")).doubleValue() + amount));
+    }
+
+    /**
+     * Adds payment method to group
+     */
+    @SuppressWarnings("unchecked")
+    private void addPaymentMethodToGroup(Map<String, Object> group, String paymentMethod) {
+        Set<String> pmSet = (Set<String>) group.get("paymentMethods");
+        pmSet.add(paymentMethod);
+    }
+
+    /**
+     * Adds expense details to group
+     */
+    @SuppressWarnings("unchecked")
+    private void addExpenseDetailsToGroup(Map<String, Object> group, ExpenseDTO dto) {
+        Map<String, Object> expenseDetails = buildExpenseDetailsMap(dto);
+        List<Map<String, Object>> expList = (List<Map<String, Object>>) group.get("expenses");
+        expList.add(expenseDetails);
+    }
+
+    /**
+     * Builds expense details map
+     */
+    private Map<String, Object> buildExpenseDetailsMap(ExpenseDTO dto) {
+        Map<String, Object> expenseDetails = new LinkedHashMap<>();
+        expenseDetails.put("date", dto.getDate().toString());
+        expenseDetails.put("id", dto.getId());
+        expenseDetails.put("details", buildExpenseInnerDetails(dto));
+        return expenseDetails;
+    }
+
+    /**
+     * Builds inner expense details
+     */
+    private Map<String, Object> buildExpenseInnerDetails(ExpenseDTO dto) {
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("amount", round2(dto.getExpense().getAmount()));
+        details.put("comments", dto.getExpense().getComments());
+        details.put("netAmount", round2(dto.getExpense().getNetAmount()));
+        details.put("paymentMethod", dto.getExpense().getPaymentMethod());
+        details.put("id", dto.getId());
+        details.put("type", dto.getExpense().getType());
+        details.put("expenseName", dto.getExpense().getExpenseName());
+        details.put("creditDue", round2(dto.getExpense().getCreditDue()));
+        return details;
+    }
+
+    /**
+     * Builds report summary
+     */
+    private Map<String, Object> buildReportSummary(Budget budget, ExpenseAggregationData data) {
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("budgetName", budget.getName());
+        summary.put("totalAmount", round2(data.getTotalAmount()));
+        summary.put("dateRange", formatDateRange(budget.getStartDate(), budget.getEndDate()));
+        summary.put("totalExpenseNames", data.getUniqueExpenseNamesCount());
+        summary.put("totalExpenses", data.getTotalExpenses());
+        summary.put("expenseNameTotals", convertMapToTotalsList(data.getExpenseNameAmountMap(),
+                data.getExpenseNameCountMap(), "expenseName"));
+        summary.put("totalPaymentMethods", data.getUniquePaymentMethodsCount());
+        summary.put("paymentMethodTotals", convertMapToTotalsList(data.getPaymentMethodAmountMap(),
+                data.getPaymentMethodCountMap(), "paymentMethod"));
+        summary.put("totalCategories", data.getCategoryAmountMap().size());
+        summary.put("categoryTotals", convertMapToTotalsList(data.getCategoryAmountMap(),
+                data.getCategoryCountMap(), "category"));
+        return summary;
+    }
+
+    /**
+     * Formats date range string
+     */
+    private String formatDateRange(LocalDate startDate, LocalDate endDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
+        return startDate.format(formatter) + " - " + endDate.format(formatter);
+    }
+
+    /**
+     * Converts map to totals list
+     */
+    private List<Map<String, Object>> convertMapToTotalsList(Map<String, Double> amountMap,
+            Map<String, Integer> countMap, String keyName) {
+
+        List<Map<String, Object>> totals = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : amountMap.entrySet()) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put(keyName, entry.getKey());
+            item.put("totalAmount", entry.getValue());
+            item.put("count", countMap.get(entry.getKey()));
+            totals.add(item);
+        }
+        return totals;
+    }
+
+    /**
+     * Builds expense groups from aggregation data
+     */
+    private Map<String, Map<String, Object>> buildExpenseGroups(ExpenseAggregationData data) {
+        Map<String, Map<String, Object>> groups = data.getExpenseGroups();
+
+        // Convert payment methods set to list for JSON serialization
+        for (Map.Entry<String, Map<String, Object>> entry : groups.entrySet()) {
+            @SuppressWarnings("unchecked")
+            Set<String> pmSet = (Set<String>) entry.getValue().get("paymentMethods");
+            entry.getValue().put("paymentMethods", new ArrayList<>(pmSet));
+        }
+
+        return groups;
+    }
+
+    /**
+     * Builds final response
+     */
+    private Map<String, Object> buildFinalResponse(Map<String, Object> summary,
+            Map<String, Map<String, Object>> expenseGroups) {
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("summary", summary);
+        response.putAll(expenseGroups);
+        return response;
+    }
+
+    /**
+     * Gets category name with default fallback
+     */
+    private String getCategoryName(ExpenseDTO dto) {
+        String categoryName = dto.getCategoryName();
+        return isValidString(categoryName) ? categoryName : DEFAULT_CATEGORY;
+    }
+
+    /**
+     * Checks if string is valid (not null and not empty)
+     */
+    private boolean isValidString(String str) {
+        return str != null && !str.isEmpty();
+    }
+
+    // ==================== Helper Classes ====================
+
+    /**
+     * Represents a date range
+     */
+    private static class DateRange {
+        private final LocalDate fromDate;
+        private final LocalDate toDate;
+
+        public DateRange(LocalDate fromDate, LocalDate toDate) {
+            this.fromDate = fromDate;
+            this.toDate = toDate;
+        }
+
+        public LocalDate getFromDate() {
+            return fromDate;
+        }
+
+        public LocalDate getToDate() {
+            return toDate;
+        }
+    }
+
+    /**
+     * Holds aggregated expense data
+     */
+    private class ExpenseAggregationData {
+        private double totalAmount = 0.0;
+        private final Set<String> uniqueExpenseNames = new LinkedHashSet<>();
+        private final Set<String> uniquePaymentMethods = new LinkedHashSet<>();
+
+        private final Map<String, Double> expenseNameAmountMap = new LinkedHashMap<>();
+        private final Map<String, Integer> expenseNameCountMap = new LinkedHashMap<>();
+        private final Map<String, Double> paymentMethodAmountMap = new LinkedHashMap<>();
+        private final Map<String, Integer> paymentMethodCountMap = new LinkedHashMap<>();
+        private final Map<String, Double> categoryAmountMap = new LinkedHashMap<>();
+        private final Map<String, Integer> categoryCountMap = new LinkedHashMap<>();
+        private final Map<String, Map<String, Object>> expenseGroups = new LinkedHashMap<>();
+
+        public void addTotalAmount(double amount) {
+            this.totalAmount += amount;
+        }
+
+        public void addUniqueExpenseName(String name) {
+            uniqueExpenseNames.add(name);
+        }
+
+        public void addUniquePaymentMethod(String method) {
+            uniquePaymentMethods.add(method);
+        }
+
+        public void updateExpenseNameMap(String name, double amount) {
+            expenseNameAmountMap.put(name, round2(expenseNameAmountMap.getOrDefault(name, 0.0) + amount));
+            expenseNameCountMap.put(name, expenseNameCountMap.getOrDefault(name, 0) + 1);
+        }
+
+        public void updatePaymentMethodMap(String method, double amount) {
+            paymentMethodAmountMap.put(method, round2(paymentMethodAmountMap.getOrDefault(method, 0.0) + amount));
+            paymentMethodCountMap.put(method, paymentMethodCountMap.getOrDefault(method, 0) + 1);
+        }
+
+        public void updateCategoryMap(String category, double amount) {
             categoryAmountMap.put(category, round2(categoryAmountMap.getOrDefault(category, 0.0) + amount));
             categoryCountMap.put(category, categoryCountMap.getOrDefault(category, 0) + 1);
+        }
 
-            expenseGroups.computeIfAbsent(expenseName, k -> {
+        public Map<String, Object> getOrCreateExpenseGroup(String expenseName) {
+            return expenseGroups.computeIfAbsent(expenseName, k -> {
                 Map<String, Object> g = new LinkedHashMap<>();
                 g.put("expenseCount", 0);
                 g.put("totalAmount", 0.0);
                 g.put("expenseName", expenseName);
-                g.put("paymentMethod", expenseName); // use expense name label similar to sample
+                g.put("paymentMethod", expenseName);
                 g.put("paymentMethods", new LinkedHashSet<String>());
                 g.put("expenses", new ArrayList<Map<String, Object>>());
                 return g;
             });
-
-            Map<String, Object> group = expenseGroups.get(expenseName);
-            group.put("expenseCount", ((Number) group.get("expenseCount")).intValue() + 1);
-            group.put("totalAmount", round2(((Number) group.get("totalAmount")).doubleValue() + amount));
-            @SuppressWarnings("unchecked")
-            Set<String> pmSet = (Set<String>) group.get("paymentMethods");
-            if (paymentMethod != null && !paymentMethod.isEmpty()) {
-                pmSet.add(paymentMethod);
-            }
-
-            Map<String, Object> expenseDetails = new LinkedHashMap<>();
-            expenseDetails.put("date", dto.getDate().toString());
-            expenseDetails.put("id", dto.getId());
-
-            Map<String, Object> details = new LinkedHashMap<>();
-            details.put("amount", round2(dto.getExpense().getAmount()));
-            details.put("comments", dto.getExpense().getComments());
-            details.put("netAmount", round2(dto.getExpense().getNetAmount()));
-            details.put("paymentMethod", dto.getExpense().getPaymentMethod());
-            details.put("id", dto.getId());
-            details.put("type", dto.getExpense().getType());
-            details.put("expenseName", dto.getExpense().getExpenseName());
-            details.put("creditDue", round2(dto.getExpense().getCreditDue()));
-            expenseDetails.put("details", details);
-
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> expList = (List<Map<String, Object>>) group.get("expenses");
-            expList.add(expenseDetails);
         }
 
-        // Convert expense name totals to array format
-        List<Map<String, Object>> expenseNameTotals = new ArrayList<>();
-        for (Map.Entry<String, Double> entry : expenseNameAmountMap.entrySet()) {
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("expenseName", entry.getKey());
-            item.put("totalAmount", entry.getValue());
-            item.put("count", expenseNameCountMap.get(entry.getKey()));
-            expenseNameTotals.add(item);
+        // Getters
+        public double getTotalAmount() {
+            return totalAmount;
         }
 
-        // Convert payment method totals to array format
-        List<Map<String, Object>> paymentMethodTotals = new ArrayList<>();
-        for (Map.Entry<String, Double> entry : paymentMethodAmountMap.entrySet()) {
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("paymentMethod", entry.getKey());
-            item.put("totalAmount", entry.getValue());
-            item.put("count", paymentMethodCountMap.get(entry.getKey()));
-            paymentMethodTotals.add(item);
+        public int getUniqueExpenseNamesCount() {
+            return uniqueExpenseNames.size();
         }
 
-        // Convert category totals to array format (mirror paymentMethodTotals shape)
-        List<Map<String, Object>> categoryTotals = new ArrayList<>();
-        for (Map.Entry<String, Double> entry : categoryAmountMap.entrySet()) {
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("category", entry.getKey());
-            item.put("totalAmount", entry.getValue());
-            item.put("count", categoryCountMap.get(entry.getKey()));
-            categoryTotals.add(item);
+        public int getUniquePaymentMethodsCount() {
+            return uniquePaymentMethods.size();
         }
 
-        Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("budgetName", budget.getName());
-        summary.put("totalAmount", round2(totalAmount));
-        String dateRangeStr = budget.getStartDate().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) +
-                " - " +
-                budget.getEndDate().format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
-        summary.put("dateRange", dateRangeStr);
-        summary.put("totalExpenseNames", uniqueExpenseNames.size());
-        summary.put("totalExpenses", totalExpenses);
-        summary.put("expenseNameTotals", expenseNameTotals);
-        summary.put("totalPaymentMethods", uniquePaymentMethods.size());
-        summary.put("paymentMethodTotals", paymentMethodTotals);
-        summary.put("totalCategories", categoryAmountMap.size());
-        summary.put("categoryTotals", categoryTotals);
-
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("summary", summary);
-        for (Map.Entry<String, Map<String, Object>> entry : expenseGroups.entrySet()) {
-            // convert paymentMethods set to list for JSON friendliness
-            @SuppressWarnings("unchecked")
-            Set<String> pmSet = (Set<String>) entry.getValue().get("paymentMethods");
-            entry.getValue().put("paymentMethods", new ArrayList<>(pmSet));
-            response.put(entry.getKey(), entry.getValue());
+        public int getTotalExpenses() {
+            return expenseNameCountMap.values().stream().mapToInt(Integer::intValue).sum();
         }
-        return response;
+
+        public Map<String, Double> getExpenseNameAmountMap() {
+            return expenseNameAmountMap;
+        }
+
+        public Map<String, Integer> getExpenseNameCountMap() {
+            return expenseNameCountMap;
+        }
+
+        public Map<String, Double> getPaymentMethodAmountMap() {
+            return paymentMethodAmountMap;
+        }
+
+        public Map<String, Integer> getPaymentMethodCountMap() {
+            return paymentMethodCountMap;
+        }
+
+        public Map<String, Double> getCategoryAmountMap() {
+            return categoryAmountMap;
+        }
+
+        public Map<String, Integer> getCategoryCountMap() {
+            return categoryCountMap;
+        }
+
+        public Map<String, Map<String, Object>> getExpenseGroups() {
+            return expenseGroups;
+        }
     }
 
     private double round2(double v) {

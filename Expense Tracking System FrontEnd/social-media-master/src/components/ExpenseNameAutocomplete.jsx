@@ -193,6 +193,7 @@ const ExpenseNameAutocomplete = ({
         filterOptions={filterOptions}
         renderOption={renderOption}
         placeholder={placeholder}
+        placeholderColor="#9ca3af"
         error={error}
         helperText={helperText}
         disabled={disabled}
@@ -205,13 +206,16 @@ const ExpenseNameAutocomplete = ({
         clearOnEscape={clearOnEscape}
         sx={sx}
       />
-      {namesError && !helperText && (
-        <div
-          style={{ color: "#ff4444", fontSize: "0.75rem", marginTop: "4px" }}
-        >
-          Error: {namesError}
-        </div>
-      )}
+      {namesError &&
+        !helperText &&
+        !namesLoading &&
+        suggestions.length === 0 && (
+          <div
+            style={{ color: "#ff4444", fontSize: "0.75rem", marginTop: "4px" }}
+          >
+            Error: {namesError}
+          </div>
+        )}
     </div>
   );
 };
