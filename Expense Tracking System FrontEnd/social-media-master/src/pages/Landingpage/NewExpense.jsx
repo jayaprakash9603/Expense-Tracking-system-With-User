@@ -91,11 +91,26 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   // Auto-populate fields when previous expense is found
   useEffect(() => {
-    // When expense name is cleared or too short, reset auto-filled indicators and last name
+    // When expense name is cleared or too short, reset to default values
     if (!expenseData.expenseName || expenseData.expenseName.trim().length < 2) {
       if (lastAutoFilledExpenseName) {
+        // Reset to default values
+        setExpenseData((prev) => ({
+          ...prev,
+          category: "",
+          paymentMethod: "cash",
+          transactionType: "loss",
+          comments: "",
+        }));
         setLastAutoFilledExpenseName("");
         setAutoFilledFields({
+          category: false,
+          paymentMethod: false,
+          transactionType: false,
+          comments: false,
+        });
+        // Reset user modification flags
+        setUserModifiedFields({
           category: false,
           paymentMethod: false,
           transactionType: false,
@@ -1293,7 +1308,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
         {budgetError && (
           <div className="text-red-500 text-sm mt-4">
-            Error: {typeof budgetError === 'string' ? budgetError : (budgetError.message || budgetError.error || "Failed to load budgets.")}
+            Error:{" "}
+            {typeof budgetError === "string"
+              ? budgetError
+              : budgetError.message ||
+                budgetError.error ||
+                "Failed to load budgets."}
           </div>
         )}
 

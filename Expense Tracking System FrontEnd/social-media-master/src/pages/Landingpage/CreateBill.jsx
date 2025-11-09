@@ -124,11 +124,26 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
   // Auto-populate fields when previous expense is found
   useEffect(() => {
-    // When bill name is cleared or too short, reset auto-filled indicators and last name
+    // When bill name is cleared or too short, reset to default values
     if (!billData.name || billData.name.trim().length < 2) {
       if (lastAutoFilledBillName) {
+        // Reset to default values
+        setBillData((prev) => ({
+          ...prev,
+          categoryId: "",
+          paymentMethod: "cash",
+          type: "loss",
+          description: "",
+        }));
         setLastAutoFilledBillName("");
         setAutoFilledFields({
+          category: false,
+          paymentMethod: false,
+          type: false,
+          description: false,
+        });
+        // Reset user modification flags
+        setUserModifiedFields({
           category: false,
           paymentMethod: false,
           type: false,
@@ -754,8 +769,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
             }}
             placeholder="Enter description"
             variant="outlined"
-            multiline
-            rows={1}
             sx={{
               width: "100%",
               maxWidth: "300px",
@@ -763,9 +776,13 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 backgroundColor: colors.primary_bg,
                 color: colors.primary_text,
                 fontSize: "16px",
+                height: "56px",
               },
               "& .MuiInputBase-input": {
                 color: colors.primary_text,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
                 "&::placeholder": {
                   color: colors.placeholder_text,
                   opacity: 1,
