@@ -611,7 +611,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
             "& .MuiInputBase-input": {
               color: colors.primary_text,
               "&::placeholder": {
-                color: colors.icon_muted,
+                color: colors.placeholder_text,
                 opacity: 1,
               },
             },
@@ -774,7 +774,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 "& .MuiInputBase-input": {
                   color: colors.primary_text,
                   "&::placeholder": {
-                    color: colors.icon_muted,
+                    color: colors.placeholder_text,
                     opacity: 1,
                   },
                 },
@@ -1448,7 +1448,10 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
                   {/* Total Summary - Centered */}
                   {tempExpenses.length > 0 && (
-                    <div className="text-white font-semibold">
+                    <div
+                      className="font-semibold"
+                      style={{ color: colors.primary_text }}
+                    >
                       Total Amount: {currencySymbol}
                       {tempExpenses
                         .reduce(

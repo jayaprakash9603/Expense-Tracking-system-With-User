@@ -670,7 +670,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             },
             "& .MuiInputBase-input": {
               color: colors.primary_text,
-              "&::placeholder": { color: colors.icon_muted, opacity: 1 },
+              "&::placeholder": { color: colors.placeholder_text, opacity: 1 },
             },
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
@@ -823,7 +823,10 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                 },
                 "& .MuiInputBase-input": {
                   color: colors.primary_text,
-                  "&::placeholder": { color: colors.icon_muted, opacity: 1 },
+                  "&::placeholder": {
+                    color: colors.placeholder_text,
+                    opacity: 1,
+                  },
                 },
                 "& .MuiOutlinedInput-root": {
                   "& fieldset": {
