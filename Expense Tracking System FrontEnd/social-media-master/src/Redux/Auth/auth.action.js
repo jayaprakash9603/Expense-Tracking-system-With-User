@@ -180,3 +180,37 @@ export const logoutAction = () => (dispatch) => {
   dispatch({ type: CLEAR_USER_SETTINGS }); // Clear user settings on logout
   updateAuthHeader();
 };
+
+// Switch User Mode Action (USER <-> ADMIN)
+export const switchUserModeAction = (mode) => async (dispatch) => {
+  try {
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      throw new Error("Authorization token is missing");
+    }
+
+    const { data } = await api.put(
+      `/api/user/switch-mode?mode=${mode}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    dispatch({
+      type: "SWITCH_MODE_SUCCESS",
+      payload: {
+        currentMode: data.currentMode,
+        user: data.user,
+      },
+    });
+
+    return { success: true, currentMode: data.currentMode };
+  } catch (error) {
+    const errorMessage = error.response?.data?.error || "Failed to switch mode";
+    console.error("Switch mode error:", errorMessage);
+    return { success: false, message: errorMessage };
+  }
+};

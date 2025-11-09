@@ -82,6 +82,10 @@ public class User {
     @Column(name = "roles", columnDefinition = "TEXT")
     private Set<String> roles = new HashSet<>();
 
+    @Pattern(regexp = "^(USER|ADMIN)$", message = "Current mode must be USER or ADMIN")
+    @Column(name = "current_mode")
+    private String currentMode = "USER"; // Default mode is USER
+
     @PastOrPresent(message = "Created date cannot be in the future")
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -97,6 +101,11 @@ public class User {
 
         if (roles == null) {
             roles = new HashSet<>();
+        }
+
+        // Set default currentMode if not already set
+        if (currentMode == null || currentMode.trim().isEmpty()) {
+            currentMode = "USER";
         }
     }
 
@@ -123,14 +132,31 @@ public class User {
     public boolean hasRole(String roleName) {
         if (roleName == null)
             return false;
-        final String normalized;
+
         String temp = roleName.toUpperCase().trim();
-        if (!temp.startsWith("ROLE_")) {
-            normalized = "ROLE_" + temp;
-        } else {
-            normalized = temp;
+
+        // Check for exact match (e.g., "ADMIN" or "ROLE_ADMIN")
+        if (roles.stream().anyMatch(r -> r.equalsIgnoreCase(temp))) {
+            return true;
         }
-        return roles.stream().anyMatch(r -> r.equalsIgnoreCase(normalized));
+
+        // Check with ROLE_ prefix if not already present
+        if (!temp.startsWith("ROLE_")) {
+            String withPrefix = "ROLE_" + temp;
+            if (roles.stream().anyMatch(r -> r.equalsIgnoreCase(withPrefix))) {
+                return true;
+            }
+        }
+
+        // Check without ROLE_ prefix if it was present
+        if (temp.startsWith("ROLE_")) {
+            String withoutPrefix = temp.substring(5);
+            if (roles.stream().anyMatch(r -> r.equalsIgnoreCase(withoutPrefix))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void removeRole(String roleName) {
