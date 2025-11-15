@@ -1,6 +1,5 @@
 package com.jaya.service;
 
-
 import com.jaya.models.PaymentMethod;
 import com.jaya.models.UserDto;
 import com.jaya.repository.PaymentMethodRepository;
@@ -22,21 +21,18 @@ public class PaymentMethodImpl implements PaymentMethodService {
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
 
-
     @Autowired
     private ServiceHelper helper;
 
     @Override
     public PaymentMethod getById(Integer userId, Integer id) throws Exception {
-        Optional<PaymentMethod> paymentMethod = paymentMethodRepository.findByUserIdAndId(userId,id);
+        Optional<PaymentMethod> paymentMethod = paymentMethodRepository.findByUserIdAndId(userId, id);
 
-        if(paymentMethod.isEmpty())
-        {
-            throw  new Exception("Payment method not found");
+        if (paymentMethod.isEmpty()) {
+            throw new Exception("Payment method not found");
         }
         return paymentMethod.get();
     }
-
 
     @Override
     public PaymentMethod save(PaymentMethod paymentMethod) {
@@ -51,14 +47,13 @@ public class PaymentMethodImpl implements PaymentMethodService {
             if (paymentMethod.getExpenseIds() == null) {
                 paymentMethod.setExpenseIds(new HashMap<>());
             }
-            
+
             // Clean up empty sets in expenseIds map to avoid LONGBLOB issues
             if (paymentMethod.getExpenseIds() != null) {
-                paymentMethod.getExpenseIds().entrySet().removeIf(entry -> 
-                    entry.getValue() == null || entry.getValue().isEmpty()
-                );
+                paymentMethod.getExpenseIds().entrySet()
+                        .removeIf(entry -> entry.getValue() == null || entry.getValue().isEmpty());
             }
-            
+
             return paymentMethodRepository.save(paymentMethod);
         } catch (Exception e) {
             System.err.println("Error saving payment method: " + e.getMessage());
@@ -74,10 +69,8 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
         // Filter global payment methods: user not in userIds and not in editUserIds
         List<PaymentMethod> filteredGlobalMethods = globalPaymentMethods.stream()
-                .filter(method ->
-                        (method.getUserIds() == null || !method.getUserIds().contains(userId)) &&
-                                (method.getEditUserIds() == null || !method.getEditUserIds().contains(userId))
-                )
+                .filter(method -> (method.getUserIds() == null || !method.getUserIds().contains(userId)) &&
+                        (method.getEditUserIds() == null || !method.getEditUserIds().contains(userId)))
                 .collect(Collectors.toList());
 
         List<PaymentMethod> allPaymentMethods = new ArrayList<>();
@@ -117,11 +110,13 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
     @Override
     public PaymentMethod findOrCreatePaymentMethod(Integer userId, String paymentMethodName) throws Exception {
-        // Check if a payment method with the same name (case insensitive) already exists
+        // Check if a payment method with the same name (case insensitive) already
+        // exists
         String trimmedName = paymentMethodName.trim();
         List<PaymentMethod> existingMethods = paymentMethodRepository.findByUserId(userId);
 
-        // First try to find an existing payment method with the same name (case insensitive)
+        // First try to find an existing payment method with the same name (case
+        // insensitive)
         for (PaymentMethod existing : existingMethods) {
             if (existing.getName().equalsIgnoreCase(trimmedName)) {
                 return existing;
@@ -178,35 +173,37 @@ public class PaymentMethodImpl implements PaymentMethodService {
     }
 
     private void copyUpdatableFields(PaymentMethod source, PaymentMethod target) {
-        if (source.getName() != null) target.setName(source.getName().trim());
-        if (source.getAmount() != null) target.setAmount(source.getAmount());
-        if (source.getType() != null) target.setType(source.getType());
-        if (source.getColor() != null) target.setColor(source.getColor());
-        if (source.getIcon() != null) target.setIcon(source.getIcon());
-        if (source.getDescription() != null) target.setDescription(source.getDescription());
+        if (source.getName() != null)
+            target.setName(source.getName().trim());
+        if (source.getAmount() != null)
+            target.setAmount(source.getAmount());
+        if (source.getType() != null)
+            target.setType(source.getType());
+        if (source.getColor() != null)
+            target.setColor(source.getColor());
+        if (source.getIcon() != null)
+            target.setIcon(source.getIcon());
+        if (source.getDescription() != null)
+            target.setDescription(source.getDescription());
     }
 
     @Override
     public void deletePaymentMethod(Integer userId, Integer paymentId) throws Exception {
-        PaymentMethod existingPaymentMethod =paymentMethodRepository.findById(paymentId).orElseThrow(()->new Exception("Payment method not found with ID: " + paymentId));
+        PaymentMethod existingPaymentMethod = paymentMethodRepository.findById(paymentId)
+                .orElseThrow(() -> new Exception("Payment method not found with ID: " + paymentId));
 
-        if(existingPaymentMethod.isGlobal())
-        {
-            if(existingPaymentMethod.getUserIds().contains(userId) || existingPaymentMethod.getEditUserIds().contains(userId))
-            {
-                throw new Exception("payment method not found with ID: " + paymentId );
-            }
-            else {
+        if (existingPaymentMethod.isGlobal()) {
+            if (existingPaymentMethod.getUserIds().contains(userId)
+                    || existingPaymentMethod.getEditUserIds().contains(userId)) {
+                throw new Exception("payment method not found with ID: " + paymentId);
+            } else {
                 existingPaymentMethod.getUserIds().add(userId);
                 paymentMethodRepository.save(existingPaymentMethod);
             }
 
-
-        }
-        else if(existingPaymentMethod.getUserId().equals(userId)) {
+        } else if (existingPaymentMethod.getUserId().equals(userId)) {
             paymentMethodRepository.delete(existingPaymentMethod);
-        }
-        else {
+        } else {
             throw new Exception("payment method not found");
         }
 
@@ -247,7 +244,7 @@ public class PaymentMethodImpl implements PaymentMethodService {
         String trimmedType = type.trim();
 
         // Search user methods by name and type (case-insensitive)
-        List<PaymentMethod> userMethods = paymentMethodRepository.findByUserIdAndNameAndType(userId,name,type);
+        List<PaymentMethod> userMethods = paymentMethodRepository.findByUserIdAndNameAndType(userId, name, type);
         for (PaymentMethod method : userMethods) {
             if (method.getName() != null && method.getType() != null &&
                     method.getName().equalsIgnoreCase(trimmedName) &&
@@ -261,7 +258,8 @@ public class PaymentMethodImpl implements PaymentMethodService {
         for (PaymentMethod method : globalMethods) {
             if (method.getName() != null && method.getType() != null &&
                     method.getName().equalsIgnoreCase(trimmedName) &&
-                    method.getType().equalsIgnoreCase(trimmedType) && !method.getEditUserIds().contains(userId) && !method.getUserIds().contains(userId)) {
+                    method.getType().equalsIgnoreCase(trimmedType) && !method.getEditUserIds().contains(userId)
+                    && !method.getUserIds().contains(userId)) {
                 return method;
             }
         }
@@ -271,7 +269,6 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
         return newMethod;
     }
-
 
     @Override
     public PaymentMethod getByNameAndTypeOrCreate(String name, String type) {
@@ -290,8 +287,8 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
         throw new EntityNotFoundException("Payment method not found with name: " + name);
 
-
     }
+
     @Override
     public PaymentMethod getByName(String name) {
         // Try exact match (case-sensitive)
@@ -349,7 +346,8 @@ public class PaymentMethodImpl implements PaymentMethodService {
                 .findFirst()
                 .orElse(null);
 
-        // Return payment methods that are either the "Others" method or have no linked expense IDs
+        // Return payment methods that are either the "Others" method or have no linked
+        // expense IDs
         return allMethods.stream().filter(pm -> {
             if (othersMethod != null && pm.getId().equals(othersMethod.getId())) {
                 return true;
@@ -357,6 +355,5 @@ public class PaymentMethodImpl implements PaymentMethodService {
             return pm.getExpenseIds() == null || pm.getExpenseIds().isEmpty();
         }).collect(Collectors.toList());
     }
-
 
 }

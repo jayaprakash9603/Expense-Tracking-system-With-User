@@ -1761,16 +1761,16 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                         Map<Integer, Set<Integer>> expenseIds = oldPaymentMethod.getExpenseIds();
                         Set<Integer> userExpenseSet = expenseIds.getOrDefault(userId, new HashSet<>());
                         userExpenseSet.remove(existingExpense.getId());
-                        
+
                         // Clean up empty sets or update with new set
                         if (userExpenseSet.isEmpty()) {
                             expenseIds.remove(userId);
                         } else {
                             expenseIds.put(userId, userExpenseSet);
                         }
-                        
-                        logger.info("Removing expense {} from payment method {} for user {}", 
-                                  existingExpense.getId(), oldPaymentMethodName, userId);
+
+                        logger.info("Removing expense {} from payment method {} for user {}",
+                                existingExpense.getId(), oldPaymentMethodName, userId);
                         paymentMethodService.save(oldPaymentMethod);
                     }
                 } catch (Exception e) {
@@ -1802,9 +1802,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 Set<Integer> userExpenseSet = expenseIds.getOrDefault(user.getId(), new HashSet<>());
                 userExpenseSet.add(existingExpense.getId());
                 expenseIds.put(user.getId(), userExpenseSet);
-                
-                logger.info("Adding expense {} to payment method {} for user {}", 
-                          existingExpense.getId(), newPaymentMethodName, user.getId());
+
+                logger.info("Adding expense {} to payment method {} for user {}",
+                        existingExpense.getId(), newPaymentMethodName, user.getId());
                 paymentMethodService.save(newPaymentMethod);
             } catch (Exception e) {
                 logger.error("Error adding expense to new payment method: {}", e.getMessage(), e);
