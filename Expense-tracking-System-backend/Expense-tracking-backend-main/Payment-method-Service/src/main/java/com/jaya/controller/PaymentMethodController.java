@@ -127,9 +127,22 @@ public class PaymentMethodController {
     public PaymentMethod save(
             @RequestBody PaymentMethod paymentMethod
     ) {
-
-        return paymentMethodService.save(paymentMethod);
-
+        try {
+            if (paymentMethod == null) {
+                throw new RuntimeException("Payment method cannot be null");
+            }
+            
+            // Log incoming payment method for debugging
+            System.out.println("Saving payment method: " + paymentMethod.getName() + 
+                             ", userId: " + paymentMethod.getUserId() + 
+                             ", type: " + paymentMethod.getType());
+            
+            return paymentMethodService.save(paymentMethod);
+        } catch (Exception e) {
+            System.err.println("Error in save endpoint: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error saving payment method: " + e.getMessage(), e);
+        }
     }
 
     @GetMapping("/names")

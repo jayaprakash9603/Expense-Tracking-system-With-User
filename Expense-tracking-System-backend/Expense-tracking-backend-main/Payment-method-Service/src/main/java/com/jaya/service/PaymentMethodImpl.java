@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,7 +40,31 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
     @Override
     public PaymentMethod save(PaymentMethod paymentMethod) {
-        return paymentMethodRepository.save(paymentMethod);
+        try {
+            // Ensure collections are properly initialized to avoid serialization issues
+            if (paymentMethod.getUserIds() == null) {
+                paymentMethod.setUserIds(new HashSet<>());
+            }
+            if (paymentMethod.getEditUserIds() == null) {
+                paymentMethod.setEditUserIds(new HashSet<>());
+            }
+            if (paymentMethod.getExpenseIds() == null) {
+                paymentMethod.setExpenseIds(new HashMap<>());
+            }
+            
+            // Clean up empty sets in expenseIds map to avoid LONGBLOB issues
+            if (paymentMethod.getExpenseIds() != null) {
+                paymentMethod.getExpenseIds().entrySet().removeIf(entry -> 
+                    entry.getValue() == null || entry.getValue().isEmpty()
+                );
+            }
+            
+            return paymentMethodRepository.save(paymentMethod);
+        } catch (Exception e) {
+            System.err.println("Error saving payment method: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error saving payment method: " + e.getMessage(), e);
+        }
     }
 
     @Override

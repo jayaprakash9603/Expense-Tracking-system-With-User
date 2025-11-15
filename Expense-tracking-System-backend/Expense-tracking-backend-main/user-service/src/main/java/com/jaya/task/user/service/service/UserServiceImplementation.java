@@ -33,6 +33,7 @@ public class UserServiceImplementation implements UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    
     @Override
     public User getUserProfile(String jwt) {
         String email = JwtProvider.getEmailFromJwt(jwt);
