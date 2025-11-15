@@ -21,6 +21,12 @@ public class GlobalExceptions {
 		ErrorDetails error=new ErrorDetails(ue.getMessage(),req.getDescription(false),LocalDateTime.now());
 		return new ResponseEntity<ErrorDetails>(error,HttpStatus.BAD_REQUEST);
 	}
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ErrorDetails>resourceNotFoundExceptionHandler(ResourceNotFoundException ue,WebRequest req)
+	{
+		ErrorDetails error=new ErrorDetails(ue.getMessage(),req.getDescription(false),LocalDateTime.now());
+		return new ResponseEntity<ErrorDetails>(error,HttpStatus.NOT_FOUND);
+	}
 
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<ErrorDetails>IllegalArgumentHandler(IllegalArgumentException ue,WebRequest req)

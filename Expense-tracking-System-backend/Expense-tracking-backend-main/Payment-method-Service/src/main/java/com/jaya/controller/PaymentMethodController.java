@@ -1,7 +1,6 @@
 package com.jaya.controller;
 
 import com.jaya.dto.ErrorDetails;
-import com.jaya.dto.PaymentMethodEvent;
 import com.jaya.models.PaymentMethod;
 import com.jaya.models.UserDto;
 import com.jaya.service.FriendShipService;

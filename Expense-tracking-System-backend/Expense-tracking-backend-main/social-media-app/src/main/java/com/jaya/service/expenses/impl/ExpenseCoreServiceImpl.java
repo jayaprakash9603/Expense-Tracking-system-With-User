@@ -8,6 +8,7 @@ import com.jaya.dto.PaymentMethodEvent;
 import com.jaya.dto.User;
 import com.jaya.events.BudgetExpenseEvent;
 import com.jaya.events.CategoryExpenseEvent;
+import com.jaya.exceptions.ResourceNotFoundException;
 import com.jaya.exceptions.UserException;
 import com.jaya.kafka.BudgetExpenseKafkaProducerService;
 import com.jaya.kafka.AuditEventProducer;
@@ -1227,8 +1228,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Override
     public Expense getExpenseById(Integer id, Integer userId) {
-        return expenseRepository.findByUserIdAndId(userId, id);
-
+        Expense expense = expenseRepository.findByUserIdAndId(userId, id);
+        if (expense == null) {
+            throw new ResourceNotFoundException("Expense not found with id: " + id);
+        }
+        return expense;
     }
 
     @Override

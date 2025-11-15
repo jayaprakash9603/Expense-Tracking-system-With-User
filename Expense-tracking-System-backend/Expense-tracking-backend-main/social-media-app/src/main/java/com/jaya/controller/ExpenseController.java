@@ -96,7 +96,7 @@ public class ExpenseController extends BaseExpenseController {
         // Send notification asynchronously
         expenseNotificationService.sendExpenseCreatedNotification(createdExpense);
 
-        return ResponseEntity.ok(createdExpense);
+        return new ResponseEntity<>(createdExpense,HttpStatus.CREATED);
 
     }
 
