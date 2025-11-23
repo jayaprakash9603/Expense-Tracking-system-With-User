@@ -6,6 +6,7 @@ import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
+import PageHeader from "../../components/PageHeader";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import {
   useReactTable,
@@ -1092,60 +1093,42 @@ const NewExpense = ({ onClose, onSuccess }) => {
           padding: "20px",
         }}
       >
-        <div className="w-full flex justify-between items-center mb-1">
-          <p
-            style={{ color: colors.primary_text }}
-            className="font-extrabold text-4xl"
-          >
-            New Expense
-          </p>
-
-          <div className="flex items-center gap-3">
-            {/* Display previous expense indicator only when name and date are set */}
-            {expenseData.expenseName?.trim().length >= 2 &&
-              expenseData.date && (
-                <PreviousExpenseIndicator
-                  expense={previousExpense}
-                  isLoading={loadingPreviousExpense}
-                  position="right"
-                  variant="gradient"
-                  showTooltip={true}
-                  dateFormat={dateFormat}
-                  label="Previously Added"
-                  labelPosition="top"
-                  icon="calendar"
-                  tooltipConfig={{
-                    showAmount: true,
-                    showPaymentMethod: true,
-                    showType: true,
-                  }}
-                  colorScheme={{
-                    primary: "#00dac6",
-                    secondary: "#00b8a0",
-                    text: "#ffffff",
-                    subtext: "#9ca3af",
-                  }}
-                />
-              )}
-
-            <button
-              onClick={() => {
-                if (onClose) {
-                  onClose();
-                } else {
-                  navigate(-1);
-                }
-              }}
-              className="flex items-center justify-center w-12 h-12 text-[32px] font-bold rounded mt-[-10px]"
-              style={{ backgroundColor: colors.active_bg, color: "#00dac6" }}
-            >
-              ×
-            </button>
-          </div>
-        </div>
-        <hr
-          style={{ borderColor: colors.border_color }}
-          className="border-t w-full mt-[-4px]"
+        <PageHeader
+          title="New Expense"
+          onClose={() => {
+            if (onClose) {
+              onClose();
+            } else {
+              navigate(-1);
+            }
+          }}
+          rightContent={
+            expenseData.expenseName?.trim().length >= 2 &&
+            expenseData.date && (
+              <PreviousExpenseIndicator
+                expense={previousExpense}
+                isLoading={loadingPreviousExpense}
+                position="right"
+                variant="gradient"
+                showTooltip={true}
+                dateFormat={dateFormat}
+                label="Previously Added"
+                labelPosition="top"
+                icon="calendar"
+                tooltipConfig={{
+                  showAmount: true,
+                  showPaymentMethod: true,
+                  showType: true,
+                }}
+                colorScheme={{
+                  primary: "#00dac6",
+                  secondary: "#00b8a0",
+                  text: "#ffffff",
+                  subtext: "#9ca3af",
+                }}
+              />
+            )
+          }
         />
 
         <div className="flex flex-col gap-4">
