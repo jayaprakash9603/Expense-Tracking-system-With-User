@@ -4,6 +4,7 @@ import ItemNameAutocomplete from "./ItemNameAutocomplete";
 import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
 import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
+import PageHeader from "../../components/PageHeader";
 import {
   Autocomplete,
   TextField,
@@ -963,33 +964,15 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           overflowY: "auto",
         }}
       >
-        <div className="w-full flex justify-between items-center mb-1">
-          <p
-            className="font-extrabold text-4xl"
-            style={{ color: colors.primary_text }}
-          >
-            Edit Bill
-          </p>
-          <button
-            onClick={() => {
-              if (onClose) {
-                onClose();
-              } else {
-                navigate(-1);
-              }
-            }}
-            className="flex items-center justify-center w-12 h-12 text-[32px] font-bold rounded mt-[-10px]"
-            style={{
-              backgroundColor: colors.secondary_bg,
-              color: colors.secondary_accent,
-            }}
-          >
-            ×
-          </button>
-        </div>
-        <hr
-          className="border-t border-gray-600 w-full mt-[-4px] mb-0"
-          style={{ marginBottom: 0 }}
+        <PageHeader
+          title="Edit Bill"
+          onClose={() => {
+            if (onClose) {
+              onClose();
+            } else {
+              navigate(-1);
+            }
+          }}
         />
 
         <div className="flex flex-col gap-4 mt-2">
