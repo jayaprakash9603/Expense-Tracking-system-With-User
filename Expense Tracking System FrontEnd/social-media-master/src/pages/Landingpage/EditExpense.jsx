@@ -4,6 +4,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { useTheme } from "../../hooks/useTheme";
+import PageHeader from "../../components/PageHeader";
 import { Snackbar } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
 import {
@@ -689,25 +690,7 @@ const EditExpense = ({}) => {
           padding: "20px",
         }}
       >
-        <div className="w-full flex justify-between items-center mb-1">
-          <p
-            style={{ color: colors.primary_text }}
-            className="font-extrabold text-4xl"
-          >
-            Edit Expense
-          </p>
-          <button
-            onClick={handleOnClose}
-            className="flex items-center justify-center w-12 h-12 text-[32px] font-bold rounded mt-[-10px]"
-            style={{ backgroundColor: colors.active_bg, color: "#00dac6" }}
-          >
-            ×
-          </button>
-        </div>
-        <hr
-          style={{ borderColor: colors.border_color }}
-          className="border-t w-full mt-[-4px]"
-        />
+        <PageHeader title="Edit Expense" onClose={handleOnClose} />
 
         <div className={firstFormRow}>
           {/* Expense Name (MUI Autocomplete with suggestions) */}

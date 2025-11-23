@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import ToastNotification from "./ToastNotification";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import PageHeader from "../../components/PageHeader";
 
 const NewBudget = () => {
   const { colors } = useTheme();
@@ -551,33 +552,11 @@ const NewBudget = () => {
         }}
       >
         <div>
-          <div className="w-full flex justify-between items-center mb-4">
-            <p
-              className="font-extrabold text-2xl sm:text-3xl"
-              style={{ color: colors.primary_text }}
-            >
-              New Budget
-            </p>
-            <button
-              onClick={handleCloseBudget}
-              className="flex items-center justify-center w-12 h-12 text-[25px] font-bold rounded mt-[-10px]"
-              style={{
-                color: colors.primary_accent,
-                backgroundColor: colors.tertiary_bg,
-              }}
-              onMouseEnter={(e) =>
-                (e.target.style.backgroundColor = colors.hover_bg)
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.backgroundColor = colors.tertiary_bg)
-              }
-            >
-              X
-            </button>
-          </div>
-          <hr
-            className="border-t w-full mb-4 sm:mb-6"
-            style={{ borderColor: colors.border_color }}
+          <PageHeader
+            title="New Budget"
+            onClose={handleCloseBudget}
+            // titleClassName="font-extrabold text-2xl sm:text-3xl"
+            // containerClassName="w-full flex justify-between items-center mb-4"
           />
           <div className={formRow}>
             {renderInput("name")}

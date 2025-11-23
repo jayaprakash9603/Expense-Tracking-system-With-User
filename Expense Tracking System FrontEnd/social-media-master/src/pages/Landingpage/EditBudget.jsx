@@ -24,6 +24,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import PageHeader from "../../components/PageHeader";
 
 const EditBudget = () => {
   const { colors } = useTheme();
@@ -610,34 +611,11 @@ const EditBudget = () => {
         }}
       >
         <div>
-          <div className="w-full flex justify-between items-center mb-4">
-            <p
-              className="font-extrabold text-2xl sm:text-3xl"
-              style={{ color: colors.primary_text }}
-            >
-              Edit Budget
-            </p>
-            <button
-              onClick={handleCloseBudget}
-              className="px-2 py-1 border rounded"
-              style={{
-                color: colors.primary_accent,
-                backgroundColor: colors.active_bg,
-                borderColor: colors.border_color,
-              }}
-              onMouseEnter={(e) =>
-                (e.target.style.backgroundColor = colors.hover_bg)
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.backgroundColor = colors.active_bg)
-              }
-            >
-              X
-            </button>
-          </div>
-          <hr
-            className="border-t w-full mb-4 sm:mb-6"
-            style={{ borderColor: colors.border_color }}
+          <PageHeader
+            title="Edit Budget"
+            onClose={handleCloseBudget}
+            // titleClassName="font-extrabold text-2xl sm:text-3xl"
+            // containerClassName="w-full flex justify-between items-center mb-4"
           />
           <div className={formRow}>
             {renderInput("name")}

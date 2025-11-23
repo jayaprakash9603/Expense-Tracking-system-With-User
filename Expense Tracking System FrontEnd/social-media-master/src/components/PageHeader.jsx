@@ -35,7 +35,7 @@ const PageHeader = ({
       </div>
       <hr
         style={{ borderColor: colors.border_color }}
-        className="border-t w-full mt-[-4px]"
+        className="border-t w-full mt-[-4px] mb-4 sm:mb-6"
       />
     </>
   );
