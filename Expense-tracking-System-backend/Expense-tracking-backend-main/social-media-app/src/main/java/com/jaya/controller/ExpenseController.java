@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.jaya.dto.ExpenseDTO;
+import com.jaya.dto.ExpenseDetailsDTO;
+import com.jaya.mapper.ExpenseMapper;
 
 import jakarta.mail.MessagingException;
 
@@ -2440,13 +2442,22 @@ public class ExpenseController extends BaseExpenseController {
                     .collect(Collectors.toList());
         }
 
+        // Fetch user settings to determine if masking is enabled
+        com.jaya.dto.UserSettingsDTO userSettings = userSettingsService.getUserSettings(targetUser.getId());
+        Boolean maskSensitiveData = userSettings != null ? userSettings.getMaskSensitiveData() : false;
+
+        // Convert entities to DTOs with masking applied
+        List<ExpenseDTO> expenseDTOs = expenses.stream()
+                .map(expense -> expenseMapper.toDTO(expense, maskSensitiveData))
+                .collect(Collectors.toList());
+
         // If groupBy flag not set or false, return the flat list (existing behavior)
         if (groupBy == null || !groupBy) {
-            return ResponseEntity.ok(expenses);
+            return ResponseEntity.ok(expenseDTOs);
         }
 
         // Group by EXPENSE NAME (fallback to "unknown") instead of payment method
-        Map<String, List<Expense>> grouped = expenses.stream()
+        Map<String, List<ExpenseDTO>> grouped = expenseDTOs.stream()
                 .collect(Collectors.groupingBy(e -> {
                     if (e.getExpense() == null || e.getExpense().getExpenseName() == null
                             || e.getExpense().getExpenseName().isBlank()) {
@@ -2460,7 +2471,7 @@ public class ExpenseController extends BaseExpenseController {
         grouped.forEach((expenseName, list) -> {
             double total = list.stream()
                     .filter(exp -> exp.getExpense() != null)
-                    .mapToDouble(exp -> Optional.ofNullable(exp.getExpense().getAmount()).orElse(0.0))
+                    .mapToDouble(exp -> exp.getExpense().getAmountAsDouble())
                     .sum();
             expenseNameTotals.put(expenseName, total);
         });
@@ -2476,7 +2487,7 @@ public class ExpenseController extends BaseExpenseController {
         dateRange.put("flowType", flowType);
         summary.put("dateRange", dateRange);
         summary.put("totalExpenseNames", expenseNameTotals.size());
-        summary.put("totalExpenses", expenses.size());
+        summary.put("totalExpenses", expenseDTOs.size());
         summary.put("expenseNameTotals", expenseNameTotals);
         // Backward compatible aliases (if frontend still expecting these temporarily)
         summary.put("totalPaymentMethods", expenseNameTotals.size());
@@ -2501,25 +2512,26 @@ public class ExpenseController extends BaseExpenseController {
                     .collect(Collectors.toCollection(LinkedHashSet::new));
             groupBlock.put("paymentMethods", paymentMethods);
 
-            // Transform each expense into a simplified structure
-            List<Map<String, Object>> expenseEntries = list.stream().map(exp -> {
+            // Transform each expense DTO into a simplified structure
+            List<Map<String, Object>> expenseEntries = list.stream().map(expDTO -> {
                 Map<String, Object> entry = new LinkedHashMap<>();
-                if (exp.getDate() != null) {
-                    entry.put("date", exp.getDate().toString());
+                if (expDTO.getDate() != null) {
+                    entry.put("date", expDTO.getDate());
                 }
-                entry.put("id", exp.getId());
+                entry.put("id", expDTO.getId());
 
                 Map<String, Object> details = new LinkedHashMap<>();
-                ExpenseDetails d = exp.getExpense();
+                ExpenseDetailsDTO d = expDTO.getExpense();
                 if (d != null) {
-                    details.put("amount", d.getAmount());
+                    details.put("amount", d.getAmount()); // Can be Double or String ("*****")
                     details.put("comments", d.getComments());
-                    details.put("netAmount", d.getNetAmount());
+                    details.put("netAmount", d.getNetAmount()); // Can be Double or String ("*****")
                     details.put("paymentMethod", d.getPaymentMethod());
                     details.put("id", d.getId());
                     details.put("type", d.getType());
                     details.put("expenseName", d.getExpenseName());
-                    details.put("creditDue", d.getCreditDue());
+                    details.put("creditDue", d.getCreditDue()); // Can be Double or String ("*****")
+                    details.put("masked", d.isMasked()); // Masking flag
                 }
                 entry.put("details", details);
                 return entry;
