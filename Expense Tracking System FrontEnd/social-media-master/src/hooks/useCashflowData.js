@@ -11,6 +11,8 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
   const [offset, setOffset] = useState(0);
   const [flowTab, setFlowTab] = useState("all");
   const { cashflowExpenses, loading } = useSelector((s) => s.expenses || {});
+  const { settings } = useSelector((s) => s.userSettings || {});
+  const maskSensitiveData = settings?.maskSensitiveData;
 
   // fetch
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
         groupBy: false, // flat list for timeline visualization
       })
     );
-  }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView]);
+  }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView, maskSensitiveData]);
 
   // reset offset when range changes
   useEffect(() => {

@@ -3,10 +3,15 @@ import dayjs from "dayjs";
 import { Skeleton, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CategoryIcon from "@mui/icons-material/Category";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import NoDataPlaceholder from "../../components/NoDataPlaceholder"; // adjust path if needed
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useMasking } from "../../hooks/useMasking";
+import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
 
 /**
  * Reusable expense cards list for CashFlow page.
@@ -37,29 +42,20 @@ export default function CashFlowExpenseCards({
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const { maskAmount, isMasking } = useMasking();
   const scrollContainerRef = useRef(null);
-  const cardRefs = useRef([]);
-  const lastClickedIndexRef = useRef(null);
+  const savedScrollPositionRef = useRef(0);
 
-  // Scroll to the last clicked card when selection changes
+  // Save scroll position on user scroll
   useEffect(() => {
-    if (
-      lastClickedIndexRef.current !== null &&
-      cardRefs.current[lastClickedIndexRef.current]
-    ) {
-      const cardElement = cardRefs.current[lastClickedIndexRef.current];
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-      // Use a small timeout to ensure the DOM has updated
-      setTimeout(() => {
-        cardElement.scrollIntoView({
-          behavior: "auto",
-          block: "nearest",
-          inline: "nearest",
-        });
-      }, 0);
+    const handleScroll = () => {
+      savedScrollPositionRef.current = container.scrollTop;
+    };
 
-      lastClickedIndexRef.current = null;
-    }
-  }, [selectedCardIdx]);
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const wrapperClass =
     data.length <= 3
@@ -76,6 +72,8 @@ export default function CashFlowExpenseCards({
           justifyContent: "flex-start",
           flexDirection: isMobile ? "column" : "row",
           gap: isMobile ? 10 : 16,
+          scrollBehavior: "auto", // Prevent smooth scroll
+          overflowAnchor: "none", // Prevent scroll anchoring
         }
       : {
           gridTemplateColumns: isMobile
@@ -88,12 +86,13 @@ export default function CashFlowExpenseCards({
           overflowX: "hidden",
           paddingRight: isMobile ? 6 : isTablet ? 8 : 16,
           gap: isMobile ? 10 : 16,
+          scrollBehavior: "auto", // Prevent smooth scroll
+          overflowAnchor: "none", // Prevent scroll anchoring
         };
 
-  if (loading && !search) {
+  if (loading && !search && data.length === 0) {
     return (
       <div
-        ref={scrollContainerRef}
         className={wrapperClass}
         style={wrapperStyle}
       >
@@ -102,7 +101,7 @@ export default function CashFlowExpenseCards({
             key={idx}
             variant="rectangular"
             width={340}
-            height={140}
+            height={155}
             animation="wave"
             sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
             style={{ minWidth: 220, maxWidth: 340, margin: "0 8px 16px 0" }}
@@ -115,7 +114,6 @@ export default function CashFlowExpenseCards({
   if (data.length === 0) {
     return (
       <div
-        ref={scrollContainerRef}
         className={wrapperClass}
         style={wrapperStyle}
       >
@@ -136,7 +134,31 @@ export default function CashFlowExpenseCards({
   }
 
   return (
-    <div ref={scrollContainerRef} className={wrapperClass} style={wrapperStyle}>
+    <div 
+      ref={scrollContainerRef}
+      className={wrapperClass} 
+      style={wrapperStyle}
+      onMouseLeave={(e) => {
+        // Prevent any automatic scrolling when mouse leaves
+        e.preventDefault();
+        e.stopPropagation();
+        // Lock scroll position
+        if (scrollContainerRef.current) {
+          const savedPos = savedScrollPositionRef.current;
+          setTimeout(() => {
+            if (scrollContainerRef.current) {
+              scrollContainerRef.current.scrollTop = savedPos;
+            }
+          }, 0);
+        }
+      }}
+      onClick={(e) => {
+        // Save scroll position immediately on any click
+        if (scrollContainerRef.current) {
+          savedScrollPositionRef.current = scrollContainerRef.current.scrollTop;
+        }
+      }}
+    >
       {data.map((row, idx) => {
         const isSelected = selectedCardIdx.includes(idx);
         // Determine flow type in 'all' mode
@@ -205,19 +227,22 @@ export default function CashFlowExpenseCards({
           return dtStr;
         })();
 
+        const categoryName = row.categoryName || row.category?.name || row.category || row.expense?.category || "Uncategorized";
+        const rawPaymentMethod = row.paymentMethodName || row.paymentMethod?.name || row.paymentMethod || row.expense?.paymentMethod || "Unknown";
+        const paymentMethodName = formatPaymentMethodName(rawPaymentMethod);
+
         return (
           <div
             key={row.id || row.expenseId || `expense-${idx}`}
-            ref={(el) => (cardRefs.current[idx] = el)}
-            className="rounded-lg shadow-md flex flex-col justify-between relative group transition-colors duration-200"
+            className="rounded-lg shadow-md flex flex-col justify-between relative group"
             style={{
-              minHeight: "140px",
-              maxHeight: "140px",
-              height: "140px",
-              minWidth: "220px",
+              minHeight: "155px",
+              maxHeight: "155px",
+              height: "155px",
+              minWidth: "260px",
               maxWidth: "340px",
               width: "100%",
-              padding: "18px 20px",
+              padding: "10px",
               boxSizing: "border-box",
               overflow: "hidden",
               cursor: "pointer",
@@ -226,48 +251,88 @@ export default function CashFlowExpenseCards({
                   ? "rgba(6, 214, 160, 0.13)"
                   : "rgba(255, 77, 79, 0.13)"
                 : colors.primary_bg,
-              transition: "background 0.2s, box-shadow 0.2s, border 0.2s",
+              // Changed from "all" to specific properties to prevent layout shifts
+              transition: "background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease",
               margin: "6px",
               border: isSelected
                 ? `2px solid ${isGain ? "#06d6a0" : "#ff4d4f"}`
-                : `2px solid transparent`,
+                : `1px solid ${colors.border_color || 'transparent'}`,
               userSelect: "none",
+              outline: "none", // Prevent focus outline that triggers scroll
+              willChange: "background, border, box-shadow", // Optimize rendering
+              contain: "layout style paint", // Isolate layout calculations
+              // Removed scale transform to prevent browser auto-scroll
+              boxShadow: isSelected ? "0 4px 12px rgba(0,0,0,0.1)" : "none",
             }}
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
-
-              // Store the clicked index
-              lastClickedIndexRef.current = idx;
-
+              
+              // Save current scroll position BEFORE handling click
+              const container = scrollContainerRef.current;
+              const scrollPos = container ? container.scrollTop : 0;
+              
+              // Prevent any scroll behavior
+              if (event.target && event.target.blur) {
+                event.target.blur();
+              }
+              
+              // Handle the click
               handleCardClick(idx, event);
+              
+              // Restore scroll position immediately after click
+              requestAnimationFrame(() => {
+                if (container) {
+                  container.scrollTop = scrollPos;
+                  savedScrollPositionRef.current = scrollPos;
+                }
+              });
+              
+              // Double-check after a short delay
+              setTimeout(() => {
+                if (container && container.scrollTop !== scrollPos) {
+                  container.scrollTop = scrollPos;
+                }
+              }, 0);
             }}
+            onFocus={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            tabIndex={-1}
           >
-            <div className="flex flex-col gap-2" style={{ height: "100%" }}>
-              <div className="flex items-center justify-between min-w-0">
+            <div className="flex flex-col gap-1" style={{ height: "100%" }}>
+              {/* Header: Name and Date */}
+              <div className="flex items-center justify-between min-w-0 border-b pb-0.5" style={{ borderColor: colors.border_color, marginBottom: "2px" }}>
                 <span
-                  className="font-semibold text-base truncate min-w-0"
+                  className="font-bold text-base truncate min-w-0"
                   title={row.name}
                   style={{
-                    maxWidth: "70%",
-                    fontSize: "15px",
+                    maxWidth: "65%",
+                    fontSize: "14px",
                     color: colors.primary_text,
                   }}
                 >
                   {row.name}
                 </span>
                 <span
-                  className="text-xs font-semibold ml-2 flex-shrink-0"
+                  className="text-xs font-medium ml-2 flex-shrink-0"
                   style={{
                     whiteSpace: "nowrap",
                     color: colors.secondary_text,
+                    background: colors.secondary_bg,
+                    padding: "1px 4px",
+                    borderRadius: "3px",
+                    fontSize: "10px",
                   }}
                   title={dateValue}
                 >
                   {dateValue}
                 </span>
               </div>
-              <div className="text-base font-bold flex items-center gap-1">
+
+              {/* Amount */}
+              <div className="text-xl font-bold flex items-center gap-1.5" style={{ margin: "2px 0" }}>
                 {icon}
                 <span
                   style={{
@@ -286,17 +351,39 @@ export default function CashFlowExpenseCards({
                     : formatNumberFull(row.amount)}
                 </span>
               </div>
+
+              {/* Details: Category & Payment Method */}
+              <div className="flex items-center gap-2 text-xs" style={{ color: colors.secondary_text, margin: "2px 0" }}>
+                <div className="flex items-center gap-1 min-w-0 flex-1" title={`Category: ${categoryName}`}>
+                  <LocalOfferIcon sx={{ fontSize: 13, color: colors.primary_accent }} />
+                  <span className="truncate font-medium" style={{ fontSize: "10.5px" }}>{categoryName}</span>
+                </div>
+                <div className="flex items-center gap-1 min-w-0 flex-1" title={`Payment: ${paymentMethodName}`}>
+                  <AccountBalanceWalletIcon sx={{ fontSize: 13, color: colors.secondary_accent }} />
+                  <span className="truncate font-medium" style={{ fontSize: "10.5px" }}>{paymentMethodName}</span>
+                </div>
+              </div>
+
+              {/* Comments */}
               <div
-                className="text-sm break-words card-comments-clamp"
+                className="text-xs break-words card-comments-clamp mt-auto pt-1 border-t"
                 style={{
                   wordBreak: "break-word",
-                  flex: 1,
                   overflow: "hidden",
                   color: colors.secondary_text,
+                  borderColor: colors.border_color,
+                  fontStyle: "normal",
+                  lineHeight: "1.4",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  fontSize: "11px",
+                  minHeight: "3.1em",
+                  maxHeight: "3.1em",
                 }}
                 title={row.comments}
               >
-                {row.comments}
+                {row.comments || "No comments"}
               </div>
             </div>
             {isSelected && selectedCardIdx.length === 1 && hasWriteAccess && (

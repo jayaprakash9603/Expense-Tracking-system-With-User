@@ -52,7 +52,6 @@ public class UserSettingsServiceImpl implements UserSettingsService {
      * @return UserSettingsDTO
      */
     @Override
-    @Transactional(readOnly = true)
     @Cacheable(value = "userSettings", key = "#userId")
     public UserSettingsDTO getUserSettings(Integer userId) {
         log.debug("Fetching settings for user ID: {}", userId);

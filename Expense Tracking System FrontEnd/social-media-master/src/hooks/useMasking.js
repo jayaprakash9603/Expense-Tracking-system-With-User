@@ -1,4 +1,5 @@
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { updateUserSettings } from "../Redux/UserSettings/userSettings.action";
 
 /**
  * Custom hook to check if sensitive data should be masked
@@ -7,8 +8,26 @@ import { useSelector } from "react-redux";
  * @returns {Object} Object with maskSensitiveData flag and helper functions
  */
 export const useMasking = () => {
+  const dispatch = useDispatch();
   const { settings } = useSelector((state) => state.userSettings || {});
   const maskSensitiveData = settings?.maskSensitiveData || false;
+
+  /**
+   * Toggle masking state by updating backend settings
+   */
+  const toggleMasking = () => {
+    // Create a clean object without system fields for the update request
+    // The backend DTO (UpdateUserSettingsRequest) does not accept these fields
+    const { 
+      id, 
+      userId, 
+      createdAt, 
+      updatedAt, 
+      ...updatePayload 
+    } = settings;
+    
+    dispatch(updateUserSettings({ ...updatePayload, maskSensitiveData: !maskSensitiveData }));
+  };
 
   /**
    * Masks an amount value
@@ -24,11 +43,11 @@ export const useMasking = () => {
     if (partial) {
       // Show last 2 digits: 1234.56 -> ***34.56
       const amountStr = amount.toFixed(2);
-      if (amountStr.length <= 5) return "****";
+      if (amountStr.length <= 5) return "*****";
       return "***" + amountStr.substring(amountStr.length - 5);
     }
 
-    return "****";
+    return "*****";
   };
 
   /**
@@ -58,5 +77,6 @@ export const useMasking = () => {
     maskAmount,
     formatMaskedAmount,
     isMasking,
+    toggleMasking,
   };
 };

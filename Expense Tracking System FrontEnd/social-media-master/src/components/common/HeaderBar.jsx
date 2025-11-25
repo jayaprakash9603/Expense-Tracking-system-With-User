@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Badge } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { useMasking } from "../../hooks/useMasking";
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
 import {
   logoutAction,
@@ -22,6 +25,8 @@ const HeaderBar = () => {
   const { user } = useSelector((state) => state.auth || {});
   const { currentMode } = useSelector((state) => state.auth || {});
   const { mode } = useSelector((state) => state.theme || {});
+  const { isMasking, toggleMasking } = useMasking();
+  const maskingEnabled = isMasking();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -111,6 +116,23 @@ const HeaderBar = () => {
       >
         {/* Right Section: Theme Toggle & Profile */}
         <div className="flex items-center gap-3 sm:gap-4">
+          {/* Masking Toggle Button */}
+          <button
+            onClick={toggleMasking}
+            className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
+              isDark
+                ? "bg-gray-800 hover:bg-gray-700"
+                : "bg-gray-100 hover:bg-gray-200"
+            }`}
+            title={maskingEnabled ? "Show Amounts" : "Hide Amounts"}
+          >
+            {maskingEnabled ? (
+              <VisibilityOffIcon className={`w-5 h-5 ${isDark ? "text-gray-300" : "text-gray-700"}`} />
+            ) : (
+              <VisibilityIcon className={`w-5 h-5 ${isDark ? "text-gray-300" : "text-gray-700"}`} />
+            )}
+          </button>
+
           {/* Theme Toggle Button */}
           <button
             onClick={handleThemeToggle}
@@ -277,7 +299,7 @@ const HeaderBar = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth="2"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm12 7v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2"
                       />
                     </svg>
                     View Profile
