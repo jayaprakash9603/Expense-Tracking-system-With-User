@@ -6,6 +6,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import NoDataPlaceholder from "../../components/NoDataPlaceholder"; // adjust path if needed
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useMasking } from "../../hooks/useMasking";
 
 /**
  * Reusable expense cards list for CashFlow page.
@@ -34,6 +35,7 @@ export default function CashFlowExpenseCards({
   const { colors } = useTheme();
   const settings = useUserSettings();
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
+  const { maskAmount, isMasking } = useMasking();
   const scrollContainerRef = useRef(null);
   const cardRefs = useRef([]);
   const lastClickedIndexRef = useRef(null);
@@ -273,9 +275,15 @@ export default function CashFlowExpenseCards({
                     fontSize: "16px",
                     fontWeight: 700,
                   }}
-                  title={`Amount: ${formatNumberFull(row.amount)}`}
+                  title={
+                    row.expense?.masked || (isMasking() && row.amount)
+                      ? "Amount masked"
+                      : `Amount: ${formatNumberFull(row.amount)}`
+                  }
                 >
-                  {formatNumberFull(row.amount)}
+                  {row.expense?.masked || (isMasking() && row.amount)
+                    ? maskAmount(row.amount)
+                    : formatNumberFull(row.amount)}
                 </span>
               </div>
               <div
