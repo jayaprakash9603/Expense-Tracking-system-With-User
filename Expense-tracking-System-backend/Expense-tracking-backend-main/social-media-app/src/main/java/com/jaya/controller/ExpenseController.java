@@ -86,17 +86,17 @@ public class ExpenseController extends BaseExpenseController {
 
 
     @PostMapping("/add-expense")
-    public ResponseEntity<Expense> addExpense(@Validated @RequestBody Expense expense,
+    public ResponseEntity<ExpenseDTO> addExpense(@Validated @RequestBody ExpenseDTO expenseDTO,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception  {
 
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
-        Expense createdExpense = expenseService.addExpense(expense, targetUser.getId());
+        ExpenseDTO createdExpenseDTO = expenseService.addExpense(expenseDTO, targetUser.getId());
 
-        // Send notification asynchronously
-        expenseNotificationService.sendExpenseCreatedNotification(createdExpense);
+        // Send notification asynchronously - convert DTO back to entity for notification
+        // expenseNotificationService.sendExpenseCreatedNotification(expenseMapper.toEntity(createdExpenseDTO));
 
-        return new ResponseEntity<>(createdExpense,HttpStatus.CREATED);
+        return new ResponseEntity<>(createdExpenseDTO,HttpStatus.CREATED);
 
     }
 
@@ -1750,12 +1750,12 @@ public class ExpenseController extends BaseExpenseController {
             ExpenseDetails details = new ExpenseDetails();
             details.setId(dto.getExpense().getId());
             details.setExpenseName(dto.getExpense().getExpenseName());
-            details.setAmount(dto.getExpense().getAmount());
+            details.setAmount(dto.getExpense().getAmountAsDouble());
             details.setType(dto.getExpense().getType());
             details.setPaymentMethod(dto.getExpense().getPaymentMethod());
-            details.setNetAmount(dto.getExpense().getNetAmount());
+            details.setNetAmount(dto.getExpense().getNetAmountAsDouble());
             details.setComments(dto.getExpense().getComments());
-            details.setCreditDue(dto.getExpense().getCreditDue());
+            details.setCreditDue(dto.getExpense().getCreditDueAsDouble());
             details.setExpense(expense);
 
             expense.setExpense(details);
@@ -2807,9 +2807,9 @@ public class ExpenseController extends BaseExpenseController {
     }
 
     @PostMapping("/add-expense-with-bill-service")
-    public Expense addExpenseWithBillService(@RequestBody Expense expense, @RequestParam Integer userId)
+    public ExpenseDTO addExpenseWithBillService(@RequestBody ExpenseDTO expenseDTO, @RequestParam Integer userId)
             throws Exception {
-        return expenseService.addExpense(expense, userId);
+        return expenseService.addExpense(expenseDTO, userId);
     }
 
     @PostMapping("/update-expense-with-bill-service")

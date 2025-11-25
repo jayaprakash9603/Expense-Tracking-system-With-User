@@ -25,7 +25,7 @@ public interface ExpenseService {
     ExpenseReportService getReportService();
     ExpenseBillService getBillService();
     ExpenseCategoryService getCategoryService();
-    Expense addExpense(Expense expense, Integer userId) throws Exception;
+    ExpenseDTO addExpense(ExpenseDTO expenseDTO, Integer userId) throws Exception;
 
     Expense copyExpense(Integer userId,Integer expenseId) throws  Exception;
 

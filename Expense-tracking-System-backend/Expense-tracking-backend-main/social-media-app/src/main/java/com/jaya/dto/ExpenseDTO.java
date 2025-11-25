@@ -11,9 +11,11 @@ public class ExpenseDTO {
     private Integer id;
     private String date;
     private Integer categoryId;
+    private String categoryName;
     private ExpenseDetailsDTO expense;
     private boolean includeInBudget = false;
-
+    private boolean isBill = false;
+    private Integer userId;
 
     private Set<Integer> budgetIds=new HashSet<>();
     

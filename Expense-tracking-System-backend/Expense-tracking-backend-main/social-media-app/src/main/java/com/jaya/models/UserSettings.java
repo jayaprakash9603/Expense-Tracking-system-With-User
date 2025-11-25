@@ -106,6 +106,10 @@ public class UserSettings {
     @Builder.Default
     private Boolean sessionTimeout = true;
 
+    @Column(name = "mask_sensitive_data", nullable = false)
+    @Builder.Default
+    private Boolean maskSensitiveData = false; // Mask amounts and sensitive financial data
+
     // ==================== DATA & STORAGE SETTINGS ====================
     @Column(name = "auto_backup", nullable = false)
     @Builder.Default
@@ -197,6 +201,7 @@ public class UserSettings {
                 .profileVisibility("PUBLIC")
                 .twoFactorEnabled(false)
                 .sessionTimeout(true)
+                .maskSensitiveData(false)
                 // Data & Storage
                 .autoBackup(true)
                 .backupFrequency("weekly")

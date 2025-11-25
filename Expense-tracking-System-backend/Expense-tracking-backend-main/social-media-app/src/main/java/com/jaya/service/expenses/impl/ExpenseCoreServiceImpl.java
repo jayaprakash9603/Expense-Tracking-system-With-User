@@ -106,6 +106,12 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     @Autowired
     private AuditEventProducer auditEventProducer;
 
+    @Autowired
+    private com.jaya.mapper.ExpenseMapper expenseMapper;
+
+    @Autowired
+    private UserSettingsService userSettingsService;
+
     public ExpenseCoreServiceImpl(ExpenseRepository expenseRepository,
             ExpenseReportRepository expenseReportRepository) {
         this.expenseRepository = expenseRepository;
@@ -113,9 +119,12 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     }
 
     @Override
-    public Expense addExpense(Expense expense, Integer userId) throws Exception {
+    public ExpenseDTO addExpense(ExpenseDTO expenseDTO, Integer userId) throws Exception {
 
         User user = helper.validateUser(userId);
+        
+        // Convert DTO to Entity
+        Expense expense = expenseMapper.toEntity(expenseDTO);
         expense.setId(null);
         if (expense.getExpense() != null) {
             expense.getExpense().setId(null);
@@ -157,11 +166,15 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
         updateBudgetExpenseLinks(savedExpense, validBudgetIds, user);
 
-        // updateExpenseCache(savedExpense, user.getId());
-
         publishExpenseAuditEvent("CREATE", savedExpense, user, null, expenseToMap(savedExpense), "Expense created",
                 "SUCCESS");
-        return savedExpense;
+        
+        // Fetch user settings to determine if masking is enabled
+        com.jaya.dto.UserSettingsDTO userSettings = userSettingsService.getUserSettings(userId);
+        Boolean maskSensitiveData = userSettings != null ? userSettings.getMaskSensitiveData() : false;
+        
+        // Convert saved entity back to DTO with masking applied
+        return expenseMapper.toDTO(savedExpense, maskSensitiveData);
     }
 
     @Override
@@ -192,8 +205,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             copy.setExpense(details);
         }
 
-        // Save the copied expense only once
-        return addExpense(copy, userId);
+        // Save the copied expense - addExpense returns DTO, convert to entity
+        ExpenseDTO savedDTO = addExpense(expenseMapper.toDTO(copy), userId);
+        return expenseMapper.toEntity(savedDTO);
 
     }
 
@@ -1123,12 +1137,12 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
                 ExpenseDetails details = new ExpenseDetails();
                 details.setExpenseName(detailsDTO.getExpenseName());
-                details.setAmount(detailsDTO.getAmount());
+                details.setAmount(detailsDTO.getAmountAsDouble());
                 details.setType(detailsDTO.getType());
                 details.setPaymentMethod(detailsDTO.getPaymentMethod());
-                details.setNetAmount(detailsDTO.getNetAmount());
+                details.setNetAmount(detailsDTO.getNetAmountAsDouble());
                 details.setComments(detailsDTO.getComments());
-                details.setCreditDue(detailsDTO.getCreditDue());
+                details.setCreditDue(detailsDTO.getCreditDueAsDouble());
                 details.setExpense(expense);
                 expense.setExpense(details);
 

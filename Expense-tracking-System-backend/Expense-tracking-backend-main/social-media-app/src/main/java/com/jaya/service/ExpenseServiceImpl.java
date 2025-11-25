@@ -68,8 +68,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     // Core CRUD operations - delegate to ExpenseCoreService
     @Override
-    public Expense addExpense(Expense expense, Integer userId) throws Exception {
-        return expenseCoreService.addExpense(expense, userId);
+    public ExpenseDTO addExpense(ExpenseDTO expenseDTO, Integer userId) throws Exception {
+        return expenseCoreService.addExpense(expenseDTO, userId);
     }
 
     @Override

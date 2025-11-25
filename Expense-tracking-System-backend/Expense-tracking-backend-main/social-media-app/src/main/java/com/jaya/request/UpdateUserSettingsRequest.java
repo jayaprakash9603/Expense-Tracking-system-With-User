@@ -100,6 +100,10 @@ public class UpdateUserSettingsRequest {
     @JsonAlias("session_timeout")
     private Boolean sessionTimeout;
 
+    @JsonProperty("maskSensitiveData")
+    @JsonAlias("mask_sensitive_data")
+    private Boolean maskSensitiveData;
+
     // ==================== DATA & STORAGE SETTINGS ====================
     @JsonProperty("autoBackup")
     @JsonAlias("auto_backup")

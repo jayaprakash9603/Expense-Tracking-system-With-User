@@ -53,7 +53,7 @@ public class ExpenseUtilityServiceImpl implements ExpenseUtilityService {
             if (details.getExpenseName() == null) {
                 throw new IllegalArgumentException("Invalid data: Missing required field 'expenseName' in expense details: " + expense);
             }
-            if (details.getAmount() == 0.0) {
+            if (details.getAmountAsDouble() == 0.0) {
                 throw new IllegalArgumentException("Invalid data: Missing required field 'amount' in expense details: " + expense);
             }
             if (details.getType() == null) {
@@ -62,7 +62,7 @@ public class ExpenseUtilityServiceImpl implements ExpenseUtilityService {
             if (details.getPaymentMethod() == null) {
                 throw new IllegalArgumentException("Invalid data: Missing required field 'paymentMethod' in expense details: " + expense);
             }
-            if (details.getNetAmount() == 0.0) {
+            if (details.getNetAmountAsDouble() == 0.0) {
                 throw new IllegalArgumentException("Invalid data: Missing required field 'netAmount' in expense details: " + expense);
             }
             if (details.getComments() == null) {
@@ -99,7 +99,7 @@ public class ExpenseUtilityServiceImpl implements ExpenseUtilityService {
         for (ExpenseDTO expense : processedExpenses) {
             String type = expense.getExpense().getType();
             String paymentMethod = expense.getExpense().getPaymentMethod();
-            double amount = expense.getExpense().getAmount();
+            double amount = expense.getExpense().getAmountAsDouble();
 
             categorizedExpenses.computeIfAbsent(type, k -> new HashMap<>()).merge(paymentMethod, amount, Double::sum);
         }
@@ -112,7 +112,7 @@ public class ExpenseUtilityServiceImpl implements ExpenseUtilityService {
         double totalCreditDue = 0.0;
 
         for (ExpenseDTO expense : processedExpenses) {
-            totalCreditDue += expense.getExpense().getCreditDue();
+            totalCreditDue += expense.getExpense().getCreditDueAsDouble();
         }
 
         return totalCreditDue;
