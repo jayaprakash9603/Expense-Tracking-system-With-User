@@ -17,7 +17,7 @@ spring:
             readTimeout: 5000
             loggerLevel: full
   datasource:
-    url: jdbc:mysql://localhost:5000/notification_service
+    url: jdbc:mysql://localhost:5000/notification_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver

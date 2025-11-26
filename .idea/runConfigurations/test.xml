@@ -5,12 +5,6 @@
     <toRun name="BudgetServiceApplication" type="Application" />
     <toRun name="CategoryServiceApplication" type="Application" />
     <toRun name="ChatServiceApplication" type="Application" />
-    <toRun name="EurekaServerApplication" type="Application" />
-    <toRun name="ExpenseTrackingSystemApplication" type="Application" />
-    <toRun name="FriendShipServiceApplication" type="Application" />
-    <toRun name="GatewayService" type="Application" />
-    <toRun name="PaymentMethodServiceApplication" type="Application" />
-    <toRun name="UserServiceApplication" type="Application" />
     <method v="2" />
   </configuration>
 </component>

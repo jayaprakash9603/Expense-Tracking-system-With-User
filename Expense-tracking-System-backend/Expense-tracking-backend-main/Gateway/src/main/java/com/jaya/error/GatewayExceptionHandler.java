@@ -102,6 +102,41 @@ public class GatewayExceptionHandler {
         return ResponseEntity.status(GatewayErrorCode.ILLEGAL_ARGUMENT.getStatus()).body(body);
     }
 
+    @ExceptionHandler(java.net.ConnectException.class)
+    public ResponseEntity<GatewayErrorResponse> handleConnectException(java.net.ConnectException ex,
+            ServerWebExchange exchange) {
+        // This handles "Connection refused" when a downstream service is down
+        GatewayErrorResponse body = build(GatewayErrorCode.SERVICE_UNAVAILABLE,
+                "Service is currently unavailable. Please try again later.",
+                path(exchange),
+                "Unable to connect to downstream service",
+                requestId(exchange));
+        log.error("Service Unavailable (Connection Refused): path={} error={}", path(exchange), ex.getMessage());
+        return ResponseEntity.status(GatewayErrorCode.SERVICE_UNAVAILABLE.getStatus()).body(body);
+    }
+
+    @ExceptionHandler({ java.util.concurrent.TimeoutException.class, io.netty.handler.timeout.ReadTimeoutException.class })
+    public ResponseEntity<GatewayErrorResponse> handleTimeoutException(Exception ex, ServerWebExchange exchange) {
+        GatewayErrorResponse body = build(GatewayErrorCode.TIMEOUT,
+                "The request timed out while waiting for the upstream service",
+                path(exchange),
+                "Upstream service did not respond in time",
+                requestId(exchange));
+        log.error("Gateway Timeout: path={} error={}", path(exchange), ex.getMessage());
+        return ResponseEntity.status(GatewayErrorCode.TIMEOUT.getStatus()).body(body);
+    }
+
+    @ExceptionHandler(org.springframework.web.server.ServerWebInputException.class)
+    public ResponseEntity<GatewayErrorResponse> handleMalformedRequest(org.springframework.web.server.ServerWebInputException ex,
+            ServerWebExchange exchange) {
+        GatewayErrorResponse body = build(GatewayErrorCode.VALIDATION_ERROR,
+                "Malformed request body or missing parameter",
+                path(exchange),
+                ex.getReason(),
+                requestId(exchange));
+        return ResponseEntity.status(GatewayErrorCode.VALIDATION_ERROR.getStatus()).body(body);
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<GatewayErrorResponse> handleResponseStatus(ResponseStatusException ex,
             ServerWebExchange exchange) {
