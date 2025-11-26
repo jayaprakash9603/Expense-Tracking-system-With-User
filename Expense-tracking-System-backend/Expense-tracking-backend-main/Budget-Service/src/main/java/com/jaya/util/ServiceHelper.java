@@ -68,13 +68,16 @@ public class ServiceHelper {
         return budget;
     }
 
-
-    public Set<Integer> getValidBudgetIds(Budget budget, Integer userId, ExpenseService expenseService)
-    {
+    public Set<Integer> getValidBudgetIds(Budget budget, Integer userId, ExpenseService expenseService) {
         Set<Integer> validExpenseIds = new HashSet<>();
 
         for (Integer expenseId : budget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
+            ExpenseDTO expense;
+            try {
+                expense = expenseService.getExpenseById(expenseId, userId);
+            } catch (Exception e) {
+                continue;
+            }
 
             if (expense != null) {
                 LocalDate expenseDate = expense.getDate();
@@ -89,9 +92,7 @@ public class ServiceHelper {
         return validExpenseIds;
     }
 
-
-    public void addBudgetIdInExpenses(Budget budget,ExpenseService expenseService,Integer userId)
-    {
+    public void addBudgetIdInExpenses(Budget budget, ExpenseService expenseService, Integer userId) {
         for (Integer expenseId : budget.getExpenseIds()) {
             ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
             if (expense != null) {
@@ -107,9 +108,8 @@ public class ServiceHelper {
         }
     }
 
-
-    public void deleteBudgetIdInExpenses(Budget budget,ExpenseService expenseService,Integer userId,Integer budgetId)
-    {
+    public void deleteBudgetIdInExpenses(Budget budget, ExpenseService expenseService, Integer userId,
+            Integer budgetId) {
         Set<Integer> expenseIds = budget.getExpenseIds();
         if (expenseIds != null) {
             for (Integer expenseId : expenseIds) {
@@ -122,12 +122,9 @@ public class ServiceHelper {
         }
     }
 
-
-    public void removeBudgetsIdsInAllExpenses(List<Budget>budgets,ExpenseService expenseService,Integer userId)
-    {
-        for(Budget budget:budgets)
-        {
-            deleteBudgetIdInExpenses(budget,expenseService,userId,budget.getId());
+    public void removeBudgetsIdsInAllExpenses(List<Budget> budgets, ExpenseService expenseService, Integer userId) {
+        for (Budget budget : budgets) {
+            deleteBudgetIdInExpenses(budget, expenseService, userId, budget.getId());
         }
     }
 }

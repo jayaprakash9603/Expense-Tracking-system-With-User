@@ -25,6 +25,7 @@ import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
+import PageHeader from "../../components/PageHeader";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // still used for hasWriteAccess gating below
@@ -1180,17 +1181,18 @@ const CreateBill = ({ onClose, onSuccess }) => {
           overflowY: "auto",
         }}
       >
-        <div className="w-full flex justify-between items-center mb-1">
-          <p
-            className="font-extrabold text-4xl"
-            style={{ color: colors.primary_text }}
-          >
-            Create Bill
-          </p>
-
-          <div className="flex items-center gap-3">
-            {/* Display previous expense indicator only when name and date are set */}
-            {billData.name?.trim().length >= 2 && billData.date && (
+        <PageHeader
+          title="Create Bill"
+          onClose={() => {
+            if (onClose) {
+              onClose();
+            } else {
+              navigate(-1);
+            }
+          }}
+          rightContent={
+            billData.name?.trim().length >= 2 &&
+            billData.date && (
               <PreviousExpenseIndicator
                 expense={previousExpense}
                 isLoading={loadingPreviousExpense}
@@ -1213,29 +1215,8 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   subtext: "#9ca3af",
                 }}
               />
-            )}
-
-            <button
-              onClick={() => {
-                if (onClose) {
-                  onClose();
-                } else {
-                  navigate(-1);
-                }
-              }}
-              className="flex items-center justify-center w-12 h-12 text-[32px] font-bold rounded mt-[-10px]"
-              style={{
-                backgroundColor: colors.secondary_bg,
-                color: colors.secondary_accent,
-              }}
-            >
-              ×
-            </button>
-          </div>
-        </div>
-        <hr
-          className="border-t w-full mt-[-4px] mb-0"
-          style={{ borderColor: colors.border_color }}
+            )
+          }
         />
 
         <div className="flex flex-col gap-4 mt-2">

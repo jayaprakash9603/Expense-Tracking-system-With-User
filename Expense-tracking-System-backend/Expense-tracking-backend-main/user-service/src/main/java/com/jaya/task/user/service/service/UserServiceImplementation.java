@@ -33,6 +33,7 @@ public class UserServiceImplementation implements UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    
     @Override
     public User getUserProfile(String jwt) {
         String email = JwtProvider.getEmailFromJwt(jwt);
@@ -46,6 +47,15 @@ public class UserServiceImplementation implements UserService {
             System.out.println("User roles count: " + user.getRoles().size());
             for (String roleName : user.getRoles()) {
                 System.out.println("User role: " + roleName);
+            }
+
+            // Handle existing users with null currentMode (created before this feature)
+            if (user.getCurrentMode() == null || user.getCurrentMode().trim().isEmpty()) {
+                // Set default mode to USER
+                user.setCurrentMode("USER");
+                user.setUpdatedAt(LocalDateTime.now());
+                user = userRepository.save(user);
+                System.out.println("Set default currentMode to USER for existing user: " + user.getEmail());
             }
         }
 
@@ -272,6 +282,31 @@ public class UserServiceImplementation implements UserService {
         }
 
         return savedUser;
+    }
+
+    @Override
+    public User switchUserMode(String jwt, String newMode) {
+        User user = getUserProfile(jwt);
+
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        // Validate the new mode
+        if (!newMode.equals("USER") && !newMode.equals("ADMIN")) {
+            throw new IllegalArgumentException("Invalid mode. Must be USER or ADMIN");
+        }
+
+        // Check if user has ADMIN role when trying to switch to ADMIN mode
+        if (newMode.equals("ADMIN") && !user.hasRole("ADMIN")) {
+            throw new RuntimeException("User does not have ADMIN role");
+        }
+
+        // Update the current mode
+        user.setCurrentMode(newMode);
+        user.setUpdatedAt(LocalDateTime.now());
+
+        return userRepository.save(user);
     }
 
     // ========= Pure and reusable helpers =========

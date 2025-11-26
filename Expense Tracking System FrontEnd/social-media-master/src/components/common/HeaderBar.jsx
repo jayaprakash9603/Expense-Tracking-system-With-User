@@ -3,7 +3,10 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Badge } from "@mui/material";
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
-import { logoutAction } from "../../Redux/Auth/auth.action";
+import {
+  logoutAction,
+  switchUserModeAction,
+} from "../../Redux/Auth/auth.action";
 import { updateUserSettings } from "../../Redux/UserSettings/userSettings.action";
 import Modal from "../../pages/Landingpage/Modal";
 import NotificationsPanelRedux from "./NotificationsPanelRedux";
@@ -17,6 +20,7 @@ const HeaderBar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth || {});
+  const { currentMode } = useSelector((state) => state.auth || {});
   const { mode } = useSelector((state) => state.theme || {});
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -81,6 +85,22 @@ const HeaderBar = () => {
     navigate("/settings");
     setIsProfileOpen(false);
   };
+
+  const handleSwitchMode = async () => {
+    const newMode = currentMode === "ADMIN" ? "USER" : "ADMIN";
+    const result = await dispatch(switchUserModeAction(newMode));
+
+    if (result.success) {
+      setIsProfileOpen(false);
+      console.log(`Switched to ${newMode} mode`);
+    } else {
+      console.error("Failed to switch mode:", result.message);
+    }
+  };
+
+  // Check if user has ADMIN role
+  const hasAdminRole =
+    user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN");
 
   return (
     <>
@@ -293,6 +313,36 @@ const HeaderBar = () => {
                     </svg>
                     Settings
                   </button>
+
+                  {/* Mode Switch Button - Only show if user has ADMIN role */}
+                  {hasAdminRole && (
+                    <button
+                      onClick={handleSwitchMode}
+                      className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors ${
+                        isDark
+                          ? "text-gray-300 hover:bg-gray-800"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                        />
+                      </svg>
+                      {currentMode === "ADMIN"
+                        ? "Switch to User Mode"
+                        : "Switch to Admin Mode"}
+                    </button>
+                  )}
 
                   <div
                     className={`border-t my-1 ${

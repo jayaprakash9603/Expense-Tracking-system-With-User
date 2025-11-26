@@ -8,6 +8,7 @@ import com.jaya.dto.PaymentMethodEvent;
 import com.jaya.dto.User;
 import com.jaya.events.BudgetExpenseEvent;
 import com.jaya.events.CategoryExpenseEvent;
+import com.jaya.exceptions.ResourceNotFoundException;
 import com.jaya.exceptions.UserException;
 import com.jaya.kafka.BudgetExpenseKafkaProducerService;
 import com.jaya.kafka.AuditEventProducer;
@@ -1227,8 +1228,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Override
     public Expense getExpenseById(Integer id, Integer userId) {
-        return expenseRepository.findByUserIdAndId(userId, id);
-
+        Expense expense = expenseRepository.findByUserIdAndId(userId, id);
+        if (expense == null) {
+            throw new ResourceNotFoundException("Expense not found with id: " + id);
+        }
+        return expense;
     }
 
     @Override
@@ -1738,55 +1742,82 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     private void updatePaymentMethod(Expense existingExpense, ExpenseDetails newDetails, Integer userId)
             throws Exception {
-        User user = helper.validateUser(userId);
-        ExpenseDetails existingDetails = existingExpense.getExpense();
-        String oldPaymentMethodName = existingDetails.getPaymentMethod();
-        String oldPaymentType = (existingDetails.getType() != null
-                && existingDetails.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
-        String newPaymentMethodName = newDetails.getPaymentMethod().trim();
-        String newPaymentType = (newDetails.getType() != null && newDetails.getType().equalsIgnoreCase("loss"))
-                ? "expense"
-                : "income";
+        try {
+            User user = helper.validateUser(userId);
+            ExpenseDetails existingDetails = existingExpense.getExpense();
+            String oldPaymentMethodName = existingDetails.getPaymentMethod();
+            String oldPaymentType = (existingDetails.getType() != null
+                    && existingDetails.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
+            String newPaymentMethodName = newDetails.getPaymentMethod().trim();
+            String newPaymentType = (newDetails.getType() != null && newDetails.getType().equalsIgnoreCase("loss"))
+                    ? "expense"
+                    : "income";
 
-        // Remove expense from old payment method
-        if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty()) {
-            List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
-            PaymentMethod oldPaymentMethod = allMethods.stream()
-                    .filter(pm -> pm.getName().equalsIgnoreCase(oldPaymentMethodName.trim())
-                            && pm.getType().equalsIgnoreCase(oldPaymentType))
-                    .findFirst().orElse(null);
-            if (oldPaymentMethod != null && oldPaymentMethod.getExpenseIds() != null) {
-                Map<Integer, Set<Integer>> expenseIds = oldPaymentMethod.getExpenseIds();
-                Set<Integer> userExpenseSet = expenseIds.getOrDefault(userId, new HashSet<>());
-                userExpenseSet.remove(existingExpense.getId());
-                expenseIds.put(userId, userExpenseSet);
-                paymentMethodService.save(oldPaymentMethod);
+            // Remove expense from old payment method
+            if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty()) {
+                try {
+                    List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+                    PaymentMethod oldPaymentMethod = allMethods.stream()
+                            .filter(pm -> pm.getName().equalsIgnoreCase(oldPaymentMethodName.trim())
+                                    && pm.getType().equalsIgnoreCase(oldPaymentType))
+                            .findFirst().orElse(null);
+                    if (oldPaymentMethod != null && oldPaymentMethod.getExpenseIds() != null) {
+                        Map<Integer, Set<Integer>> expenseIds = oldPaymentMethod.getExpenseIds();
+                        Set<Integer> userExpenseSet = expenseIds.getOrDefault(userId, new HashSet<>());
+                        userExpenseSet.remove(existingExpense.getId());
+
+                        // Clean up empty sets or update with new set
+                        if (userExpenseSet.isEmpty()) {
+                            expenseIds.remove(userId);
+                        } else {
+                            expenseIds.put(userId, userExpenseSet);
+                        }
+
+                        logger.info("Removing expense {} from payment method {} for user {}",
+                                existingExpense.getId(), oldPaymentMethodName, userId);
+                        paymentMethodService.save(oldPaymentMethod);
+                    }
+                } catch (Exception e) {
+                    logger.error("Error removing expense from old payment method: {}", e.getMessage(), e);
+                    throw new Exception("Failed to remove expense from old payment method: " + e.getMessage(), e);
+                }
             }
-        }
 
-        // Add expense to new payment method
-        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
-        PaymentMethod newPaymentMethod = allMethods.stream()
-                .filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName)
-                        && pm.getType().equalsIgnoreCase(newPaymentType))
-                .findFirst().orElse(null);
-        if (newPaymentMethod == null) {
-            newPaymentMethod = new PaymentMethod();
-            newPaymentMethod.setUserId(userId);
-            newPaymentMethod.setName(newPaymentMethodName);
-            newPaymentMethod.setType(newPaymentType);
-            newPaymentMethod.setAmount(0);
-            newPaymentMethod.setGlobal(false);
-            newPaymentMethod.setExpenseIds(new HashMap<>());
+            // Add expense to new payment method
+            try {
+                List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+                PaymentMethod newPaymentMethod = allMethods.stream()
+                        .filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName)
+                                && pm.getType().equalsIgnoreCase(newPaymentType))
+                        .findFirst().orElse(null);
+                if (newPaymentMethod == null) {
+                    newPaymentMethod = new PaymentMethod();
+                    newPaymentMethod.setUserId(userId);
+                    newPaymentMethod.setName(newPaymentMethodName);
+                    newPaymentMethod.setType(newPaymentType);
+                    newPaymentMethod.setAmount(0);
+                    newPaymentMethod.setGlobal(false);
+                    newPaymentMethod.setExpenseIds(new HashMap<>());
+                }
+                if (newPaymentMethod.getExpenseIds() == null) {
+                    newPaymentMethod.setExpenseIds(new HashMap<>());
+                }
+                Map<Integer, Set<Integer>> expenseIds = newPaymentMethod.getExpenseIds();
+                Set<Integer> userExpenseSet = expenseIds.getOrDefault(user.getId(), new HashSet<>());
+                userExpenseSet.add(existingExpense.getId());
+                expenseIds.put(user.getId(), userExpenseSet);
+
+                logger.info("Adding expense {} to payment method {} for user {}",
+                        existingExpense.getId(), newPaymentMethodName, user.getId());
+                paymentMethodService.save(newPaymentMethod);
+            } catch (Exception e) {
+                logger.error("Error adding expense to new payment method: {}", e.getMessage(), e);
+                throw new Exception("Failed to add expense to new payment method: " + e.getMessage(), e);
+            }
+        } catch (Exception e) {
+            logger.error("Error in updatePaymentMethod for expense {}: {}", existingExpense.getId(), e.getMessage(), e);
+            throw e;
         }
-        if (newPaymentMethod.getExpenseIds() == null) {
-            newPaymentMethod.setExpenseIds(new HashMap<>());
-        }
-        Map<Integer, Set<Integer>> expenseIds = newPaymentMethod.getExpenseIds();
-        Set<Integer> userExpenseSet = expenseIds.getOrDefault(user.getId(), new HashSet<>());
-        userExpenseSet.add(existingExpense.getId());
-        expenseIds.put(user.getId(), userExpenseSet);
-        paymentMethodService.save(newPaymentMethod);
     }
 
     private void updateCategory(Expense existingExpense, Expense updatedExpense, Integer userId) throws Exception {

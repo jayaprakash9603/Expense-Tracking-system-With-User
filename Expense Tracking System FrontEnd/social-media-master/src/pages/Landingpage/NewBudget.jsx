@@ -11,12 +11,19 @@ import { useNavigate, useParams } from "react-router-dom";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import { DataGrid } from "@mui/x-data-grid";
-import { Box, TextField, useMediaQuery } from "@mui/material";
+import { Box, TextField, useMediaQuery, CircularProgress } from "@mui/material";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 import ToastNotification from "./ToastNotification";
 import { useTheme } from "../../hooks/useTheme";
+import useUserSettings from "../../hooks/useUserSettings";
+import PageHeader from "../../components/PageHeader";
 
 const NewBudget = () => {
   const { colors } = useTheme();
+  const settings = useUserSettings();
+  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
@@ -46,8 +53,13 @@ const NewBudget = () => {
     defaultPath: "/budget",
   });
 
-  const fieldStyles =
-    "px-3 py-2 rounded bg-[#29282b] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00dac6] w-full text-base sm:max-w-[350px] max-w-[250px]";
+  const inputWrapper = {
+    width: "150px",
+    minWidth: "150px",
+    display: "flex",
+    alignItems: "center",
+  };
+  const fieldStyles = `px-3 py-2 rounded w-full text-base sm:max-w-[300px] max-w-[200px] border-0 focus:outline-none focus:ring-2 focus:ring-[#00dac6]`;
   const labelStyle = "text-base sm:text-base text-sm font-semibold mr-3";
   const formRow = "mt-6 flex flex-col sm:flex-row sm:items-center gap-4 w-full";
 
@@ -180,29 +192,43 @@ const NewBudget = () => {
       <div className="flex items-center">
         <label
           htmlFor={id}
-          className={labelStyle}
-          style={{ width: "100px", color: colors.primary_text }}
+          style={{
+            ...inputWrapper,
+            color: colors.primary_text,
+            fontSize: "0.875rem",
+            fontWeight: "600",
+          }}
         >
           {id
             .replace(/([A-Z])/g, " $1")
             .replace(/^./, (str) => str.toUpperCase())}
+          {["name", "description", "startDate", "endDate", "amount"].includes(
+            id
+          ) && <span className="text-red-500"> *</span>}
         </label>
         <TextField
           id={id}
           name={id}
-          type={type}
+          type={type === "date" ? "text" : type}
           value={formData[id]}
           onChange={handleInputChange}
           placeholder={`Enter ${id}`}
           error={!!errors[id]}
           variant="outlined"
           size="small"
-          InputLabelProps={type === "date" ? { shrink: true } : {}}
+          InputProps={{
+            className: fieldStyles,
+            style: {
+              height: "52px",
+              backgroundColor: colors.primary_bg,
+              color: colors.primary_text,
+            },
+          }}
           sx={{
             width: "100%",
-            maxWidth: { xs: "250px", sm: "350px" },
+            maxWidth: { xs: "250px", sm: "300px" },
             "& .MuiOutlinedInput-root": {
-              backgroundColor: colors.tertiary_bg,
+              backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               "& fieldset": {
                 borderColor: errors[id] ? "#ef4444" : colors.border_color,
@@ -220,6 +246,173 @@ const NewBudget = () => {
             "& .MuiInputBase-input::placeholder": {
               color: colors.icon_muted,
               opacity: 1,
+            },
+          }}
+        />
+      </div>
+    </div>
+  );
+
+  const renderDateInput = (id) => (
+    <div className="flex flex-col flex-1">
+      <div className="flex items-center">
+        <label
+          htmlFor={id}
+          style={{
+            ...inputWrapper,
+            color: colors.primary_text,
+            fontSize: "0.875rem",
+            fontWeight: "600",
+          }}
+        >
+          {id
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase())}
+          <span className="text-red-500"> *</span>
+        </label>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            value={formData[id] ? dayjs(formData[id]) : null}
+            onChange={(newValue) => {
+              if (newValue) {
+                const formatted = dayjs(newValue).format("YYYY-MM-DD");
+                setFormData((prev) => {
+                  const updatedFormData = { ...prev, [id]: formatted };
+                  if ((id === "startDate" || id === "endDate") && showTable) {
+                    dispatch(
+                      fetchExpenses(
+                        id === "startDate"
+                          ? formatted
+                          : updatedFormData.startDate,
+                        id === "endDate" ? formatted : updatedFormData.endDate,
+                        "desc",
+                        friendId || ""
+                      )
+                    );
+                  }
+                  return updatedFormData;
+                });
+              }
+              if (errors[id]) {
+                setErrors({ ...errors, [id]: false });
+              }
+            }}
+            sx={{
+              background: colors.primary_bg,
+              borderRadius: 2,
+              color: colors.primary_text,
+              ".MuiInputBase-input": {
+                color: colors.primary_text,
+                height: 32,
+                fontSize: 18,
+              },
+              ".MuiSvgIcon-root": { color: "#00dac6" },
+              width: 300,
+              height: 56,
+              minHeight: 56,
+              maxHeight: 56,
+            }}
+            slotProps={{
+              textField: {
+                size: "medium",
+                variant: "outlined",
+                sx: {
+                  color: colors.primary_text,
+                  height: 56,
+                  minHeight: 56,
+                  maxHeight: 56,
+                  width: 300,
+                  fontSize: 18,
+                  "& .MuiInputBase-root": {
+                    height: 56,
+                    minHeight: 56,
+                    maxHeight: 56,
+                  },
+                  "& input": {
+                    height: 32,
+                    fontSize: 18,
+                    color: colors.primary_text,
+                  },
+                },
+              },
+            }}
+            format={dateFormat}
+          />
+        </LocalizationProvider>
+      </div>
+      {errors[id] && (
+        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
+          {errors[id]}
+        </span>
+      )}
+    </div>
+  );
+
+  const renderAmountInput = () => (
+    <div className="flex flex-col flex-1">
+      <div className="flex items-center">
+        <label
+          htmlFor="amount"
+          style={{
+            ...inputWrapper,
+            color: colors.primary_text,
+            fontSize: "0.875rem",
+            fontWeight: "600",
+          }}
+        >
+          Amount<span className="text-red-500"> *</span>
+        </label>
+        <TextField
+          id="amount"
+          name="amount"
+          type="number"
+          value={formData.amount || ""}
+          onChange={(e) => {
+            handleInputChange(e);
+            if (errors.amount) {
+              setErrors({ ...errors, amount: false });
+            }
+          }}
+          placeholder="Enter amount"
+          variant="outlined"
+          error={errors.amount}
+          InputProps={{
+            className: fieldStyles,
+            style: {
+              height: "52px",
+              backgroundColor: colors.primary_bg,
+              color: colors.primary_text,
+              borderColor: errors.amount ? "#ef4444" : colors.border_color,
+              borderWidth: errors.amount ? "2px" : "1px",
+            },
+          }}
+          sx={{
+            width: "100%",
+            maxWidth: "300px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: errors.amount ? "#ef4444" : colors.border_color,
+                borderWidth: errors.amount ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+              "&:hover fieldset": {
+                borderColor: errors.amount ? "#ef4444" : colors.border_color,
+                borderWidth: errors.amount ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: errors.amount ? "#ef4444" : "#00dac6",
+                borderWidth: errors.amount ? "2px" : "2px",
+                borderStyle: "solid",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: errors.amount ? "#ef4444" : colors.border_color,
+                borderWidth: errors.amount ? "2px" : "1px",
+                borderStyle: "solid",
+              },
+            },
+            "& .MuiInputBase-input": {
+              color: colors.primary_text,
             },
           }}
         />
@@ -359,44 +552,22 @@ const NewBudget = () => {
         }}
       >
         <div>
-          <div className="w-full flex justify-between items-center mb-4">
-            <p
-              className="font-extrabold text-2xl sm:text-3xl"
-              style={{ color: colors.primary_text }}
-            >
-              New Budget
-            </p>
-            <button
-              onClick={handleCloseBudget}
-              className="flex items-center justify-center w-12 h-12 text-[25px] font-bold rounded mt-[-10px]"
-              style={{
-                color: colors.primary_accent,
-                backgroundColor: colors.tertiary_bg,
-              }}
-              onMouseEnter={(e) =>
-                (e.target.style.backgroundColor = colors.hover_bg)
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.backgroundColor = colors.tertiary_bg)
-              }
-            >
-              X
-            </button>
-          </div>
-          <hr
-            className="border-t w-full mb-4 sm:mb-6"
-            style={{ borderColor: colors.border_color }}
+          <PageHeader
+            title="New Budget"
+            onClose={handleCloseBudget}
+            // titleClassName="font-extrabold text-2xl sm:text-3xl"
+            // containerClassName="w-full flex justify-between items-center mb-4"
           />
           <div className={formRow}>
             {renderInput("name")}
             {renderInput("description")}
           </div>
           <div className={formRow}>
-            {renderInput("startDate", "date")}
-            {renderInput("endDate", "date")}
+            {renderDateInput("startDate")}
+            {renderDateInput("endDate")}
           </div>
           <div className={`${formRow} mb-4`}>
-            {renderInput("amount", "number")}
+            {renderAmountInput()}
             <div className="flex-1 hidden sm:block"></div>
           </div>
           {budgetError && (
@@ -431,7 +602,7 @@ const NewBudget = () => {
                 onClick={handleCloseTable}
                 className="px-2 py-1 border rounded mt-2 sm:mt-0 hidden sm:block"
                 style={{
-                  backgroundColor: colors.tertiary_bg,
+                  backgroundColor: colors.active_bg,
                   color: colors.primary_text,
                   borderColor: colors.border_color,
                 }}
@@ -439,7 +610,7 @@ const NewBudget = () => {
                   (e.target.style.backgroundColor = colors.hover_bg)
                 }
                 onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = colors.tertiary_bg)
+                  (e.target.style.backgroundColor = colors.active_bg)
                 }
               >
                 X
@@ -454,7 +625,7 @@ const NewBudget = () => {
                     onClick={handleCloseTable}
                     className="px-2 py-1 border rounded"
                     style={{
-                      backgroundColor: colors.tertiary_bg,
+                      backgroundColor: colors.active_bg,
                       color: colors.primary_text,
                       borderColor: colors.border_color,
                     }}
@@ -462,7 +633,7 @@ const NewBudget = () => {
                       (e.target.style.backgroundColor = colors.hover_bg)
                     }
                     onMouseLeave={(e) =>
-                      (e.target.style.backgroundColor = colors.tertiary_bg)
+                      (e.target.style.backgroundColor = colors.active_bg)
                     }
                   >
                     X
@@ -481,7 +652,7 @@ const NewBudget = () => {
                       key={row.id}
                       className="border rounded-lg p-4"
                       style={{
-                        backgroundColor: colors.tertiary_bg,
+                        backgroundColor: colors.active_bg,
                         borderColor: colors.border_color,
                       }}
                     >
@@ -542,7 +713,7 @@ const NewBudget = () => {
                   sx={{
                     height: 340,
                     width: "100%",
-                    background: colors.tertiary_bg,
+                    background: colors.active_bg,
                     borderRadius: 2,
                     border: `1px solid ${colors.border_color}`,
                   }}
@@ -567,11 +738,11 @@ const NewBudget = () => {
                       color: colors.primary_text,
                       border: 0,
                       "& .MuiDataGrid-columnHeaders": {
-                        background: colors.secondary_bg,
+                        background: colors.hover_bg,
                         color: colors.primary_text,
                       },
                       "& .MuiDataGrid-row": {
-                        background: colors.tertiary_bg,
+                        background: colors.active_bg,
                         "&:hover": {
                           backgroundColor: colors.hover_bg,
                         },
