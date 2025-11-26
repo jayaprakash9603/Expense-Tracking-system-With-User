@@ -1,165 +1,92 @@
-version: '3.8'
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql-db
+
+  zookeeper:
+
+    image: confluentinc/cp-zookeeper:7.6.1
+
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: expensedb
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - expense-network
 
-  eureka-server:
-    build: ./eureka-server
-    container_name: eureka-server
-    ports:
-      - "8761:8761"
-    networks:
-      - expense-network
+      ZOOKEEPER_CLIENT_PORT: 2181
 
-  user-service:
-    build: ./user-service
-    container_name: user-service
+      ZOOKEEPER_TICK_TIME: 2000
+
     ports:
-      - "8081:8081"
+
+      - "2181:2181"
+
+    networks:
+
+      - expense-net
+
+    healthcheck:
+
+      test: echo srvr | nc localhost 2181 || exit 1
+
+      interval: 10s
+
+      retries: 10
+ 
+  kafka:
+
+    image: confluentinc/cp-kafka:7.6.1
+
+    depends_on:
+
+      zookeeper:
+
+        condition: service_healthy
+
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/expensedb
-      - SPRING_DATASOURCE_USERNAME=user
-      - SPRING_DATASOURCE_PASSWORD=password
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - mysql
-      - eureka-server
-    networks:
-      - expense-network
 
-  friendship-service:
-    build: ./Friendship-service
-    container_name: friendship-service
+      KAFKA_BROKER_ID: 1
+
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
     ports:
-      - "8082:8082"
+
+      - "9092:9092"
+
+    networks:
+
+      - expense-net
+
+    restart: unless-stopped
+ 
+  kafka-ui:
+
+    image: provectuslabs/kafka-ui:latest
+
+    ports:
+
+      - "9080:8080"
+
     environment:
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - eureka-server
+
+      KAFKA_CLUSTERS_0_NAME: local
+
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
     networks:
-      - expense-network
 
-  gateway:
-    build: ./Gateway
-    container_name: gateway
-    ports:
-      - "8080:8080"
-    environment:
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - expense-net
+
     depends_on:
-      - eureka-server
-    networks:
-      - expense-network
 
-  category-service:
-    build: ./Category-Service
-    container_name: category-service
-    ports:
-      - "8083:8083"
-    environment:
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - eureka-server
-    networks:
-      - expense-network
-
-  bill-service:
-    build: ./Bill-Service
-    container_name: bill-service
-    ports:
-      - "8084:8084"
-    environment:
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - eureka-server
-    networks:
-      - expense-network
-
-  budget-service:
-    build: ./Budget-Service
-    container_name: budget-service
-    ports:
-      - "8085:8085"
-    environment:
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - eureka-server
-    networks:
-      - expense-network
-
-  audit-service:
-    build: ./Audit-Service
-    container_name: audit-service
-    ports:
-      - "8086:8086"
-    environment:
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - eureka-server
-    networks:
-      - expense-network
-
-  notification-service:
-    build: ./Notification-Service
-    container_name: notification-service
-    ports:
-      - "8087:8087"
-    environment:
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - eureka-server
-    networks:
-      - expense-network
-
-  payment-method-service:
-    build: ./Payment-method-Service
-    container_name: payment-method-service
-    ports:
-      - "8088:8088"
-    environment:
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - eureka-server
-    networks:
-      - expense-network
-
-  analytics-service:
-    build: ./AnalyticsService
-    container_name: analytics-service
-    ports:
-      - "8089:8089"
-    environment:
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
-    depends_on:
-      - eureka-server
-    networks:
-      - expense-network
-
-  social-media-app:
-    build: ./social-media-app
-    container_name: social-media-app
-    ports:
-      - "3000:3000"
-    depends_on:
-      - gateway
-    networks:
-      - expense-network
-
-volumes:
-  mysql_data:
-
+      - kafka
+ 
 networks:
-  expense-network:
-    driver: bridge
+
+  expense-net:
+ 
