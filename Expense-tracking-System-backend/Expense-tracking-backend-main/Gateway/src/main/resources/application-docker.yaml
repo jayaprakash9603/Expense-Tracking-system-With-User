@@ -1,66 +1,52 @@
-server:
-  port: 8080
-
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG # For Gateway specific logs
-    org.springframework.cloud.openfeign: DEBUG # For Feign client logs
-
 spring:
-  application:
-    name: GATEWAY-SERVICE
-  main:
-    allow-bean-definition-overriding: true
   cloud:
-    compatibility-verifier:
-      enabled: false
     gateway:
       routes:
         - id: USER-SERVICE
-          uri: ${USER_SERVICE_URL:http://localhost:6001}
+          uri: http://host.docker.internal:6001
           predicates:
             - Path=/auth/**, /user/**, /api/user/**, /api/admin/**, /api/roles/**, /api/permissions/**
         - id: BUDGET-SERVICE
-          uri: ${BUDGET_SERVICE_URL:http://localhost:6005}
+          uri: http://host.docker.internal:6005
           predicates:
             - Path= /api/budgets/**
         - id: CHAT-SERVICE
-          uri: ${CHAT_SERVICE_URL:http://localhost:7001}
+          uri: http://host.docker.internal:7001
           predicates:
             - Path= /api/chats/**
         - id: FRIENDSHIP-SERVICE
-          uri: ${FRIENDSHIP_SERVICE_URL:http://localhost:6009}
+          uri: http://host.docker.internal:6009
           predicates:
             - Path= /api/friendships/**,/api/groups/**
         - id: PAYMENT-SERVICE
-          uri: ${PAYMENT_SERVICE_URL:http://localhost:6006}
+          uri: http://host.docker.internal:6006
           predicates:
             - Path= /api/payment-methods/**
         - id: CATEGORY-SERVICE
-          uri: ${CATEGORY_SERVICE_URL:http://localhost:6008}
+          uri: http://host.docker.internal:6008
           predicates:
             - Path= /api/categories/**
         - id: BILL-SERVICE
-          uri: ${BILL_SERVICE_URL:http://localhost:6007}
+          uri: http://host.docker.internal:6007
           predicates:
             - Path= /api/bills/**
         - id: AUDIT-SERVICE
-          uri: ${AUDIT_SERVICE_URL:http://localhost:6004}
+          uri: http://host.docker.internal:6004
           predicates:
             - Path=/api/audit-logs/**, /audit-logs/**
         - id: EXPENSE-TRACKING-SYSTEM
-          uri: ${EXPENSE_TRACKING_SERVICE_URL:http://localhost:6000}
+          uri: http://host.docker.internal:6000
           predicates:
             - Path= /api/expenses/**, /api/settings/**, /api/budgets/**, /api/bills/** , /api/categories/**,/daily-summary/**, /api/friendships/**, /api/investment/**,/api/payment-methods/**
         - id: NOTIFICATION-SERVICE
-          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:6003}
+          uri: http://host.docker.internal:6003
           predicates:
             - Path=/api/notifications/**, /notifications/** , /api/notification-preferences/**
       default-filters:
         - name: DedupeResponseHeader
           args:
             name: "Access-Control-Allow-Origin"
-            strategy: "RETAIN_FIRST" # Choose "RETAIN_FIRST", "RETAIN_LAST", or "RETAIN_UNIQUE"
+            strategy: "RETAIN_FIRST"
         - name: DedupeResponseHeader
           args:
             name: "Access-Control-Allow-Credentials"
@@ -72,18 +58,10 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
   datasource:
-    url: jdbc:mysql://localhost:5000/gateway_service
+    url: jdbc:mysql://host.docker.internal:5000/gateway_service
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
 
 eureka:
   instance:
@@ -93,10 +71,4 @@ eureka:
     register-with-eureka: true
     registry-fetch-interval: 5s
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka
-
-gateway:
-  rate-limit:
-    enabled: true
-    requests: 10
-    window-seconds: 60
+      defaultZone: http://eureka-server:8761/eureka
