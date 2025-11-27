@@ -1,8 +1,12 @@
-FROM maven:3.8.5-openjdk-17 AS build
-COPY . .
-RUN mvn clean package -DskipTests
+FROM eclipse-temurin:17-jre-alpine
+# Set working directory
+WORKDIR /app
 
-FROM openjdk:17.0.1-jdk-slim
-COPY --from=build /target/social-media-app-0.0.1-SNAPSHOT.jar demo.jar
-EXPOSE 8080
-ENTRYPOINT ["java","-jar","demo.jar"]
+# Copy the built jar file (update the jar name if needed)
+COPY target/*.jar app.jar
+
+# Expose the application port
+EXPOSE 6000
+
+# Run the jar file
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "CATEGORY-SERVICE", url = "http://localhost:6008")
+@FeignClient(name = "CATEGORY-SERVICE", url = "${category.service.url:http://localhost:6008}")
 public interface CategoryServices {
 
     @GetMapping("/api/categories/get-by-id-with-service")

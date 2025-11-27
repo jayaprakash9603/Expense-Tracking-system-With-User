@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "BUDGET-SERVICE", url = "http://localhost:6005")
+@FeignClient(name = "BUDGET-SERVICE", url = "${budget.service.url:http://localhost:6005}")
 public interface BudgetServices {
 
 

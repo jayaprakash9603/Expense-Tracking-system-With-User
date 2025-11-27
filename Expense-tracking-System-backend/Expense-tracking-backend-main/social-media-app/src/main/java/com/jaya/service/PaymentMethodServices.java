@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "PAYMENT-SERVICE", url = "http://localhost:6006")
+@FeignClient(name = "PAYMENT-SERVICE", url = "${payment.service.url:http://localhost:6006}")
 public interface PaymentMethodServices {
 
 
