@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
-@FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "http://localhost:6000")
+@FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "${expense.service.url:http://localhost:6000}")
 public interface ExpenseService {
 
     @PostMapping("/api/expenses/save-single")

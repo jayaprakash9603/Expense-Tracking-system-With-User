@@ -230,11 +230,10 @@ public class PaymentMethodImpl implements PaymentMethodService {
                 }
             }
             throw new EntityNotFoundException("Payment method not found with name: " + name);
-        } else if (paymentMethods.size() >= 1) {
-            return paymentMethods.get(0);
         } else {
-            // Multiple results found, handle as needed (throwing for clarity)
-            throw new RuntimeException("Multiple payment methods found with name: " + name);
+            // Return the first match if multiple exist (handle gracefully)
+            // For consistency, we return the first one found
+            return paymentMethods.get(0);
         }
     }
 

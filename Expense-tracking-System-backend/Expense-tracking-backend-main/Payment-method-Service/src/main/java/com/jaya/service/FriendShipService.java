@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "FRIENDSHIP-SERVICE", url = "http://localhost:6009")
+@FeignClient(name = "FRIENDSHIP-SERVICE", url = "${friendship.service.url:http://localhost:6009}")
 public interface FriendShipService {
 
 
