@@ -142,7 +142,7 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - USER_SERVICE_URL=http://host.docker.internal:6001
+      - USER_SERVICE_URL=http://user-service:6001
 
       - BUDGET_SERVICE_URL=http://host.docker.internal:6005
 
@@ -161,6 +161,48 @@ services:
       - EXPENSE_TRACKING_SERVICE_URL=http://host.docker.internal:6000
 
       - NOTIFICATION_SERVICE_URL=http://host.docker.internal:6003
+
+    depends_on:
+
+      eureka-server:
+
+        condition: service_healthy
+
+      user-service:
+
+        condition: service_started
+
+    restart: unless-stopped
+
+  user-service:
+
+    image: jayaprakash9603/user-service:latest
+
+    container_name: user-service
+
+    ports:
+
+      - "6001:6001"
+
+    networks:
+
+      - expense-net
+
+    extra_hosts:
+
+      - "host.docker.internal:10.230.34.43"
+
+    environment:
+
+      - SPRING_PROFILES_ACTIVE=docker
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/expense_user_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+
+      - SPRING_DATASOURCE_USERNAME=root
+
+      - SPRING_DATASOURCE_PASSWORD=123456
 
     depends_on:
 

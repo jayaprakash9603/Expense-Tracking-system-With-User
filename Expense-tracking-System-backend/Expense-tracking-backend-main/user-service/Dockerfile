@@ -1,11 +1,11 @@
 # Use OpenJDK 17 as base image
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre-alpine
 
 # Set working directory
 WORKDIR /app
 
 # Copy the built jar file (update the jar name if needed)
-COPY target/User-service-0.0.1.jar app.jar
+COPY target/*.jar app.jar
 
 # Expose the application port
 EXPOSE 6001
