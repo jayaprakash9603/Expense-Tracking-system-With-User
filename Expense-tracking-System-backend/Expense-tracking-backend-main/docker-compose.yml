@@ -137,6 +137,7 @@ services:
  
   gateway:
 
+    build: ./Gateway
     image: jayaprakash9603/gateway:latest
 
     container_name: gateway
@@ -159,25 +160,25 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - USER_SERVICE_URL=http://user-service:6001
+      - USER_SERVICE_URL=lb://USER-SERVICE
 
-      - BUDGET_SERVICE_URL=http://budget-service:6005
+      - BUDGET_SERVICE_URL=lb://BUDGET_SERVICE
 
       - CHAT_SERVICE_URL=http://host.docker.internal:7001
 
-      - FRIENDSHIP_SERVICE_URL=http://friendship-service:6009
+      - FRIENDSHIP_SERVICE_URL=lb://FRIENDSHIP-SERVICE
 
-      - PAYMENT_SERVICE_URL=http://payment-service:6006
+      - PAYMENT_SERVICE_URL=lb://PAYMENT-SERVICE
 
-      - CATEGORY_SERVICE_URL=http://category-service:6008
+      - CATEGORY_SERVICE_URL=lb://CATEGORY-SERVICE
 
-      - BILL_SERVICE_URL=http://bill-service:6007
+      - BILL_SERVICE_URL=lb://BILL-SERVICE
 
       - AUDIT_SERVICE_URL=http://host.docker.internal:6004
 
-      - EXPENSE_TRACKING_SERVICE_URL=http://expense-service:6000
+      - EXPENSE_TRACKING_SERVICE_URL=lb://EXPENSE-TRACKING-SYSTEM
 
-      - NOTIFICATION_SERVICE_URL=http://notification-service:6003
+      - NOTIFICATION_SERVICE_URL=lb://NOTIFICATION-SERVICE
 
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/gateway_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
 
