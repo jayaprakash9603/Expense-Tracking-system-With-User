@@ -154,7 +154,7 @@ services:
 
       - CATEGORY_SERVICE_URL=http://host.docker.internal:6008
 
-      - BILL_SERVICE_URL=http://host.docker.internal:7007
+      - BILL_SERVICE_URL=http://bill-service:6007
 
       - AUDIT_SERVICE_URL=http://host.docker.internal:6004
 
@@ -291,6 +291,64 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
       - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/expense_payment_method_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+
+      - SPRING_DATASOURCE_USERNAME=root
+
+      - SPRING_DATASOURCE_PASSWORD=123456
+
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+
+      - USER_SERVICE_URL=http://user-service:6001
+
+      - EXPENSE_SERVICE_URL=http://expense-service:6000
+
+      - FRIENDSHIP_SERVICE_URL=http://host.docker.internal:6009
+
+    depends_on:
+
+      kafka:
+
+        condition: service_started
+
+      eureka-server:
+
+        condition: service_healthy
+
+      user-service:
+
+        condition: service_started
+
+      expense-service:
+
+        condition: service_started
+
+    restart: unless-stopped
+
+  bill-service:
+
+    image: jayaprakash9603/bill-service:latest
+
+    container_name: bill-service
+
+    ports:
+
+      - "6007:6007"
+
+    networks:
+
+      - expense-net
+
+    extra_hosts:
+
+      - "host.docker.internal:10.230.34.43"
+
+    environment:
+
+      - SPRING_PROFILES_ACTIVE=docker
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/bill_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
 
       - SPRING_DATASOURCE_USERNAME=root
 
