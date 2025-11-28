@@ -1,5 +1,22 @@
 services:
 
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "5000:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    networks:
+      - expense-net
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
   zookeeper:
 
     image: confluentinc/cp-zookeeper:7.6.1
@@ -162,6 +179,12 @@ services:
 
       - NOTIFICATION_SERVICE_URL=http://notification-service:6003
 
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/gateway_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+
+      - SPRING_DATASOURCE_USERNAME=root
+
+      - SPRING_DATASOURCE_PASSWORD=123456
+
     depends_on:
 
       eureka-server:
@@ -198,7 +221,7 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/expense_user_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/expense_user_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
 
       - SPRING_DATASOURCE_USERNAME=root
 
@@ -236,7 +259,7 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/expense_tracker?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/expense_tracker?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
 
       - SPRING_DATASOURCE_USERNAME=root
 
@@ -290,7 +313,7 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/expense_payment_method_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/expense_payment_method_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
 
       - SPRING_DATASOURCE_USERNAME=root
 
@@ -348,7 +371,7 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/bill_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/bill_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
 
       - SPRING_DATASOURCE_USERNAME=root
 
@@ -406,7 +429,7 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/category_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/category_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
 
       - SPRING_DATASOURCE_USERNAME=root
 
@@ -464,7 +487,7 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/budget_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/budget_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
 
       - SPRING_DATASOURCE_USERNAME=root
 
@@ -522,7 +545,7 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/friendship_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/friendship_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
 
       - SPRING_DATASOURCE_USERNAME=root
 
@@ -578,7 +601,7 @@ services:
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
 
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:5000/notification_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/notification_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
 
       - SPRING_DATASOURCE_USERNAME=root
 
@@ -643,4 +666,9 @@ services:
 networks:
 
   expense-net:
+
+volumes:
+  mysql_data:
+    external: true
+    name: mysql_data_5000
  
