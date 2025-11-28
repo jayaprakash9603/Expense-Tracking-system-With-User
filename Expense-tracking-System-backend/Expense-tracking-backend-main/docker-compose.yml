@@ -668,7 +668,7 @@ networks:
   expense-net:
 
 volumes:
-  mysql_data:
-    external: true
-    name: mysql_data_5000
+  mysql_data: {}
+  #   external: true
+  #   name: mysql_data_5000
  

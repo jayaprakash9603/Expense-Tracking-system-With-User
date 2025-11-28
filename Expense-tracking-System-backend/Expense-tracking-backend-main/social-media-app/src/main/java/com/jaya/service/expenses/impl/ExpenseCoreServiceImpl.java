@@ -122,36 +122,56 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     public ExpenseDTO addExpense(ExpenseDTO expenseDTO, Integer userId) throws Exception {
 
         User user = helper.validateUser(userId);
-        
-        // Convert DTO to Entity
-        Expense expense = expenseMapper.toEntity(expenseDTO);
+
+        // Build Expense entity manually so amount/netAmount from String JSON are parsed correctly
+        Expense expense = new Expense();
         expense.setId(null);
-        if (expense.getExpense() != null) {
-            expense.getExpense().setId(null);
+        expense.setUserId(userId);
+
+        if (expenseDTO.getDate() != null) {
+            expense.setDate(LocalDate.parse(expenseDTO.getDate()));
         }
 
-        validateExpenseData(expense, user);
-
-        expense.setUserId(userId);
-        if (expense.getBudgetIds() == null)
+        if (expenseDTO.getBudgetIds() != null) {
+            expense.setBudgetIds(new HashSet<>(expenseDTO.getBudgetIds()));
+        } else {
             expense.setBudgetIds(new HashSet<>());
+        }
 
-        ExpenseDetails details = expense.getExpense();
-        if (details == null) {
+        expense.setCategoryId(expenseDTO.getCategoryId());
+
+        ExpenseDetailsDTO detailsDTO = expenseDTO.getExpense();
+        if (detailsDTO == null) {
             throw new UserException("Expense details must not be null.");
         }
+
+        ExpenseDetails details = new ExpenseDetails();
         details.setId(null);
-        details.setExpenseName(details.getExpenseName() != null ? details.getExpenseName() : "");
-        details.setAmount(details.getAmount());
-        details.setType(details.getType() != null ? details.getType() : "");
-        details.setPaymentMethod(details.getPaymentMethod() != null ? details.getPaymentMethod() : "");
-        details.setNetAmount(details.getType().equals("loss") ? -details.getAmount() : details.getAmount());
-        details.setComments(details.getComments() != null ? details.getComments() : "");
-        details.setCreditDue(details.getPaymentMethod().equals(CREDIT_NEED_TO_PAID) ? details.getAmount() : 0);
+        details.setExpenseName(detailsDTO.getExpenseName() != null ? detailsDTO.getExpenseName() : "");
+
+        double amount = detailsDTO.getAmountAsDouble();
+        details.setAmount(amount);
+
+        String type = detailsDTO.getType() != null ? detailsDTO.getType() : "";
+        details.setType(type);
+
+        String paymentMethod = detailsDTO.getPaymentMethod() != null ? detailsDTO.getPaymentMethod() : "";
+        details.setPaymentMethod(paymentMethod);
+
+        double netAmount = type.equals("loss") ? -amount : amount;
+        details.setNetAmount(netAmount);
+
+        details.setComments(detailsDTO.getComments() != null ? detailsDTO.getComments() : "");
+
+        double creditDue = paymentMethod.equals(CREDIT_NEED_TO_PAID) ? amount : 0.0;
+        details.setCreditDue(creditDue);
 
         // Set bi-directional relationship
         details.setExpense(expense);
         expense.setExpense(details);
+
+        // Validate built expense before persisting
+        validateExpenseData(expense, user);
 
         Set<Integer> validBudgetIds = validateAndExtractBudgetIds(expense, user);
         expense.setBudgetIds(validBudgetIds);
