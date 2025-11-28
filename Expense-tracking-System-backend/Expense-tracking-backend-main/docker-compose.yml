@@ -323,6 +323,32 @@ services:
         condition: service_started
 
     restart: unless-stopped
+
+  frontend:
+
+    image: jayaprakash9603/expense-tracker-frontend:latest
+
+    container_name: expense-tracker-frontend
+
+    ports:
+
+      - "3000:80"
+
+    networks:
+
+      - expense-net
+
+    environment:
+
+      - REACT_APP_API_URL=http://gateway:8080
+
+    depends_on:
+
+      gateway:
+
+        condition: service_started
+
+    restart: unless-stopped
  
 networks:
 
