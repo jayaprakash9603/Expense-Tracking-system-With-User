@@ -328,6 +328,10 @@ public class BulkExpenseBudgetService {
 
                 // PHASE 1: Create budgets in parallel
                 if (mapping.getBudgets() != null && !mapping.getBudgets().isEmpty()) {
+                    progressTracker.updateStage(jobId, "Creating Budgets");
+                    int totalBatchesForBudgets = (int) Math.ceil(mapping.getBudgets().size() / (double) BATCH_SIZE);
+                    progressTracker.updateBatch(jobId, 0, totalBatchesForBudgets);
+                    
                     processBudgetsInParallel(
                             mapping.getBudgets(),
                             userId,
@@ -341,6 +345,10 @@ public class BulkExpenseBudgetService {
 
                 // PHASE 2: Create expenses in parallel
                 if (mapping.getExpenses() != null && !mapping.getExpenses().isEmpty()) {
+                    progressTracker.updateStage(jobId, "Creating Expenses");
+                    int totalBatchesForExpenses = (int) Math.ceil(mapping.getExpenses().size() / (double) BATCH_SIZE);
+                    progressTracker.updateBatch(jobId, 0, totalBatchesForExpenses);
+                    
                     processExpensesInParallel(
                             mapping.getExpenses(),
                             userId,
@@ -350,6 +358,8 @@ public class BulkExpenseBudgetService {
                             processedCount,
                             successCount,
                             failureCount);
+                    
+                    progressTracker.updateStage(jobId, "Linking Budgets & Expenses");
                 }
             }
 
@@ -445,6 +455,10 @@ public class BulkExpenseBudgetService {
                 // values)
                 oldToNewBudgetIds.put(oldBudgetId, -1L);
                 successCount.incrementAndGet();
+                
+                // Add recent item for UI display
+                progressTracker.addRecentItem(jobId, 
+                    String.format("Budget: %s (%.0f)", budgetData.getName(), budgetData.getAmount()));
 
             } catch (Exception e) {
                 log.error("Error processing budget ID: {}", budgetData.getId(), e);
@@ -568,12 +582,26 @@ public class BulkExpenseBudgetService {
                 }
                 
                 successCount.incrementAndGet();
+                
+                // Add recent item for UI display (every 3rd item to avoid spam)
+                if (i % 3 == 0) {
+                    progressTracker.addRecentItem(jobId,
+                        String.format("Expense: %s (%.0f)", 
+                            expenseData.getExpense().getExpenseName(), 
+                            expenseData.getExpense().getAmount()));
+                }
             }
         }
         
-        // Update progress
+        // Update progress and counts
         int current = processedCount.addAndGet(batch.size());
         updateProgressIfNeeded(jobId, current);
+        
+        // Update detailed counts
+        int budgetCount = oldToNewBudgetIds.size();
+        int expenseCount = oldToNewExpenseIds.size();
+        progressTracker.updateCounts(jobId, budgetCount, expenseCount, 
+            successCount.get(), failureCount.get());
     }
 
     /**

@@ -1,6 +1,9 @@
 package com.jaya.dto;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProgressStatus {
     private String jobId;
@@ -12,8 +15,23 @@ public class ProgressStatus {
     private Integer userId;
     private LocalDateTime startedAt;
     private LocalDateTime updatedAt;
+    
+    // Enhanced progress details
+    private String currentStage;        // "Creating Budgets", "Creating Expenses", "Linking", "Completed"
+    private int budgetsProcessed;       // Count of budgets processed
+    private int expensesProcessed;      // Count of expenses processed
+    private Double itemsPerSecond;      // Processing speed
+    private Long elapsedSeconds;        // Time elapsed since start
+    private Long estimatedSecondsRemaining; // ETA
+    private List<String> recentItems;   // Last 3-5 items processed
+    private int successCount;           // Successful items
+    private int failureCount;           // Failed items
+    private int currentBatch;           // Current batch number
+    private int totalBatches;           // Total batches
 
-    public ProgressStatus() {}
+    public ProgressStatus() {
+        this.recentItems = new ArrayList<>();
+    }
 
     public ProgressStatus(String jobId, int total, Integer userId) {
         this.jobId = jobId;
@@ -24,6 +42,31 @@ public class ProgressStatus {
         this.status = "INIT";
         this.startedAt = LocalDateTime.now();
         this.updatedAt = this.startedAt;
+        this.currentStage = "Initializing";
+        this.budgetsProcessed = 0;
+        this.expensesProcessed = 0;
+        this.recentItems = new ArrayList<>();
+        this.successCount = 0;
+        this.failureCount = 0;
+        this.currentBatch = 0;
+        this.totalBatches = 0;
+    }
+    
+    // Calculate dynamic metrics
+    public void updateMetrics() {
+        if (this.startedAt != null) {
+            Duration elapsed = Duration.between(this.startedAt, LocalDateTime.now());
+            this.elapsedSeconds = elapsed.getSeconds();
+            
+            if (this.elapsedSeconds > 0 && this.processed > 0) {
+                this.itemsPerSecond = (double) this.processed / this.elapsedSeconds;
+                
+                if (this.itemsPerSecond > 0) {
+                    int remaining = this.total - this.processed;
+                    this.estimatedSecondsRemaining = (long) (remaining / this.itemsPerSecond);
+                }
+            }
+        }
     }
 
     public String getJobId() { return jobId; }
@@ -52,4 +95,40 @@ public class ProgressStatus {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    // Enhanced progress getters and setters
+    public String getCurrentStage() { return currentStage; }
+    public void setCurrentStage(String currentStage) { this.currentStage = currentStage; }
+    
+    public int getBudgetsProcessed() { return budgetsProcessed; }
+    public void setBudgetsProcessed(int budgetsProcessed) { this.budgetsProcessed = budgetsProcessed; }
+    
+    public int getExpensesProcessed() { return expensesProcessed; }
+    public void setExpensesProcessed(int expensesProcessed) { this.expensesProcessed = expensesProcessed; }
+    
+    public Double getItemsPerSecond() { return itemsPerSecond; }
+    public void setItemsPerSecond(Double itemsPerSecond) { this.itemsPerSecond = itemsPerSecond; }
+    
+    public Long getElapsedSeconds() { return elapsedSeconds; }
+    public void setElapsedSeconds(Long elapsedSeconds) { this.elapsedSeconds = elapsedSeconds; }
+    
+    public Long getEstimatedSecondsRemaining() { return estimatedSecondsRemaining; }
+    public void setEstimatedSecondsRemaining(Long estimatedSecondsRemaining) { 
+        this.estimatedSecondsRemaining = estimatedSecondsRemaining; 
+    }
+    
+    public List<String> getRecentItems() { return recentItems; }
+    public void setRecentItems(List<String> recentItems) { this.recentItems = recentItems; }
+    
+    public int getSuccessCount() { return successCount; }
+    public void setSuccessCount(int successCount) { this.successCount = successCount; }
+    
+    public int getFailureCount() { return failureCount; }
+    public void setFailureCount(int failureCount) { this.failureCount = failureCount; }
+    
+    public int getCurrentBatch() { return currentBatch; }
+    public void setCurrentBatch(int currentBatch) { this.currentBatch = currentBatch; }
+    
+    public int getTotalBatches() { return totalBatches; }
+    public void setTotalBatches(int totalBatches) { this.totalBatches = totalBatches; }
 }
