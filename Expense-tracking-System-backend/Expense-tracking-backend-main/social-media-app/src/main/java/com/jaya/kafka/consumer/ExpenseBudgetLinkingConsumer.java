@@ -42,6 +42,11 @@ public class ExpenseBudgetLinkingConsumer {
                     handleExpenseBudgetLinkUpdate(event);
                     break;
                     
+                case BUDGET_DELETED_REMOVE_FROM_EXPENSES:
+                    // Budget Service is telling us to remove budget IDs from expense
+                    handleBudgetDeletedRemoveFromExpenses(event);
+                    break;
+                    
                 case BUDGET_EXPENSE_LINK_UPDATE:
                     // This would be handled by Budget Service, but we log it for awareness
                     log.info("Budget-Expense link update event (handled by Budget Service): expense={}, budget={}", 
@@ -102,6 +107,39 @@ public class ExpenseBudgetLinkingConsumer {
                 
         } catch (Exception e) {
             log.error("Error handling expense-budget link update", e);
+        }
+    }
+
+    /**
+     * Handle budget deleted remove from expenses event
+     */
+    private void handleBudgetDeletedRemoveFromExpenses(ExpenseBudgetLinkingEvent event) {
+        try {
+            log.info(">>> Handling BUDGET_DELETED_REMOVE_FROM_EXPENSES event");
+            log.info(">>> Event details: expenseId={}, budgetsToRemove={}, userId={}",
+                event.getNewExpenseId(), 
+                event.getBudgetIdsToRemove() != null ? event.getBudgetIdsToRemove().size() : 0,
+                event.getUserId());
+            
+            if (event.getNewExpenseId() == null || event.getBudgetIdsToRemove() == null || 
+                event.getBudgetIdsToRemove().isEmpty()) {
+                log.warn("Invalid event data - missing expense ID or budget IDs to remove");
+                return;
+            }
+
+            log.info(">>> Calling removeBudgetIdsFromExpense...");
+            // Remove budget IDs from expense
+            bulkExpenseBudgetService.removeBudgetIdsFromExpense(
+                event.getNewExpenseId(),
+                event.getBudgetIdsToRemove(),
+                event.getUserId().intValue()
+            );
+
+            log.info(">>> Successfully removed {} budget IDs from expense {}", 
+                event.getBudgetIdsToRemove().size(), event.getNewExpenseId());
+                
+        } catch (Exception e) {
+            log.error("Error handling budget deleted remove from expenses", e);
         }
     }
 }

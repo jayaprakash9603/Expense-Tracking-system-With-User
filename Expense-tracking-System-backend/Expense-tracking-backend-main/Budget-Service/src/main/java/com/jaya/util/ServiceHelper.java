@@ -1,19 +1,25 @@
 package com.jaya.util;
 
 import com.jaya.dto.ExpenseDTO;
+import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
 import com.jaya.service.ExpenseService;
 import com.jaya.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -21,6 +27,11 @@ public class ServiceHelper {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
+
+    private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
 
     public static final String DEFAULT_TYPE = "loss";
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
@@ -146,5 +157,63 @@ public class ServiceHelper {
         for (Budget budget : budgets) {
             deleteBudgetIdInExpenses(budget, expenseService, userId, budget.getId());
         }
+    }
+
+    /**
+     * Async method to remove budget IDs from all expenses using Kafka events
+     * This replaces the synchronous removeBudgetsIdsInAllExpenses method
+     */
+    @Async
+    public void removeBudgetsIdsInAllExpensesAsync(List<Budget> budgets, Integer userId) {
+        log.info("====== Async Budget Removal Started ======");
+        log.info("Removing {} budgets from all expenses for userId={}", budgets.size(), userId);
+
+        // Collect all budget IDs to remove
+        List<Long> budgetIdsToRemove = budgets.stream()
+                .map(budget -> budget.getId().longValue())
+                .collect(Collectors.toList());
+
+        // Collect all unique expense IDs that need updating
+        Set<Integer> allExpenseIds = new HashSet<>();
+        for (Budget budget : budgets) {
+            if (budget.getExpenseIds() != null && !budget.getExpenseIds().isEmpty()) {
+                allExpenseIds.addAll(budget.getExpenseIds());
+            }
+        }
+
+        log.info("Found {} unique expenses to update with budget removal", allExpenseIds.size());
+
+        if (allExpenseIds.isEmpty()) {
+            log.info("No expenses to update, skipping event publishing");
+            return;
+        }
+
+        // Publish Kafka event for each expense to remove budget IDs
+        int eventCount = 0;
+        for (Integer expenseId : allExpenseIds) {
+            try {
+                ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                        .eventType(ExpenseBudgetLinkingEvent.EventType.BUDGET_DELETED_REMOVE_FROM_EXPENSES)
+                        .userId(userId.longValue())
+                        .newExpenseId(expenseId.longValue())
+                        .budgetIdsToRemove(budgetIdsToRemove)
+                        .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                        .build();
+
+                kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+                eventCount++;
+
+                log.debug("Published budget removal event for expenseId={}, budgetsToRemove={}",
+                        expenseId, budgetIdsToRemove.size());
+
+            } catch (Exception e) {
+                log.error("Failed to publish budget removal event for expenseId={}: {}",
+                        expenseId, e.getMessage());
+            }
+        }
+
+        log.info("====== Async Budget Removal Completed ======");
+        log.info("Published {} events to remove {} budgets from {} expenses",
+                eventCount, budgetIdsToRemove.size(), allExpenseIds.size());
     }
 }

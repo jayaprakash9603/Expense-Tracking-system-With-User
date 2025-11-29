@@ -23,6 +23,7 @@ public class ExpenseBudgetLinkingEvent {
     private List<Long> newBudgetIds;
     private Long newBudgetId; // Single budget ID for simpler events
     private Long oldBudgetId; // Single old budget ID
+    private List<Long> budgetIdsToRemove; // Budget IDs to remove from expenses (for bulk delete)
     private String timestamp;
 
     // Budget details for creation
@@ -33,7 +34,8 @@ public class ExpenseBudgetLinkingEvent {
         BUDGET_CREATED_WITH_OLD_EXPENSES, // Budget created, needs expense mapping (expenses don't exist yet)
         EXPENSE_CREATED_WITH_EXISTING_BUDGETS, // Expense created, budgets already exist (replace old expense ID)
         EXPENSE_BUDGET_LINK_UPDATE, // Update expense with new budget IDs
-        BUDGET_EXPENSE_LINK_UPDATE // Update budget with new expense IDs
+        BUDGET_EXPENSE_LINK_UPDATE, // Update budget with new expense IDs
+        BUDGET_DELETED_REMOVE_FROM_EXPENSES // Budget deleted, remove budget IDs from expenses
     }
 
     @Data

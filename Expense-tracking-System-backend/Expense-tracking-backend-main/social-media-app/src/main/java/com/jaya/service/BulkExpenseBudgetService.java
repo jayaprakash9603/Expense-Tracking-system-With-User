@@ -897,4 +897,75 @@ public class BulkExpenseBudgetService {
         kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
         log.info("Published expense-budget link update event for expense: {}, budget: {}", expenseId, budgetId);
     }
+
+    /**
+     * Remove budget IDs from an expense (triggered by Kafka event)
+     * This method is called when budgets are deleted
+     */
+    public void removeBudgetIdsFromExpense(Long expenseId, List<Long> budgetIdsToRemove, Integer userId) {
+        int maxRetries = 3;
+        int retryDelayMs = 1000;
+
+        log.info(">>> Starting removeBudgetIdsFromExpense for expenseId={}, budgetsToRemove={}, userId={}", 
+            expenseId, budgetIdsToRemove, userId);
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                log.info(">>> Removing budget IDs from expense {} (attempt {}/{})", 
+                    expenseId, attempt, maxRetries);
+
+                Expense expense = expenseRepository.findById(expenseId.intValue())
+                        .orElseThrow(() -> new UserException("Expense not found: " + expenseId));
+
+                log.info(">>> Found expense {}. Current budgetIds: {}", expenseId, expense.getBudgetIds());
+
+                if (expense.getBudgetIds() == null || expense.getBudgetIds().isEmpty()) {
+                    log.info(">>> Expense {} has no budget IDs, nothing to remove", expenseId);
+                    return;
+                }
+
+                // Convert Long to Integer for budget IDs
+                Set<Integer> budgetIdsSetToRemove = budgetIdsToRemove.stream()
+                        .map(Long::intValue)
+                        .collect(Collectors.toSet());
+
+                log.info(">>> Budget IDs to remove (as Integer): {}", budgetIdsSetToRemove);
+
+                // Remove budget IDs from expense
+                int initialSize = expense.getBudgetIds().size();
+                boolean removed = expense.getBudgetIds().removeAll(budgetIdsSetToRemove);
+                int removedCount = initialSize - expense.getBudgetIds().size();
+
+                log.info(">>> Removal result - removed={}, removedCount={}, remainingBudgetIds={}", 
+                    removed, removedCount, expense.getBudgetIds());
+
+                Expense savedExpense = expenseRepository.save(expense);
+                log.info(">>> Saved expense {}. Final budgetIds: {}", 
+                    savedExpense.getId(), savedExpense.getBudgetIds());
+
+                log.info(">>> Successfully removed {} budget IDs from expense {}. Remaining budgets: {}",
+                    removedCount, expenseId, expense.getBudgetIds().size());
+                return; // Success - exit retry loop
+
+            } catch (Exception e) {
+                log.error(">>> Error removing budgets from expense {} (attempt {}/{}): {}", 
+                    expenseId, attempt, maxRetries, e.getMessage(), e);
+                
+                if (attempt < maxRetries) {
+                    try {
+                        log.info(">>> Retrying in {} ms...", retryDelayMs);
+                        Thread.sleep(retryDelayMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        log.error(">>> Interrupted while waiting to retry expense update: {}", expenseId);
+                        return;
+                    }
+                } else {
+                    log.error(">>> Failed to remove budget IDs from expense {} after {} attempts. Giving up.",
+                            expenseId, maxRetries);
+                    // Don't throw - just log and continue to avoid blocking Kafka consumer
+                }
+            }
+        }
+    }
 }
