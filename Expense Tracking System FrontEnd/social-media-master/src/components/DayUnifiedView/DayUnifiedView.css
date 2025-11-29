@@ -1,3 +1,28 @@
+/* Light theme */
+.light .day-unified-scroll {
+  scrollbar-color: #14b8a6 #f5f5f5;
+}
+.light .day-unified-scroll::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+.light .day-unified-scroll::-webkit-scrollbar-thumb {
+  background: #14b8a6;
+  border: 2px solid #f5f5f5;
+}
+
+/* Dark theme */
+.dark .day-unified-scroll {
+  scrollbar-color: #14b8a6 #101010;
+}
+.dark .day-unified-scroll::-webkit-scrollbar-track {
+  background: #101010;
+}
+.dark .day-unified-scroll::-webkit-scrollbar-thumb {
+  background: #14b8a6;
+  border: 2px solid #101010;
+}
+
+/* Default (dark) */
 .day-unified-scroll {
   scrollbar-width: thin;
   scrollbar-color: #14b8a6 #101010;
