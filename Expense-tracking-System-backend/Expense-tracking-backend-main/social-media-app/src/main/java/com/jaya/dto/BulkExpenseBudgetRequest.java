@@ -1,5 +1,6 @@
 package com.jaya.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import java.util.List;
 
@@ -9,16 +10,19 @@ import java.util.List;
  * duplicates)
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BulkExpenseBudgetRequest {
     private List<ExpenseBudgetMapping> mappings;
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ExpenseBudgetMapping {
         private List<ExpenseData> expenses; // Array of unique expenses
         private List<BudgetData> budgets; // Array of unique budgets
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ExpenseData {
         private Long id; // Old expense ID for reference
         private String date;
@@ -32,6 +36,7 @@ public class BulkExpenseBudgetRequest {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ExpenseDetails {
         private Long id;
         private String expenseName;
@@ -45,6 +50,7 @@ public class BulkExpenseBudgetRequest {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BudgetData {
         private Long id; // Old budget ID
         private String name;
