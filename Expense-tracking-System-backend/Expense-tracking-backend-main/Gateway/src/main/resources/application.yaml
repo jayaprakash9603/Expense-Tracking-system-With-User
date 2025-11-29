@@ -51,7 +51,7 @@ spring:
         - id: EXPENSE-TRACKING-SYSTEM
           uri: ${EXPENSE_TRACKING_SERVICE_URL:http://localhost:6000}
           predicates:
-            - Path= /api/expenses/**, /api/settings/**, /api/budgets/**, /api/bills/** , /api/categories/**,/daily-summary/**, /api/friendships/**, /api/investment/**,/api/payment-methods/**
+            - Path= /api/expenses/**, /api/settings/**, /api/budgets/**, /api/bills/** , /api/categories/**,/daily-summary/**, /api/friendships/**, /api/investment/**,/api/payment-methods/**,/api/bulk/**
         - id: NOTIFICATION-SERVICE
           uri: ${NOTIFICATION_SERVICE_URL:http://localhost:6003}
           predicates:
