@@ -5,6 +5,7 @@ import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
 import com.jaya.service.ExpenseService;
 import com.jaya.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
+@Slf4j
 public class ServiceHelper {
 
     @Autowired
@@ -76,6 +78,8 @@ public class ServiceHelper {
             try {
                 expense = expenseService.getExpenseById(expenseId, userId);
             } catch (Exception e) {
+                log.warn("Expense with ID {} not found or error occurred, excluding from budget: {}",
+                        expenseId, e.getMessage());
                 continue;
             }
 
@@ -86,24 +90,34 @@ public class ServiceHelper {
 
                 if (isWithinDateRange) {
                     validExpenseIds.add(expenseId);
+                } else {
+                    log.debug("Expense {} is outside budget date range, excluding", expenseId);
                 }
             }
         }
+        log.info("Validated {} out of {} expense IDs for budget",
+                validExpenseIds.size(), budget.getExpenseIds().size());
         return validExpenseIds;
     }
 
     public void addBudgetIdInExpenses(Budget budget, ExpenseService expenseService, Integer userId) {
         for (Integer expenseId : budget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-            if (expense != null) {
-                if (expense.getBudgetIds() == null) {
-                    expense.setBudgetIds(new HashSet<>());
-                }
+            try {
+                ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
+                if (expense != null) {
+                    if (expense.getBudgetIds() == null) {
+                        expense.setBudgetIds(new HashSet<>());
+                    }
 
-                if (!expense.getBudgetIds().contains(budget.getId())) {
-                    expense.getBudgetIds().add(budget.getId());
-                    expenseService.save(expense);
+                    if (!expense.getBudgetIds().contains(budget.getId())) {
+                        expense.getBudgetIds().add(budget.getId());
+                        expenseService.save(expense);
+                    }
                 }
+            } catch (Exception e) {
+                // Expense not found - skip it gracefully
+                log.warn("Expense with ID {} not found, skipping budget link", expenseId);
+                continue;
             }
         }
     }
@@ -113,10 +127,16 @@ public class ServiceHelper {
         Set<Integer> expenseIds = budget.getExpenseIds();
         if (expenseIds != null) {
             for (Integer expenseId : expenseIds) {
-                ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-                if (expense != null && expense.getBudgetIds() != null) {
-                    expense.getBudgetIds().remove(budgetId);
-                    expenseService.save(expense);
+                try {
+                    ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
+                    if (expense != null && expense.getBudgetIds() != null) {
+                        expense.getBudgetIds().remove(budgetId);
+                        expenseService.save(expense);
+                    }
+                } catch (Exception e) {
+                    // Expense not found - skip it gracefully
+                    log.warn("Expense with ID {} not found, skipping budget unlink", expenseId);
+                    continue;
                 }
             }
         }
