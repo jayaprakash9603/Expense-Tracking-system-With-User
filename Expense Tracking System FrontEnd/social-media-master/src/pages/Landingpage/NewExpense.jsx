@@ -313,8 +313,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
           categoryId: expenseData.category,
           expense: {
             expenseName: expenseData.expenseName,
-            amount: amt,
-            netAmount: amt,
+            amount: expenseData.amount,
+            netAmount: expenseData.amount,
             paymentMethod: normalizedPm,
             type: expenseData.transactionType.toLowerCase(),
             comments: expenseData.comments,
