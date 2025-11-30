@@ -17,6 +17,20 @@ services:
       timeout: 20s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - expense-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   zookeeper:
 
     image: confluentinc/cp-zookeeper:7.6.1
@@ -164,7 +178,7 @@ services:
 
       - BUDGET_SERVICE_URL=lb://BUDGET-SERVICE
 
-      - CHAT_SERVICE_URL=http://host.docker.internal:7001
+      - CHAT_SERVICE_URL=lb://CHAT-SERVICE
 
       - FRIENDSHIP_SERVICE_URL=lb://FRIENDSHIP-SERVICE
 
@@ -693,6 +707,68 @@ services:
         condition: service_started
 
       expense-service:
+
+        condition: service_started
+
+    restart: unless-stopped
+
+  chat-service:
+
+    image: jayaprakash9603/chat-service:latest
+
+    container_name: chat-service
+
+    ports:
+
+      - "7001:7001"
+
+    networks:
+
+      - expense-net
+
+    extra_hosts:
+
+      - "host.docker.internal:10.230.34.43"
+
+    environment:
+
+      - SPRING_PROFILES_ACTIVE=docker
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/chat_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+
+      - SPRING_DATASOURCE_USERNAME=root
+
+      - SPRING_DATASOURCE_PASSWORD=123456
+
+      - SPRING_REDIS_HOST=redis
+
+      - SPRING_REDIS_PORT=6379
+
+      - USER_SERVICE_URL=http://user-service:6001
+
+      - FRIENDSHIP_SERVICE_URL=http://friendship-service:6009
+
+    depends_on:
+
+      mysql:
+
+        condition: service_healthy
+
+      redis:
+
+        condition: service_started
+
+      eureka-server:
+
+        condition: service_healthy
+
+      user-service:
+
+        condition: service_started
+
+      friendship-service:
 
         condition: service_started
 
