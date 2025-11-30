@@ -15,6 +15,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import NoDataPlaceholder from "../../components/NoDataPlaceholder"; // adjust path if needed
 import DatePickerPopover from "../common/DatePickerPopover";
+import MonthPickerDropdown from "./MonthPickerDropdown";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useMasking } from "../../hooks/useMasking";
@@ -80,6 +81,33 @@ export default function CashFlowExpenseCards({
 
   const handleDatePickerClose = () => {
     setDatePickerAnchor(null);
+  };
+
+  const handleMonthClick = (event) => {
+    setMonthPickerAnchor(event.currentTarget);
+  };
+
+  const handleMonthPickerClose = () => {
+    setMonthPickerAnchor(null);
+  };
+
+  const handleMonthSelect = (year, month) => {
+    // Find first date section of the selected month
+    if (scrollContainerRef.current) {
+      const monthSection = document.querySelector(
+        `[data-year="${year}"][data-month="${month}"]`
+      );
+
+      if (monthSection) {
+        const container = scrollContainerRef.current;
+        const sectionTop = monthSection.offsetTop;
+        container.scrollTo({
+          top: sectionTop - 80,
+          behavior: "smooth",
+        });
+      }
+    }
+    handleMonthPickerClose();
   };
 
   const scrollToTop = () => {
@@ -442,6 +470,28 @@ export default function CashFlowExpenseCards({
       maxDate: latestDate ? dayjs(latestDate.date, dateFormat) : null,
     };
   }, [data, dateFormat]);
+
+  // Get available months in current year for dropdown
+  const availableMonthsInYear = useMemo(() => {
+    if (!groupedExpenses.groups || !currentHeader.year) return [];
+
+    const currentYear = currentHeader.year;
+    const yearData = groupedExpenses.groups[currentYear];
+
+    if (!yearData) return [];
+
+    return Object.keys(yearData)
+      .map((month) => ({
+        year: currentYear,
+        month: month,
+        monthOnly: month, // Keep full "November 2025" format
+      }))
+      .sort((a, b) => {
+        const dateA = dayjs(a.month, "MMMM YYYY");
+        const dateB = dayjs(b.month, "MMMM YYYY");
+        return dateA.valueOf() - dateB.valueOf();
+      });
+  }, [groupedExpenses.groups, currentHeader.year]);
 
   // Update header when data changes or sort order changes
   useEffect(() => {
@@ -1100,7 +1150,7 @@ export default function CashFlowExpenseCards({
               </IconButton>
             )}
 
-            {/* Month Badge */}
+            {/* Month Badge - Clickable only in year view */}
             <div
               style={{
                 fontSize: "13px",
@@ -1112,10 +1162,46 @@ export default function CashFlowExpenseCards({
                 border: `1px solid ${colors.primary_accent}40`,
                 minWidth: "130px",
                 textAlign: "center",
+                cursor: activeRange === "year" ? "pointer" : "default",
+                transition: "all 0.2s ease",
               }}
+              onClick={activeRange === "year" ? handleMonthClick : undefined}
+              onMouseEnter={
+                activeRange === "year"
+                  ? (e) => {
+                      e.currentTarget.style.background = `${colors.primary_accent}25`;
+                      e.currentTarget.style.transform = "scale(1.05)";
+                    }
+                  : undefined
+              }
+              onMouseLeave={
+                activeRange === "year"
+                  ? (e) => {
+                      e.currentTarget.style.background = `${colors.primary_accent}15`;
+                      e.currentTarget.style.transform = "scale(1)";
+                    }
+                  : undefined
+              }
+              title={
+                activeRange === "year"
+                  ? "Click to select a month"
+                  : currentHeader.month || "Month"
+              }
             >
               {currentHeader.month || "Month"}
             </div>
+
+            {/* Month Picker Dropdown - Only show in year view */}
+            {activeRange === "year" && (
+              <MonthPickerDropdown
+                anchorEl={monthPickerAnchor}
+                open={Boolean(monthPickerAnchor)}
+                onClose={handleMonthPickerClose}
+                availableMonths={availableMonthsInYear}
+                currentMonth={currentHeader.month}
+                onMonthSelect={handleMonthSelect}
+              />
+            )}
 
             {/* Next Month Arrow - Hide for month/week view */}
             {activeRange !== "month" && activeRange !== "week" && (
