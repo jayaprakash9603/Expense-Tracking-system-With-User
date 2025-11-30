@@ -332,11 +332,13 @@ export default function CashFlowExpenseCards({
                   className="text-xs font-medium ml-2 flex-shrink-0"
                   style={{
                     whiteSpace: "nowrap",
-                    color: colors.secondary_text,
-                    background: colors.secondary_bg,
-                    padding: "1px 4px",
-                    borderRadius: "3px",
+                    color: colors.primary_text,
+                    background: `${colors.primary_accent}22`,
+                    padding: "3px 8px",
+                    borderRadius: "6px",
                     fontSize: "10px",
+                    fontWeight: "700",
+                    letterSpacing: "0.3px",
                   }}
                   title={dateValue}
                 >
