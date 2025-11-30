@@ -964,26 +964,26 @@ export default function CashFlowExpenseCards({
       {showScrollTop && (
         <IconButton
           onClick={scrollToTop}
+          size="small"
           sx={{
             position: "absolute",
             top: "70px",
             right: "5px",
-            background: colors.primary_accent,
-            color: "#fff",
-            width: "36px",
-            height: "36px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            width: "28px",
+            height: "28px",
+            background: `${colors.primary_accent}15`,
+            border: `1px solid ${colors.primary_accent}40`,
+            color: colors.primary_accent,
             zIndex: 9,
-            transition: "all 0.3s ease",
+            transition: "all 0.2s ease",
             "&:hover": {
-              background: colors.primary_accent,
+              background: `${colors.primary_accent}25`,
               transform: "scale(1.1)",
-              boxShadow: "0 6px 16px rgba(0,0,0,0.3)",
             },
           }}
           title="Scroll to Top"
         >
-          <KeyboardArrowUpIcon sx={{ fontSize: 20 }} />
+          <KeyboardArrowUpIcon sx={{ fontSize: 18 }} />
         </IconButton>
       )}
 
@@ -991,26 +991,26 @@ export default function CashFlowExpenseCards({
       {showScrollBottom && (
         <IconButton
           onClick={scrollToBottom}
+          size="small"
           sx={{
             position: "absolute",
             bottom: "10px",
             right: "5px",
-            background: colors.primary_accent,
-            color: "#fff",
-            width: "36px",
-            height: "36px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            width: "28px",
+            height: "28px",
+            background: `${colors.primary_accent}15`,
+            border: `1px solid ${colors.primary_accent}40`,
+            color: colors.primary_accent,
             zIndex: 9,
-            transition: "all 0.3s ease",
+            transition: "all 0.2s ease",
             "&:hover": {
-              background: colors.primary_accent,
+              background: `${colors.primary_accent}25`,
               transform: "scale(1.1)",
-              boxShadow: "0 6px 16px rgba(0,0,0,0.3)",
             },
           }}
           title="Scroll to Bottom"
         >
-          <KeyboardArrowDownIcon sx={{ fontSize: 20 }} />
+          <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
         </IconButton>
       )}
 
@@ -1110,6 +1110,8 @@ export default function CashFlowExpenseCards({
                 borderRadius: "20px",
                 background: `${colors.primary_accent}15`,
                 border: `1px solid ${colors.primary_accent}40`,
+                minWidth: "130px",
+                textAlign: "center",
               }}
             >
               {currentHeader.month || "Month"}
