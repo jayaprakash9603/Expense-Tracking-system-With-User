@@ -7,6 +7,7 @@ import CategoryIcon from "@mui/icons-material/Category";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 import NoDataPlaceholder from "../../components/NoDataPlaceholder"; // adjust path if needed
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
@@ -53,8 +54,8 @@ export default function CashFlowExpenseCards({
       savedScrollPositionRef.current = container.scrollTop;
     };
 
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
   const wrapperClass =
@@ -92,10 +93,7 @@ export default function CashFlowExpenseCards({
 
   if (loading && !search && data.length === 0) {
     return (
-      <div
-        className={wrapperClass}
-        style={wrapperStyle}
-      >
+      <div className={wrapperClass} style={wrapperStyle}>
         {Array.from({ length: 3 }).map((_, idx) => (
           <Skeleton
             key={idx}
@@ -113,10 +111,7 @@ export default function CashFlowExpenseCards({
 
   if (data.length === 0) {
     return (
-      <div
-        className={wrapperClass}
-        style={wrapperStyle}
-      >
+      <div className={wrapperClass} style={wrapperStyle}>
         <NoDataPlaceholder
           size={isMobile ? "lg" : "fill"}
           fullWidth
@@ -134,9 +129,9 @@ export default function CashFlowExpenseCards({
   }
 
   return (
-    <div 
+    <div
       ref={scrollContainerRef}
-      className={wrapperClass} 
+      className={wrapperClass}
       style={wrapperStyle}
       onMouseLeave={(e) => {
         // Prevent any automatic scrolling when mouse leaves
@@ -227,9 +222,20 @@ export default function CashFlowExpenseCards({
           return dtStr;
         })();
 
-        const categoryName = row.categoryName || row.category?.name || row.category || row.expense?.category || "Uncategorized";
-        const rawPaymentMethod = row.paymentMethodName || row.paymentMethod?.name || row.paymentMethod || row.expense?.paymentMethod || "Unknown";
+        const categoryName =
+          row.categoryName ||
+          row.category?.name ||
+          row.category ||
+          row.expense?.category ||
+          "Uncategorized";
+        const rawPaymentMethod =
+          row.paymentMethodName ||
+          row.paymentMethod?.name ||
+          row.paymentMethod ||
+          row.expense?.paymentMethod ||
+          "Unknown";
         const paymentMethodName = formatPaymentMethodName(rawPaymentMethod);
+        const isBill = row.bill === true; // Check if this is a bill expense
 
         return (
           <div
@@ -252,11 +258,12 @@ export default function CashFlowExpenseCards({
                   : "rgba(255, 77, 79, 0.13)"
                 : colors.primary_bg,
               // Changed from "all" to specific properties to prevent layout shifts
-              transition: "background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease",
+              transition:
+                "background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease",
               margin: "6px",
               border: isSelected
                 ? `2px solid ${isGain ? "#06d6a0" : "#ff4d4f"}`
-                : `1px solid ${colors.border_color || 'transparent'}`,
+                : `1px solid ${colors.border_color || "transparent"}`,
               userSelect: "none",
               outline: "none", // Prevent focus outline that triggers scroll
               willChange: "background, border, box-shadow", // Optimize rendering
@@ -267,19 +274,19 @@ export default function CashFlowExpenseCards({
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
-              
+
               // Save current scroll position BEFORE handling click
               const container = scrollContainerRef.current;
               const scrollPos = container ? container.scrollTop : 0;
-              
+
               // Prevent any scroll behavior
               if (event.target && event.target.blur) {
                 event.target.blur();
               }
-              
+
               // Handle the click
               handleCardClick(idx, event);
-              
+
               // Restore scroll position immediately after click
               requestAnimationFrame(() => {
                 if (container) {
@@ -287,7 +294,7 @@ export default function CashFlowExpenseCards({
                   savedScrollPositionRef.current = scrollPos;
                 }
               });
-              
+
               // Double-check after a short delay
               setTimeout(() => {
                 if (container && container.scrollTop !== scrollPos) {
@@ -303,7 +310,13 @@ export default function CashFlowExpenseCards({
           >
             <div className="flex flex-col gap-1" style={{ height: "100%" }}>
               {/* Header: Name and Date */}
-              <div className="flex items-center justify-between min-w-0 border-b pb-0.5" style={{ borderColor: colors.border_color, marginBottom: "2px" }}>
+              <div
+                className="flex items-center justify-between min-w-0 border-b pb-0.5"
+                style={{
+                  borderColor: colors.border_color,
+                  marginBottom: "2px",
+                }}
+              >
                 <span
                   className="font-bold text-base truncate min-w-0"
                   title={row.name}
@@ -331,36 +344,86 @@ export default function CashFlowExpenseCards({
                 </span>
               </div>
 
-              {/* Amount */}
-              <div className="text-xl font-bold flex items-center gap-1.5" style={{ margin: "2px 0" }}>
-                {icon}
-                <span
-                  style={{
-                    color: amountColor,
-                    fontSize: "16px",
-                    fontWeight: 700,
-                  }}
-                  title={
-                    row.expense?.masked || (isMasking() && row.amount)
-                      ? "Amount masked"
-                      : `Amount: ${formatNumberFull(row.amount)}`
-                  }
-                >
-                  {row.expense?.masked || (isMasking() && row.amount)
-                    ? maskAmount(row.amount)
-                    : formatNumberFull(row.amount)}
-                </span>
+              {/* Amount with Bill Badge */}
+              <div
+                className="text-xl font-bold flex items-center justify-between gap-1.5"
+                style={{ margin: "2px 0" }}
+              >
+                <div className="flex items-center gap-1.5">
+                  {icon}
+                  <span
+                    style={{
+                      color: amountColor,
+                      fontSize: "16px",
+                      fontWeight: 700,
+                    }}
+                    title={
+                      row.expense?.masked || (isMasking() && row.amount)
+                        ? "Amount masked"
+                        : `Amount: ${formatNumberFull(row.amount)}`
+                    }
+                  >
+                    {row.expense?.masked || (isMasking() && row.amount)
+                      ? maskAmount(row.amount)
+                      : formatNumberFull(row.amount)}
+                  </span>
+                </div>
+                {isBill && (
+                  <span
+                    className="flex items-center gap-0.5 flex-shrink-0"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #ff9800 0%, #ff6f00 100%)",
+                      color: "#fff",
+                      padding: "2px 5px",
+                      borderRadius: "3px",
+                      fontSize: "9px",
+                      fontWeight: "700",
+                      letterSpacing: "0.2px",
+                      boxShadow: "0 1px 3px rgba(255, 152, 0, 0.3)",
+                      textTransform: "uppercase",
+                      lineHeight: "1.1",
+                    }}
+                    title="This is a bill expense"
+                  >
+                    <ReceiptIcon sx={{ fontSize: 10, color: "#fff" }} />
+                    Bill
+                  </span>
+                )}
               </div>
 
               {/* Details: Category & Payment Method */}
-              <div className="flex items-center gap-2 text-xs" style={{ color: colors.secondary_text, margin: "2px 0" }}>
-                <div className="flex items-center gap-1 min-w-0 flex-1" title={`Category: ${categoryName}`}>
-                  <LocalOfferIcon sx={{ fontSize: 13, color: colors.primary_accent }} />
-                  <span className="truncate font-medium" style={{ fontSize: "10.5px" }}>{categoryName}</span>
+              <div
+                className="flex items-center gap-2 text-xs"
+                style={{ color: colors.secondary_text, margin: "2px 0" }}
+              >
+                <div
+                  className="flex items-center gap-1 min-w-0 flex-1"
+                  title={`Category: ${categoryName}`}
+                >
+                  <LocalOfferIcon
+                    sx={{ fontSize: 13, color: colors.primary_accent }}
+                  />
+                  <span
+                    className="truncate font-medium"
+                    style={{ fontSize: "10.5px" }}
+                  >
+                    {categoryName}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1 min-w-0 flex-1" title={`Payment: ${paymentMethodName}`}>
-                  <AccountBalanceWalletIcon sx={{ fontSize: 13, color: colors.secondary_accent }} />
-                  <span className="truncate font-medium" style={{ fontSize: "10.5px" }}>{paymentMethodName}</span>
+                <div
+                  className="flex items-center gap-1 min-w-0 flex-1"
+                  title={`Payment: ${paymentMethodName}`}
+                >
+                  <AccountBalanceWalletIcon
+                    sx={{ fontSize: 13, color: colors.secondary_accent }}
+                  />
+                  <span
+                    className="truncate font-medium"
+                    style={{ fontSize: "10.5px" }}
+                  >
+                    {paymentMethodName}
+                  </span>
                 </div>
               </div>
 
