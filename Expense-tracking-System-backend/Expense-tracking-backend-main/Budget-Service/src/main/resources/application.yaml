@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: BUDGET_SERVICE
+    name: BUDGET-SERVICE
   main:
     allow-bean-definition-overriding: true
   cloud:

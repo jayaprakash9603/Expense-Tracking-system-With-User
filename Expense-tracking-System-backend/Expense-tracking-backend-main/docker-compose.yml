@@ -162,7 +162,7 @@ services:
 
       - USER_SERVICE_URL=lb://USER-SERVICE
 
-      - BUDGET_SERVICE_URL=lb://BUDGET_SERVICE
+      - BUDGET_SERVICE_URL=lb://BUDGET-SERVICE
 
       - CHAT_SERVICE_URL=http://host.docker.internal:7001
 
@@ -270,9 +270,9 @@ services:
 
       - USER_SERVICE_URL=http://user-service:6001
 
-      - BUDGET_SERVICE_URL=http://host.docker.internal:6005
+      - BUDGET_SERVICE_URL=http://budget-service:6005
 
-      - CATEGORY_SERVICE_URL=http://host.docker.internal:6008
+      - CATEGORY_SERVICE_URL=http://category-service:6008
 
       - PAYMENT_SERVICE_URL=http://payment-service:6006
 
