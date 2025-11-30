@@ -209,7 +209,7 @@ const CashFlowChart = ({
             formatCurrencyCompact(value, currencySymbol),
             "Amount",
           ]}
-          wrapperStyle={{ zIndex: 1000 }}
+          wrapperStyle={{ zIndex: 10 }}
           labelFormatter={tooltipFormatter}
         />
         {Array.isArray(chartData) && chartData.length > 0 && (
