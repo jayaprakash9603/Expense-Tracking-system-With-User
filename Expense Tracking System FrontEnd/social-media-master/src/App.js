@@ -60,7 +60,13 @@ import CategoryReport from "./pages/Landingpage/Category Report/CategoryReport";
 import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentReport";
 import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
 import AllBudgetsReport from "./pages/Landingpage/Budget Report/AllBudgetsReport";
-import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard/AdminDashboard";
+import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard";
+import SystemAnalytics from "./pages/Landingpage/Admin/SystemAnalytics";
+import UserManagement from "./pages/Landingpage/Admin/UserManagement";
+import RoleManagement from "./pages/Landingpage/Admin/RoleManagement";
+import AuditLogsAdmin from "./pages/Landingpage/Admin/AuditLogs";
+import ReportsAdmin from "./pages/Landingpage/Admin/Reports";
+import AdminSettings from "./pages/Landingpage/Admin/AdminSettings";
 import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
 import Bill from "./pages/Landingpage/Bills/Bill";
 import BudgetDashboard from "./pages/Landingpage/Budget/BudgetDashboard";
@@ -296,15 +302,15 @@ function App() {
               <Route path=":date/friend/:friendId" element={<DayBillsView />} />
             </Route>
 
-            {/* Admin Routes - All admin pages */}
+            {/* Admin Routes - Each tab shows its own component */}
             <Route path="admin">
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="users" element={<AdminDashboard />} />
-              <Route path="roles" element={<AdminDashboard />} />
-              <Route path="analytics" element={<AdminDashboard />} />
-              <Route path="audit" element={<AdminDashboard />} />
-              <Route path="reports" element={<AdminDashboard />} />
-              <Route path="settings" element={<AdminDashboard />} />
+              <Route path="dashboard" element={<SystemAnalytics />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="roles" element={<RoleManagement />} />
+              <Route path="analytics" element={<SystemAnalytics />} />
+              <Route path="audit" element={<AuditLogsAdmin />} />
+              <Route path="reports" element={<ReportsAdmin />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
           </Route>
 
