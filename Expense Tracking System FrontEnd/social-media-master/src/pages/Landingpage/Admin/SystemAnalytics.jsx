@@ -1,19 +1,27 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import {
   FormControl,
   InputLabel,
   Select,
   MenuItem as MuiMenuItem,
 } from "@mui/material";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import TrendingDownIcon from "@mui/icons-material/TrendingDown";
-import { getThemeColors } from "../../../config/themeConfig";
-import "./AdminPanel.css";
+import {
+  AdminPanelContainer,
+  AdminPageHeader,
+  StatCard,
+  SectionCard,
+} from "./components";
+import {
+  formatNumber,
+  formatCurrency,
+  formatPercentage,
+} from "./utils/adminUtils";
 
+/**
+ * System Analytics Component
+ * Displays comprehensive system metrics, user statistics, and activity trends
+ */
 const SystemAnalytics = () => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
   const [timeRange, setTimeRange] = useState("7d");
 
   // Static analytics data
@@ -73,222 +81,98 @@ const SystemAnalytics = () => {
     { name: "David Brown", expenses: 128, amount: 6890.50 },
   ];
 
+  // Time range selector component
+  const TimeRangeSelector = () => (
+    <FormControl size="small" style={{ minWidth: 150 }}>
+      <InputLabel>Time Range</InputLabel>
+      <Select
+        value={timeRange}
+        onChange={(e) => setTimeRange(e.target.value)}
+        label="Time Range"
+      >
+        <MuiMenuItem value="7d">Last 7 Days</MuiMenuItem>
+        <MuiMenuItem value="30d">Last 30 Days</MuiMenuItem>
+        <MuiMenuItem value="90d">Last 90 Days</MuiMenuItem>
+        <MuiMenuItem value="1y">Last Year</MuiMenuItem>
+      </Select>
+    </FormControl>
+  );
+
   return (
-    <div
-      className="admin-panel-container"
-      style={{
-        backgroundColor: themeColors.secondary_bg,
-        color: themeColors.primary_text,
-        border: `1px solid ${themeColors.border}`,
-      }}
-    >
-      {/* Header */}
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1
-            className="text-3xl font-bold mb-2"
-            style={{ color: themeColors.primary_text }}
-          >
-            System Analytics
-          </h1>
-          <p style={{ color: themeColors.secondary_text }}>
-            Monitor system performance and user activity
-          </p>
-        </div>
-        <FormControl size="small" style={{ minWidth: 150 }}>
-          <InputLabel style={{ color: themeColors.secondary_text }}>
-            Time Range
-          </InputLabel>
-          <Select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            label="Time Range"
-            style={{
-              color: themeColors.primary_text,
-              backgroundColor: themeColors.card_bg,
-            }}
-          >
-            <MuiMenuItem value="7d">Last 7 Days</MuiMenuItem>
-            <MuiMenuItem value="30d">Last 30 Days</MuiMenuItem>
-            <MuiMenuItem value="90d">Last 90 Days</MuiMenuItem>
-            <MuiMenuItem value="1y">Last Year</MuiMenuItem>
-          </Select>
-        </FormControl>
-      </div>
+    <AdminPanelContainer>
+      {/* Page Header */}
+      <AdminPageHeader
+        title="System Analytics"
+        description="Monitor system performance and user activity"
+        actions={<TimeRangeSelector />}
+      />
 
-      {/* Key Metrics */}
+      {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <div className="flex justify-between items-start mb-2">
-            <p
-              className="text-sm"
-              style={{ color: themeColors.secondary_text }}
-            >
-              Total Users
-            </p>
-            <div
-              className="flex items-center gap-1 text-sm"
-              style={{ color: "#4caf50" }}
-            >
-              <TrendingUpIcon fontSize="small" />
-              <span>+{stats.userGrowth}%</span>
-            </div>
-          </div>
-          <p
-            className="text-3xl font-bold"
-            style={{ color: themeColors.primary_text }}
-          >
-            {stats.totalUsers.toLocaleString()}
-          </p>
-          <p
-            className="text-xs mt-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            +{stats.newUsersThisMonth} this month
-          </p>
-        </div>
-
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <div className="flex justify-between items-start mb-2">
-            <p
-              className="text-sm"
-              style={{ color: themeColors.secondary_text }}
-            >
-              Active Users
-            </p>
-            <div
-              className="flex items-center gap-1 text-sm"
-              style={{ color: "#4caf50" }}
-            >
-              <TrendingUpIcon fontSize="small" />
-              <span>+{stats.activeGrowth}%</span>
-            </div>
-          </div>
-          <p
-            className="text-3xl font-bold"
-            style={{ color: themeColors.primary_text }}
-          >
-            {stats.activeUsers.toLocaleString()}
-          </p>
-          <p
-            className="text-xs mt-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Last 30 days
-          </p>
-        </div>
-
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <div className="flex justify-between items-start mb-2">
-            <p
-              className="text-sm"
-              style={{ color: themeColors.secondary_text }}
-            >
-              Total Expenses
-            </p>
-            <div
-              className="flex items-center gap-1 text-sm"
-              style={{ color: "#f44336" }}
-            >
-              <TrendingDownIcon fontSize="small" />
-              <span>{stats.expenseGrowth}%</span>
-            </div>
-          </div>
-          <p
-            className="text-3xl font-bold"
-            style={{ color: themeColors.primary_text }}
-          >
-            {stats.totalExpenses.toLocaleString()}
-          </p>
-          <p
-            className="text-xs mt-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Avg {stats.avgExpensePerUser}/user
-          </p>
-        </div>
-
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <div className="flex justify-between items-start mb-2">
-            <p
-              className="text-sm"
-              style={{ color: themeColors.secondary_text }}
-            >
-              Total Revenue
-            </p>
-            <div
-              className="flex items-center gap-1 text-sm"
-              style={{ color: "#4caf50" }}
-            >
-              <TrendingUpIcon fontSize="small" />
-              <span>+{stats.revenueGrowth}%</span>
-            </div>
-          </div>
-          <p
-            className="text-3xl font-bold"
-            style={{ color: themeColors.primary_text }}
-          >
-            ${stats.totalRevenue.toLocaleString()}
-          </p>
-          <p
-            className="text-xs mt-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            This month
-          </p>
-        </div>
+        <StatCard
+          label="Total Users"
+          value={formatNumber(stats.totalUsers)}
+          growth={formatPercentage(stats.userGrowth)}
+        />
+        <StatCard
+          label="Active Users"
+          value={formatNumber(stats.activeUsers)}
+          growth={formatPercentage(stats.activeGrowth)}
+        />
+        <StatCard
+          label="Total Expenses"
+          value={formatNumber(stats.totalExpenses)}
+          growth={formatPercentage(stats.expenseGrowth)}
+        />
+        <StatCard
+          label="Total Revenue"
+          value={formatCurrency(stats.totalRevenue)}
+          growth={formatPercentage(stats.revenueGrowth)}
+        />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* Top Categories */}
-        <div
-          className="p-6 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <h3
-            className="text-lg font-bold mb-4"
-            style={{ color: themeColors.primary_text }}
-          >
-            Top Categories
-          </h3>
+      {/* Activity & Categories Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Recent Activity Section */}
+        <SectionCard title="Recent Activity">
+          <div className="space-y-3">
+            {recentActivity.map((activity, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 rounded"
+                style={{ backgroundColor: "rgba(20, 184, 166, 0.1)" }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{activity.icon}</span>
+                  <div>
+                    <p className="font-medium">{activity.type}</p>
+                    <p className="text-sm opacity-70">{activity.time}</p>
+                  </div>
+                </div>
+                <div className="text-xl font-bold" style={{ color: "#14b8a6" }}>
+                  {activity.count}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        {/* Top Categories Section */}
+        <SectionCard title="Top Categories">
           <div className="space-y-4">
             {topCategories.map((category, index) => (
               <div key={index}>
-                <div className="flex justify-between items-center mb-1">
-                  <p
-                    className="text-sm font-medium"
-                    style={{ color: themeColors.primary_text }}
-                  >
-                    {category.name}
-                  </p>
-                  <p
-                    className="text-sm"
-                    style={{ color: themeColors.secondary_text }}
-                  >
-                    {category.count.toLocaleString()} ({category.percentage}%)
-                  </p>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">{category.name}</span>
+                  <span className="text-sm opacity-70">
+                    {formatNumber(category.count)} ({formatPercentage(category.percentage, 1)})
+                  </span>
                 </div>
-                <div
-                  className="w-full h-2 rounded-full"
-                  style={{ backgroundColor: themeColors.primary_bg }}
-                >
+                <div className="w-full h-2 rounded-full overflow-hidden bg-gray-700">
                   <div
-                    className="h-2 rounded-full"
+                    className="h-full rounded-full transition-all duration-300"
                     style={{
-                      width: `${category.percentage * 5}%`,
+                      width: `${category.percentage}%`,
                       backgroundColor: category.color,
                     }}
                   />
@@ -296,144 +180,37 @@ const SystemAnalytics = () => {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div
-          className="p-6 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <h3
-            className="text-lg font-bold mb-4"
-            style={{ color: themeColors.primary_text }}
-          >
-            Recent Activity
-          </h3>
-          <div className="space-y-4">
-            {recentActivity.map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 rounded"
-                style={{ backgroundColor: themeColors.primary_bg }}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{activity.icon}</span>
-                  <div>
-                    <p
-                      className="font-medium"
-                      style={{ color: themeColors.primary_text }}
-                    >
-                      {activity.type}
-                    </p>
-                    <p
-                      className="text-xs"
-                      style={{ color: themeColors.secondary_text }}
-                    >
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-                <p
-                  className="text-xl font-bold"
-                  style={{ color: "#14b8a6" }}
-                >
-                  {activity.count}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+        </SectionCard>
       </div>
 
-      {/* Top Users */}
-      <div
-        className="p-6 rounded-lg"
-        style={{ backgroundColor: themeColors.card_bg }}
-      >
-        <h3
-          className="text-lg font-bold mb-4"
-          style={{ color: themeColors.primary_text }}
-        >
-          Top Users by Activity
-        </h3>
+      {/* Top Users Table */}
+      <SectionCard title="Top Active Users">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr style={{ borderBottom: `1px solid ${themeColors.border}` }}>
-                <th
-                  className="px-4 py-2 text-left text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
-                  Rank
-                </th>
-                <th
-                  className="px-4 py-2 text-left text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
-                  User
-                </th>
-                <th
-                  className="px-4 py-2 text-right text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
-                  Expenses
-                </th>
-                <th
-                  className="px-4 py-2 text-right text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
-                  Total Amount
-                </th>
+              <tr className="border-b border-gray-700">
+                <th className="px-4 py-3 text-left text-sm font-semibold">Rank</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold">User Name</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold">Expenses</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold">Total Amount</th>
               </tr>
             </thead>
             <tbody>
               {topUsers.map((user, index) => (
-                <tr
-                  key={index}
-                  style={{ borderBottom: `1px solid ${themeColors.border}` }}
-                >
-                  <td className="px-4 py-3">
-                    <span
-                      className="text-2xl font-bold"
-                      style={{
-                        color:
-                          index === 0
-                            ? "#ffd700"
-                            : index === 1
-                            ? "#c0c0c0"
-                            : index === 2
-                            ? "#cd7f32"
-                            : themeColors.secondary_text,
-                      }}
-                    >
-                      #{index + 1}
-                    </span>
-                  </td>
-                  <td
-                    className="px-4 py-3 font-medium"
-                    style={{ color: themeColors.primary_text }}
-                  >
-                    {user.name}
-                  </td>
-                  <td
-                    className="px-4 py-3 text-right"
-                    style={{ color: themeColors.secondary_text }}
-                  >
-                    {user.expenses}
-                  </td>
-                  <td
-                    className="px-4 py-3 text-right font-semibold"
-                    style={{ color: "#14b8a6" }}
-                  >
-                    ${user.amount.toFixed(2)}
+                <tr key={index} className="border-b border-gray-700">
+                  <td className="px-4 py-3 opacity-70">#{index + 1}</td>
+                  <td className="px-4 py-3 font-medium">{user.name}</td>
+                  <td className="px-4 py-3 opacity-70">{formatNumber(user.expenses)}</td>
+                  <td className="px-4 py-3 font-semibold" style={{ color: "#14b8a6" }}>
+                    {formatCurrency(user.amount)}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </SectionCard>
+    </AdminPanelContainer>
   );
 };
 

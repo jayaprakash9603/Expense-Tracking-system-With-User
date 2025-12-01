@@ -1,431 +1,297 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import {
   Button,
+  TextField,
   Switch,
   FormControlLabel,
-  TextField,
   Select,
   MenuItem as MuiMenuItem,
   FormControl,
   InputLabel,
-  Chip,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import SecurityIcon from "@mui/icons-material/Security";
-import PaletteIcon from "@mui/icons-material/Palette";
-import StorageIcon from "@mui/icons-material/Storage";
-import EmailIcon from "@mui/icons-material/Email";
-import LockIcon from "@mui/icons-material/Lock";
-import { getThemeColors } from "../../../config/themeConfig";
-import "./AdminPanel.css";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import {
+  AdminPanelContainer,
+  AdminPageHeader,
+  SectionCard,
+} from "./components";
 
 const AdminSettings = () => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
+  // Notification Settings
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(true);
+  const [notificationFrequency, setNotificationFrequency] = useState("instant");
 
-  // Settings state
-  const [settings, setSettings] = useState({
-    // Notification Settings
-    emailNotifications: true,
-    pushNotifications: false,
-    weeklyReports: true,
-    securityAlerts: true,
-    maintenanceAlerts: false,
-    
-    // Security Settings
-    twoFactorAuth: true,
-    sessionTimeout: "30",
-    passwordExpiry: "90",
-    maxLoginAttempts: "5",
-    ipWhitelisting: false,
-    
-    // Appearance Settings
-    defaultTheme: "light",
-    compactMode: false,
-    showAnimations: true,
-    
-    // System Settings
-    dataRetention: "365",
-    autoBackup: true,
-    backupFrequency: "daily",
-    maintenanceMode: false,
-    debugMode: false,
-  });
+  // Security Settings
+  const [twoFactorAuth, setTwoFactorAuth] = useState(true);
+  const [sessionTimeout, setSessionTimeout] = useState("30");
+  const [passwordExpiry, setPasswordExpiry] = useState("90");
 
-  const handleToggle = (setting) => {
-    setSettings((prev) => ({
-      ...prev,
-      [setting]: !prev[setting],
-    }));
-  };
+  // Appearance Settings
+  const [defaultTheme, setDefaultTheme] = useState("dark");
+  const [compactMode, setCompactMode] = useState(false);
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
-  const handleChange = (setting, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      [setting]: value,
-    }));
-  };
+  // System Settings
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [autoBackup, setAutoBackup] = useState(true);
+  const [backupFrequency, setBackupFrequency] = useState("daily");
+  const [maxLoginAttempts, setMaxLoginAttempts] = useState("5");
 
   const handleSaveSettings = () => {
-    alert("Settings saved successfully!");
-    console.log("Saved settings:", settings);
+    console.log("Saving settings...");
+    // Save logic here
   };
 
-  const SettingSection = ({ title, icon: Icon, children }) => (
-    <div
-      className="p-6 rounded-lg mb-6"
-      style={{ backgroundColor: themeColors.card_bg }}
-    >
-      <div className="flex items-center gap-3 mb-4">
-        <Icon style={{ color: themeColors.accent, fontSize: 28 }} />
-        <h3
-          className="text-xl font-semibold"
-          style={{ color: themeColors.primary_text }}
-        >
-          {title}
-        </h3>
-      </div>
-      <div className="space-y-4">{children}</div>
-    </div>
-  );
+  const handleResetSettings = () => {
+    console.log("Resetting to defaults...");
+    // Reset logic here
+  };
 
   return (
-    <div
-      className="admin-panel-container"
-      style={{
-        backgroundColor: themeColors.secondary_bg,
-        color: themeColors.primary_text,
-        border: `1px solid ${themeColors.border}`,
-      }}
-    >
-      {/* Header */}
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1
-            className="text-3xl font-bold mb-2"
-            style={{ color: themeColors.primary_text }}
-          >
-            System Settings
-          </h1>
-          <p style={{ color: themeColors.secondary_text }}>
-            Configure system preferences and security options
-          </p>
-        </div>
-        <Button
-          variant="contained"
-          startIcon={<SaveIcon />}
-          onClick={handleSaveSettings}
-          style={{
-            backgroundColor: themeColors.accent,
-            color: "#fff",
-          }}
-        >
-          Save Changes
-        </Button>
-      </div>
+    <AdminPanelContainer>
+      {/* Page Header */}
+      <AdminPageHeader
+        title="Settings"
+        description="Configure system preferences and behavior"
+        actions={
+          <div className="flex gap-3">
+            <Button
+              variant="outlined"
+              startIcon={<RestartAltIcon />}
+              onClick={handleResetSettings}
+            >
+              Reset to Defaults
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<SaveIcon />}
+              style={{
+                backgroundColor: "#14b8a6",
+                color: "#fff",
+              }}
+              onClick={handleSaveSettings}
+            >
+              Save Changes
+            </Button>
+          </div>
+        }
+      />
 
       {/* Notification Settings */}
-      <SettingSection title="Notification Preferences" icon={NotificationsIcon}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.emailNotifications}
-              onChange={() => handleToggle("emailNotifications")}
-              color="primary"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Email Notifications
-            </span>
-          }
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.pushNotifications}
-              onChange={() => handleToggle("pushNotifications")}
-              color="primary"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Push Notifications
-            </span>
-          }
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.weeklyReports}
-              onChange={() => handleToggle("weeklyReports")}
-              color="primary"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Weekly Summary Reports
-            </span>
-          }
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.securityAlerts}
-              onChange={() => handleToggle("securityAlerts")}
-              color="primary"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Security Alerts <Chip label="Recommended" size="small" color="error" />
-            </span>
-          }
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.maintenanceAlerts}
-              onChange={() => handleToggle("maintenanceAlerts")}
-              color="primary"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Maintenance Notifications
-            </span>
-          }
-        />
-      </SettingSection>
+      <SectionCard title="Notification Settings" className="mb-6">
+        <div className="space-y-4">
+          <FormControlLabel
+            control={
+              <Switch
+                checked={emailNotifications}
+                onChange={(e) => setEmailNotifications(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Email Notifications"
+          />
+          <p className="text-sm opacity-70 ml-12 -mt-2">
+            Receive notifications via email for important events
+          </p>
 
-      {/* Security Settings */}
-      <SettingSection title="Security Configuration" icon={SecurityIcon}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.twoFactorAuth}
-              onChange={() => handleToggle("twoFactorAuth")}
-              color="primary"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Two-Factor Authentication <Chip label="Recommended" size="small" color="success" />
-            </span>
-          }
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormControl size="small" fullWidth>
-            <InputLabel style={{ color: themeColors.secondary_text }}>
-              Session Timeout (minutes)
-            </InputLabel>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={pushNotifications}
+                onChange={(e) => setPushNotifications(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Push Notifications"
+          />
+          <p className="text-sm opacity-70 ml-12 -mt-2">
+            Get real-time push notifications in your browser
+          </p>
+
+          <FormControl fullWidth className="mt-4">
+            <InputLabel>Notification Frequency</InputLabel>
             <Select
-              value={settings.sessionTimeout}
-              onChange={(e) => handleChange("sessionTimeout", e.target.value)}
-              label="Session Timeout (minutes)"
-              style={{
-                color: themeColors.primary_text,
-                backgroundColor: themeColors.primary_bg,
-              }}
+              value={notificationFrequency}
+              onChange={(e) => setNotificationFrequency(e.target.value)}
+              label="Notification Frequency"
             >
-              <MuiMenuItem value="15">15 minutes</MuiMenuItem>
-              <MuiMenuItem value="30">30 minutes</MuiMenuItem>
-              <MuiMenuItem value="60">1 hour</MuiMenuItem>
-              <MuiMenuItem value="120">2 hours</MuiMenuItem>
-            </Select>
-          </FormControl>
-          <FormControl size="small" fullWidth>
-            <InputLabel style={{ color: themeColors.secondary_text }}>
-              Password Expiry (days)
-            </InputLabel>
-            <Select
-              value={settings.passwordExpiry}
-              onChange={(e) => handleChange("passwordExpiry", e.target.value)}
-              label="Password Expiry (days)"
-              style={{
-                color: themeColors.primary_text,
-                backgroundColor: themeColors.primary_bg,
-              }}
-            >
-              <MuiMenuItem value="30">30 days</MuiMenuItem>
-              <MuiMenuItem value="60">60 days</MuiMenuItem>
-              <MuiMenuItem value="90">90 days</MuiMenuItem>
-              <MuiMenuItem value="never">Never</MuiMenuItem>
+              <MuiMenuItem value="instant">Instant</MuiMenuItem>
+              <MuiMenuItem value="hourly">Hourly Digest</MuiMenuItem>
+              <MuiMenuItem value="daily">Daily Digest</MuiMenuItem>
+              <MuiMenuItem value="weekly">Weekly Summary</MuiMenuItem>
             </Select>
           </FormControl>
         </div>
-        <TextField
-          label="Max Login Attempts"
-          type="number"
-          size="small"
-          value={settings.maxLoginAttempts}
-          onChange={(e) => handleChange("maxLoginAttempts", e.target.value)}
-          fullWidth
-          InputProps={{
-            style: {
-              color: themeColors.primary_text,
-              backgroundColor: themeColors.primary_bg,
-            },
-          }}
-          InputLabelProps={{
-            style: { color: themeColors.secondary_text },
-          }}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.ipWhitelisting}
-              onChange={() => handleToggle("ipWhitelisting")}
-              color="primary"
+      </SectionCard>
+
+      {/* Security Settings */}
+      <SectionCard title="Security Settings" className="mb-6">
+        <div className="space-y-4">
+          <FormControlLabel
+            control={
+              <Switch
+                checked={twoFactorAuth}
+                onChange={(e) => setTwoFactorAuth(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Two-Factor Authentication"
+          />
+          <p className="text-sm opacity-70 ml-12 -mt-2">
+            Require 2FA for all admin accounts
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <TextField
+              label="Session Timeout (minutes)"
+              type="number"
+              value={sessionTimeout}
+              onChange={(e) => setSessionTimeout(e.target.value)}
+              fullWidth
+              helperText="Idle time before automatic logout"
             />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Enable IP Whitelisting
-            </span>
-          }
-        />
-      </SettingSection>
+            <TextField
+              label="Password Expiry (days)"
+              type="number"
+              value={passwordExpiry}
+              onChange={(e) => setPasswordExpiry(e.target.value)}
+              fullWidth
+              helperText="Force password change after this period"
+            />
+          </div>
+
+          <TextField
+            label="Max Login Attempts"
+            type="number"
+            value={maxLoginAttempts}
+            onChange={(e) => setMaxLoginAttempts(e.target.value)}
+            fullWidth
+            helperText="Lock account after this many failed attempts"
+            className="mt-4"
+          />
+        </div>
+      </SectionCard>
 
       {/* Appearance Settings */}
-      <SettingSection title="Appearance Settings" icon={PaletteIcon}>
-        <FormControl size="small" fullWidth>
-          <InputLabel style={{ color: themeColors.secondary_text }}>
-            Default Theme
-          </InputLabel>
-          <Select
-            value={settings.defaultTheme}
-            onChange={(e) => handleChange("defaultTheme", e.target.value)}
-            label="Default Theme"
-            style={{
-              color: themeColors.primary_text,
-              backgroundColor: themeColors.primary_bg,
-            }}
-          >
-            <MuiMenuItem value="light">Light</MuiMenuItem>
-            <MuiMenuItem value="dark">Dark</MuiMenuItem>
-            <MuiMenuItem value="auto">Auto (System)</MuiMenuItem>
-          </Select>
-        </FormControl>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.compactMode}
-              onChange={() => handleToggle("compactMode")}
-              color="primary"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Compact Mode
-            </span>
-          }
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.showAnimations}
-              onChange={() => handleToggle("showAnimations")}
-              color="primary"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Show Animations
-            </span>
-          }
-        />
-      </SettingSection>
+      <SectionCard title="Appearance Settings" className="mb-6">
+        <div className="space-y-4">
+          <FormControl fullWidth>
+            <InputLabel>Default Theme</InputLabel>
+            <Select
+              value={defaultTheme}
+              onChange={(e) => setDefaultTheme(e.target.value)}
+              label="Default Theme"
+            >
+              <MuiMenuItem value="light">Light</MuiMenuItem>
+              <MuiMenuItem value="dark">Dark</MuiMenuItem>
+              <MuiMenuItem value="auto">Auto (System Preference)</MuiMenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={compactMode}
+                onChange={(e) => setCompactMode(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Compact Mode"
+          />
+          <p className="text-sm opacity-70 ml-12 -mt-2">
+            Use a more condensed layout with reduced spacing
+          </p>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={animationsEnabled}
+                onChange={(e) => setAnimationsEnabled(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Enable Animations"
+          />
+          <p className="text-sm opacity-70 ml-12 -mt-2">
+            Show smooth transitions and animations throughout the interface
+          </p>
+        </div>
+      </SectionCard>
 
       {/* System Settings */}
-      <SettingSection title="System Configuration" icon={StorageIcon}>
-        <FormControl size="small" fullWidth>
-          <InputLabel style={{ color: themeColors.secondary_text }}>
-            Data Retention (days)
-          </InputLabel>
-          <Select
-            value={settings.dataRetention}
-            onChange={(e) => handleChange("dataRetention", e.target.value)}
-            label="Data Retention (days)"
-            style={{
-              color: themeColors.primary_text,
-              backgroundColor: themeColors.primary_bg,
-            }}
-          >
-            <MuiMenuItem value="90">90 days</MuiMenuItem>
-            <MuiMenuItem value="180">180 days</MuiMenuItem>
-            <MuiMenuItem value="365">1 year</MuiMenuItem>
-            <MuiMenuItem value="730">2 years</MuiMenuItem>
-            <MuiMenuItem value="unlimited">Unlimited</MuiMenuItem>
-          </Select>
-        </FormControl>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.autoBackup}
-              onChange={() => handleToggle("autoBackup")}
-              color="primary"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Automatic Backups <Chip label="Recommended" size="small" color="success" />
-            </span>
-          }
-        />
-        {settings.autoBackup && (
-          <FormControl size="small" fullWidth>
-            <InputLabel style={{ color: themeColors.secondary_text }}>
-              Backup Frequency
-            </InputLabel>
+      <SectionCard title="System Settings" className="mb-6">
+        <div className="space-y-4">
+          <FormControlLabel
+            control={
+              <Switch
+                checked={maintenanceMode}
+                onChange={(e) => setMaintenanceMode(e.target.checked)}
+                color="warning"
+              />
+            }
+            label="Maintenance Mode"
+          />
+          <p className="text-sm opacity-70 ml-12 -mt-2">
+            Temporarily disable access for non-admin users
+          </p>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={autoBackup}
+                onChange={(e) => setAutoBackup(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Automatic Backups"
+          />
+          <p className="text-sm opacity-70 ml-12 -mt-2">
+            Automatically backup system data at scheduled intervals
+          </p>
+
+          <FormControl fullWidth className="mt-4">
+            <InputLabel>Backup Frequency</InputLabel>
             <Select
-              value={settings.backupFrequency}
-              onChange={(e) => handleChange("backupFrequency", e.target.value)}
+              value={backupFrequency}
+              onChange={(e) => setBackupFrequency(e.target.value)}
               label="Backup Frequency"
-              style={{
-                color: themeColors.primary_text,
-                backgroundColor: themeColors.primary_bg,
-              }}
+              disabled={!autoBackup}
             >
-              <MuiMenuItem value="hourly">Hourly</MuiMenuItem>
+              <MuiMenuItem value="hourly">Every Hour</MuiMenuItem>
               <MuiMenuItem value="daily">Daily</MuiMenuItem>
               <MuiMenuItem value="weekly">Weekly</MuiMenuItem>
               <MuiMenuItem value="monthly">Monthly</MuiMenuItem>
             </Select>
           </FormControl>
-        )}
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.maintenanceMode}
-              onChange={() => handleToggle("maintenanceMode")}
-              color="warning"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Maintenance Mode <Chip label="Caution" size="small" color="warning" />
+        </div>
+      </SectionCard>
+
+      {/* Application Info */}
+      <SectionCard title="Application Information">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm opacity-70 mb-1">Version</p>
+            <p className="font-medium">2.5.0</p>
+          </div>
+          <div>
+            <p className="text-sm opacity-70 mb-1">Last Updated</p>
+            <p className="font-medium">January 15, 2024</p>
+          </div>
+          <div>
+            <p className="text-sm opacity-70 mb-1">Database Version</p>
+            <p className="font-medium">PostgreSQL 14.5</p>
+          </div>
+          <div>
+            <p className="text-sm opacity-70 mb-1">Server Status</p>
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-900 text-green-300">
+              Operational
             </span>
-          }
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={settings.debugMode}
-              onChange={() => handleToggle("debugMode")}
-              color="error"
-            />
-          }
-          label={
-            <span style={{ color: themeColors.primary_text }}>
-              Debug Mode <Chip label="Dev Only" size="small" color="error" />
-            </span>
-          }
-        />
-      </SettingSection>
-    </div>
+          </div>
+        </div>
+      </SectionCard>
+    </AdminPanelContainer>
   );
 };
 

@@ -1,22 +1,22 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React from "react";
 import {
   Button,
   IconButton,
-  TextField,
   Chip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PeopleIcon from "@mui/icons-material/People";
-import { getThemeColors } from "../../../config/themeConfig";
-import "./AdminPanel.css";
+import {
+  AdminPanelContainer,
+  AdminPageHeader,
+  StatCard,
+  SectionCard,
+} from "./components";
+import { getRoleColor } from "./utils/adminUtils";
 
 const RoleManagement = () => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
-
   // Static roles data
   const roles = [
     {
@@ -70,136 +70,70 @@ const RoleManagement = () => {
     },
   ];
 
-  const getRoleColor = (roleName) => {
-    switch (roleName) {
-      case "ADMIN":
-        return "#e91e63";
-      case "MODERATOR":
-        return "#9c27b0";
-      case "USER":
-        return "#2196f3";
-      case "VIEWER":
-        return "#ff9800";
-      default:
-        return "#757575";
-    }
-  };
+  const availablePermissions = [
+    "Manage Users",
+    "Manage Roles",
+    "View Analytics",
+    "System Settings",
+    "Audit Logs",
+    "Delete Data",
+    "Manage Content",
+    "View Users",
+    "Manage Own Expenses",
+    "View Own Reports",
+    "Manage Categories",
+    "Manage Budgets",
+  ];
 
   return (
-    <div
-      className="admin-panel-container"
-      style={{
-        backgroundColor: themeColors.secondary_bg,
-        color: themeColors.primary_text,
-        border: `1px solid ${themeColors.border}`,
-      }}
-    >
-      {/* Header */}
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1
-            className="text-3xl font-bold mb-2"
-            style={{ color: themeColors.primary_text }}
+    <AdminPanelContainer>
+      {/* Page Header */}
+      <AdminPageHeader
+        title="Role Management"
+        description="Manage roles and permissions for the system"
+        actions={
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            style={{
+              backgroundColor: "#14b8a6",
+              color: "#fff",
+            }}
           >
-            Role Management
-          </h1>
-          <p style={{ color: themeColors.secondary_text }}>
-            Define and manage user roles and permissions
-          </p>
-        </div>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          style={{
-            backgroundColor: "#14b8a6",
-            color: "#fff",
-          }}
-        >
-          Create Role
-        </Button>
-      </div>
+            Create Role
+          </Button>
+        }
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Total Roles
-          </p>
-          <p
-            className="text-2xl font-bold"
-            style={{ color: themeColors.primary_text }}
-          >
-            {roles.length}
-          </p>
-        </div>
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Custom Roles
-          </p>
-          <p className="text-2xl font-bold" style={{ color: "#9c27b0" }}>
-            1
-          </p>
-        </div>
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Total Users
-          </p>
-          <p className="text-2xl font-bold" style={{ color: "#2196f3" }}>
-            {roles.reduce((sum, role) => sum + role.userCount, 0)}
-          </p>
-        </div>
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Permissions
-          </p>
-          <p className="text-2xl font-bold" style={{ color: "#4caf50" }}>
-            12
-          </p>
-        </div>
+        <StatCard label="Total Roles" value={roles.length.toString()} />
+        <StatCard
+          label="System Admins"
+          value={roles.find((r) => r.name === "ADMIN")?.userCount.toString() || "0"}
+          color="#e91e63"
+        />
+        <StatCard
+          label="Regular Users"
+          value={roles.find((r) => r.name === "USER")?.userCount.toString() || "0"}
+          color="#2196f3"
+        />
+        <StatCard
+          label="Total Permissions"
+          value={availablePermissions.length.toString()}
+          color="#9c27b0"
+        />
       </div>
 
-      {/* Roles Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Roles List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {roles.map((role) => (
-          <div
-            key={role.id}
-            className="p-6 rounded-lg"
-            style={{ backgroundColor: themeColors.card_bg }}
-          >
+          <SectionCard key={role.id}>
             {/* Role Header */}
             <div className="flex justify-between items-start mb-4">
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3
-                    className="text-xl font-bold"
-                    style={{ color: themeColors.primary_text }}
-                  >
-                    {role.name}
-                  </h3>
+                  <h3 className="text-xl font-bold">{role.name}</h3>
                   <Chip
                     size="small"
                     label={`${role.userCount} users`}
@@ -210,24 +144,11 @@ const RoleManagement = () => {
                     }}
                   />
                 </div>
-                <p
-                  className="text-sm mb-2"
-                  style={{ color: themeColors.secondary_text }}
-                >
-                  {role.description}
-                </p>
-                <p
-                  className="text-xs"
-                  style={{ color: themeColors.secondary_text }}
-                >
-                  Created: {role.createdAt}
-                </p>
+                <p className="text-sm mb-2 opacity-70">{role.description}</p>
+                <p className="text-xs opacity-70">Created: {role.createdAt}</p>
               </div>
               <div className="flex gap-2">
-                <IconButton
-                  size="small"
-                  style={{ color: themeColors.primary_text }}
-                >
+                <IconButton size="small">
                   <EditIcon fontSize="small" />
                 </IconButton>
                 <IconButton
@@ -242,10 +163,7 @@ const RoleManagement = () => {
 
             {/* Permissions */}
             <div>
-              <p
-                className="text-sm font-semibold mb-3"
-                style={{ color: themeColors.primary_text }}
-              >
+              <p className="text-sm font-semibold mb-3">
                 Permissions ({role.permissions.length})
               </p>
               <div className="flex flex-wrap gap-2">
@@ -257,61 +175,29 @@ const RoleManagement = () => {
                     variant="outlined"
                     style={{
                       borderColor: getRoleColor(role.name),
-                      color: themeColors.primary_text,
                     }}
                   />
                 ))}
               </div>
             </div>
-          </div>
+          </SectionCard>
         ))}
       </div>
 
       {/* Available Permissions */}
-      <div
-        className="mt-6 p-6 rounded-lg"
-        style={{ backgroundColor: themeColors.card_bg }}
-      >
-        <h3
-          className="text-xl font-bold mb-4"
-          style={{ color: themeColors.primary_text }}
-        >
-          Available Permissions
-        </h3>
+      <SectionCard title="Available Permissions">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            "Manage Users",
-            "Manage Roles",
-            "View Analytics",
-            "System Settings",
-            "Audit Logs",
-            "Delete Data",
-            "Manage Content",
-            "View Users",
-            "Manage Own Expenses",
-            "View Own Reports",
-            "Manage Categories",
-            "Manage Budgets",
-          ].map((permission, index) => (
+          {availablePermissions.map((permission, index) => (
             <div
               key={index}
-              className="p-3 rounded border"
-              style={{
-                borderColor: themeColors.border,
-                backgroundColor: themeColors.primary_bg,
-              }}
+              className="p-3 rounded border border-gray-700 bg-gray-800"
             >
-              <p
-                className="text-sm font-medium"
-                style={{ color: themeColors.primary_text }}
-              >
-                {permission}
-              </p>
+              <p className="text-sm font-medium">{permission}</p>
             </div>
           ))}
         </div>
-      </div>
-    </div>
+      </SectionCard>
+    </AdminPanelContainer>
   );
 };
 

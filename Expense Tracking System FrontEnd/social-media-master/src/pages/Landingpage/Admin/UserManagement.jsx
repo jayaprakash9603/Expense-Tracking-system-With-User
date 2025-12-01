@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import {
   Avatar,
   Chip,
@@ -16,12 +15,20 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { getThemeColors } from "../../../config/themeConfig";
-import "./AdminPanel.css";
+import {
+  AdminPanelContainer,
+  AdminPageHeader,
+  StatCard,
+  SectionCard,
+} from "./components";
+import {
+  formatCurrency,
+  getStatusColor,
+  getRoleColor,
+  getInitials,
+} from "./utils/adminUtils";
 
 const UserManagement = () => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
@@ -93,157 +100,34 @@ const UserManagement = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "active":
-        return "#4caf50";
-      case "inactive":
-        return "#ff9800";
-      case "suspended":
-        return "#f44336";
-      default:
-        return "#757575";
-    }
-  };
-
-  const getRoleColor = (role) => {
-    switch (role) {
-      case "ADMIN":
-        return "#e91e63";
-      case "MODERATOR":
-        return "#9c27b0";
-      case "USER":
-        return "#2196f3";
-      default:
-        return "#757575";
-    }
-  };
-
   return (
-    <div
-      className="admin-panel-container"
-      style={{
-        backgroundColor: themeColors.secondary_bg,
-        color: themeColors.primary_text,
-        border: `1px solid ${themeColors.border}`,
-      }}
-    >
-      {/* Header */}
-      <div className="mb-6">
-        <h1
-          className="text-3xl font-bold mb-2"
-          style={{ color: themeColors.primary_text }}
-        >
-          User Management
-        </h1>
-        <p style={{ color: themeColors.secondary_text }}>
-          Manage user accounts, roles, and permissions
-        </p>
-      </div>
+    <AdminPanelContainer>
+      {/* Page Header */}
+      <AdminPageHeader
+        title="User Management"
+        description="Manage user accounts, roles, and permissions"
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Total Users
-          </p>
-          <p
-            className="text-2xl font-bold"
-            style={{ color: themeColors.primary_text }}
-          >
-            {users.length}
-          </p>
-        </div>
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Active Users
-          </p>
-          <p className="text-2xl font-bold" style={{ color: "#4caf50" }}>
-            {users.filter((u) => u.status === "active").length}
-          </p>
-        </div>
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Admins
-          </p>
-          <p className="text-2xl font-bold" style={{ color: "#e91e63" }}>
-            {users.filter((u) => u.role === "ADMIN").length}
-          </p>
-        </div>
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            New This Month
-          </p>
-          <p className="text-2xl font-bold" style={{ color: "#2196f3" }}>
-            3
-          </p>
-        </div>
+        <StatCard label="Total Users" value={users.length.toString()} />
+        <StatCard
+          label="Active Users"
+          value={users.filter((u) => u.status === "active").length.toString()}
+          color="#4caf50"
+        />
+        <StatCard
+          label="Admins"
+          value={users.filter((u) => u.role === "ADMIN").length.toString()}
+          color="#e91e63"
+        />
+        <StatCard label="New This Month" value="3" color="#2196f3" />
       </div>
 
-      {/* Search and Filter */}
-      <div
-        className="p-4 rounded-lg mb-6"
-        style={{ backgroundColor: themeColors.card_bg }}
-      >
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <TextField
-            placeholder="Search users by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            variant="outlined"
-            size="small"
-            className="flex-1"
-            InputProps={{
-              startAdornment: <SearchIcon className="mr-2" />,
-              style: {
-                color: themeColors.primary_text,
-                backgroundColor: themeColors.primary_bg,
-              },
-            }}
-          />
-          <FormControl size="small" style={{ minWidth: 150 }}>
-            <InputLabel style={{ color: themeColors.secondary_text }}>
-              Status
-            </InputLabel>
-            <Select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              label="Status"
-              style={{
-                color: themeColors.primary_text,
-                backgroundColor: themeColors.primary_bg,
-              }}
-            >
-              <MuiMenuItem value="all">All Status</MuiMenuItem>
-              <MuiMenuItem value="active">Active</MuiMenuItem>
-              <MuiMenuItem value="inactive">Inactive</MuiMenuItem>
-              <MuiMenuItem value="suspended">Suspended</MuiMenuItem>
-            </Select>
-          </FormControl>
+      {/* Search and Filter Section */}
+      <SectionCard
+        title="Search & Filter"
+        actions={
           <Button
             variant="contained"
             startIcon={<PersonAddIcon />}
@@ -254,70 +138,68 @@ const UserManagement = () => {
           >
             Add User
           </Button>
+        }
+      >
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          <TextField
+            placeholder="Search users by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            variant="outlined"
+            size="small"
+            className="flex-1"
+            InputProps={{
+              startAdornment: <SearchIcon className="mr-2" />,
+            }}
+          />
+          <FormControl size="small" style={{ minWidth: 150 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              label="Status"
+            >
+              <MuiMenuItem value="all">All Status</MuiMenuItem>
+              <MuiMenuItem value="active">Active</MuiMenuItem>
+              <MuiMenuItem value="inactive">Inactive</MuiMenuItem>
+              <MuiMenuItem value="suspended">Suspended</MuiMenuItem>
+            </Select>
+          </FormControl>
         </div>
-      </div>
+      </SectionCard>
 
       {/* Users Table */}
-      <div
-        className="rounded-lg overflow-hidden"
-        style={{ backgroundColor: themeColors.card_bg }}
-      >
+      <SectionCard title="Users" className="mt-6">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr style={{ backgroundColor: themeColors.primary_bg }}>
-                <th
-                  className="px-6 py-4 text-left text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
+              <tr className="border-b border-gray-700">
+                <th className="px-6 py-4 text-left text-sm font-semibold">
                   User
                 </th>
-                <th
-                  className="px-6 py-4 text-left text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
+                <th className="px-6 py-4 text-left text-sm font-semibold">
                   Role
                 </th>
-                <th
-                  className="px-6 py-4 text-left text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
+                <th className="px-6 py-4 text-left text-sm font-semibold">
                   Status
                 </th>
-                <th
-                  className="px-6 py-4 text-left text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
+                <th className="px-6 py-4 text-left text-sm font-semibold">
                   Join Date
                 </th>
-                <th
-                  className="px-6 py-4 text-left text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
+                <th className="px-6 py-4 text-left text-sm font-semibold">
                   Last Active
                 </th>
-                <th
-                  className="px-6 py-4 text-left text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
+                <th className="px-6 py-4 text-left text-sm font-semibold">
                   Total Expenses
                 </th>
-                <th
-                  className="px-6 py-4 text-right text-sm font-semibold"
-                  style={{ color: themeColors.primary_text }}
-                >
+                <th className="px-6 py-4 text-right text-sm font-semibold">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user, index) => (
-                <tr
-                  key={user.id}
-                  style={{
-                    borderTop: `1px solid ${themeColors.border}`,
-                  }}
-                >
+              {filteredUsers.map((user) => (
+                <tr key={user.id} className="border-b border-gray-700">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Avatar
@@ -327,21 +209,11 @@ const UserManagement = () => {
                           height: 40,
                         }}
                       >
-                        {user.name.charAt(0)}
+                        {getInitials(user.name)}
                       </Avatar>
                       <div>
-                        <p
-                          className="font-medium"
-                          style={{ color: themeColors.primary_text }}
-                        >
-                          {user.name}
-                        </p>
-                        <p
-                          className="text-sm"
-                          style={{ color: themeColors.secondary_text }}
-                        >
-                          {user.email}
-                        </p>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-sm opacity-70">{user.email}</p>
                       </div>
                     </div>
                   </td>
@@ -365,42 +237,24 @@ const UserManagement = () => {
                       }}
                     />
                   </td>
-                  <td
-                    className="px-6 py-4 text-sm"
-                    style={{ color: themeColors.secondary_text }}
-                  >
+                  <td className="px-6 py-4 text-sm opacity-70">
                     {user.joinDate}
                   </td>
-                  <td
-                    className="px-6 py-4 text-sm"
-                    style={{ color: themeColors.secondary_text }}
-                  >
+                  <td className="px-6 py-4 text-sm opacity-70">
                     {user.lastActive}
                   </td>
-                  <td
-                    className="px-6 py-4 text-sm font-medium"
-                    style={{ color: themeColors.primary_text }}
-                  >
-                    ${user.totalExpenses.toFixed(2)}
+                  <td className="px-6 py-4 text-sm font-medium">
+                    {formatCurrency(user.totalExpenses)}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2 justify-end">
-                      <IconButton
-                        size="small"
-                        style={{ color: themeColors.primary_text }}
-                      >
+                      <IconButton size="small">
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton
-                        size="small"
-                        style={{ color: "#f44336" }}
-                      >
+                      <IconButton size="small" style={{ color: "#f44336" }}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
-                      <IconButton
-                        size="small"
-                        style={{ color: themeColors.primary_text }}
-                      >
+                      <IconButton size="small">
                         <MoreVertIcon fontSize="small" />
                       </IconButton>
                     </div>
@@ -410,8 +264,8 @@ const UserManagement = () => {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </SectionCard>
+    </AdminPanelContainer>
   );
 };
 

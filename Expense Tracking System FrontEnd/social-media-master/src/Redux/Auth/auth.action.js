@@ -41,10 +41,16 @@ export const loginUserAction = (loginData) => async (dispatch) => {
     }
 
     // Immediately fetch the user profile after login
-    dispatch(getProfileAction(data.jwt));
+    const profileResponse = await dispatch(getProfileAction(data.jwt));
     updateAuthHeader();
 
-    return { success: true };
+    // Return success with user data for navigation
+    return { 
+      success: true, 
+      user: profileResponse,
+      currentMode: profileResponse?.currentMode,
+      role: profileResponse?.role
+    };
   } catch (error) {
     const errorMessage =
       error.response?.data?.message || "Login failed. Please try again.";
@@ -125,6 +131,9 @@ export const getProfileAction = (jwt) => async (dispatch) => {
 
     console.log("First Name:", firstName);
     dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
+    
+    // Return the user data
+    return data;
   } catch (error) {
     console.error("Get profile error:", error);
 

@@ -1,362 +1,212 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import {
-  Chip,
+  TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem as MuiMenuItem,
-  TextField,
+  Button,
 } from "@mui/material";
-import InfoIcon from "@mui/icons-material/Info";
-import WarningIcon from "@mui/icons-material/Warning";
-import ErrorIcon from "@mui/icons-material/Error";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SearchIcon from "@mui/icons-material/Search";
-import { getThemeColors } from "../../../config/themeConfig";
-import "./AdminPanel.css";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import {
+  AdminPanelContainer,
+  AdminPageHeader,
+  SectionCard,
+} from "./components";
+import { formatRelativeTime, formatDate } from "./utils/adminUtils";
 
 const AuditLogs = () => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
-  const [filterSeverity, setFilterSeverity] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [filterDate, setFilterDate] = useState("7d");
 
-  // Static audit logs data
+  // Static audit log data
   const auditLogs = [
     {
       id: 1,
-      timestamp: "2024-12-01 14:30:25",
-      type: "info",
-      severity: "info",
-      user: "admin@example.com",
-      action: "User Login",
-      description: "User logged in successfully from IP 192.168.1.100",
-      module: "Authentication",
+      user: "John Doe",
+      action: "Created User",
+      details: "Created new user: jane.smith@example.com",
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      type: "USER_MANAGEMENT",
+      ipAddress: "192.168.1.100",
     },
     {
       id: 2,
-      timestamp: "2024-12-01 14:25:18",
-      type: "success",
-      severity: "info",
-      user: "john.doe@example.com",
-      action: "Expense Created",
-      description: "Created new expense: $125.50 for Food & Dining",
-      module: "Expenses",
+      user: "Admin User",
+      action: "Updated Role",
+      details: "Modified permissions for MODERATOR role",
+      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
+      type: "ROLE_MANAGEMENT",
+      ipAddress: "192.168.1.101",
     },
     {
       id: 3,
-      timestamp: "2024-12-01 14:20:45",
-      type: "warning",
-      severity: "warning",
-      user: "jane.smith@example.com",
-      action: "Failed Login Attempt",
-      description: "Multiple failed login attempts detected (3 attempts)",
-      module: "Security",
+      user: "Jane Smith",
+      action: "Deleted Expense",
+      details: "Deleted expense #12345",
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      type: "DATA_MODIFICATION",
+      ipAddress: "192.168.1.102",
     },
     {
       id: 4,
-      timestamp: "2024-12-01 14:15:30",
-      type: "error",
-      severity: "error",
-      user: "System",
-      action: "Database Connection Error",
-      description: "Temporary database connection issue - automatically resolved",
-      module: "System",
+      user: "Mike Johnson",
+      action: "Login",
+      details: "Successful login",
+      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      type: "AUTHENTICATION",
+      ipAddress: "192.168.1.103",
     },
     {
       id: 5,
-      timestamp: "2024-12-01 14:10:12",
-      type: "info",
-      severity: "info",
-      user: "admin@example.com",
-      action: "Role Updated",
-      description: "Updated role permissions for MODERATOR role",
-      module: "Role Management",
-    },
-    {
-      id: 6,
-      timestamp: "2024-12-01 14:05:55",
-      type: "success",
-      severity: "info",
-      user: "mike.johnson@example.com",
-      action: "Budget Created",
-      description: "Created new budget: Monthly Groceries - $500.00",
-      module: "Budgets",
-    },
-    {
-      id: 7,
-      timestamp: "2024-12-01 14:00:33",
-      type: "warning",
-      severity: "warning",
-      user: "sarah.williams@example.com",
-      action: "Budget Exceeded",
-      description: "Budget threshold exceeded: Transportation budget at 95%",
-      module: "Budgets",
-    },
-    {
-      id: 8,
-      timestamp: "2024-12-01 13:55:20",
-      type: "info",
-      severity: "info",
-      user: "admin@example.com",
-      action: "User Created",
-      description: "New user registered: david.brown@example.com",
-      module: "User Management",
-    },
-    {
-      id: 9,
-      timestamp: "2024-12-01 13:50:15",
-      type: "error",
-      severity: "error",
-      user: "System",
-      action: "API Rate Limit",
-      description: "API rate limit exceeded for IP 203.0.113.45",
-      module: "Security",
-    },
-    {
-      id: 10,
-      timestamp: "2024-12-01 13:45:08",
-      type: "success",
-      severity: "info",
-      user: "john.doe@example.com",
-      action: "Category Created",
-      description: "Created new category: Online Shopping",
-      module: "Categories",
+      user: "Sarah Williams",
+      action: "Export Report",
+      details: "Exported expense report for January 2024",
+      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      type: "REPORT_GENERATION",
+      ipAddress: "192.168.1.104",
     },
   ];
 
-  const getSeverityIcon = (severity) => {
-    switch (severity) {
-      case "info":
-        return <InfoIcon fontSize="small" />;
-      case "warning":
-        return <WarningIcon fontSize="small" />;
-      case "error":
-        return <ErrorIcon fontSize="small" />;
-      case "success":
-        return <CheckCircleIcon fontSize="small" />;
-      default:
-        return <InfoIcon fontSize="small" />;
-    }
-  };
+  const filteredLogs = auditLogs.filter((log) => {
+    const matchesSearch =
+      log.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.details.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === "all" || log.type === filterType;
+    return matchesSearch && matchesType;
+  });
 
-  const getSeverityColor = (severity) => {
-    switch (severity) {
-      case "info":
+  const getTypeColor = (type) => {
+    switch (type) {
+      case "USER_MANAGEMENT":
         return "#2196f3";
-      case "warning":
+      case "ROLE_MANAGEMENT":
+        return "#9c27b0";
+      case "DATA_MODIFICATION":
         return "#ff9800";
-      case "error":
-        return "#f44336";
-      case "success":
+      case "AUTHENTICATION":
         return "#4caf50";
+      case "REPORT_GENERATION":
+        return "#00bcd4";
       default:
         return "#757575";
     }
   };
 
-  const filteredLogs = auditLogs.filter((log) => {
-    const matchesSeverity =
-      filterSeverity === "all" || log.severity === filterSeverity;
-    const matchesSearch =
-      log.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSeverity && matchesSearch;
-  });
-
-  // Stats
-  const stats = {
-    total: auditLogs.length,
-    info: auditLogs.filter((l) => l.severity === "info").length,
-    warning: auditLogs.filter((l) => l.severity === "warning").length,
-    error: auditLogs.filter((l) => l.severity === "error").length,
-  };
-
   return (
-    <div
-      className="admin-panel-container"
-      style={{
-        backgroundColor: themeColors.secondary_bg,
-        color: themeColors.primary_text,
-        border: `1px solid ${themeColors.border}`,
-      }}
-    >
-      {/* Header */}
-      <div className="mb-6">
-        <h1
-          className="text-3xl font-bold mb-2"
-          style={{ color: themeColors.primary_text }}
-        >
-          Audit Logs
-        </h1>
-        <p style={{ color: themeColors.secondary_text }}>
-          Track and monitor system activities and security events
-        </p>
-      </div>
+    <AdminPanelContainer>
+      {/* Page Header */}
+      <AdminPageHeader
+        title="Audit Logs"
+        description="Track system activities and user actions"
+        actions={
+          <Button
+            variant="contained"
+            startIcon={<FileDownloadIcon />}
+            style={{
+              backgroundColor: "#14b8a6",
+              color: "#fff",
+            }}
+          >
+            Export Logs
+          </Button>
+        }
+      />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Total Logs
-          </p>
-          <p
-            className="text-2xl font-bold"
-            style={{ color: themeColors.primary_text }}
-          >
-            {stats.total}
-          </p>
-        </div>
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Info
-          </p>
-          <p className="text-2xl font-bold" style={{ color: "#2196f3" }}>
-            {stats.info}
-          </p>
-        </div>
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Warnings
-          </p>
-          <p className="text-2xl font-bold" style={{ color: "#ff9800" }}>
-            {stats.warning}
-          </p>
-        </div>
-        <div
-          className="p-4 rounded-lg"
-          style={{ backgroundColor: themeColors.card_bg }}
-        >
-          <p
-            className="text-sm mb-1"
-            style={{ color: themeColors.secondary_text }}
-          >
-            Errors
-          </p>
-          <p className="text-2xl font-bold" style={{ color: "#f44336" }}>
-            {stats.error}
-          </p>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div
-        className="p-4 rounded-lg mb-6"
-        style={{ backgroundColor: themeColors.card_bg }}
-      >
-        <div className="flex flex-col md:flex-row gap-4">
+      {/* Filters Section */}
+      <SectionCard title="Filters">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <TextField
-            placeholder="Search logs by action, user, or description..."
+            placeholder="Search logs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             variant="outlined"
             size="small"
-            className="flex-1"
+            fullWidth
             InputProps={{
               startAdornment: <SearchIcon className="mr-2" />,
-              style: {
-                color: themeColors.primary_text,
-                backgroundColor: themeColors.primary_bg,
-              },
             }}
           />
-          <FormControl size="small" style={{ minWidth: 150 }}>
-            <InputLabel style={{ color: themeColors.secondary_text }}>
-              Severity
-            </InputLabel>
+          <FormControl size="small" fullWidth>
+            <InputLabel>Action Type</InputLabel>
             <Select
-              value={filterSeverity}
-              onChange={(e) => setFilterSeverity(e.target.value)}
-              label="Severity"
-              style={{
-                color: themeColors.primary_text,
-                backgroundColor: themeColors.primary_bg,
-              }}
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              label="Action Type"
             >
-              <MuiMenuItem value="all">All Severity</MuiMenuItem>
-              <MuiMenuItem value="info">Info</MuiMenuItem>
-              <MuiMenuItem value="warning">Warning</MuiMenuItem>
-              <MuiMenuItem value="error">Error</MuiMenuItem>
+              <MuiMenuItem value="all">All Types</MuiMenuItem>
+              <MuiMenuItem value="USER_MANAGEMENT">User Management</MuiMenuItem>
+              <MuiMenuItem value="ROLE_MANAGEMENT">Role Management</MuiMenuItem>
+              <MuiMenuItem value="DATA_MODIFICATION">Data Modification</MuiMenuItem>
+              <MuiMenuItem value="AUTHENTICATION">Authentication</MuiMenuItem>
+              <MuiMenuItem value="REPORT_GENERATION">Report Generation</MuiMenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" fullWidth>
+            <InputLabel>Time Range</InputLabel>
+            <Select
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              label="Time Range"
+            >
+              <MuiMenuItem value="24h">Last 24 Hours</MuiMenuItem>
+              <MuiMenuItem value="7d">Last 7 Days</MuiMenuItem>
+              <MuiMenuItem value="30d">Last 30 Days</MuiMenuItem>
+              <MuiMenuItem value="90d">Last 90 Days</MuiMenuItem>
             </Select>
           </FormControl>
         </div>
-      </div>
+      </SectionCard>
 
-      {/* Logs List */}
-      <div className="space-y-3">
-        {filteredLogs.map((log) => (
-          <div
-            key={log.id}
-            className="p-4 rounded-lg border-l-4"
-            style={{
-              backgroundColor: themeColors.card_bg,
-              borderLeftColor: getSeverityColor(log.severity),
-            }}
-          >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <div style={{ color: getSeverityColor(log.severity) }}>
-                  {getSeverityIcon(log.severity)}
-                </div>
-                <div>
-                  <h4
-                    className="font-semibold"
-                    style={{ color: themeColors.primary_text }}
-                  >
-                    {log.action}
-                  </h4>
-                  <p
-                    className="text-sm mt-1"
-                    style={{ color: themeColors.secondary_text }}
-                  >
-                    {log.description}
-                  </p>
-                </div>
-              </div>
-              <Chip
-                label={log.severity.toUpperCase()}
-                size="small"
-                style={{
-                  backgroundColor: getSeverityColor(log.severity),
-                  color: "#fff",
-                }}
-              />
-            </div>
-            <div className="flex flex-wrap gap-3 mt-3 text-xs">
-              <span style={{ color: themeColors.secondary_text }}>
-                <strong>Timestamp:</strong> {log.timestamp}
-              </span>
-              <span style={{ color: themeColors.secondary_text }}>
-                <strong>User:</strong> {log.user}
-              </span>
-              <span style={{ color: themeColors.secondary_text }}>
-                <strong>Module:</strong> {log.module}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+      {/* Audit Logs Table */}
+      <SectionCard title={`Audit Logs (${filteredLogs.length})`} className="mt-6">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-700">
+                <th className="px-6 py-4 text-left text-sm font-semibold">Timestamp</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">User</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Action</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Details</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Type</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">IP Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredLogs.map((log) => (
+                <tr key={log.id} className="border-b border-gray-700">
+                  <td className="px-6 py-4 text-sm opacity-70">
+                    {formatRelativeTime(log.timestamp)}
+                    <br />
+                    <span className="text-xs opacity-50">{formatDate(log.timestamp)}</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium">{log.user}</td>
+                  <td className="px-6 py-4 text-sm font-medium">{log.action}</td>
+                  <td className="px-6 py-4 text-sm opacity-70">{log.details}</td>
+                  <td className="px-6 py-4">
+                    <span
+                      className="px-2 py-1 rounded text-xs font-medium"
+                      style={{
+                        backgroundColor: getTypeColor(log.type) + "20",
+                        color: getTypeColor(log.type),
+                      }}
+                    >
+                      {log.type.replace("_", " ")}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm opacity-70 font-mono">
+                    {log.ipAddress}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+    </AdminPanelContainer>
   );
 };
 
