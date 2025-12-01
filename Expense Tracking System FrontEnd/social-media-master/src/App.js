@@ -87,13 +87,24 @@ function App() {
           if (settings?.themeMode) {
             dispatch(setTheme(settings.themeMode));
           }
-          // Navigate to home only after settings are loaded
-          navigate("/dashboard");
+          
+          // Navigate based on currentMode (ADMIN or USER)
+          const currentMode = auth?.currentMode;
+          if (currentMode === "ADMIN") {
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/dashboard");
+          }
         })
         .catch((error) => {
           console.error("Error loading user data:", error);
           // Still navigate even if there's an error, to avoid blocking user
-          navigate("/dashboard");
+          const currentMode = auth?.currentMode;
+          if (currentMode === "ADMIN") {
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/dashboard");
+          }
         })
         .finally(() => setLoading(false));
     } else {
@@ -283,6 +294,17 @@ function App() {
             <Route path="/bill-day-view">
               <Route path=":date" element={<DayBillsView />} />
               <Route path=":date/friend/:friendId" element={<DayBillsView />} />
+            </Route>
+
+            {/* Admin Routes - All admin pages */}
+            <Route path="admin">
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="users" element={<AdminDashboard />} />
+              <Route path="roles" element={<AdminDashboard />} />
+              <Route path="analytics" element={<AdminDashboard />} />
+              <Route path="audit" element={<AdminDashboard />} />
+              <Route path="reports" element={<AdminDashboard />} />
+              <Route path="settings" element={<AdminDashboard />} />
             </Route>
           </Route>
 
