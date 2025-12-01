@@ -121,11 +121,13 @@ Three pipeline options in `Expense-tracking-System-backend/Expense-tracking-back
 ### Code Quality Rules
 
 **Comments**:
+- ❌ **DO NOT** add comments unless explicitly asked by the user
 - ❌ **DO NOT** add obvious comments that repeat code
 - ❌ **DO NOT** use bloated Javadoc for simple getters/setters
-- ✅ **DO** comment complex business logic or non-obvious decisions
-- ✅ **DO** document public APIs and service interfaces
-- ✅ **DO** explain "why" not "what" in comments
+- ✅ **DO** comment complex business logic or non-obvious decisions (only when asked)
+- ✅ **DO** document public APIs and service interfaces (only when asked)
+- ✅ **DO** explain "why" not "what" in comments (only when asked)
+- 📝 **Code should be self-explanatory through proper naming and structure**
 
 **Bad Example**:
 ```java
