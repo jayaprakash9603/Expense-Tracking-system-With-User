@@ -10,6 +10,22 @@ import {
   BRAND_GRADIENT_COLORS,
 } from "../../config/themeConfig";
 
+// Import MUI Icons
+import HomeIcon from "@mui/icons-material/Home";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import CategoryIcon from "@mui/icons-material/Category";
+import PaymentIcon from "@mui/icons-material/Payment";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import PeopleIcon from "@mui/icons-material/People";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PersonIcon from "@mui/icons-material/Person";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import HistoryIcon from "@mui/icons-material/History";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import SettingsIcon from "@mui/icons-material/Settings";
+
 const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
   const { currentMode } = useSelector((state) => state.auth || {});
@@ -161,43 +177,43 @@ const Left = () => {
                 <MenuItem
                   name="Dashboard"
                   path="/admin/dashboard"
-                  icon="https://cdn-icons-png.flaticon.com/128/3524/3524388.png"
+                  icon={<DashboardIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="User Management"
                   path="/admin/users"
-                  icon="https://cdn-icons-png.flaticon.com/128/4436/4436481.png"
+                  icon={<PersonIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="Role Management"
                   path="/admin/roles"
-                  icon="https://cdn-icons-png.flaticon.com/128/3524/3524659.png"
+                  icon={<AdminPanelSettingsIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="System Analytics"
                   path="/admin/analytics"
-                  icon="https://cdn-icons-png.flaticon.com/128/2920/2920277.png"
+                  icon={<BarChartIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="Audit Logs"
                   path="/admin/audit"
-                  icon="https://cdn-icons-png.flaticon.com/128/3094/3094840.png"
+                  icon={<HistoryIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="Reports"
                   path="/admin/reports"
-                  icon="https://cdn-icons-png.flaticon.com/128/3143/3143610.png"
+                  icon={<AssessmentIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="Settings"
                   path="/admin/settings"
-                  icon="https://cdn-icons-png.flaticon.com/128/2040/2040504.png"
+                  icon={<SettingsIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
               </>
@@ -207,64 +223,49 @@ const Left = () => {
                 <MenuItem
                   name="Home"
                   path="/dashboard"
-                  icon="https://cdn-icons-png.flaticon.com/128/25/25694.png"
+                  icon={<HomeIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="Expenses"
                   path="/expenses"
-                  icon="https://cdn-icons-png.flaticon.com/128/5501/5501384.png"
+                  icon={<ReceiptLongIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
 
                 <MenuItem
                   name="Categories"
                   path="/category-flow"
-                  icon={require("../../assests/category.png")}
+                  icon={<CategoryIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
 
                 <MenuItem
                   name="Payments"
                   path="/payment-method"
-                  icon={require("../../assests/payment-method.png")}
+                  icon={<PaymentIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="Bill"
                   path="/bill"
-                  icon={require("../../assests/bill.png")}
+                  icon={<ReceiptIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="Friends"
                   path="/friends"
-                  icon={require("../../assests/friends.png")}
+                  icon={<PeopleIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
                   name="Budgets"
                   path="/budget"
-                  icon={require("../../assests/budget.png")}
+                  icon={<AccountBalanceWalletIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
               </>
             )}
-
-            {/* Divider before Logout */}
-            <div
-              className="w-full h-[1px] my-2"
-              style={{ backgroundColor: themeColors.border }}
-            />
-
-            {/* Logout - Always visible */}
-            <MenuItem
-              name="Logout"
-              path="/login"
-              icon={require("../../assests/logout.png")}
-              onClick={() => setIsConfirmModalOpen(true)}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
           </div>
         </div>
 
