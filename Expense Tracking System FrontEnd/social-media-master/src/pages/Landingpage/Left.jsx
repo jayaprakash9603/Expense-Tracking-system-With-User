@@ -137,7 +137,7 @@ const Left = () => {
             {hasAdminRole && isAdminMode ? (
               <>
                 {/* ADMIN MODE - Show only admin menu items */}
-                <div className="w-full px-4 py-2">
+                <div className="w-full px-4 py-1">
                   <p
                     className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
                     style={{ color: themeColors.secondary_text }}

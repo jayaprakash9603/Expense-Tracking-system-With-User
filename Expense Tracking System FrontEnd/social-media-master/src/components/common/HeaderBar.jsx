@@ -98,6 +98,13 @@ const HeaderBar = () => {
     if (result.success) {
       setIsProfileOpen(false);
       console.log(`Successfully switched to ${newMode} mode`);
+      
+      // Navigate to appropriate dashboard based on mode
+      if (newMode === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } else {
       console.error("Failed to switch mode:", result.message);
     }
