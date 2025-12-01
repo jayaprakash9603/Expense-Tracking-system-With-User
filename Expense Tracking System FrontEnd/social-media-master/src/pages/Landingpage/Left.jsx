@@ -12,6 +12,7 @@ import {
 
 const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
+  const { currentMode } = useSelector((state) => state.auth || {});
   const { mode } = useSelector((state) => state.theme || {});
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -19,6 +20,11 @@ const Left = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  // Check if user has ADMIN role
+  const hasAdminRole =
+    user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN");
+  const isAdminMode = currentMode === "ADMIN";
 
   const handleLogout = () => {
     dispatch(logoutAction());
@@ -127,68 +133,131 @@ const Left = () => {
 
           {/* Menu Items */}
           <div className="flex flex-col items-center w-full max-w-[360px] space-y-2">
-            <MenuItem
-              name="Home"
-              path="/dashboard"
-              icon="https://cdn-icons-png.flaticon.com/128/25/25694.png"
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Expenses"
-              path="/expenses"
-              icon="https://cdn-icons-png.flaticon.com/128/5501/5501384.png"
-              setIsSidebarOpen={setIsSidebarOpen}
+            {/* Show different menu based on current mode */}
+            {hasAdminRole && isAdminMode ? (
+              <>
+                {/* ADMIN MODE - Show only admin menu items */}
+                <div className="w-full px-4 py-2">
+                  <p
+                    className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
+                    style={{ color: themeColors.secondary_text }}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Admin Panel
+                  </p>
+                </div>
+
+                <MenuItem
+                  name="Dashboard"
+                  path="/admin/dashboard"
+                  icon="https://cdn-icons-png.flaticon.com/128/3524/3524388.png"
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="User Management"
+                  path="/admin/users"
+                  icon="https://cdn-icons-png.flaticon.com/128/4436/4436481.png"
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Role Management"
+                  path="/admin/roles"
+                  icon="https://cdn-icons-png.flaticon.com/128/3524/3524659.png"
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="System Analytics"
+                  path="/admin/analytics"
+                  icon="https://cdn-icons-png.flaticon.com/128/2920/2920277.png"
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Audit Logs"
+                  path="/admin/audit"
+                  icon="https://cdn-icons-png.flaticon.com/128/3094/3094840.png"
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Reports"
+                  path="/admin/reports"
+                  icon="https://cdn-icons-png.flaticon.com/128/3143/3143610.png"
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Settings"
+                  path="/admin/settings"
+                  icon="https://cdn-icons-png.flaticon.com/128/2040/2040504.png"
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+              </>
+            ) : (
+              <>
+                {/* USER MODE - Show regular user menu items */}
+                <MenuItem
+                  name="Home"
+                  path="/dashboard"
+                  icon="https://cdn-icons-png.flaticon.com/128/25/25694.png"
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Expenses"
+                  path="/expenses"
+                  icon="https://cdn-icons-png.flaticon.com/128/5501/5501384.png"
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+
+                <MenuItem
+                  name="Categories"
+                  path="/category-flow"
+                  icon={require("../../assests/category.png")}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+
+                <MenuItem
+                  name="Payments"
+                  path="/payment-method"
+                  icon={require("../../assests/payment-method.png")}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Bill"
+                  path="/bill"
+                  icon={require("../../assests/bill.png")}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Friends"
+                  path="/friends"
+                  icon={require("../../assests/friends.png")}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Budgets"
+                  path="/budget"
+                  icon={require("../../assests/budget.png")}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+              </>
+            )}
+
+            {/* Divider before Logout */}
+            <div
+              className="w-full h-[1px] my-2"
+              style={{ backgroundColor: themeColors.border }}
             />
 
-            <MenuItem
-              name="Categories"
-              path="/category-flow"
-              icon={require("../../assests/category.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-
-            <MenuItem
-              name="Payments"
-              path="/payment-method"
-              icon={require("../../assests/payment-method.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Bill"
-              path="/bill"
-              icon={require("../../assests/bill.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Friends"
-              path="/friends"
-              icon={require("../../assests/friends.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Budgets"
-              path="/budget"
-              icon={require("../../assests/budget.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            {/* <MenuItem
-              name="Groups"
-              path="/groups"
-              icon={require("../../assests/group.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Chats"
-              path="/chats"
-              icon={require("../../assests/chat.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="More"
-              path="/all"
-              icon={require("../../assests/more.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            /> */}
+            {/* Logout - Always visible */}
             <MenuItem
               name="Logout"
               path="/login"
