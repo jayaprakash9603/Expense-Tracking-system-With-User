@@ -1,0 +1,49 @@
+/* Admin Panel Container Styles */
+.admin-panel-container {
+  width: calc(100vw - 370px);
+  height: calc(100vh - 100px);
+  margin: 0 20px 0 0;
+  padding: 24px;
+  overflow-y: auto;
+  border-radius: 16px;
+  position: relative;
+}
+
+/* Custom Scrollbar for Admin Panels */
+.admin-panel-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-panel-container::-webkit-scrollbar-track {
+  background: rgba(20, 184, 166, 0.1);
+  border-radius: 4px;
+}
+
+.admin-panel-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #14b8a6, #06d6a0);
+  border-radius: 4px;
+}
+
+.admin-panel-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #06d6a0, #14b8a6);
+}
+
+/* Hide scrollbar for Firefox but keep functionality */
+.admin-panel-container {
+  scrollbar-width: thin;
+  scrollbar-color: #14b8a6 rgba(20, 184, 166, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .admin-panel-container {
+    width: calc(100vw - 320px);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-panel-container {
+    width: calc(100vw - 40px);
+    margin: 0 20px;
+  }
+}

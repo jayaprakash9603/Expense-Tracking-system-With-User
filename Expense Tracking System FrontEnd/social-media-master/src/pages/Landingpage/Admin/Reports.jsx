@@ -14,6 +14,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import { getThemeColors } from "../../../config/themeConfig";
+import "./AdminPanel.css";
 
 const Reports = () => {
   const { mode } = useSelector((state) => state.theme || {});
@@ -172,10 +173,11 @@ const Reports = () => {
 
   return (
     <div
-      className="p-6"
+      className="admin-panel-container"
       style={{
-        backgroundColor: themeColors.primary_bg,
-        minHeight: "100vh",
+        backgroundColor: themeColors.secondary_bg,
+        color: themeColors.primary_text,
+        border: `1px solid ${themeColors.border}`,
       }}
     >
       {/* Header */}

@@ -13,6 +13,7 @@ export const THEME_COLORS = {
     primary_bg: "#1b1b1b", // Main sidebar/container background
     secondary_bg: "#121212", // Darker background for contrast
     tertiary_bg: "#0b0b0b", // Even darker for headers
+    card_bg: "#1b1b1b", // Card/panel background (same as primary)
 
     // Active/Hover states
     active_bg: "#29282b", // Active menu item background
@@ -34,6 +35,7 @@ export const THEME_COLORS = {
     // Border colors
     border_color: "#333333", // Default border
     border_light: "#28282a", // Light border
+    border: "#333333", // Alias for border_color
 
     // Icon colors
     icon_default: "#ffffff", // Default icon color (will use filter)
@@ -45,6 +47,9 @@ export const THEME_COLORS = {
     button_bg: "#00DAC6", // Primary button background
     button_text: "#1b1b1b", // Primary button text
     button_hover: "#00b8a9", // Primary button hover
+
+    // Accent alias
+    accent: "#14b8a6", // Alias for primary_accent
 
     // Avatar colors
     avatar_bg: "#14b8a6", // Avatar background
@@ -60,6 +65,7 @@ export const THEME_COLORS = {
     primary_bg: "#ffffff", // Main sidebar/container background (white)
     secondary_bg: "#f5f5f5", // Light gray for contrast
     tertiary_bg: "#e8e8e8", // Lighter gray for headers
+    card_bg: "#ffffff", // Card/panel background (white)
 
     // Active/Hover states
     active_bg: "#e0f7f5", // Light teal background for active items
@@ -81,6 +87,7 @@ export const THEME_COLORS = {
     // Border colors
     border_color: "#d0d0d0", // Default border (darker for better visibility)
     border_light: "#e8e8e8", // Light border
+    border: "#d0d0d0", // Alias for border_color
 
     // Icon colors
     icon_default: "#1a1a1a", // Default icon color (will use filter)
@@ -92,6 +99,9 @@ export const THEME_COLORS = {
     button_bg: "#14b8a6", // Primary button background
     button_text: "#ffffff", // Primary button text
     button_hover: "#0d9488", // Primary button hover
+
+    // Accent alias
+    accent: "#14b8a6", // Alias for primary_accent
 
     // Avatar colors
     avatar_bg: "#14b8a6", // Avatar background

@@ -9,6 +9,7 @@ import {
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import { getThemeColors } from "../../../config/themeConfig";
+import "./AdminPanel.css";
 
 const SystemAnalytics = () => {
   const { mode } = useSelector((state) => state.theme || {});
@@ -74,10 +75,11 @@ const SystemAnalytics = () => {
 
   return (
     <div
-      className="p-6"
+      className="admin-panel-container"
       style={{
-        backgroundColor: themeColors.primary_bg,
-        minHeight: "100vh",
+        backgroundColor: themeColors.secondary_bg,
+        color: themeColors.primary_text,
+        border: `1px solid ${themeColors.border}`,
       }}
     >
       {/* Header */}

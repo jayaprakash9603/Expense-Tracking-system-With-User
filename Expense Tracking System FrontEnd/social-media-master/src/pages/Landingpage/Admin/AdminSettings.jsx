@@ -19,6 +19,7 @@ import StorageIcon from "@mui/icons-material/Storage";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import { getThemeColors } from "../../../config/themeConfig";
+import "./AdminPanel.css";
 
 const AdminSettings = () => {
   const { mode } = useSelector((state) => state.theme || {});
@@ -92,10 +93,11 @@ const AdminSettings = () => {
 
   return (
     <div
-      className="p-6"
+      className="admin-panel-container"
       style={{
-        backgroundColor: themeColors.primary_bg,
-        minHeight: "100vh",
+        backgroundColor: themeColors.secondary_bg,
+        color: themeColors.primary_text,
+        border: `1px solid ${themeColors.border}`,
       }}
     >
       {/* Header */}

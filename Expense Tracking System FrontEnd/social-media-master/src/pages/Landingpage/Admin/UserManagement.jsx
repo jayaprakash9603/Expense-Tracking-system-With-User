@@ -17,6 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { getThemeColors } from "../../../config/themeConfig";
+import "./AdminPanel.css";
 
 const UserManagement = () => {
   const { mode } = useSelector((state) => state.theme || {});
@@ -120,10 +121,11 @@ const UserManagement = () => {
 
   return (
     <div
-      className="p-6"
+      className="admin-panel-container"
       style={{
-        backgroundColor: themeColors.primary_bg,
-        minHeight: "100vh",
+        backgroundColor: themeColors.secondary_bg,
+        color: themeColors.primary_text,
+        border: `1px solid ${themeColors.border}`,
       }}
     >
       {/* Header */}

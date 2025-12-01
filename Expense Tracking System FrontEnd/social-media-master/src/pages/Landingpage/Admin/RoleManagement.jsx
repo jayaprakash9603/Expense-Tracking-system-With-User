@@ -11,6 +11,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PeopleIcon from "@mui/icons-material/People";
 import { getThemeColors } from "../../../config/themeConfig";
+import "./AdminPanel.css";
 
 const RoleManagement = () => {
   const { mode } = useSelector((state) => state.theme || {});
@@ -86,10 +87,11 @@ const RoleManagement = () => {
 
   return (
     <div
-      className="p-6"
+      className="admin-panel-container"
       style={{
-        backgroundColor: themeColors.primary_bg,
-        minHeight: "100vh",
+        backgroundColor: themeColors.secondary_bg,
+        color: themeColors.primary_text,
+        border: `1px solid ${themeColors.border}`,
       }}
     >
       {/* Header */}

@@ -14,6 +14,7 @@ import ErrorIcon from "@mui/icons-material/Error";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SearchIcon from "@mui/icons-material/Search";
 import { getThemeColors } from "../../../config/themeConfig";
+import "./AdminPanel.css";
 
 const AuditLogs = () => {
   const { mode } = useSelector((state) => state.theme || {});
@@ -175,10 +176,11 @@ const AuditLogs = () => {
 
   return (
     <div
-      className="p-6"
+      className="admin-panel-container"
       style={{
-        backgroundColor: themeColors.primary_bg,
-        minHeight: "100vh",
+        backgroundColor: themeColors.secondary_bg,
+        color: themeColors.primary_text,
+        border: `1px solid ${themeColors.border}`,
       }}
     >
       {/* Header */}
