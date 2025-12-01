@@ -41,10 +41,24 @@ export const loginUserAction = (loginData) => async (dispatch) => {
     }
 
     // Immediately fetch the user profile after login
-    dispatch(getProfileAction(data.jwt));
+    const profileResponse = await dispatch(getProfileAction(data.jwt));
     updateAuthHeader();
 
-    return { success: true };
+    console.log("Profile Response:", profileResponse);
+    console.log("Returning from loginUserAction:", {
+      success: true,
+      user: profileResponse,
+      currentMode: profileResponse?.currentMode,
+      role: profileResponse?.role
+    });
+
+    // Return success with user data for navigation
+    return { 
+      success: true, 
+      user: profileResponse,
+      currentMode: profileResponse?.currentMode,
+      role: profileResponse?.role
+    };
   } catch (error) {
     const errorMessage =
       error.response?.data?.message || "Login failed. Please try again.";
@@ -125,6 +139,9 @@ export const getProfileAction = (jwt) => async (dispatch) => {
 
     console.log("First Name:", firstName);
     dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
+    
+    // Return the user data
+    return data;
   } catch (error) {
     console.error("Get profile error:", error);
 
@@ -179,4 +196,38 @@ export const logoutAction = () => (dispatch) => {
   dispatch({ type: "LOGOUT" });
   dispatch({ type: CLEAR_USER_SETTINGS }); // Clear user settings on logout
   updateAuthHeader();
+};
+
+// Switch User Mode Action (USER <-> ADMIN)
+export const switchUserModeAction = (mode) => async (dispatch) => {
+  try {
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      throw new Error("Authorization token is missing");
+    }
+
+    const { data } = await api.put(
+      `/api/user/switch-mode?mode=${mode}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    dispatch({
+      type: "SWITCH_MODE_SUCCESS",
+      payload: {
+        currentMode: data.currentMode,
+        user: data.user,
+      },
+    });
+
+    return { success: true, currentMode: data.currentMode };
+  } catch (error) {
+    const errorMessage = error.response?.data?.error || "Failed to switch mode";
+    console.error("Switch mode error:", errorMessage);
+    return { success: false, message: errorMessage };
+  }
 };

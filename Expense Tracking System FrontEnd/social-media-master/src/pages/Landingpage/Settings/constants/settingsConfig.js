@@ -42,6 +42,7 @@ import {
   Brightness4 as Brightness4Icon,
   Timer as TimerIcon,
   Category as CategoryIcon,
+  VisibilityOff as VisibilityOffIcon,
 } from "@mui/icons-material";
 
 /**
@@ -272,6 +273,15 @@ export const SETTINGS_SECTIONS = {
         settingsKey: "profileVisibility",
         options: PROFILE_VISIBILITY_OPTIONS,
         customMessage: true,
+      },
+      {
+        id: "maskSensitiveData",
+        icon: VisibilityOffIcon,
+        title: "Mask Sensitive Data",
+        description: "Hide expense amounts and financial details for privacy",
+        type: "switch",
+        stateKey: "maskSensitiveData",
+        settingsKey: "maskSensitiveData",
       },
       {
         id: "twoFactor",

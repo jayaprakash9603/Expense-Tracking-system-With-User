@@ -29,6 +29,52 @@ public class BulkProgressTracker {
             status.setProcessed(processed);
             status.setPercent(status.getTotal() == 0 ? 100 : (int) Math.floor((processed * 100.0) / status.getTotal()));
             status.setUpdatedAt(LocalDateTime.now());
+            status.updateMetrics(); // Calculate speed and ETA
+        }
+    }
+    
+    // Update current stage (e.g., "Creating Budgets", "Creating Expenses")
+    public void updateStage(String jobId, String stage) {
+        ProgressStatus status = jobs.get(jobId);
+        if (status != null) {
+            status.setCurrentStage(stage);
+            status.setUpdatedAt(LocalDateTime.now());
+        }
+    }
+    
+    // Update batch progress
+    public void updateBatch(String jobId, int currentBatch, int totalBatches) {
+        ProgressStatus status = jobs.get(jobId);
+        if (status != null) {
+            status.setCurrentBatch(currentBatch);
+            status.setTotalBatches(totalBatches);
+            status.setUpdatedAt(LocalDateTime.now());
+        }
+    }
+    
+    // Add recent item to the list (keep last 5)
+    public void addRecentItem(String jobId, String itemDescription) {
+        ProgressStatus status = jobs.get(jobId);
+        if (status != null) {
+            synchronized (status) {
+                if (status.getRecentItems().size() >= 5) {
+                    status.getRecentItems().remove(0); // Remove oldest
+                }
+                status.getRecentItems().add(itemDescription);
+                status.setUpdatedAt(LocalDateTime.now());
+            }
+        }
+    }
+    
+    // Update counts (budgets, expenses, success, failure)
+    public void updateCounts(String jobId, int budgets, int expenses, int success, int failure) {
+        ProgressStatus status = jobs.get(jobId);
+        if (status != null) {
+            status.setBudgetsProcessed(budgets);
+            status.setExpensesProcessed(expenses);
+            status.setSuccessCount(success);
+            status.setFailureCount(failure);
+            status.setUpdatedAt(LocalDateTime.now());
         }
     }
 
@@ -39,7 +85,9 @@ public class BulkProgressTracker {
         status.setPercent(100);
         status.setStatus("COMPLETED");
         status.setMessage(message);
+        status.setCurrentStage("Completed");
         status.setUpdatedAt(LocalDateTime.now());
+        status.updateMetrics();
     }
 
     public void fail(String jobId, String message) {
@@ -47,11 +95,16 @@ public class BulkProgressTracker {
         if (status == null) return;
         status.setStatus("FAILED");
         status.setMessage(message);
+        status.setCurrentStage("Failed");
         status.setUpdatedAt(LocalDateTime.now());
     }
 
     public ProgressStatus get(String jobId) {
-        return jobs.get(jobId);
+        ProgressStatus status = jobs.get(jobId);
+        if (status != null) {
+            status.updateMetrics(); // Recalculate metrics before returning
+        }
+        return status;
     }
 
     public void remove(String jobId) {

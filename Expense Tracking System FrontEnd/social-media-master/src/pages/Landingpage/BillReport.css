@@ -163,6 +163,8 @@
   --skeleton-start: #e0e0e0;
   --skeleton-mid: #f0f0f0;
   --skeleton-end: #e0e0e0;
+  --primary-text: #1a1a1a;
+  --primary-accent: #14b8a6;
 }
 .dark.bill-report,
 .dark .bill-report {
@@ -201,6 +203,8 @@
   --skeleton-start: #2a2a2a;
   --skeleton-mid: #3a3a3a;
   --skeleton-end: #2a2a2a;
+  --primary-text: #ffffff;
+  --primary-accent: #14b8a6;
 }
 
 /* Table theming */
@@ -1235,16 +1239,12 @@
   max-width: none;
   box-sizing: border-box;
   margin: 24px 0;
-  padding: 28px;
-  background: linear-gradient(
-    180deg,
-    rgba(27, 27, 27, 0.9),
-    rgba(11, 11, 11, 0.85)
-  );
+  padding: 48px;
+  min-height: 450px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
-  color: #ffffff;
+  border: 2px dashed var(--border-color, #333333);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: var(--primary-text, #ffffff);
 }
 
 .bill-report .no-data-message .no-data-icon {
@@ -1255,13 +1255,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    rgba(20, 184, 166, 0.12),
-    rgba(20, 184, 166, 0.06)
-  );
-  color: #14b8a6;
-  box-shadow: 0 6px 18px rgba(20, 184, 166, 0.06);
+  background: var(--hover-bg, rgba(20, 184, 166, 0.1));
+  color: var(--primary-accent, #14b8a6);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.1);
   transform: translateY(0);
   transition: transform 0.28s ease, box-shadow 0.28s ease;
 }
@@ -1277,41 +1273,17 @@
   margin: 0;
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--chart-title-color, #ffffff);
+  color: var(--report-text, #ffffff);
 }
 
 .no-data-message p {
   margin: 0;
-  color: var(--bill-desc-color, #cfcfcf);
+  color: var(--secondary-text, #888888);
   font-size: 0.98rem;
   max-width: 520px;
 }
 
-.no-data-message {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 12px;
-  width: 100%;
-  height: 400px;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 32px;
-  background: linear-gradient(
-    180deg,
-    rgba(27, 27, 27, 0.92),
-    rgba(11, 11, 11, 0.88)
-  );
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
-  color: #ffffff;
-  overflow: auto;
-}
-
+/* Hide visible scrollbars but keep scrolling functional */
 .no-data-message {
   -ms-overflow-style: none;
   scrollbar-width: none;

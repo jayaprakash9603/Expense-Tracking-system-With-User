@@ -293,7 +293,10 @@ const DayUnifiedView = ({
   };
 
   return (
-    <div className="bg-[#0b0b0b] p-4 rounded-lg" style={containerStyle}>
+    <div
+      className="p-4 rounded-lg"
+      style={{ ...containerStyle, backgroundColor: colors.secondary_bg }}
+    >
       {/* Back to calendar button */}
       <IconButton
         sx={{
@@ -669,7 +672,9 @@ const DayUnifiedView = ({
                   key={idx}
                   onClick={() => setSelectedCardIdx(isSelected ? null : idx)}
                   sx={{
-                    background: isSelected ? cfg.bgSelected : "#0b0b0b",
+                    background: isSelected
+                      ? cfg.bgSelected
+                      : colors.secondary_bg,
                     borderRadius: 2,
                     p: 2,
                     mb: 1,

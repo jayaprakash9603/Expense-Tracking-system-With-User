@@ -11,14 +11,13 @@ public interface UserService {
 
     public User getUserProfile(String jwt);
 
-    public List<User>getAllUsers();
+    public List<User> getAllUsers();
 
     public User getUserByEmail(String email);
 
-
     public User updateUserProfile(String jwt, UserUpdateRequest updateRequest);
 
-    void  deleteUser(Integer id) throws AccessDeniedException;
+    void deleteUser(Integer id) throws AccessDeniedException;
 
     public boolean checkEmailAvailability(String email);
 
@@ -28,5 +27,8 @@ public interface UserService {
 
     // Register a new user, handling roles and password hashing
     public User signup(SignupRequest signupRequest);
+
+    // Switch user mode between USER and ADMIN
+    public User switchUserMode(String jwt, String newMode);
 
 }

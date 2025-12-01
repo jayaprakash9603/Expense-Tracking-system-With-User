@@ -1,8 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import DashboardHeader from "../../components/DashboardHeader";
+import DashboardCustomizationModal from "../../components/DashboardCustomizationModal";
 import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SummaryOverview from "../../components/SummaryOverview";
 import MonthlyTrendContainer from "../../components/MonthlyTrendContainer";
@@ -19,6 +20,110 @@ import {
 import QuickAccess from "../../pages/Landingpage/QuickAccess";
 import { useDashboardContext } from "./DashboardProvider";
 import { createDashboardActions } from "./dashboardActions";
+
+// Section component mapping
+const SECTION_COMPONENTS = {
+  'metrics': ({ analyticsSummary, analyticsLoading, currencySymbol }) => (
+    <MetricsGrid
+      analyticsSummary={analyticsSummary}
+      loading={analyticsLoading}
+      currencySymbol={currencySymbol}
+    />
+  ),
+  'daily-spending': ({ isMobile, isTablet, analyticsLoading }) => (
+    <DailySpendingContainer
+      height={isMobile ? 200 : isTablet ? 240 : 100}
+      refreshTrigger={Math.random()}
+      showSkeleton={analyticsLoading}
+    />
+  ),
+  'quick-access': () => <QuickAccess />,
+  'summary-overview': () => (
+    <SummaryOverview
+      summary={{
+        groupsCreated: 3,
+        groupsMember: 5,
+        pendingInvitations: 2,
+        friendsCount: 12,
+        pendingFriendRequests: 1,
+      }}
+    />
+  ),
+  'category-breakdown': ({ 
+    categoryDistribution, 
+    categoryTimeframe, 
+    setCategoryTimeframe,
+    categoryFlowType,
+    setCategoryFlowType,
+    categoryLoading,
+    analyticsLoading,
+    isMobile 
+  }) => (
+    <CategoryBreakdownChart
+      data={categoryDistribution}
+      timeframe={categoryTimeframe}
+      onTimeframeChange={setCategoryTimeframe}
+      flowType={categoryFlowType}
+      onFlowTypeChange={setCategoryFlowType}
+      loading={categoryLoading}
+      skeleton={
+        analyticsLoading ? (
+          <ChartSkeleton
+            height={isMobile ? 380 : 560}
+            variant="pie"
+            noHeader
+          />
+        ) : null
+      }
+    />
+  ),
+  'monthly-trend': ({ currentYear, analyticsLoading, isMobile, isTablet }) => (
+    <MonthlyTrendContainer
+      initialYear={currentYear}
+      refreshTrigger={Math.random()}
+      height={isMobile ? 260 : isTablet ? 380 : 600}
+      maxYear={currentYear}
+      showSkeleton={analyticsLoading}
+    />
+  ),
+  'payment-methods': ({ 
+    paymentMethodsData,
+    paymentMethodsRawData,
+    paymentMethodsTimeframe,
+    setPaymentMethodsTimeframe,
+    paymentMethodsFlowType,
+    setPaymentMethodsFlowType,
+    paymentMethodsLoading,
+    analyticsLoading 
+  }) => (
+    <PaymentMethodChart
+      data={paymentMethodsData}
+      rawData={paymentMethodsRawData}
+      timeframe={paymentMethodsTimeframe}
+      onTimeframeChange={setPaymentMethodsTimeframe}
+      flowType={paymentMethodsFlowType}
+      onFlowTypeChange={setPaymentMethodsFlowType}
+      loading={paymentMethodsLoading}
+      skeleton={
+        analyticsLoading ? (
+          <ChartSkeleton height={450} variant="pie" noHeader />
+        ) : null
+      }
+    />
+  ),
+  'recent-transactions': ({ analyticsSummary, viewAllTransactions }) => (
+    <RecentTransactions
+      transactions={analyticsSummary?.lastTenExpenses ?? []}
+      onViewAll={viewAllTransactions}
+    />
+  ),
+  'budget-overview': ({ analyticsSummary }) => (
+    <BudgetOverview
+      remainingBudget={analyticsSummary?.remainingBudget ?? 0}
+      totalLosses={analyticsSummary?.totalLosses ?? 0}
+    />
+  ),
+};
 
 // Central presentation component - minimal logic; relies on context for data/state.
 export default function DashboardContent() {
@@ -46,9 +151,11 @@ export default function DashboardContent() {
     dailySpendingData, // not directly needed (container fetches internally, kept for potential stats)
     monthlyTrendLoading,
     monthlyTrendData,
+    layoutConfig,
   } = useDashboardContext();
 
   const navigate = useNavigate();
+  const [customizationOpen, setCustomizationOpen] = useState(false);
 
   // Inject dependencies into centralized action creators.
   const { exportReports, viewAllTransactions, openFilter } = useMemo(
@@ -58,6 +165,57 @@ export default function DashboardContent() {
 
   const isMobile = window.matchMedia("(max-width:600px)").matches;
   const isTablet = window.matchMedia("(max-width:1024px)").matches;
+
+  // Prepare props for section components
+  const sectionProps = {
+    analyticsSummary,
+    analyticsLoading,
+    currencySymbol,
+    isMobile,
+    isTablet,
+    categoryDistribution,
+    categoryTimeframe,
+    setCategoryTimeframe,
+    categoryFlowType,
+    setCategoryFlowType,
+    categoryLoading,
+    paymentMethodsData,
+    paymentMethodsRawData,
+    paymentMethodsTimeframe,
+    setPaymentMethodsTimeframe,
+    paymentMethodsFlowType,
+    setPaymentMethodsFlowType,
+    paymentMethodsLoading,
+    currentYear,
+    viewAllTransactions,
+  };
+
+  // Render a section based on its configuration
+  const renderSection = (section) => {
+    const Component = SECTION_COMPONENTS[section.id];
+    if (!Component) return null;
+
+    return (
+      <div
+        key={section.id}
+        className={`dashboard-section dashboard-section-${section.id}`}
+        data-section-id={section.id}
+      >
+        {Component(sectionProps)}
+      </div>
+    );
+  };
+
+  // Group sections by type for rendering
+  const fullWidthSections = layoutConfig.visibleSections.filter(s => s.type === 'full');
+  const halfWidthSections = layoutConfig.visibleSections.filter(s => s.type === 'half');
+  const bottomSections = layoutConfig.visibleSections.filter(s => s.type === 'bottom');
+
+  // Group half-width sections into pairs
+  const halfWidthPairs = [];
+  for (let i = 0; i < halfWidthSections.length; i += 2) {
+    halfWidthPairs.push(halfWidthSections.slice(i, i + 2));
+  }
 
   return (
     <div
@@ -72,122 +230,66 @@ export default function DashboardContent() {
         onRefresh={forceRefresh}
         onExport={exportReports}
         onFilter={openFilter}
-      />
-      <MetricsGrid
-        analyticsSummary={analyticsSummary}
-        loading={analyticsLoading}
-        currencySymbol={currencySymbol}
+        onCustomize={() => setCustomizationOpen(true)}
       />
 
-      <div
-        className="charts-grid"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: isMobile ? 16 : 24,
-        }}
-      >
-        {/* Row 1: Daily Spending (full width) */}
-        <div className="chart-row full-width" style={{ width: "100%" }}>
-          <DailySpendingContainer
-            height={isMobile ? 200 : isTablet ? 240 : 100}
-            refreshTrigger={Math.random()}
-            showSkeleton={analyticsLoading}
-          />
-        </div>
-        {/* Row 2: Quick Access (full width) */}
-        <div className="chart-row full-width" style={{ width: "100%" }}>
-          <QuickAccess />
-        </div>
-        {/* Row 3: Summary Overview + Category Breakdown side-by-side */}
+      <DashboardCustomizationModal
+        open={customizationOpen}
+        onClose={() => setCustomizationOpen(false)}
+        sections={layoutConfig.sections}
+        onToggleSection={layoutConfig.toggleSection}
+        onReorderSections={layoutConfig.reorderSections}
+        onResetLayout={layoutConfig.resetLayout}
+        onSaveLayout={layoutConfig.saveLayout}
+      />
+
+      {/* Full-width sections */}
+      {fullWidthSections.map(renderSection)}
+
+      {/* Charts grid with half-width sections */}
+      {halfWidthPairs.length > 0 && (
         <div
-          className="chart-row"
+          className="charts-grid"
           style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            display: "flex",
+            flexDirection: "column",
             gap: isMobile ? 16 : 24,
-            width: "100%",
           }}
         >
-          <SummaryOverview
-            summary={{
-              groupsCreated: 3,
-              groupsMember: 5,
-              pendingInvitations: 2,
-              friendsCount: 12,
-              pendingFriendRequests: 1,
-            }}
-          />
-          <CategoryBreakdownChart
-            data={categoryDistribution}
-            timeframe={categoryTimeframe}
-            onTimeframeChange={setCategoryTimeframe}
-            flowType={categoryFlowType}
-            onFlowTypeChange={setCategoryFlowType}
-            loading={categoryLoading}
-            skeleton={
-              analyticsLoading ? (
-                <ChartSkeleton
-                  height={isMobile ? 380 : 560}
-                  variant="pie"
-                  noHeader
-                />
-              ) : null
-            }
-          />
+          {halfWidthPairs.map((pair, pairIndex) => (
+            <div
+              key={`pair-${pairIndex}`}
+              className="chart-row"
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                gap: isMobile ? 16 : 24,
+                width: "100%",
+              }}
+            >
+              {pair.map(renderSection)}
+            </div>
+          ))}
         </div>
-        {/* Row 4: Monthly Trend + Payment Methods side-by-side */}
-        <div
-          className="chart-row"
-          style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-            gap: isMobile ? 16 : 24,
-            width: "100%",
-          }}
-        >
-          <MonthlyTrendContainer
-            initialYear={currentYear}
-            refreshTrigger={Math.random()}
-            height={isMobile ? 260 : isTablet ? 380 : 600}
-            maxYear={currentYear}
-            showSkeleton={analyticsLoading}
-          />
-          <PaymentMethodChart
-            data={paymentMethodsData}
-            rawData={paymentMethodsRawData}
-            timeframe={paymentMethodsTimeframe}
-            onTimeframeChange={setPaymentMethodsTimeframe}
-            flowType={paymentMethodsFlowType}
-            onFlowTypeChange={setPaymentMethodsFlowType}
-            loading={paymentMethodsLoading}
-            skeleton={
-              analyticsLoading ? (
-                <ChartSkeleton height={450} variant="pie" noHeader />
-              ) : null
-            }
-          />
+      )}
+
+      {/* Bottom section */}
+      {bottomSections.length > 0 && (
+        <div className="bottom-section">
+          {analyticsLoading ? (
+            <>
+              {bottomSections.some(s => s.id === 'recent-transactions') && (
+                <RecentTransactionsSkeleton count={10} />
+              )}
+              {bottomSections.some(s => s.id === 'budget-overview') && (
+                <BudgetOverviewSkeleton count={4} />
+              )}
+            </>
+          ) : (
+            bottomSections.map(renderSection)
+          )}
         </div>
-      </div>
-      <div className="bottom-section">
-        {analyticsLoading ? (
-          <>
-            <RecentTransactionsSkeleton count={10} />
-            <BudgetOverviewSkeleton count={4} />
-          </>
-        ) : (
-          <>
-            <RecentTransactions
-              transactions={analyticsSummary?.lastTenExpenses ?? []}
-              onViewAll={viewAllTransactions}
-            />
-            <BudgetOverview
-              remainingBudget={analyticsSummary?.remainingBudget ?? 0}
-              totalLosses={analyticsSummary?.totalLosses ?? 0}
-            />
-          </>
-        )}
-      </div>
+      )}
     </div>
   );
 }

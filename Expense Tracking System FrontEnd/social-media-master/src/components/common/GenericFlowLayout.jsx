@@ -248,6 +248,7 @@ const GenericFlowLayout = ({
         search={search}
         selectedCardIdx={selectedCardIdx}
         flowTab={flowTab}
+        activeRange={activeRange}
         isMobile={isMobile}
         isTablet={isTablet}
         handleCardClick={handleCardClick}

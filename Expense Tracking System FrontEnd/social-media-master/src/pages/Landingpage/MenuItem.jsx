@@ -21,6 +21,9 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
     setIsSidebarOpen(false); // Close sidebar on mobile
   };
 
+  // Check if icon is a React component or a string (image URL)
+  const isReactComponent = typeof icon === 'function' || (icon && icon.type);
+
   return (
     <div
       onClick={handleClick}
@@ -36,14 +39,24 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
         </div>
 
         {icon && (
-          <img
-            src={icon}
-            alt={`${name} icon`}
-            className="w-[22px] h-[22px] object-contain mr-3"
-            style={{
-              filter: getIconFilter(mode, isActive),
-            }}
-          />
+          <>
+            {isReactComponent ? (
+              // Render React icon component
+              <span className="mr-3" style={{ color: isActive ? themeColors.active_text : themeColors.primary_text }}>
+                {icon}
+              </span>
+            ) : (
+              // Render image icon
+              <img
+                src={icon}
+                alt={`${name} icon`}
+                className="w-[22px] h-[22px] object-contain mr-3"
+                style={{
+                  filter: getIconFilter(mode, isActive),
+                }}
+              />
+            )}
+          </>
         )}
       </span>
     </div>

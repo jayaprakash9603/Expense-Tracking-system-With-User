@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -183,25 +183,22 @@ const Cashflow = () => {
     }
   }, [location.state, showToast]);
 
-  // Deletion click handled via openSingleDelete passed inside selection cards wrapper
-
-  // Filter cards list by selected bars if any bars are selected
-  const filteredCardsByBar = selectedBars.length
-    ? sortedCardData.filter((c) => {
-        // each selected bar has an expenses array; match ids
-        const barExpenseIds = new Set(
-          selectedBars.flatMap((b) =>
-            (b.data.expenses || []).map(
-              (e) =>
-                e.id || e.expenseId || e.expense?.id || e.expense?.expenseId
-            )
-          )
-        );
-        const cardId =
-          c.id || c.expenseId || c.expense?.id || c.expense?.expenseId;
-        return barExpenseIds.has(cardId);
-      })
-    : sortedCardData;
+  const filteredCardsByBar = useMemo(() => {
+    if (!selectedBars.length) return sortedCardData;
+    
+    const barExpenseIds = new Set(
+      selectedBars.flatMap((b) =>
+        (b.data.expenses || []).map(
+          (e) => e.id || e.expenseId || e.expense?.id || e.expense?.expenseId
+        )
+      )
+    );
+    
+    return sortedCardData.filter((c) => {
+      const cardId = c.id || c.expenseId || c.expense?.id || c.expense?.expenseId;
+      return barExpenseIds.has(cardId);
+    });
+  }, [selectedBars, sortedCardData]);
 
   return (
     <GenericFlowLayout

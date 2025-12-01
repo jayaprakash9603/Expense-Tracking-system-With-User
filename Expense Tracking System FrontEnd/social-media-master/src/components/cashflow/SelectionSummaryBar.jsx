@@ -152,14 +152,17 @@ const SelectionSummaryBar = ({
             <button
               onClick={clearSelection}
               style={{
-                background: colors.mode === "dark" ? "#2a1313" : "#ffe5e5",
+                background:
+                  colors.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(255, 77, 79, 0.12) 0%, rgba(255, 77, 79, 0.08) 100%)"
+                    : "linear-gradient(135deg, rgba(255, 77, 79, 0.08) 0%, rgba(255, 77, 79, 0.04) 100%)",
                 border:
                   colors.mode === "dark"
-                    ? "1px solid #4b1d1d"
-                    : "1px solid #ffcccb",
-                color: "#ff6b6b",
+                    ? "1px solid rgba(255, 77, 79, 0.25)"
+                    : "1px solid rgba(255, 77, 79, 0.20)",
+                color: colors.mode === "dark" ? "#ff8585" : "#ff4d4f",
                 fontSize: 12,
-                padding: "8px 12px",
+                padding: "8px 14px",
                 borderRadius: 10,
                 cursor: "pointer",
                 fontWeight: 600,
@@ -168,13 +171,62 @@ const SelectionSummaryBar = ({
                 alignItems: "center",
                 gap: 6,
                 boxShadow:
-                  "0 2px 6px -2px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.04)",
-                transition: "background .35s, transform .25s",
+                  colors.mode === "dark"
+                    ? "0 2px 8px -2px rgba(255, 77, 79, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                    : "0 2px 6px -2px rgba(255, 77, 79, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
+                transition: "all 0.2s ease",
+                position: "relative",
+                overflow: "hidden",
               }}
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  colors.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(255, 77, 79, 0.20) 0%, rgba(255, 77, 79, 0.15) 100%)"
+                    : "linear-gradient(135deg, rgba(255, 77, 79, 0.15) 0%, rgba(255, 77, 79, 0.08) 100%)";
+                e.currentTarget.style.borderColor =
+                  colors.mode === "dark"
+                    ? "rgba(255, 77, 79, 0.35)"
+                    : "rgba(255, 77, 79, 0.30)";
+                e.currentTarget.style.transform = "scale(1.05)";
+                e.currentTarget.style.boxShadow =
+                  colors.mode === "dark"
+                    ? "0 4px 12px -2px rgba(255, 77, 79, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)"
+                    : "0 4px 10px -2px rgba(255, 77, 79, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  colors.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(255, 77, 79, 0.12) 0%, rgba(255, 77, 79, 0.08) 100%)"
+                    : "linear-gradient(135deg, rgba(255, 77, 79, 0.08) 0%, rgba(255, 77, 79, 0.04) 100%)";
+                e.currentTarget.style.borderColor =
+                  colors.mode === "dark"
+                    ? "rgba(255, 77, 79, 0.25)"
+                    : "rgba(255, 77, 79, 0.20)";
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow =
+                  colors.mode === "dark"
+                    ? "0 2px 8px -2px rgba(255, 77, 79, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                    : "0 2px 6px -2px rgba(255, 77, 79, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4)";
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.currentTarget.style.transform = "scale(0.98)";
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = "scale(1.05)";
+              }}
               title="Clear selection"
+              aria-label="Clear selection"
             >
-              <span style={{ fontSize: 14 }}>✕</span>
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  lineHeight: 1,
+                }}
+              >
+                ✕
+              </span>
               <span style={{ letterSpacing: 0.5 }}>Clear</span>
             </button>
           </div>

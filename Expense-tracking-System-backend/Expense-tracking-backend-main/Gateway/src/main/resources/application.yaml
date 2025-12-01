@@ -17,43 +17,43 @@ spring:
     gateway:
       routes:
         - id: USER-SERVICE
-          uri: http://localhost:6001 # Replace with your actual service port
+          uri: ${USER_SERVICE_URL:http://localhost:6001}
           predicates:
             - Path=/auth/**, /user/**, /api/user/**, /api/admin/**, /api/roles/**, /api/permissions/**
         - id: BUDGET-SERVICE
-          uri: http://localhost:6005 # Replace with your actual service port
+          uri: ${BUDGET_SERVICE_URL:http://localhost:6005}
           predicates:
             - Path= /api/budgets/**
         - id: CHAT-SERVICE
-          uri: http://localhost:7001 # Replace with your actual service port
+          uri: ${CHAT_SERVICE_URL:http://localhost:7001}
           predicates:
             - Path= /api/chats/**
         - id: FRIENDSHIP-SERVICE
-          uri: http://localhost:6009 # Replace with your actual service port
+          uri: ${FRIENDSHIP_SERVICE_URL:http://localhost:6009}
           predicates:
             - Path= /api/friendships/**,/api/groups/**
         - id: PAYMENT-SERVICE
-          uri: http://localhost:6006 # Replace with your actual service port
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:6006}
           predicates:
             - Path= /api/payment-methods/**
         - id: CATEGORY-SERVICE
-          uri: http://localhost:6008 # Replace with your actual service port
+          uri: ${CATEGORY_SERVICE_URL:http://localhost:6008}
           predicates:
             - Path= /api/categories/**
         - id: BILL-SERVICE
-          uri: http://localhost:6007 # Replace with your actual service port
+          uri: ${BILL_SERVICE_URL:http://localhost:6007}
           predicates:
             - Path= /api/bills/**
         - id: AUDIT-SERVICE
-          uri: http://localhost:6004 # Replace with your actual service port
+          uri: ${AUDIT_SERVICE_URL:http://localhost:6004}
           predicates:
             - Path=/api/audit-logs/**, /audit-logs/**
         - id: EXPENSE-TRACKING-SYSTEM
-          uri: http://localhost:6000 # Replace with your actual service port
+          uri: ${EXPENSE_TRACKING_SERVICE_URL:http://localhost:6000}
           predicates:
-            - Path= /api/expenses/**, /api/settings/**, /api/budgets/**, /api/bills/** , /api/categories/**,/daily-summary/**, /api/friendships/**, /api/investment/**,/api/payment-methods/**
+            - Path= /api/expenses/**, /api/settings/**, /api/budgets/**, /api/bills/** , /api/categories/**,/daily-summary/**, /api/friendships/**, /api/investment/**,/api/payment-methods/**,/api/bulk/**
         - id: NOTIFICATION-SERVICE
-          uri: http://localhost:6003 # Replace with actual port
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:6003}
           predicates:
             - Path=/api/notifications/**, /notifications/** , /api/notification-preferences/**
       default-filters:

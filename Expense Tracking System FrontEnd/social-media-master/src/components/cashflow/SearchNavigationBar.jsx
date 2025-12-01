@@ -2,6 +2,7 @@ import React from "react";
 import SearchToolbar from "../common/SearchToolbar";
 import NavigationActions from "./NavigationActions";
 import { useTheme } from "../../hooks/useTheme";
+import { IconButton, Tooltip } from "@mui/material";
 
 /**
  * Combined search input + navigation / add-new action bar.

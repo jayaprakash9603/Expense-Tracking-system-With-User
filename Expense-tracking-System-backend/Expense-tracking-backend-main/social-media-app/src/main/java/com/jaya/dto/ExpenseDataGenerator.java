@@ -40,7 +40,7 @@ public class ExpenseDataGenerator {
             expenseDetails.setAmount(random.nextDouble() * 1000);
             expenseDetails.setType(TYPES[random.nextInt(TYPES.length)]);
             expenseDetails.setPaymentMethod(PAYMENT_METHODS[random.nextInt(PAYMENT_METHODS.length)]);
-            expenseDetails.setNetAmount(expenseDetails.getAmount() * (expenseDetails.getType().equals("loss") ? -1 : 1));
+            expenseDetails.setNetAmount(expenseDetails.getAmountAsDouble() * (expenseDetails.getType().equals("loss") ? -1 : 1));
             expenseDetails.setComments("Sample comment " + (i + 1));
             expenseDetails.setCreditDue(random.nextDouble() * 100);
 

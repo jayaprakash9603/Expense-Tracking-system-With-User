@@ -28,6 +28,7 @@ export const useSettingsState = (userSettings, showSnackbar) => {
     // Privacy & Security
     profileVisibility: "PUBLIC",
     sessionTimeout: true,
+    maskSensitiveData: false,
 
     // Appearance
     fontSize: "medium",
@@ -74,6 +75,7 @@ export const useSettingsState = (userSettings, showSnackbar) => {
         // Privacy & Security
         profileVisibility: userSettings.profileVisibility ?? "PUBLIC",
         sessionTimeout: userSettings.sessionTimeout ?? true,
+        maskSensitiveData: userSettings.maskSensitiveData ?? false,
 
         // Appearance
         fontSize: userSettings.fontSize ?? "medium",

@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import Error403 from "./Error403";
 import Error404 from "./Error404";
 import { toast } from "react-toastify";
+import { logoutAction } from "../../../Redux/Auth/auth.action";
 
 const GlobalErrorHandler = () => {
   const [error403, setError403] = useState(null);
   const [error404, setError404] = useState(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     // Listen for 403 errors
@@ -23,6 +26,7 @@ const GlobalErrorHandler = () => {
     // Listen for unauthorized errors
     const handleUnauthorized = (event) => {
       toast.error(event.detail.message);
+      dispatch(logoutAction());
       navigate("/login");
     };
 

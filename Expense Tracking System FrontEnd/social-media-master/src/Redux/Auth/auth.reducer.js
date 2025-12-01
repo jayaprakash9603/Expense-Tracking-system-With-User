@@ -21,6 +21,7 @@ const initialState = {
   loading: false,
   user: null,
   imageUrl: null,
+  currentMode: null, // USER or ADMIN
 };
 
 export const authReducer = (state = initialState, action) => {
@@ -58,7 +59,13 @@ export const authReducer = (state = initialState, action) => {
 
     case GET_PROFILE_SUCCESS:
     case UPDATE_PROFILE_SUCCESS:
-      return { ...state, user: action.payload, error: null, loading: false };
+      return {
+        ...state,
+        user: action.payload,
+        currentMode: action.payload?.currentMode || state.currentMode || "USER",
+        error: null,
+        loading: false,
+      };
     case LOGIN_SUCCESS:
     case REGISTER_SUCCESS:
       return { ...state, jwt: action.payload, loading: false, error: null };
@@ -66,8 +73,14 @@ export const authReducer = (state = initialState, action) => {
     case REGISTER_FAILURE:
     case GET_PROFILE_FAILURE:
       return { ...state, loading: false, error: action.payload };
+    case "SWITCH_MODE_SUCCESS":
+      return {
+        ...state,
+        currentMode: action.payload.currentMode,
+        user: action.payload.user || state.user,
+      };
     case "LOGOUT":
-      return { ...state, user: null, jwt: null };
+      return { ...state, user: null, jwt: null, currentMode: null };
     default:
       return state;
   }

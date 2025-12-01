@@ -11,7 +11,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { loginUserAction } from "../../Redux/Auth/auth.action";
 import ForgotPassword from "./ForgotPassword";
 
@@ -43,7 +43,24 @@ const Login = () => {
     if (!result.success) {
       setError(result.message);
     } else {
-      navigate("/");
+      // Navigate based on user role/currentMode
+      const { currentMode, role, user } = result;
+      
+      console.log("Login Navigation Debug:", { 
+        currentMode, 
+        role, 
+        userRole: user?.role,
+        fullUser: user 
+      });
+      
+      // Check if user is ADMIN (either by currentMode or role)
+      if (currentMode === "ADMIN" || role === "ADMIN" || user?.role === "ADMIN") {
+        console.log("Navigating to ADMIN dashboard");
+        navigate("/admin/dashboard");
+      } else {
+        console.log("Navigating to USER dashboard");
+        navigate("/dashboard");
+      }
     }
     setSubmitting(false);
   };

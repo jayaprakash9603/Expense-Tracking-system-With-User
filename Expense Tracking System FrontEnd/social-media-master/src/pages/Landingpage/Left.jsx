@@ -10,8 +10,25 @@ import {
   BRAND_GRADIENT_COLORS,
 } from "../../config/themeConfig";
 
+// Import MUI Icons
+import HomeIcon from "@mui/icons-material/Home";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import CategoryIcon from "@mui/icons-material/Category";
+import PaymentIcon from "@mui/icons-material/Payment";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import PeopleIcon from "@mui/icons-material/People";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PersonIcon from "@mui/icons-material/Person";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import HistoryIcon from "@mui/icons-material/History";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import SettingsIcon from "@mui/icons-material/Settings";
+
 const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
+  const { currentMode } = useSelector((state) => state.auth || {});
   const { mode } = useSelector((state) => state.theme || {});
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -19,6 +36,11 @@ const Left = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  // Check if user has ADMIN role
+  const hasAdminRole =
+    user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN");
+  const isAdminMode = currentMode === "ADMIN";
 
   const handleLogout = () => {
     dispatch(logoutAction());
@@ -127,75 +149,123 @@ const Left = () => {
 
           {/* Menu Items */}
           <div className="flex flex-col items-center w-full max-w-[360px] space-y-2">
-            <MenuItem
-              name="Home"
-              path="/dashboard"
-              icon="https://cdn-icons-png.flaticon.com/128/25/25694.png"
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Expenses"
-              path="/expenses"
-              icon="https://cdn-icons-png.flaticon.com/128/5501/5501384.png"
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
+            {/* Show different menu based on current mode */}
+            {hasAdminRole && isAdminMode ? (
+              <>
+                {/* ADMIN MODE - Show only admin menu items */}
+                <div className="w-full px-4 py-1">
+                  <p
+                    className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
+                    style={{ color: themeColors.secondary_text }}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Admin Panel
+                  </p>
+                </div>
 
-            <MenuItem
-              name="Categories"
-              path="/category-flow"
-              icon={require("../../assests/category.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
+                <MenuItem
+                  name="Dashboard"
+                  path="/admin/dashboard"
+                  icon={<DashboardIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="User Management"
+                  path="/admin/users"
+                  icon={<PersonIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Role Management"
+                  path="/admin/roles"
+                  icon={<AdminPanelSettingsIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="System Analytics"
+                  path="/admin/analytics"
+                  icon={<BarChartIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Audit Logs"
+                  path="/admin/audit"
+                  icon={<HistoryIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Reports"
+                  path="/admin/reports"
+                  icon={<AssessmentIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Settings"
+                  path="/admin/settings"
+                  icon={<SettingsIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+              </>
+            ) : (
+              <>
+                {/* USER MODE - Show regular user menu items */}
+                <MenuItem
+                  name="Home"
+                  path="/dashboard"
+                  icon={<HomeIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Expenses"
+                  path="/expenses"
+                  icon={<ReceiptLongIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
 
-            <MenuItem
-              name="Payments"
-              path="/payment-method"
-              icon={require("../../assests/payment-method.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Bill"
-              path="/bill"
-              icon={require("../../assests/bill.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Friends"
-              path="/friends"
-              icon={require("../../assests/friends.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Budgets"
-              path="/budget"
-              icon={require("../../assests/budget.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            {/* <MenuItem
-              name="Groups"
-              path="/groups"
-              icon={require("../../assests/group.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="Chats"
-              path="/chats"
-              icon={require("../../assests/chat.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
-            <MenuItem
-              name="More"
-              path="/all"
-              icon={require("../../assests/more.png")}
-              setIsSidebarOpen={setIsSidebarOpen}
-            /> */}
-            <MenuItem
-              name="Logout"
-              path="/login"
-              icon={require("../../assests/logout.png")}
-              onClick={() => setIsConfirmModalOpen(true)}
-              setIsSidebarOpen={setIsSidebarOpen}
-            />
+                <MenuItem
+                  name="Categories"
+                  path="/category-flow"
+                  icon={<CategoryIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+
+                <MenuItem
+                  name="Payments"
+                  path="/payment-method"
+                  icon={<PaymentIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Bill"
+                  path="/bill"
+                  icon={<ReceiptIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Friends"
+                  path="/friends"
+                  icon={<PeopleIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name="Budgets"
+                  path="/budget"
+                  icon={<AccountBalanceWalletIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+              </>
+            )}
           </div>
         </div>
 

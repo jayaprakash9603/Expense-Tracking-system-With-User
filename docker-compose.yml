@@ -1,0 +1,193 @@
+version: '3.8'
+
+services:
+  # Infrastructure Services
+  mysql:
+    image: mysql:8.0
+    container_name: expense-mysql
+    ports:
+      - "5000:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: expense_tracker
+    networks:
+      - expense-net
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: expense-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - expense-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: expense-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - expense-net
+    restart: unless-stopped
+    healthcheck:
+      test: echo srvr | nc localhost 2181 || exit 1
+      interval: 10s
+      retries: 10
+      timeout: 5s
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: expense-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    networks:
+      - expense-net
+    restart: unless-stopped
+    healthcheck:
+      test: kafka-topics --bootstrap-server localhost:9092 --list
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: expense-kafka-ui
+    ports:
+      - "9080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: expense-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - expense-net
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Maven Build Service - Build all microservices
+  maven-builder:
+    image: maven:3.9-eclipse-temurin-17
+    container_name: expense-maven-builder
+    working_dir: /workspace
+    volumes:
+      - ./Expense-tracking-System-backend/Expense-tracking-backend-main:/workspace
+      - maven_cache:/root/.m2
+    networks:
+      - expense-net
+    command: >
+      sh -c "
+        echo '========================================' &&
+        echo 'Building Eureka Server...' &&
+        echo '========================================' &&
+        cd /workspace/eureka-server && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building Gateway Service...' &&
+        echo '========================================' &&
+        cd /workspace/Gateway && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building User Service...' &&
+        echo '========================================' &&
+        cd /workspace/User-Service && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building Expense Tracking Service...' &&
+        echo '========================================' &&
+        cd /workspace/social-media-app && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building Chat Service...' &&
+        echo '========================================' &&
+        cd /workspace/Chat-Service && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building Payment Service...' &&
+        echo '========================================' &&
+        cd /workspace/Payment-method-Service && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building Category Service...' &&
+        echo '========================================' &&
+        cd /workspace/Category-Service && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building FriendShip Service...' &&
+        echo '========================================' &&
+        cd /workspace/FriendShip-Service && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building Budget Service...' &&
+        echo '========================================' &&
+        cd /workspace/Budget-Service && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building Bill Service...' &&
+        echo '========================================' &&
+        cd /workspace/Bill-Service && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building Notification Service...' &&
+        echo '========================================' &&
+        cd /workspace/Notification-Service && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'Building Audit Service...' &&
+        echo '========================================' &&
+        cd /workspace/Audit-Service && mvn clean package -DskipTests &&
+        
+        echo '========================================' &&
+        echo 'All services built successfully!' &&
+        echo '========================================' &&
+        echo 'Keeping container alive for debugging...' &&
+        tail -f /dev/null
+      "
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    profiles:
+      - build
+
+networks:
+  expense-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  maven_cache:
+    driver: local

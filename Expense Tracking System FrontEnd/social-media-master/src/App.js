@@ -1,4 +1,4 @@
-import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
+import { Route, Routes, Navigate, useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
 import Authentication from "./pages/Authentication/Authentication";
 import HomePage from "./pages/Home/HomePage";
@@ -60,7 +60,13 @@ import CategoryReport from "./pages/Landingpage/Category Report/CategoryReport";
 import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentReport";
 import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
 import AllBudgetsReport from "./pages/Landingpage/Budget Report/AllBudgetsReport";
-import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard/AdminDashboard";
+import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard";
+import SystemAnalytics from "./pages/Landingpage/Admin/SystemAnalytics";
+import UserManagement from "./pages/Landingpage/Admin/UserManagement";
+import RoleManagement from "./pages/Landingpage/Admin/RoleManagement";
+import AuditLogsAdmin from "./pages/Landingpage/Admin/AuditLogs";
+import ReportsAdmin from "./pages/Landingpage/Admin/Reports";
+import AdminSettings from "./pages/Landingpage/Admin/AdminSettings";
 import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
 import Bill from "./pages/Landingpage/Bills/Bill";
 import BudgetDashboard from "./pages/Landingpage/Budget/BudgetDashboard";
@@ -71,7 +77,9 @@ function App() {
   const dispatch = useDispatch();
   const jwt = localStorage.getItem("jwt");
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isDark = theme?.mode === "dark";
 
@@ -87,13 +95,28 @@ function App() {
           if (settings?.themeMode) {
             dispatch(setTheme(settings.themeMode));
           }
-          // Navigate to home only after settings are loaded
-          navigate("/dashboard");
+          
+          // Only navigate on initial load (page refresh), not after login
+          // Skip navigation if we're coming from authentication routes
+          const isAuthRoute = location.pathname === '/' || 
+                              location.pathname.startsWith('/login') || 
+                              location.pathname.startsWith('/register');
+          
+          if (isInitialLoad && isAuthRoute) {
+            // Navigate based on currentMode (ADMIN or USER)
+            const currentMode = auth?.currentMode;
+            if (currentMode === "ADMIN") {
+              navigate("/admin/dashboard");
+            } else {
+              navigate("/dashboard");
+            }
+          }
+          
+          setIsInitialLoad(false);
         })
         .catch((error) => {
           console.error("Error loading user data:", error);
-          // Still navigate even if there's an error, to avoid blocking user
-          navigate("/dashboard");
+          setIsInitialLoad(false);
         })
         .finally(() => setLoading(false));
     } else {
@@ -283,6 +306,17 @@ function App() {
             <Route path="/bill-day-view">
               <Route path=":date" element={<DayBillsView />} />
               <Route path=":date/friend/:friendId" element={<DayBillsView />} />
+            </Route>
+
+            {/* Admin Routes - Each tab shows its own component */}
+            <Route path="admin">
+              <Route path="dashboard" element={<SystemAnalytics />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="roles" element={<RoleManagement />} />
+              <Route path="analytics" element={<SystemAnalytics />} />
+              <Route path="audit" element={<AuditLogsAdmin />} />
+              <Route path="reports" element={<ReportsAdmin />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
           </Route>
 

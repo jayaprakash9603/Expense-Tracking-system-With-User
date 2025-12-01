@@ -83,6 +83,9 @@ public class UserSettingsDTO {
     @JsonProperty("sessionTimeout")
     private Boolean sessionTimeout;
 
+    @JsonProperty("maskSensitiveData")
+    private Boolean maskSensitiveData;
+
     // ==================== DATA & STORAGE SETTINGS ====================
     @JsonProperty("autoBackup")
     private Boolean autoBackup;

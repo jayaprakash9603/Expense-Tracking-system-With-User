@@ -1,18 +1,45 @@
 // ExpenseDetailsDTO.java
 package com.jaya.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 @Data
 public class ExpenseDetailsDTO {
     private Integer id;
     private String expenseName;
-    private double amount;
+    private Object amount; // Can be Double or String (for masked values)
     private String type;
     private String paymentMethod;
-    private double netAmount;
+    private Object netAmount; // Can be Double or String (for masked values)
     private String comments;
-    private double creditDue;
+    private Object creditDue; // Can be Double or String (for masked values)
+    private boolean masked = false; // Indicates if sensitive data is masked
+    
+    // Helper methods to get numeric values safely - excluded from JSON serialization
+    @JsonIgnore
+    public double getAmountAsDouble() {
+        if (amount instanceof Number) {
+            return ((Number) amount).doubleValue();
+        }
+        return 0.0;
+    }
+    
+    @JsonIgnore
+    public double getNetAmountAsDouble() {
+        if (netAmount instanceof Number) {
+            return ((Number) netAmount).doubleValue();
+        }
+        return 0.0;
+    }
+    
+    @JsonIgnore
+    public double getCreditDueAsDouble() {
+        if (creditDue instanceof Number) {
+            return ((Number) creditDue).doubleValue();
+        }
+        return 0.0;
+    }
     
     
     
@@ -21,12 +48,13 @@ public class ExpenseDetailsDTO {
         return "ExpenseDetailsDTO{" +
                 "id=" + id +
                 ", expenseName='" + expenseName + '\'' +
-                ", amount=" + amount +
+                ", amount=" + (masked ? "****" : amount) +
                 ", type='" + type + '\'' +
                 ", paymentMethod='" + paymentMethod + '\'' +
-                ", netAmount=" + netAmount +
+                ", netAmount=" + (masked ? "****" : netAmount) +
                 ", comments='" + comments + '\'' +
-                ", creditDue=" + creditDue +
+                ", creditDue=" + (masked ? "****" : creditDue) +
+                ", masked=" + masked +
                 '}';
     }
 }

@@ -61,30 +61,27 @@ public class UserController {
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer id,
             @RequestHeader("Authorization") String jwt) {
 
-        
-            // Get the current user from JWT
+        // Get the current user from JWT
 
-            if(id<=0)
-            {
-                throw new UserNotFoundException("user not found");
-            }
-            User currentUser = userService.getUserProfile(jwt);
+        if (id <= 0) {
+            throw new UserNotFoundException("user not found");
+        }
+        User currentUser = userService.getUserProfile(jwt);
 
-            // Check if user is admin or accessing their own profile
-            boolean isAdmin = currentUser.getRoles() != null &&
-                    currentUser.getRoles().contains("ADMIN");
-            boolean isOwnProfile = currentUser.getId().equals(id);
+        // Check if user is admin or accessing their own profile
+        boolean isAdmin = currentUser.getRoles() != null &&
+                currentUser.getRoles().contains("ADMIN");
+        boolean isOwnProfile = currentUser.getId().equals(id);
 
-            if (!isAdmin && !isOwnProfile) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "You don't have permission to access this user's profile"));
-            }
+        if (!isAdmin && !isOwnProfile) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "You don't have permission to access this user's profile"));
+        }
 
-            Optional<User> user = userRepository.findById(id);
-            return user.map(u -> ResponseEntity.ok(u))
-                    .orElse(ResponseEntity.notFound().build());
+        Optional<User> user = userRepository.findById(id);
+        return user.map(u -> ResponseEntity.ok(u))
+                .orElse(ResponseEntity.notFound().build());
 
-        
     }
 
     @PutMapping()
@@ -120,8 +117,6 @@ public class UserController {
 
             // Check if user is deleting their own account
             boolean isOwnAccount = reqUser.getId().intValue() == id;
-
-           
 
             if (isOwnAccount || isAdmin) {
                 // Additional validation: Check if user exists
@@ -302,6 +297,34 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to remove role: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/switch-mode")
+    public ResponseEntity<?> switchUserMode(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam @NotNull String mode) {
+
+        try {
+            // Validate mode parameter
+            if (!mode.equals("USER") && !mode.equals("ADMIN")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Invalid mode. Must be USER or ADMIN"));
+            }
+
+            User updatedUser = userService.switchUserMode(jwt, mode);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Mode switched successfully",
+                    "user", updatedUser,
+                    "currentMode", updatedUser.getCurrentMode()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to switch mode: " + e.getMessage()));
         }
     }
 

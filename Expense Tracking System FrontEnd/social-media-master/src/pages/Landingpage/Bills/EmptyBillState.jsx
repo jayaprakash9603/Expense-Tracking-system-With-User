@@ -20,13 +20,14 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
 
   return (
     <Paper
+      elevation={0}
       sx={{
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         minHeight: "400px",
-        backgroundColor: colors.primary_bg,
+        backgroundColor: colors.card_bg,
         border: `2px dashed ${colors.border_color}`,
         borderRadius: 3,
         p: 4,
@@ -38,7 +39,7 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
           width: 80,
           height: 80,
           borderRadius: "50%",
-          backgroundColor: `${colors.primary_accent}20`,
+          backgroundColor: colors.hover_bg,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -74,9 +75,10 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
         <Typography
           variant="body2"
           sx={{
-            color: colors.icon_muted,
+            color: colors.secondary_text,
             mb: 4,
             maxWidth: 400,
+            opacity: 0.7,
           }}
         >
           Start by creating your first bill to track your expenses and income.
@@ -90,15 +92,17 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
           onClick={handleCreateBill}
           sx={{
             backgroundColor: colors.primary_accent,
-            color: colors.button_text,
+            color: "#ffffff",
             fontWeight: 600,
             px: 4,
             py: 1.5,
             borderRadius: 2,
             textTransform: "none",
             fontSize: "1rem",
+            boxShadow: "none",
             "&:hover": {
               backgroundColor: colors.button_hover,
+              boxShadow: "none",
             },
           }}
         >

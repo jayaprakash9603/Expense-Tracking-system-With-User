@@ -15,7 +15,7 @@ import java.util.Set;
 public interface ExpenseCoreService {
 
     // Basic CRUD operations
-    Expense addExpense(Expense expense, Integer userId) throws Exception;
+    ExpenseDTO addExpense(ExpenseDTO expenseDTO, Integer userId) throws Exception;
     Expense copyExpense(Integer userId, Integer expenseId) throws Exception;
     Expense save(Expense expense);
     Expense updateExpense(Integer id, Expense expense, Integer userId) throws Exception;

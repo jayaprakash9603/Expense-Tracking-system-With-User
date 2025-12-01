@@ -54,6 +54,7 @@ public class UserSettingsMapper {
                 .profileVisibility(entity.getProfileVisibility())
                 .twoFactorEnabled(entity.getTwoFactorEnabled())
                 .sessionTimeout(entity.getSessionTimeout())
+                .maskSensitiveData(entity.getMaskSensitiveData())
                 // Data & Storage
                 .autoBackup(entity.getAutoBackup())
                 .backupFrequency(entity.getBackupFrequency())
@@ -111,6 +112,7 @@ public class UserSettingsMapper {
                 .profileVisibility(dto.getProfileVisibility())
                 .twoFactorEnabled(dto.getTwoFactorEnabled())
                 .sessionTimeout(dto.getSessionTimeout())
+                .maskSensitiveData(dto.getMaskSensitiveData())
                 // Data & Storage
                 .autoBackup(dto.getAutoBackup())
                 .backupFrequency(dto.getBackupFrequency())
@@ -201,6 +203,9 @@ public class UserSettingsMapper {
         }
         if (request.getSessionTimeout() != null) {
             entity.setSessionTimeout(request.getSessionTimeout());
+        }
+        if (request.getMaskSensitiveData() != null) {
+            entity.setMaskSensitiveData(request.getMaskSensitiveData());
         }
 
         // Data & Storage Settings

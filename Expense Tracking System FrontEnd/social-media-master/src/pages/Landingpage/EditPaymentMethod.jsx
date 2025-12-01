@@ -19,6 +19,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
+import PageHeader from "../../components/PageHeader";
 import { useTheme } from "../../hooks/useTheme";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
@@ -588,34 +589,10 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
         }}
       >
         <div>
-          <div className="w-full flex justify-between items-center mb-2">
-            <p
-              className="font-extrabold text-2xl sm:text-3xl"
-              style={{ color: colors.primary_text }}
-            >
-              {isEditMode ? "Edit Payment Method" : "Create Payment Method"}
-            </p>
-            <button
-              onClick={handleClosePaymentMethod}
-              className="px-2 py-1 border rounded"
-              style={{
-                backgroundColor: colors.secondary_bg,
-                color: colors.primary_text,
-                borderColor: colors.border_color,
-              }}
-              onMouseEnter={(e) =>
-                (e.target.style.backgroundColor = colors.hover_bg)
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.backgroundColor = colors.secondary_bg)
-              }
-            >
-              X
-            </button>
-          </div>
-          <hr
-            className="border-t w-full mb-2 sm:mb-4 -mt-3"
-            style={{ borderColor: colors.border_color }}
+          <PageHeader
+            title={isEditMode ? "Edit Payment Method" : "Create Payment Method"}
+            onClose={handleClosePaymentMethod}
+            titleClassName="font-extrabold text-2xl sm:text-3xl"
           />
 
           <Box component="form" onSubmit={handlePaymentMethodSubmit} noValidate>

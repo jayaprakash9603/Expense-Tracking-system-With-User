@@ -1,6 +1,8 @@
 package com.jaya.service;
 
 import com.jaya.models.*;
+import com.jaya.dto.ExpenseDTO;
+import com.jaya.mapper.ExpenseMapper;
 import com.jaya.service.excel.ExcelGenerator;
 import com.jaya.service.excel.definitions.*;
 import com.jaya.service.excel.parser.CategoryExcelParser;
@@ -37,14 +39,17 @@ public class ExcelService {
     private final ExpenseService expenseService;
     private final ExpenseExcelParser expenseParser;
     private final CategoryExcelParser categoryParser;
+    private final ExpenseMapper expenseMapper;
 
     @Autowired
     public ExcelService(ExpenseService expenseService,
             ExpenseExcelParser expenseParser,
-            CategoryExcelParser categoryParser) {
+            CategoryExcelParser categoryParser,
+            ExpenseMapper expenseMapper) {
         this.expenseService = expenseService;
         this.expenseParser = expenseParser;
         this.categoryParser = categoryParser;
+        this.expenseMapper = expenseMapper;
     }
 
     /**
@@ -272,8 +277,8 @@ public class ExcelService {
         List<Integer> addedIds = new ArrayList<>();
 
         for (Expense expense : expenses) {
-            Expense savedExpense = expenseService.addExpense(expense, userId);
-            addedIds.add(savedExpense.getId());
+            ExpenseDTO savedExpenseDTO = expenseService.addExpense(expenseMapper.toDTO(expense), userId);
+            addedIds.add(savedExpenseDTO.getId());
         }
 
         return addedIds;

@@ -3,11 +3,13 @@ package com.jaya.controller;
 
 import com.jaya.dto.User;
 import com.jaya.exceptions.MissingRequestHeaderException;
+import com.jaya.mapper.ExpenseMapper;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.MonthlySummary;
 import com.jaya.service.ExpenseService;
 import com.jaya.service.FriendShipService;
 import com.jaya.service.UserService;
+import com.jaya.service.UserSettingsService;
 import com.jaya.util.UserPermissionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -30,6 +32,12 @@ public abstract class BaseExpenseController {
 
     @Autowired
     protected UserPermissionHelper permissionHelper;
+
+    @Autowired
+    protected ExpenseMapper expenseMapper;
+
+    @Autowired
+    protected UserSettingsService userSettingsService;
 
     protected User getAuthenticatedUser(String jwt) throws Exception {
         if(jwt==null)

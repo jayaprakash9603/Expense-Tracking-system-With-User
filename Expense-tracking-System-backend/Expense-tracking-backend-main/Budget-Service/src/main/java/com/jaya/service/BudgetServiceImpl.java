@@ -3,6 +3,7 @@ package com.jaya.service;
 import com.jaya.dto.BudgetReport;
 import com.jaya.dto.DetailedBudgetReport;
 import com.jaya.dto.ExpenseDTO;
+import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.exceptions.BudgetNotFoundException;
 import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
@@ -14,11 +15,13 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -28,6 +31,7 @@ import java.util.stream.Collectors;
 public class BudgetServiceImpl implements BudgetService {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BudgetServiceImpl.class);
+    private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
 
     @Autowired
     private BudgetRepository budgetRepository;
@@ -45,30 +49,36 @@ public class BudgetServiceImpl implements BudgetService {
     @Autowired
     private BudgetNotificationService budgetNotificationService;
 
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
+
     @Override
     public Budget createBudget(Budget budget, Integer userId) throws Exception {
-        
 
-        UserDto user= helper.validateUser(userId);
+        UserDto user = helper.validateUser(userId);
 
-        budget=helper.validateBudget(budget,user.getId());
-     
-        Set<Integer> validExpenseIds = helper.getValidBudgetIds(budget,userId,expenseService);
+        budget = helper.validateBudget(budget, user.getId());
 
-        
+        Set<Integer> validExpenseIds = helper.getValidBudgetIds(budget, userId, expenseService);
+
         budget.setExpenseIds(validExpenseIds);
         budget.setBudgetHasExpenses(!validExpenseIds.isEmpty());
 
         Budget savedBudget = budgetRepository.save(budget);
 
-        helper.addBudgetIdInExpenses(budget,expenseService,userId);
+        // Use Kafka events instead of synchronous Feign calls
+        if (!validExpenseIds.isEmpty()) {
+            log.info("Publishing budget-expense link updates via Kafka for {} expenses", validExpenseIds.size());
+            for (Integer expenseId : validExpenseIds) {
+                publishExpenseBudgetLinkUpdate(expenseId.longValue(), savedBudget.getId().longValue(), userId);
+            }
+        }
 
         // Check budget thresholds and send notifications if needed
         if (!validExpenseIds.isEmpty()) {
             checkAndSendThresholdNotifications(savedBudget, userId);
         }
 
-        
         return savedBudget;
     }
 
@@ -150,8 +160,7 @@ public class BudgetServiceImpl implements BudgetService {
     @CacheEvict(value = "budgets", allEntries = true)
     public Budget editBudget(Integer budgetId, Budget budget, Integer userId) throws Exception {
 
-
-        Budget existingBudget = getBudgetById(budgetId,userId);
+        Budget existingBudget = getBudgetById(budgetId, userId);
 
         if (budget.getStartDate().isAfter(budget.getEndDate())) {
             throw new IllegalArgumentException("Start date cannot be after end date.");
@@ -233,8 +242,8 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     @Transactional
     public void deleteBudget(Integer budgetId, Integer userId) {
-        Budget budget = getBudgetById(budgetId,userId);
-        helper.deleteBudgetIdInExpenses(budget,expenseService,userId,budgetId);
+        Budget budget = getBudgetById(budgetId, userId);
+        helper.deleteBudgetIdInExpenses(budget, expenseService, userId, budgetId);
         budgetRepository.delete(budget);
     }
 
@@ -247,22 +256,14 @@ public class BudgetServiceImpl implements BudgetService {
             throw new RuntimeException("No budgets found");
         }
 
-        helper.removeBudgetsIdsInAllExpenses(budgets,expenseService,userId);
-//        for (Budget budget : budgets) {
-//            Set<Integer> expenseIds = budget.getExpenseIds();
-//            if (expenseIds != null) {
-//                for (Integer expenseId : expenseIds) {
-//                    ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-//                    if (expense != null && expense.getBudgetIds() != null) {
-//                        expense.getBudgetIds().remove(budget.getId());
-//                        expenseService.save(expense);
-//                    }
-//                }
-//            }
-//        }
+        // Use async method to publish events for budget removal from expenses
+        helper.removeBudgetsIdsInAllExpensesAsync(budgets, userId);
 
+        // Delete budgets immediately (async events will handle expense updates)
         budgetRepository.deleteAll(budgets);
 
+        log.info("Deleted {} budgets for userId={}. Async events published for expense updates.",
+                budgets.size(), userId);
     }
 
     @Override
@@ -2028,6 +2029,27 @@ public class BudgetServiceImpl implements BudgetService {
 
     private double round2(double v) {
         return Math.round(v * 100.0) / 100.0;
+    }
+
+    /**
+     * Publish event to notify Expense Service to update expense with budget ID
+     */
+    private void publishExpenseBudgetLinkUpdate(Long expenseId, Long budgetId, Integer userId) {
+        try {
+            ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                    .eventType(ExpenseBudgetLinkingEvent.EventType.EXPENSE_BUDGET_LINK_UPDATE)
+                    .userId(userId.longValue())
+                    .newExpenseId(expenseId)
+                    .newBudgetId(budgetId)
+                    .timestamp(LocalDateTime.now().toString())
+                    .build();
+
+            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            log.info("Published expense-budget link update via Kafka: expense={}, budget={}", expenseId, budgetId);
+        } catch (Exception e) {
+            log.error("Failed to publish expense-budget link update for expense {} and budget {}",
+                    expenseId, budgetId, e);
+        }
     }
 
 }

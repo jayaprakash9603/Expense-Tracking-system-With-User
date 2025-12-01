@@ -209,6 +209,7 @@ public class AuthController {
             response.put("message", "OTP sent successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to send OTP"));
         }

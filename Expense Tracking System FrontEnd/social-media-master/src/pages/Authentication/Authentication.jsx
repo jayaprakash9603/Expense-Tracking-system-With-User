@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "@mui/material";
 import Login from "./Login";
 import Register from "./Register";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 
 const Authentication = () => {
   return (
@@ -39,6 +39,7 @@ const Authentication = () => {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Card>
     </div>

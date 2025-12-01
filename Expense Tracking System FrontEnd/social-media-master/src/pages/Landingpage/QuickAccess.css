@@ -1,6 +1,7 @@
 /* QuickAccess - alternative pill design */
 .quick-access {
   margin-top: 30px;
+  margin-bottom: 32px; /* Add spacing below Quick Access */
   width: 100%;
   background: #1b1b1b;
   border-radius: 12px;
