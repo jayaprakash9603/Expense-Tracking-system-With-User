@@ -46,10 +46,19 @@ const Login = () => {
       // Navigate based on user role/currentMode
       const { currentMode, role, user } = result;
       
+      console.log("Login Navigation Debug:", { 
+        currentMode, 
+        role, 
+        userRole: user?.role,
+        fullUser: user 
+      });
+      
       // Check if user is ADMIN (either by currentMode or role)
       if (currentMode === "ADMIN" || role === "ADMIN" || user?.role === "ADMIN") {
+        console.log("Navigating to ADMIN dashboard");
         navigate("/admin/dashboard");
       } else {
+        console.log("Navigating to USER dashboard");
         navigate("/dashboard");
       }
     }

@@ -44,6 +44,14 @@ export const loginUserAction = (loginData) => async (dispatch) => {
     const profileResponse = await dispatch(getProfileAction(data.jwt));
     updateAuthHeader();
 
+    console.log("Profile Response:", profileResponse);
+    console.log("Returning from loginUserAction:", {
+      success: true,
+      user: profileResponse,
+      currentMode: profileResponse?.currentMode,
+      role: profileResponse?.role
+    });
+
     // Return success with user data for navigation
     return { 
       success: true, 

@@ -1,4 +1,4 @@
-import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
+import { Route, Routes, Navigate, useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
 import Authentication from "./pages/Authentication/Authentication";
 import HomePage from "./pages/Home/HomePage";
@@ -77,7 +77,9 @@ function App() {
   const dispatch = useDispatch();
   const jwt = localStorage.getItem("jwt");
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isDark = theme?.mode === "dark";
 
@@ -94,23 +96,27 @@ function App() {
             dispatch(setTheme(settings.themeMode));
           }
           
-          // Navigate based on currentMode (ADMIN or USER)
-          const currentMode = auth?.currentMode;
-          if (currentMode === "ADMIN") {
-            navigate("/admin/dashboard");
-          } else {
-            navigate("/dashboard");
+          // Only navigate on initial load (page refresh), not after login
+          // Skip navigation if we're coming from authentication routes
+          const isAuthRoute = location.pathname === '/' || 
+                              location.pathname.startsWith('/login') || 
+                              location.pathname.startsWith('/register');
+          
+          if (isInitialLoad && isAuthRoute) {
+            // Navigate based on currentMode (ADMIN or USER)
+            const currentMode = auth?.currentMode;
+            if (currentMode === "ADMIN") {
+              navigate("/admin/dashboard");
+            } else {
+              navigate("/dashboard");
+            }
           }
+          
+          setIsInitialLoad(false);
         })
         .catch((error) => {
           console.error("Error loading user data:", error);
-          // Still navigate even if there's an error, to avoid blocking user
-          const currentMode = auth?.currentMode;
-          if (currentMode === "ADMIN") {
-            navigate("/admin/dashboard");
-          } else {
-            navigate("/dashboard");
-          }
+          setIsInitialLoad(false);
         })
         .finally(() => setLoading(false));
     } else {
