@@ -97,7 +97,7 @@ const HeaderBar = () => {
 
     if (result.success) {
       setIsProfileOpen(false);
-      console.log(`Switched to ${newMode} mode`);
+      console.log(`Successfully switched to ${newMode} mode`);
     } else {
       console.error("Failed to switch mode:", result.message);
     }

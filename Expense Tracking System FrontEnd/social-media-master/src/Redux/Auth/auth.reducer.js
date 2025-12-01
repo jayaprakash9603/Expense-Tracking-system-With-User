@@ -76,7 +76,7 @@ export const authReducer = (state = initialState, action) => {
     case "SWITCH_MODE_SUCCESS":
       return {
         ...state,
-        currentMode: action.payload,
+        currentMode: action.payload.currentMode,
         user: action.payload.user || state.user,
       };
     case "LOGOUT":
