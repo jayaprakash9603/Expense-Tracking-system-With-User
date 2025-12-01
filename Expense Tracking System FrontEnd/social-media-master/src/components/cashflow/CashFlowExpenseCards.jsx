@@ -27,7 +27,7 @@ dayjs.extend(weekOfYear);
  * Reusable expense cards list for CashFlow page.
  * Keeps purely presentational logic; side-effect actions passed via callbacks/props.
  */
-export default function CashFlowExpenseCards({
+function CashFlowExpenseCards({
   data = [],
   loading,
   search,
@@ -511,7 +511,6 @@ export default function CashFlowExpenseCards({
     }
   }, [groupedExpenses.firstDate, groupedExpenses.lastDate, sortOrder]);
 
-  // Save scroll position on user scroll
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -592,11 +591,11 @@ export default function CashFlowExpenseCards({
     overflowX: "hidden",
     paddingBottom: 40,
     scrollBehavior: "auto",
-    overflowAnchor: "none",
-    scrollbarWidth: "none", // Firefox
-    msOverflowStyle: "none", // IE and Edge
+    overflowAnchor: "auto",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
     "&::-webkit-scrollbar": {
-      display: "none", // Chrome, Safari, Opera
+      display: "none",
     },
   };
 
@@ -763,33 +762,42 @@ export default function CashFlowExpenseCards({
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
-
-          // Save current scroll position BEFORE handling click
+          
           const container = scrollContainerRef.current;
-          const scrollPos = container ? container.scrollTop : 0;
-
-          // Prevent any scroll behavior
-          if (event.target && event.target.blur) {
-            event.target.blur();
+          const cardElement = event.currentTarget;
+          
+          if (container) {
+            const scrollBeforeClick = container.scrollTop;
+            savedScrollPositionRef.current = scrollBeforeClick;
+            
+            handleCardClick(idx, event);
+            
+            requestAnimationFrame(() => {
+              if (container) {
+                container.scrollTop = scrollBeforeClick;
+              }
+            });
+            
+            setTimeout(() => {
+              if (container) {
+                container.scrollTop = scrollBeforeClick;
+              }
+            }, 0);
+            
+            setTimeout(() => {
+              if (container) {
+                container.scrollTop = scrollBeforeClick;
+              }
+            }, 10);
+            
+            setTimeout(() => {
+              if (container) {
+                container.scrollTop = scrollBeforeClick;
+              }
+            }, 50);
+          } else {
+            handleCardClick(idx, event);
           }
-
-          // Handle the click
-          handleCardClick(idx, event);
-
-          // Restore scroll position immediately after click
-          requestAnimationFrame(() => {
-            if (container) {
-              container.scrollTop = scrollPos;
-              savedScrollPositionRef.current = scrollPos;
-            }
-          });
-
-          // Double-check after a short delay
-          setTimeout(() => {
-            if (container && container.scrollTop !== scrollPos) {
-              container.scrollTop = scrollPos;
-            }
-          }, 0);
         }}
         onFocus={(e) => {
           e.preventDefault();
@@ -1079,24 +1087,6 @@ export default function CashFlowExpenseCards({
           position: "relative",
           scrollbarWidth: "none",
           msOverflowStyle: "none",
-        }}
-        onMouseLeave={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (scrollContainerRef.current) {
-            const savedPos = savedScrollPositionRef.current;
-            setTimeout(() => {
-              if (scrollContainerRef.current) {
-                scrollContainerRef.current.scrollTop = savedPos;
-              }
-            }, 0);
-          }
-        }}
-        onClick={(e) => {
-          if (scrollContainerRef.current) {
-            savedScrollPositionRef.current =
-              scrollContainerRef.current.scrollTop;
-          }
         }}
       >
         {/* Fixed Sticky Header - Always visible */}
@@ -1573,3 +1563,5 @@ export default function CashFlowExpenseCards({
     </div>
   );
 }
+
+export default React.memo(CashFlowExpenseCards);
