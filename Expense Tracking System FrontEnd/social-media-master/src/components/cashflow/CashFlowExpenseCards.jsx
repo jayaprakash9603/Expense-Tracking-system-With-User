@@ -69,6 +69,13 @@ export default function CashFlowExpenseCards({
 
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+    
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
   };
 
   const handleDateClick = (event) => {
