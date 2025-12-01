@@ -4,6 +4,7 @@ import useCategoryDistributionData from "../../hooks/useCategoryDistributionData
 import usePaymentMethodsData from "../../hooks/usePaymentMethodsData";
 import useMonthlyTrendData from "../../hooks/useMonthlyTrendData";
 import useDailySpendingData from "../../hooks/useDailySpendingData";
+import { useDashboardLayout } from "../../hooks/useDashboardLayout";
 
 // Dashboard context holds UI selection state + aggregated hook outputs.
 const DashboardContext = createContext(null);
@@ -63,6 +64,9 @@ export function DashboardProvider({ children }) {
     error: monthlyTrendError,
   } = useMonthlyTrendData({ year: trendYear, refreshTrigger: refreshKey });
 
+  // Dashboard layout configuration
+  const layoutConfig = useDashboardLayout();
+
   const value = {
     // selections
     timeframe,
@@ -99,6 +103,8 @@ export function DashboardProvider({ children }) {
     monthlyTrendData,
     monthlyTrendLoading,
     monthlyTrendError,
+    // layout configuration
+    layoutConfig,
   };
 
   return (

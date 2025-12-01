@@ -8,7 +8,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import { MoreVert, Refresh, Download } from "@mui/icons-material";
+import { MoreVert, Refresh, Download, Tune } from "@mui/icons-material";
 
 /**
  * DashboardHeader
@@ -21,6 +21,7 @@ const DashboardHeader = ({
   onRefresh,
   onExport,
   onFilter,
+  onCustomize,
   menuProps = {},
 }) => {
   const { colors } = useTheme();
@@ -124,6 +125,23 @@ const DashboardHeader = ({
               />
             </MenuItem>
           )}
+          {onCustomize && (
+            <MenuItem onClick={handleAndClose(onCustomize)}>
+              <ListItemIcon sx={{ color: colors.primary_accent }}>
+                <Tune fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Customize Dashboard"
+                secondary="Arrange & toggle sections"
+                primaryTypographyProps={{
+                  style: { color: colors.primary_text },
+                }}
+                secondaryTypographyProps={{
+                  style: { color: colors.secondary_text },
+                }}
+              />
+            </MenuItem>
+          )}
         </Menu>
       </div>
     </div>
@@ -136,6 +154,7 @@ DashboardHeader.propTypes = {
   onRefresh: PropTypes.func,
   onExport: PropTypes.func,
   onFilter: PropTypes.func,
+  onCustomize: PropTypes.func,
   menuProps: PropTypes.object,
 };
 
