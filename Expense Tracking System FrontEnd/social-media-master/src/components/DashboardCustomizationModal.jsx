@@ -14,6 +14,7 @@ import {
   Divider,
   Tooltip,
   Fade,
+  Checkbox,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -23,6 +24,10 @@ import {
   RestartAlt as ResetIcon,
   Dashboard as DashboardIcon,
   CheckCircle as CheckCircleIcon,
+  ChevronRight as ChevronRightIcon,
+  ChevronLeft as ChevronLeftIcon,
+  KeyboardDoubleArrowRight as DoubleArrowRightIcon,
+  KeyboardDoubleArrowLeft as DoubleArrowLeftIcon,
 } from '@mui/icons-material';
 import { useTheme } from '../hooks/useTheme';
 
@@ -37,11 +42,15 @@ export default function DashboardCustomizationModal({
 }) {
   const { colors, isDark } = useTheme();
   const [localSections, setLocalSections] = useState(sections);
+  const [selectedAvailable, setSelectedAvailable] = useState([]);
+  const [selectedActive, setSelectedActive] = useState([]);
 
   // Sync with parent sections when modal opens
   useEffect(() => {
     if (open) {
       setLocalSections(sections);
+      setSelectedAvailable([]);
+      setSelectedActive([]);
     }
   }, [open, sections]);
 
@@ -50,37 +59,42 @@ export default function DashboardCustomizationModal({
 
     const { source, destination } = result;
 
-    // Moving from available to active (or vice versa)
-    if (source.droppableId !== destination.droppableId) {
-      const sourceList = source.droppableId === 'available-sections' 
-        ? localSections.filter(s => !s.visible)
-        : localSections.filter(s => s.visible);
-      
-      const destList = destination.droppableId === 'available-sections'
-        ? localSections.filter(s => !s.visible)
-        : localSections.filter(s => s.visible);
+    // Get current active and available lists
+    const activeSections = [...localSections.filter(s => s.visible)];
+    const availableSections = [...localSections.filter(s => !s.visible)];
 
-      const movedSection = sourceList[source.index];
-      
-      // Toggle visibility
-      setLocalSections(current =>
-        current.map(section =>
-          section.id === movedSection.id
-            ? { ...section, visible: !section.visible }
-            : section
-        )
-      );
+    // Moving between columns (Available ↔ Active)
+    if (source.droppableId !== destination.droppableId) {
+      let movedSection;
+
+      if (source.droppableId === 'available-sections') {
+        // Moving from Available to Active
+        movedSection = availableSections[source.index];
+        availableSections.splice(source.index, 1);
+        movedSection.visible = true;
+        activeSections.splice(destination.index, 0, movedSection);
+      } else {
+        // Moving from Active to Available
+        movedSection = activeSections[source.index];
+        activeSections.splice(source.index, 1);
+        movedSection.visible = false;
+        availableSections.splice(destination.index, 0, movedSection);
+      }
+
+      // Update state with new combined list
+      setLocalSections([...activeSections, ...availableSections]);
     } else {
-      // Reordering within active sections
-      if (destination.droppableId === 'active-sections') {
-        const activeSections = localSections.filter(s => s.visible);
-        const inactiveSections = localSections.filter(s => !s.visible);
-        
+      // Reordering within the same column
+      if (source.droppableId === 'active-sections') {
+        // Reordering within Active sections
         const [reorderedItem] = activeSections.splice(source.index, 1);
         activeSections.splice(destination.index, 0, reorderedItem);
-        
-        // Combine back
-        setLocalSections([...activeSections, ...inactiveSections]);
+        setLocalSections([...activeSections, ...availableSections]);
+      } else {
+        // Reordering within Available sections (optional, but good UX)
+        const [reorderedItem] = availableSections.splice(source.index, 1);
+        availableSections.splice(destination.index, 0, reorderedItem);
+        setLocalSections([...activeSections, ...availableSections]);
       }
     }
   };
@@ -93,6 +107,62 @@ export default function DashboardCustomizationModal({
           : section
       )
     );
+  };
+
+  const handleSelectAvailable = (sectionId) => {
+    setSelectedAvailable(current => 
+      current.includes(sectionId)
+        ? current.filter(id => id !== sectionId)
+        : [...current, sectionId]
+    );
+  };
+
+  const handleSelectActive = (sectionId) => {
+    setSelectedActive(current => 
+      current.includes(sectionId)
+        ? current.filter(id => id !== sectionId)
+        : [...current, sectionId]
+    );
+  };
+
+  const moveSelectedToActive = () => {
+    if (selectedAvailable.length === 0) return;
+    
+    setLocalSections(current =>
+      current.map(section =>
+        selectedAvailable.includes(section.id)
+          ? { ...section, visible: true }
+          : section
+      )
+    );
+    setSelectedAvailable([]);
+  };
+
+  const moveSelectedToAvailable = () => {
+    if (selectedActive.length === 0) return;
+    
+    setLocalSections(current =>
+      current.map(section =>
+        selectedActive.includes(section.id)
+          ? { ...section, visible: false }
+          : section
+      )
+    );
+    setSelectedActive([]);
+  };
+
+  const moveAllToActive = () => {
+    setLocalSections(current =>
+      current.map(section => ({ ...section, visible: true }))
+    );
+    setSelectedAvailable([]);
+  };
+
+  const moveAllToAvailable = () => {
+    setLocalSections(current =>
+      current.map(section => ({ ...section, visible: false }))
+    );
+    setSelectedActive([]);
   };
 
   const handleSave = () => {
@@ -122,9 +192,17 @@ export default function DashboardCustomizationModal({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
       TransitionComponent={Fade}
+      BackdropProps={{
+        sx: {
+          backgroundColor: isDark 
+            ? 'rgba(0, 0, 0, 0.7)' 
+            : 'rgba(0, 0, 0, 0.5)',
+          backdropFilter: 'blur(4px)',
+        },
+      }}
       PaperProps={{
         sx: {
           backgroundColor: colors.cardBackground || colors.secondary_bg,
@@ -137,6 +215,11 @@ export default function DashboardCustomizationModal({
           backgroundImage: isDark
             ? 'linear-gradient(135deg, rgba(20, 184, 166, 0.03) 0%, rgba(6, 182, 212, 0.03) 100%)'
             : 'linear-gradient(135deg, rgba(20, 184, 166, 0.02) 0%, rgba(6, 182, 212, 0.02) 100%)',
+          maxWidth: '1000px',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
         },
       }}
     >
@@ -216,7 +299,7 @@ export default function DashboardCustomizationModal({
 
       <DialogContent sx={{ py: 3, px: 3 }}>
         {/* Statistics Row */}
-        <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ mt: 2, mb: 3, display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           <Chip
             icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
             label={`${localSections.filter(s => s.visible).length} Active`}
@@ -253,9 +336,9 @@ export default function DashboardCustomizationModal({
 
         {/* Two Column Layout */}
         <DragDropContext onDragEnd={handleDragEnd}>
-          <Box sx={{ display: 'flex', gap: 3, minHeight: 400 }}>
+          <Box sx={{ display: 'flex', gap: 3, height: 550 }}>
             {/* LEFT: Available Sections */}
-            <Box sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 420, maxWidth: 500 }}>
               <Box sx={{ 
                 mb: 2, 
                 pb: 1.5,
@@ -293,7 +376,9 @@ export default function DashboardCustomizationModal({
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 1.5,
+                      height: 450,
                       maxHeight: 450,
+                      minHeight: 450,
                       overflowY: 'auto',
                       overflowX: 'hidden',
                       pr: 1,
@@ -306,7 +391,6 @@ export default function DashboardCustomizationModal({
                       border: snapshot.isDraggingOver 
                         ? `2px dashed ${isDark ? 'rgba(156, 163, 175, 0.4)' : 'rgba(156, 163, 175, 0.3)'}`
                         : '2px dashed transparent',
-                      minHeight: 100,
                       '&::-webkit-scrollbar': {
                         width: '6px',
                       },
@@ -367,9 +451,12 @@ export default function DashboardCustomizationModal({
                                     : '0 8px 16px -4px rgba(0, 0, 0, 0.2)'
                                   : 'none',
                                 transform: snapshot.isDragging ? 'scale(1.02)' : 'scale(1)',
+                                userSelect: 'none', // Prevent text selection during drag
+                                WebkitUserSelect: 'none', // Safari
+                                MozUserSelect: 'none', // Firefox
+                                msUserSelect: 'none', // IE/Edge
                                 '&:hover': {
                                   opacity: 1,
-                                  transform: 'translateX(4px)',
                                   borderColor: isDark ? '#9ca3af' : '#6b7280',
                                 },
                                 '&:active': {
@@ -377,6 +464,18 @@ export default function DashboardCustomizationModal({
                                 },
                               }}
                             >
+                              <Checkbox
+                                checked={selectedAvailable.includes(section.id)}
+                                onChange={() => handleSelectAvailable(section.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                sx={{
+                                  padding: 0,
+                                  color: colors.secondary_text,
+                                  '&.Mui-checked': {
+                                    color: '#14b8a6',
+                                  },
+                                }}
+                              />
                               <DragIcon 
                                 fontSize="small" 
                                 sx={{ color: colors.secondary_text }} 
@@ -416,6 +515,28 @@ export default function DashboardCustomizationModal({
                                   },
                                 }}
                               />
+                              <Tooltip title="Activate section" arrow>
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggle(section.id);
+                                  }}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  sx={{
+                                    padding: 0.5,
+                                    color: colors.secondary_text,
+                                    '&:hover': {
+                                      color: isDark ? '#4ade80' : '#16a34a',
+                                      backgroundColor: isDark 
+                                        ? 'rgba(74, 222, 128, 0.1)' 
+                                        : 'rgba(34, 197, 94, 0.08)',
+                                    },
+                                  }}
+                                >
+                                  <VisibilityOffIcon sx={{ fontSize: 18 }} />
+                                </IconButton>
+                              </Tooltip>
                             </Box>
                           )}
                         </Draggable>
@@ -427,20 +548,132 @@ export default function DashboardCustomizationModal({
               </Droppable>
             </Box>
 
-            {/* CENTER: Arrow Indicator */}
+            {/* CENTER: Bulk Move Buttons */}
             <Box sx={{ 
               display: 'flex', 
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              color: colors.secondary_text,
-              fontSize: '2rem',
-              opacity: 0.3,
+              gap: 2,
+              px: 1,
             }}>
-              →
+              <Tooltip title="Move all to Active" arrow placement="right">
+                <IconButton
+                  onClick={moveAllToActive}
+                  disabled={localSections.filter(s => !s.visible).length === 0}
+                  sx={{
+                    backgroundColor: isDark ? 'rgba(20, 184, 166, 0.1)' : 'rgba(20, 184, 166, 0.08)',
+                    color: '#14b8a6',
+                    width: 40,
+                    height: 40,
+                    '&:hover': {
+                      backgroundColor: isDark ? 'rgba(20, 184, 166, 0.2)' : 'rgba(20, 184, 166, 0.15)',
+                      transform: 'scale(1.1)',
+                    },
+                    '&:disabled': {
+                      backgroundColor: 'transparent',
+                      color: colors.secondary_text,
+                      opacity: 0.3,
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <DoubleArrowRightIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title={`Move selected (${selectedAvailable.length}) to Active`} arrow placement="right">
+                <IconButton
+                  onClick={moveSelectedToActive}
+                  disabled={selectedAvailable.length === 0}
+                  sx={{
+                    backgroundColor: isDark ? 'rgba(20, 184, 166, 0.1)' : 'rgba(20, 184, 166, 0.08)',
+                    color: '#14b8a6',
+                    width: 40,
+                    height: 40,
+                    border: selectedAvailable.length > 0 ? `2px solid #14b8a6` : 'none',
+                    '&:hover': {
+                      backgroundColor: isDark ? 'rgba(20, 184, 166, 0.2)' : 'rgba(20, 184, 166, 0.15)',
+                      transform: 'scale(1.1)',
+                    },
+                    '&:disabled': {
+                      backgroundColor: 'transparent',
+                      color: colors.secondary_text,
+                      opacity: 0.3,
+                      border: 'none',
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <ChevronRightIcon fontSize="medium" />
+                </IconButton>
+              </Tooltip>
+
+              <Divider 
+                sx={{ 
+                  width: '100%', 
+                  borderColor: colors.border_color,
+                  my: 1,
+                }} 
+              />
+
+              <Tooltip title={`Move selected (${selectedActive.length}) to Available`} arrow placement="left">
+                <IconButton
+                  onClick={moveSelectedToAvailable}
+                  disabled={selectedActive.length === 0}
+                  sx={{
+                    backgroundColor: isDark ? 'rgba(156, 163, 175, 0.1)' : 'rgba(156, 163, 175, 0.08)',
+                    color: `${isDark ? '#9ca3af' : '#6b7280'} !important`,
+                    width: 40,
+                    height: 40,
+                    border: selectedActive.length > 0 ? `2px solid ${isDark ? '#9ca3af' : '#6b7280'}` : 'none',
+                    '&:hover': {
+                      backgroundColor: isDark ? 'rgba(156, 163, 175, 0.2)' : 'rgba(156, 163, 175, 0.15)',
+                      transform: 'scale(1.1)',
+                      color: `${isDark ? '#9ca3af' : '#6b7280'} !important`,
+                    },
+                    '&:disabled': {
+                      backgroundColor: 'transparent',
+                      color: `${colors.secondary_text} !important`,
+                      opacity: 0.3,
+                      border: 'none',
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <ChevronLeftIcon fontSize="medium" />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Move all to Available" arrow placement="left">
+                <IconButton
+                  onClick={moveAllToAvailable}
+                  disabled={localSections.filter(s => s.visible).length === 0}
+                  sx={{
+                    backgroundColor: isDark ? 'rgba(156, 163, 175, 0.1)' : 'rgba(156, 163, 175, 0.08)',
+                    color: `${isDark ? '#9ca3af' : '#6b7280'} !important`,
+                    width: 40,
+                    height: 40,
+                    '&:hover': {
+                      backgroundColor: isDark ? 'rgba(156, 163, 175, 0.2)' : 'rgba(156, 163, 175, 0.15)',
+                      transform: 'scale(1.1)',
+                      color: `${isDark ? '#9ca3af' : '#6b7280'} !important`,
+                    },
+                    '&:disabled': {
+                      backgroundColor: 'transparent',
+                      color: `${colors.secondary_text} !important`,
+                      opacity: 0.3,
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <DoubleArrowLeftIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
 
             {/* RIGHT: Active Sections */}
-            <Box sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 420, maxWidth: 500 }}>
               <Box sx={{ 
                 mb: 2, 
                 pb: 1.5,
@@ -478,7 +711,9 @@ export default function DashboardCustomizationModal({
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 1.5,
+                      height: 450,
                       maxHeight: 450,
+                      minHeight: 450,
                       overflowY: 'auto',
                       overflowX: 'hidden',
                       pr: 1,
@@ -491,7 +726,6 @@ export default function DashboardCustomizationModal({
                       border: snapshot.isDraggingOver 
                         ? `2px dashed ${isDark ? 'rgba(20, 184, 166, 0.4)' : 'rgba(20, 184, 166, 0.3)'}`
                         : '2px dashed transparent',
-                      minHeight: 100,
                       '&::-webkit-scrollbar': {
                         width: '6px',
                       },
@@ -551,8 +785,11 @@ export default function DashboardCustomizationModal({
                                     : '0 8px 16px -4px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(20, 184, 166, 0.2)'
                                   : 'none',
                                 transform: snapshot.isDragging ? 'scale(1.02)' : 'scale(1)',
+                                userSelect: 'none', // Prevent text selection during drag
+                                WebkitUserSelect: 'none', // Safari
+                                MozUserSelect: 'none', // Firefox
+                                msUserSelect: 'none', // IE/Edge
                                 '&:hover': {
-                                  transform: 'translateX(-4px)',
                                   borderColor: '#14b8a6',
                                   boxShadow: isDark
                                     ? '0 4px 12px -2px rgba(0, 0, 0, 0.2)'
@@ -563,6 +800,18 @@ export default function DashboardCustomizationModal({
                                 },
                               }}
                             >
+                              <Checkbox
+                                checked={selectedActive.includes(section.id)}
+                                onChange={() => handleSelectActive(section.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                sx={{
+                                  padding: 0,
+                                  color: isDark ? 'rgba(20, 184, 166, 0.5)' : 'rgba(20, 184, 166, 0.7)',
+                                  '&.Mui-checked': {
+                                    color: '#14b8a6',
+                                  },
+                                }}
+                              />
                               <DragIcon 
                                 fontSize="small" 
                                 sx={{ color: '#14b8a6' }} 
@@ -602,13 +851,28 @@ export default function DashboardCustomizationModal({
                                   },
                                 }}
                               />
-                              <VisibilityIcon 
-                                fontSize="small" 
-                                sx={{ 
-                                  color: isDark ? '#4ade80' : '#16a34a',
-                                  fontSize: 18,
-                                }} 
-                              />
+                              <Tooltip title="Deactivate section" arrow>
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggle(section.id);
+                                  }}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  sx={{
+                                    padding: 0.5,
+                                    color: isDark ? '#4ade80' : '#16a34a',
+                                    '&:hover': {
+                                      color: colors.secondary_text,
+                                      backgroundColor: isDark 
+                                        ? 'rgba(156, 163, 175, 0.1)' 
+                                        : 'rgba(107, 114, 128, 0.08)',
+                                    },
+                                  }}
+                                >
+                                  <VisibilityIcon sx={{ fontSize: 18 }} />
+                                </IconButton>
+                              </Tooltip>
                             </Box>
                           )}
                         </Draggable>
@@ -640,17 +904,19 @@ export default function DashboardCustomizationModal({
             startIcon={<ResetIcon />}
             onClick={handleReset}
             sx={{
-              color: colors.secondary_text,
-              borderColor: isDark ? 'rgba(156, 163, 175, 0.3)' : 'rgba(107, 114, 128, 0.2)',
+              color: isDark ? '#f87171' : '#dc2626',
+              borderColor: isDark ? 'rgba(248, 113, 113, 0.5)' : 'rgba(239, 68, 68, 0.4)',
+              backgroundColor: isDark ? 'rgba(248, 113, 113, 0.1)' : 'rgba(239, 68, 68, 0.08)',
               textTransform: 'none',
               fontWeight: 600,
               px: 2.5,
               py: 1,
               borderRadius: 2,
               '&:hover': {
-                borderColor: isDark ? 'rgba(248, 113, 113, 0.5)' : 'rgba(239, 68, 68, 0.4)',
-                backgroundColor: isDark ? 'rgba(248, 113, 113, 0.1)' : 'rgba(239, 68, 68, 0.08)',
+                borderColor: isDark ? 'rgba(248, 113, 113, 0.6)' : 'rgba(239, 68, 68, 0.5)',
+                backgroundColor: isDark ? 'rgba(248, 113, 113, 0.15)' : 'rgba(239, 68, 68, 0.12)',
                 color: isDark ? '#f87171' : '#dc2626',
+                transform: 'translateY(-1px)',
               },
             }}
           >
