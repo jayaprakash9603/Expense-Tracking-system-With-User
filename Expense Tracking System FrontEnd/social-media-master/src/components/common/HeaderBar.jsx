@@ -259,152 +259,197 @@ const HeaderBar = () => {
             {/* Dropdown Menu */}
             {isProfileOpen && (
               <div
-                className={`absolute right-0 mt-2 w-56 rounded-lg shadow-lg overflow-hidden z-50 ${
-                  isDark ? "bg-[#29282b]" : "bg-white"
-                } border ${isDark ? "border-gray-700" : "border-gray-200"}`}
+                className={`absolute right-0 mt-3 w-64 rounded-xl shadow-2xl overflow-hidden z-50 ${
+                  isDark ? "bg-[#1e1e1e]" : "bg-white"
+                }`}
+                style={{
+                  boxShadow: isDark 
+                    ? "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3)"
+                    : "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                }}
               >
-                {/* User Info Section */}
+                {/* User Info Section with Avatar */}
                 <div
-                  className={`px-4 py-3 border-b ${
-                    isDark ? "border-gray-700" : "border-gray-200"
+                  className={`px-4 py-3 ${
+                    isDark ? "bg-gradient-to-r from-[#14b8a6]/20 to-[#06b6d4]/20" : "bg-gradient-to-r from-[#14b8a6]/10 to-[#06b6d4]/10"
                   }`}
                 >
-                  <p
-                    className={`text-sm font-semibold ${
-                      isDark ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {user?.firstName} {user?.lastName}
-                  </p>
-                  <p
-                    className={`text-xs ${
-                      isDark ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  >
-                    {user?.email}
-                  </p>
+                  <div className="flex items-center gap-2.5">
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        bgcolor: "#14b8a6",
+                        fontSize: "16px",
+                        fontWeight: 600,
+                      }}
+                      src={avatarSrc}
+                    >
+                      {!avatarSrc && getInitials()}
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm font-semibold truncate leading-tight ${
+                          isDark ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p
+                        className={`text-[11px] truncate leading-tight mt-0.5 ${
+                          isDark ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        {user?.email}
+                      </p>
+                      {currentMode && (
+                        <span
+                          className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-medium uppercase tracking-wide ${
+                            currentMode === "ADMIN"
+                              ? "bg-purple-500/20 text-purple-400"
+                              : "bg-blue-500/20 text-blue-400"
+                          }`}
+                        >
+                          {currentMode}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Menu Items */}
-                <div className="py-1">
+                <div className="py-2">
                   <button
                     onClick={handleProfileNavigate}
-                    className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors ${
+                    className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${
                       isDark
-                        ? "text-gray-300 hover:bg-gray-800"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm12 7v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2"
-                      />
-                    </svg>
-                    View Profile
-                  </button>
-
-                  <button
-                    onClick={handleSettingsNavigate}
-                    className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors ${
-                      isDark
-                        ? "text-gray-300 hover:bg-gray-800"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                    Settings
-                  </button>
-
-                  {/* Mode Switch Button - Only show if user has ADMIN role */}
-                  {hasAdminRole && (
-                    <button
-                      onClick={handleSwitchMode}
-                      className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors ${
-                        isDark
-                          ? "text-gray-300 hover:bg-gray-800"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      isDark ? "bg-[#2a2a2a]" : "bg-gray-100"
+                    }`}>
                       <svg
-                        className="w-5 h-5"
+                        className="w-4 h-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth="2"
-                          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                          d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      {currentMode === "ADMIN"
-                        ? "Switch to User Mode"
-                        : "Switch to Admin Mode"}
-                    </button>
+                    </div>
+                    <span className="font-medium">View Profile</span>
+                  </button>
+
+                  <button
+                    onClick={handleSettingsNavigate}
+                    className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${
+                      isDark
+                        ? "text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      isDark ? "bg-[#2a2a2a]" : "bg-gray-100"
+                    }`}>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-medium">Settings</span>
+                  </button>
+
+                  {/* Mode Switch Button - Only show if user has ADMIN role */}
+                  {hasAdminRole && (
+                    <>
+                      <div className={`my-2 mx-4 h-px ${isDark ? "bg-gray-700" : "bg-gray-200"}`} />
+                      <button
+                        onClick={handleSwitchMode}
+                        className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${
+                          isDark
+                            ? "text-teal-400 hover:bg-[#2a2a2a] hover:text-teal-300"
+                            : "text-teal-600 hover:bg-teal-50 hover:text-teal-700"
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          isDark ? "bg-teal-500/20" : "bg-teal-100"
+                        }`}>
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                            />
+                          </svg>
+                        </div>
+                        <span className="font-medium">
+                          {currentMode === "ADMIN"
+                            ? "Switch to User Mode"
+                            : "Switch to Admin Mode"}
+                        </span>
+                      </button>
+                    </>
                   )}
 
-                  <div
-                    className={`border-t my-1 ${
-                      isDark ? "border-gray-700" : "border-gray-200"
-                    }`}
-                  />
+                  <div className={`my-2 mx-4 h-px ${isDark ? "bg-gray-700" : "bg-gray-200"}`} />
 
                   <button
                     onClick={() => {
                       setIsProfileOpen(false);
                       setIsLogoutModalOpen(true);
                     }}
-                    className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors ${
+                    className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${
                       isDark
-                        ? "text-red-400 hover:bg-gray-800"
-                        : "text-red-600 hover:bg-red-50"
+                        ? "text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                        : "text-red-600 hover:bg-red-50 hover:text-red-700"
                     }`}
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                      />
-                    </svg>
-                    Logout
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      isDark ? "bg-red-500/20" : "bg-red-100"
+                    }`}>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-medium">Logout</span>
                   </button>
                 </div>
               </div>
