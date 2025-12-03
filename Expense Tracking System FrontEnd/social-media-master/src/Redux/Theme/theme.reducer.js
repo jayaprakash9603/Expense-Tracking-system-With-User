@@ -1,9 +1,16 @@
 import { TOGGLE_THEME, SET_THEME } from "./theme.actionTypes";
 
-// Get initial theme from localStorage or default to 'dark'
+// Get initial theme - do NOT use localStorage to avoid showing previous user's theme
+// Wait for backend to provide the theme after authentication
 const getInitialTheme = () => {
-  const savedTheme = localStorage.getItem("theme");
-  return savedTheme || "dark";
+  // Only use localStorage if user is logged in (has jwt token)
+  const jwt = localStorage.getItem("jwt");
+  if (jwt) {
+    const savedTheme = localStorage.getItem("theme");
+    return savedTheme || "dark";
+  }
+  // Default theme for non-authenticated users
+  return "dark";
 };
 
 const initialState = {

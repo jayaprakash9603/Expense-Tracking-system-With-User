@@ -1,327 +1,42 @@
-import { Route, Routes, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { Routes } from "react-router-dom";
 import "./App.css";
-import Authentication from "./pages/Authentication/Authentication";
-import HomePage from "./pages/Home/HomePage";
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
-import { getProfileAction } from "./Redux/Auth/auth.action";
-import { fetchOrCreateUserSettings } from "./Redux/UserSettings/userSettings.action";
-import { setTheme } from "./Redux/Theme/theme.actions";
-import Parent from "./pages/DetailedExpensesTable/Parent";
+import { useSelector } from "react-redux";
 import Loader from "./components/Loaders/Loader";
-import CreateExpenses from "./components/CreateExpenses/CreateExpenses";
-import ReportsGeneration from "./pages/ReportsGeneration";
-import Upload from "./pages/Fileupload/Upload"; // Existing expenses upload
-import UploadBills from "./pages/Fileupload/UploadBills"; // New bills upload
-import Home from "./pages/Landingpage/Home";
-import HomeContent from "./pages/Landingpage/HomeContent";
-import ExpensesContent from "./pages/Landingpage/ExpensesContent";
-import TransactionsContent from "./pages/Landingpage/TransactionsContent";
-import CreditDueContent from "./pages/Landingpage/CreditDueContent";
-import Budget from "./pages/Landingpage/Budget";
-import EditExpense from "./pages/Landingpage/EditExpense";
-import NewExpense from "./pages/Landingpage/NewExpense";
-import Profile from "./pages/Landingpage/Profile";
-import Settings from "./pages/Landingpage/Settings";
-import NotificationSettings from "./pages/Landingpage/NotificationSettings";
-import NewBudget from "./pages/Landingpage/NewBudget";
-import EditBudget from "./pages/Landingpage/EditBudget";
-import Reports from "./pages/Landingpage/Reports";
-import Cashflow from "./pages/expenses-view/CashFlow";
-import CalendarView from "./pages/Landingpage/CalendarView";
-import DayTransactionsView from "./pages/Landingpage/DayTransactionsView";
-// Import WebSocket Test Service
-import "./services/socketService";
-import CategoryFlow from "./pages/Landingpage/CategoryFlow";
-import CreateCategory from "./pages/Landingpage/CreateCategory";
-import EditCategory from "./pages/Landingpage/EditCategory";
-import Utilities from "./pages/Landingpage/Utilities";
-import Friends from "./pages/Landingpage/Friends";
-import ExpensesView from "./pages/Landingpage/ExpensesView";
-
-import PaymentMethodFlow from "./pages/Landingpage/PaymentMethodFlow";
-import CreatePaymentMethod from "./pages/Landingpage/CreatePaymentMethod";
-import EditPaymentMethod from "./pages/Landingpage/EditPaymentMethod";
-
-import CreateBill from "./pages/Landingpage/CreateBill";
-import EditBill from "./pages/Landingpage/EditBill";
-import BillCalendarView from "./pages/Landingpage/BillCalendarView";
-import DayBillsView from "./pages/Landingpage/DayBillsView";
-import AuditLogs from "./pages/Landingpage/AuditLogs";
 import GlobalErrorHandler from "./pages/Landingpage/Errors/GlobalErrorHandler";
-import Groups from "./pages/Landingpage/Groups";
-import CreateGroup from "./pages/Landingpage/CreateGroup";
+import { useAppInitialization } from "./hooks/useAppInitialization";
+import { getAuthRoutes, getAppRoutes } from "./routes/AppRoutes";
+// Import WebSocket Service
+import "./services/socketService";
 
-import GroupDetail from "./pages/Landingpage/GroupDetail";
-import Chat from "./services/Chat";
-import BillReport from "./pages/Landingpage/BillReport";
-import ExpenseDashboard from "./features/dashboard/ExpenseDashboard";
-import CategoryReport from "./pages/Landingpage/Category Report/CategoryReport";
-import PaymentMethodsReport from "./pages/Landingpage/Payment Report/PaymentReport";
-import BudgetReport from "./pages/Landingpage/Budget Report/BudgetReport";
-import AllBudgetsReport from "./pages/Landingpage/Budget Report/AllBudgetsReport";
-import AdminDashboard from "./pages/Landingpage/Admin/AdminDashboard";
-import SystemAnalytics from "./pages/Landingpage/Admin/SystemAnalytics";
-import UserManagement from "./pages/Landingpage/Admin/UserManagement";
-import RoleManagement from "./pages/Landingpage/Admin/RoleManagement";
-import AuditLogsAdmin from "./pages/Landingpage/Admin/AuditLogs";
-import ReportsAdmin from "./pages/Landingpage/Admin/Reports";
-import AdminSettings from "./pages/Landingpage/Admin/AdminSettings";
-import InvestmentDashboard from "./pages/Landingpage/Investement/InvestementDashboard";
-import Bill from "./pages/Landingpage/Bills/Bill";
-import BudgetDashboard from "./pages/Landingpage/Budget/BudgetDashboard";
-import CombinedExpenseReport from "./pages/Landingpage/CombinedExpenseReport";
-// import Bill from "./pages/Landingpage/Bills/Bill";
+/**
+ * Main App Component
+ * Responsibilities:
+ * - Initialize app on mount (via useAppInitialization hook)
+ * - Render appropriate routes based on authentication state
+ * - Apply theme to the app
+ */
 function App() {
   const { auth, theme } = useSelector((store) => store);
-  const dispatch = useDispatch();
   const jwt = localStorage.getItem("jwt");
-  const [loading, setLoading] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { loading } = useAppInitialization(jwt, auth);
 
   const isDark = theme?.mode === "dark";
 
-  useEffect(() => {
-    if (jwt) {
-      dispatch(getProfileAction(jwt))
-        .then(() => {
-          // After successful profile fetch, get or create user settings
-          return dispatch(fetchOrCreateUserSettings());
-        })
-        .then((settings) => {
-          // Sync theme from user settings
-          if (settings?.themeMode) {
-            dispatch(setTheme(settings.themeMode));
-          }
-          
-          // Only navigate on initial load (page refresh), not after login
-          // Skip navigation if we're coming from authentication routes
-          const isAuthRoute = location.pathname === '/' || 
-                              location.pathname.startsWith('/login') || 
-                              location.pathname.startsWith('/register');
-          
-          if (isInitialLoad && isAuthRoute) {
-            // Navigate based on currentMode (ADMIN or USER)
-            const currentMode = auth?.currentMode;
-            if (currentMode === "ADMIN") {
-              navigate("/admin/dashboard");
-            } else {
-              navigate("/dashboard");
-            }
-          }
-          
-          setIsInitialLoad(false);
-        })
-        .catch((error) => {
-          console.error("Error loading user data:", error);
-          setIsInitialLoad(false);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
-  }, [jwt, dispatch]);
-
+  // Show loader while app is initializing
   if (loading) {
     return <Loader />;
   }
 
-  // Redirect if JWT is invalid or not present
+  // Render authentication routes if user is not authenticated
   if (!jwt || !auth.user) {
-    return (
-      <Routes>
-        <Route path="/*" element={<Authentication />} />
-      </Routes>
-    );
+    return <Routes>{getAuthRoutes()}</Routes>;
   }
 
+  // Render main application routes for authenticated users
   return (
     <>
       <div className={isDark ? "dark" : "light"}>
-        <Routes>
-          {/* Other Routes */}
-
-          <Route path="/" element={<Home />}>
-            <Route index element={<Navigate to="/dashboard" />} />
-            <Route path="/chats" element={<Chat />} />
-            <Route path="/component1" element={<AdminDashboard />} />
-            <Route path="/component2" element={<InvestmentDashboard />} />
-            {/* <Route path="home" element={<HomeContent />} /> */}
-
-            <Route path="dashboard" element={<ExpenseDashboard />} />
-
-            {/* <Route path="home" element={<Loader />} /> */}
-            <Route path="groups">
-              <Route index element={<Groups />} />
-              <Route path="create" element={<CreateGroup />} />
-              <Route path=":id" element={<GroupDetail />} />
-            </Route>
-            <Route path="profile" element={<Profile />} />
-            <Route path="settings" element={<Settings />} />
-            <Route
-              path="settings/notifications"
-              element={<NotificationSettings />}
-            />
-            <Route path="friends" element={<Friends />} />
-            <Route path="payment-method">
-              <Route index element={<PaymentMethodFlow />} />
-              <Route path=":friendId" element={<PaymentMethodFlow />} />
-              <Route path="reports" element={<PaymentMethodsReport />} />
-              <Route
-                path="reports/:friendId"
-                element={<PaymentMethodsReport />}
-              />
-              <Route path="create" element={<CreatePaymentMethod />} />
-              <Route
-                path="create/:friendId"
-                element={<CreatePaymentMethod />}
-              />
-              <Route path="edit/:id" element={<EditPaymentMethod />} />
-              <Route
-                path="edit/:id/friend/:friendId"
-                element={<EditPaymentMethod />}
-              />
-            </Route>
-
-            <Route path="bill">
-              <Route index element={<Bill />} />
-              <Route path=":friendId" element={<Bill />} />
-              <Route path="report" element={<BillReport />} />
-              <Route path="report/:friendId" element={<BillReport />} />
-              <Route path="upload" element={<UploadBills />} />
-              <Route path="upload/:friendId" element={<UploadBills />} />
-              <Route path="create" element={<CreateBill />} />
-              <Route path="create/:friendId" element={<CreateBill />} />
-              <Route path="edit/:id" element={<EditBill />} />
-              <Route path="edit/:id/friend/:friendId" element={<EditBill />} />
-              <Route path="calendar" element={<BillCalendarView />} />
-              <Route path="calendar/:friendId" element={<BillCalendarView />} />
-            </Route>
-
-            <Route path="friends">
-              <Route index element={<Friends />} />
-              {/* Use unified Cashflow component for friend expenses */}
-              <Route path="expenses/:friendId" element={<Cashflow />} />
-            </Route>
-            <Route path="all" element={<Utilities />} />
-
-            <Route path="upload">
-              <Route path="expenses" element={<Upload />} />
-              <Route path="categories" element={<Upload />} />
-              <Route path="categories/:friendId" element={<Upload />} />
-              <Route path="payments" element={<Upload />} />
-              <Route path="payments/:friendId" element={<Upload />} />
-              <Route path="expenses/:friendId" element={<Upload />} />
-            </Route>
-            {/* Nested expenses route */}
-            <Route path="expenses">
-              <Route index element={<Cashflow />} />
-              <Route path="create" element={<NewExpense />} />
-              <Route path="create/:friendId" element={<NewExpense />} />
-              <Route path="edit/:id" element={<EditExpense />} />
-              <Route
-                path="edit/:id/friend/:friendId"
-                element={<EditExpense />}
-              />
-              <Route path="reports" element={<CombinedExpenseReport />} />
-              <Route
-                path="reports/:friendId"
-                element={<CombinedExpenseReport />}
-              />
-            </Route>
-            <Route path="category-flow">
-              <Route index element={<CategoryFlow />} />
-              <Route path=":friendId" element={<CategoryFlow />} />
-              <Route path="create" element={<CreateCategory />} />
-              <Route path="create/:friendId" element={<CreateCategory />} />
-              <Route path="reports" element={<CategoryReport />} />
-              <Route path="reports/:friendId" element={<CategoryReport />} />
-              <Route path="edit/:id" element={<EditCategory />} />
-              <Route
-                path="edit/:id/friend/:friendId"
-                element={<EditCategory />}
-              />
-              <Route
-                path="edit/:id/friend/:friendId"
-                element={<EditCategory />}
-              />
-            </Route>
-
-            <Route path="transactions">
-              <Route index element={<TransactionsContent />} />
-              <Route path=":friendId" element={<TransactionsContent />} />
-            </Route>
-            <Route path="insights">
-              <Route index element={<CreditDueContent />} />
-              <Route path=":friendId" element={<CreditDueContent />} />
-            </Route>
-            <Route path="reports">
-              <Route index element={<Reports />} />
-              <Route path=":friendId" element={<Reports />} />
-              {/* Combined unified expense report (grouped cashflow analytics) */}
-            </Route>
-            <Route path="cashflow">
-              {/* Directly render Cashflow for both self and friend contexts */}
-              <Route index element={<ExpensesView />} />
-              <Route path=":friendId" element={<ExpensesView />} />
-            </Route>
-            <Route path="budget">
-              <Route index element={<Budget />} />
-              {/* <Route index element={<BudgetDashboard />} /> */}
-              <Route path=":friendId" element={<Budget />} />
-              <Route path="create" element={<NewBudget />} />
-              <Route path="create/:friendId" element={<NewBudget />} />
-              <Route path="edit/:id" element={<EditBudget />} />
-              <Route
-                path="edit/:id/friend/:friendId"
-                element={<EditBudget />}
-              />
-              {/* <Route path="report/:id" element={<BudgetReport />} /> */}
-              <Route path="report/:id" element={<BudgetReport />} />
-              <Route
-                path="report/:id/friend/:friendId"
-                element={<BudgetReport />}
-              />
-              <Route path="reports" element={<AllBudgetsReport />} />
-              <Route path="reports/:friendId" element={<AllBudgetsReport />} />
-            </Route>
-            {/* Detailed Budget Report Routes */}
-            <Route path="/budget-report">
-              <Route path=":budgetId" element={<BudgetReport />} />
-              <Route path=":budgetId/:friendId" element={<BudgetReport />} />
-            </Route>
-            <Route path="/calendar-view">
-              <Route index element={<CalendarView />} />
-              <Route path=":friendId" element={<CalendarView />} />
-            </Route>
-            <Route path="/day-view">
-              <Route path=":date" element={<DayTransactionsView />} />
-              <Route
-                path=":date/friend/:friendId"
-                element={<DayTransactionsView />}
-              />
-            </Route>
-            <Route path="/bill-day-view">
-              <Route path=":date" element={<DayBillsView />} />
-              <Route path=":date/friend/:friendId" element={<DayBillsView />} />
-            </Route>
-
-            {/* Admin Routes - Each tab shows its own component */}
-            <Route path="admin">
-              <Route path="dashboard" element={<SystemAnalytics />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="roles" element={<RoleManagement />} />
-              <Route path="analytics" element={<SystemAnalytics />} />
-              <Route path="audit" element={<AuditLogsAdmin />} />
-              <Route path="reports" element={<ReportsAdmin />} />
-              <Route path="settings" element={<AdminSettings />} />
-            </Route>
-          </Route>
-
-          {/* Other Routes */}
-        </Routes>
+        <Routes>{getAppRoutes()}</Routes>
       </div>
       <GlobalErrorHandler />
     </>

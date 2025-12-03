@@ -23,6 +23,28 @@ const redirectToHome = (navigate) => {
   navigate("/");
 };
 
+// Load user dashboard preferences after login
+const loadUserDashboardPreferences = async () => {
+  try {
+    const dashboardResponse = await api.get("/api/user/dashboard-preferences");
+    if (dashboardResponse.data && dashboardResponse.data.layoutConfig) {
+      // Store in localStorage - will be picked up by useDashboardLayout hook
+      localStorage.setItem(
+        "dashboard_layout_config",
+        dashboardResponse.data.layoutConfig
+      );
+      console.log(
+        "Dashboard preferences loaded:",
+        dashboardResponse.data.id ? "custom layout" : "default layout"
+      );
+      return true;
+    }
+  } catch (error) {
+    console.log("Could not load dashboard preferences:", error.message);
+    return false;
+  }
+};
+
 // Login User Action
 export const loginUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
@@ -44,20 +66,25 @@ export const loginUserAction = (loginData) => async (dispatch) => {
     const profileResponse = await dispatch(getProfileAction(data.jwt));
     updateAuthHeader();
 
+    // Load user dashboard preferences (non-blocking)
+    loadUserDashboardPreferences().catch((err) =>
+      console.log("Failed to load dashboard preferences:", err)
+    );
+
     console.log("Profile Response:", profileResponse);
     console.log("Returning from loginUserAction:", {
       success: true,
       user: profileResponse,
       currentMode: profileResponse?.currentMode,
-      role: profileResponse?.role
+      role: profileResponse?.role,
     });
 
     // Return success with user data for navigation
-    return { 
-      success: true, 
+    return {
+      success: true,
       user: profileResponse,
       currentMode: profileResponse?.currentMode,
-      role: profileResponse?.role
+      role: profileResponse?.role,
     };
   } catch (error) {
     const errorMessage =
@@ -139,7 +166,7 @@ export const getProfileAction = (jwt) => async (dispatch) => {
 
     console.log("First Name:", firstName);
     dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
-    
+
     // Return the user data
     return data;
   } catch (error) {
@@ -191,7 +218,14 @@ export const updateProfileAction = (reqData) => async (dispatch) => {
 
 // Logout Action
 export const logoutAction = () => (dispatch) => {
+  // Clear authentication
   localStorage.removeItem("jwt");
+
+  // Clear theme preference
+  localStorage.removeItem("theme");
+
+  // Clear dashboard layout configuration
+  localStorage.removeItem("dashboard_layout_config");
 
   dispatch({ type: "LOGOUT" });
   dispatch({ type: CLEAR_USER_SETTINGS }); // Clear user settings on logout
