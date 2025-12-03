@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { Typography, Box, Chip } from "@mui/material";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
@@ -37,7 +38,7 @@ const BudgetAccordionGroup = ({ budgets }) => {
   const uniqueBudgets = [];
   const seenBudgetKeys = new Set();
   for (const b of budgets) {
-    const key = b.budgetId ?? b.budgetName;
+    const key = b.budgetId ?? b.budgetName ?? `budget-${uniqueBudgets.length}`;
     if (!seenBudgetKeys.has(key)) {
       seenBudgetKeys.add(key);
       uniqueBudgets.push(b);
@@ -97,11 +98,9 @@ const BudgetAccordionGroup = ({ budgets }) => {
       sortValue: (row) => row.amount || 0,
       className: (row) => {
         const type = row.type?.toLowerCase() || "";
-        return type === "loss"
-          ? "pm-amount-loss"
-          : type === "gain"
-          ? "pm-amount-gain"
-          : "";
+        if (type === "loss") return "pm-amount-loss";
+        if (type === "gain") return "pm-amount-gain";
+        return "";
       },
     },
   ];
@@ -119,12 +118,12 @@ const BudgetAccordionGroup = ({ budgets }) => {
   // Custom header renderer for budget-specific display
   const headerRender = (group, isOpen, toggleFn) => {
     const budget = group._metadata;
-    const percentageColor =
-      budget.percentageUsed >= 100
-        ? "#ff6b6b"
-        : budget.percentageUsed >= 80
-        ? "#ffa94d"
-        : "#51cf66";
+    let percentageColor = "#51cf66";
+    if (budget.percentageUsed >= 100) {
+      percentageColor = "#ff6b6b";
+    } else if (budget.percentageUsed >= 80) {
+      percentageColor = "#ffa94d";
+    }
 
     return (
       <button
@@ -132,6 +131,9 @@ const BudgetAccordionGroup = ({ budgets }) => {
         className="pm-accordion-header"
         onClick={toggleFn}
         aria-expanded={isOpen}
+        aria-label={`${isOpen ? "Collapse" : "Expand"} budget ${
+          budget.budgetName
+        }`}
         style={{
           display: "flex",
           alignItems: "center",
@@ -265,15 +267,19 @@ const BudgetAccordionGroup = ({ budgets }) => {
   // Custom row renderer to add budget summary above the table
   const rowRender = (row, group, activeTab) => {
     const type = row.type?.toLowerCase() || "";
-    const amountClass =
-      type === "loss"
-        ? "pm-amount-loss"
-        : type === "gain"
-        ? "pm-amount-gain"
-        : "";
+    let amountClass = "";
+    if (type === "loss") {
+      amountClass = "pm-amount-loss";
+    } else if (type === "gain") {
+      amountClass = "pm-amount-gain";
+    }
 
     return (
-      <tr key={row.expenseId || row.id}>
+      <tr
+        key={`${group._metadata?.budgetId || "budget"}-${
+          row.expenseId || row.id || Math.random()
+        }`}
+      >
         <td>{row.name || "-"}</td>
         <td>{row.category || "-"}</td>
         <td>{row.paymentMethod || "-"}</td>
@@ -287,14 +293,6 @@ const BudgetAccordionGroup = ({ budgets }) => {
 
   return (
     <Box style={{ padding: "8px 0" }}>
-      {/* Budget Summary Stats Section (when accordion is open) */}
-      <style>{`
-        .pm-accordion-panel::before {
-          content: "";
-          display: block;
-        }
-      `}</style>
-
       <GenericAccordionGroup
         groups={groups}
         currencySymbol={currencySymbol}
@@ -311,6 +309,24 @@ const BudgetAccordionGroup = ({ budgets }) => {
       />
     </Box>
   );
+};
+
+BudgetAccordionGroup.propTypes = {
+  budgets: PropTypes.arrayOf(
+    PropTypes.shape({
+      budgetId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      budgetName: PropTypes.string,
+      transactions: PropTypes.number,
+      totalLoss: PropTypes.number,
+      allocatedAmount: PropTypes.number,
+      percentageUsed: PropTypes.number,
+      color: PropTypes.string,
+      valid: PropTypes.bool,
+      startDate: PropTypes.string,
+      endDate: PropTypes.string,
+      expenses: PropTypes.arrayOf(PropTypes.object),
+    })
+  ).isRequired,
 };
 
 export default BudgetAccordionGroup;
