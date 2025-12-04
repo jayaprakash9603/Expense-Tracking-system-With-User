@@ -5,6 +5,7 @@ import Loader from "./components/Loaders/Loader";
 import GlobalErrorHandler from "./pages/Landingpage/Errors/GlobalErrorHandler";
 import { useAppInitialization } from "./hooks/useAppInitialization";
 import { getAuthRoutes, getAppRoutes } from "./routes/AppRoutes";
+import { LanguageProvider } from "./i18n/LanguageContext";
 // Import WebSocket Service
 import "./services/socketService";
 
@@ -14,6 +15,7 @@ import "./services/socketService";
  * - Initialize app on mount (via useAppInitialization hook)
  * - Render appropriate routes based on authentication state
  * - Apply theme to the app
+ * - Provide language context for i18n support
  */
 function App() {
   const { auth, theme } = useSelector((store) => store);
@@ -29,17 +31,21 @@ function App() {
 
   // Render authentication routes if user is not authenticated
   if (!jwt || !auth.user) {
-    return <Routes>{getAuthRoutes()}</Routes>;
+    return (
+      <LanguageProvider>
+        <Routes>{getAuthRoutes()}</Routes>
+      </LanguageProvider>
+    );
   }
 
   // Render main application routes for authenticated users
   return (
-    <>
+    <LanguageProvider>
       <div className={isDark ? "dark" : "light"}>
         <Routes>{getAppRoutes()}</Routes>
       </div>
       <GlobalErrorHandler />
-    </>
+    </LanguageProvider>
   );
 }
 

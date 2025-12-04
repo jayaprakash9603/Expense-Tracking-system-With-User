@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Typography, IconButton } from "@mui/material";
 import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
+import { useTranslation } from "../../../../hooks/useTranslation";
 
 /**
  * SettingsHeader Component
@@ -8,13 +9,10 @@ import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
  * Follows Single Responsibility Principle
  * Supports custom title and subtitle for reusability
  */
-const SettingsHeader = ({
-  colors,
-  isSmallScreen,
-  onBack,
-  title = "Settings",
-  subtitle = "Manage your preferences and account settings",
-}) => {
+const SettingsHeader = ({ colors, isSmallScreen, onBack, title, subtitle }) => {
+  const { t } = useTranslation();
+  const headerTitle = title || t("settings.title");
+  const headerSubtitle = subtitle || t("settings.subtitle");
   return (
     <Box
       sx={{
@@ -48,7 +46,7 @@ const SettingsHeader = ({
               letterSpacing: "-0.5px",
             }}
           >
-            {title}
+            {headerTitle}
           </Typography>
           <Typography
             variant="body2"
@@ -57,7 +55,7 @@ const SettingsHeader = ({
               fontSize: "0.85rem",
             }}
           >
-            {subtitle}
+            {headerSubtitle}
           </Typography>
         </Box>
       </Box>

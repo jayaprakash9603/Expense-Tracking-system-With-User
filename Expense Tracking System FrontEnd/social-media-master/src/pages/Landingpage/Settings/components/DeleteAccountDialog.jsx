@@ -7,6 +7,7 @@ import {
   Button,
   Typography,
 } from "@mui/material";
+import { useTranslation } from "../../../../hooks/useTranslation";
 
 /**
  * DeleteAccountDialog Component
@@ -20,6 +21,7 @@ const DeleteAccountDialog = ({
   colors,
   isSmallScreen,
 }) => {
+  const { t } = useTranslation();
   return (
     <Dialog
       open={open}
@@ -40,16 +42,14 @@ const DeleteAccountDialog = ({
           borderBottom: `1px solid ${colors.border_color}`,
         }}
       >
-        Delete Account
+        {t("settings.deleteAccount")}
       </DialogTitle>
       <DialogContent sx={{ mt: 2 }}>
         <Typography sx={{ color: colors.primary_text, mb: 2 }}>
-          Are you sure you want to delete your account? This action cannot be
-          undone.
+          {t("messages.confirmDelete")}
         </Typography>
         <Typography sx={{ color: colors.secondary_text, fontSize: "0.9rem" }}>
-          All your data, including expenses, budgets, and friends, will be
-          permanently deleted.
+          {t("settings.deleteAccountWarning")}
         </Typography>
       </DialogContent>
       <DialogActions
@@ -63,7 +63,7 @@ const DeleteAccountDialog = ({
             fontWeight: 600,
           }}
         >
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button
           onClick={onConfirm}
@@ -77,7 +77,7 @@ const DeleteAccountDialog = ({
             },
           }}
         >
-          Delete Account
+          {t("settings.deleteAccount")}
         </Button>
       </DialogActions>
     </Dialog>

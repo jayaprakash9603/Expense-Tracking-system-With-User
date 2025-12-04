@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { toggleTheme } from "../../../../Redux/Theme/theme.actions";
 import { updateUserSettings } from "../../../../Redux/UserSettings/userSettings.action";
+import { useTranslation } from "../../../../hooks/useTranslation";
 
 /**
  * Custom hook for handling settings actions
@@ -16,6 +17,7 @@ export const useSettingsActions = (
   isDark
 ) => {
   const dispatch = useDispatch();
+  const { setLanguage, t } = useTranslation();
 
   // Theme toggle action
   const handleThemeToggle = useCallback(async () => {
@@ -28,6 +30,26 @@ export const useSettingsActions = (
       console.error("Error updating theme:", error);
     }
   }, [dispatch, isDark, showSnackbar]);
+
+  // Language change handler - integrates with i18n
+  const handleLanguageChange = useCallback(
+    async (newLanguage) => {
+      try {
+        // Update i18n context
+        setLanguage(newLanguage);
+
+        // Update backend user settings
+        await dispatch(updateUserSettings({ language: newLanguage }));
+
+        // Show success message
+        showSnackbar(t("messages.languageChanged"), "success");
+      } catch (error) {
+        console.error("Error updating language:", error);
+        showSnackbar("Failed to update language", "error");
+      }
+    },
+    [dispatch, setLanguage, showSnackbar, t]
+  );
 
   // Action handlers mapped to action IDs
   const actionHandlers = {
@@ -115,6 +137,7 @@ export const useSettingsActions = (
 
   return {
     handleThemeToggle,
+    handleLanguageChange,
     executeAction,
   };
 };

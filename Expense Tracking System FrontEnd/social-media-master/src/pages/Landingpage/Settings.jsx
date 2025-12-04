@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Box, useMediaQuery, Chip } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 import ToastNotification from "./ToastNotification";
 import { fetchNotificationPreferences } from "../../Redux/NotificationPreferences/notificationPreferences.action";
 
@@ -50,6 +51,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { colors, mode } = useTheme();
+  const { t } = useTranslation();
   const { settings: userSettings } = useSelector(
     (state) => state.userSettings || {}
   );
@@ -95,13 +97,14 @@ const Settings = () => {
     userSettings,
     showSnackbar
   );
-  const { handleThemeToggle, executeAction } = useSettingsActions(
-    navigate,
-    showSnackbar,
-    setDeleteDialogOpen,
-    setPasswordDialogOpen,
-    isDark
-  );
+  const { handleThemeToggle, handleLanguageChange, executeAction } =
+    useSettingsActions(
+      navigate,
+      showSnackbar,
+      setDeleteDialogOpen,
+      setPasswordDialogOpen,
+      isDark
+    );
 
   // Render switch-type setting
   const renderSwitchSetting = (item) => {
@@ -134,6 +137,27 @@ const Settings = () => {
   const renderSelectSetting = (item) => {
     const stateKey = item.stateKey;
     const settingsKey = item.settingsKey;
+
+    // Special handling for language select
+    if (item.id === "language") {
+      return (
+        <SettingItem
+          key={item.id}
+          icon={item.icon}
+          title={item.title}
+          description={item.description}
+          isSelect
+          selectValue={settingsState[stateKey]}
+          selectOptions={item.options}
+          onSelectChange={(e) => {
+            const value = e.target.value;
+            updateSetting(stateKey, value);
+            handleLanguageChange(value); // Use dedicated language handler
+          }}
+          colors={colors}
+        />
+      );
+    }
 
     return (
       <SettingItem
@@ -249,8 +273,10 @@ const Settings = () => {
         <SettingItem
           key={item.id}
           icon={getThemeIcon(isDark)}
-          title={item.title}
-          description={getThemeDescription(isDark)}
+          title={t("settings.theme")}
+          description={
+            isDark ? t("settings.themeDark") : t("settings.themeLight")
+          }
           isSwitch
           switchChecked={isDark}
           onSwitchChange={handleThemeToggle}

@@ -3,6 +3,7 @@ import { Box, Typography, Chip } from "@mui/material";
 import { APP_INFO } from "../constants/settingsConfig";
 import SettingSection from "./SettingSection";
 import { Info as InfoIcon } from "@mui/icons-material";
+import { useTranslation } from "../../../../hooks/useTranslation";
 
 /**
  * AppInfoSection Component
@@ -10,6 +11,7 @@ import { Info as InfoIcon } from "@mui/icons-material";
  * Follows Single Responsibility Principle
  */
 const AppInfoSection = ({ colors }) => {
+  const { t } = useTranslation();
   const infoItems = [
     { label: "App Version", value: APP_INFO.version, isChip: true },
     { label: "Last Updated", value: APP_INFO.lastUpdated, isChip: false },
@@ -17,7 +19,7 @@ const AppInfoSection = ({ colors }) => {
   ];
 
   return (
-    <SettingSection icon={InfoIcon} title="About" colors={colors}>
+    <SettingSection icon={InfoIcon} title={t("settings.about")} colors={colors}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {infoItems.map((item, index) => (
           <Box

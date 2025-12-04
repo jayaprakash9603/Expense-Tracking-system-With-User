@@ -47,13 +47,17 @@ import {
 
 /**
  * Language options for user selection
+ * Supports 8 languages including RTL (Arabic)
  */
 export const LANGUAGE_OPTIONS = [
   { value: "en", label: "🇺🇸 English" },
-  { value: "es", label: "🇪🇸 Spanish" },
-  { value: "fr", label: "🇫🇷 French" },
-  { value: "de", label: "🇩🇪 German" },
-  { value: "hi", label: "🇮🇳 Hindi" },
+  { value: "es", label: "🇪🇸 Español (Spanish)" },
+  { value: "fr", label: "🇫🇷 Français (French)" },
+  { value: "de", label: "🇩🇪 Deutsch (German)" },
+  { value: "hi", label: "🇮🇳 हिन्दी (Hindi)" },
+  { value: "zh", label: "🇨🇳 中文 (Chinese)" },
+  { value: "ja", label: "🇯🇵 日本語 (Japanese)" },
+  { value: "ar", label: "🇸🇦 العربية (Arabic)" },
 ];
 
 /**

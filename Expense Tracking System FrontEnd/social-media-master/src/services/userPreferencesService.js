@@ -3,7 +3,7 @@ import { setTheme } from "../Redux/Theme/theme.actions";
 
 /**
  * Service responsible for preloading user preferences
- * Handles dashboard layout and theme preferences
+ * Handles dashboard layout, theme, and language preferences
  */
 
 /**
@@ -28,7 +28,7 @@ const preloadDashboardPreferences = async () => {
  */
 const preloadThemePreference = async (dispatch) => {
   try {
-    const { data } = await api.get("/api/user-settings");
+    const { data } = await api.get("/api/settings");
     if (data?.themeMode) {
       // Set theme immediately in localStorage before components render
       localStorage.setItem("theme", data.themeMode);
@@ -43,12 +43,31 @@ const preloadThemePreference = async (dispatch) => {
 };
 
 /**
- * Preloads all user preferences (dashboard layout and theme)
+ * Preloads language preference from backend
+ */
+const preloadLanguagePreference = async () => {
+  try {
+    const { data } = await api.get("/api/settings");
+    if (data?.language) {
+      // Store language in localStorage for LanguageContext to pick up
+      localStorage.setItem("language", data.language);
+      console.log("Language preloaded:", data.language);
+      return true;
+    }
+  } catch (error) {
+    console.log("Could not preload language:", error.message);
+    return false;
+  }
+};
+
+/**
+ * Preloads all user preferences (dashboard layout, theme, and language)
  * This runs before the app fully initializes to prevent UI flashing
  */
 export const preloadUserPreferences = async (dispatch) => {
   await Promise.all([
     preloadDashboardPreferences(),
     preloadThemePreference(dispatch),
+    preloadLanguagePreference(),
   ]);
 };
