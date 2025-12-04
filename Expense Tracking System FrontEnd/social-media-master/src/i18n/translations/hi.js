@@ -25,6 +25,27 @@ export const hi = {
     close: "बंद करें",
     submit: "जमा करें",
     reset: "रीसेट करें",
+    yes: "हाँ",
+    no: "नहीं",
+  },
+
+  // नेविगेशन
+  navigation: {
+    adminPanelHeading: "एडमिन पैनल",
+    dashboard: "डैशबोर्ड",
+    userManagement: "उपयोगकर्ता प्रबंधन",
+    roleManagement: "भूमिका प्रबंधन",
+    systemAnalytics: "सिस्टम विश्लेषण",
+    auditLogs: "ऑडिट लॉग्स",
+    reports: "रिपोर्ट्स",
+    settings: "सेटिंग्स",
+    home: "होम",
+    expenses: "खर्चे",
+    categories: "श्रेणियां",
+    payments: "भुगतान",
+    bill: "बिल",
+    friends: "मित्र",
+    budgets: "बजट्स",
   },
 
   // Dashboard
@@ -245,6 +266,24 @@ export const hi = {
       "आपकी प्रोफ़ाइल अब केवल मित्रों के लिए है - केवल मित्र देख सकते हैं",
     profileVisibilityPrivate:
       "आपकी प्रोफ़ाइल अब निजी है - केवल आप अपनी जानकारी देख सकते हैं",
+  },
+
+  // मोडल्स
+  modals: {
+    logoutTitle: "लॉगआउट पुष्टि",
+    logoutPrompt: "क्या आप वाकई लॉगआउट करना चाहते हैं?",
+  },
+
+  // हेडर
+  header: {
+    showAmounts: "राशि दिखाएं",
+    hideAmounts: "राशि छिपाएं",
+    switchToLight: "लाइट मोड पर स्विच करें",
+    switchToDark: "डार्क मोड पर स्विच करें",
+    notifications: "सूचनाएं",
+    viewProfile: "प्रोफ़ाइल देखें",
+    switchToUserMode: "यूज़र मोड पर स्विच करें",
+    switchToAdminMode: "एडमिन मोड पर स्विच करें",
   },
 
   // Auth

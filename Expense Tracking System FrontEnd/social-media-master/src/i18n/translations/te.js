@@ -25,6 +25,27 @@ export const te = {
     close: "మూసివేయండి",
     submit: "సమర్పించండి",
     reset: "రీసెట్ చేయండి",
+    yes: "అవును",
+    no: "కాదు",
+  },
+
+  // Navigation
+  navigation: {
+    adminPanelHeading: "అడ్మిన్ ప్యానెల్",
+    dashboard: "డ్యాష్‌బోర్డ్",
+    userManagement: "వినియోగదారుల నిర్వహణ",
+    roleManagement: "పాత్రల నిర్వహణ",
+    systemAnalytics: "సిస్టమ్ విశ్లేషణ",
+    auditLogs: "ఆడిట్ లాగ్స్",
+    reports: "రిపోర్టులు",
+    settings: "సెట్టింగ్స్",
+    home: "హోమ్",
+    expenses: "ఖర్చులు",
+    categories: "వర్గాలు",
+    payments: "చెల్లింపులు",
+    bill: "బిల్లు",
+    friends: "స్నేహితులు",
+    budgets: "బడ్జెట్‌లు",
   },
 
   // Dashboard
@@ -250,6 +271,24 @@ export const te = {
       "మీ ప్రొఫైల్ ఇప్పుడు స్నేహితులకు మాత్రమే - స్నేహితులు మాత్రమే చూడగలరు",
     profileVisibilityPrivate:
       "మీ ప్రొఫైల్ ఇప్పుడు ప్రైవేట్ - మీరే మీ సమాచారాన్ని చూడగలరు",
+  },
+
+  // Modals
+  modals: {
+    logoutTitle: "లాగౌట్ నిర్ధారణ",
+    logoutPrompt: "మీరు లాగౌట్ అవ్వాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  },
+
+  // Header
+  header: {
+    showAmounts: "మొత్తాలను చూపించండి",
+    hideAmounts: "మొత్తాలను దాచండి",
+    switchToLight: "లైట్ మోడ్‌కు మార్చండి",
+    switchToDark: "డార్క్ మోడ్‌కు మార్చండి",
+    notifications: "నోటిఫికేషన్‌లు",
+    viewProfile: "ప్రొఫైల్ చూడండి",
+    switchToUserMode: "వినియోగదారి మోడ్‌కు మార్చండి",
+    switchToAdminMode: "అడ్మిన్ మోడ్‌కు మార్చండి",
   },
 
   // Auth

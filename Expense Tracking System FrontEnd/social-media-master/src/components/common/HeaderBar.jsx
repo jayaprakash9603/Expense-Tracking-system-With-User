@@ -13,6 +13,7 @@ import {
 import { updateUserSettings } from "../../Redux/UserSettings/userSettings.action";
 import Modal from "../../pages/Landingpage/Modal";
 import NotificationsPanelRedux from "./NotificationsPanelRedux";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * HeaderBar Component
@@ -32,6 +33,7 @@ const HeaderBar = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(5);
   const dropdownRef = useRef(null);
+  const { t } = useTranslation();
 
   const isDark = mode === "dark";
 
@@ -98,7 +100,7 @@ const HeaderBar = () => {
     if (result.success) {
       setIsProfileOpen(false);
       console.log(`Successfully switched to ${newMode} mode`);
-      
+
       // Navigate to appropriate dashboard based on mode
       if (newMode === "ADMIN") {
         navigate("/admin/dashboard");
@@ -131,12 +133,22 @@ const HeaderBar = () => {
                 ? "bg-gray-800 hover:bg-gray-700"
                 : "bg-gray-100 hover:bg-gray-200"
             }`}
-            title={maskingEnabled ? "Show Amounts" : "Hide Amounts"}
+            title={
+              maskingEnabled ? t("header.showAmounts") : t("header.hideAmounts")
+            }
           >
             {maskingEnabled ? (
-              <VisibilityOffIcon className={`w-5 h-5 ${isDark ? "text-gray-300" : "text-gray-700"}`} />
+              <VisibilityOffIcon
+                className={`w-5 h-5 ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              />
             ) : (
-              <VisibilityIcon className={`w-5 h-5 ${isDark ? "text-gray-300" : "text-gray-700"}`} />
+              <VisibilityIcon
+                className={`w-5 h-5 ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              />
             )}
           </button>
 
@@ -148,7 +160,9 @@ const HeaderBar = () => {
                 ? "bg-gray-800 hover:bg-gray-700"
                 : "bg-gray-100 hover:bg-gray-200"
             }`}
-            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            title={
+              isDark ? t("header.switchToLight") : t("header.switchToDark")
+            }
           >
             {isDark ? (
               // Sun Icon (Light Mode)
@@ -186,7 +200,7 @@ const HeaderBar = () => {
                   ? "bg-gray-800 hover:bg-gray-700"
                   : "bg-gray-100 hover:bg-gray-200"
               }`}
-              title="Notifications"
+              title={t("header.notifications")}
             >
               <Badge
                 badgeContent={unreadNotificationsCount}
@@ -263,15 +277,17 @@ const HeaderBar = () => {
                   isDark ? "bg-[#1e1e1e]" : "bg-white"
                 }`}
                 style={{
-                  boxShadow: isDark 
+                  boxShadow: isDark
                     ? "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3)"
-                    : "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                    : "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
                 }}
               >
                 {/* User Info Section with Avatar */}
                 <div
                   className={`px-4 py-3 ${
-                    isDark ? "bg-gradient-to-r from-[#14b8a6]/20 to-[#06b6d4]/20" : "bg-gradient-to-r from-[#14b8a6]/10 to-[#06b6d4]/10"
+                    isDark
+                      ? "bg-gradient-to-r from-[#14b8a6]/20 to-[#06b6d4]/20"
+                      : "bg-gradient-to-r from-[#14b8a6]/10 to-[#06b6d4]/10"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -327,9 +343,11 @@ const HeaderBar = () => {
                         : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      isDark ? "bg-[#2a2a2a]" : "bg-gray-100"
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        isDark ? "bg-[#2a2a2a]" : "bg-gray-100"
+                      }`}
+                    >
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -344,7 +362,9 @@ const HeaderBar = () => {
                         />
                       </svg>
                     </div>
-                    <span className="font-medium">View Profile</span>
+                    <span className="font-medium">
+                      {t("header.viewProfile")}
+                    </span>
                   </button>
 
                   <button
@@ -355,9 +375,11 @@ const HeaderBar = () => {
                         : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      isDark ? "bg-[#2a2a2a]" : "bg-gray-100"
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        isDark ? "bg-[#2a2a2a]" : "bg-gray-100"
+                      }`}
+                    >
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -378,13 +400,19 @@ const HeaderBar = () => {
                         />
                       </svg>
                     </div>
-                    <span className="font-medium">Settings</span>
+                    <span className="font-medium">
+                      {t("navigation.settings")}
+                    </span>
                   </button>
 
                   {/* Mode Switch Button - Only show if user has ADMIN role */}
                   {hasAdminRole && (
                     <>
-                      <div className={`my-2 mx-4 h-px ${isDark ? "bg-gray-700" : "bg-gray-200"}`} />
+                      <div
+                        className={`my-2 mx-4 h-px ${
+                          isDark ? "bg-gray-700" : "bg-gray-200"
+                        }`}
+                      />
                       <button
                         onClick={handleSwitchMode}
                         className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${
@@ -393,9 +421,11 @@ const HeaderBar = () => {
                             : "text-teal-600 hover:bg-teal-50 hover:text-teal-700"
                         }`}
                       >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          isDark ? "bg-teal-500/20" : "bg-teal-100"
-                        }`}>
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            isDark ? "bg-teal-500/20" : "bg-teal-100"
+                          }`}
+                        >
                           <svg
                             className="w-4 h-4"
                             fill="none"
@@ -412,14 +442,18 @@ const HeaderBar = () => {
                         </div>
                         <span className="font-medium">
                           {currentMode === "ADMIN"
-                            ? "Switch to User Mode"
-                            : "Switch to Admin Mode"}
+                            ? t("header.switchToUserMode")
+                            : t("header.switchToAdminMode")}
                         </span>
                       </button>
                     </>
                   )}
 
-                  <div className={`my-2 mx-4 h-px ${isDark ? "bg-gray-700" : "bg-gray-200"}`} />
+                  <div
+                    className={`my-2 mx-4 h-px ${
+                      isDark ? "bg-gray-700" : "bg-gray-200"
+                    }`}
+                  />
 
                   <button
                     onClick={() => {
@@ -432,9 +466,11 @@ const HeaderBar = () => {
                         : "text-red-600 hover:bg-red-50 hover:text-red-700"
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      isDark ? "bg-red-500/20" : "bg-red-100"
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        isDark ? "bg-red-500/20" : "bg-red-100"
+                      }`}
+                    >
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -449,7 +485,7 @@ const HeaderBar = () => {
                         />
                       </svg>
                     </div>
-                    <span className="font-medium">Logout</span>
+                    <span className="font-medium">{t("auth.logout")}</span>
                   </button>
                 </div>
               </div>
@@ -462,12 +498,12 @@ const HeaderBar = () => {
       <Modal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
-        title="Logout Confirmation"
-        confirmationText="Are you sure you want to logout?"
+        title={t("modals.logoutTitle")}
+        confirmationText={t("modals.logoutPrompt")}
         onApprove={handleLogout}
         onDecline={() => setIsLogoutModalOpen(false)}
-        approveText="Yes"
-        declineText="No"
+        approveText={t("common.yes")}
+        declineText={t("common.no")}
       />
 
       {/* Notifications Panel */}

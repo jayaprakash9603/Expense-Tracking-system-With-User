@@ -25,6 +25,27 @@ export const en = {
     close: "Close",
     submit: "Submit",
     reset: "Reset",
+    yes: "Yes",
+    no: "No",
+  },
+
+  // Navigation
+  navigation: {
+    adminPanelHeading: "Admin Panel",
+    dashboard: "Dashboard",
+    userManagement: "User Management",
+    roleManagement: "Role Management",
+    systemAnalytics: "System Analytics",
+    auditLogs: "Audit Logs",
+    reports: "Reports",
+    settings: "Settings",
+    home: "Home",
+    expenses: "Expenses",
+    categories: "Categories",
+    payments: "Payments",
+    bill: "Bill",
+    friends: "Friends",
+    budgets: "Budgets",
   },
 
   // Dashboard
@@ -243,6 +264,24 @@ export const en = {
       "Your profile is now friends only - only friends can view",
     profileVisibilityPrivate:
       "Your profile is now private - only you can view your information",
+  },
+
+  // Modals
+  modals: {
+    logoutTitle: "Logout Confirmation",
+    logoutPrompt: "Are you sure you want to logout?",
+  },
+
+  // Header
+  header: {
+    showAmounts: "Show Amounts",
+    hideAmounts: "Hide Amounts",
+    switchToLight: "Switch to Light Mode",
+    switchToDark: "Switch to Dark Mode",
+    notifications: "Notifications",
+    viewProfile: "View Profile",
+    switchToUserMode: "Switch to User Mode",
+    switchToAdminMode: "Switch to Admin Mode",
   },
 
   // Auth
