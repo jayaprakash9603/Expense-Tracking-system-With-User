@@ -110,23 +110,23 @@ const Settings = () => {
   const renderSwitchSetting = (item) => {
     const stateKey = item.stateKey;
     const settingsKey = item.settingsKey;
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
 
     return (
       <SettingItem
         key={item.id}
         icon={item.icon}
-        title={item.title}
-        description={item.description}
+        title={title}
+        description={description}
         isSwitch
         switchChecked={settingsState[stateKey]}
         onSwitchChange={(e) => {
           const checked = e.target.checked;
           updateSetting(stateKey, checked);
-          updateSetting(
-            settingsKey,
-            checked,
-            getToggleMessage(item.title, checked)
-          );
+          updateSetting(settingsKey, checked, getToggleMessage(title, checked));
         }}
         colors={colors}
       />
@@ -137,6 +137,10 @@ const Settings = () => {
   const renderSelectSetting = (item) => {
     const stateKey = item.stateKey;
     const settingsKey = item.settingsKey;
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
 
     // Special handling for language select
     if (item.id === "language") {
@@ -144,8 +148,8 @@ const Settings = () => {
         <SettingItem
           key={item.id}
           icon={item.icon}
-          title={item.title}
-          description={item.description}
+          title={title}
+          description={description}
           isSelect
           selectValue={settingsState[stateKey]}
           selectOptions={item.options}
@@ -163,8 +167,8 @@ const Settings = () => {
       <SettingItem
         key={item.id}
         icon={item.icon}
-        title={item.title}
-        description={item.description}
+        title={title}
+        description={description}
         isSelect
         selectValue={settingsState[stateKey]}
         selectOptions={item.options}
@@ -173,7 +177,7 @@ const Settings = () => {
           updateSetting(stateKey, value);
           const message = item.customMessage
             ? PROFILE_VISIBILITY_MESSAGES[value]
-            : `${item.title} updated`;
+            : `${title} updated`;
           updateSetting(settingsKey, value, message);
         }}
         colors={colors}
@@ -182,22 +186,37 @@ const Settings = () => {
   };
 
   // Render button-type setting
-  const renderButtonSetting = (item) => (
-    <SettingItem
-      key={item.id}
-      icon={item.icon}
-      title={item.title}
-      description={item.description}
-      isButton
-      buttonText={item.buttonText}
-      onButtonClick={() => executeAction(item.action)}
-      isDanger={item.isDanger}
-      colors={colors}
-    />
-  );
+  const renderButtonSetting = (item) => {
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
+    const buttonText = item.buttonTextKey
+      ? t(item.buttonTextKey)
+      : item.buttonText;
+
+    return (
+      <SettingItem
+        key={item.id}
+        icon={item.icon}
+        title={title}
+        description={description}
+        isButton
+        buttonText={buttonText}
+        onButtonClick={() => executeAction(item.action)}
+        isDanger={item.isDanger}
+        colors={colors}
+      />
+    );
+  };
 
   // Render navigation-type setting
   const renderNavigationSetting = (item) => {
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
+
     // Check if this item should show status (notification settings)
     const shouldShowStatus =
       item.showStatus && item.id === "notificationSettings";
@@ -207,8 +226,8 @@ const Settings = () => {
       <SettingItem
         key={item.id}
         icon={item.icon}
-        title={item.title}
-        description={item.description}
+        title={title}
+        description={description}
         isNavigation
         onNavigationClick={() => executeAction(item.action)}
         colors={colors}
@@ -239,13 +258,17 @@ const Settings = () => {
   const renderSliderSetting = (item) => {
     const stateKey = item.stateKey;
     const settingsKey = item.settingsKey;
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
 
     return (
       <SettingItem
         key={item.id}
         icon={item.icon}
-        title={item.title}
-        description={item.description}
+        title={title}
+        description={description}
         isSlider
         sliderValue={settingsState[stateKey]}
         sliderMin={item.min}
@@ -254,11 +277,7 @@ const Settings = () => {
         sliderMarks={item.marks}
         onSliderChange={(e, value) => {
           updateSetting(stateKey, value);
-          updateSetting(
-            settingsKey,
-            value,
-            `${item.title} updated to ${value}`
-          );
+          updateSetting(settingsKey, value, `${title} updated to ${value}`);
         }}
         colors={colors}
       />
@@ -307,16 +326,18 @@ const Settings = () => {
       return <AppInfoSection key={section.id} colors={colors} />;
     }
 
+    const title = section.titleKey ? t(section.titleKey) : section.title;
+
     return (
       <SettingSection
         key={section.id}
         icon={section.icon}
-        title={section.title}
+        title={title}
         colors={colors}
         showChip={section.showChip}
         chipLabel={
           section.showChip
-            ? getProfileVisibilityLabel(settingsState.profileVisibility)
+            ? getProfileVisibilityLabel(settingsState.profileVisibility, t)
             : ""
         }
       >

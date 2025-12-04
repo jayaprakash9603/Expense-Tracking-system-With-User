@@ -13,9 +13,9 @@ import { useTranslation } from "../../../../hooks/useTranslation";
 const AppInfoSection = ({ colors }) => {
   const { t } = useTranslation();
   const infoItems = [
-    { label: "App Version", value: APP_INFO.version, isChip: true },
-    { label: "Last Updated", value: APP_INFO.lastUpdated, isChip: false },
-    { label: "Build Number", value: APP_INFO.buildNumber, isChip: false },
+    { label: t("settings.appVersion"), value: APP_INFO.version, isChip: true },
+    { label: t("settings.lastUpdated"), value: APP_INFO.lastUpdated, isChip: false },
+    { label: t("settings.buildNumber"), value: APP_INFO.buildNumber, isChip: false },
   ];
 
   return (

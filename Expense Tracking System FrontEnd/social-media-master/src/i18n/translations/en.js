@@ -48,66 +48,201 @@ export const en = {
   // Settings
   settings: {
     title: "Settings",
-    subtitle: "Manage your preferences",
+    subtitle: "Manage your preferences and account settings",
 
-    // Sections
+    // Main Sections
     appearance: "Appearance",
-    language: "Language & Region",
-    privacy: "Privacy & Security",
-    notifications: "Notifications",
-    account: "Account",
+    preferences: "Preferences",
+    privacySecurity: "Privacy & Security",
+    dataStorage: "Data & Storage",
+    smartFeatures: "Smart Features & Automation",
+    accessibility: "Accessibility",
+    accountManagement: "Account Management",
+    helpSupport: "Help & Support",
     about: "About",
 
-    // Theme
-    theme: "Dark Mode",
+    // Appearance Settings
+    theme: "Theme Mode",
     themeLight: "Light mode for better visibility in bright environments",
     themeDark: "Dark mode for reduced eye strain",
+    fontSize: "Font Size",
+    fontSizeDescription: "Adjust text size for better readability",
+    compactMode: "Compact Mode",
+    compactModeDescription: "Display more content with reduced spacing",
+    animations: "Enable Animations",
+    animationsDescription: "Show smooth transitions and animations",
+    enableAnimations: "Enable Animations",
+    enableAnimationsDescription: "Show smooth transitions and animations",
+    highContrast: "High Contrast Mode",
+    highContrastDescription: "Enhanced visibility for better accessibility",
+    highContrastMode: "High Contrast Mode",
+    highContrastModeDescription: "Enhanced visibility for better accessibility",
 
-    // Language
-    languageLabel: "Language",
+    // Preferences
+    language: "Language",
     languageDescription: "Choose your preferred language",
-
-    // Profile Visibility
-    profileVisibility: "Profile Visibility",
-    profileVisibilityDescription: "Control who can see your profile",
-    visibilityPublic: "Public",
-    visibilityFriends: "Friends Only",
-    visibilityPrivate: "Private",
-
-    // Data Masking
-    dataMasking: "Data Masking",
-    dataMaskingDescription: "Hide sensitive financial information",
-
-    // Auto Logout
-    autoLogout: "Auto Logout",
-    autoLogoutDescription: "Logout after inactivity",
-
-    // Notifications
-    notificationSettings: "Notification Preferences",
-    notificationSettingsDescription: "Manage notification settings",
-
-    // Change Password
-    changePassword: "Change Password",
-    changePasswordDescription: "Update your account password",
-    change: "Change",
-
-    // Delete Account
-    deleteAccount: "Delete Account",
-    deleteAccountDescription: "Permanently delete your account",
-    deleteAccountWarning: "This action cannot be undone",
-
-    // Currency
-    currency: "Currency",
-    currencyDescription: "Select your preferred currency",
-
-    // Date Format
+    defaultCurrency: "Default Currency",
+    defaultCurrencyDescription: "Set your preferred currency for transactions",
     dateFormat: "Date Format",
     dateFormatDescription: "Choose how dates are displayed",
+    timeFormat: "Time Format",
+    timeFormatDescription: "Choose 12-hour or 24-hour time format",
 
-    // Session Timeout
+    // Privacy & Security
+    profileVisibility: "Profile Visibility",
+    profileVisibilityDescription:
+      "Control who can see your profile and expense information",
+    maskSensitiveData: "Mask Sensitive Data",
+    maskSensitiveDataDescription:
+      "Hide expense amounts and financial details for privacy",
+    twoFactorAuth: "Two-Factor Authentication",
+    twoFactorAuthDescription: "Add an extra layer of security to your account",
+    blockedUsers: "Blocked Users",
+    blockedUsersDescription: "Manage blocked users and privacy settings",
+    autoLogout: "Auto Logout",
+    autoLogoutDescription: "Automatically log out after period of inactivity",
     sessionTimeout: "Session Timeout",
     sessionTimeoutDescription: "Inactivity timeout duration",
-    minutes: "minutes",
+
+    // Data & Storage
+    autoBackup: "Auto Backup",
+    autoBackupDescription: "Automatically backup your data to cloud",
+    backupFrequency: "Backup Frequency",
+    backupFrequencyDescription: "How often to backup your data",
+    cloudSync: "Cloud Sync",
+    cloudSyncDescription: "Sync data across all your devices",
+    storageUsage: "Storage Usage",
+    storageUsageDescription: "View your data storage usage",
+    clearCache: "Clear Cache",
+    clearCacheDescription: "Free up space by clearing cached data",
+
+    // Smart Features
+    autoCategorize: "Auto-Categorize Expenses",
+    autoCategorizeDescription: "AI-powered automatic expense categorization",
+    smartBudgeting: "Smart Budget Suggestions",
+    smartBudgetingDescription: "Get AI recommendations for better budgeting",
+    scheduledReports: "Scheduled Reports",
+    scheduledReportsDescription: "Receive automated expense reports",
+    expenseReminders: "Expense Reminders",
+    expenseRemindersDescription: "Get reminders for recurring expenses",
+    predictiveAnalytics: "Predictive Analytics",
+    predictiveAnalyticsDescription:
+      "Forecast future expenses based on patterns",
+
+    // Accessibility
+    screenReaderSupport: "Screen Reader Support",
+    screenReaderSupportDescription: "Enhanced support for screen readers",
+    keyboardShortcuts: "Keyboard Shortcuts",
+    keyboardShortcutsDescription: "Enable keyboard navigation shortcuts",
+    reduceMotion: "Reduce Motion",
+    reduceMotionDescription: "Minimize animations for better accessibility",
+    enhancedFocusIndicators: "Enhanced Focus Indicators",
+    enhancedFocusIndicatorsDescription:
+      "Highlight focused elements more prominently",
+    keyboardShortcutsGuide: "Keyboard Shortcuts Guide",
+    keyboardShortcutsGuideDescription: "View all available keyboard shortcuts",
+
+    // Account Management
+    notificationSettings: "Notification Settings",
+    notificationSettingsDescription:
+      "Manage all notification preferences and channels",
+    editProfile: "Edit Profile",
+    editProfileDescription: "Update your personal information and preferences",
+    changePassword: "Change Password",
+    changePasswordDescription: "Update your account password",
+    dataExport: "Data Export",
+    dataExportDescription: "Download all your expense data",
+    deleteAccount: "Delete Account",
+    deleteAccountDescription: "Permanently delete your account and all data",
+    deleteAccountWarning:
+      "All your data, including expenses, budgets, and friends, will be permanently deleted.",
+
+    // Help & Support
+    helpCenter: "Help Center",
+    helpCenterDescription: "Browse FAQs and help articles",
+    contactSupport: "Contact Support",
+    contactSupportDescription: "Get help from our support team",
+    termsOfService: "Terms of Service",
+    termsOfServiceDescription: "Read our terms and conditions",
+    privacyPolicy: "Privacy Policy",
+    privacyPolicyDescription: "Learn about how we protect your data",
+
+    // App Info
+    appVersion: "App Version",
+    lastUpdated: "Last Updated",
+    buildNumber: "Build Number",
+
+    // Button Labels
+    enable: "Enable",
+    manage: "Manage",
+    change: "Change",
+    view: "View",
+    clear: "Clear",
+    export: "Export",
+    edit: "Edit",
+    delete: "Delete",
+
+    // Select Options
+    small: "Small",
+    medium: "Medium (Default)",
+    large: "Large",
+    extraLarge: "Extra Large",
+
+    // Profile Visibility Options
+    public: "🌍 Public - Anyone can view",
+    friendsOnly: "👥 Friends Only - Restricted access",
+    private: "🔒 Private - Only you",
+
+    // Profile Visibility Labels (for chips)
+    publicLabel: "🌍 Public",
+    friendsLabel: "👥 Friends",
+    privateLabel: "🔒 Private",
+
+    // Time Format Options
+    time12h: "🕐 12-hour (3:00 PM)",
+    time24h: "🕒 24-hour (15:00)",
+
+    // Backup Frequency Options
+    daily: "📆 Daily",
+    weekly: "📅 Weekly",
+    monthly: "🗓️ Monthly",
+    manualOnly: "✋ Manual Only",
+
+    // Report Schedule Options
+    dailySummary: "📊 Daily Summary",
+    weeklySummary: "📈 Weekly Summary",
+    monthlySummary: "📉 Monthly Summary",
+    noScheduledReports: "🚫 No Scheduled Reports",
+
+    // Currency Options
+    currencyUSD: "💵 USD - US Dollar ($)",
+    currencyEUR: "💶 EUR - Euro (€)",
+    currencyGBP: "💷 GBP - British Pound (£)",
+    currencyINR: "💴 INR - Indian Rupee (₹)",
+    currencyJPY: "💴 JPY - Japanese Yen (¥)",
+
+    // Date Format Options
+    dateFormatUS: "📅 MM/DD/YYYY (US)",
+    dateFormatUK: "📅 DD/MM/YYYY (UK/EU)",
+    dateFormatISO: "📅 YYYY-MM-DD (ISO)",
+    usd: "USD - US Dollar ($)",
+    eur: "EUR - Euro (€)",
+    gbp: "GBP - British Pound (£)",
+    inr: "INR - Indian Rupee (₹)",
+    jpy: "JPY - Japanese Yen (¥)",
+
+    // Date Format Options
+    mmddyyyy: "MM/DD/YYYY (US)",
+    ddmmyyyy: "DD/MM/YYYY (UK/EU)",
+    yyyymmdd: "YYYY-MM-DD (ISO)",
+
+    // Status Messages
+    profileVisibilityPublic:
+      "Your profile is now public - anyone can view your information",
+    profileVisibilityFriends:
+      "Your profile is now friends only - only friends can view",
+    profileVisibilityPrivate:
+      "Your profile is now private - only you can view your information",
   },
 
   // Auth

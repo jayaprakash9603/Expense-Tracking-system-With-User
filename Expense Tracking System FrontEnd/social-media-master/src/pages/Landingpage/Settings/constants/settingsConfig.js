@@ -47,84 +47,142 @@ import {
 
 /**
  * Language options for user selection
- * Supports 8 languages including RTL (Arabic)
+ * Supports English and Hindi languages
  */
 export const LANGUAGE_OPTIONS = [
   { value: "en", label: "🇺🇸 English" },
-  { value: "es", label: "🇪🇸 Español (Spanish)" },
-  { value: "fr", label: "🇫🇷 Français (French)" },
-  { value: "de", label: "🇩🇪 Deutsch (German)" },
   { value: "hi", label: "🇮🇳 हिन्दी (Hindi)" },
-  { value: "zh", label: "🇨🇳 中文 (Chinese)" },
-  { value: "ja", label: "🇯🇵 日本語 (Japanese)" },
-  { value: "ar", label: "🇸🇦 العربية (Arabic)" },
 ];
 
 /**
  * Currency options for user selection
  */
 export const CURRENCY_OPTIONS = [
-  { value: "USD", label: "💵 USD - US Dollar ($)" },
-  { value: "EUR", label: "💶 EUR - Euro (€)" },
-  { value: "GBP", label: "💷 GBP - British Pound (£)" },
-  { value: "INR", label: "💴 INR - Indian Rupee (₹)" },
-  { value: "JPY", label: "💴 JPY - Japanese Yen (¥)" },
+  {
+    value: "USD",
+    label: "💵 USD - US Dollar ($)",
+    labelKey: "settings.currencyUSD",
+  },
+  {
+    value: "EUR",
+    label: "💶 EUR - Euro (€)",
+    labelKey: "settings.currencyEUR",
+  },
+  {
+    value: "GBP",
+    label: "💷 GBP - British Pound (£)",
+    labelKey: "settings.currencyGBP",
+  },
+  {
+    value: "INR",
+    label: "💴 INR - Indian Rupee (₹)",
+    labelKey: "settings.currencyINR",
+  },
+  {
+    value: "JPY",
+    label: "💴 JPY - Japanese Yen (¥)",
+    labelKey: "settings.currencyJPY",
+  },
 ];
 
 /**
  * Date format options
  */
 export const DATE_FORMAT_OPTIONS = [
-  { value: "MM/DD/YYYY", label: "📅 MM/DD/YYYY (US)" },
-  { value: "DD/MM/YYYY", label: "📅 DD/MM/YYYY (UK/EU)" },
-  { value: "YYYY-MM-DD", label: "📅 YYYY-MM-DD (ISO)" },
+  {
+    value: "MM/DD/YYYY",
+    label: "📅 MM/DD/YYYY (US)",
+    labelKey: "settings.dateFormatUS",
+  },
+  {
+    value: "DD/MM/YYYY",
+    label: "📅 DD/MM/YYYY (UK/EU)",
+    labelKey: "settings.dateFormatUK",
+  },
+  {
+    value: "YYYY-MM-DD",
+    label: "📅 YYYY-MM-DD (ISO)",
+    labelKey: "settings.dateFormatISO",
+  },
 ];
 
 /**
  * Font size options
  */
 export const FONT_SIZE_OPTIONS = [
-  { value: "small", label: "Small" },
-  { value: "medium", label: "Medium (Default)" },
-  { value: "large", label: "Large" },
-  { value: "extra-large", label: "Extra Large" },
+  { value: "small", label: "Small", labelKey: "settings.small" },
+  { value: "medium", label: "Medium (Default)", labelKey: "settings.medium" },
+  { value: "large", label: "Large", labelKey: "settings.large" },
+  {
+    value: "extra-large",
+    label: "Extra Large",
+    labelKey: "settings.extraLarge",
+  },
 ];
 
 /**
  * Time format options
  */
 export const TIME_FORMAT_OPTIONS = [
-  { value: "12h", label: "🕐 12-hour (3:00 PM)" },
-  { value: "24h", label: "🕒 24-hour (15:00)" },
+  { value: "12h", label: "🕐 12-hour (3:00 PM)", labelKey: "settings.time12h" },
+  { value: "24h", label: "🕒 24-hour (15:00)", labelKey: "settings.time24h" },
 ];
 
 /**
  * Auto-backup frequency options
  */
 export const BACKUP_FREQUENCY_OPTIONS = [
-  { value: "daily", label: "📆 Daily" },
-  { value: "weekly", label: "📅 Weekly" },
-  { value: "monthly", label: "🗓️ Monthly" },
-  { value: "manual", label: "✋ Manual Only" },
+  { value: "daily", label: "📆 Daily", labelKey: "settings.daily" },
+  { value: "weekly", label: "📅 Weekly", labelKey: "settings.weekly" },
+  { value: "monthly", label: "🗓️ Monthly", labelKey: "settings.monthly" },
+  { value: "manual", label: "✋ Manual Only", labelKey: "settings.manualOnly" },
 ];
 
 /**
  * Report schedule options
  */
 export const REPORT_SCHEDULE_OPTIONS = [
-  { value: "daily", label: "📊 Daily Summary" },
-  { value: "weekly", label: "📈 Weekly Summary" },
-  { value: "monthly", label: "📉 Monthly Summary" },
-  { value: "none", label: "🚫 No Scheduled Reports" },
+  {
+    value: "daily",
+    label: "📊 Daily Summary",
+    labelKey: "settings.dailySummary",
+  },
+  {
+    value: "weekly",
+    label: "📈 Weekly Summary",
+    labelKey: "settings.weeklySummary",
+  },
+  {
+    value: "monthly",
+    label: "📉 Monthly Summary",
+    labelKey: "settings.monthlySummary",
+  },
+  {
+    value: "none",
+    label: "🚫 No Scheduled Reports",
+    labelKey: "settings.noScheduledReports",
+  },
 ];
 
 /**
  * Profile visibility options
  */
 export const PROFILE_VISIBILITY_OPTIONS = [
-  { value: "PUBLIC", label: "🌍 Public - Anyone can view" },
-  { value: "FRIENDS", label: "👥 Friends Only - Restricted access" },
-  { value: "PRIVATE", label: "🔒 Private - Only you" },
+  {
+    value: "PUBLIC",
+    label: "🌍 Public - Anyone can view",
+    labelKey: "settings.public",
+  },
+  {
+    value: "FRIENDS",
+    label: "👥 Friends Only - Restricted access",
+    labelKey: "settings.friendsOnly",
+  },
+  {
+    value: "PRIVATE",
+    label: "🔒 Private - Only you",
+    labelKey: "settings.private",
+  },
 ];
 
 /**
@@ -140,9 +198,9 @@ export const PROFILE_VISIBILITY_MESSAGES = {
  * Profile visibility display labels with icons
  */
 export const PROFILE_VISIBILITY_LABELS = {
-  PUBLIC: "🌍 Public",
-  FRIENDS: "👥 Friends",
-  PRIVATE: "🔒 Private",
+  PUBLIC: { label: "🌍 Public", labelKey: "settings.publicLabel" },
+  FRIENDS: { label: "👥 Friends", labelKey: "settings.friendsLabel" },
+  PRIVATE: { label: "🔒 Private", labelKey: "settings.privateLabel" },
 };
 
 /**
@@ -162,6 +220,7 @@ export const SETTINGS_SECTIONS = {
   APPEARANCE: {
     id: "appearance",
     title: "Appearance",
+    titleKey: "settings.appearance",
     icon: PaletteIcon,
     items: [
       {
@@ -177,7 +236,9 @@ export const SETTINGS_SECTIONS = {
         id: "fontSize",
         icon: TextFieldsIcon,
         title: "Font Size",
+        titleKey: "settings.fontSize",
         description: "Adjust text size for better readability",
+        descriptionKey: "settings.fontSizeDescription",
         type: "select",
         stateKey: "fontSize",
         settingsKey: "fontSize",
@@ -187,7 +248,9 @@ export const SETTINGS_SECTIONS = {
         id: "compactMode",
         icon: ViewCompactIcon,
         title: "Compact Mode",
+        titleKey: "settings.compactMode",
         description: "Display more content with reduced spacing",
+        descriptionKey: "settings.compactModeDescription",
         type: "switch",
         stateKey: "compactMode",
         settingsKey: "compactMode",
@@ -196,7 +259,9 @@ export const SETTINGS_SECTIONS = {
         id: "animations",
         icon: AnimationIcon,
         title: "Enable Animations",
+        titleKey: "settings.animations",
         description: "Show smooth transitions and animations",
+        descriptionKey: "settings.animationsDescription",
         type: "switch",
         stateKey: "animations",
         settingsKey: "animations",
@@ -205,7 +270,9 @@ export const SETTINGS_SECTIONS = {
         id: "highContrast",
         icon: ContrastIcon,
         title: "High Contrast Mode",
+        titleKey: "settings.highContrast",
         description: "Enhanced visibility for better accessibility",
+        descriptionKey: "settings.highContrastDescription",
         type: "switch",
         stateKey: "highContrast",
         settingsKey: "highContrast",
@@ -216,13 +283,16 @@ export const SETTINGS_SECTIONS = {
   PREFERENCES: {
     id: "preferences",
     title: "Preferences",
+    titleKey: "settings.preferences",
     icon: LanguageIcon,
     items: [
       {
         id: "language",
         icon: LanguageIcon,
         title: "Language",
+        titleKey: "settings.language",
         description: "Choose your preferred language",
+        descriptionKey: "settings.languageDescription",
         type: "select",
         stateKey: "language",
         settingsKey: "language",
@@ -232,7 +302,9 @@ export const SETTINGS_SECTIONS = {
         id: "currency",
         icon: MonetizationOnIcon,
         title: "Default Currency",
+        titleKey: "settings.defaultCurrency",
         description: "Set your preferred currency for transactions",
+        descriptionKey: "settings.defaultCurrencyDescription",
         type: "select",
         stateKey: "currency",
         settingsKey: "currency",
@@ -242,7 +314,9 @@ export const SETTINGS_SECTIONS = {
         id: "dateFormat",
         icon: InfoIcon,
         title: "Date Format",
+        titleKey: "settings.dateFormat",
         description: "Choose how dates are displayed",
+        descriptionKey: "settings.dateFormatDescription",
         type: "select",
         stateKey: "dateFormat",
         settingsKey: "dateFormat",
@@ -252,7 +326,9 @@ export const SETTINGS_SECTIONS = {
         id: "timeFormat",
         icon: TimerIcon,
         title: "Time Format",
+        titleKey: "settings.timeFormat",
         description: "Choose 12-hour or 24-hour time format",
+        descriptionKey: "settings.timeFormatDescription",
         type: "select",
         stateKey: "timeFormat",
         settingsKey: "timeFormat",
@@ -264,6 +340,7 @@ export const SETTINGS_SECTIONS = {
   PRIVACY_SECURITY: {
     id: "privacy_security",
     title: "Privacy & Security",
+    titleKey: "settings.privacySecurity",
     icon: ShieldIcon,
     showChip: true,
     items: [
@@ -271,7 +348,9 @@ export const SETTINGS_SECTIONS = {
         id: "profileVisibility",
         icon: VisibilityIcon,
         title: "Profile Visibility",
+        titleKey: "settings.profileVisibility",
         description: "Control who can see your profile and expense information",
+        descriptionKey: "settings.profileVisibilityDescription",
         type: "select",
         stateKey: "profileVisibility",
         settingsKey: "profileVisibility",
@@ -282,7 +361,9 @@ export const SETTINGS_SECTIONS = {
         id: "maskSensitiveData",
         icon: VisibilityOffIcon,
         title: "Mask Sensitive Data",
+        titleKey: "settings.maskSensitiveData",
         description: "Hide expense amounts and financial details for privacy",
+        descriptionKey: "settings.maskSensitiveDataDescription",
         type: "switch",
         stateKey: "maskSensitiveData",
         settingsKey: "maskSensitiveData",
@@ -291,25 +372,33 @@ export const SETTINGS_SECTIONS = {
         id: "twoFactor",
         icon: SecurityIcon,
         title: "Two-Factor Authentication",
+        titleKey: "settings.twoFactorAuth",
         description: "Add an extra layer of security to your account",
+        descriptionKey: "settings.twoFactorAuthDescription",
         type: "button",
         buttonText: "Enable",
+        buttonTextKey: "settings.enable",
         action: "enable2FA",
       },
       {
         id: "blockedUsers",
         icon: BlockIcon,
         title: "Blocked Users",
+        titleKey: "settings.blockedUsers",
         description: "Manage blocked users and privacy settings",
+        descriptionKey: "settings.blockedUsersDescription",
         type: "button",
         buttonText: "Manage",
+        buttonTextKey: "settings.manage",
         action: "manageBlockedUsers",
       },
       {
         id: "sessionTimeout",
         icon: TimerIcon,
         title: "Auto Logout",
+        titleKey: "settings.autoLogout",
         description: "Automatically log out after period of inactivity",
+        descriptionKey: "settings.autoLogoutDescription",
         type: "switch",
         stateKey: "sessionTimeout",
         settingsKey: "sessionTimeout",
@@ -320,13 +409,16 @@ export const SETTINGS_SECTIONS = {
   DATA_STORAGE: {
     id: "data_storage",
     title: "Data & Storage",
+    titleKey: "settings.dataStorage",
     icon: StorageIcon,
     items: [
       {
         id: "autoBackup",
         icon: CloudDownloadIcon,
         title: "Auto Backup",
+        titleKey: "settings.autoBackup",
         description: "Automatically backup your data to cloud",
+        descriptionKey: "settings.autoBackupDescription",
         type: "switch",
         stateKey: "autoBackup",
         settingsKey: "autoBackup",
@@ -335,7 +427,9 @@ export const SETTINGS_SECTIONS = {
         id: "backupFrequency",
         icon: ScheduleIcon,
         title: "Backup Frequency",
+        titleKey: "settings.backupFrequency",
         description: "How often to backup your data",
+        descriptionKey: "settings.backupFrequencyDescription",
         type: "select",
         stateKey: "backupFrequency",
         settingsKey: "backupFrequency",
@@ -345,7 +439,9 @@ export const SETTINGS_SECTIONS = {
         id: "cloudSync",
         icon: CloudSyncIcon,
         title: "Cloud Sync",
+        titleKey: "settings.cloudSync",
         description: "Sync data across all your devices",
+        descriptionKey: "settings.cloudSyncDescription",
         type: "switch",
         stateKey: "cloudSync",
         settingsKey: "cloudSync",
@@ -354,18 +450,24 @@ export const SETTINGS_SECTIONS = {
         id: "storageUsage",
         icon: StorageIcon,
         title: "Storage Usage",
+        titleKey: "settings.storageUsage",
         description: "View your data storage usage",
+        descriptionKey: "settings.storageUsageDescription",
         type: "button",
         buttonText: "View",
+        buttonTextKey: "settings.view",
         action: "viewStorage",
       },
       {
         id: "clearCache",
         icon: DeleteSweepIcon,
         title: "Clear Cache",
+        titleKey: "settings.clearCache",
         description: "Free up space by clearing cached data",
+        descriptionKey: "settings.clearCacheDescription",
         type: "button",
         buttonText: "Clear",
+        buttonTextKey: "settings.clear",
         action: "clearCache",
       },
     ],
@@ -374,13 +476,16 @@ export const SETTINGS_SECTIONS = {
   SMART_FEATURES: {
     id: "smart_features",
     title: "Smart Features & Automation",
+    titleKey: "settings.smartFeatures",
     icon: PsychologyIcon,
     items: [
       {
         id: "autoCategorize",
         icon: CategoryIcon,
         title: "Auto-Categorize Expenses",
+        titleKey: "settings.autoCategorize",
         description: "AI-powered automatic expense categorization",
+        descriptionKey: "settings.autoCategorizeDescription",
         type: "switch",
         stateKey: "autoCategorize",
         settingsKey: "autoCategorize",
@@ -389,7 +494,9 @@ export const SETTINGS_SECTIONS = {
         id: "smartBudgeting",
         icon: AutoAwesomeIcon,
         title: "Smart Budget Suggestions",
+        titleKey: "settings.smartBudgeting",
         description: "Get AI recommendations for better budgeting",
+        descriptionKey: "settings.smartBudgetingDescription",
         type: "switch",
         stateKey: "smartBudgeting",
         settingsKey: "smartBudgeting",
@@ -398,7 +505,9 @@ export const SETTINGS_SECTIONS = {
         id: "scheduledReports",
         icon: ScheduleIcon,
         title: "Scheduled Reports",
+        titleKey: "settings.scheduledReports",
         description: "Receive automated expense reports",
+        descriptionKey: "settings.scheduledReportsDescription",
         type: "select",
         stateKey: "scheduledReports",
         settingsKey: "scheduledReports",
@@ -408,7 +517,9 @@ export const SETTINGS_SECTIONS = {
         id: "expenseReminders",
         icon: NotificationImportantIcon,
         title: "Expense Reminders",
+        titleKey: "settings.expenseReminders",
         description: "Get reminders for recurring expenses",
+        descriptionKey: "settings.expenseRemindersDescription",
         type: "switch",
         stateKey: "expenseReminders",
         settingsKey: "expenseReminders",
@@ -417,7 +528,9 @@ export const SETTINGS_SECTIONS = {
         id: "predictiveAnalytics",
         icon: AssessmentIcon,
         title: "Predictive Analytics",
+        titleKey: "settings.predictiveAnalytics",
         description: "Forecast future expenses based on patterns",
+        descriptionKey: "settings.predictiveAnalyticsDescription",
         type: "switch",
         stateKey: "predictiveAnalytics",
         settingsKey: "predictiveAnalytics",
@@ -428,13 +541,16 @@ export const SETTINGS_SECTIONS = {
   ACCESSIBILITY: {
     id: "accessibility",
     title: "Accessibility",
+    titleKey: "settings.accessibility",
     icon: AccessibleIcon,
     items: [
       {
         id: "screenReader",
         icon: RecordVoiceOverIcon,
         title: "Screen Reader Support",
+        titleKey: "settings.screenReaderSupport",
         description: "Enhanced support for screen readers",
+        descriptionKey: "settings.screenReaderSupportDescription",
         type: "switch",
         stateKey: "screenReader",
         settingsKey: "screenReader",
@@ -443,7 +559,9 @@ export const SETTINGS_SECTIONS = {
         id: "keyboardShortcuts",
         icon: KeyboardIcon,
         title: "Keyboard Shortcuts",
+        titleKey: "settings.keyboardShortcuts",
         description: "Enable keyboard navigation shortcuts",
+        descriptionKey: "settings.keyboardShortcutsDescription",
         type: "switch",
         stateKey: "keyboardShortcuts",
         settingsKey: "keyboardShortcuts",
@@ -452,7 +570,9 @@ export const SETTINGS_SECTIONS = {
         id: "reduceMotion",
         icon: MotionPhotosOffIcon,
         title: "Reduce Motion",
+        titleKey: "settings.reduceMotion",
         description: "Minimize animations for better accessibility",
+        descriptionKey: "settings.reduceMotionDescription",
         type: "switch",
         stateKey: "reduceMotion",
         settingsKey: "reduceMotion",
@@ -461,7 +581,9 @@ export const SETTINGS_SECTIONS = {
         id: "focusIndicators",
         icon: Brightness4Icon,
         title: "Enhanced Focus Indicators",
+        titleKey: "settings.enhancedFocusIndicators",
         description: "Highlight focused elements more prominently",
+        descriptionKey: "settings.enhancedFocusIndicatorsDescription",
         type: "switch",
         stateKey: "focusIndicators",
         settingsKey: "focusIndicators",
@@ -470,9 +592,12 @@ export const SETTINGS_SECTIONS = {
         id: "keyboardShortcutsGuide",
         icon: KeyboardIcon,
         title: "Keyboard Shortcuts Guide",
+        titleKey: "settings.keyboardShortcutsGuide",
         description: "View all available keyboard shortcuts",
+        descriptionKey: "settings.keyboardShortcutsGuideDescription",
         type: "button",
         buttonText: "View",
+        buttonTextKey: "settings.view",
         action: "viewShortcuts",
       },
     ],
@@ -481,13 +606,16 @@ export const SETTINGS_SECTIONS = {
   ACCOUNT: {
     id: "account",
     title: "Account Management",
+    titleKey: "settings.accountManagement",
     icon: AccountCircleIcon,
     items: [
       {
         id: "notificationSettings",
         icon: NotificationImportantIcon,
         title: "Notification Settings",
+        titleKey: "settings.notificationSettings",
         description: "Manage all notification preferences and channels",
+        descriptionKey: "settings.notificationSettingsDescription",
         type: "navigation",
         action: "notificationSettings",
         showStatus: true, // Special flag to show ON/OFF status
@@ -496,36 +624,48 @@ export const SETTINGS_SECTIONS = {
         id: "editProfile",
         icon: PersonIcon,
         title: "Edit Profile",
+        titleKey: "settings.editProfile",
         description: "Update your personal information and preferences",
+        descriptionKey: "settings.editProfileDescription",
         type: "button",
         buttonText: "Edit",
+        buttonTextKey: "settings.edit",
         action: "editProfile",
       },
       {
         id: "changePassword",
         icon: LockIcon,
         title: "Change Password",
+        titleKey: "settings.changePassword",
         description: "Update your account password",
+        descriptionKey: "settings.changePasswordDescription",
         type: "button",
         buttonText: "Change",
+        buttonTextKey: "settings.change",
         action: "changePassword",
       },
       {
         id: "dataExport",
         icon: StorageIcon,
         title: "Data Export",
+        titleKey: "settings.dataExport",
         description: "Download all your expense data",
+        descriptionKey: "settings.dataExportDescription",
         type: "button",
         buttonText: "Export",
+        buttonTextKey: "settings.export",
         action: "exportData",
       },
       {
         id: "deleteAccount",
         icon: DeleteIcon,
         title: "Delete Account",
+        titleKey: "settings.deleteAccount",
         description: "Permanently delete your account and all data",
+        descriptionKey: "settings.deleteAccountDescription",
         type: "button",
         buttonText: "Delete",
+        buttonTextKey: "settings.delete",
         action: "deleteAccount",
         isDanger: true,
       },
@@ -535,13 +675,16 @@ export const SETTINGS_SECTIONS = {
   HELP_SUPPORT: {
     id: "help_support",
     title: "Help & Support",
+    titleKey: "settings.helpSupport",
     icon: HelpIcon,
     items: [
       {
         id: "helpCenter",
         icon: HelpIcon,
         title: "Help Center",
+        titleKey: "settings.helpCenter",
         description: "Browse FAQs and help articles",
+        descriptionKey: "settings.helpCenterDescription",
         type: "navigation",
         action: "helpCenter",
       },
@@ -549,7 +692,9 @@ export const SETTINGS_SECTIONS = {
         id: "contactSupport",
         icon: SupportIcon,
         title: "Contact Support",
+        titleKey: "settings.contactSupport",
         description: "Get help from our support team",
+        descriptionKey: "settings.contactSupportDescription",
         type: "navigation",
         action: "contactSupport",
       },
@@ -557,7 +702,9 @@ export const SETTINGS_SECTIONS = {
         id: "termsOfService",
         icon: DescriptionIcon,
         title: "Terms of Service",
+        titleKey: "settings.termsOfService",
         description: "Read our terms and conditions",
+        descriptionKey: "settings.termsOfServiceDescription",
         type: "navigation",
         action: "termsOfService",
       },
@@ -565,7 +712,9 @@ export const SETTINGS_SECTIONS = {
         id: "privacyPolicy",
         icon: ShieldIcon,
         title: "Privacy Policy",
+        titleKey: "settings.privacyPolicy",
         description: "Learn about how we protect your data",
+        descriptionKey: "settings.privacyPolicyDescription",
         type: "navigation",
         action: "privacyPolicy",
       },

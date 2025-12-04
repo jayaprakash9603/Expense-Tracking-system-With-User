@@ -51,8 +51,14 @@ export const getProfileVisibilityTextColor = (visibility) => {
 /**
  * Get profile visibility label
  */
-export const getProfileVisibilityLabel = (visibility) => {
-  return PROFILE_VISIBILITY_LABELS[visibility] || "";
+export const getProfileVisibilityLabel = (visibility, t) => {
+  const labelData = PROFILE_VISIBILITY_LABELS[visibility];
+  if (!labelData) return "";
+  return t
+    ? labelData.labelKey
+      ? t(labelData.labelKey)
+      : labelData.label
+    : labelData.label;
 };
 
 /**
