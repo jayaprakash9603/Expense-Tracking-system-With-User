@@ -69,7 +69,7 @@ public class UpdateUserSettingsRequest {
 
     // ==================== PREFERENCE SETTINGS ====================
     @JsonProperty("language")
-    @Pattern(regexp = "^(en|es|fr|de|hi)$", message = "Language must be one of: en, es, fr, de, hi")
+    @Pattern(regexp = "^[a-z]{2}$", message = "Language must be a valid ISO 639-1 code (e.g., en, hi)")
     private String language;
 
     @JsonProperty("currency")

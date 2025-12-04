@@ -79,7 +79,7 @@ public class UserSettings {
     // ==================== PREFERENCE SETTINGS ====================
     @Column(name = "language", nullable = false, length = 5)
     @Builder.Default
-    private String language = "en"; // en, es, fr, de, hi
+    private String language = "en"; // ISO 639-1 language code (e.g., en, hi, te)
 
     @Column(name = "currency", nullable = false, length = 5)
     @Builder.Default

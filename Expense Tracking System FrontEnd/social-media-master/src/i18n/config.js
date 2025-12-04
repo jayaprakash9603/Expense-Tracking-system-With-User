@@ -6,6 +6,7 @@
 export const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", nativeName: "English", flag: "🇺🇸" },
   { code: "hi", name: "Hindi", nativeName: "हिन्दी", flag: "🇮🇳" },
+  { code: "te", name: "Telugu", nativeName: "తెలుగు", flag: "🇮🇳" },
 ];
 
 export const DEFAULT_LANGUAGE = "en";

@@ -14,8 +14,16 @@ const AppInfoSection = ({ colors }) => {
   const { t } = useTranslation();
   const infoItems = [
     { label: t("settings.appVersion"), value: APP_INFO.version, isChip: true },
-    { label: t("settings.lastUpdated"), value: APP_INFO.lastUpdated, isChip: false },
-    { label: t("settings.buildNumber"), value: APP_INFO.buildNumber, isChip: false },
+    {
+      label: t("settings.lastUpdated"),
+      value: APP_INFO.lastUpdated,
+      isChip: false,
+    },
+    {
+      label: t("settings.buildNumber"),
+      value: APP_INFO.buildNumber,
+      isChip: false,
+    },
   ];
 
   return (

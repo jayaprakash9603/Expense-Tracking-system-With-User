@@ -47,11 +47,12 @@ import {
 
 /**
  * Language options for user selection
- * Supports English and Hindi languages
+ * Supports English, Hindi, and Telugu languages
  */
 export const LANGUAGE_OPTIONS = [
   { value: "en", label: "🇺🇸 English" },
   { value: "hi", label: "🇮🇳 हिन्दी (Hindi)" },
+  { value: "te", label: "🇮🇳 తెలుగు (Telugu)" },
 ];
 
 /**
