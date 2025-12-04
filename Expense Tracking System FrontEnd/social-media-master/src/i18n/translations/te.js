@@ -72,7 +72,8 @@ export const te = {
     animations: "యానిమేషన్‌లను ప్రారంభించండి",
     animationsDescription: "సమతుల్య మార్పులు మరియు యానిమేషన్‌లను చూపించండి",
     enableAnimations: "యానిమేషన్‌లను ప్రారంభించండి",
-    enableAnimationsDescription: "సమతుల్య మార్పులు మరియు యానిమేషన్‌లను చూపించండి",
+    enableAnimationsDescription:
+      "సమతుల్య మార్పులు మరియు యానిమేషన్‌లను చూపించండి",
     highContrast: "హై కాంట్రాస్ట్ మోడ్",
     highContrastDescription: "మెరుగైన యాక్సెసిబిలిటీ కోసం స్పష్టమైన వీక్షణ",
     highContrastMode: "హై కాంట్రాస్ట్ మోడ్",
@@ -82,7 +83,8 @@ export const te = {
     language: "భాష",
     languageDescription: "మీకు నచ్చిన భాషను ఎంచుకోండి",
     defaultCurrency: "అప్రమేయ కరెన్సీ",
-    defaultCurrencyDescription: "లావాదేవీల కోసం మీకు నచ్చిన కరెన్సీని సెట్ చేయండి",
+    defaultCurrencyDescription:
+      "లావాదేవీల కోసం మీకు నచ్చిన కరెన్సీని సెట్ చేయండి",
     dateFormat: "తేదీ ఫార్మాట్",
     dateFormatDescription: "తేదీలు ఎలా కనిపించాలో ఎంచుకోండి",
     timeFormat: "సమయ ఫార్మాట్",
@@ -135,14 +137,17 @@ export const te = {
     screenReaderSupport: "స్క్రీన్ రీడర్ మద్దతు",
     screenReaderSupportDescription: "స్క్రీన్ రీడర్‌ల కోసం మెరుగైన మద్దతు",
     keyboardShortcuts: "కీబోర్డ్ షార్ట్‌కట్లు",
-    keyboardShortcutsDescription: "కీబోర్డ్ నావిగేషన్ షార్ట్‌కట్‌లను ప్రారంభించండి",
+    keyboardShortcutsDescription:
+      "కీబోర్డ్ నావిగేషన్ షార్ట్‌కట్‌లను ప్రారంభించండి",
     reduceMotion: "చలనాన్ని తగ్గించండి",
-    reduceMotionDescription: "మెరుగైన యాక్సెసిబిలిటీ కోసం యానిమేషన్‌లను తగ్గించండి",
+    reduceMotionDescription:
+      "మెరుగైన యాక్సెసిబిలిటీ కోసం యానిమేషన్‌లను తగ్గించండి",
     enhancedFocusIndicators: "మెరుగైన ఫోకస్ సూచికలు",
     enhancedFocusIndicatorsDescription:
       "ఫోకస్‌లో ఉన్న అంశాలను మరింత స్పష్టంగా హైలైట్ చేయండి",
     keyboardShortcutsGuide: "కీబోర్డ్ షార్ట్‌కట్ గైడ్",
-    keyboardShortcutsGuideDescription: "అందుబాటులో ఉన్న అన్ని కీబోర్డ్ షార్ట్‌కట్‌లను చూడండి",
+    keyboardShortcutsGuideDescription:
+      "అందుబాటులో ఉన్న అన్ని కీబోర్డ్ షార్ట్‌కట్‌లను చూడండి",
 
     // Account Management
     notificationSettings: "నోటిఫికేషన్ సెట్టింగ్స్",
