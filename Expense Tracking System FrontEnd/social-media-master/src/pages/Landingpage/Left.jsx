@@ -266,6 +266,12 @@ const Left = () => {
                   icon={<AccountBalanceWalletIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
+                <MenuItem
+                  name={t("navigation.reports")}
+                  path="/reports"
+                  icon={<AssessmentIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
               </>
             )}
           </div>
