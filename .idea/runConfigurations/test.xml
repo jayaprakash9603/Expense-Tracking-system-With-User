@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="test" type="CompoundRunConfigurationType">
+    <toRun name="AuditServiceApplication" type="Application" />
     <toRun name="BillServiceApplication" type="Application" />
     <toRun name="BudgetServiceApplication" type="Application" />
     <toRun name="CategoryServiceApplication" type="Application" />

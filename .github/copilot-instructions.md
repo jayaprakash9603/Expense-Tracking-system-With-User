@@ -1,4 +1,33 @@
+````instructions
 # GitHub Copilot Instructions - Expense Tracking System
+
+> Use this as the single source of truth for all Copilot-driven changes in the Expense Tracking platform.
+
+## 🔁 How to use this guide
+1. Skim the quick reference table below before starting any task.
+2. Read the section matching your work type (backend service, frontend component, infra, etc.).
+3. Follow the detailed standards later in the file when you need deeper guidance.
+
+## ⚡ Quick Reference Summary
+| Scenario | Mandatory Actions | Go-To Sections |
+| --- | --- | --- |
+| First time in repo | Review architecture overview, confirm service boundaries, run local infra via `docker-compose` | `Architecture Overview`, `Development Workflows` |
+| Updating backend service | Analyze existing patterns, follow service & repository guidelines, add tests | `Backend-Specific Standards`, `Service Layer Pattern` |
+| Updating frontend | Use themed components, follow Redux conventions, handle API via `api` instance | `Frontend-Specific Standards`, `Component Design Principles` |
+| Working with Kafka | Extend base producer/consumer, partition by user ID, document topic changes | `Kafka Event Pattern`, `Notification-Service/KAFKA_TOPICS_REFERENCE.md` |
+| Deployment/infra change | Align with docker-compose & Jenkins pipelines, record changes in domain guides (see `Change Tracking & Documentation`) | `Development Workflows`, `Change Tracking & Documentation` |
+
+## 🧭 Navigation Tips
+- All MUST-FOLLOW rules use ⚠️ or **bold** emphasis—do not skip them.
+- Examples are provided in every section; adapt them instead of inventing new patterns.
+- Keep documentation in sync: update this file and referenced domain guides (see `Change Tracking & Documentation`). Never create or modify README files unless a task explicitly requests documentation work.
+
+## ♻️ Instruction Maintenance Workflow
+1. At the beginning of every task, skim the quick reference table plus the sections relevant to your change (backend, frontend, infra, etc.); note any missing or outdated guidance.
+2. While implementing changes, maintain a running list of findings (new patterns, caveats, edge cases).
+3. Before finishing, decide whether those findings should live here or in a domain-specific guide (see `Change Tracking & Documentation`); if yes, update the relevant file immediately without waiting for user prompts.
+4. Highlight updates with concise context (what changed, why it matters, date if useful).
+5. If no updates are needed, briefly confirm the evaluation and the reason—never skip the check.
 
 ## 🎯 Critical Instructions for AI Agents
 
@@ -111,6 +140,13 @@ Three pipeline options in `Expense-tracking-System-backend/Expense-tracking-back
 - Use base classes for shared behavior (see `NotificationEventProducer<T>`)
 - Create utility classes for repeated operations
 
+**File & Naming Standards**:
+- Keep features modular: one responsibility per file/class, and split large modules into focused directories (`controllers/`, `services/`, `repositories/`, etc.).
+- Mirror backend bounded contexts and frontend domains in the folder hierarchy; never drop unrelated code into shared folders.
+- Use plain-English, intention-revealing names for variables, methods, and components (e.g., `calculateBudgetVariance` over `calcVar`).
+- Prefer configuration-driven wiring or dependency injection over in-line instantiation to keep files lightweight.
+- If an existing file becomes a grab bag, extract new files instead of appending more logic.
+
 **Design Patterns to Use**:
 - **Template Method**: Base classes define algorithm structure (e.g., `NotificationEventProducer`)
 - **Factory Pattern**: For object creation complexity
@@ -121,13 +157,11 @@ Three pipeline options in `Expense-tracking-System-backend/Expense-tracking-back
 ### Code Quality Rules
 
 **Comments**:
-- ❌ **DO NOT** add comments unless explicitly asked by the user
 - ❌ **DO NOT** add obvious comments that repeat code
 - ❌ **DO NOT** use bloated Javadoc for simple getters/setters
-- ✅ **DO** comment complex business logic or non-obvious decisions (only when asked)
-- ✅ **DO** document public APIs and service interfaces (only when asked)
-- ✅ **DO** explain "why" not "what" in comments (only when asked)
-- 📝 **Code should be self-explanatory through proper naming and structure**
+- ✅ **DO** comment complex business logic or non-obvious decisions
+- ✅ **DO** document public APIs and service interfaces
+- ✅ **DO** explain "why" not "what" in comments
 
 **Bad Example**:
 ```java
@@ -169,6 +203,17 @@ public void checkBudgetThreshold(Budget budget) {
 - Keep methods under 20 lines when possible
 - Extract complex logic into private helper methods
 - One level of abstraction per method
+- If a method grows, split responsibilities into reusable, independently testable helpers before adding new logic
+
+**Class Independence & Reusability**:
+- Design classes to work as standalone, dependency-injected units; no hidden coupling to global state or unrelated modules.
+- Favor constructor or setter injection so classes can be reused in other components without modification.
+- When adding behavior, refactor into dedicated classes/services instead of extending existing ones with feature-specific branches.
+
+**Avoid Hard-Coded Values**:
+- Store constants in configuration files (`application.yml`, `.env`, `config/constants.js`, etc.) or dedicated `Constants` classes.
+- Parameterize feature toggles and thresholds; never bury magic numbers or strings in business logic.
+- For tests, use fixtures or factory helpers to centralize default values.
 
 **Class Structure**:
 ```java
@@ -467,66 +512,6 @@ function ExpenseCard(props) {
 }
 ```
 
-### File Structure & Organization
-
-**Backend Service Structure**:
-```
-{service-name}/
-├── src/main/java/com/jaya/
-│   ├── config/           # Configuration classes (Kafka, Security, etc.)
-│   ├── controller/       # REST endpoints (thin, delegate to services)
-│   ├── dto/              # Data Transfer Objects (request/response)
-│   ├── entity/           # JPA entities (database models)
-│   ├── exception/        # Custom exceptions (domain-specific)
-│   ├── kafka/
-│   │   ├── producer/     # Event producers (extend base classes)
-│   │   └── events/       # Event DTOs for Kafka
-│   ├── mapper/           # Entity ↔ DTO mappers (MapStruct or manual)
-│   ├── repository/       # JPA repositories (data access layer)
-│   ├── service/          # Business logic (core functionality)
-│   │   ├── impl/         # Service implementations
-│   │   └── {Service}Service.java  # Service interfaces
-│   └── util/             # Utility classes (helpers, validators)
-└── src/main/resources/
-    ├── application.yml   # Configuration properties
-    └── application-{profile}.yml  # Profile-specific configs
-```
-
-**Frontend Component Structure**:
-```
-src/
-├── components/
-│   ├── common/           # Reusable UI components
-│   │   ├── Button/
-│   │   │   ├── Button.jsx
-│   │   │   ├── Button.styles.js
-│   │   │   └── index.js
-│   │   ├── Card/
-│   │   ├── Modal/
-│   │   └── FloatingNotifications/  # Global notification system
-│   ├── {domain}/         # Domain-specific components
-│   │   ├── BudgetCard.jsx
-│   │   ├── BudgetForm.jsx
-│   │   └── BudgetList.jsx
-├── hooks/                # Custom React hooks (reusable logic)
-│   ├── useTheme.js
-│   ├── useCurrency.js
-│   ├── useMasking.js
-│   └── useUserSettings.js
-├── Redux/                # State management
-│   ├── {Domain}/
-│   │   ├── {domain}.action.js
-│   │   ├── {domain}.actionTypes.js
-│   │   └── {domain}.reducer.js
-├── services/             # API service layer (optional)
-├── utils/                # Utility functions
-│   ├── dateUtils.js
-│   ├── currencyUtils.js
-│   └── validationUtils.js
-└── config/
-    └── api.js            # Axios configuration (centralized)
-```
-
 ### Component Design Principles
 
 **1. Small, Independent, Reusable Components**:
@@ -762,8 +747,8 @@ function BudgetList() {
 
 **IMPORTANT**: When making significant changes to patterns or architecture:
 
-1. **Update This File** - Document new patterns immediately
-2. **Create/Update ReadMe** - Add detailed explanation in relevant service folder
+1. **Update This File** - Document new patterns immediately.
+2. **Extend Domain Guides** - Capture deeper explanations in the existing knowledge files (see examples below). **Do not create or modify README files unless a task explicitly requests documentation work.**
 3. **Example Locations**:
    - `Notification-Service/KAFKA_TOPICS_REFERENCE.md` - Kafka event schemas
    - `BUDGET_REPORT_API_INTEGRATION_COMPLETE.md` - Integration patterns
@@ -1785,12 +1770,3 @@ describe('BudgetCard', () => {
   });
 });
 ```
-
-## Key Files for Context
-
-- `docker-compose.yml` - Full infrastructure + service orchestration
-- `Gateway/src/main/resources/application.yaml` - All API routes
-- `start-all-services.ps1` - Service startup order and dependencies
-- `src/config/api.js` - Frontend API configuration
-- `Notification-Service/KAFKA_TOPICS_REFERENCE.md` - Complete event schemas
-- `DOCKER_SETUP.md` - Infrastructure setup guide
