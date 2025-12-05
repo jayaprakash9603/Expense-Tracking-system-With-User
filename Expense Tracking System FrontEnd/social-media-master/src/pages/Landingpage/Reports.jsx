@@ -83,12 +83,12 @@ const Reports = () => {
   const columnsToUse = isMobile ? mobileColumns : defaultColumns;
 
   return (
-    <Box sx={{ bgcolor: "#1b1b1b" }}>
+    <Box sx={{ bgcolor: colors.primary_bg }}>
       {/* <Box
         sx={{
           width: isMobile ? "100%" : "calc(100vw - 370px)",
           // height: "50px",
-          bgcolor: "#1b1b1b",
+          bgcolor: colors.primary_bg,
         }}
       /> */}
 
@@ -96,9 +96,9 @@ const Reports = () => {
         sx={{
           width: isMobile ? "100%" : "calc(100vw - 370px)",
           height: isMobile ? "auto" : "calc(100vh - 100px)",
-          bgcolor: "#0b0b0b",
+          bgcolor: colors.secondary_bg,
           borderRadius: "8px",
-          border: "1px solid #000",
+          border: `1px solid ${colors.border_color}`,
           mr: isMobile ? 0 : "20px",
           p: 4,
           display: "flex",
@@ -108,10 +108,10 @@ const Reports = () => {
         <Box sx={{ width: isMobile ? "100%" : "50%", pr: isMobile ? 0 : 2 }}>
           <IconButton
             sx={{
-              color: "#00DAC6",
-              backgroundColor: "#1b1b1b",
+              color: colors.primary_accent,
+              backgroundColor: colors.primary_bg,
               "&:hover": {
-                backgroundColor: "#28282a",
+                backgroundColor: colors.hover_bg,
               },
               zIndex: 10,
             }}
@@ -131,7 +131,7 @@ const Reports = () => {
             >
               <path
                 d="M15 18L9 12L15 6"
-                stroke="#00DAC6"
+                stroke={colors.primary_accent}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -146,13 +146,13 @@ const Reports = () => {
               value={selectedReport}
               onChange={handleDropdownChange}
               sx={{
-                bgcolor: "#333333",
-                color: "#ffffff",
-                border: "1px solid #28282a",
-                "& .MuiSvgIcon-root": { color: "#ffffff" },
-                "&:hover": { bgcolor: "#444444" },
+                bgcolor: colors.primary_bg,
+                color: colors.primary_text,
+                border: `1px solid ${colors.border_color}`,
+                "& .MuiSvgIcon-root": { color: colors.primary_text },
+                "&:hover": { bgcolor: colors.hover_bg },
                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#00dac6",
+                  borderColor: colors.primary_accent,
                 },
               }}
             >
@@ -184,17 +184,21 @@ const Reports = () => {
                   mb: 2,
                 }}
               >
-                <Typography variant="h6" sx={{ color: "#ffffff" }}>
+                <Typography variant="h6" sx={{ color: colors.primary_text }}>
                   Expense Details
                 </Typography>
                 <Button
                   variant="contained"
                   sx={{
                     textTransform: "none",
-                    bgcolor: "#00dac6",
-                    color: "#000",
+                    bgcolor: colors.primary_accent,
+                    color: colors.button_text,
                     display: "flex",
                     alignItems: "center",
+                    "&:hover": {
+                      bgcolor: colors.primary_accent,
+                      opacity: 0.9,
+                    },
                   }}
                 >
                   <img
@@ -251,7 +255,7 @@ const Reports = () => {
                   mt: 4,
                 }}
               >
-                <Typography variant="h6" sx={{ color: "#ffffff" }}>
+                <Typography variant="h6" sx={{ color: colors.primary_text }}>
                   Reports History
                 </Typography>
               </Box>
@@ -299,7 +303,7 @@ const Reports = () => {
         sx={{
           width: isMobile ? "100%" : "calc(100vw - 370px)",
           height: "50px",
-          bgcolor: "#1b1b1b",
+          bgcolor: colors.primary_bg,
         }}
       />
     </Box>
