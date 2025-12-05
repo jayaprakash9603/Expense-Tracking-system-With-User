@@ -18,6 +18,7 @@ import useTooltipFormatter from "./cashflow/useTooltipFormatter";
 import useSelectionHelpers from "./cashflow/useSelectionHelpers";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
+import { useTranslation } from "../hooks/useTranslation";
 
 // Separate chart component extracted from CashFlow.jsx
 // Props are intentionally verbose to keep this presentational and stateless.
@@ -54,6 +55,7 @@ const CashFlowChart = ({
 }) => {
   const { colors, mode } = useTheme();
   const settings = useUserSettings();
+  const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
   const { avg } = useAverageLine(chartData, activeRange, offset);
   const tooltipFormatter = useTooltipFormatter(
@@ -154,10 +156,10 @@ const CashFlowChart = ({
               : {
                   value:
                     activeRange === "month"
-                      ? "Day"
+                      ? t("cashflow.chart.xAxisDay")
                       : activeRange === "week"
-                      ? "Weekday"
-                      : "Month",
+                      ? t("cashflow.chart.xAxisWeekday")
+                      : t("cashflow.chart.xAxisMonth"),
                   position: "insideBottomRight",
                   offset: -5,
                   fill: axisTextColor,
@@ -177,7 +179,7 @@ const CashFlowChart = ({
             barChartStyles?.hideAxisLabels
               ? null
               : {
-                  value: "Amount",
+                  value: t("cashflow.chart.yAxisAmount"),
                   angle: -90,
                   position: "insideLeft",
                   fill: axisTextColor,
@@ -207,7 +209,7 @@ const CashFlowChart = ({
           }}
           formatter={(value) => [
             formatCurrencyCompact(value, currencySymbol),
-            "Amount",
+            t("cashflow.chart.tooltipAmount"),
           ]}
           wrapperStyle={{ zIndex: 10 }}
           labelFormatter={tooltipFormatter}
@@ -236,7 +238,7 @@ const CashFlowChart = ({
                     fontSize={12}
                     textAnchor="end"
                   >
-                    Avg
+                    {t("cashflow.chart.averageLabel")}
                   </text>
                   <text
                     x={tx}
