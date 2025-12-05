@@ -105,6 +105,7 @@
 import React from "react";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTranslation } from "../../hooks/useTranslation";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -173,6 +174,7 @@ const DailySpendingChart = ({
 }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
+  const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
 
   // Responsive breakpoints
@@ -202,6 +204,13 @@ const DailySpendingChart = ({
   const theme = getThemeColors(activeType, CHART_THEME);
   const gradientId = `spendingGradient-${activeType}`;
   const animationKey = `${timeframe}-${activeType}-${chartData.length}`;
+  const chartTitle = title || t("dashboard.charts.titles.dailySpending");
+  const timeframeSelectorOptions =
+    timeframeOptions && timeframeOptions.length > 0
+      ? timeframeOptions
+      : DEFAULT_TIMEFRAME_OPTIONS;
+  const typeSelectorOptions =
+    typeOptions && typeOptions.length > 0 ? typeOptions : DEFAULT_TYPE_OPTIONS;
 
   return (
     <div
@@ -216,18 +225,18 @@ const DailySpendingChart = ({
       <div className="chart-header">
         <h3 style={{ color: colors.primary_text }}>
           {icon || ""}
-          {title}
+          {chartTitle}
         </h3>
         <div className="chart-controls">
           <ChartTimeframeSelector
             value={timeframe}
             onChange={onTimeframeChange}
-            options={timeframeOptions}
+            options={timeframeSelectorOptions}
           />
           <ChartTypeToggle
             selectedType={activeType}
             onToggle={onTypeToggle}
-            options={typeOptions}
+            options={typeSelectorOptions}
           />
         </div>
       </div>

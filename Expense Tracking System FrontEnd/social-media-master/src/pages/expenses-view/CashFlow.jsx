@@ -11,7 +11,6 @@ import {
   formatCurrencyCompact,
   formatNumberFull,
 } from "../../utils/numberFormatters";
-import { weekDays, yearMonths } from "../../utils/flowDateUtils";
 import { useTheme, useMediaQuery } from "@mui/material";
 import CashFlowChart from "../../components/CashFlowChart";
 import CashFlowExpenseCards from "../../components/cashflow/CashFlowExpenseCards";
@@ -25,6 +24,7 @@ import {
   fetchFriendship,
   fetchFriendsDetailed,
 } from "../../Redux/Friends/friendsActions";
+import { useTranslation } from "../../hooks/useTranslation";
 
 // Relocated Cashflow component (was in pages/Landingpage). Functionality unchanged.
 const Cashflow = () => {
@@ -117,6 +117,7 @@ const Cashflow = () => {
   const [addNewPopoverOpen, setAddNewPopoverOpen] = useState(false);
   const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const [shrinkFlowBtn, setShrinkFlowBtn] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isFriendView) {
@@ -183,9 +184,28 @@ const Cashflow = () => {
     }
   }, [location.state, showToast]);
 
+  const translatedRangeLabel = useMemo(() => {
+    if (!rangeLabel) return rangeLabel;
+    if (offset === 0) {
+      if (activeRange === "week" && rangeLabel === "This Week") {
+        return t("cashflow.rangeLabels.thisWeek");
+      }
+      if (activeRange === "year" && rangeLabel === "This Year") {
+        return t("cashflow.rangeLabels.thisYear");
+      }
+      if (activeRange === "month" && rangeLabel.startsWith("This Month")) {
+        return rangeLabel.replace(
+          "This Month",
+          t("cashflow.rangeLabels.thisMonth")
+        );
+      }
+    }
+    return rangeLabel;
+  }, [rangeLabel, activeRange, offset, t]);
+
   const filteredCardsByBar = useMemo(() => {
     if (!selectedBars.length) return sortedCardData;
-    
+
     const barExpenseIds = new Set(
       selectedBars.flatMap((b) =>
         (b.data.expenses || []).map(
@@ -193,9 +213,10 @@ const Cashflow = () => {
         )
       )
     );
-    
+
     return sortedCardData.filter((c) => {
-      const cardId = c.id || c.expenseId || c.expense?.id || c.expense?.expenseId;
+      const cardId =
+        c.id || c.expenseId || c.expense?.id || c.expense?.expenseId;
       return barExpenseIds.has(cardId);
     });
   }, [selectedBars, sortedCardData]);
@@ -214,7 +235,7 @@ const Cashflow = () => {
         xKey,
         barChartStyles,
         totals,
-        rangeLabel,
+        rangeLabel: translatedRangeLabel,
       }}
       cards={filteredCardsByBar}
       selection={{
@@ -256,28 +277,28 @@ const Cashflow = () => {
         isFriendView,
         addNewOptions: [
           {
-            label: "Add Expense",
+            label: t("expenses.addExpense"),
             route: isFriendView
               ? `/expenses/create/${friendId}`
               : "/expenses/create",
             color: "#00DAC6",
           },
           {
-            label: "Upload File",
+            label: t("cashflow.addNew.options.uploadFile"),
             route: isFriendView
               ? `/upload/expenses/${friendId}`
               : "/upload/expenses",
             color: "#5b7fff",
           },
           {
-            label: "Add Budget",
+            label: t("budget.addBudget"),
             route: isFriendView
               ? `/budget/create/${friendId}`
               : "/budget/create",
             color: "#FFC107",
           },
           {
-            label: "Add Category",
+            label: t("categories.addCategory"),
             route: isFriendView
               ? `/category-flow/create/${friendId}`
               : "/category-flow/create",
@@ -285,16 +306,36 @@ const Cashflow = () => {
           },
         ],
         navItems: [
-          { path: "/expenses/reports", icon: "report.png", label: "Reports" },
-          { path: "/category-flow", icon: "category.png", label: "Categories" },
-          { path: "/budget", icon: "budget.png", label: "Budget" },
+          {
+            path: "/expenses/reports",
+            icon: "report.png",
+            label: t("cashflow.nav.reports"),
+          },
+          {
+            path: "/category-flow",
+            icon: "category.png",
+            label: t("cashflow.nav.categories"),
+          },
+          {
+            path: "/budget",
+            icon: "budget.png",
+            label: t("cashflow.nav.budget"),
+          },
           {
             path: "/payment-method",
             icon: "payment-method.png",
-            label: "Payment Method",
+            label: t("cashflow.nav.paymentMethod"),
           },
-          { path: "/bill", icon: "bill.png", label: "Bill" },
-          { path: "/calendar-view", icon: "calendar.png", label: "Calendar" },
+          {
+            path: "/bill",
+            icon: "bill.png",
+            label: t("cashflow.nav.bill"),
+          },
+          {
+            path: "/calendar-view",
+            icon: "calendar.png",
+            label: t("cashflow.nav.calendar"),
+          },
         ],
         showBackButton,
         onPageBack: handlePageBack,

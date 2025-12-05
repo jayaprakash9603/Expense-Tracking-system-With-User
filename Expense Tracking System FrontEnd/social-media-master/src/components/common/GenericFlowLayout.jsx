@@ -9,6 +9,7 @@ import NoDataPlaceholder from "../NoDataPlaceholder";
 import { rangeTypes } from "../../utils/flowDateUtils";
 import recentPng from "../../assests/recent.png";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 
 // Flexible layout wrapper used by CashFlow to integrate multi-selection and bulk deletion.
 const GenericFlowLayout = ({
@@ -78,6 +79,7 @@ const GenericFlowLayout = ({
   formatters: { formatCompactNumber, formatCurrencyCompact, formatNumberFull },
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <div
@@ -228,7 +230,7 @@ const GenericFlowLayout = ({
         hasWriteAccess={hasWriteAccess}
         navigate={navigate}
         addNewOptions={addNewOptions}
-        placeholder="Search expenses..."
+        placeholder={t("cashflow.searchPlaceholder")}
         // Use 'expenses' as origin so other flows back button returns to the main expenses view
         currentFlow="expenses"
       />

@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * ChartTypeToggle - Toggle buttons for switching between chart types (Loss/Gain)
@@ -11,39 +12,45 @@ import { useTheme } from "../../hooks/useTheme";
  */
 const ChartTypeToggle = ({ selectedType, onToggle, options }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   if (!onToggle || !options || options.length === 0) return null;
 
   return (
     <div className="type-toggle">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          className={`toggle-btn ${opt.value} ${
-            selectedType === opt.value ? "active" : ""
-          }`}
-          onClick={() => onToggle(opt.value)}
-          aria-pressed={selectedType === opt.value}
-          style={{
-            backgroundColor:
-              selectedType === opt.value ? opt.color : colors.button_inactive,
-            color: selectedType === opt.value ? "white" : colors.primary_text,
-            border: `2px solid ${
-              selectedType === opt.value ? opt.color : colors.border_color
-            }`,
-            fontWeight: selectedType === opt.value ? 700 : 500,
-            transform: selectedType === opt.value ? "scale(1.05)" : "scale(1)",
-            boxShadow:
-              selectedType === opt.value
-                ? `0 0 0 3px ${opt.color}20, 0 2px 8px ${opt.color}40`
-                : "none",
-            transition: "all 0.2s ease",
-          }}
-        >
-          {opt.label}
-        </button>
-      ))}
+      {options.map((opt) => {
+        const label = opt.labelKey ? t(opt.labelKey) : opt.label || opt.value;
+
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            className={`toggle-btn ${opt.value} ${
+              selectedType === opt.value ? "active" : ""
+            }`}
+            onClick={() => onToggle(opt.value)}
+            aria-pressed={selectedType === opt.value}
+            style={{
+              backgroundColor:
+                selectedType === opt.value ? opt.color : colors.button_inactive,
+              color: selectedType === opt.value ? "white" : colors.primary_text,
+              border: `2px solid ${
+                selectedType === opt.value ? opt.color : colors.border_color
+              }`,
+              fontWeight: selectedType === opt.value ? 700 : 500,
+              transform:
+                selectedType === opt.value ? "scale(1.05)" : "scale(1)",
+              boxShadow:
+                selectedType === opt.value
+                  ? `0 0 0 3px ${opt.color}20, 0 2px 8px ${opt.color}40`
+                  : "none",
+              transition: "all 0.2s ease",
+            }}
+          >
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 };
@@ -54,7 +61,8 @@ ChartTypeToggle.propTypes = {
   options: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
+      label: PropTypes.string,
+      labelKey: PropTypes.string,
       color: PropTypes.string,
     })
   ),
@@ -62,8 +70,16 @@ ChartTypeToggle.propTypes = {
 
 ChartTypeToggle.defaultProps = {
   options: [
-    { value: "loss", label: "Loss", color: "#ff5252" },
-    { value: "gain", label: "Gain", color: "#14b8a6" },
+    {
+      value: "loss",
+      labelKey: "dashboard.charts.typeOptions.loss",
+      color: "#ff5252",
+    },
+    {
+      value: "gain",
+      labelKey: "dashboard.charts.typeOptions.gain",
+      color: "#14b8a6",
+    },
   ],
 };
 

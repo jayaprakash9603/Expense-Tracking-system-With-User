@@ -20,6 +20,7 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useMasking } from "../../hooks/useMasking";
 import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
+import { useTranslation } from "../../hooks/useTranslation";
 
 dayjs.extend(weekOfYear);
 
@@ -52,6 +53,7 @@ function CashFlowExpenseCards({
   const settings = useUserSettings();
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const { maskAmount, isMasking } = useMasking();
+  const { t } = useTranslation();
   const scrollContainerRef = useRef(null);
   const savedScrollPositionRef = useRef(0);
   const [sortOrder, setSortOrder] = React.useState("desc"); // "asc" or "desc"
@@ -69,7 +71,7 @@ function CashFlowExpenseCards({
 
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
-    
+
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({
         top: 0,
@@ -625,11 +627,15 @@ function CashFlowExpenseCards({
           fullWidth
           iconSize={isMobile ? 54 : 72}
           style={{ minHeight: isMobile ? 260 : 340 }}
-          message={search ? "No matches" : "No data found"}
+          message={
+            search
+              ? t("cashflow.messages.noMatches")
+              : t("cashflow.messages.noData")
+          }
           subMessage={
             search
-              ? "Try a different search term"
-              : "Adjust filters or change the period"
+              ? t("cashflow.messages.searchSuggestion")
+              : t("cashflow.messages.adjustPeriod")
           }
         />
       </div>
@@ -702,13 +708,13 @@ function CashFlowExpenseCards({
       row.category?.name ||
       row.category ||
       row.expense?.category ||
-      "Uncategorized";
+      t("cashflow.labels.uncategorized");
     const rawPaymentMethod =
       row.paymentMethodName ||
       row.paymentMethod?.name ||
       row.paymentMethod ||
       row.expense?.paymentMethod ||
-      "Unknown";
+      t("cashflow.labels.unknownPayment");
     const paymentMethodName = formatPaymentMethodName(rawPaymentMethod);
     const isBill = row.bill === true;
 
@@ -762,34 +768,34 @@ function CashFlowExpenseCards({
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
-          
+
           const container = scrollContainerRef.current;
           const cardElement = event.currentTarget;
-          
+
           if (container) {
             const scrollBeforeClick = container.scrollTop;
             savedScrollPositionRef.current = scrollBeforeClick;
-            
+
             handleCardClick(idx, event);
-            
+
             requestAnimationFrame(() => {
               if (container) {
                 container.scrollTop = scrollBeforeClick;
               }
             });
-            
+
             setTimeout(() => {
               if (container) {
                 container.scrollTop = scrollBeforeClick;
               }
             }, 0);
-            
+
             setTimeout(() => {
               if (container) {
                 container.scrollTop = scrollBeforeClick;
               }
             }, 10);
-            
+
             setTimeout(() => {
               if (container) {
                 container.scrollTop = scrollBeforeClick;
@@ -848,8 +854,10 @@ function CashFlowExpenseCards({
                 }}
                 title={
                   row.expense?.masked || (isMasking() && row.amount)
-                    ? "Amount masked"
-                    : `Amount: ${formatNumberFull(row.amount)}`
+                    ? t("cashflow.labels.amountMasked")
+                    : t("cashflow.labels.amountWithValue", {
+                        amount: formatNumberFull(row.amount),
+                      })
                 }
               >
                 {row.expense?.masked || (isMasking() && row.amount)
@@ -873,10 +881,10 @@ function CashFlowExpenseCards({
                   textTransform: "uppercase",
                   lineHeight: "1.1",
                 }}
-                title="This is a bill expense"
+                title={t("cashflow.tooltips.billExpense")}
               >
                 <ReceiptIcon sx={{ fontSize: 10, color: "#fff" }} />
-                Bill
+                {t("cashflow.labels.billBadge")}
               </span>
             )}
           </div>
@@ -888,7 +896,9 @@ function CashFlowExpenseCards({
           >
             <div
               className="flex items-center gap-1 min-w-0 flex-1"
-              title={`Category: ${categoryName}`}
+              title={t("cashflow.tooltips.category", {
+                category: categoryName,
+              })}
             >
               <LocalOfferIcon
                 sx={{ fontSize: 13, color: colors.primary_accent }}
@@ -902,7 +912,9 @@ function CashFlowExpenseCards({
             </div>
             <div
               className="flex items-center gap-1 min-w-0 flex-1"
-              title={`Payment: ${paymentMethodName}`}
+              title={t("cashflow.tooltips.paymentMethod", {
+                method: paymentMethodName,
+              })}
             >
               <AccountBalanceWalletIcon
                 sx={{ fontSize: 13, color: colors.secondary_accent }}
@@ -935,7 +947,7 @@ function CashFlowExpenseCards({
             }}
             title={row.comments}
           >
-            {row.comments || "No comments"}
+            {row.comments || t("cashflow.labels.noComments")}
           </div>
         </div>
         {isSelected && selectedCardIdx.length === 1 && hasWriteAccess && (
@@ -989,7 +1001,7 @@ function CashFlowExpenseCards({
                   );
                 }
               }}
-              aria-label="Edit Expense"
+              aria-label={t("cashflow.actions.editExpense")}
             >
               <EditIcon fontSize="small" />
             </IconButton>
@@ -1004,7 +1016,7 @@ function CashFlowExpenseCards({
                 "&:hover": { background: colors.hover_bg, color: "#fff" },
               }}
               onClick={() => handleDeleteClick(row, idx)}
-              aria-label="Delete Expense"
+              aria-label={t("cashflow.actions.deleteExpense")}
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
@@ -1046,7 +1058,7 @@ function CashFlowExpenseCards({
               transform: "scale(1.1)",
             },
           }}
-          title="Scroll to Top"
+          title={t("cashflow.tooltips.scrollTop")}
         >
           <KeyboardArrowUpIcon sx={{ fontSize: 18 }} />
         </IconButton>
@@ -1073,7 +1085,7 @@ function CashFlowExpenseCards({
               transform: "scale(1.1)",
             },
           }}
-          title="Scroll to Bottom"
+          title={t("cashflow.tooltips.scrollBottom")}
         >
           <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
         </IconButton>
@@ -1141,7 +1153,7 @@ function CashFlowExpenseCards({
                   },
                   transition: "all 0.2s ease",
                 }}
-                title="Previous Month"
+                title={t("cashflow.tooltips.previousMonth")}
               >
                 <KeyboardArrowUpIcon sx={{ fontSize: 18 }} />
               </IconButton>
@@ -1181,11 +1193,11 @@ function CashFlowExpenseCards({
               }
               title={
                 activeRange === "year"
-                  ? "Click to select a month"
-                  : currentHeader.month || "Month"
+                  ? t("cashflow.tooltips.selectMonth")
+                  : currentHeader.month || t("cashflow.labels.monthPlaceholder")
               }
             >
-              {currentHeader.month || "Month"}
+              {currentHeader.month || t("cashflow.labels.monthPlaceholder")}
             </div>
 
             {/* Month Picker Dropdown - Only show in year view */}
@@ -1225,7 +1237,7 @@ function CashFlowExpenseCards({
                   },
                   transition: "all 0.2s ease",
                 }}
-                title="Next Month"
+                title={t("cashflow.tooltips.nextMonth")}
               >
                 <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
               </IconButton>
@@ -1267,7 +1279,7 @@ function CashFlowExpenseCards({
                 },
                 transition: "all 0.2s ease",
               }}
-              title="Previous Date"
+              title={t("cashflow.tooltips.previousDate")}
             >
               <KeyboardArrowUpIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -1294,9 +1306,9 @@ function CashFlowExpenseCards({
                 e.currentTarget.style.background = `${colors.primary_accent}15`;
                 e.currentTarget.style.transform = "scale(1)";
               }}
-              title="Click to jump to a specific date"
+              title={t("cashflow.tooltips.selectDate")}
             >
-              {currentHeader.date || "Date"}
+              {currentHeader.date || t("cashflow.labels.datePlaceholder")}
             </div>
 
             {/* Next Date Arrow */}
@@ -1323,7 +1335,7 @@ function CashFlowExpenseCards({
                 },
                 transition: "all 0.2s ease",
               }}
-              title="Next Date"
+              title={t("cashflow.tooltips.nextDate")}
             >
               <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -1358,8 +1370,8 @@ function CashFlowExpenseCards({
             onClick={toggleSortOrder}
             title={
               sortOrder === "desc"
-                ? "Sort by Oldest First (Ascending Order)"
-                : "Sort by Newest First (Descending Order)"
+                ? t("cashflow.tooltips.sortAscending")
+                : t("cashflow.tooltips.sortDescending")
             }
             onMouseEnter={(e) => {
               e.currentTarget.style.background = `${colors.primary_accent}25`;
@@ -1396,7 +1408,9 @@ function CashFlowExpenseCards({
                 textTransform: "uppercase",
               }}
             >
-              {sortOrder === "desc" ? "Recent First" : "Old First"}
+              {sortOrder === "desc"
+                ? t("cashflow.labels.recentFirst")
+                : t("cashflow.labels.oldFirst")}
             </span>
           </div>
         </div>

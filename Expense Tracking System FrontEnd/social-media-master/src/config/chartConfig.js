@@ -5,9 +5,18 @@
 
 // Default timeframe options - easily extendable
 export const DEFAULT_TIMEFRAME_OPTIONS = [
-  { value: "this_month", label: "This Month" },
-  { value: "last_month", label: "Last Month" },
-  { value: "last_3_months", label: "Last 3 Months" },
+  {
+    value: "this_month",
+    labelKey: "dashboard.charts.timeframeOptions.thisMonth",
+  },
+  {
+    value: "last_month",
+    labelKey: "dashboard.charts.timeframeOptions.lastMonth",
+  },
+  {
+    value: "last_3_months",
+    labelKey: "dashboard.charts.timeframeOptions.last3Months",
+  },
   // Add more options here as needed:
   // { value: "this_week", label: "This Week" },
   // { value: "this_year", label: "This Year" },
@@ -15,8 +24,16 @@ export const DEFAULT_TIMEFRAME_OPTIONS = [
 
 // Default type options - easily extendable or can be disabled
 export const DEFAULT_TYPE_OPTIONS = [
-  { value: "loss", label: "Loss", color: "#ff5252" },
-  { value: "gain", label: "Gain", color: "#14b8a6" },
+  {
+    value: "loss",
+    labelKey: "dashboard.charts.typeOptions.loss",
+    color: "#ff5252",
+  },
+  {
+    value: "gain",
+    labelKey: "dashboard.charts.typeOptions.gain",
+    color: "#14b8a6",
+  },
   // Add more types as needed:
   // { value: "all", label: "All", color: "#888" },
 ];

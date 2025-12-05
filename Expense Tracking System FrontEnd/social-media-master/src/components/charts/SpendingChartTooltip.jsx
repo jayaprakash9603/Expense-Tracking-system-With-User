@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * ============================================================================
@@ -193,12 +194,19 @@ const mergeStyles = (defaultStyles, customStyles = {}) => {
 /**
  * Format date label
  */
-const formatDate = (rawDate, dayNumber) => {
-  if (!rawDate) return dayNumber ? `Day ${dayNumber}` : "";
+const formatDate = (rawDate, dayNumber, fallbackLabel = "") => {
+  if (!rawDate) return dayNumber ? fallbackLabel : "";
   const date = new Date(rawDate);
-  return !isNaN(date)
-    ? date.toLocaleDateString(undefined, { month: "short", day: "2-digit" })
-    : `Day ${dayNumber}`;
+  if (!Number.isNaN(date.getTime())) {
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "2-digit",
+    });
+  }
+  if (typeof rawDate === "string" && rawDate.trim().length > 0) {
+    return rawDate;
+  }
+  return dayNumber ? fallbackLabel : "";
 };
 
 /**
@@ -344,9 +352,13 @@ const TooltipHeader = ({
   responsiveStyles,
   currencySymbol = "₹",
 }) => {
+  const { t } = useTranslation();
   const gradient = isLoss
     ? "linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)"
     : "linear-gradient(135deg, #00dac6 0%, #00a896 100%)";
+  const totalLabel = isLoss
+    ? t("dashboard.charts.tooltip.totalSpending")
+    : t("dashboard.charts.tooltip.totalIncome");
 
   return (
     <div
@@ -421,7 +433,7 @@ const TooltipHeader = ({
               letterSpacing: "0.3px",
             }}
           >
-            {isLoss ? "Total Spending" : "Total Income"}
+            {totalLabel}
           </div>
           <div
             style={{
@@ -533,6 +545,9 @@ const TransactionsList = ({
   colors,
   currencySymbol = "₹",
 }) => {
+  const { t } = useTranslation();
+  const transactionsLabel = t("dashboard.charts.tooltip.transactions");
+  const moreLabel = t("dashboard.charts.tooltip.moreLabel");
   if (expenses.length === 0) return null;
 
   return (
@@ -566,7 +581,9 @@ const TransactionsList = ({
             size={responsiveStyles.icons.transaction}
             color={theme.color}
           />
-          <span style={{ color: colors.primary_text }}>Transactions</span>
+          <span style={{ color: colors.primary_text }}>
+            {transactionsLabel}
+          </span>
           <span
             style={{
               background: theme.color,
@@ -591,7 +608,7 @@ const TransactionsList = ({
               fontWeight: 600,
             }}
           >
-            +{remainingCount} more
+            +{remainingCount} {moreLabel}
           </span>
         )}
       </div>
@@ -641,6 +658,7 @@ const SpendingChartTooltip = ({
 }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
+  const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
 
   // Early return if tooltip is not active
@@ -681,7 +699,10 @@ const SpendingChartTooltip = ({
   };
 
   // Format data
-  const dateLabel = formatDate(data.date, data.day);
+  const dayLabel = data?.day
+    ? `${t("dashboard.charts.tooltip.dayPrefix")} ${data.day}`
+    : "";
+  const dateLabel = formatDate(data.date, data.day, dayLabel);
   const isLoss = selectedType === "loss";
 
   return (
