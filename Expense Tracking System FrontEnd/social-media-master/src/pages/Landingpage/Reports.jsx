@@ -34,6 +34,7 @@ import ExpenseTableParent from "../ExpenseTableParent";
 import ReportsGeneration from "../ReportsGeneration";
 import SearchExpenses from "../SearchExpenses/SearchExpenses";
 import SearchAudits from "../SearchAudits/SearchAudits";
+import { ReportsHistoryContainer } from "../../components/ReportsHistory";
 import { useNavigate, useParams, useLocation } from "react-router";
 
 const expenseReportData = [
@@ -46,12 +47,96 @@ const expenseReportData = [
 ];
 
 const searchAuditsData = [
-  { id: 1, reportName: "Financial Audit Q1 2025", date: "2025-03-20" },
-  { id: 2, reportName: "Compliance Audit 2025", date: "2025-04-10" },
-  { id: 3, reportName: "Operational Audit Q2", date: "2025-06-25" },
-  { id: 4, reportName: "Security Audit Annual", date: "2025-01-15" },
-  { id: 5, reportName: "Quarterly Audit Review", date: "2025-05-15" },
-  { id: 6, reportName: "Internal Audit Report", date: "2025-02-10" },
+  { 
+    id: 1, 
+    reportName: "Financial Audit Q1 2025", 
+    date: "2025-03-20",
+    reportType: "Financial",
+    status: "Completed",
+    description: "Quarterly financial audit covering all expense categories",
+    createdAt: "2025-03-20"
+  },
+  { 
+    id: 2, 
+    reportName: "Compliance Audit 2025", 
+    date: "2025-04-10",
+    reportType: "Compliance",
+    status: "Completed",
+    description: "Annual compliance audit report for regulatory requirements",
+    createdAt: "2025-04-10"
+  },
+  { 
+    id: 3, 
+    reportName: "Operational Audit Q2", 
+    date: "2025-06-25",
+    reportType: "Operational",
+    status: "Completed",
+    description: "Operational efficiency and process audit",
+    createdAt: "2025-06-25"
+  },
+  { 
+    id: 4, 
+    reportName: "Security Audit Annual", 
+    date: "2025-01-15",
+    reportType: "Security",
+    status: "Completed",
+    description: "Security protocols and access control audit",
+    createdAt: "2025-01-15"
+  },
+  { 
+    id: 5, 
+    reportName: "Quarterly Audit Review", 
+    date: "2025-05-15",
+    reportType: "Audit",
+    status: "Completed",
+    description: "Comprehensive quarterly review of all audits",
+    createdAt: "2025-05-15"
+  },
+  { 
+    id: 6, 
+    reportName: "Internal Audit Report", 
+    date: "2025-02-10",
+    reportType: "Audit",
+    status: "Completed",
+    description: "Internal controls and procedures audit",
+    createdAt: "2025-02-10"
+  },
+  { 
+    id: 7, 
+    reportName: "Vendor Expense Audit", 
+    date: "2025-07-05",
+    reportType: "Financial",
+    status: "Completed",
+    description: "Audit of all vendor-related expenses and contracts",
+    createdAt: "2025-07-05"
+  },
+  { 
+    id: 8, 
+    reportName: "Travel Policy Compliance Audit", 
+    date: "2025-08-12",
+    reportType: "Compliance",
+    status: "Completed",
+    description: "Review of travel expenses against updated policy rules",
+    createdAt: "2025-08-12"
+  },
+  { 
+    id: 9, 
+    reportName: "Operational Cost Optimization Audit", 
+    date: "2025-09-18",
+    reportType: "Operational",
+    status: "Completed",
+    description: "Deep-dive into operational costs and optimization opportunities",
+    createdAt: "2025-09-18"
+  },
+  { 
+    id: 10, 
+    reportName: "Security Incident Post-Mortem Report", 
+    date: "2025-10-03",
+    reportType: "Security",
+    status: "Completed",
+    description: "Post-incident analysis and recommendations for security improvements",
+    createdAt: "2025-10-03"
+  },
 ];
 
 const defaultColumns = [
@@ -319,243 +404,37 @@ const Reports = () => {
             </Fade>
           )}
 
-          {/* Tab Panel 1: Reports History (Tables) */}
+          {/* Tab Panel 1: Reports History */}
           {activeTab === 1 && (
             <Fade in timeout={400}>
               <Box sx={{ height: "100%" }}>
-                <Stack spacing={3} sx={{ height: "100%" }}>
-                  {/* Expense Details Table */}
-                  <Card
-                    sx={{
-                      bgcolor: colors.primary_bg,
-                      border: `1px solid ${colors.border_color}`,
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        bgcolor: colors.secondary_bg,
-                        p: 2,
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        borderBottom: `1px solid ${colors.border_color}`,
-                      }}
-                    >
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <DescriptionIcon sx={{ color: colors.primary_accent }} />
-                        <Typography 
-                          variant="h6" 
-                          sx={{ 
-                            color: colors.primary_text,
-                            fontWeight: 600,
-                          }}
-                        >
-                          Expense Details
-                        </Typography>
-                        <Chip 
-                          label={expenseReportData.length}
-                          size="small"
-                          sx={{
-                            bgcolor: `${colors.primary_accent}20`,
-                            color: colors.primary_accent,
-                            fontWeight: 600,
-                          }}
-                        />
-                      </Stack>
-                      <Button
-                        variant="contained"
-                        startIcon={<DownloadIcon />}
-                        size="small"
-                        sx={{
-                          textTransform: "none",
-                          bgcolor: colors.primary_accent,
-                          color: "#000",
-                          fontWeight: 600,
-                          borderRadius: 2,
-                          px: 2,
-                          "&:hover": {
-                            bgcolor: colors.primary_accent,
-                            opacity: 0.9,
-                            transform: "translateY(-2px)",
-                            boxShadow: `0 4px 12px ${colors.primary_accent}40`,
-                          },
-                          transition: "all 0.3s ease",
-                        }}
-                      >
-                        Export
-                      </Button>
-                    </Box>
-                    <CardContent sx={{ p: 0, flex: 1, display: "flex", flexDirection: "column" }}>
-                      <DataGrid
-                        rows={expenseReportData}
-                        columns={columnsToUse}
-                        pageSizeOptions={[5, 10]}
-                        initialState={{
-                          pagination: { paginationModel: { pageSize: 5 } },
-                        }}
-                        disableColumnMenu
-                        disableRowSelectionOnClick
-                        autoHeight
-                        sx={{
-                          border: "none",
-                          bgcolor: colors.primary_bg,
-                          color: colors.primary_text,
-                          width: "100%",
-                          "& .MuiDataGrid-columnHeaders": {
-                            bgcolor: colors.secondary_bg,
-                            color: colors.primary_text,
-                            borderBottom: `2px solid ${colors.border_color}`,
-                            fontSize: 14,
-                            fontWeight: 600,
-                          },
-                          "& .MuiDataGrid-cell": {
-                            color: colors.primary_text,
-                            borderBottom: `1px solid ${colors.border_color}`,
-                          },
-                          "& .MuiDataGrid-row": {
-                            transition: "all 0.2s ease",
-                            "&:hover": {
-                              bgcolor: colors.hover_bg,
-                            },
-                          },
-                          "& .MuiDataGrid-footerContainer": {
-                            bgcolor: colors.secondary_bg,
-                            color: colors.primary_text,
-                            borderTop: `2px solid ${colors.border_color}`,
-                          },
-                          "& .MuiTablePagination-root": {
-                            color: colors.primary_text,
-                          },
-                          "& .MuiSvgIcon-root": {
-                            color: colors.primary_text,
-                          },
-                        }}
-                      />
-                    </CardContent>
-                  </Card>
-
-                  {/* Reports History Table */}
-                  <Card
-                    sx={{
-                      bgcolor: colors.primary_bg,
-                      border: `1px solid ${colors.border_color}`,
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        bgcolor: colors.secondary_bg,
-                        p: 2,
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        borderBottom: `1px solid ${colors.border_color}`,
-                      }}
-                    >
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <HistoryIcon sx={{ color: colors.primary_accent }} />
-                        <Typography 
-                          variant="h6" 
-                          sx={{ 
-                            color: colors.primary_text,
-                            fontWeight: 600,
-                          }}
-                        >
-                          Reports History
-                        </Typography>
-                        <Chip 
-                          label={searchAuditsData.length}
-                          size="small"
-                          sx={{
-                            bgcolor: `${colors.primary_accent}20`,
-                            color: colors.primary_accent,
-                            fontWeight: 600,
-                          }}
-                        />
-                      </Stack>
-                      <Button
-                        variant="outlined"
-                        startIcon={<SearchIcon />}
-                        size="small"
-                        sx={{
-                          textTransform: "none",
-                          borderColor: colors.primary_accent,
-                          color: colors.primary_accent,
-                          fontWeight: 600,
-                          borderRadius: 2,
-                          px: 2,
-                          "&:hover": {
-                            borderColor: colors.primary_accent,
-                            bgcolor: `${colors.primary_accent}10`,
-                            transform: "translateY(-2px)",
-                          },
-                          transition: "all 0.3s ease",
-                        }}
-                      >
-                        Search
-                      </Button>
-                    </Box>
-                    <CardContent sx={{ p: 0, flex: 1, display: "flex", flexDirection: "column" }}>
-                      <DataGrid
-                        rows={searchAuditsData}
-                        columns={columnsToUse}
-                        pageSizeOptions={[5, 10]}
-                        initialState={{
-                          pagination: { paginationModel: { pageSize: 5 } },
-                        }}
-                        disableColumnMenu
-                        disableRowSelectionOnClick
-                        autoHeight
-                        sx={{
-                          border: "none",
-                          bgcolor: colors.primary_bg,
-                          color: colors.primary_text,
-                          width: "100%",
-                          "& .MuiDataGrid-columnHeaders": {
-                            bgcolor: colors.secondary_bg,
-                            color: colors.primary_text,
-                            borderBottom: `2px solid ${colors.border_color}`,
-                            fontSize: 14,
-                            fontWeight: 600,
-                          },
-                          "& .MuiDataGrid-cell": {
-                            color: colors.primary_text,
-                            borderBottom: `1px solid ${colors.border_color}`,
-                          },
-                          "& .MuiDataGrid-row": {
-                            transition: "all 0.2s ease",
-                            "&:hover": {
-                              bgcolor: colors.hover_bg,
-                            },
-                          },
-                          "& .MuiDataGrid-footerContainer": {
-                            bgcolor: colors.secondary_bg,
-                            color: colors.primary_text,
-                            borderTop: `2px solid ${colors.border_color}`,
-                          },
-                          "& .MuiTablePagination-root": {
-                            color: colors.primary_text,
-                          },
-                          "& .MuiSvgIcon-root": {
-                            color: colors.primary_text,
-                          },
-                        }}
-                      />
-                    </CardContent>
-                  </Card>
-                </Stack>
+                <ReportsHistoryContainer
+                  reports={searchAuditsData}
+                  loading={false}
+                  onView={(report) => {
+                    console.log("View report:", report);
+                    alert(`Viewing: ${report.reportName}`);
+                  }}
+                  onDownload={(report) => {
+                    console.log("Download report:", report);
+                    alert(`Downloading: ${report.reportName}`);
+                  }}
+                  onDelete={(report) => {
+                    console.log("Delete report:", report);
+                    if (window.confirm(`Delete "${report.reportName}"?`)) {
+                      alert("Report deleted successfully!");
+                    }
+                  }}
+                  onRefresh={() => {
+                    console.log("Refresh reports");
+                    alert("Refreshing reports...");
+                  }}
+                  itemsPerPage={6}
+                />
               </Box>
             </Fade>
           )}
+
 
           {/* Tab Panel 2: Analytics */}
           {activeTab === 2 && (
