@@ -797,8 +797,8 @@ const Friends = () => {
             width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
             marginRight: "20px",
             maxWidth: "1600px",
-            backgroundColor: colors.tertiary_bg,
-            // border: `1px solid ${colors.border_color}`,
+            backgroundColor: colors.secondary_bg,
+            border: `1px solid ${colors.border_color}`,
           }}
         >
           {/* Left Section - Friends List */}

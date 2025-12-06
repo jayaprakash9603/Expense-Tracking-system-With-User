@@ -203,10 +203,11 @@ const Bill = () => {
       sx={{
         height: "calc(100vh - 100px)",
         width: "calc(100vw - 370px)",
-        backgroundColor: colors.tertiary_bg,
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
         position: "relative",
         overflow: "hidden",
-        borderRadius: "16px",
+        borderRadius: "8px",
         mr: "20px",
       }}
     >
