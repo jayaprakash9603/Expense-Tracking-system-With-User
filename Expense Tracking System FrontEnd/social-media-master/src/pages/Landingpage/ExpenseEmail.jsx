@@ -4,19 +4,15 @@ import {
   Box,
   Button,
   CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
   Typography,
   Alert,
   useTheme as useMuiTheme,
   useMediaQuery,
   Stack,
+  Grid,
   Chip,
-  InputAdornment,
   Fade,
+  InputAdornment,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import SendIcon from "@mui/icons-material/Send";
@@ -28,6 +24,7 @@ import PaymentIcon from "@mui/icons-material/Payment";
 import { api, API_BASE_URL } from "../../config/api";
 import { expensesTypesEmail } from "../Input Fields/InputFields";
 import ReusableAutocomplete from "../../components/ReusableAutocomplete";
+import ReusableFilterField from "../../components/ReusableFilterField";
 import { useTheme } from "../../hooks/useTheme";
 
 const ExpenseEmail = () => {
@@ -55,62 +52,22 @@ const ExpenseEmail = () => {
 
   const jwt = localStorage.getItem("jwt");
   const muiTheme = useMuiTheme();
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
-
-  // Helper function for consistent TextField styling
-  const getTextFieldStyles = () => ({
-    "& .MuiOutlinedInput-root": {
-      bgcolor: colors.primary_bg,
-      borderRadius: 2,
-      "& fieldset": {
-        borderColor: colors.border_color,
-        borderWidth: "1px",
-        borderStyle: "solid",
-      },
-      "&:hover fieldset": {
-        borderColor: "#00dac6",
-        borderWidth: "1px",
-        borderStyle: "solid",
-      },
-      "&.Mui-focused fieldset": {
-        borderColor: "#00dac6",
-        borderWidth: "2px",
-        borderStyle: "solid",
-      },
-    },
-    "& .MuiInputBase-input": {
-      color: colors.primary_text,
-    },
-    "& .MuiInputLabel-root": {
-      color: colors.secondary_text,
-    },
-  });
-
-  // Helper function for consistent Select styling
-  const getSelectStyles = () => ({
-    bgcolor: colors.primary_bg,
+  const disabledTextColor =
+    mode === "light" ? "rgba(26, 26, 26, 0.45)" : "rgba(255, 255, 255, 0.45)";
+  const sectionBorder = colors.border_color;
+  const cardShadow =
+    mode === "dark"
+      ? "0 18px 40px rgba(0, 0, 0, 0.6)"
+      : "0 14px 32px rgba(15, 23, 42, 0.08)";
+  const formSectionStyles = {
+    border: `1px solid ${sectionBorder}`,
     borderRadius: 2,
-    color: colors.primary_text,
-    "& fieldset": {
-      borderColor: colors.border_color,
-      borderWidth: "1px",
-      borderStyle: "solid",
-    },
-    "&:hover fieldset": {
-      borderColor: "#00dac6",
-      borderWidth: "1px",
-      borderStyle: "solid",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "#00dac6",
-      borderWidth: "2px",
-      borderStyle: "solid",
-    },
-    "& .MuiSelect-icon": {
-      color: colors.secondary_text,
-    },
-  });
+    p: isMobile ? 2 : 2.5,
+    bgcolor: colors.primary_bg,
+    minHeight: 108,
+  };
 
   const handleSendEmail = async () => {
     if (!email) {
@@ -241,24 +198,195 @@ const ExpenseEmail = () => {
   const highlightText = (option, inputValue) => {
     if (!inputValue) return <div>{option}</div>;
     const regex = new RegExp(
-      `(${inputValue.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")})`,
+      `(${inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
       "gi"
     );
     const parts = option.split(regex);
+    const normalizedInput = inputValue.toLowerCase();
     return (
-      <div>
+      <span>
         {parts.map((part, index) =>
-          regex.test(part) ? (
-            <span key={index} style={{ fontWeight: "bold", color: "#00dac6" }}>
+          part.toLowerCase() === normalizedInput ? (
+            <Typography
+              key={`${part}-${index}`}
+              component="span"
+              sx={{
+                color: "#00dac6",
+                fontWeight: 600,
+              }}
+            >
               {part}
-            </span>
+            </Typography>
           ) : (
-            <span key={index}>{part}</span>
+            <Typography
+              key={`${part}-${index}`}
+              component="span"
+              sx={{ color: colors.primary_text }}
+            >
+              {part}
+            </Typography>
           )
         )}
-      </div>
+      </span>
     );
   };
+
+  const renderDynamicFields = () => {
+    switch (searchTerm) {
+      case "Particular Date Expenses":
+        return (
+          <ReusableFilterField
+            type="date"
+            label="Select Date"
+            value={fromDay}
+            onChange={(e) => setFromDay(e.target.value)}
+          />
+        );
+      case "Particular Month Expenses":
+        return (
+          <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+            <ReusableFilterField
+              type="number"
+              label="Year"
+              value={startYear}
+              onChange={(e) => setStartYear(e.target.value)}
+              placeholder="e.g., 2025"
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+            <ReusableFilterField
+              type="number"
+              label="Month (1-12)"
+              value={startMonth}
+              onChange={(e) => setStartMonth(e.target.value)}
+              placeholder="e.g., 3 for March"
+              inputProps={{ min: 1, max: 12 }}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+          </Grid>
+        );
+      case "Expenses By Name":
+        return (
+          <ReusableFilterField
+            type="text"
+            label="Expense Name"
+            value={expenseName}
+            onChange={(e) => setExpenseName(e.target.value)}
+            placeholder="Enter expense name..."
+            startAdornment={<CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+          />
+        );
+      case "Expenses By Payment Method":
+        return (
+          <ReusableFilterField
+            type="select"
+            label="Payment Method"
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            options={[
+              { value: "", label: "Select Method" },
+              { value: "cash", label: "Cash" },
+              { value: "creditNeedToPaid", label: "Credit Due" },
+              { value: "creditPaid", label: "Credit Paid" },
+            ]}
+            startAdornment={<PaymentIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+          />
+        );
+      case "Within Range Expenses":
+        return (
+          <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+            <ReusableFilterField
+              type="date"
+              label="From Date"
+              value={fromDay}
+              onChange={(e) => setFromDay(e.target.value)}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+            <ReusableFilterField
+              type="date"
+              label="To Date"
+              value={toDay}
+              onChange={(e) => setToDay(e.target.value)}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+          </Grid>
+        );
+      case "Expenses By Type and Payment Method":
+        return (
+          <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+            <ReusableFilterField
+              type="select"
+              label="Category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              options={[
+                { value: "", label: "Select Category" },
+                { value: "loss", label: "Loss" },
+                { value: "gain", label: "Gain" },
+              ]}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+            <ReusableFilterField
+              type="select"
+              label="Payment Method"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              options={[
+                { value: "", label: "Select Method" },
+                { value: "cash", label: "Cash" },
+                { value: "creditNeedToPaid", label: "Credit Due" },
+                { value: "creditPaid", label: "Credit Paid" },
+              ]}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+          </Grid>
+        );
+      case "Expenses By Type":
+        return (
+          <ReusableFilterField
+            type="select"
+            label="Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            options={[
+              { value: "", label: "Select Category" },
+              { value: "loss", label: "Loss" },
+              { value: "gain", label: "Gain" },
+            ]}
+            startAdornment={<CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+          />
+        );
+      case "Expenses Within Amount Range":
+        return (
+          <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+            <ReusableFilterField
+              type="number"
+              label="Minimum Amount"
+              value={minAmount}
+              onChange={(e) => setMinAmount(e.target.value)}
+              placeholder="e.g., 100.00"
+              inputProps={{ step: "0.01" }}
+              startAdornment={<AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+            <ReusableFilterField
+              type="number"
+              label="Maximum Amount"
+              value={maxAmount}
+              onChange={(e) => setMaxAmount(e.target.value)}
+              placeholder="e.g., 1000.00"
+              inputProps={{ step: "0.01" }}
+              startAdornment={<AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+          </Grid>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const dynamicFieldsContent = renderDynamicFields();
+  const showDynamicFields = Boolean(dynamicFieldsContent);
 
   if (loading) {
     return (
@@ -283,16 +411,22 @@ const ExpenseEmail = () => {
   return (
     <Box
       sx={{
-        p: isMobile ? 2 : 0,
-        borderRadius: 2,
         width: "100%",
+        maxWidth: 900,
+        mx: "auto",
+        border: `1px solid ${sectionBorder}`,
+        borderRadius: 3,
+        p: isMobile ? 2 : 3,
+        bgcolor: colors.secondary_bg,
+        boxShadow: cardShadow,
+        minHeight: 420,
       }}
     >
       {error && (
         <Fade in>
-          <Alert 
-            severity="error" 
-            sx={{ 
+          <Alert
+            severity="error"
+            sx={{
               mb: 3,
               borderRadius: 2,
               "& .MuiAlert-icon": {
@@ -306,306 +440,111 @@ const ExpenseEmail = () => {
         </Fade>
       )}
 
-      <Stack spacing={3}>
-        {/* Report Period Selection */}
-        <Box>
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              color: colors.secondary_text,
-              mb: 1,
-              display: "block",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: 1,
-            }}
-          >
-            Report Period
-          </Typography>
-          <ReusableAutocomplete
-            options={logTypes}
-            value={searchTerm}
-            onChange={(event, newValue) => setSearchTerm(newValue || "")}
-            onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
-            loading={loadingSuggestions}
-            loadingText="Loading options..."
-            noOptionsText="No matching period found"
-            placeholder="Select report period"
-            autoHighlight
-            getOptionLabel={(option) => option || ""}
-            isOptionEqualToValue={(option, value) => option === value}
-            backgroundColor={colors.primary_bg}
-            textColor={colors.primary_text}
-            borderColor={colors.border_color}
-            focusBorderColor="#00dac6"
-            placeholderColor={colors.placeholder_text}
-            startAdornment={
-              <InputAdornment position="start">
-                <CalendarTodayIcon sx={{ color: "#00dac6", fontSize: 20 }} />
-              </InputAdornment>
-            }
-            renderOption={(props, option, { inputValue }) => {
-              const { key, ...optionProps } = props;
-              return (
-                <li key={key} {...optionProps} style={{ padding: "12px 16px" }}>
-                  {highlightText(option, inputValue)}
-                </li>
-              );
-            }}
-            sx={{ 
-              width: "100%",
-              maxWidth: "100%",
-            }}
-          />
-        </Box>
-
-        {/* Dynamic Filter Fields */}
-        <Fade in={searchTerm !== "select" && searchTerm !== ""} timeout={400}>
-          <Box>
-            {searchTerm === "Particular Date Expenses" && (
-              <TextField
-                label="Select Date"
-                type="date"
-                value={fromDay}
-                onChange={(e) => setFromDay(e.target.value)}
-                fullWidth
-                InputLabelProps={{ shrink: true }}
+      <Stack spacing={3} sx={{ width: "100%" }}>
+        <Box sx={formSectionStyles}>
+          <Grid container spacing={2} alignItems="flex-start">
+            {/* Report Period Row */}
+            <Grid item xs={12} md={showDynamicFields ? 6 : 12}>
+              <Typography
+                variant="caption"
                 sx={{
-                  "& .MuiOutlinedInput-root": {
-                    bgcolor: colors.primary_bg,
-                    borderRadius: 2,
-                    "& fieldset": { borderColor: colors.border_color },
-                    "&:hover fieldset": { borderColor: "#00dac6" },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#00dac6",
-                      boxShadow: "0 0 0 3px rgba(0, 218, 198, 0.1)",
-                    },
-                  },
-                  "& .MuiInputBase-input": {
-                    color: colors.primary_text,
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: colors.secondary_text,
-                  },
+                  color: colors.secondary_text,
+                  mb: 1,
+                  display: "block",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
                 }}
-              />
-            )}
-            
-            {searchTerm === "Particular Month Expenses" && (
-              <Stack spacing={2}>
-                <TextField
-                  label="Year"
-                  type="number"
-                  value={startYear}
-                  onChange={(e) => setStartYear(e.target.value)}
-                  placeholder="e.g., 2025"
-                  fullWidth
-                  sx={getTextFieldStyles()}
-                />
-                <TextField
-                  label="Month (1-12)"
-                  type="number"
-                  value={startMonth}
-                  onChange={(e) => setStartMonth(e.target.value)}
-                  placeholder="e.g., 3 for March"
-                  fullWidth
-                  inputProps={{ min: 1, max: 12 }}
-                  sx={getTextFieldStyles()}
-                />
-              </Stack>
-            )}
-            
-            {searchTerm === "Expenses By Name" && (
-              <TextField
-                label="Expense Name"
-                value={expenseName}
-                onChange={(e) => setExpenseName(e.target.value)}
-                placeholder="Enter expense name..."
-                fullWidth
-                sx={getTextFieldStyles()}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />
-                    </InputAdornment>
-                  ),
+              >
+                Report Period
+              </Typography>
+              <ReusableAutocomplete
+                options={logTypes}
+                value={searchTerm}
+                onChange={(event, newValue) => setSearchTerm(newValue || "")}
+                onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
+                loading={loadingSuggestions}
+                loadingText="Loading options..."
+                noOptionsText="No matching period found"
+                placeholder="Select report period"
+                autoHighlight
+                getOptionLabel={(option) => option || ""}
+                isOptionEqualToValue={(option, value) => option === value}
+                backgroundColor={colors.primary_bg}
+                textColor={colors.primary_text}
+                borderColor={colors.border_color}
+                focusBorderColor="#00dac6"
+                placeholderColor={colors.placeholder_text}
+                startAdornment={
+                  <InputAdornment position="start">
+                    <CalendarTodayIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+                  </InputAdornment>
+                }
+                renderOption={(props, option, { inputValue }) => {
+                  const { key, ...optionProps } = props;
+                  return (
+                    <li key={key} {...optionProps} style={{ padding: "12px 16px" }}>
+                      {highlightText(option, inputValue)}
+                    </li>
+                  );
                 }}
+                sx={{ width: "100%" }}
               />
-            )}
-            
-            {searchTerm === "Expenses By Payment Method" && (
-              <FormControl fullWidth>
-                <InputLabel sx={{ color: colors.secondary_text }}>Payment Method</InputLabel>
-                <Select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  label="Payment Method"
-                  sx={getSelectStyles()}
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <PaymentIcon sx={{ color: "#00dac6", fontSize: 20 }} />
-                    </InputAdornment>
-                  }
-                >
-                  <MenuItem value="">Select Method</MenuItem>
-                  <MenuItem value="cash">Cash</MenuItem>
-                  <MenuItem value="creditNeedToPaid">Credit Due</MenuItem>
-                  <MenuItem value="creditPaid">Credit Paid</MenuItem>
-                </Select>
-              </FormControl>
-            )}
-            
-            {searchTerm === "Within Range Expenses" && (
-              <Stack spacing={2}>
-                <TextField
-                  label="From Date"
-                  type="date"
-                  value={fromDay}
-                  onChange={(e) => setFromDay(e.target.value)}
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  sx={getTextFieldStyles()}
-                />
-                <TextField
-                  label="To Date"
-                  type="date"
-                  value={toDay}
-                  onChange={(e) => setToDay(e.target.value)}
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  sx={getTextFieldStyles()}
-                />
-              </Stack>
-            )}
-            
-            {searchTerm === "Expenses By Type and Payment Method" && (
-              <Stack spacing={2}>
-                <FormControl fullWidth>
-                  <InputLabel sx={{ color: colors.secondary_text }}>Category</InputLabel>
-                  <Select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    label="Category"
-                    sx={getSelectStyles()}
-                  >
-                    <MenuItem value="">Select Category</MenuItem>
-                    <MenuItem value="loss">Loss</MenuItem>
-                    <MenuItem value="gain">Gain</MenuItem>
-                  </Select>
-                </FormControl>
-                <FormControl fullWidth>
-                  <InputLabel sx={{ color: colors.secondary_text }}>Payment Method</InputLabel>
-                  <Select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    label="Payment Method"
-                    sx={getSelectStyles()}
-                  >
-                    <MenuItem value="">Select Method</MenuItem>
-                    <MenuItem value="cash">Cash</MenuItem>
-                    <MenuItem value="creditNeedToPaid">Credit Due</MenuItem>
-                    <MenuItem value="creditPaid">Credit Paid</MenuItem>
-                  </Select>
-                </FormControl>
-              </Stack>
-            )}
-            
-            {searchTerm === "Expenses By Type" && (
-              <FormControl fullWidth>
-                <InputLabel sx={{ color: colors.secondary_text }}>Category</InputLabel>
-                <Select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  label="Category"
-                  sx={getSelectStyles()}
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />
-                    </InputAdornment>
-                  }
-                >
-                  <MenuItem value="">Select Category</MenuItem>
-                  <MenuItem value="loss">Loss</MenuItem>
-                  <MenuItem value="gain">Gain</MenuItem>
-                </Select>
-              </FormControl>
-            )}
-            
-            {searchTerm === "Expenses Within Amount Range" && (
-              <Stack spacing={2}>
-                <TextField
-                  label="Minimum Amount"
-                  type="number"
-                  step="0.01"
-                  value={minAmount}
-                  onChange={(e) => setMinAmount(e.target.value)}
-                  placeholder="e.g., 100.00"
-                  fullWidth
-                  sx={getTextFieldStyles()}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <TextField
-                  label="Maximum Amount"
-                  type="number"
-                  step="0.01"
-                  value={maxAmount}
-                  onChange={(e) => setMaxAmount(e.target.value)}
-                  placeholder="e.g., 1000.00"
-                  fullWidth
-                  sx={getTextFieldStyles()}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Stack>
-            )}
-          </Box>
-        </Fade>
+            </Grid>
 
-        {/* Email Input */}
-        <Box>
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              color: colors.secondary_text,
-              mb: 1,
-              display: "block",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: 1,
-            }}
-          >
-            Recipient Email
-          </Typography>
-          <TextField
-            placeholder="your.email@example.com"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            fullWidth
-            sx={getTextFieldStyles()}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailIcon sx={{ color: "#00dac6", fontSize: 20 }} />
-                </InputAdornment>
-              ),
-            }}
-          />
+            {/* Right Column: Additional Filters */}
+            {showDynamicFields && (
+              <Fade in timeout={400} mountOnEnter unmountOnExit>
+                <Grid item xs={12} md={6}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: colors.secondary_text,
+                      mb: 1,
+                      display: "block",
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      letterSpacing: 1,
+                    }}
+                  >
+                    Additional Filters
+                  </Typography>
+                  <Box>{dynamicFieldsContent}</Box>
+                </Grid>
+              </Fade>
+            )}
+
+            {/* Recipient Email - Full Width Row */}
+            <Grid item xs={12}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: colors.secondary_text,
+                  mb: 1,
+                  display: "block",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}
+              >
+                Recipient Email
+              </Typography>
+              <ReusableFilterField
+                type="email"
+                placeholder="your.email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                startAdornment={<EmailIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              />
+            </Grid>
+          </Grid>
         </Box>
 
-        {/* Action Buttons */}
-        <Stack direction="row" spacing={2}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          sx={{ width: "100%" }}
+        >
           <Button
             variant="outlined"
             onClick={handleClearAll}
@@ -613,15 +552,15 @@ const ExpenseEmail = () => {
             sx={{
               flex: 1,
               textTransform: "none",
-              borderColor: colors.border_color,
-              color: colors.secondary_text,
+              borderColor: "#ef4444",
+              color: "#ef4444",
               borderRadius: 2,
               py: 1.5,
               fontWeight: 600,
               "&:hover": {
-                borderColor: "#00dac6",
-                bgcolor: "rgba(0, 218, 198, 0.05)",
-                color: "#00dac6",
+                borderColor: "#dc2626",
+                bgcolor: "rgba(239, 68, 68, 0.08)",
+                color: "#dc2626",
               },
               transition: "all 0.3s ease",
             }}
@@ -636,20 +575,22 @@ const ExpenseEmail = () => {
             sx={{
               flex: 2,
               textTransform: "none",
-              bgcolor: "#00dac6",
-              color: "#000",
+              bgcolor: colors.button_bg,
+              color: colors.button_text,
               borderRadius: 2,
               py: 1.5,
               fontWeight: 600,
+              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.18)",
               "&:hover": {
-                bgcolor: "#00dac6",
-                opacity: 0.9,
+                bgcolor: colors.button_hover,
+                color: colors.button_text,
                 transform: "translateY(-2px)",
-                boxShadow: "0 4px 12px rgba(0, 218, 198, 0.4)",
+                boxShadow: `0 12px 24px ${colors.primary_accent}33`,
               },
               "&:disabled": {
-                bgcolor: "#2a2a2a",
-                color: "#555",
+                bgcolor: colors.button_inactive,
+                color: disabledTextColor,
+                boxShadow: "none",
               },
               transition: "all 0.3s ease",
             }}
