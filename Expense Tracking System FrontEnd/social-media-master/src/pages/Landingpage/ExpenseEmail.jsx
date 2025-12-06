@@ -249,17 +249,42 @@ const ExpenseEmail = () => {
               type="number"
               label="Year"
               value={startYear}
-              onChange={(e) => setStartYear(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow typing, but limit length
+                if (value === "" || value.length <= 4) {
+                  setStartYear(value);
+                }
+              }}
               placeholder="e.g., 2025"
+              inputProps={{ 
+                min: 1900, 
+                max: 2100,
+                step: 1
+              }}
               gridProps={{ xs: 12, sm: 6 }}
             />
             <ReusableFilterField
-              type="number"
-              label="Month (1-12)"
+              type="select"
+              label="Month"
               value={startMonth}
               onChange={(e) => setStartMonth(e.target.value)}
-              placeholder="e.g., 3 for March"
-              inputProps={{ min: 1, max: 12 }}
+              options={[
+                { value: "", label: "Select Month" },
+                { value: "1", label: "January" },
+                { value: "2", label: "February" },
+                { value: "3", label: "March" },
+                { value: "4", label: "April" },
+                { value: "5", label: "May" },
+                { value: "6", label: "June" },
+                { value: "7", label: "July" },
+                { value: "8", label: "August" },
+                { value: "9", label: "September" },
+                { value: "10", label: "October" },
+                { value: "11", label: "November" },
+                { value: "12", label: "December" },
+              ]}
+              startAdornment={<CalendarTodayIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
               gridProps={{ xs: 12, sm: 6 }}
             />
           </Grid>
@@ -362,9 +387,18 @@ const ExpenseEmail = () => {
               type="number"
               label="Minimum Amount"
               value={minAmount}
-              onChange={(e) => setMinAmount(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow empty or positive numbers
+                if (value === "" || !value.startsWith("-")) {
+                  setMinAmount(value);
+                }
+              }}
               placeholder="e.g., 100.00"
-              inputProps={{ step: "0.01" }}
+              inputProps={{ 
+                min: 0,
+                step: "0.01"
+              }}
               startAdornment={<AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
               gridProps={{ xs: 12, sm: 6 }}
             />
@@ -372,9 +406,18 @@ const ExpenseEmail = () => {
               type="number"
               label="Maximum Amount"
               value={maxAmount}
-              onChange={(e) => setMaxAmount(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow empty or positive numbers
+                if (value === "" || !value.startsWith("-")) {
+                  setMaxAmount(value);
+                }
+              }}
               placeholder="e.g., 1000.00"
-              inputProps={{ step: "0.01" }}
+              inputProps={{ 
+                min: 0,
+                step: "0.01"
+              }}
               startAdornment={<AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
               gridProps={{ xs: 12, sm: 6 }}
             />
@@ -570,8 +613,8 @@ const ExpenseEmail = () => {
           <Button
             variant="contained"
             onClick={handleSendEmail}
-            startIcon={<SendIcon />}
-            disabled={!email || searchTerm === "select" || searchTerm === ""}
+            startIcon={loading ? <CircularProgress size={20} sx={{ color: "inherit" }} /> : <SendIcon />}
+            disabled={loading || !email || searchTerm === "select" || searchTerm === ""}
             sx={{
               flex: 2,
               textTransform: "none",
@@ -591,11 +634,13 @@ const ExpenseEmail = () => {
                 bgcolor: colors.button_inactive,
                 color: disabledTextColor,
                 boxShadow: "none",
+                cursor: "not-allowed",
+                pointerEvents: "auto",
               },
               transition: "all 0.3s ease",
             }}
           >
-            Send Report
+            {loading ? "Sending..." : "Send Report"}
           </Button>
         </Stack>
       </Stack>

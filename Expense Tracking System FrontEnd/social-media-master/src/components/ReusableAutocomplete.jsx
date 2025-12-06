@@ -133,9 +133,9 @@ const ReusableAutocomplete = ({
       },
     },
     "& .MuiAutocomplete-option": {
-      fontSize: size === "small" ? "0.875rem" : "0.92rem",
-      paddingTop: "4px",
-      paddingBottom: "4px",
+      fontSize: size === "small" ? "0.75rem" : "0.8125rem",
+      paddingTop: "6px",
+      paddingBottom: "6px",
     },
     "& .MuiAutocomplete-listbox": {
       backgroundColor: colors.primary_bg,

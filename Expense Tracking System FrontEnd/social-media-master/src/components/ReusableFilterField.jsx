@@ -22,7 +22,7 @@ import { useTheme } from "../hooks/useTheme";
  * - Support for TextField, Select, and Date inputs
  * - Grid layout support for paired fields
  * - Icon adornments with consistent accent color
- * - Minimal height: 48px for all field types
+ * - Minimal height: 56px for all field types (matches ReusableAutocomplete)
  * - Production-ready with proper prop validation
  *
  * @param {string} type - Field type: "text", "number", "date", "select"
@@ -66,7 +66,7 @@ const ReusableFilterField = ({
   // Theme-aware styling functions
   const getBaseFieldStyles = () => ({
     "& .MuiOutlinedInput-root": {
-      minHeight: 48,
+      minHeight: 56,
       bgcolor: colors.secondary_bg,
       borderRadius: 2,
       "& fieldset": {
@@ -101,7 +101,7 @@ const ReusableFilterField = ({
   });
 
   const getSelectStyles = () => ({
-    minHeight: 48,
+    minHeight: 56,
     bgcolor: colors.secondary_bg,
     borderRadius: 2,
     color: colors.primary_text,
