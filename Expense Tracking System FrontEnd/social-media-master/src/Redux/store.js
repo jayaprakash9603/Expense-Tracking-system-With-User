@@ -22,6 +22,7 @@ import { themeReducer } from "./Theme/theme.reducer";
 import userSettingsReducer from "./UserSettings/userSettings.reducer";
 import { notificationReducer } from "./Notifications/notification.reducer";
 import notificationPreferencesReducer from "./NotificationPreferences/notificationPreferences.reducer";
+import { reportHistoryReducer } from "./ReportHistory/reportHistory.reducer";
 
 // Combine reducers
 const rootreducers = combineReducers({
@@ -40,6 +41,7 @@ const rootreducers = combineReducers({
   userSettings: userSettingsReducer,
   notifications: notificationReducer,
   notificationPreferences: notificationPreferencesReducer,
+  reportHistory: reportHistoryReducer,
 });
 
 // Compose enhancer with DevTools support

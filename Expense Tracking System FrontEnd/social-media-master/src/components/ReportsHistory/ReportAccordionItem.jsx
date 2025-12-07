@@ -29,7 +29,7 @@ import PropTypes from "prop-types";
 
 /**
  * ReportAccordionItem - Accordion-style report item with expandable details
- * 
+ *
  * Features:
  * - Collapsible accordion layout
  * - Comprehensive report details
@@ -49,8 +49,23 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
       compliance: "#fb923c",
       operational: "#60a5fa",
       security: "#f87171",
+      today: colors.primary_accent,
+      yesterday: "#60a5fa",
+      all: "#4ade80",
+      "current-month": "#fb923c",
+      "last-month": "#f87171",
+      range: "#a78bfa",
     };
     return typeMap[type?.toLowerCase()] || colors.primary_accent;
+  };
+
+  const getStatusColor = (status) => {
+    const statusMap = {
+      success: "#4ade80",
+      failed: "#f87171",
+      completed: colors.primary_accent,
+    };
+    return statusMap[status?.toLowerCase()] || colors.primary_accent;
   };
 
   const formatDate = (date) => {
@@ -118,7 +133,9 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
           },
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1, pr: 2 }}>
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1, pr: 2 }}
+        >
           {/* Report Icon */}
           <Box
             sx={{
@@ -142,7 +159,12 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
 
           {/* Report Info */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 0.5 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1.5}
+              sx={{ mb: 0.5 }}
+            >
               <Typography
                 variant="caption"
                 sx={{
@@ -159,8 +181,8 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 label={report.status || "Completed"}
                 size="small"
                 sx={{
-                  bgcolor: `${colors.primary_accent}15`,
-                  color: colors.primary_accent,
+                  bgcolor: `${getStatusColor(report.status)}15`,
+                  color: getStatusColor(report.status),
                   fontWeight: 600,
                   fontSize: 10,
                   height: 20,
@@ -238,7 +260,12 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
           {/* Description */}
           {report.description && (
             <Box>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{ mb: 1 }}
+              >
                 <InfoIcon sx={{ color: colors.primary_accent, fontSize: 18 }} />
                 <Typography
                   variant="subtitle2"
@@ -285,7 +312,9 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                   Created Date
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={0.75}>
-                  <CalendarIcon sx={{ color: colors.primary_accent, fontSize: 16 }} />
+                  <CalendarIcon
+                    sx={{ color: colors.primary_accent, fontSize: 16 }}
+                  />
                   <Typography
                     variant="body2"
                     sx={{
@@ -314,7 +343,9 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                   Created Time
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={0.75}>
-                  <TimeIcon sx={{ color: colors.primary_accent, fontSize: 16 }} />
+                  <TimeIcon
+                    sx={{ color: colors.primary_accent, fontSize: 16 }}
+                  />
                   <Typography
                     variant="body2"
                     sx={{
@@ -374,8 +405,8 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                   label={report.status || "Completed"}
                   size="small"
                   sx={{
-                    bgcolor: `${colors.primary_accent}15`,
-                    color: colors.primary_accent,
+                    bgcolor: `${getStatusColor(report.status)}15`,
+                    color: getStatusColor(report.status),
                     fontWeight: 600,
                     fontSize: 12,
                     height: 26,
@@ -384,6 +415,125 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 />
               </Stack>
             </Grid>
+
+            {/* Additional backend fields */}
+            {report.recipientEmail && (
+              <Grid item xs={12} sm={6} md={4}>
+                <Stack spacing={0.5}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: colors.secondary_text,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Sent To
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: colors.primary_text,
+                      fontSize: 13,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {report.recipientEmail}
+                  </Typography>
+                </Stack>
+              </Grid>
+            )}
+
+            {report.expenseCount !== undefined && (
+              <Grid item xs={12} sm={6} md={4}>
+                <Stack spacing={0.5}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: colors.secondary_text,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Expenses
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: colors.primary_text,
+                      fontSize: 13,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {report.expenseCount} items
+                  </Typography>
+                </Stack>
+              </Grid>
+            )}
+
+            {report.fileName && (
+              <Grid item xs={12} sm={6} md={4}>
+                <Stack spacing={0.5}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: colors.secondary_text,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    File Name
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: colors.primary_text,
+                      fontSize: 13,
+                      fontWeight: 500,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {report.fileName}
+                  </Typography>
+                </Stack>
+              </Grid>
+            )}
+
+            {report.errorMessage && (
+              <Grid item xs={12}>
+                <Stack spacing={0.5}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: "#f87171",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Error Details
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "#f87171",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      bgcolor: "#f8717110",
+                      p: 1.5,
+                      borderRadius: 1,
+                    }}
+                  >
+                    {report.errorMessage}
+                  </Typography>
+                </Stack>
+              </Grid>
+            )}
           </Grid>
 
           <Divider sx={{ borderColor: colors.border_color }} />
@@ -412,7 +562,9 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
               >
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <ViewIcon sx={{ fontSize: 18 }} />
-                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>View</Typography>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
+                    View
+                  </Typography>
                 </Stack>
               </IconButton>
             </Tooltip>
@@ -439,7 +591,9 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
               >
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <DownloadIcon sx={{ fontSize: 18 }} />
-                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Download</Typography>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
+                    Download
+                  </Typography>
                 </Stack>
               </IconButton>
             </Tooltip>
@@ -466,7 +620,9 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
               >
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <DeleteIcon sx={{ fontSize: 18 }} />
-                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Delete</Typography>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
+                    Delete
+                  </Typography>
                 </Stack>
               </IconButton>
             </Tooltip>

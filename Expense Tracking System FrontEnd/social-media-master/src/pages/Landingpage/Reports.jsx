@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -36,6 +36,8 @@ import SearchExpenses from "../SearchExpenses/SearchExpenses";
 import SearchAudits from "../SearchAudits/SearchAudits";
 import { ReportsHistoryContainer } from "../../components/ReportsHistory";
 import { useNavigate, useParams, useLocation } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchReportHistory } from "../../Redux/ReportHistory/reportHistory.action";
 
 const expenseReportData = [
   { id: 1, reportName: "Expense Report Q1 2025", date: "2025-03-15" },
@@ -158,6 +160,19 @@ const Reports = () => {
   const { friendId } = useParams();
   const location = useLocation();
   const hideBackButton = location?.state?.fromSidebar === true;
+
+  // Redux
+  const dispatch = useDispatch();
+  const { reports, loading, error } = useSelector(
+    (state) => state.reportHistory
+  );
+
+  // Fetch report history when Reports History tab is active
+  useEffect(() => {
+    if (activeTab === 1) {
+      dispatch(fetchReportHistory());
+    }
+  }, [activeTab, dispatch]);
 
   const handleDropdownChange = (event) => {
     setSelectedReport(event.target.value);
@@ -423,8 +438,8 @@ const Reports = () => {
             <Fade in timeout={400}>
               <Box sx={{ height: "100%" }}>
                 <ReportsHistoryContainer
-                  reports={searchAuditsData}
-                  loading={false}
+                  reports={reports}
+                  loading={loading}
                   onView={(report) => {
                     console.log("View report:", report);
                     alert(`Viewing: ${report.reportName}`);
@@ -441,7 +456,7 @@ const Reports = () => {
                   }}
                   onRefresh={() => {
                     console.log("Refresh reports");
-                    alert("Refreshing reports...");
+                    dispatch(fetchReportHistory());
                   }}
                   itemsPerPage={5}
                 />
