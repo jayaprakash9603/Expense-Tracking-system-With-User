@@ -931,7 +931,7 @@ const Budget = () => {
     <>
       <Box
         sx={{
-          bgcolor: colors.secondary_bg,
+          backgroundColor: colors.secondary_bg,
           width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
           borderRadius: "8px",
