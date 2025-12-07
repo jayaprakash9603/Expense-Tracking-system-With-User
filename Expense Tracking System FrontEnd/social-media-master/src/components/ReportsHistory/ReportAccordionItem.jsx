@@ -159,23 +159,36 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
 
           {/* Report Info */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: colors.secondary_text,
+                fontSize: 11,
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: 0.5,
+                mb: 0.5,
+                display: "block",
+              }}
+            >
+              Report #{report.id}
+            </Typography>
             <Stack
               direction="row"
               alignItems="center"
-              spacing={1.5}
-              sx={{ mb: 0.5 }}
+              spacing={1}
+              sx={{ flexWrap: "wrap" }}
             >
               <Typography
-                variant="caption"
+                variant="h6"
                 sx={{
-                  color: colors.secondary_text,
-                  fontSize: 11,
+                  color: colors.primary_text,
                   fontWeight: 600,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
+                  fontSize: 16,
+                  lineHeight: 1.3,
                 }}
               >
-                Report #{report.id}
+                {report.reportName}
               </Typography>
               <Chip
                 label={report.status || "Completed"}
@@ -204,20 +217,6 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 />
               )}
             </Stack>
-            <Typography
-              variant="h6"
-              sx={{
-                color: colors.primary_text,
-                fontWeight: 600,
-                fontSize: 16,
-                lineHeight: 1.3,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {report.reportName}
-            </Typography>
           </Box>
 
           {/* Date */}
