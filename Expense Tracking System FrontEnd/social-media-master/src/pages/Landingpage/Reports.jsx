@@ -47,95 +47,97 @@ const expenseReportData = [
 ];
 
 const searchAuditsData = [
-  { 
-    id: 1, 
-    reportName: "Financial Audit Q1 2025", 
+  {
+    id: 1,
+    reportName: "Financial Audit Q1 2025",
     date: "2025-03-20",
     reportType: "Financial",
     status: "Completed",
     description: "Quarterly financial audit covering all expense categories",
-    createdAt: "2025-03-20"
+    createdAt: "2025-03-20",
   },
-  { 
-    id: 2, 
-    reportName: "Compliance Audit 2025", 
+  {
+    id: 2,
+    reportName: "Compliance Audit 2025",
     date: "2025-04-10",
     reportType: "Compliance",
     status: "Completed",
     description: "Annual compliance audit report for regulatory requirements",
-    createdAt: "2025-04-10"
+    createdAt: "2025-04-10",
   },
-  { 
-    id: 3, 
-    reportName: "Operational Audit Q2", 
+  {
+    id: 3,
+    reportName: "Operational Audit Q2",
     date: "2025-06-25",
     reportType: "Operational",
     status: "Completed",
     description: "Operational efficiency and process audit",
-    createdAt: "2025-06-25"
+    createdAt: "2025-06-25",
   },
-  { 
-    id: 4, 
-    reportName: "Security Audit Annual", 
+  {
+    id: 4,
+    reportName: "Security Audit Annual",
     date: "2025-01-15",
     reportType: "Security",
     status: "Completed",
     description: "Security protocols and access control audit",
-    createdAt: "2025-01-15"
+    createdAt: "2025-01-15",
   },
-  { 
-    id: 5, 
-    reportName: "Quarterly Audit Review", 
+  {
+    id: 5,
+    reportName: "Quarterly Audit Review",
     date: "2025-05-15",
     reportType: "Audit",
     status: "Completed",
     description: "Comprehensive quarterly review of all audits",
-    createdAt: "2025-05-15"
+    createdAt: "2025-05-15",
   },
-  { 
-    id: 6, 
-    reportName: "Internal Audit Report", 
+  {
+    id: 6,
+    reportName: "Internal Audit Report",
     date: "2025-02-10",
     reportType: "Audit",
     status: "Completed",
     description: "Internal controls and procedures audit",
-    createdAt: "2025-02-10"
+    createdAt: "2025-02-10",
   },
-  { 
-    id: 7, 
-    reportName: "Vendor Expense Audit", 
+  {
+    id: 7,
+    reportName: "Vendor Expense Audit",
     date: "2025-07-05",
     reportType: "Financial",
     status: "Completed",
     description: "Audit of all vendor-related expenses and contracts",
-    createdAt: "2025-07-05"
+    createdAt: "2025-07-05",
   },
-  { 
-    id: 8, 
-    reportName: "Travel Policy Compliance Audit", 
+  {
+    id: 8,
+    reportName: "Travel Policy Compliance Audit",
     date: "2025-08-12",
     reportType: "Compliance",
     status: "Completed",
     description: "Review of travel expenses against updated policy rules",
-    createdAt: "2025-08-12"
+    createdAt: "2025-08-12",
   },
-  { 
-    id: 9, 
-    reportName: "Operational Cost Optimization Audit", 
+  {
+    id: 9,
+    reportName: "Operational Cost Optimization Audit",
     date: "2025-09-18",
     reportType: "Operational",
     status: "Completed",
-    description: "Deep-dive into operational costs and optimization opportunities",
-    createdAt: "2025-09-18"
+    description:
+      "Deep-dive into operational costs and optimization opportunities",
+    createdAt: "2025-09-18",
   },
-  { 
-    id: 10, 
-    reportName: "Security Incident Post-Mortem Report", 
+  {
+    id: 10,
+    reportName: "Security Incident Post-Mortem Report",
     date: "2025-10-03",
     reportType: "Security",
     status: "Completed",
-    description: "Post-incident analysis and recommendations for security improvements",
-    createdAt: "2025-10-03"
+    description:
+      "Post-incident analysis and recommendations for security improvements",
+    createdAt: "2025-10-03",
   },
 ];
 
@@ -209,8 +211,15 @@ const Reports = () => {
       {/* Header Section */}
       <Fade in timeout={500}>
         <Box sx={{ width: "100%", px: 2.5, pt: 0.5, pb: 1, mb: 1.5 }}>
-          <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 0.75 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={2}
+            sx={{ mb: 0.75 }}
+          >
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}
+            >
               {!hideBackButton && (
                 <IconButton
                   sx={{
@@ -249,29 +258,29 @@ const Reports = () => {
               )}
 
               <Box sx={{ flex: 1 }}>
-              <Typography 
-                variant={isMobile ? "h5" : "h4"} 
-                sx={{ 
-                  color: colors.primary_text,
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <TrendingUpIcon sx={{ fontSize: isMobile ? 28 : 32 }} />
-                Reports & Analytics
-              </Typography>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: colors.secondary_text,
-                  mt: 0.5,
-                }}
-              >
-                Generate, view, and download comprehensive expense reports
-              </Typography>
-            </Box>
+                <Typography
+                  variant={isMobile ? "h5" : "h4"}
+                  sx={{
+                    color: colors.primary_text,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <TrendingUpIcon sx={{ fontSize: isMobile ? 28 : 32 }} />
+                  Reports & Analytics
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: colors.secondary_text,
+                    mt: 0.5,
+                  }}
+                >
+                  Generate, view, and download comprehensive expense reports
+                </Typography>
+              </Box>
             </Box>
           </Stack>
         </Box>
@@ -293,8 +302,8 @@ const Reports = () => {
         }}
       >
         {/* Tabs Header */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             borderBottom: `2px solid ${colors.border_color}`,
             bgcolor: colors.primary_bg,
           }}
@@ -327,30 +336,32 @@ const Reports = () => {
               },
             }}
           >
-            <Tab 
-              icon={<DescriptionIcon />} 
-              iconPosition="start" 
-              label="Generate Reports" 
+            <Tab
+              icon={<DescriptionIcon />}
+              iconPosition="start"
+              label="Generate Reports"
             />
-            <Tab 
-              icon={<HistoryIcon />} 
-              iconPosition="start" 
-              label="Reports History" 
+            <Tab
+              icon={<HistoryIcon />}
+              iconPosition="start"
+              label="Reports History"
             />
-            <Tab 
-              icon={<AssessmentIcon />} 
-              iconPosition="start" 
-              label="Analytics" 
+            <Tab
+              icon={<AssessmentIcon />}
+              iconPosition="start"
+              label="Analytics"
             />
           </Tabs>
         </Box>
 
         {/* Tab Content */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             flex: 1,
             overflow: "auto",
-            p: 3,
+            pt: activeTab === 1 ? 0 : 3,
+            px: 3,
+            pb: activeTab === 1 ? 0 : 3,
           }}
         >
           {/* Tab Panel 0: Generate Reports (ExpenseEmail Full Width) */}
@@ -369,9 +380,9 @@ const Reports = () => {
                   <CardContent sx={{ p: 3 }}>
                     <Stack spacing={3}>
                       <Box>
-                        <Typography 
-                          variant="h6" 
-                          sx={{ 
+                        <Typography
+                          variant="h6"
+                          sx={{
                             color: colors.primary_text,
                             fontWeight: 600,
                             mb: 1,
@@ -380,16 +391,19 @@ const Reports = () => {
                             gap: 1,
                           }}
                         >
-                          <DescriptionIcon sx={{ color: colors.primary_accent }} />
+                          <DescriptionIcon
+                            sx={{ color: colors.primary_accent }}
+                          />
                           Generate Expense Report
                         </Typography>
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
+                        <Typography
+                          variant="body2"
+                          sx={{
                             color: colors.secondary_text,
                           }}
                         >
-                          Configure report parameters and generate detailed expense reports via email
+                          Configure report parameters and generate detailed
+                          expense reports via email
                         </Typography>
                       </Box>
 
@@ -429,12 +443,11 @@ const Reports = () => {
                     console.log("Refresh reports");
                     alert("Refreshing reports...");
                   }}
-                  itemsPerPage={6}
+                  itemsPerPage={5}
                 />
               </Box>
             </Fade>
           )}
-
 
           {/* Tab Panel 2: Analytics */}
           {activeTab === 2 && (
@@ -466,16 +479,16 @@ const Reports = () => {
                       mb: 3,
                     }}
                   >
-                    <AssessmentIcon 
-                      sx={{ 
-                        fontSize: 60, 
+                    <AssessmentIcon
+                      sx={{
+                        fontSize: 60,
                         color: colors.primary_accent,
-                      }} 
+                      }}
                     />
                   </Box>
-                  <Typography 
-                    variant="h5" 
-                    sx={{ 
+                  <Typography
+                    variant="h5"
+                    sx={{
                       color: colors.primary_text,
                       fontWeight: 600,
                       mb: 1,
@@ -483,14 +496,15 @@ const Reports = () => {
                   >
                     Advanced Analytics
                   </Typography>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
+                  <Typography
+                    variant="body1"
+                    sx={{
                       color: colors.secondary_text,
                       maxWidth: 400,
                     }}
                   >
-                    View detailed charts, trends, and insights from your expense data
+                    View detailed charts, trends, and insights from your expense
+                    data
                   </Typography>
                 </Card>
               </Box>

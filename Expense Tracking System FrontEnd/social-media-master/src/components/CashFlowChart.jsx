@@ -37,32 +37,52 @@ const CashFlowChart = ({
   formatCompactNumber,
   formatCurrencyCompact,
   formatNumberFull,
-  yearMonths = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ],
-  weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  yearMonths,
+  weekDays,
 }) => {
   const { colors, mode } = useTheme();
   const settings = useUserSettings();
   const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
+
+  // Generate localized month and weekday arrays
+  const localizedYearMonths = useMemo(() => {
+    if (yearMonths) return yearMonths;
+    return [
+      t("cashflow.monthsShort.jan"),
+      t("cashflow.monthsShort.feb"),
+      t("cashflow.monthsShort.mar"),
+      t("cashflow.monthsShort.apr"),
+      t("cashflow.monthsShort.may"),
+      t("cashflow.monthsShort.jun"),
+      t("cashflow.monthsShort.jul"),
+      t("cashflow.monthsShort.aug"),
+      t("cashflow.monthsShort.sep"),
+      t("cashflow.monthsShort.oct"),
+      t("cashflow.monthsShort.nov"),
+      t("cashflow.monthsShort.dec"),
+    ];
+  }, [yearMonths, t]);
+
+  const localizedWeekDays = useMemo(() => {
+    if (weekDays) return weekDays;
+    return [
+      t("cashflow.weekDays.mon"),
+      t("cashflow.weekDays.tue"),
+      t("cashflow.weekDays.wed"),
+      t("cashflow.weekDays.thu"),
+      t("cashflow.weekDays.fri"),
+      t("cashflow.weekDays.sat"),
+      t("cashflow.weekDays.sun"),
+    ];
+  }, [weekDays, t]);
+
   const { avg } = useAverageLine(chartData, activeRange, offset);
   const tooltipFormatter = useTooltipFormatter(
     activeRange,
     offset,
-    yearMonths,
-    weekDays
+    localizedYearMonths,
+    localizedWeekDays
   );
   const { getFlowBaseRGBA, getSelectedFill } = useSelectionHelpers(flowTab);
   const selectedColor = getSelectedFill();

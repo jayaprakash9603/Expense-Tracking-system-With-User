@@ -104,19 +104,19 @@ const GenericFlowLayout = ({
         isDeleting={isDeleting}
         expenseData={expenseData}
         headerNames={{
-          name: "Expense Name",
-          amount: "Amount",
-          type: "Type",
-          paymentMethod: "Payment Method",
-          netAmount: "Net Amount",
-          comments: "Comments",
-          creditDue: "Credit Due",
-          date: "Date",
+          name: t("cashflow.tableHeaders.name"),
+          amount: t("cashflow.tableHeaders.amount"),
+          type: t("cashflow.tableHeaders.type"),
+          paymentMethod: t("cashflow.tableHeaders.paymentMethod"),
+          netAmount: t("cashflow.tableHeaders.netAmount"),
+          comments: t("cashflow.tableHeaders.comments"),
+          creditDue: t("cashflow.tableHeaders.creditDue"),
+          date: t("cashflow.tableHeaders.date"),
         }}
         onApprove={onApprove}
         onDecline={onDecline}
-        approveText="Yes, Delete"
-        declineText="No, Cancel"
+        approveText={t("cashflow.deletion.approve")}
+        declineText={t("cashflow.deletion.decline")}
         confirmationText={confirmationText}
       />
       <div
@@ -194,8 +194,8 @@ const GenericFlowLayout = ({
           <NoDataPlaceholder
             size={isMobile ? "md" : "lg"}
             fullWidth
-            message="No data to display"
-            subMessage="Try adjusting filters or date range"
+            message={t("cashflow.messages.noDataChart")}
+            subMessage={t("cashflow.messages.adjustFilters")}
           />
         ) : (
           <ChartComponent

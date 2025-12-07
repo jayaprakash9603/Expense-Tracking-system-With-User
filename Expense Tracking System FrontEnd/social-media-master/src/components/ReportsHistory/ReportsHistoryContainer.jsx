@@ -8,7 +8,7 @@ import PropTypes from "prop-types";
 
 /**
  * ReportsHistoryContainer - Main container for Reports History with Accordion Layout
- * 
+ *
  * Features:
  * - Accordion layout for expandable details
  * - Sticky header with search
@@ -18,7 +18,7 @@ import PropTypes from "prop-types";
  * - Loading states
  * - Empty state handling
  * - Theme-aware styling
- * 
+ *
  * @param {Array} reports - Array of report objects
  * @param {boolean} loading - Loading state
  * @param {function} onView - View report handler
@@ -34,7 +34,7 @@ const ReportsHistoryContainer = ({
   onDownload,
   onDelete,
   onRefresh,
-  itemsPerPage = 4,
+  itemsPerPage = 5,
 }) => {
   const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,6 +62,8 @@ const ReportsHistoryContainer = ({
     const endIndex = startIndex + itemsPerPage;
     return filteredReports.slice(startIndex, endIndex);
   }, [filteredReports, currentPage, itemsPerPage]);
+
+  const shouldEnableScroll = filteredReports.length > itemsPerPage;
 
   // Handle page change
   const handlePageChange = (event, value) => {
@@ -120,28 +122,29 @@ const ReportsHistoryContainer = ({
         id="reports-scroll-container"
         sx={{
           flex: 1,
-          overflowY: filteredReports.length > 5 ? "auto" : "visible",
+          minHeight: 0,
+          overflowY: shouldEnableScroll ? "auto" : "hidden",
           overflowX: "hidden",
-          pr: 1,
-          // Custom Scrollbar Styling
-          "&::-webkit-scrollbar": {
-            width: "8px",
-          },
-          "&::-webkit-scrollbar-track": {
-            bgcolor: colors.secondary_bg,
-            borderRadius: "10px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            bgcolor: colors.primary_accent,
-            borderRadius: "10px",
-            "&:hover": {
-              bgcolor: colors.primary_accent,
-              opacity: 0.8,
+          pr: shouldEnableScroll ? 1 : 0,
+          ...(shouldEnableScroll && {
+            "&::-webkit-scrollbar": {
+              width: "8px",
             },
-          },
-          // Firefox scrollbar
-          scrollbarWidth: "thin",
-          scrollbarColor: `${colors.primary_accent} ${colors.secondary_bg}`,
+            "&::-webkit-scrollbar-track": {
+              bgcolor: colors.secondary_bg,
+              borderRadius: "10px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              bgcolor: colors.primary_accent,
+              borderRadius: "10px",
+              "&:hover": {
+                bgcolor: colors.primary_accent,
+                opacity: 0.85,
+              },
+            },
+            scrollbarWidth: "thin",
+            scrollbarColor: `${colors.primary_accent} ${colors.secondary_bg}`,
+          }),
         }}
       >
         {loading ? (
@@ -215,8 +218,9 @@ const ReportsHistoryContainer = ({
           sx={{
             display: "flex",
             justifyContent: "center",
-            pt: 1.5,
-            pb: 2,
+            // mt: shouldEnableScroll ? 1.5 : 0,
+            pt: shouldEnableScroll ? 0.5 : 0,
+            pb: 0,
           }}
         >
           <Pagination
