@@ -45,6 +45,7 @@ export const hi = {
     payments: "भुगतान",
     bill: "बिल",
     friends: "मित्र",
+    groups: "समूह",
     budgets: "बजट्स",
     paymentMethod: "भुगतान विधि",
     calendar: "कैलेंडर",

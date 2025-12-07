@@ -45,6 +45,7 @@ export const en = {
     payments: "Payments",
     bill: "Bill",
     friends: "Friends",
+    groups: "Groups",
     budgets: "Budgets",
     paymentMethod: "Payment Method",
     calendar: "Calendar",

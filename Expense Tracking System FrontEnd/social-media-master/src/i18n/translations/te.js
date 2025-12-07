@@ -45,6 +45,7 @@ export const te = {
     payments: "చెల్లింపులు",
     bill: "బిల్లు",
     friends: "స్నేహితులు",
+    groups: "సమూహాలు",
     budgets: "బడ్జెట్‌లు",
     paymentMethod: "చెల్లింపు విధానం",
     calendar: "క్యాలెండర్",

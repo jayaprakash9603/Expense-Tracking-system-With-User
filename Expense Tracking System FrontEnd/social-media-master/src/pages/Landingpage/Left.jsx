@@ -26,6 +26,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import HistoryIcon from "@mui/icons-material/History";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import SettingsIcon from "@mui/icons-material/Settings";
+import GroupsIcon from "@mui/icons-material/Groups";
 
 const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
@@ -258,6 +259,12 @@ const Left = () => {
                   name={t("navigation.friends")}
                   path="/friends"
                   icon={<PeopleIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name={t("navigation.groups")}
+                  path="/groups"
+                  icon={<GroupsIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
