@@ -208,12 +208,13 @@ const Groups = () => {
 
   return (
     <div
-      className="shadow-2xl rounded-2xl flex flex-col"
+      className="rounded-2xl flex flex-col"
       style={{
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         marginRight: "20px",
         backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
       }}
     >
       {/* Custom Scrollbar Styles */}

@@ -24,18 +24,23 @@ function App() {
 
   const isDark = theme?.mode === "dark";
 
-  // Show loader while app is initializing
-  if (loading) {
-    return <Loader />;
-  }
-
   // Render authentication routes if user is not authenticated
   if (!jwt || !auth.user) {
+    // Show loader only for authenticated routes during initialization
+    if (loading && jwt) {
+      return <Loader />;
+    }
+
     return (
       <LanguageProvider>
         <Routes>{getAuthRoutes()}</Routes>
       </LanguageProvider>
     );
+  }
+
+  // Show loader while app is initializing for authenticated users
+  if (loading) {
+    return <Loader />;
   }
 
   // Render main application routes for authenticated users

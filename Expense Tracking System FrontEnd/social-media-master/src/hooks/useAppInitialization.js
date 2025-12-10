@@ -26,6 +26,8 @@ export const useAppInitialization = (jwt, auth) => {
       return;
     }
 
+    setLoading(true);
+
     const initializeApp = async () => {
       try {
         // Preload user preferences and profile in parallel
