@@ -18,38 +18,38 @@ if %errorlevel% neq 0 (
     goto :use_windows
 )
 
-REM Use Windows Terminal with separate tabs (using Maven Wrapper)
-wt new-tab --title "EurekaServer" cmd /k "cd /d \"%BACKEND_BASE%\eureka-server\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "GatewayService" cmd /k "cd /d \"%BACKEND_BASE%\Gateway\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "UserService" cmd /k "cd /d \"%BACKEND_BASE%\User-Service\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "ExpenseTracking" cmd /k "cd /d \"%BACKEND_BASE%\social-media-app\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "ChatService" cmd /k "cd /d \"%BACKEND_BASE%\Chat-Service\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "PaymentService" cmd /k "cd /d \"%BACKEND_BASE%\Payment-method-Service\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "CategoryService" cmd /k "cd /d \"%BACKEND_BASE%\Category-Service\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "FriendShipService" cmd /k "cd /d \"%BACKEND_BASE%\FriendShip-Service\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "BudgetService" cmd /k "cd /d \"%BACKEND_BASE%\Budget-Service\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "BillService" cmd /k "cd /d \"%BACKEND_BASE%\Bill-Service\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "NotificationService" cmd /k "cd /d \"%BACKEND_BASE%\Notification-Service\" && mvnw.cmd spring-boot:run" ^
-; new-tab --title "AuditService" cmd /k "cd /d \"%BACKEND_BASE%\Audit-Service\" && mvnw.cmd spring-boot:run" ^
+REM Use Windows Terminal with separate tabs
+wt new-tab --title "EurekaServer" cmd /k "cd /d \"%BACKEND_BASE%\eureka-server\" && mvn spring-boot:run" ^
+; new-tab --title "GatewayService" cmd /k "cd /d \"%BACKEND_BASE%\Gateway\" && mvn spring-boot:run" ^
+; new-tab --title "UserService" cmd /k "cd /d \"%BACKEND_BASE%\User-Service\" && mvn spring-boot:run" ^
+; new-tab --title "ExpenseTracking" cmd /k "cd /d \"%BACKEND_BASE%\social-media-app\" && mvn spring-boot:run" ^
+; new-tab --title "ChatService" cmd /k "cd /d \"%BACKEND_BASE%\Chat-Service\" && mvn spring-boot:run" ^
+; new-tab --title "PaymentService" cmd /k "cd /d \"%BACKEND_BASE%\Payment-method-Service\" && mvn spring-boot:run" ^
+; new-tab --title "CategoryService" cmd /k "cd /d \"%BACKEND_BASE%\Category-Service\" && mvn spring-boot:run" ^
+; new-tab --title "FriendShipService" cmd /k "cd /d \"%BACKEND_BASE%\FriendShip-Service\" && mvn spring-boot:run" ^
+; new-tab --title "BudgetService" cmd /k "cd /d \"%BACKEND_BASE%\Budget-Service\" && mvn spring-boot:run" ^
+; new-tab --title "BillService" cmd /k "cd /d \"%BACKEND_BASE%\Bill-Service\" && mvn spring-boot:run" ^
+; new-tab --title "NotificationService" cmd /k "cd /d \"%BACKEND_BASE%\Notification-Service\" && mvn spring-boot:run" ^
+; new-tab --title "AuditService" cmd /k "cd /d \"%BACKEND_BASE%\Audit-Service\" && mvn spring-boot:run" ^
 ; new-tab --title "Frontend" cmd /k "cd /d \"%FRONTEND_BASE%\" && npm start"
 
 echo All services launched in separate tabs!
 goto :end
 
 :use_windows
-REM Fallback to separate windows if Windows Terminal is not available (using Maven Wrapper)
-start "EurekaServer" cmd /k "cd /d \"%BACKEND_BASE%\eureka-server\" && mvnw.cmd spring-boot:run"
-start "GatewayService" cmd /k "cd /d \"%BACKEND_BASE%\Gateway\" && mvnw.cmd spring-boot:run"
-start "UserService" cmd /k "cd /d \"%BACKEND_BASE%\User-Service\" && mvnw.cmd spring-boot:run"
-start "ExpenseTracking" cmd /k "cd /d \"%BACKEND_BASE%\social-media-app\" && mvnw.cmd spring-boot:run"
-start "ChatService" cmd /k "cd /d \"%BACKEND_BASE%\Chat-Service\" && mvnw.cmd spring-boot:run"
-start "PaymentService" cmd /k "cd /d \"%BACKEND_BASE%\Payment-method-Service\" && mvnw.cmd spring-boot:run"
-start "CategoryService" cmd /k "cd /d \"%BACKEND_BASE%\Category-Service\" && mvnw.cmd spring-boot:run"
-start "FriendShipService" cmd /k "cd /d \"%BACKEND_BASE%\FriendShip-Service\" && mvnw.cmd spring-boot:run"
-start "BudgetService" cmd /k "cd /d \"%BACKEND_BASE%\Budget-Service\" && mvnw.cmd spring-boot:run"
-start "BillService" cmd /k "cd /d \"%BACKEND_BASE%\Bill-Service\" && mvnw.cmd spring-boot:run"
-start "NotificationService" cmd /k "cd /d \"%BACKEND_BASE%\Notification-Service\" && mvnw.cmd spring-boot:run"
-start "AuditService" cmd /k "cd /d \"%BACKEND_BASE%\Audit-Service\" && mvnw.cmd spring-boot:run"
+REM Fallback to separate windows if Windows Terminal is not available
+start "EurekaServer" cmd /k "cd /d \"%BACKEND_BASE%\eureka-server\" && mvn spring-boot:run"
+start "GatewayService" cmd /k "cd /d \"%BACKEND_BASE%\Gateway\" && mvn spring-boot:run"
+start "UserService" cmd /k "cd /d \"%BACKEND_BASE%\User-Service\" && mvn spring-boot:run"
+start "ExpenseTracking" cmd /k "cd /d \"%BACKEND_BASE%\social-media-app\" && mvn spring-boot:run"
+start "ChatService" cmd /k "cd /d \"%BACKEND_BASE%\Chat-Service\" && mvn spring-boot:run"
+start "PaymentService" cmd /k "cd /d \"%BACKEND_BASE%\Payment-method-Service\" && mvn spring-boot:run"
+start "CategoryService" cmd /k "cd /d \"%BACKEND_BASE%\Category-Service\" && mvn spring-boot:run"
+start "FriendShipService" cmd /k "cd /d \"%BACKEND_BASE%\FriendShip-Service\" && mvn spring-boot:run"
+start "BudgetService" cmd /k "cd /d \"%BACKEND_BASE%\Budget-Service\" && mvn spring-boot:run"
+start "BillService" cmd /k "cd /d \"%BACKEND_BASE%\Bill-Service\" && mvn spring-boot:run"
+start "NotificationService" cmd /k "cd /d \"%BACKEND_BASE%\Notification-Service\" && mvn spring-boot:run"
+start "AuditService" cmd /k "cd /d \"%BACKEND_BASE%\Audit-Service\" && mvn spring-boot:run"
 start "Frontend" cmd /k "cd /d \"%FRONTEND_BASE%\" && npm start"
 echo All services launched in separate windows!
 
