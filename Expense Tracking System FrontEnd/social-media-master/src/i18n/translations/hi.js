@@ -91,6 +91,8 @@ export const hi = {
       average: "औसत",
       minimum: "न्यूनतम",
       maximum: "अधिकतम",
+      selectionTitle: "चयन",
+      selectionCounter: "{{total}} में से {{current}}",
     },
     tooltips: {
       collapseStats: "चयन आँकड़े संक्षिप्त करें",
@@ -112,6 +114,9 @@ export const hi = {
       billExpense: "यह बिल खर्च है",
       category: "श्रेणी: {{category}}",
       paymentMethod: "भुगतान: {{method}}",
+      previousSelected: "पिछले चयनित खर्च पर जाएँ",
+      nextSelected: "अगले चयनित खर्च पर जाएँ",
+      selectionNavigator: "चयनित खर्चों के बीच नेविगेट करें",
     },
     summary: {
       collapseAria: "चयन आँकड़े संक्षिप्त करें",

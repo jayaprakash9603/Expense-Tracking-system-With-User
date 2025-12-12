@@ -11,6 +11,30 @@ import {
   getLanguageDirection,
 } from "./config";
 
+const resolveTranslationPath = (languagePack, key) => {
+  if (!languagePack || !key) return undefined;
+  return key
+    .split(".")
+    .reduce((acc, currentKey) => acc?.[currentKey], languagePack);
+};
+
+const interpolateVariables = (template, variables = {}) => {
+  if (typeof template !== "string") {
+    return template;
+  }
+
+  return template.replace(/{{\s*(\w+)\s*}}/g, (match, variableName) => {
+    if (
+      Object.prototype.hasOwnProperty.call(variables, variableName) &&
+      variables[variableName] !== undefined &&
+      variables[variableName] !== null
+    ) {
+      return variables[variableName];
+    }
+    return match;
+  });
+};
+
 export const LanguageContext = createContext({
   language: DEFAULT_LANGUAGE,
   setLanguage: () => {},
@@ -39,29 +63,23 @@ export const LanguageProvider = ({ children }) => {
 
   // Translation function with fallback
   const t = useCallback(
-    (key) => {
-      // Split key by dots for nested access (e.g., "dashboard.title")
-      const keys = key.split(".");
+    (key, variables = {}) => {
+      const translation = resolveTranslationPath(translations[language], key);
 
-      // Try to get translation from current language
-      let translation = translations[language];
-      for (const k of keys) {
-        translation = translation?.[k];
+      if (translation !== undefined && translation !== null) {
+        return interpolateVariables(translation, variables);
       }
 
-      // If translation found, return it
-      if (translation) {
-        return translation;
+      const fallbackTranslation = resolveTranslationPath(
+        translations[FALLBACK_LANGUAGE],
+        key
+      );
+
+      if (fallbackTranslation !== undefined && fallbackTranslation !== null) {
+        return interpolateVariables(fallbackTranslation, variables);
       }
 
-      // Fallback to English
-      let fallbackTranslation = translations[FALLBACK_LANGUAGE];
-      for (const k of keys) {
-        fallbackTranslation = fallbackTranslation?.[k];
-      }
-
-      // Return fallback or the key itself if nothing found
-      return fallbackTranslation || key;
+      return key;
     },
     [language]
   );

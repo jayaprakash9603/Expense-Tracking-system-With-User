@@ -91,6 +91,8 @@ export const en = {
       average: "Avg",
       minimum: "Min",
       maximum: "Max",
+      selectionTitle: "Selection",
+      selectionCounter: "{{current}} of {{total}}",
     },
     tooltips: {
       collapseStats: "Collapse selection stats",
@@ -112,6 +114,9 @@ export const en = {
       billExpense: "This is a bill expense",
       category: "Category: {{category}}",
       paymentMethod: "Payment: {{method}}",
+      previousSelected: "Go to previous selected expense",
+      nextSelected: "Go to next selected expense",
+      selectionNavigator: "Navigate between selected expenses",
     },
     summary: {
       collapseAria: "Collapse selection stats",

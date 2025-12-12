@@ -92,6 +92,8 @@ export const te = {
       average: "సగటు",
       minimum: "కనిష్టం",
       maximum: "గరిష్టం",
+      selectionTitle: "ఎంపిక",
+      selectionCounter: "{{total}} లో {{current}}",
     },
     tooltips: {
       collapseStats: "ఎంపిక గణాంకాలను ముడిచండి",
@@ -113,6 +115,9 @@ export const te = {
       billExpense: "ఇది బిల్లు ఖర్చు",
       category: "వర్గం: {{category}}",
       paymentMethod: "చెల్లింపు: {{method}}",
+      previousSelected: "మునుపటి ఎంపిక చేసిన ఖర్చుకు వెళ్లండి",
+      nextSelected: "తదుపరి ఎంపిక చేసిన ఖర్చుకు వెళ్లండి",
+      selectionNavigator: "ఎంపిక చేసిన ఖర్చుల మధ్య నావిగేట్ చేయండి",
     },
     summary: {
       collapseAria: "ఎంపిక గణాంకాలను ముడిచండి",

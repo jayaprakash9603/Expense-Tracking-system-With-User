@@ -68,6 +68,157 @@ function CashFlowExpenseCards({
   const [monthPickerAnchor, setMonthPickerAnchor] = React.useState(null);
   const [showScrollTop, setShowScrollTop] = React.useState(false);
   const [showScrollBottom, setShowScrollBottom] = React.useState(false);
+  const [selectedNavigatorIndex, setSelectedNavigatorIndex] = React.useState(0);
+  const previousSelectionLengthRef = useRef(0);
+  const autoScrollSuppressedRef = useRef(false);
+  const autoScrollResetTimeoutRef = useRef(null);
+
+  const normalizedSelectedCardIdx = React.useMemo(() => {
+    if (!Array.isArray(selectedCardIdx) || selectedCardIdx.length === 0) {
+      return [];
+    }
+
+    const maxIndex = data?.length ?? 0;
+    const seen = new Set();
+    return selectedCardIdx.filter((idx) => {
+      const isValidIndex =
+        typeof idx === "number" && idx >= 0 && idx < maxIndex;
+      if (!isValidIndex || seen.has(idx)) {
+        return false;
+      }
+      seen.add(idx);
+      return true;
+    });
+  }, [selectedCardIdx, data.length]);
+
+  const selectedIndicesSet = React.useMemo(
+    () => new Set(normalizedSelectedCardIdx),
+    [normalizedSelectedCardIdx]
+  );
+
+  const hasSelections = normalizedSelectedCardIdx.length > 0;
+
+  const scrollToCardByIndex = React.useCallback(
+    (cardIndex, behavior = "smooth") => {
+      if (typeof cardIndex !== "number") return;
+
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const targetCard = container.querySelector(
+        `[data-card-index="${cardIndex}"]`
+      );
+
+      if (!targetCard) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const cardRect = targetCard.getBoundingClientRect();
+      const offset = cardRect.top - containerRect.top;
+      const targetTop = container.scrollTop + offset - 80;
+
+      container.scrollTo({
+        top: Math.max(targetTop, 0),
+        behavior,
+      });
+
+      targetCard.classList.add("selected-card-focus");
+      setTimeout(() => {
+        targetCard.classList.remove("selected-card-focus");
+      }, 400);
+    },
+    []
+  );
+
+  const suppressAutoScrollTemporarily = React.useCallback(() => {
+    autoScrollSuppressedRef.current = true;
+    if (autoScrollResetTimeoutRef.current) {
+      clearTimeout(autoScrollResetTimeoutRef.current);
+    }
+    autoScrollResetTimeoutRef.current = setTimeout(() => {
+      autoScrollSuppressedRef.current = false;
+      autoScrollResetTimeoutRef.current = null;
+    }, 250);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (autoScrollResetTimeoutRef.current) {
+        clearTimeout(autoScrollResetTimeoutRef.current);
+        autoScrollResetTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasSelections) {
+      setSelectedNavigatorIndex(0);
+      previousSelectionLengthRef.current = 0;
+      return;
+    }
+
+    const prevLength = previousSelectionLengthRef.current;
+    let nextIndex = prevLength === 0 ? 0 : selectedNavigatorIndex;
+
+    if (nextIndex >= normalizedSelectedCardIdx.length) {
+      nextIndex = normalizedSelectedCardIdx.length - 1;
+    }
+    if (nextIndex < 0) {
+      nextIndex = 0;
+    }
+
+    const targetCardIndex = normalizedSelectedCardIdx[nextIndex];
+    if (
+      !autoScrollSuppressedRef.current &&
+      typeof targetCardIndex === "number"
+    ) {
+      requestAnimationFrame(() => {
+        scrollToCardByIndex(
+          targetCardIndex,
+          prevLength === 0 ? "auto" : "smooth"
+        );
+      });
+    }
+
+    previousSelectionLengthRef.current = normalizedSelectedCardIdx.length;
+
+    if (selectedNavigatorIndex !== nextIndex) {
+      setSelectedNavigatorIndex(nextIndex);
+    }
+  }, [
+    hasSelections,
+    normalizedSelectedCardIdx,
+    scrollToCardByIndex,
+    selectedNavigatorIndex,
+  ]);
+
+  const handleSelectionNavigate = React.useCallback(
+    (direction) => {
+      if (!hasSelections) return;
+      suppressAutoScrollTemporarily();
+
+      setSelectedNavigatorIndex((prev) => {
+        const isPrev = direction === "prev";
+        const isAtBoundary = isPrev
+          ? prev === 0
+          : prev === normalizedSelectedCardIdx.length - 1;
+
+        if (isAtBoundary) {
+          return prev;
+        }
+
+        const nextIndex = isPrev ? prev - 1 : prev + 1;
+        const targetCardIndex = normalizedSelectedCardIdx[nextIndex];
+        scrollToCardByIndex(targetCardIndex);
+        return nextIndex;
+      });
+    },
+    [
+      hasSelections,
+      normalizedSelectedCardIdx,
+      scrollToCardByIndex,
+      suppressAutoScrollTemporarily,
+    ]
+  );
 
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
@@ -642,8 +793,15 @@ function CashFlowExpenseCards({
     );
   }
 
+  const selectionNavigatorLabel = hasSelections
+    ? t("cashflow.labels.selectionCounter", {
+        current: selectedNavigatorIndex + 1,
+        total: normalizedSelectedCardIdx.length,
+      })
+    : "";
+
   const renderExpenseCard = (row, idx) => {
-    const isSelected = selectedCardIdx.includes(idx);
+    const isSelected = selectedIndicesSet.has(idx);
     const type =
       flowTab === "all" ? row.type || row.expense?.type || "outflow" : flowTab;
     const isGain = !(type === "outflow" || type === "loss");
@@ -722,6 +880,7 @@ function CashFlowExpenseCards({
       <div
         key={row.id || row.expenseId || `expense-${idx}`}
         className="rounded-lg shadow-md flex flex-col justify-between relative group"
+        data-card-index={idx}
         style={{
           minHeight: "155px",
           maxHeight: "155px",
@@ -768,6 +927,7 @@ function CashFlowExpenseCards({
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
+          suppressAutoScrollTemporarily();
 
           const container = scrollContainerRef.current;
           const cardElement = event.currentTarget;
@@ -950,78 +1110,80 @@ function CashFlowExpenseCards({
             {row.comments || t("cashflow.labels.noComments")}
           </div>
         </div>
-        {isSelected && selectedCardIdx.length === 1 && hasWriteAccess && (
-          <div
-            className="absolute bottom-2 right-2 flex gap-2 opacity-90"
-            style={{
-              zIndex: 2,
-              background: colors.active_bg,
-              borderRadius: 8,
-              boxShadow: "0 2px 8px #0002",
-              padding: 4,
-              display: "flex",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <IconButton
-              size="small"
-              sx={{
-                color: "#5b7fff",
-                p: "4px",
+        {isSelected &&
+          normalizedSelectedCardIdx.length === 1 &&
+          hasWriteAccess && (
+            <div
+              className="absolute bottom-2 right-2 flex gap-2 opacity-90"
+              style={{
+                zIndex: 2,
                 background: colors.active_bg,
-                borderRadius: 1,
-                boxShadow: 1,
-                "&:hover": { background: colors.hover_bg, color: "#fff" },
+                borderRadius: 8,
+                boxShadow: "0 2px 8px #0002",
+                padding: 4,
+                display: "flex",
               }}
-              onClick={async () => {
-                dispatch(
-                  getListOfBudgetsByExpenseId({
-                    id: row.id || row.expenseId,
-                    date: dayjs().format("YYYY-MM-DD"),
-                    friendId: friendId || null,
-                  })
-                );
-                const expensedata = await dispatch(
-                  getExpenseAction(row.id, friendId || "")
-                );
-                const bill = expensedata.bill
-                  ? await dispatch(getBillByExpenseId(row.id, friendId || ""))
-                  : false;
-                if (expensedata.bill) {
-                  navigate(
-                    isFriendView
-                      ? `/bill/edit/${bill.id}/friend/${friendId}`
-                      : `/bill/edit/${bill.id}`
-                  );
-                } else {
-                  navigate(
-                    isFriendView
-                      ? `/expenses/edit/${row.id}/friend/${friendId}`
-                      : `/expenses/edit/${row.id}`
-                  );
-                }
-              }}
-              aria-label={t("cashflow.actions.editExpense")}
+              onClick={(e) => e.stopPropagation()}
             >
-              <EditIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              sx={{
-                color: "#ff4d4f",
-                p: "4px",
-                background: colors.active_bg,
-                borderRadius: 1,
-                boxShadow: 1,
-                "&:hover": { background: colors.hover_bg, color: "#fff" },
-              }}
-              onClick={() => handleDeleteClick(row, idx)}
-              aria-label={t("cashflow.actions.deleteExpense")}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </div>
-        )}
+              <IconButton
+                size="small"
+                sx={{
+                  color: "#5b7fff",
+                  p: "4px",
+                  background: colors.active_bg,
+                  borderRadius: 1,
+                  boxShadow: 1,
+                  "&:hover": { background: colors.hover_bg, color: "#fff" },
+                }}
+                onClick={async () => {
+                  dispatch(
+                    getListOfBudgetsByExpenseId({
+                      id: row.id || row.expenseId,
+                      date: dayjs().format("YYYY-MM-DD"),
+                      friendId: friendId || null,
+                    })
+                  );
+                  const expensedata = await dispatch(
+                    getExpenseAction(row.id, friendId || "")
+                  );
+                  const bill = expensedata.bill
+                    ? await dispatch(getBillByExpenseId(row.id, friendId || ""))
+                    : false;
+                  if (expensedata.bill) {
+                    navigate(
+                      isFriendView
+                        ? `/bill/edit/${bill.id}/friend/${friendId}`
+                        : `/bill/edit/${bill.id}`
+                    );
+                  } else {
+                    navigate(
+                      isFriendView
+                        ? `/expenses/edit/${row.id}/friend/${friendId}`
+                        : `/expenses/edit/${row.id}`
+                    );
+                  }
+                }}
+                aria-label={t("cashflow.actions.editExpense")}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                sx={{
+                  color: "#ff4d4f",
+                  p: "4px",
+                  background: colors.active_bg,
+                  borderRadius: 1,
+                  boxShadow: 1,
+                  "&:hover": { background: colors.hover_bg, color: "#fff" },
+                }}
+                onClick={() => handleDeleteClick(row, idx)}
+                aria-label={t("cashflow.actions.deleteExpense")}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </div>
+          )}
       </div>
     );
   };
@@ -1033,6 +1195,11 @@ function CashFlowExpenseCards({
         {`
           .custom-scrollbar::-webkit-scrollbar {
             display: none;
+          }
+
+          .selected-card-focus {
+            box-shadow: 0 0 0 2px ${colors.primary_accent} inset,
+              0 6px 18px rgba(0, 0, 0, 0.12) !important;
           }
         `}
       </style>
@@ -1107,6 +1274,8 @@ function CashFlowExpenseCards({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            flexWrap: isMobile ? "wrap" : "nowrap",
+            gap: "12px",
             padding: "10px 16px",
             background: colors.primary_bg,
             borderRadius: "8px",
@@ -1354,64 +1523,162 @@ function CashFlowExpenseCards({
             maxDate={groupedExpenses.maxDate}
           />
 
-          {/* Right Side - Sort Toggle */}
+          {/* Right Side - Selection Navigator & Sort Toggle */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "6px",
-              cursor: "pointer",
-              padding: "6px 12px",
-              borderRadius: "20px",
-              background: `${colors.primary_accent}15`,
-              border: `1px solid ${colors.primary_accent}40`,
-              transition: "all 0.3s ease",
-            }}
-            onClick={toggleSortOrder}
-            title={
-              sortOrder === "desc"
-                ? t("cashflow.tooltips.sortAscending")
-                : t("cashflow.tooltips.sortDescending")
-            }
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = `${colors.primary_accent}25`;
-              e.currentTarget.style.transform = "scale(1.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = `${colors.primary_accent}15`;
-              e.currentTarget.style.transform = "scale(1)";
+              gap: "10px",
+              flexWrap: isMobile ? "wrap" : "nowrap",
+              justifyContent: isMobile ? "space-between" : "flex-end",
+              marginLeft: "auto",
             }}
           >
-            {sortOrder === "desc" ? (
-              <AccessTimeIcon
-                sx={{
-                  fontSize: 16,
-                  color: colors.primary_accent,
-                  transition: "all 0.3s ease-in-out",
+            {hasSelections && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  flexWrap: "nowrap",
                 }}
-              />
-            ) : (
-              <HistoryIcon
-                sx={{
-                  fontSize: 16,
-                  color: colors.primary_accent,
-                  transition: "all 0.3s ease-in-out",
-                }}
-              />
+                title={t("cashflow.tooltips.selectionNavigator")}
+              >
+                <IconButton
+                  onClick={() => handleSelectionNavigate("prev")}
+                  disabled={selectedNavigatorIndex === 0}
+                  size="small"
+                  sx={{
+                    width: "28px",
+                    height: "28px",
+                    background: `${colors.primary_accent}15`,
+                    border: `1px solid ${colors.primary_accent}40`,
+                    color: colors.primary_accent,
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      background: `${colors.primary_accent}25`,
+                      transform: "scale(1.1)",
+                    },
+                    "&:disabled": {
+                      background: `${colors.secondary_bg}`,
+                      border: `1px solid ${colors.border_color}`,
+                      color: colors.secondary_text,
+                      opacity: 0.6,
+                      cursor: "not-allowed",
+                    },
+                  }}
+                  title={t("cashflow.tooltips.previousSelected")}
+                  aria-label={t("cashflow.tooltips.previousSelected")}
+                >
+                  <KeyboardArrowUpIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: colors.primary_accent,
+                    background: `${colors.primary_accent}15`,
+                    border: `1px solid ${colors.primary_accent}40`,
+                    borderRadius: "20px",
+                    padding: "6px 16px",
+                    minWidth: "90px",
+                    textAlign: "center",
+                  }}
+                >
+                  {selectionNavigatorLabel}
+                </div>
+                <IconButton
+                  onClick={() => handleSelectionNavigate("next")}
+                  disabled={
+                    selectedNavigatorIndex ===
+                    normalizedSelectedCardIdx.length - 1
+                  }
+                  size="small"
+                  sx={{
+                    width: "28px",
+                    height: "28px",
+                    background: `${colors.primary_accent}15`,
+                    border: `1px solid ${colors.primary_accent}40`,
+                    color: colors.primary_accent,
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      background: `${colors.primary_accent}25`,
+                      transform: "scale(1.1)",
+                    },
+                    "&:disabled": {
+                      background: `${colors.secondary_bg}`,
+                      border: `1px solid ${colors.border_color}`,
+                      color: colors.secondary_text,
+                      opacity: 0.6,
+                      cursor: "not-allowed",
+                    },
+                  }}
+                  title={t("cashflow.tooltips.nextSelected")}
+                  aria-label={t("cashflow.tooltips.nextSelected")}
+                >
+                  <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </div>
             )}
-            <span
+
+            <div
               style={{
-                fontSize: "11px",
-                fontWeight: "600",
-                color: colors.primary_accent,
-                letterSpacing: "0.3px",
-                textTransform: "uppercase",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                cursor: "pointer",
+                padding: "6px 12px",
+                borderRadius: "20px",
+                background: `${colors.primary_accent}15`,
+                border: `1px solid ${colors.primary_accent}40`,
+                transition: "all 0.3s ease",
+              }}
+              onClick={toggleSortOrder}
+              title={
+                sortOrder === "desc"
+                  ? t("cashflow.tooltips.sortAscending")
+                  : t("cashflow.tooltips.sortDescending")
+              }
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `${colors.primary_accent}25`;
+                e.currentTarget.style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `${colors.primary_accent}15`;
+                e.currentTarget.style.transform = "scale(1)";
               }}
             >
-              {sortOrder === "desc"
-                ? t("cashflow.labels.recentFirst")
-                : t("cashflow.labels.oldFirst")}
-            </span>
+              {sortOrder === "desc" ? (
+                <AccessTimeIcon
+                  sx={{
+                    fontSize: 16,
+                    color: colors.primary_accent,
+                    transition: "all 0.3s ease-in-out",
+                  }}
+                />
+              ) : (
+                <HistoryIcon
+                  sx={{
+                    fontSize: 16,
+                    color: colors.primary_accent,
+                    transition: "all 0.3s ease-in-out",
+                  }}
+                />
+              )}
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: colors.primary_accent,
+                  letterSpacing: "0.3px",
+                  textTransform: "uppercase",
+                }}
+              >
+                {sortOrder === "desc"
+                  ? t("cashflow.labels.recentFirst")
+                  : t("cashflow.labels.oldFirst")}
+              </span>
+            </div>
           </div>
         </div>
 
