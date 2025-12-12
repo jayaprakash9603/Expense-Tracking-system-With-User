@@ -76,6 +76,7 @@ function CashFlowExpenseCards({
   const manualSelectionChangeRef = useRef({
     active: false,
     preserveScroll: false,
+    focusCardIndex: null,
   });
 
   const normalizedSelectedCardIdx = React.useMemo(() => {
@@ -164,6 +165,21 @@ function CashFlowExpenseCards({
 
     const prevLength = previousSelectionLengthRef.current;
     let nextIndex = prevLength === 0 ? 0 : selectedNavigatorIndex;
+    let shouldScroll = prevLength === 0;
+
+    const manualState = manualSelectionChangeRef.current;
+    const manualTargetIndex =
+      manualState.active && manualState.focusCardIndex !== null
+        ? normalizedSelectedCardIdx.indexOf(manualState.focusCardIndex)
+        : -1;
+
+    if (manualTargetIndex !== -1) {
+      nextIndex = manualTargetIndex;
+      shouldScroll = true;
+    } else if (normalizedSelectedCardIdx.length > prevLength) {
+      nextIndex = normalizedSelectedCardIdx.length - 1;
+      shouldScroll = true;
+    }
 
     if (nextIndex >= normalizedSelectedCardIdx.length) {
       nextIndex = normalizedSelectedCardIdx.length - 1;
@@ -174,6 +190,7 @@ function CashFlowExpenseCards({
 
     const targetCardIndex = normalizedSelectedCardIdx[nextIndex];
     if (
+      shouldScroll &&
       !autoScrollSuppressedRef.current &&
       typeof targetCardIndex === "number"
     ) {
@@ -206,6 +223,7 @@ function CashFlowExpenseCards({
     manualSelectionChangeRef.current = {
       active: false,
       preserveScroll: false,
+      focusCardIndex: null,
     };
 
     if (!manualState.preserveScroll) {
@@ -954,6 +972,7 @@ function CashFlowExpenseCards({
           contain: "layout style paint", // Isolate layout calculations
           // Removed scale transform to prevent browser auto-scroll
           boxShadow: isSelected ? "0 4px 12px rgba(0,0,0,0.1)" : "none",
+          "--selection-outline-color": isGain ? "#06d6a0" : "#ff4d4f",
         }}
         onClick={(event) => {
           event.preventDefault();
@@ -961,11 +980,12 @@ function CashFlowExpenseCards({
           const isCurrentlySelected = selectedIndicesSet.has(idx);
           const willClearAll =
             isCurrentlySelected && normalizedSelectedCardIdx.length === 1;
-          const shouldPreserveScroll = !isCurrentlySelected || willClearAll;
+          const shouldPreserveScroll = isCurrentlySelected && willClearAll;
 
           manualSelectionChangeRef.current = {
             active: true,
             preserveScroll: shouldPreserveScroll,
+            focusCardIndex: idx,
           };
 
           if (shouldPreserveScroll) {
@@ -1248,7 +1268,7 @@ function CashFlowExpenseCards({
           }
 
           .selected-card-focus {
-            box-shadow: 0 0 0 2px ${colors.primary_accent} inset,
+            box-shadow: 0 0 0 2px var(--selection-outline-color, ${colors.primary_accent}) inset,
               0 6px 18px rgba(0, 0, 0, 0.12) !important;
           }
         `}
