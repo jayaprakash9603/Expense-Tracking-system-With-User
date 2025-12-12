@@ -203,8 +203,17 @@ const Cashflow = () => {
     return rangeLabel;
   }, [rangeLabel, activeRange, offset, t]);
 
+  const cardsWithSourceIndex = useMemo(
+    () =>
+      sortedCardData.map((card, idx) => ({
+        ...card,
+        __sourceIndex: idx,
+      })),
+    [sortedCardData]
+  );
+
   const filteredCardsByBar = useMemo(() => {
-    if (!selectedBars.length) return sortedCardData;
+    if (!selectedBars.length) return cardsWithSourceIndex;
 
     const barExpenseIds = new Set(
       selectedBars.flatMap((b) =>
@@ -214,12 +223,12 @@ const Cashflow = () => {
       )
     );
 
-    return sortedCardData.filter((c) => {
+    return cardsWithSourceIndex.filter((c) => {
       const cardId =
         c.id || c.expenseId || c.expense?.id || c.expense?.expenseId;
       return barExpenseIds.has(cardId);
     });
-  }, [selectedBars, sortedCardData]);
+  }, [cardsWithSourceIndex, selectedBars]);
 
   return (
     <GenericFlowLayout

@@ -169,7 +169,9 @@ function CashFlowExpenseCards({
 
     const manualState = manualSelectionChangeRef.current;
     const manualTargetIndex =
-      manualState.active && manualState.focusCardIndex !== null
+      manualState.active &&
+      manualState.focusCardIndex !== null &&
+      !manualState.preserveScroll
         ? normalizedSelectedCardIdx.indexOf(manualState.focusCardIndex)
         : -1;
 
@@ -620,6 +622,12 @@ function CashFlowExpenseCards({
     const availableDatesSet = new Set();
 
     data.forEach((expense, idx) => {
+      const sourceIndex =
+        typeof expense.__sourceIndex === "number"
+          ? expense.__sourceIndex
+          : typeof expense.originalIndex === "number"
+          ? expense.originalIndex
+          : idx;
       const dt = expense.date || expense.expense?.date;
       if (!dt || !dayjs(dt).isValid()) return;
 
@@ -666,7 +674,7 @@ function CashFlowExpenseCards({
 
       groups[year][month][weekLabel][dateKey].expenses.push({
         ...expense,
-        originalIndex: idx,
+        originalIndex: sourceIndex,
       });
     });
 
@@ -850,7 +858,9 @@ function CashFlowExpenseCards({
     : "";
 
   const renderExpenseCard = (row, idx) => {
-    const isSelected = selectedIndicesSet.has(idx);
+    const sourceIndex =
+      typeof row.originalIndex === "number" ? row.originalIndex : idx;
+    const isSelected = selectedIndicesSet.has(sourceIndex);
     const type =
       flowTab === "all" ? row.type || row.expense?.type || "outflow" : flowTab;
     const isGain = !(type === "outflow" || type === "loss");
@@ -929,7 +939,7 @@ function CashFlowExpenseCards({
       <div
         key={row.id || row.expenseId || `expense-${idx}`}
         className="rounded-lg shadow-md flex flex-col justify-between relative group"
-        data-card-index={idx}
+        data-card-index={sourceIndex}
         style={{
           minHeight: "155px",
           maxHeight: "155px",
@@ -977,15 +987,15 @@ function CashFlowExpenseCards({
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
-          const isCurrentlySelected = selectedIndicesSet.has(idx);
+          const isCurrentlySelected = selectedIndicesSet.has(sourceIndex);
           const willClearAll =
             isCurrentlySelected && normalizedSelectedCardIdx.length === 1;
-          const shouldPreserveScroll = isCurrentlySelected && willClearAll;
+          const shouldPreserveScroll = isCurrentlySelected;
 
           manualSelectionChangeRef.current = {
             active: true,
             preserveScroll: shouldPreserveScroll,
-            focusCardIndex: idx,
+            focusCardIndex: sourceIndex,
           };
 
           if (shouldPreserveScroll) {
@@ -1004,7 +1014,7 @@ function CashFlowExpenseCards({
             const scrollBeforeClick = container.scrollTop;
             savedScrollPositionRef.current = scrollBeforeClick;
 
-            handleCardClick(idx, event);
+            handleCardClick(sourceIndex, event);
 
             if (shouldPreserveScroll) {
               requestAnimationFrame(() => {
@@ -1032,7 +1042,7 @@ function CashFlowExpenseCards({
               }, 50);
             }
           } else {
-            handleCardClick(idx, event);
+            handleCardClick(sourceIndex, event);
           }
         }}
         onFocus={(e) => {
