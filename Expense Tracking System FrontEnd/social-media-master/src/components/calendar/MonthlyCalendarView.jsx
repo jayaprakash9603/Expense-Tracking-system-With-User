@@ -312,8 +312,10 @@ const CalendarDay = ({
   colors,
   currencySymbol = "₹",
 }) => {
-  const spending = dayData?.[spendingKey] || 0;
-  const income = dayData?.[incomeKey] || 0;
+  const rawSpending = Number(dayData?.[spendingKey]);
+  const rawIncome = Number(dayData?.[incomeKey]);
+  const spending = Number.isFinite(rawSpending) ? rawSpending : 0;
+  const income = Number.isFinite(rawIncome) ? rawIncome : 0;
 
   return (
     <Box
@@ -487,8 +489,10 @@ const MonthlyCalendarView = ({
 
     Object.entries(data).forEach(([key, items]) => {
       if (dayjs(key).isSame(selectedDate, "month")) {
-        spending += items[summaryConfig.spendingKey] || 0;
-        income += items[summaryConfig.incomeKey] || 0;
+        const daySpending = Number(items[summaryConfig.spendingKey]);
+        const dayIncome = Number(items[summaryConfig.incomeKey]);
+        spending += Number.isFinite(daySpending) ? daySpending : 0;
+        income += Number.isFinite(dayIncome) ? dayIncome : 0;
       }
     });
 
