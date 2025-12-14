@@ -56,6 +56,18 @@ export function useGroupedCashflow({
       const end = `${now.getFullYear()}-12-31`;
       return { start, end };
     }
+    if (timeframe === "last_year") {
+      const lastYear = now.getFullYear() - 1;
+      const start = `${lastYear}-01-01`;
+      const end = `${lastYear}-12-31`;
+      return { start, end };
+    }
+    if (timeframe === "all_time") {
+      // Global all-time range starts from 2002-01-15
+      const start = "2002-01-15";
+      const end = now.toISOString().slice(0, 10);
+      return { start, end };
+    }
     // default month
     const start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
       2,

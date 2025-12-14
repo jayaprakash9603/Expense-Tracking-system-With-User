@@ -65,8 +65,8 @@ export default function useDailySpendingData({
       startDate = new Date(previousYear, 0, 1);
       endDate = new Date(previousYear, 11, 31);
     } else if (timeframe === "all_time") {
-      // From 2000-01-01 to today (all available time)
-      startDate = new Date(2000, 0, 1);
+      // From 2002-01-15 to today (all available time)
+      startDate = new Date(2002, 0, 15);
       endDate = now;
     } else {
       // Default to current month

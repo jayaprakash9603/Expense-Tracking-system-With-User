@@ -144,7 +144,9 @@ const ReportHeader = ({
         </svg>
       </IconButton>
       <div>
-        <h1 style={{ margin: 0, color: colors.primary_text }}>📊 Bill Report</h1>
+        <h1 style={{ margin: 0, color: colors.primary_text }}>
+          📊 Bill Report
+        </h1>
         <p style={{ margin: "6px 0 0 0", color: colors.secondary_text }}>
           Spending overview and insights
         </p>
@@ -159,7 +161,8 @@ const ReportHeader = ({
         <option value="all">All Time</option>
         <option value="week">Week</option>
         <option value="month">Month</option>
-        <option value="year">Year</option>
+        <option value="year">This Year</option>
+        <option value="last_year">Last Year</option>
       </select>
       <select
         value={selectedCategory}
@@ -291,7 +294,15 @@ const FilterInfo = ({
     <p>
       Showing {filteredBills.length} bills
       {selectedCategory !== "all" && ` in ${selectedCategory}`}
-      {selectedTimeframe !== "all" && ` for ${selectedTimeframe}`}
+      {selectedTimeframe !== "all" &&
+        ` for ${
+          {
+            week: "Last 7 days",
+            month: "This month",
+            year: "This year",
+            last_year: "Last year",
+          }[selectedTimeframe] || selectedTimeframe
+        }`}
       {filteredBills.length !== allBills.length &&
         ` (filtered from ${allBills.length} total)`}
     </p>
@@ -436,18 +447,21 @@ const DailyTrendChart = ({
         >
           {timeframe === "all" || timeframe === "year"
             ? trendCursor.getFullYear()
+            : timeframe === "last_year"
+            ? trendCursor.getFullYear() - 1
             : timeframe === "month"
             ? trendCursor.toLocaleString("default", {
                 month: "long",
                 year: "numeric",
               })
-            : (() => {
-                // week label
+            : timeframe === "week"
+            ? (() => {
                 const start = new Date(trendCursor);
                 const end = new Date(trendCursor);
                 end.setDate(end.getDate() + 6);
                 return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-              })()}
+              })()
+            : ""}
         </div>
         <button className="page-btn" onClick={onNext}>
           Next
@@ -820,23 +834,31 @@ const ExpenseReport = () => {
         const billDateTime = new Date(bill.date);
 
         switch (selectedTimeframe) {
-          case "week":
+          case "week": {
             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             return billDateTime >= weekAgo;
-          case "month":
+          }
+          case "month": {
             const monthAgo = new Date(
               now.getFullYear(),
               now.getMonth() - 1,
               now.getDate()
             );
             return billDateTime >= monthAgo;
-          case "year":
-            const yearAgo = new Date(
-              now.getFullYear() - 1,
-              now.getMonth(),
-              now.getDate()
+          }
+          case "year": {
+            // Current calendar year
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            return billDateTime >= startOfYear;
+          }
+          case "last_year": {
+            const lastYear = now.getFullYear() - 1;
+            const startOfLastYear = new Date(lastYear, 0, 1);
+            const endOfLastYear = new Date(lastYear, 11, 31, 23, 59, 59, 999);
+            return (
+              billDateTime >= startOfLastYear && billDateTime <= endOfLastYear
             );
-            return billDateTime >= yearAgo;
+          }
           default:
             return true;
         }

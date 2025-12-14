@@ -25,6 +25,8 @@ const DEFAULT_TIMEFRAMES = [
   { value: "month", label: "This Month" },
   { value: "quarter", label: "This Quarter" },
   { value: "year", label: "This Year" },
+  { value: "last_year", label: "Last Year" },
+  { value: "all_time", label: "All Time" },
 ];
 
 const DEFAULT_FLOW_TYPES = [
