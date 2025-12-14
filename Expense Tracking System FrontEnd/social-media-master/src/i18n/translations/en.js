@@ -232,6 +232,23 @@ export const en = {
     customize: "Customize Dashboard",
     refreshData: "Refresh Data",
     exportReports: "Export Reports",
+    overview: {
+      title: "Application Overview",
+      liveSummary: "Live Summary",
+      totalExpenses: "Total Expenses",
+      creditDue: "Credit Due",
+      activeBudgets: "Active Budgets",
+      friends: "Friends",
+      groups: "Groups",
+      avgDailySpend: "Avg Daily Spend",
+      last30Days: "Last 30 days",
+      savingsRate: "Savings Rate",
+      ofIncome: "of income",
+      upcomingBills: "Upcoming Bills",
+      dueThisPeriod: "due this period",
+      topExpenses: "Top Expenses",
+      noExpensesData: "No expenses data available",
+    },
     charts: {
       titles: {
         dailySpending: "📊 Daily Spending Pattern",

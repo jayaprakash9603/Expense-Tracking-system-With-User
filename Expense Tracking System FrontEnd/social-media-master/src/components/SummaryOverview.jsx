@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
+import { useTranslation } from "../hooks/useTranslation";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -26,6 +27,7 @@ const formatNumber0 = (v) =>
 const SummaryOverview = ({ summary, loading = false }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
+  const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
   const isMobile = useMediaQuery("(max-width:600px)");
 
@@ -55,31 +57,31 @@ const SummaryOverview = ({ summary, loading = false }) => {
   const metricsData = [
     {
       icon: "💸",
-      title: "Total Expenses",
+      title: t("dashboard.overview.totalExpenses"),
       value: `${currencySymbol}${formatNumber0(s.totalExpenses)}`,
       gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     },
     {
       icon: "🏦",
-      title: "Credit Due",
+      title: t("dashboard.overview.creditDue"),
       value: `${currencySymbol}${formatNumber0(Math.abs(s.creditDue))}`,
       gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
     },
     {
       icon: "📊",
-      title: "Active Budgets",
+      title: t("dashboard.overview.activeBudgets"),
       value: s.budgetsActive,
       gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
     },
     {
       icon: "👥",
-      title: "Friends",
+      title: t("dashboard.overview.friends"),
       value: s.friendsCount,
       gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
     },
     {
       icon: "🧑‍🤝‍🧑",
-      title: "Groups",
+      title: t("dashboard.overview.groups"),
       value: s.groupsCount,
       gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
     },
@@ -88,23 +90,23 @@ const SummaryOverview = ({ summary, loading = false }) => {
   const kpiData = [
     {
       icon: "📈",
-      title: "Avg Daily Spend",
+      title: t("dashboard.overview.avgDailySpend"),
       value: `${currencySymbol}${formatNumber0(s.averageDaily)}`,
-      subtitle: "Last 30 days",
+      subtitle: t("dashboard.overview.last30Days"),
       color: "#667eea",
     },
     {
       icon: "💰",
-      title: "Savings Rate",
+      title: t("dashboard.overview.savingsRate"),
       value: `${formatPercent1(s.savingsRate)}%`,
-      subtitle: "of income",
+      subtitle: t("dashboard.overview.ofIncome"),
       color: "#43e97b",
     },
     {
       icon: "📅",
-      title: "Upcoming Bills",
+      title: t("dashboard.overview.upcomingBills"),
       value: `${currencySymbol}${formatNumber0(s.upcomingBills)}`,
-      subtitle: "due this period",
+      subtitle: t("dashboard.overview.dueThisPeriod"),
       color: "#f5576c",
     },
   ];
@@ -150,7 +152,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
               letterSpacing: "-0.5px",
             }}
           >
-            Application Overview
+            {t("dashboard.overview.title")}
           </h3>
         </div>
         <div
@@ -182,7 +184,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
               letterSpacing: "0.3px",
             }}
           >
-            Live Summary
+            {t("dashboard.overview.liveSummary")}
           </span>
         </div>
       </div>
@@ -383,7 +385,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
               }}
             >
               <span>🔝</span>
-              Top Expenses
+              {t("dashboard.overview.topExpenses")}
             </div>
           </div>
           {s.topExpenses.length > 0 ? (
@@ -500,7 +502,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
             >
               <div style={{ fontSize: "32px", marginBottom: "8px" }}>📊</div>
               <div style={{ fontSize: "14px", fontWeight: "500" }}>
-                No expenses data available
+                {t("dashboard.overview.noExpensesData")}
               </div>
             </div>
           )}
