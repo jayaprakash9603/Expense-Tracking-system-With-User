@@ -61,6 +61,12 @@ const SummaryOverview = ({ summary }) => {
     ],
   };
 
+  const formatPercent1 = (v) =>
+    Number(v ?? 0).toLocaleString(undefined, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+
   const chartData = s.monthlySpending.map((val, i) => ({
     month: `M${i + 1}`,
     value: val,
@@ -182,7 +188,7 @@ const SummaryOverview = ({ summary }) => {
               `${currencySymbol}${formatNumber0(s.averageDaily)}`,
               "Last 30 days",
             ],
-            ["Savings Rate", `${s.savingsRate}%`, "of income"],
+            ["Savings Rate", `${formatPercent1(s.savingsRate)}%`, "of income"],
             ["Upcoming Bills", s.upcomingBills, "due this week"],
           ].map(([title, val, sub], i) => (
             <div

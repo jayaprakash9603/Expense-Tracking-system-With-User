@@ -20,6 +20,10 @@ spring:
           uri: ${USER_SERVICE_URL:http://localhost:6001}
           predicates:
             - Path=/auth/**, /user/**, /api/user/**, /api/admin/**, /api/roles/**, /api/permissions/**
+        - id: ANALYTICS-SERVICE
+          uri: ${ANALYTICS_SERVICE_URL:http://localhost:7004}
+          predicates:
+            - Path= /api/analytics/**
         - id: BUDGET-SERVICE
           uri: ${BUDGET_SERVICE_URL:http://localhost:6005}
           predicates:

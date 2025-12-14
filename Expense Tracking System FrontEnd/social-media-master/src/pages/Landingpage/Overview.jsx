@@ -1,20 +1,14 @@
-import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { getExpensesSummaryAction } from "../../Redux/Expenses/expense.action";
+import React from "react";
+import useApplicationOverview from "../../hooks/useApplicationOverview";
 import { Skeleton, useTheme, useMediaQuery } from "@mui/material";
 
 const Overview = () => {
-  const dispatch = useDispatch();
-  const { summary, loading } = useSelector((state) => state.expenses || {});
+  const { data, loading, error } = useApplicationOverview();
 
-  const totalExpenses = summary?.currentMonthLosses || 0;
-  const todayExpenses = summary?.todayExpenses || 0;
-  const creditDue = -summary?.totalCreditDue || 0;
-  const remainingBudget = summary?.remainingBudget || 0;
-
-  // useEffect(() => {
-  //   dispatch(getExpensesSummaryAction());
-  // }, [dispatch]);
+  const totalExpenses = data?.totalExpenses || 0;
+  const todayExpenses = data?.todayExpenses || 0;
+  const creditDue = -(data?.totalCreditDue || 0);
+  const remainingBudget = data?.remainingBudget || 0;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -73,6 +67,23 @@ const Overview = () => {
           }}
         />
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div
+          style={{
+            width: "100%",
+            marginBottom: "12px",
+            padding: "8px 12px",
+            borderRadius: "6px",
+            backgroundColor: "rgba(239, 68, 68, 0.1)",
+            color: "#fecaca",
+            fontSize: "12px",
+          }}
+        >
+          {error}
+        </div>
+      )}
 
       {/* Skeleton or Data */}
       {loading ? (

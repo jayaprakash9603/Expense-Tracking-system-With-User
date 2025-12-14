@@ -6,6 +6,7 @@ import DashboardHeader from "../../components/DashboardHeader";
 import DashboardCustomizationModal from "../../components/DashboardCustomizationModal";
 import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SummaryOverview from "../../components/SummaryOverview";
+import useApplicationOverview from "../../hooks/useApplicationOverview";
 import MonthlyTrendContainer from "../../components/MonthlyTrendContainer";
 import {
   CategoryBreakdownChart,
@@ -38,14 +39,19 @@ const SECTION_COMPONENTS = {
     />
   ),
   "quick-access": () => <QuickAccess />,
-  "summary-overview": () => (
+  "summary-overview": ({ appOverviewData }) => (
     <SummaryOverview
       summary={{
-        groupsCreated: 3,
-        groupsMember: 5,
-        pendingInvitations: 2,
-        friendsCount: 12,
-        pendingFriendRequests: 1,
+        totalExpenses: appOverviewData?.totalExpenses,
+        creditDue: -(appOverviewData?.totalCreditDue || 0),
+        budgetsActive:
+          appOverviewData?.activeBudgets ?? appOverviewData?.totalBudgets,
+        friendsCount: appOverviewData?.friendsCount,
+        groupsCount: appOverviewData?.totalGroups,
+        averageDaily: appOverviewData?.avgDailySpendLast30Days,
+        savingsRate: appOverviewData?.savingsRateLast30Days,
+        upcomingBills: appOverviewData?.upcomingBillsAmount,
+        topExpenses: appOverviewData?.topExpenses,
       }}
     />
   ),
@@ -126,6 +132,7 @@ export default function DashboardContent() {
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const { data: appOverviewData } = useApplicationOverview();
   const {
     forceRefresh,
     categoryTimeframe,
@@ -166,6 +173,7 @@ export default function DashboardContent() {
   const sectionProps = {
     analyticsSummary,
     analyticsLoading,
+    appOverviewData,
     currencySymbol,
     isMobile,
     isTablet,
