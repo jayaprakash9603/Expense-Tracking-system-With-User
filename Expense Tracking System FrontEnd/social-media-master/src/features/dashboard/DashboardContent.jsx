@@ -6,6 +6,7 @@ import DashboardHeader from "../../components/DashboardHeader";
 import DashboardCustomizationModal from "../../components/DashboardCustomizationModal";
 import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SummaryOverview from "../../components/SummaryOverview";
+import SummaryOverviewSkeleton from "../../components/SummaryOverviewSkeleton";
 import useApplicationOverview from "../../hooks/useApplicationOverview";
 import MonthlyTrendContainer from "../../components/MonthlyTrendContainer";
 import {
@@ -39,22 +40,25 @@ const SECTION_COMPONENTS = {
     />
   ),
   "quick-access": () => <QuickAccess />,
-  "summary-overview": ({ appOverviewData }) => (
-    <SummaryOverview
-      summary={{
-        totalExpenses: appOverviewData?.totalExpenses,
-        creditDue: -(appOverviewData?.totalCreditDue || 0),
-        budgetsActive:
-          appOverviewData?.activeBudgets ?? appOverviewData?.totalBudgets,
-        friendsCount: appOverviewData?.friendsCount,
-        groupsCount: appOverviewData?.totalGroups,
-        averageDaily: appOverviewData?.avgDailySpendLast30Days,
-        savingsRate: appOverviewData?.savingsRateLast30Days,
-        upcomingBills: appOverviewData?.upcomingBillsAmount,
-        topExpenses: appOverviewData?.topExpenses,
-      }}
-    />
-  ),
+  "summary-overview": ({ appOverviewData, appOverviewLoading }) =>
+    appOverviewLoading ? (
+      <SummaryOverviewSkeleton />
+    ) : (
+      <SummaryOverview
+        summary={{
+          totalExpenses: appOverviewData?.totalExpenses,
+          creditDue: -(appOverviewData?.totalCreditDue || 0),
+          budgetsActive:
+            appOverviewData?.activeBudgets ?? appOverviewData?.totalBudgets,
+          friendsCount: appOverviewData?.friendsCount,
+          groupsCount: appOverviewData?.totalGroups,
+          averageDaily: appOverviewData?.avgDailySpendLast30Days,
+          savingsRate: appOverviewData?.savingsRateLast30Days,
+          upcomingBills: appOverviewData?.upcomingBillsAmount,
+          topExpenses: appOverviewData?.topExpenses,
+        }}
+      />
+    ),
   "category-breakdown": ({
     categoryDistribution,
     categoryTimeframe,
@@ -132,7 +136,8 @@ export default function DashboardContent() {
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
-  const { data: appOverviewData } = useApplicationOverview();
+  const { data: appOverviewData, loading: appOverviewLoading } =
+    useApplicationOverview();
   const {
     forceRefresh,
     categoryTimeframe,
@@ -174,6 +179,7 @@ export default function DashboardContent() {
     analyticsSummary,
     analyticsLoading,
     appOverviewData,
+    appOverviewLoading,
     currencySymbol,
     isMobile,
     isTablet,
