@@ -114,6 +114,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  ReferenceLine,
 } from "recharts";
 import { useMediaQuery } from "@mui/material";
 
@@ -172,7 +173,7 @@ const DailySpendingChart = ({
   tooltipConfig,
   loading = false,
 }) => {
-  const { colors } = useTheme();
+  const { mode, colors } = useTheme();
   const settings = useUserSettings();
   const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
@@ -288,6 +289,18 @@ const DailySpendingChart = ({
   }
 
   const totalPoints = chartData.length || 0;
+  const totalSpending = chartData.reduce(
+    (sum, item) => sum + (item.spending || 0),
+    0
+  );
+  const averageSpending = totalPoints > 0 ? totalSpending / totalPoints : 0;
+  const averageLineColor = mode === "dark" ? "#facc15" : "#eab308";
+  const averageLabelText =
+    averageSpending > 0
+      ? `${t("cashflow.chart.averageLabel")} ${currencySymbol}${Math.round(
+          averageSpending
+        ).toLocaleString()}`
+      : "";
 
   const xTickFormatter = (value, index) => {
     if (!value || totalPoints === 0) return "";
@@ -403,6 +416,23 @@ const DailySpendingChart = ({
               />
             )}
           />
+
+          {averageSpending > 0 && averageLabelText && (
+            <ReferenceLine
+              y={averageSpending}
+              stroke={averageLineColor}
+              strokeDasharray="4 4"
+              strokeWidth={3}
+              ifOverflow="extendDomain"
+              label={{
+                value: averageLabelText,
+                position: "top",
+                fill: averageLineColor,
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            />
+          )}
 
           <Area
             type="monotone"
