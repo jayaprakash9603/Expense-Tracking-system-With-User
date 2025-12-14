@@ -1,4 +1,4 @@
-    
+
 package com.jaya.service;
 
 import com.jaya.dto.*;
@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class GroupServiceImpl implements GroupService {
-    
 
     @Autowired
     private GroupRepository groupRepository;
@@ -51,18 +50,21 @@ public class GroupServiceImpl implements GroupService {
             validMemberIds = validateAndFilterFriends(groupRequestDTO.getCreatedBy(), groupRequestDTO.getMemberIds());
         }
 
-    // Create group entity
-    Group group = groupMapper.toEntity(groupRequestDTO);
-    group.setMemberIds(validMemberIds);
-    // Set avatar from DTO, or default if not provided
-    if (groupRequestDTO.getAvatar() == null || groupRequestDTO.getAvatar().trim().isEmpty()) {
-        group.setAvatar("👥");
-    } else {
-        group.setAvatar(groupRequestDTO.getAvatar());
-    }
+        // Create group entity
+        Group group = groupMapper.toEntity(groupRequestDTO);
+        group.setMemberIds(new HashSet<>(validMemberIds));
+        // Set avatar from DTO, or default if not provided
+        if (groupRequestDTO.getAvatar() == null || groupRequestDTO.getAvatar().trim().isEmpty()) {
+            group.setAvatar("👥");
+        } else {
+            group.setAvatar(groupRequestDTO.getAvatar());
+        }
 
         // Add creator as a member with ADMIN role if not already included
-        if (!group.getMemberIds().contains(group.getCreatedBy())) {
+        if (group.getMemberIds() == null || !group.getMemberIds().contains(group.getCreatedBy())) {
+            if (group.getMemberIds() == null) {
+                group.setMemberIds(new HashSet<>());
+            }
             group.getMemberIds().add(group.getCreatedBy());
         }
 
@@ -98,7 +100,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public GroupResponseDTO getGroupById(Integer id) throws Exception {
-        Group group=groupRepository.findById(id).orElseThrow(()->new Exception("group not found"));
+        Group group = groupRepository.findById(id).orElseThrow(() -> new Exception("group not found"));
         return groupMapper.toResponseDTO(group);
     }
 
@@ -148,7 +150,8 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupResponseDTO addMemberToGroupWithRole(Integer groupId, Integer userId, GroupRole role, Integer requesterId) throws Exception {
+    public GroupResponseDTO addMemberToGroupWithRole(Integer groupId, Integer userId, GroupRole role,
+            Integer requesterId) throws Exception {
         Optional<Group> groupOpt = groupRepository.findById(groupId);
         if (groupOpt.isEmpty()) {
             throw new RuntimeException("Group not found with ID: " + groupId);
@@ -178,7 +181,8 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupResponseDTO removeMemberFromGroup(Integer groupId, Integer userId, Integer requesterId) throws Exception {
+    public GroupResponseDTO removeMemberFromGroup(Integer groupId, Integer userId, Integer requesterId)
+            throws Exception {
         Optional<Group> groupOpt = groupRepository.findById(groupId);
         if (groupOpt.isEmpty()) {
             throw new RuntimeException("Group not found with ID: " + groupId);
@@ -186,7 +190,8 @@ public class GroupServiceImpl implements GroupService {
 
         Group group = groupOpt.get();
 
-        // Check permissions: user can remove themselves, or requester must have manage_members permission
+        // Check permissions: user can remove themselves, or requester must have
+        // manage_members permission
         if (!userId.equals(requesterId) && !group.hasPermission(requesterId, "manage_members")) {
             throw new RuntimeException("You don't have permission to remove members from this group");
         }
@@ -208,7 +213,8 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupResponseDTO changeUserRole(Integer groupId, Integer userId, GroupRole newRole, Integer requesterId) throws Exception {
+    public GroupResponseDTO changeUserRole(Integer groupId, Integer userId, GroupRole newRole, Integer requesterId)
+            throws Exception {
         Optional<Group> groupOpt = groupRepository.findById(groupId);
         if (groupOpt.isEmpty()) {
             throw new RuntimeException("Group not found with ID: " + groupId);
@@ -393,12 +399,11 @@ public class GroupServiceImpl implements GroupService {
             Friendship friendship = friendshipService.getFriendship(userId1, userId2);
             return friendship != null && friendship.getStatus() == FriendshipStatus.ACCEPTED;
         } catch (Exception e) {
-            System.err.println("Error checking friendship between " + userId1 + " and " + userId2 + ": " + e.getMessage());
+            System.err.println(
+                    "Error checking friendship between " + userId1 + " and " + userId2 + ": " + e.getMessage());
             return false;
         }
     }
-
-
 
     @Override
     public Map<String, Object> getGroupStatistics(Integer groupId, Integer userId) throws Exception {
@@ -420,24 +425,23 @@ public class GroupServiceImpl implements GroupService {
             roleDistribution = group.getMemberRoles().values().stream()
                     .collect(Collectors.groupingBy(
                             role -> role.getDisplayName(),
-                            Collectors.counting()
-                    ));
+                            Collectors.counting()));
         }
         stats.put("roleDistribution", roleDistribution);
 
         // Recent activity count (last 30 days)
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-        long recentJoins = group.getMemberJoinedDates() != null ?
-                group.getMemberJoinedDates().values().stream()
-                        .filter(date -> date.isAfter(thirtyDaysAgo))
-                        .count() : 0;
+        long recentJoins = group.getMemberJoinedDates() != null ? group.getMemberJoinedDates().values().stream()
+                .filter(date -> date.isAfter(thirtyDaysAgo))
+                .count() : 0;
         stats.put("recentJoins", recentJoins);
 
         return stats;
     }
 
     @Override
-    public List<Map<String, Object>> getGroupActivity(Integer groupId, Integer userId, int page, int size) throws Exception {
+    public List<Map<String, Object>> getGroupActivity(Integer groupId, Integer userId, int page, int size)
+            throws Exception {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
@@ -461,7 +465,8 @@ public class GroupServiceImpl implements GroupService {
                     Map<String, Object> activity = new HashMap<>();
                     activity.put("type", "MEMBER_JOINED");
                     activity.put("timestamp", joinDate);
-                    activity.put("description", member.getFirstName() + " " + member.getLastName() + " joined the group");
+                    activity.put("description",
+                            member.getFirstName() + " " + member.getLastName() + " joined the group");
                     activity.put("actor", adder.getFirstName() + " " + adder.getLastName());
                     activity.put("actorId", addedBy);
                     activity.put("targetUser", member.getFirstName() + " " + member.getLastName());
@@ -496,10 +501,9 @@ public class GroupServiceImpl implements GroupService {
 
         List<Group> filteredGroups = allGroups.stream()
                 .filter(group -> group.getMemberIds() != null && group.getMemberIds().contains(userId))
-                .filter(group ->
-                        group.getName().toLowerCase().contains(query.toLowerCase()) ||
-                                (group.getDescription() != null && group.getDescription().toLowerCase().contains(query.toLowerCase()))
-                )
+                .filter(group -> group.getName().toLowerCase().contains(query.toLowerCase()) ||
+                        (group.getDescription() != null
+                                && group.getDescription().toLowerCase().contains(query.toLowerCase())))
                 .skip(page * size)
                 .limit(size)
                 .collect(Collectors.toList());
@@ -515,55 +519,62 @@ public class GroupServiceImpl implements GroupService {
                 .collect(Collectors.toList());
     }
 
-//    @Override
-//    public Map<String, Object> inviteUserToGroup(Integer groupId, Integer inviteeId, GroupRole role, Integer inviterId) throws Exception {
-//        Group group = groupRepository.findById(groupId)
-//                .orElseThrow(() -> new RuntimeException("Group not found"));
-//
-//        if (!hasPermissionInGroup(groupId, inviterId, "manage_members")) {
-//            throw new RuntimeException("Access denied: Insufficient permissions to invite members");
-//        }
-//
-//        UserDto invitee = helper.validateUser(inviteeId);
-//        UserDto inviter = helper.validateUser(inviterId);
-//
-//        if (group.getMemberIds() != null && group.getMemberIds().contains(inviteeId)) {
-//            throw new RuntimeException("User is already a member of this group");
-//        }
-//
-//        // For now, directly add the user (in a real system, you'd create an invitation record)
-//        group.addMember(inviteeId, role, inviterId);
-//        groupRepository.save(group);
-//
-//        Map<String, Object> result = new HashMap<>();
-//        result.put("message", "User invited successfully");
-//        result.put("invitee", invitee.getFirstName() + " " + invitee.getLastName());
-//        result.put("role", role);
-//        result.put("inviter", inviter.getFirstName() + " " + inviter.getLastName());
-//
-//        return result;
-//    }
+    // @Override
+    // public Map<String, Object> inviteUserToGroup(Integer groupId, Integer
+    // inviteeId, GroupRole role, Integer inviterId) throws Exception {
+    // Group group = groupRepository.findById(groupId)
+    // .orElseThrow(() -> new RuntimeException("Group not found"));
+    //
+    // if (!hasPermissionInGroup(groupId, inviterId, "manage_members")) {
+    // throw new RuntimeException("Access denied: Insufficient permissions to invite
+    // members");
+    // }
+    //
+    // UserDto invitee = helper.validateUser(inviteeId);
+    // UserDto inviter = helper.validateUser(inviterId);
+    //
+    // if (group.getMemberIds() != null && group.getMemberIds().contains(inviteeId))
+    // {
+    // throw new RuntimeException("User is already a member of this group");
+    // }
+    //
+    // // For now, directly add the user (in a real system, you'd create an
+    // invitation record)
+    // group.addMember(inviteeId, role, inviterId);
+    // groupRepository.save(group);
+    //
+    // Map<String, Object> result = new HashMap<>();
+    // result.put("message", "User invited successfully");
+    // result.put("invitee", invitee.getFirstName() + " " + invitee.getLastName());
+    // result.put("role", role);
+    // result.put("inviter", inviter.getFirstName() + " " + inviter.getLastName());
+    //
+    // return result;
+    // }
 
-//    @Override
-//    public List<Map<String, Object>> getPendingInvitations(Integer userId) throws Exception {
-//        helper.validateUser(userId);
-//
-//        // In a real implementation, you'd have an invitations table
-//        // For now, return empty list
-//        return new ArrayList<>();
-//    }
+    // @Override
+    // public List<Map<String, Object>> getPendingInvitations(Integer userId) throws
+    // Exception {
+    // helper.validateUser(userId);
+    //
+    // // In a real implementation, you'd have an invitations table
+    // // For now, return empty list
+    // return new ArrayList<>();
+    // }
 
-//    @Override
-//    public Map<String, Object> respondToInvitation(Integer invitationId, Integer userId, boolean accept) throws Exception {
-//        helper.validateUser(userId);
-//
-//        // In a real implementation, you'd handle invitation responses
-//        Map<String, Object> result = new HashMap<>();
-//        result.put("message", accept ? "Invitation accepted" : "Invitation declined");
-//        result.put("accepted", accept);
-//
-//        return result;
-//    }
+    // @Override
+    // public Map<String, Object> respondToInvitation(Integer invitationId, Integer
+    // userId, boolean accept) throws Exception {
+    // helper.validateUser(userId);
+    //
+    // // In a real implementation, you'd handle invitation responses
+    // Map<String, Object> result = new HashMap<>();
+    // result.put("message", accept ? "Invitation accepted" : "Invitation
+    // declined");
+    // result.put("accepted", accept);
+    //
+    // return result;
+    // }
 
     @Override
     public List<GroupMemberDTO> getMembersByRole(Integer groupId, GroupRole role, Integer userId) throws Exception {
@@ -616,9 +627,12 @@ public class GroupServiceImpl implements GroupService {
 
         return allMembers.stream()
                 .sorted((a, b) -> {
-                    if (a.getJoinedAt() == null && b.getJoinedAt() == null) return 0;
-                    if (a.getJoinedAt() == null) return 1;
-                    if (b.getJoinedAt() == null) return -1;
+                    if (a.getJoinedAt() == null && b.getJoinedAt() == null)
+                        return 0;
+                    if (a.getJoinedAt() == null)
+                        return 1;
+                    if (b.getJoinedAt() == null)
+                        return -1;
                     return b.getJoinedAt().compareTo(a.getJoinedAt());
                 })
                 .limit(limit)
@@ -636,13 +650,13 @@ public class GroupServiceImpl implements GroupService {
 
         if (group.getCreatedBy().equals(userId)) {
             // Check if there are other admins
-            long adminCount = group.getMemberRoles() != null ?
-                    group.getMemberRoles().values().stream()
-                            .filter(role -> role == GroupRole.ADMIN)
-                            .count() : 0;
+            long adminCount = group.getMemberRoles() != null ? group.getMemberRoles().values().stream()
+                    .filter(role -> role == GroupRole.ADMIN)
+                    .count() : 0;
 
             if (adminCount <= 1) {
-                throw new RuntimeException("Cannot leave group: You are the only admin. Please assign another admin first or delete the group.");
+                throw new RuntimeException(
+                        "Cannot leave group: You are the only admin. Please assign another admin first or delete the group.");
             }
         }
 
@@ -658,7 +672,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public GroupResponseDTO updateGroupSettings(Integer groupId, GroupSettingsDTO settings, Integer userId) throws Exception {
+    public GroupResponseDTO updateGroupSettings(Integer groupId, GroupSettingsDTO settings, Integer userId)
+            throws Exception {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
@@ -666,7 +681,8 @@ public class GroupServiceImpl implements GroupService {
             throw new RuntimeException("Access denied: Insufficient permissions to update group settings");
         }
 
-        // In a real implementation, you'd have a settings entity or additional fields in Group
+        // In a real implementation, you'd have a settings entity or additional fields
+        // in Group
         // For now, just update the group's basic info
         group.setUpdatedAt(LocalDateTime.now());
         groupRepository.save(group);
@@ -695,9 +711,9 @@ public class GroupServiceImpl implements GroupService {
         return settings;
     }
 
-
     @Override
-    public GroupResponseDTO duplicateGroup(Integer groupId, GroupDuplicateRequestDTO duplicateRequest, Integer userId) throws Exception {
+    public GroupResponseDTO duplicateGroup(Integer groupId, GroupDuplicateRequestDTO duplicateRequest, Integer userId)
+            throws Exception {
         Group originalGroup = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
@@ -712,11 +728,13 @@ public class GroupServiceImpl implements GroupService {
         newGroup.setCreatedAt(LocalDateTime.now());
         newGroup.setUpdatedAt(LocalDateTime.now());
 
-        if (duplicateRequest.getIncludeMembers() && originalGroup.getMemberIds() != null && !originalGroup.getMemberIds().isEmpty()) {
+        if (duplicateRequest.getIncludeMembers() && originalGroup.getMemberIds() != null
+                && !originalGroup.getMemberIds().isEmpty()) {
             // Include members from original group
-            newGroup.setMemberIds(new ArrayList<>(originalGroup.getMemberIds()));
-            newGroup.setMemberRoles(originalGroup.getMemberRoles() != null ?
-                    new HashMap<>(originalGroup.getMemberRoles()) : new HashMap<>());
+            newGroup.setMemberIds(new HashSet<>(originalGroup.getMemberIds()));
+            newGroup.setMemberRoles(
+                    originalGroup.getMemberRoles() != null ? new HashMap<>(originalGroup.getMemberRoles())
+                            : new HashMap<>());
             newGroup.setMemberJoinedDates(new HashMap<>());
             newGroup.setMemberAddedBy(new HashMap<>());
 
@@ -728,7 +746,7 @@ public class GroupServiceImpl implements GroupService {
             }
         } else {
             // Only include the creator
-            newGroup.setMemberIds(new ArrayList<>(List.of(userId)));
+            newGroup.setMemberIds(new HashSet<>(List.of(userId)));
             newGroup.setMemberRoles(new HashMap<>(Map.of(userId, GroupRole.ADMIN)));
             newGroup.setMemberJoinedDates(new HashMap<>(Map.of(userId, LocalDateTime.now())));
             newGroup.setMemberAddedBy(new HashMap<>(Map.of(userId, userId)));
@@ -824,7 +842,6 @@ public class GroupServiceImpl implements GroupService {
         return exportData;
     }
 
-
     @Override
     public List<Map<String, Object>> getGroupRecommendations(Integer userId, int limit) throws Exception {
         helper.validateUser(userId);
@@ -885,16 +902,17 @@ public class GroupServiceImpl implements GroupService {
                             if (!memberId.equals(friendId) && !memberId.equals(userId)) {
                                 // Check if this member is also user's friend
                                 boolean isMutualFriend = userFriendships.stream()
-                                        .anyMatch(f ->
-                                                (f.getRequesterId().equals(userId) && f.getRecipientId().equals(memberId)) ||
-                                                        (f.getRecipientId().equals(userId) && f.getRequesterId().equals(memberId))
-                                        );
+                                        .anyMatch(f -> (f.getRequesterId().equals(userId)
+                                                && f.getRecipientId().equals(memberId)) ||
+                                                (f.getRecipientId().equals(userId)
+                                                        && f.getRequesterId().equals(memberId)));
 
                                 if (isMutualFriend) {
                                     mutualFriendsCount++;
                                     try {
                                         UserDto mutualFriend = helper.validateUser(memberId);
-                                        mutualFriendsNames.add(mutualFriend.getFirstName() + " " + mutualFriend.getLastName());
+                                        mutualFriendsNames
+                                                .add(mutualFriend.getFirstName() + " " + mutualFriend.getLastName());
                                     } catch (Exception e) {
                                         // Skip if user not found
                                     }
@@ -946,7 +964,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Map<String, Object> mergeGroups(Integer sourceGroupId, Integer targetGroupId, GroupMergeRequestDTO mergeRequest, Integer userId) throws Exception {
+    public Map<String, Object> mergeGroups(Integer sourceGroupId, Integer targetGroupId,
+            GroupMergeRequestDTO mergeRequest, Integer userId) throws Exception {
         Group sourceGroup = groupRepository.findById(sourceGroupId)
                 .orElseThrow(() -> new RuntimeException("Source group not found"));
         Group targetGroup = groupRepository.findById(targetGroupId)
@@ -986,13 +1005,10 @@ public class GroupServiceImpl implements GroupService {
         return result;
     }
 
-
-
-
-
     @Override
     @Transactional
-    public Map<String, Object> inviteUserToGroup(Integer groupId, Integer inviteeId, GroupRole role, Integer inviterId) throws Exception {
+    public Map<String, Object> inviteUserToGroup(Integer groupId, Integer inviteeId, GroupRole role, Integer inviterId)
+            throws Exception {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
@@ -1050,7 +1066,8 @@ public class GroupServiceImpl implements GroupService {
         for (GroupInvitation invitation : invitations) {
             try {
                 Group group = groupRepository.findById(invitation.getGroupId()).orElse(null);
-                if (group == null) continue;
+                if (group == null)
+                    continue;
 
                 UserDto inviter = helper.validateUser(invitation.getInviterId());
 
@@ -1080,7 +1097,8 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public Map<String, Object> respondToInvitation(Integer invitationId, Integer userId, boolean accept) throws Exception {
+    public Map<String, Object> respondToInvitation(Integer invitationId, Integer userId, boolean accept)
+            throws Exception {
         helper.validateUser(userId);
 
         GroupInvitation invitation = groupInvitationRepository.findById(invitationId)
@@ -1093,7 +1111,8 @@ public class GroupServiceImpl implements GroupService {
 
         // Check if invitation is still pending
         if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new RuntimeException("This invitation has already been " + invitation.getStatus().getDisplayName().toLowerCase());
+            throw new RuntimeException(
+                    "This invitation has already been " + invitation.getStatus().getDisplayName().toLowerCase());
         }
 
         // Check if invitation has expired
@@ -1148,7 +1167,8 @@ public class GroupServiceImpl implements GroupService {
         for (GroupInvitation invitation : invitations) {
             try {
                 Group group = groupRepository.findById(invitation.getGroupId()).orElse(null);
-                if (group == null) continue;
+                if (group == null)
+                    continue;
 
                 UserDto invitee = helper.validateUser(invitation.getInviteeId());
 
@@ -1189,7 +1209,8 @@ public class GroupServiceImpl implements GroupService {
 
         // Check if invitation is still pending
         if (invitation.getStatus() != InvitationStatus.PENDING) {
-            throw new RuntimeException("Cannot cancel invitation: It has already been " + invitation.getStatus().getDisplayName().toLowerCase());
+            throw new RuntimeException("Cannot cancel invitation: It has already been "
+                    + invitation.getStatus().getDisplayName().toLowerCase());
         }
 
         invitation.setStatus(InvitationStatus.CANCELLED);
@@ -1207,7 +1228,8 @@ public class GroupServiceImpl implements GroupService {
         return result;
     }
 
-    // Add this method to clean up expired invitations (can be called by a scheduled task)
+    // Add this method to clean up expired invitations (can be called by a scheduled
+    // task)
     @Transactional
     public void cleanupExpiredInvitations() {
         List<GroupInvitation> expiredInvitations = groupInvitationRepository
@@ -1222,82 +1244,78 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
+    @Override
+    public List<UserDto> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception {
+        // Validate user
+        helper.validateUser(userId);
 
-@Override
-public List<UserDto> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception {
-    // Validate user
-    helper.validateUser(userId);
+        // Get all friends of the user
+        List<UserDto> friends = friendshipService.getFriendsOfUser(userId);
 
-    // Get all friends of the user
-    List<UserDto> friends = friendshipService.getFriendsOfUser(userId);
+        // Get group members
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+        Set<Integer> memberIds = group.getMemberIds() != null ? group.getMemberIds() : new HashSet<>();
 
-    // Get group members
-    Group group = groupRepository.findById(groupId)
-        .orElseThrow(() -> new RuntimeException("Group not found"));
-    List<Integer> memberIds = group.getMemberIds() != null ? group.getMemberIds() : new ArrayList<>();
+        // Get all invitations for this group (pending or accepted)
+        List<GroupInvitation> invitations = groupInvitationRepository.findByGroupIdAndStatusIn(
+                groupId, Arrays.asList(InvitationStatus.PENDING, InvitationStatus.ACCEPTED));
+        Set<Integer> invitedUserIds = invitations.stream()
+                .map(GroupInvitation::getInviteeId)
+                .collect(Collectors.toSet());
 
-    // Get all invitations for this group (pending or accepted)
-    List<GroupInvitation> invitations = groupInvitationRepository.findByGroupIdAndStatusIn(
-        groupId, Arrays.asList(InvitationStatus.PENDING, InvitationStatus.ACCEPTED)
-    );
-    Set<Integer> invitedUserIds = invitations.stream()
-        .map(GroupInvitation::getInviteeId)
-        .collect(Collectors.toSet());
+        // Filter friends: not in group and not already invited (pending/accepted)
+        List<UserDto> notInGroupOrInvited = friends.stream()
+                .filter(friend -> !memberIds.contains(friend.getId()))
+                .filter(friend -> !invitedUserIds.contains(friend.getId()))
+                .collect(Collectors.toList());
 
-    // Filter friends: not in group and not already invited (pending/accepted)
-    List<UserDto> notInGroupOrInvited = friends.stream()
-        .filter(friend -> !memberIds.contains(friend.getId()))
-        .filter(friend -> !invitedUserIds.contains(friend.getId()))
-        .collect(Collectors.toList());
-
-    return notInGroupOrInvited;
-}
-
-
+        return notInGroupOrInvited;
+    }
 
     // Returns all invitations sent by a specific group (by groupId and userId)
-   @Override
-public List<Map<String, Object>> getSentInvitationsByGroupId(Integer groupId, Integer userId) throws Exception {
-    helper.validateUser(userId);
-    // Only allow if user is owner or admin of the group
-    Group group = groupRepository.findById(groupId)
-            .orElseThrow(() -> new RuntimeException("Group not found"));
-    GroupRole role = group.getUserRole(userId);
-    if (!(role == GroupRole.ADMIN || group.getCreatedBy().equals(userId))) {
-        throw new RuntimeException("Access denied: Only group owner or admin can view sent invitations");
-    }
-    List<GroupInvitation> invitations = groupInvitationRepository.findSentInvitationsByGroupId(groupId);
-    List<Map<String, Object>> result = new ArrayList<>();
-    for (GroupInvitation invitation : invitations) {
-        // Exclude invitations with CANCELLED status
-        if (invitation.getStatus() == InvitationStatus.CANCELLED) continue;
-        try {
-            UserDto invitee = helper.validateUser(invitation.getInviteeId());
-            Map<String, Object> invitationData = new HashMap<>();
-            invitationData.put("invitationId", invitation.getId());
-            invitationData.put("groupId", groupId);
-            invitationData.put("groupName", group.getName());
-            invitationData.put("role", invitation.getRole().getDisplayName());
-            invitationData.put("invitee", invitee.getFirstName() + " " + invitee.getLastName());
-            invitationData.put("inviteeEmail", invitee.getEmail());
-            invitationData.put("status", invitation.getStatus().getDisplayName());
-            invitationData.put("sentAt", invitation.getCreatedAt());
-            invitationData.put("expiresAt", invitation.getExpiresAt());
-            invitationData.put("respondedAt", invitation.getRespondedAt());
-            result.add(invitationData);
-        } catch (Exception e) {
-            // Skip if user not found
+    @Override
+    public List<Map<String, Object>> getSentInvitationsByGroupId(Integer groupId, Integer userId) throws Exception {
+        helper.validateUser(userId);
+        // Only allow if user is owner or admin of the group
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+        GroupRole role = group.getUserRole(userId);
+        if (!(role == GroupRole.ADMIN || group.getCreatedBy().equals(userId))) {
+            throw new RuntimeException("Access denied: Only group owner or admin can view sent invitations");
         }
+        List<GroupInvitation> invitations = groupInvitationRepository.findSentInvitationsByGroupId(groupId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (GroupInvitation invitation : invitations) {
+            // Exclude invitations with CANCELLED status
+            if (invitation.getStatus() == InvitationStatus.CANCELLED)
+                continue;
+            try {
+                UserDto invitee = helper.validateUser(invitation.getInviteeId());
+                Map<String, Object> invitationData = new HashMap<>();
+                invitationData.put("invitationId", invitation.getId());
+                invitationData.put("groupId", groupId);
+                invitationData.put("groupName", group.getName());
+                invitationData.put("role", invitation.getRole().getDisplayName());
+                invitationData.put("invitee", invitee.getFirstName() + " " + invitee.getLastName());
+                invitationData.put("inviteeEmail", invitee.getEmail());
+                invitationData.put("status", invitation.getStatus().getDisplayName());
+                invitationData.put("sentAt", invitation.getCreatedAt());
+                invitationData.put("expiresAt", invitation.getExpiresAt());
+                invitationData.put("respondedAt", invitation.getRespondedAt());
+                result.add(invitationData);
+            } catch (Exception e) {
+                // Skip if user not found
+            }
+        }
+        return result;
     }
-    return result;
-}
-
 
     @Override
-public void updateInvitationStatusToCancelled(Integer invitationId) throws Exception {
-    GroupInvitation invitation = groupInvitationRepository.findById(invitationId)
-        .orElseThrow(() -> new RuntimeException("Invitation not found"));
-    invitation.setStatus(InvitationStatus.CANCELLED);
-    groupInvitationRepository.save(invitation);
-}
+    public void updateInvitationStatusToCancelled(Integer invitationId) throws Exception {
+        GroupInvitation invitation = groupInvitationRepository.findById(invitationId)
+                .orElseThrow(() -> new RuntimeException("Invitation not found"));
+        invitation.setStatus(InvitationStatus.CANCELLED);
+        groupInvitationRepository.save(invitation);
+    }
 }

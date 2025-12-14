@@ -6,8 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Entity
 @Table(name = "expense_groups")
@@ -42,7 +44,7 @@ public class Group {
     @ElementCollection
     @CollectionTable(name = "group_members", joinColumns = @JoinColumn(name = "group_id"))
     @Column(name = "user_id")
-    private List<Integer> memberIds;
+    private Set<Integer> memberIds;
 
     // New: Store user roles as a map (userId -> role)
     @ElementCollection
@@ -109,23 +111,34 @@ public class Group {
     public boolean hasPermission(Integer userId, String permission) {
         GroupRole role = getUserRole(userId);
         switch (permission.toLowerCase()) {
-            case "delete_group": return role.canDeleteGroup();
-            case "edit_settings": return role.canEditGroupSettings();
-            case "manage_members": return role.canManageMembers();
-            case "manage_expenses": return role.canManageExpenses();
-            case "add_expenses": return role.canAddExpenses();
-            case "edit_expenses": return role.canEditExpenses();
-            case "delete_expenses": return role.canDeleteExpenses();
-            case "view_expenses": return role.canViewExpenses();
-            case "promote_members": return role.canPromoteMembers();
-            case "demote_members": return role.canDemoteMembers();
-            default: return false;
+            case "delete_group":
+                return role.canDeleteGroup();
+            case "edit_settings":
+                return role.canEditGroupSettings();
+            case "manage_members":
+                return role.canManageMembers();
+            case "manage_expenses":
+                return role.canManageExpenses();
+            case "add_expenses":
+                return role.canAddExpenses();
+            case "edit_expenses":
+                return role.canEditExpenses();
+            case "delete_expenses":
+                return role.canDeleteExpenses();
+            case "view_expenses":
+                return role.canViewExpenses();
+            case "promote_members":
+                return role.canPromoteMembers();
+            case "demote_members":
+                return role.canDemoteMembers();
+            default:
+                return false;
         }
     }
 
     public void addMember(Integer userId, GroupRole role, Integer addedBy) {
         if (memberIds == null) {
-            memberIds = new java.util.ArrayList<>();
+            memberIds = new HashSet<>();
         }
         if (memberRoles == null) {
             memberRoles = new HashMap<>();
@@ -136,10 +149,7 @@ public class Group {
         if (memberAddedBy == null) {
             memberAddedBy = new HashMap<>();
         }
-
-        if (!memberIds.contains(userId)) {
-            memberIds.add(userId);
-        }
+        memberIds.add(userId);
         memberRoles.put(userId, role);
         memberJoinedDates.put(userId, LocalDateTime.now());
         memberAddedBy.put(userId, addedBy);
