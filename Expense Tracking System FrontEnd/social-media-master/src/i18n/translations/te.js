@@ -248,6 +248,9 @@ export const te = {
         thisMonth: "ఈ నెల",
         lastMonth: "గత నెల",
         last3Months: "గత 3 నెలలు",
+        thisYear: "ఈ సంవత్సరం",
+        lastYear: "గత సంవత్సరం",
+        allTime: "అన్ని కాలాలు",
       },
       timeframeChips: {
         weekly: "వారపు",

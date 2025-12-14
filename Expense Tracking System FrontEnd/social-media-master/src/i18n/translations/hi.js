@@ -245,6 +245,9 @@ export const hi = {
         thisMonth: "यह माह",
         lastMonth: "पिछला माह",
         last3Months: "पिछले 3 माह",
+        thisYear: "यह वर्ष",
+        lastYear: "पिछला वर्ष",
+        allTime: "सभी समय",
       },
       timeframeChips: {
         weekly: "साप्ताहिक",

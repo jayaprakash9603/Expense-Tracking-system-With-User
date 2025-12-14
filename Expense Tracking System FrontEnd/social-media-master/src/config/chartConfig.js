@@ -17,9 +17,20 @@ export const DEFAULT_TIMEFRAME_OPTIONS = [
     value: "last_3_months",
     labelKey: "dashboard.charts.timeframeOptions.last3Months",
   },
+  {
+    value: "this_year",
+    labelKey: "dashboard.charts.timeframeOptions.thisYear",
+  },
+  {
+    value: "last_year",
+    labelKey: "dashboard.charts.timeframeOptions.lastYear",
+  },
+  {
+    value: "all_time",
+    labelKey: "dashboard.charts.timeframeOptions.allTime",
+  },
   // Add more options here as needed:
   // { value: "this_week", label: "This Week" },
-  // { value: "this_year", label: "This Year" },
 ];
 
 // Default type options - easily extendable or can be disabled

@@ -176,14 +176,21 @@ const DailySpendingChart = ({
   const settings = useUserSettings();
   const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
+  const locale = settings.language || "en";
 
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:1024px)");
 
+  const isYearView = timeframe === "this_year" || timeframe === "last_year";
+  const isAllTimeView = timeframe === "all_time";
+
   // Chart configuration
   const chartHeight = height || (isMobile ? 220 : isTablet ? 260 : 300);
-  const hideXAxis = timeframe === "last_3_months" || isMobile;
+  const hideXAxis =
+    !isYearView &&
+    !isAllTimeView &&
+    (timeframe === "last_3_months" || isMobile);
   const safeData = Array.isArray(data) ? data : [];
   const activeType = selectedType || "loss";
 
@@ -192,13 +199,113 @@ const DailySpendingChart = ({
     ? safeData.filter((item) => item.type === activeType || !item.type)
     : safeData;
 
-  const chartData = filteredData.map((item) => ({
-    day: item.day ? new Date(item.day).getDate() : "",
-    spending: item.spending ?? 0,
-    date: item.day,
-    type: item.type,
-    expenses: item.expenses || [],
-  }));
+  let chartData;
+
+  if (isYearView) {
+    const monthlyMap = {};
+    const monthFormatter = new Intl.DateTimeFormat(locale, { month: "short" });
+
+    filteredData.forEach((item) => {
+      if (!item.day) return;
+      const dateObj = new Date(item.day);
+      if (Number.isNaN(dateObj.getTime())) return;
+
+      const monthIndex = dateObj.getMonth();
+      const year = dateObj.getFullYear();
+      const key = `${year}-${monthIndex}`;
+
+      if (!monthlyMap[key]) {
+        monthlyMap[key] = {
+          xLabel: monthFormatter.format(dateObj),
+          monthIndex,
+          year,
+          spending: 0,
+          expenses: [],
+          type: item.type,
+        };
+      }
+
+      monthlyMap[key].spending += item.spending ?? 0;
+      if (Array.isArray(item.expenses)) {
+        monthlyMap[key].expenses.push(...item.expenses);
+      }
+    });
+
+    chartData = Object.values(monthlyMap).sort((a, b) =>
+      a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
+    );
+  } else if (isAllTimeView) {
+    const monthlyMap = {};
+    const monthFormatter = new Intl.DateTimeFormat(locale, { month: "short" });
+
+    filteredData.forEach((item) => {
+      if (!item.day) return;
+      const dateObj = new Date(item.day);
+      if (Number.isNaN(dateObj.getTime())) return;
+
+      const year = dateObj.getFullYear();
+      const monthIndex = dateObj.getMonth();
+      const key = `${year}-${monthIndex}`;
+
+      if (!monthlyMap[key]) {
+        monthlyMap[key] = {
+          xLabel: `${monthFormatter.format(dateObj)} ${year}`,
+          year,
+          monthIndex,
+          spending: 0,
+          expenses: [],
+          type: item.type,
+        };
+      }
+
+      monthlyMap[key].spending += item.spending ?? 0;
+      if (Array.isArray(item.expenses)) {
+        monthlyMap[key].expenses.push(...item.expenses);
+      }
+    });
+
+    chartData = Object.values(monthlyMap).sort((a, b) =>
+      a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
+    );
+  } else {
+    chartData = filteredData.map((item) => {
+      let label = "";
+      if (item.day) {
+        const dateObj = new Date(item.day);
+        if (!Number.isNaN(dateObj.getTime())) {
+          label = dateObj.getDate();
+        }
+      }
+
+      return {
+        xLabel: label,
+        spending: item.spending ?? 0,
+        date: item.day,
+        type: item.type,
+        expenses: item.expenses || [],
+      };
+    });
+  }
+
+  const totalPoints = chartData.length || 0;
+
+  const xTickFormatter = (value, index) => {
+    if (!value || totalPoints === 0) return "";
+
+    if (isAllTimeView) {
+      const maxTicks = isMobile ? 4 : 8;
+      const step = Math.max(1, Math.ceil(totalPoints / maxTicks));
+      return index % step === 0 ? value : "";
+    }
+
+    if (timeframe === "last_3_months") {
+      const maxTicks = isMobile ? 6 : 10;
+      const step = Math.max(1, Math.ceil(totalPoints / maxTicks));
+      return index % step === 0 ? value : "";
+    }
+
+    return value;
+  };
 
   // Theme and styling
   const theme = getThemeColors(activeType, CHART_THEME);
@@ -254,10 +361,11 @@ const DailySpendingChart = ({
           <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
 
           <XAxis
-            dataKey="day"
+            dataKey="xLabel"
             stroke={colors.primary_text}
             fontSize={12}
             tickLine={false}
+            tickFormatter={xTickFormatter}
             hide={hideXAxis}
           />
 
@@ -289,6 +397,7 @@ const DailySpendingChart = ({
               <SpendingChartTooltip
                 {...props}
                 selectedType={activeType}
+                timeframe={timeframe}
                 config={tooltipConfig || TOOLTIP_CONFIG}
                 theme={theme}
               />

@@ -245,6 +245,9 @@ export const en = {
         thisMonth: "This Month",
         lastMonth: "Last Month",
         last3Months: "Last 3 Months",
+        thisYear: "This Year",
+        lastYear: "Last Year",
+        allTime: "All Time",
       },
       timeframeChips: {
         weekly: "Weekly",

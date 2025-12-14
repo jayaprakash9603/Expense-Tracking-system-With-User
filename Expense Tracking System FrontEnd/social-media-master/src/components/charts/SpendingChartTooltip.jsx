@@ -653,6 +653,7 @@ const SpendingChartTooltip = ({
   active,
   payload,
   selectedType,
+  timeframe,
   config = {},
   theme,
 }) => {
@@ -667,8 +668,21 @@ const SpendingChartTooltip = ({
   // Extract data
   const data = payload[0].payload;
   const expenses = data.expenses || [];
-  const displayExpenses = expenses.slice(0, config.maxExpensesToShow || 5);
-  const remainingCount = expenses.length - (config.maxExpensesToShow || 5);
+  const maxToShow = config.maxExpensesToShow || 5;
+
+  let sortedExpenses = expenses;
+  if (
+    timeframe === "this_year" ||
+    timeframe === "last_year" ||
+    timeframe === "all_time"
+  ) {
+    sortedExpenses = [...expenses].sort(
+      (a, b) => (b.amount || 0) - (a.amount || 0)
+    );
+  }
+
+  const displayExpenses = sortedExpenses.slice(0, maxToShow);
+  const remainingCount = Math.max(0, sortedExpenses.length - maxToShow);
 
   // Determine responsive styles
   const responsiveStyles = getResponsiveStyles(config.responsive !== false);
@@ -699,10 +713,20 @@ const SpendingChartTooltip = ({
   };
 
   // Format data
-  const dayLabel = data?.day
-    ? `${t("dashboard.charts.tooltip.dayPrefix")} ${data.day}`
-    : "";
-  const dateLabel = formatDate(data.date, data.day, dayLabel);
+  let dateLabel = "";
+  if (
+    timeframe === "all_time" ||
+    timeframe === "this_year" ||
+    timeframe === "last_year"
+  ) {
+    // Aggregated views: use the chart label (e.g., "Apr 2025", "Jan")
+    dateLabel = data?.xLabel || "";
+  } else {
+    const dayLabel = data?.day
+      ? `${t("dashboard.charts.tooltip.dayPrefix")} ${data.day}`
+      : "";
+    dateLabel = formatDate(data.date, data.day, dayLabel);
+  }
   const isLoss = selectedType === "loss";
 
   return (
@@ -787,6 +811,7 @@ SpendingChartTooltip.propTypes = {
   active: PropTypes.bool,
   payload: PropTypes.array,
   selectedType: PropTypes.string.isRequired,
+  timeframe: PropTypes.string,
   config: PropTypes.shape({
     maxExpensesToShow: PropTypes.number,
     minWidth: PropTypes.number,
