@@ -31,6 +31,8 @@ wt new-tab --title "EurekaServer" cmd /k "cd /d \"%BACKEND_BASE%\eureka-server\"
 ; new-tab --title "BillService" cmd /k "cd /d \"%BACKEND_BASE%\Bill-Service\" && mvn spring-boot:run" ^
 ; new-tab --title "NotificationService" cmd /k "cd /d \"%BACKEND_BASE%\Notification-Service\" && mvn spring-boot:run" ^
 ; new-tab --title "AuditService" cmd /k "cd /d \"%BACKEND_BASE%\Audit-Service\" && mvn spring-boot:run" ^
+; new-tab --title "AnalyticsService" cmd /k "cd /d \"%BACKEND_BASE%\AnalyticsService\" && mvn spring-boot:run" ^
+; new-tab --title "EventService" cmd /k "cd /d \"%BACKEND_BASE%\Event-Service\" && mvn spring-boot:run" ^
 ; new-tab --title "Frontend" cmd /k "cd /d \"%FRONTEND_BASE%\" && npm start"
 
 echo All services launched in separate tabs!
@@ -50,6 +52,8 @@ start "BudgetService" cmd /k "cd /d \"%BACKEND_BASE%\Budget-Service\" && mvn spr
 start "BillService" cmd /k "cd /d \"%BACKEND_BASE%\Bill-Service\" && mvn spring-boot:run"
 start "NotificationService" cmd /k "cd /d \"%BACKEND_BASE%\Notification-Service\" && mvn spring-boot:run"
 start "AuditService" cmd /k "cd /d \"%BACKEND_BASE%\Audit-Service\" && mvn spring-boot:run"
+start "AnalyticsService" cmd /k "cd /d \"%BACKEND_BASE%\Analytics-Service\" && mvn spring-boot:run"
+start "EventService" cmd /k "cd /d \"%BACKEND_BASE%\Event-Service\" && mvn spring-boot:run"
 start "Frontend" cmd /k "cd /d \"%FRONTEND_BASE%\" && npm start"
 echo All services launched in separate windows!
 

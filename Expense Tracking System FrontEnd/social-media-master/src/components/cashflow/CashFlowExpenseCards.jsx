@@ -23,6 +23,8 @@ import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
 import SelectionNavigator from "./SelectionNavigator";
 
+import CashFlowExpenseCardsSkeleton from "../skeletons/CashFlowExpenseCardsSkeleton";
+
 dayjs.extend(weekOfYear);
 
 /**
@@ -812,17 +814,7 @@ function CashFlowExpenseCards({
   if (loading && !search && data.length === 0) {
     return (
       <div className={wrapperClass} style={wrapperStyle}>
-        {Array.from({ length: 3 }).map((_, idx) => (
-          <Skeleton
-            key={idx}
-            variant="rectangular"
-            width={340}
-            height={155}
-            animation="wave"
-            sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
-            style={{ minWidth: 220, maxWidth: 340, margin: "0 8px 16px 0" }}
-          />
-        ))}
+        <CashFlowExpenseCardsSkeleton />
       </div>
     );
   }

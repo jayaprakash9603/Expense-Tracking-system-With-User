@@ -12,3 +12,4 @@ public interface FriendshipAnalyticsClient {
     @GetMapping("/api/friendships/stats")
     Map<String, Object> getFriendshipStats(@RequestHeader("Authorization") String jwt);
 }
+

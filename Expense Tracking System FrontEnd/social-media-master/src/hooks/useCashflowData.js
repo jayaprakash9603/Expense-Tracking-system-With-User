@@ -1,8 +1,28 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useDeferredValue } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { fetchCashflowExpenses } from "../Redux/Expenses/expense.action";
 import { getRangeLabel, weekDays, yearMonths } from "../utils/flowDateUtils";
+
+const normalizeSearchField = (value) => {
+  if (value === null || value === undefined) return "";
+  return value.toString().toLowerCase();
+};
+
+const buildSearchBlob = (item) => {
+  const exp = item?.expense || {};
+  return [
+    exp.expenseName || item.name || "",
+    exp.comments || item.comments || "",
+    exp.amount ?? item.amount ?? "",
+    item.categoryName || item.category?.name || item.category || "",
+    exp.paymentMethod || item.paymentMethodName || item.paymentMethod || "",
+    exp.date || item.date || "",
+  ]
+    .map(normalizeSearchField)
+    .filter(Boolean)
+    .join("|");
+};
 
 export default function useCashflowData({ friendId, isFriendView, search }) {
   const dispatch = useDispatch();
@@ -27,38 +47,43 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
         groupBy: false, // flat list for timeline visualization
       })
     );
-  }, [activeRange, offset, flowTab, dispatch, friendId, isFriendView, maskSensitiveData]);
+  }, [
+    activeRange,
+    offset,
+    flowTab,
+    dispatch,
+    friendId,
+    isFriendView,
+    maskSensitiveData,
+  ]);
 
   // reset offset when range changes
   useEffect(() => {
     setOffset(0);
   }, [activeRange]);
 
+  const expenseList = useMemo(
+    () => (Array.isArray(cashflowExpenses) ? cashflowExpenses : []),
+    [cashflowExpenses]
+  );
+
+  const searchIndex = useMemo(
+    () => expenseList.map((item) => ({ item, blob: buildSearchBlob(item) })),
+    [expenseList]
+  );
+
+  const normalizedSearch = useMemo(
+    () => (search || "").trim().toLowerCase(),
+    [search]
+  );
+  const deferredSearch = useDeferredValue(normalizedSearch);
+
   const filteredExpensesForView = useMemo(() => {
-    const list = Array.isArray(cashflowExpenses) ? cashflowExpenses : [];
-    const q = (search || "").toLowerCase().trim();
-    if (!q) return list;
-    return list.filter((item) => {
-      const exp = item?.expense || {};
-      const name = (exp.expenseName || item.name || "").toLowerCase();
-      const comments = (exp.comments || item.comments || "").toLowerCase();
-      const amountStr = String(exp.amount ?? item.amount ?? "").toLowerCase();
-      const category = (
-        item.categoryName ||
-        item.category?.name ||
-        item.category ||
-        ""
-      )
-        .toString()
-        .toLowerCase();
-      return (
-        name.includes(q) ||
-        comments.includes(q) ||
-        amountStr.includes(q) ||
-        category.includes(q)
-      );
-    });
-  }, [cashflowExpenses, search]);
+    if (!deferredSearch) return expenseList;
+    return searchIndex
+      .filter(({ blob }) => blob.includes(deferredSearch))
+      .map(({ item }) => item);
+  }, [expenseList, searchIndex, deferredSearch]);
 
   const { chartData, cardData } = useMemo(() => {
     if (

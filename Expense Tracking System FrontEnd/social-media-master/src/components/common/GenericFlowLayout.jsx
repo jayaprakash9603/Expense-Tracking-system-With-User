@@ -4,7 +4,7 @@ import DeletionConfirmationWithToast from "./DeletionConfirmationWithToast";
 import SearchNavigationBar from "../cashflow/SearchNavigationBar";
 import SortPopover from "../cashflow/SortPopover";
 import FlowToggleButton from "../cashflow/FlowToggleButton";
-import Skeleton from "@mui/material/Skeleton";
+import CashFlowChartSkeleton from "../skeletons/CashFlowChartSkeleton";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import { rangeTypes } from "../../utils/flowDateUtils";
 import recentPng from "../../assests/recent.png";
@@ -180,16 +180,7 @@ const GenericFlowLayout = ({
         }}
       >
         {loading && !search ? (
-          <Skeleton
-            variant="rectangular"
-            width="100%"
-            height={160}
-            animation="wave"
-            sx={{
-              bgcolor: colors.hover_bg,
-              borderRadius: 2,
-            }}
-          />
+          <CashFlowChartSkeleton />
         ) : chartData.length === 0 ? (
           <NoDataPlaceholder
             size={isMobile ? "md" : "lg"}
