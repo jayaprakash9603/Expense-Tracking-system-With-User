@@ -24,11 +24,24 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const NewExpense = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
+  const { t } = useTranslation();
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
+
+  const pageTitle = t("newExpense.title");
+  const previouslyAddedLabel = t("newExpense.header.previouslyAdded");
+  const autoFilledLabel = t("newExpense.indicators.autoFilled");
+  const linkBudgetsLabel = t("newExpense.actions.linkBudgets");
+  const submitLabel = t("newExpense.actions.submit");
+  const tableNoRowsText = t("newExpense.table.noRows");
+  const errorLoadingBudgets = t("newExpense.messages.errorLoadingBudgets");
+  const successMessage = t("newExpense.actions.successMessage");
+  const noOptionsText = t("newExpense.autocomplete.noOptions");
+  const closeLabel = t("common.close");
 
   // Dynamic styles based on theme
   const fieldStyles = `px-3 py-2 rounded w-full text-base sm:max-w-[300px] max-w-[200px] border-0 focus:outline-none focus:ring-2 focus:ring-[#00dac6]`;
@@ -37,6 +50,80 @@ const NewExpense = ({ onClose, onSuccess }) => {
     minWidth: "150px",
     display: "flex",
     alignItems: "center",
+  };
+
+  const fieldLabels = useMemo(
+    () => ({
+      expenseName: t("newExpense.fields.expenseName"),
+      amount: t("newExpense.fields.amount"),
+      date: t("newExpense.fields.date"),
+      transactionType: t("newExpense.fields.transactionType"),
+      category: t("newExpense.fields.category"),
+      paymentMethod: t("newExpense.fields.paymentMethod"),
+      comments: t("newExpense.fields.comments"),
+    }),
+    [t]
+  );
+
+  const fieldPlaceholders = useMemo(
+    () => ({
+      expenseName: t("newExpense.placeholders.expenseName"),
+      amount: t("newExpense.placeholders.amount"),
+      date: t("newExpense.placeholders.date"),
+      transactionType: t("newExpense.placeholders.transactionType"),
+      category: t("newExpense.placeholders.category"),
+      paymentMethod: t("newExpense.placeholders.paymentMethod"),
+      comments: t("newExpense.placeholders.comments"),
+    }),
+    [t]
+  );
+
+  const tableHeaders = useMemo(
+    () => ({
+      name: t("newExpense.table.headers.name"),
+      inBudget: t("newExpense.table.headers.inBudget"),
+      description: t("newExpense.table.headers.description"),
+      startDate: t("newExpense.table.headers.startDate"),
+      endDate: t("newExpense.table.headers.endDate"),
+      remainingAmount: t("newExpense.table.headers.remainingAmount"),
+      amount: t("newExpense.table.headers.amount"),
+    }),
+    [t]
+  );
+
+  const transactionTypeLabels = useMemo(
+    () => ({
+      gain: t("newExpense.transactionTypes.gain"),
+      loss: t("newExpense.transactionTypes.loss"),
+    }),
+    [t]
+  );
+
+  // Use lowercase internal values for consistency (gain/loss)
+  const typeOptions = ["gain", "loss"];
+
+  const formatLabelFromId = (value) =>
+    value
+      ? value
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase())
+      : "";
+
+  const getFieldLabel = (fieldId) => fieldLabels[fieldId] || formatLabelFromId(fieldId);
+
+  const getPlaceholderForField = (fieldId, fallbackLabel) =>
+    fieldPlaceholders[fieldId] ||
+    t("newExpense.placeholders.generic", {
+      field: fallbackLabel || formatLabelFromId(fieldId),
+    });
+
+  const getTransactionTypeLabel = (option) => {
+    if (!option) return "";
+    const key = option.toLowerCase();
+    return (
+      transactionTypeLabels[key] ||
+      option.charAt(0).toUpperCase() + option.slice(1)
+    );
   };
 
   const location = useLocation();
@@ -329,11 +416,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
       onClose();
     } else {
       navigate(-1, {
-        state: { toastMessage: "Expense created successfully!" },
+        state: { toastMessage: successMessage },
       });
     }
     if (onSuccess) {
-      onSuccess("Expense created successfully!");
+      onSuccess(successMessage);
     }
   };
 
@@ -350,146 +437,151 @@ const NewExpense = ({ onClose, onSuccess }) => {
       prev.map((state, i) => (i === index ? !state : state))
     );
   };
-  const renderInput = (id, type = "text", isTextarea = false) => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-start relative">
-        <label
-          htmlFor={id}
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
-            paddingTop: isTextarea ? "8px" : "0px",
-          }}
-        >
-          {id
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())}
-          {["expenseName", "amount", "date", "transactionType"].includes(
-            id
-          ) && <span className="text-red-500"> *</span>}
-        </label>
-        <div
-          className="relative flex-1"
-          style={{ maxWidth: isTextarea ? "100%" : "300px" }}
-        >
-          {id === "comments" && autoFilledFields.comments && (
-            <div
-              className="absolute top-[-20px] left-[300px]"
-              style={{
-                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
-                color: "#fff",
-                fontSize: "0.65rem",
-                padding: "2px 6px",
-                borderRadius: "4px",
-                fontWeight: "600",
-                whiteSpace: "nowrap",
-                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
-                zIndex: 10,
-              }}
-            >
-              Auto-filled
-            </div>
-          )}
-          {isTextarea ? (
-            <textarea
-              id={id}
-              name={id}
-              value={expenseData[id]}
-              onChange={(e) => {
-                handleInputChange(e);
-                // Mark comments as user-modified when manually edited
-                if (id === "comments") {
-                  setUserModifiedFields((prev) => ({
-                    ...prev,
-                    comments: true,
-                  }));
-                  if (autoFilledFields.comments) {
-                    setAutoFilledFields((prev) => ({
+  const renderInput = (id, type = "text", isTextarea = false) => {
+    const labelText = getFieldLabel(id);
+    const placeholderText = getPlaceholderForField(id, labelText);
+
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="flex items-start relative">
+          <label
+            htmlFor={id}
+            style={{
+              ...inputWrapper,
+              color: colors.primary_text,
+              fontSize: "0.875rem",
+              fontWeight: "600",
+              paddingTop: isTextarea ? "8px" : "0px",
+            }}
+          >
+            {labelText}
+            {["expenseName", "amount", "date", "transactionType"].includes(
+              id
+            ) && <span className="text-red-500"> *</span>}
+          </label>
+          <div
+            className="relative flex-1"
+            style={{ maxWidth: isTextarea ? "100%" : "300px" }}
+          >
+            {id === "comments" && autoFilledFields.comments && (
+              <div
+                className="absolute top-[-20px] left-[300px]"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
+                  color: "#fff",
+                  fontSize: "0.65rem",
+                  padding: "2px 6px",
+                  borderRadius: "4px",
+                  fontWeight: "600",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                  zIndex: 10,
+                }}
+              >
+                {autoFilledLabel}
+              </div>
+            )}
+            {isTextarea ? (
+              <textarea
+                id={id}
+                name={id}
+                value={expenseData[id]}
+                onChange={(e) => {
+                  handleInputChange(e);
+                  // Mark comments as user-modified when manually edited
+                  if (id === "comments") {
+                    setUserModifiedFields((prev) => ({
                       ...prev,
-                      comments: false,
+                      comments: true,
                     }));
+                    if (autoFilledFields.comments) {
+                      setAutoFilledFields((prev) => ({
+                        ...prev,
+                        comments: false,
+                      }));
+                    }
                   }
-                }
-              }}
-              placeholder={`Enter ${id}`}
-              rows="3"
-              className={fieldStyles}
-              style={{
-                height: "80px",
-                backgroundColor: colors.primary_bg,
-                color: colors.primary_text,
-                borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
-                borderWidth: errors[id] ? "2px" : "1px",
-                width: "100%",
-              }}
-            />
-          ) : (
-            <input
-              id={id}
-              name={id}
-              type={type}
-              value={expenseData[id]}
-              onChange={handleInputChange}
-              placeholder={`Enter ${id}`}
-              className={fieldStyles}
-              style={{
-                backgroundColor: colors.primary_bg,
-                color: colors.primary_text,
-                borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
-                borderWidth: errors[id] ? "2px" : "1px",
-              }}
-            />
-          )}
+                }}
+                placeholder={placeholderText}
+                rows="3"
+                className={fieldStyles}
+                style={{
+                  height: "80px",
+                  backgroundColor: colors.primary_bg,
+                  color: colors.primary_text,
+                  borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
+                  borderWidth: errors[id] ? "2px" : "1px",
+                  width: "100%",
+                }}
+              />
+            ) : (
+              <input
+                id={id}
+                name={id}
+                type={type}
+                value={expenseData[id]}
+                onChange={handleInputChange}
+                placeholder={placeholderText}
+                className={fieldStyles}
+                style={{
+                  backgroundColor: colors.primary_bg,
+                  color: colors.primary_text,
+                  borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
+                  borderWidth: errors[id] ? "2px" : "1px",
+                }}
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const renderSelect = (id, options) => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center">
-        <label
-          htmlFor={id}
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
-          }}
-        >
-          {id
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())}
-        </label>
-        <select
-          id={id}
-          name={id}
-          value={expenseData[id]}
-          onChange={handleInputChange}
-          className={fieldStyles}
-          style={{
-            backgroundColor: colors.primary_bg,
-            color: colors.primary_text,
-            borderColor: colors.border_color,
-            borderWidth: "1px",
-          }}
-        >
-          {options.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt.charAt(0).toUpperCase() + opt.slice(1)}
-            </option>
-          ))}
-        </select>
+  const renderSelect = (id, options) => {
+    const labelText = getFieldLabel(id);
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="flex items-center">
+          <label
+            htmlFor={id}
+            style={{
+              ...inputWrapper,
+              color: colors.primary_text,
+              fontSize: "0.875rem",
+              fontWeight: "600",
+            }}
+          >
+            {labelText}
+          </label>
+          <select
+            id={id}
+            name={id}
+            value={expenseData[id]}
+            onChange={handleInputChange}
+            className={fieldStyles}
+            style={{
+              backgroundColor: colors.primary_bg,
+              color: colors.primary_text,
+              borderColor: colors.border_color,
+              borderWidth: "1px",
+            }}
+          >
+            {options.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt.charAt(0).toUpperCase() + opt.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+        {errors[id] && (
+          <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
+            {errors[id]}
+          </span>
+        )}
       </div>
-      {errors[id] && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors[id]}
-        </span>
-      )}
-    </div>
-  );
+    );
+  };
 
   const renderAmountInput = () => (
     <div className="flex flex-col flex-1">
@@ -503,7 +595,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
             fontWeight: "600",
           }}
         >
-          Amount<span className="text-red-500"> *</span>
+          {fieldLabels.amount}
+          <span className="text-red-500"> *</span>
         </label>
         <TextField
           id="amount"
@@ -518,7 +611,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               setErrors({ ...errors, amount: false });
             }
           }}
-          placeholder="Enter amount"
+          placeholder={fieldPlaceholders.amount}
           variant="outlined"
           error={errors.amount}
           InputProps={{
@@ -547,7 +640,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
               },
               "&.Mui-focused fieldset": {
                 borderColor: errors.amount ? "#ff4d4f" : "#00dac6",
-                borderWidth: errors.amount ? "2px" : "2px",
                 borderStyle: "solid",
               },
               "& .MuiOutlinedInput-notchedOutline": {
@@ -577,7 +669,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
             fontWeight: "600",
           }}
         >
-          Date<span className="text-red-500"> *</span>
+          {fieldLabels.date}
+          <span className="text-red-500"> *</span>
         </label>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
@@ -607,6 +700,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               textField: {
                 size: "medium",
                 variant: "outlined",
+                placeholder: fieldPlaceholders.date,
                 sx: {
                   color: colors.primary_text,
                   height: 56,
@@ -655,7 +749,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
             fontWeight: "600",
           }}
         >
-          Expense Name<span className="text-red-500"> *</span>
+          {fieldLabels.expenseName}
+          <span className="text-red-500"> *</span>
         </label>
         <ExpenseNameAutocomplete
           value={expenseData.expenseName}
@@ -665,7 +760,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               setErrors((prev) => ({ ...prev, expenseName: false }));
           }}
           friendId={friendId}
-          placeholder="Enter expense name"
+          placeholder={fieldPlaceholders.expenseName}
           error={errors.expenseName}
           size="medium"
         />
@@ -685,7 +780,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             fontWeight: "600",
           }}
         >
-          Category
+          {fieldLabels.category}
         </label>
         <div className="relative flex-1" style={{ maxWidth: "300px" }}>
           <CategoryAutocomplete
@@ -702,7 +797,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               }
             }}
             friendId={friendId}
-            placeholder="Search category"
+            placeholder={fieldPlaceholders.category}
             size="medium"
           />
           {autoFilledFields.category && (
@@ -719,7 +814,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
               }}
             >
-              Auto-filled
+              {autoFilledLabel}
             </div>
           )}
         </div>
@@ -739,7 +834,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             fontWeight: "600",
           }}
         >
-          Payment Method
+          {fieldLabels.paymentMethod}
         </label>
         <div className="relative flex-1" style={{ maxWidth: "300px" }}>
           <PaymentMethodAutocomplete
@@ -763,7 +858,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             }}
             transactionType={expenseData.transactionType}
             friendId={friendId}
-            placeholder="Select payment method"
+            placeholder={fieldPlaceholders.paymentMethod}
             size="medium"
           />
           {autoFilledFields.paymentMethod && (
@@ -780,16 +875,13 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
               }}
             >
-              Auto-filled
+              {autoFilledLabel}
             </div>
           )}
         </div>
       </div>
     </div>
   );
-  // Use lowercase internal values for consistency (gain/loss)
-  const typeOptions = ["gain", "loss"];
-
   const renderTransactionTypeAutocomplete = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center relative">
@@ -802,15 +894,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
             fontWeight: "600",
           }}
         >
-          Transaction Type<span className="text-red-500"> *</span>
+          {fieldLabels.transactionType}
+          <span className="text-red-500"> *</span>
         </label>
         <div className="relative flex-1" style={{ maxWidth: "300px" }}>
           <Autocomplete
             autoHighlight
             options={typeOptions}
-            getOptionLabel={(option) =>
-              option.charAt(0).toUpperCase() + option.slice(1)
-            }
+            getOptionLabel={(option) => getTransactionTypeLabel(option)}
             value={(expenseData.transactionType || "loss").toLowerCase()}
             onInputChange={(event, newValue) => {
               setExpenseData((prev) => ({
@@ -847,7 +938,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 }));
               }
             }}
-            noOptionsText="No options found"
+            noOptionsText={noOptionsText}
             sx={{
               width: "100%",
               maxWidth: "300px",
@@ -888,7 +979,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Select transaction type"
+                placeholder={fieldPlaceholders.transactionType}
                 variant="outlined"
                 error={errors.transactionType}
                 InputProps={{
@@ -913,9 +1004,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   textOverflow: "ellipsis",
                   maxWidth: 300,
                 }}
-                title={option}
+                title={getTransactionTypeLabel(option)}
               >
-                {highlightText(option, inputValue)}
+                {highlightText(getTransactionTypeLabel(option), inputValue)}
               </li>
             )}
           />
@@ -933,7 +1024,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
               }}
             >
-              Auto-filled
+              {autoFilledLabel}
             </div>
           )}
         </div>
@@ -944,12 +1035,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const columns = useMemo(
     () => [
       {
-        header: "Name",
+        header: tableHeaders.name,
         accessorKey: "name",
         size: 150,
       },
       {
-        header: "In Budget",
+        header: tableHeaders.inBudget,
         accessorKey: "includeInBudget",
         size: 80,
         cell: ({ row }) => (
@@ -962,32 +1053,32 @@ const NewExpense = ({ onClose, onSuccess }) => {
         ),
       },
       {
-        header: "Description",
+        header: tableHeaders.description,
         accessorKey: "description",
         size: 200,
       },
       {
-        header: "Start Date",
+        header: tableHeaders.startDate,
         accessorKey: "startDate",
         size: 120,
       },
       {
-        header: "End Date",
+        header: tableHeaders.endDate,
         accessorKey: "endDate",
         size: 120,
       },
       {
-        header: "Remaining Amount",
+        header: tableHeaders.remainingAmount,
         accessorKey: "remainingAmount",
         size: 120,
       },
       {
-        header: "Amount",
+        header: tableHeaders.amount,
         accessorKey: "amount",
         size: 100,
       },
     ],
-    [checkboxStates]
+    [checkboxStates, tableHeaders]
   );
 
   // Highlight utility (used in renderOption functions)
@@ -1016,19 +1107,37 @@ const NewExpense = ({ onClose, onSuccess }) => {
   };
 
   // DataGrid columns for budgets
-  const dataGridColumns = [
-    { field: "name", headerName: "Name", flex: 1, minWidth: 120 },
-    { field: "description", headerName: "Description", flex: 1, minWidth: 120 },
-    { field: "startDate", headerName: "Start Date", flex: 1, minWidth: 100 },
-    { field: "endDate", headerName: "End Date", flex: 1, minWidth: 100 },
-    {
-      field: "remainingAmount",
-      headerName: "Remaining Amount",
-      flex: 1,
-      minWidth: 120,
-    },
-    { field: "amount", headerName: "Amount", flex: 1, minWidth: 100 },
-  ];
+  const dataGridColumns = useMemo(
+    () => [
+      { field: "name", headerName: tableHeaders.name, flex: 1, minWidth: 120 },
+      {
+        field: "description",
+        headerName: tableHeaders.description,
+        flex: 1,
+        minWidth: 120,
+      },
+      {
+        field: "startDate",
+        headerName: tableHeaders.startDate,
+        flex: 1,
+        minWidth: 100,
+      },
+      {
+        field: "endDate",
+        headerName: tableHeaders.endDate,
+        flex: 1,
+        minWidth: 100,
+      },
+      {
+        field: "remainingAmount",
+        headerName: tableHeaders.remainingAmount,
+        flex: 1,
+        minWidth: 120,
+      },
+      { field: "amount", headerName: tableHeaders.amount, flex: 1, minWidth: 100 },
+    ],
+    [tableHeaders]
+  );
 
   // DataGrid rows for budgets
   const dataGridRows = Array.isArray(budgets)
@@ -1094,7 +1203,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         }}
       >
         <PageHeader
-          title="New Expense"
+          title={pageTitle}
           onClose={() => {
             if (onClose) {
               onClose();
@@ -1112,7 +1221,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 variant="gradient"
                 showTooltip={true}
                 dateFormat={dateFormat}
-                label="Previously Added"
+                label={previouslyAddedLabel}
                 labelPosition="top"
                 icon="calendar"
                 tooltipConfig={{
@@ -1150,13 +1259,15 @@ const NewExpense = ({ onClose, onSuccess }) => {
         <div className="mt-4 sm:mt-[50px] w-full flex flex-col sm:flex-row items-center justify-between gap-2">
           <button
             onClick={handleLinkBudgets}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[150px]"
+            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-auto"
+            style={{ whiteSpace: "nowrap" }}
           >
-            Link Budgets
+            {linkBudgetsLabel}
           </button>
           {showTable && (
             <button
               onClick={handleCloseTable}
+              aria-label={closeLabel}
               className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a] mt-2 sm:mt-0 hidden sm:block"
             >
               X
@@ -1169,6 +1280,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               <div className="flex justify-end mb-2">
                 <button
                   onClick={handleCloseTable}
+                  aria-label={closeLabel}
                   className="px-2 py-1 rounded"
                   style={{
                     backgroundColor: colors.active_bg,
@@ -1184,7 +1296,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   className="text-center py-8"
                   style={{ color: colors.secondary_text }}
                 >
-                  No rows found
+                  {tableNoRowsText}
                 </div>
               ) : (
                 budgets.map((row, index) => (
@@ -1208,7 +1320,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                           style={{ color: colors.secondary_text }}
                           className="text-sm"
                         >
-                          In Budget
+                          {tableHeaders.inBudget}
                         </span>
                         <input
                           type="checkbox"
@@ -1223,23 +1335,33 @@ const NewExpense = ({ onClose, onSuccess }) => {
                       style={{ color: colors.secondary_text }}
                     >
                       <p>
-                        <span className="font-medium">Description:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.description}:
+                        </span>{" "}
                         {row.description}
                       </p>
                       <p>
-                        <span className="font-medium">Start Date:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.startDate}:
+                        </span>{" "}
                         {row.startDate}
                       </p>
                       <p>
-                        <span className="font-medium">End Date:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.endDate}:
+                        </span>{" "}
                         {row.endDate}
                       </p>
                       <p>
-                        <span className="font-medium">Remaining Amount:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.remainingAmount}:
+                        </span>{" "}
                         {row.remainingAmount}
                       </p>
                       <p>
-                        <span className="font-medium">Amount:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.amount}:
+                        </span>{" "}
                         {row.amount}
                       </p>
                     </div>
@@ -1266,6 +1388,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   selectionModel={selectedIds}
                   onRowSelectionModelChange={handleDataGridSelection}
                   pageSizeOptions={[5, 10, 20]}
+                  localeText={{ noRowsLabel: tableNoRowsText }}
                   initialState={{
                     pagination: {
                       paginationModel: { page: 0, pageSize: pageSize },
@@ -1291,12 +1414,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
         {budgetError && (
           <div className="text-red-500 text-sm mt-4">
-            Error:{" "}
+            {errorLoadingBudgets}: {" "}
             {typeof budgetError === "string"
               ? budgetError
-              : budgetError.message ||
-                budgetError.error ||
-                "Failed to load budgets."}
+              : budgetError.message || budgetError.error || tableNoRowsText}
           </div>
         )}
 
@@ -1304,9 +1425,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
           {hasWriteAccess && (
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px]"
+              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-auto"
+              style={{ whiteSpace: "nowrap" }}
             >
-              Submit
+              {submitLabel}
             </button>
           )}
         </div>

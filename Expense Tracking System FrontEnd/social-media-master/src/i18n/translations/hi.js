@@ -51,6 +51,63 @@ export const hi = {
     calendar: "कैलेंडर",
   },
 
+  // नया खर्च
+  newExpense: {
+    title: "नया खर्च",
+    header: {
+      previouslyAdded: "पहले जोड़ा गया",
+    },
+    indicators: {
+      autoFilled: "स्वतः भरा गया",
+    },
+    actions: {
+      linkBudgets: "बजट लिंक करें",
+      submit: "जमा करें",
+      successMessage: "खर्च सफलतापूर्वक बनाया गया!",
+    },
+    messages: {
+      errorLoadingBudgets: "बजट लोड नहीं हो पाए",
+    },
+    autocomplete: {
+      noOptions: "कोई विकल्प उपलब्ध नहीं",
+    },
+    fields: {
+      expenseName: "खर्च का नाम",
+      amount: "राशि",
+      date: "तारीख",
+      transactionType: "लेनदेन प्रकार",
+      category: "श्रेणी",
+      paymentMethod: "भुगतान विधि",
+      comments: "टिप्पणियाँ",
+    },
+    placeholders: {
+      expenseName: "खर्च का नाम दर्ज करें",
+      amount: "राशि दर्ज करें",
+      date: "तारीख चुनें",
+      transactionType: "लेनदेन प्रकार चुनें",
+      category: "श्रेणी चुनें",
+      paymentMethod: "भुगतान विधि चुनें",
+      comments: "टिप्पणी जोड़ें",
+      generic: "अपना {{field}} दर्ज करें",
+    },
+    table: {
+      headers: {
+        name: "नाम",
+        inBudget: "बजट में",
+        description: "विवरण",
+        startDate: "प्रारंभ तिथि",
+        endDate: "समाप्ति तिथि",
+        remainingAmount: "शेष राशि",
+        amount: "राशि",
+      },
+      noRows: "कोई पंक्ति नहीं मिली",
+    },
+    transactionTypes: {
+      gain: "लाभ",
+      loss: "हानि",
+    },
+  },
+
   // Cashflow
   cashflow: {
     searchPlaceholder: "खर्च खोजें...",

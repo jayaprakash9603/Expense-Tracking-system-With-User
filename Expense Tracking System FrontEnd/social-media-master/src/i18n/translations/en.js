@@ -216,6 +216,63 @@ export const en = {
     },
   },
 
+  // New Expense
+  newExpense: {
+    title: "New Expense",
+    header: {
+      previouslyAdded: "Previously Added",
+    },
+    indicators: {
+      autoFilled: "Auto-filled",
+    },
+    actions: {
+      linkBudgets: "Link Budgets",
+      submit: "Submit",
+      successMessage: "Expense created successfully!",
+    },
+    messages: {
+      errorLoadingBudgets: "Unable to load budgets",
+    },
+    autocomplete: {
+      noOptions: "No options",
+    },
+    fields: {
+      expenseName: "Expense Name",
+      amount: "Amount",
+      date: "Date",
+      transactionType: "Transaction Type",
+      category: "Category",
+      paymentMethod: "Payment Method",
+      comments: "Comments",
+    },
+    placeholders: {
+      expenseName: "Enter expense name",
+      amount: "Enter amount",
+      date: "Choose a date",
+      transactionType: "Select transaction type",
+      category: "Select category",
+      paymentMethod: "Select payment method",
+      comments: "Add a comment",
+      generic: "Enter your {{field}}",
+    },
+    table: {
+      headers: {
+        name: "Name",
+        inBudget: "In Budget",
+        description: "Description",
+        startDate: "Start Date",
+        endDate: "End Date",
+        remainingAmount: "Remaining Amount",
+        amount: "Amount",
+      },
+      noRows: "No rows found",
+    },
+    transactionTypes: {
+      gain: "Gain",
+      loss: "Loss",
+    },
+  },
+
   // Dashboard
   dashboard: {
     title: "Financial Dashboard",
