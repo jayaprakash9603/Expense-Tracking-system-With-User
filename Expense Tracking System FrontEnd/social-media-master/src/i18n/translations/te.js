@@ -27,6 +27,7 @@ export const te = {
     reset: "రీసెట్ చేయండి",
     yes: "అవును",
     no: "కాదు",
+    notAvailable: "అందుబాటులో లేదు",
   },
 
   // Navigation
@@ -163,6 +164,105 @@ export const te = {
     transactionTypes: {
       gain: "లాభం",
       loss: "నష్టం",
+    },
+  },
+
+  // కొత్త బడ్జెట్
+  newBudget: {
+    title: "కొత్త బడ్జెట్",
+    actions: {
+      linkExpenses: "ఖర్చులను లింక్ చేయండి",
+      submit: "సమర్పించండి",
+      submitting: "సమర్పిస్తోంది...",
+    },
+    messages: {
+      createSuccess: "బడ్జెట్ విజయవంతంగా సృష్టించబడింది!",
+      createError: "బడ్జెట్ సృష్టించడం విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+      expenseLoadError: "ఖర్చులను లోడ్ చేయలేకపోయాం.",
+    },
+    fields: {
+      name: "బడ్జెట్ పేరు",
+      description: "వివరణ",
+      startDate: "ప్రారంభ తేదీ",
+      endDate: "ముగింపు తేదీ",
+      amount: "మొత్తం",
+    },
+    placeholders: {
+      name: "బడ్జెట్ పేరును నమోదు చేయండి",
+      description: "వివరణను జోడించండి",
+      startDate: "ప్రారంభ తేదీని ఎంచుకోండి",
+      endDate: "ముగింపు తేదీని ఎంచుకోండి",
+      amount: "మొత్తం మొత్తాన్ని నమోదు చేయండి",
+      generic: "{{field}} ను నమోదు చేయండి",
+    },
+    validation: {
+      name: "బడ్జెట్ పేరు అవసరం",
+      description: "వివరణ అవసరం",
+      startDate: "ప్రారంభ తేదీ అవసరం",
+      endDate: "ముగింపు తేదీ అవసరం",
+      amount: "మొత్తం అవసరం",
+    },
+    table: {
+      headers: {
+        date: "తేదీ",
+        expenseName: "ఖర్చు పేరు",
+        amount: "మొత్తం",
+        paymentMethod: "చెల్లింపు విధానం",
+        type: "రకం",
+        comments: "వ్యాఖ్యలు",
+        inBudget: "బడ్జెట్‌లో",
+      },
+      noRows: "పంక్తులు కనబడలేదు",
+    },
+  },
+
+  // బడ్జెట్ సవరించండి
+  editBudget: {
+    title: "బడ్జెట్ సవరించండి",
+    actions: {
+      linkExpenses: "ఖర్చులను లింక్ చేయండి",
+      submit: "సమర్పించండి",
+      submitting: "సమర్పిస్తోంది...",
+    },
+    messages: {
+      updateSuccess: "బడ్జెట్ విజయవంతంగా నవీకరించబడింది!",
+      updateError: "బడ్జెట్ నవీకరణ విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+      expenseLoadError: "ఖర్చులను లోడ్ చేయలేకపోయాం.",
+      budgetLoadError: "బడ్జెట్ వివరాలను లోడ్ చేయలేకపోయాం.",
+    },
+    fields: {
+      name: "బడ్జెట్ పేరు",
+      description: "వివరణ",
+      startDate: "ప్రారంభ తేదీ",
+      endDate: "ముగింపు తేదీ",
+      amount: "మొత్తం",
+    },
+    placeholders: {
+      name: "బడ్జెట్ పేరును నమోదు చేయండి",
+      description: "వివరణను జోడించండి",
+      startDate: "ప్రారంభ తేదీని ఎంచుకోండి",
+      endDate: "ముగింపు తేదీని ఎంచుకోండి",
+      amount: "మొత్తం మొత్తాన్ని నమోదు చేయండి",
+      generic: "{{field}} ను నమోదు చేయండి",
+    },
+    validation: {
+      name: "బడ్జెట్ పేరు అవసరం",
+      description: "వివరణ అవసరం",
+      startDate: "ప్రారంభ తేదీ అవసరం",
+      endDate: "ముగింపు తేదీ అవసరం",
+      amount: "మొత్తం అవసరం",
+    },
+    table: {
+      headers: {
+        date: "తేదీ",
+        expenseName: "ఖర్చు పేరు",
+        amount: "మొత్తం",
+        paymentMethod: "చెల్లింపు విధానం",
+        type: "రకం",
+        comments: "వ్యాఖ్యలు",
+        inBudget: "బడ్జెట్‌లో",
+      },
+      noRows: "పంక్తులు కనబడలేదు",
     },
   },
 

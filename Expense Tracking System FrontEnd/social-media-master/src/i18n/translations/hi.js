@@ -27,6 +27,7 @@ export const hi = {
     reset: "रीसेट करें",
     yes: "हाँ",
     no: "नहीं",
+    notAvailable: "उपलब्ध नहीं",
   },
 
   // नेविगेशन
@@ -163,6 +164,105 @@ export const hi = {
     transactionTypes: {
       gain: "लाभ",
       loss: "हानि",
+    },
+  },
+
+  // नया बजट
+  newBudget: {
+    title: "नया बजट",
+    actions: {
+      linkExpenses: "खर्च लिंक करें",
+      submit: "जमा करें",
+      submitting: "जमा किया जा रहा है...",
+    },
+    messages: {
+      createSuccess: "बजट सफलतापूर्वक बनाया गया!",
+      createError: "बजट बनाने में विफल। कृपया पुनः प्रयास करें।",
+      expenseLoadError: "खर्च लोड नहीं हो पाए।",
+    },
+    fields: {
+      name: "बजट का नाम",
+      description: "विवरण",
+      startDate: "प्रारंभ तिथि",
+      endDate: "समाप्ति तिथि",
+      amount: "राशि",
+    },
+    placeholders: {
+      name: "बजट का नाम दर्ज करें",
+      description: "विवरण जोड़ें",
+      startDate: "प्रारंभ तिथि चुनें",
+      endDate: "समाप्ति तिथि चुनें",
+      amount: "कुल राशि दर्ज करें",
+      generic: "अपना {{field}} दर्ज करें",
+    },
+    validation: {
+      name: "बजट का नाम आवश्यक है।",
+      description: "विवरण आवश्यक है।",
+      startDate: "प्रारंभ तिथि आवश्यक है।",
+      endDate: "समाप्ति तिथि आवश्यक है।",
+      amount: "राशि आवश्यक है।",
+    },
+    table: {
+      headers: {
+        date: "तारीख",
+        expenseName: "खर्च का नाम",
+        amount: "राशि",
+        paymentMethod: "भुगतान विधि",
+        type: "प्रकार",
+        comments: "टिप्पणियाँ",
+        inBudget: "बजट में",
+      },
+      noRows: "कोई पंक्ति नहीं मिली",
+    },
+  },
+
+  // बजट संपादित करें
+  editBudget: {
+    title: "बजट संपादित करें",
+    actions: {
+      linkExpenses: "खर्च लिंक करें",
+      submit: "जमा करें",
+      submitting: "जमा किया जा रहा है...",
+    },
+    messages: {
+      updateSuccess: "बजट सफलतापूर्वक अपडेट किया गया!",
+      updateError: "बजट अपडेट नहीं हो पाया। कृपया पुनः प्रयास करें।",
+      expenseLoadError: "खर्च लोड नहीं हो पाए।",
+      budgetLoadError: "बजट विवरण लोड नहीं हो पाए।",
+    },
+    fields: {
+      name: "बजट का नाम",
+      description: "विवरण",
+      startDate: "प्रारंभ तिथि",
+      endDate: "समाप्ति तिथि",
+      amount: "राशि",
+    },
+    placeholders: {
+      name: "बजट का नाम दर्ज करें",
+      description: "विवरण जोड़ें",
+      startDate: "प्रारंभ तिथि चुनें",
+      endDate: "समाप्ति तिथि चुनें",
+      amount: "कुल राशि दर्ज करें",
+      generic: "अपना {{field}} दर्ज करें",
+    },
+    validation: {
+      name: "बजट का नाम आवश्यक है।",
+      description: "विवरण आवश्यक है।",
+      startDate: "प्रारंभ तिथि आवश्यक है।",
+      endDate: "समाप्ति तिथि आवश्यक है।",
+      amount: "राशि आवश्यक है।",
+    },
+    table: {
+      headers: {
+        date: "तारीख",
+        expenseName: "खर्च का नाम",
+        amount: "राशि",
+        paymentMethod: "भुगतान विधि",
+        type: "प्रकार",
+        comments: "टिप्पणियाँ",
+        inBudget: "बजट में",
+      },
+      noRows: "कोई पंक्ति नहीं मिली",
     },
   },
 

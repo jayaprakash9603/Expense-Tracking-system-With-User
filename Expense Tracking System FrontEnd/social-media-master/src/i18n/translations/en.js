@@ -27,6 +27,7 @@ export const en = {
     reset: "Reset",
     yes: "Yes",
     no: "No",
+    notAvailable: "N/A",
   },
 
   // Navigation
@@ -328,6 +329,105 @@ export const en = {
     transactionTypes: {
       gain: "Gain",
       loss: "Loss",
+    },
+  },
+
+  // New Budget
+  newBudget: {
+    title: "New Budget",
+    actions: {
+      linkExpenses: "Link Expenses",
+      submit: "Submit",
+      submitting: "Submitting...",
+    },
+    messages: {
+      createSuccess: "Budget created successfully!",
+      createError: "Failed to create budget. Please try again.",
+      expenseLoadError: "Unable to load expenses.",
+    },
+    fields: {
+      name: "Budget Name",
+      description: "Description",
+      startDate: "Start Date",
+      endDate: "End Date",
+      amount: "Amount",
+    },
+    placeholders: {
+      name: "Enter budget name",
+      description: "Add a description",
+      startDate: "Choose a start date",
+      endDate: "Choose an end date",
+      amount: "Enter total amount",
+      generic: "Enter your {{field}}",
+    },
+    validation: {
+      name: "Budget name is required.",
+      description: "Description is required.",
+      startDate: "Start date is required.",
+      endDate: "End date is required.",
+      amount: "Amount is required.",
+    },
+    table: {
+      headers: {
+        date: "Date",
+        expenseName: "Expense Name",
+        amount: "Amount",
+        paymentMethod: "Payment Method",
+        type: "Type",
+        comments: "Comments",
+        inBudget: "In Budget",
+      },
+      noRows: "No rows found",
+    },
+  },
+
+  // Edit Budget
+  editBudget: {
+    title: "Edit Budget",
+    actions: {
+      linkExpenses: "Link Expenses",
+      submit: "Submit",
+      submitting: "Submitting...",
+    },
+    messages: {
+      updateSuccess: "Budget updated successfully!",
+      updateError: "Failed to update budget. Please try again.",
+      expenseLoadError: "Unable to load expenses.",
+      budgetLoadError: "Unable to load budget details.",
+    },
+    fields: {
+      name: "Budget Name",
+      description: "Description",
+      startDate: "Start Date",
+      endDate: "End Date",
+      amount: "Amount",
+    },
+    placeholders: {
+      name: "Enter budget name",
+      description: "Add a description",
+      startDate: "Choose a start date",
+      endDate: "Choose an end date",
+      amount: "Enter total amount",
+      generic: "Enter your {{field}}",
+    },
+    validation: {
+      name: "Budget name is required.",
+      description: "Description is required.",
+      startDate: "Start date is required.",
+      endDate: "End date is required.",
+      amount: "Amount is required.",
+    },
+    table: {
+      headers: {
+        date: "Date",
+        expenseName: "Expense Name",
+        amount: "Amount",
+        paymentMethod: "Payment Method",
+        type: "Type",
+        comments: "Comments",
+        inBudget: "In Budget",
+      },
+      noRows: "No rows found",
     },
   },
 
