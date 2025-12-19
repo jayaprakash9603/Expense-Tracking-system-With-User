@@ -108,6 +108,64 @@ export const te = {
     },
   },
 
+  // ఖర్చు సవరించు
+  editExpense: {
+    title: "ఖర్చు సవరించు",
+    actions: {
+      linkBudgets: "బడ్జెట్లను లింక్ చేయండి",
+      submit: "సమర్పించండి",
+      successMessage: "ఖర్చు విజయవంతంగా నవీకరించబడింది!",
+    },
+    messages: {
+      updateError: "ఏదో తప్పు జరిగింది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+      errorLoadingBudgets: "బడ్జెట్లు లోడ్ చేయలేకపోయాం",
+    },
+    autocomplete: {
+      noOptions: "ఎంపికలు లేవు",
+    },
+    fields: {
+      expenseName: "ఖర్చు పేరు",
+      amount: "మొత్తం",
+      date: "తేదీ",
+      transactionType: "లావాదేవీ రకం",
+      category: "వర్గం",
+      paymentMethod: "చెల్లింపు విధానం",
+      comments: "వ్యాఖ్యలు",
+    },
+    placeholders: {
+      expenseName: "ఖర్చు పేరును నమోదు చేయండి",
+      amount: "మొత్తాన్ని నమోదు చేయండి",
+      date: "తేదీని ఎంచుకోండి",
+      transactionType: "లావాదేవీ రకాన్ని ఎంచుకోండి",
+      category: "వర్గాన్ని శోధించండి",
+      paymentMethod: "చెల్లింపు విధానాన్ని ఎంచుకోండి",
+      comments: "వ్యాఖ్యను జోడించండి (ఐచ్చికం)",
+      generic: "{{field}} ను నమోదు చేయండి",
+    },
+    validation: {
+      expenseName: "ఖర్చు పేరు అవసరం",
+      amount: "మొత్తం అవసరం",
+      date: "తేదీ అవసరం",
+      transactionType: "లావాదేవీ రకం అవసరం",
+    },
+    table: {
+      headers: {
+        name: "పేరు",
+        inBudget: "బడ్జెట్‌లో",
+        description: "వివరణ",
+        startDate: "ప్రారంభ తేదీ",
+        endDate: "ముగింపు తేదీ",
+        remainingAmount: "మిగిలిన మొత్తం",
+        amount: "మొత్తం",
+      },
+      noRows: "పంక్తులు కనబడలేదు",
+    },
+    transactionTypes: {
+      gain: "లాభం",
+      loss: "నష్టం",
+    },
+  },
+
   // Cashflow
   cashflow: {
     searchPlaceholder: "ఖర్చులను శోధించండి...",

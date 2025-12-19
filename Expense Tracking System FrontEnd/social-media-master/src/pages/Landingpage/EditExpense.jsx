@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { useTheme } from "../../hooks/useTheme";
@@ -28,21 +28,121 @@ import CategoryAutocomplete from "../../components/CategoryAutocomplete";
 import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import TextField from "@mui/material/TextField";
-import CircularProgress from "@mui/material/CircularProgress";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const EditExpense = ({}) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
+  const { t } = useTranslation();
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
-  const location = useLocation();
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
   const { id, friendId } = useParams();
   const { hasWriteAccess } = useFriendAccess(friendId);
+
+  const pageTitle = t("editExpense.title");
+  const linkBudgetsLabel = t("editExpense.actions.linkBudgets");
+  const submitLabel = t("editExpense.actions.submit");
+  const successMessage = t("editExpense.actions.successMessage");
+  const updateErrorMessage = t("editExpense.messages.updateError");
+  const errorLoadingBudgets = t("editExpense.messages.errorLoadingBudgets");
+  const noOptionsText = t("editExpense.autocomplete.noOptions");
+  const tableNoRowsText = t("editExpense.table.noRows");
+  const closeLabel = t("common.close");
+
+  const fieldLabels = useMemo(
+    () => ({
+      expenseName: t("editExpense.fields.expenseName"),
+      amount: t("editExpense.fields.amount"),
+      date: t("editExpense.fields.date"),
+      transactionType: t("editExpense.fields.transactionType"),
+      category: t("editExpense.fields.category"),
+      paymentMethod: t("editExpense.fields.paymentMethod"),
+      comments: t("editExpense.fields.comments"),
+    }),
+    [t]
+  );
+
+  const fieldPlaceholders = useMemo(
+    () => ({
+      expenseName: t("editExpense.placeholders.expenseName"),
+      amount: t("editExpense.placeholders.amount"),
+      date: t("editExpense.placeholders.date"),
+      transactionType: t("editExpense.placeholders.transactionType"),
+      category: t("editExpense.placeholders.category"),
+      paymentMethod: t("editExpense.placeholders.paymentMethod"),
+      comments: t("editExpense.placeholders.comments"),
+      generic: t("editExpense.placeholders.generic"),
+    }),
+    [t]
+  );
+
+  const validationMessages = useMemo(
+    () => ({
+      expenseName: t("editExpense.validation.expenseName"),
+      amount: t("editExpense.validation.amount"),
+      date: t("editExpense.validation.date"),
+      transactionType: t("editExpense.validation.transactionType"),
+    }),
+    [t]
+  );
+
+  const tableHeaders = useMemo(
+    () => ({
+      name: t("editExpense.table.headers.name"),
+      inBudget: t("editExpense.table.headers.inBudget"),
+      description: t("editExpense.table.headers.description"),
+      startDate: t("editExpense.table.headers.startDate"),
+      endDate: t("editExpense.table.headers.endDate"),
+      remainingAmount: t("editExpense.table.headers.remainingAmount"),
+      amount: t("editExpense.table.headers.amount"),
+    }),
+    [t]
+  );
+
+  const transactionTypeLabels = useMemo(
+    () => ({
+      gain: t("editExpense.transactionTypes.gain"),
+      loss: t("editExpense.transactionTypes.loss"),
+    }),
+    [t]
+  );
+
+  const typeOptions = ["gain", "loss"];
+
+  const formatLabelFromId = (value) =>
+    value
+      ? value
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase())
+      : "";
+
+  const getFieldLabel = (fieldId) =>
+    fieldLabels[fieldId] || formatLabelFromId(fieldId);
+
+  const getPlaceholder = (fieldId, fallbackLabel) => {
+    const resolvedLabel = fallbackLabel || formatLabelFromId(fieldId);
+    if (fieldPlaceholders[fieldId]) {
+      return fieldPlaceholders[fieldId];
+    }
+    if (fieldPlaceholders.generic) {
+      return fieldPlaceholders.generic.replace("{{field}}", resolvedLabel);
+    }
+    return resolvedLabel;
+  };
+
+  const getTransactionTypeLabel = (option) => {
+    if (!option) return "";
+    const key = option.toLowerCase();
+    return (
+      transactionTypeLabels[key] ||
+      option.charAt(0).toUpperCase() + option.slice(1)
+    );
+  };
 
   // Dynamic styles based on theme
   const fieldStyles = `px-3 py-2 rounded text-base sm:max-w-[300px] max-w-[200px] border-0`;
@@ -78,6 +178,7 @@ const EditExpense = ({}) => {
   const [errors, setErrors] = useState({});
   const [openToast, setOpenToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [toastSeverity, setToastSeverity] = useState("success");
   const [showTable, setShowTable] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
@@ -174,9 +275,11 @@ const EditExpense = ({}) => {
     e.preventDefault();
     const newErrors = {};
     if (!expenseData.expenseName)
-      newErrors.expenseName = "Expense title is required.";
-    if (!expenseData.amount) newErrors.amount = "Amount is required.";
-    if (!expenseData.date) newErrors.date = "Date is required.";
+      newErrors.expenseName = validationMessages.expenseName;
+    if (!expenseData.amount) newErrors.amount = validationMessages.amount;
+    if (!expenseData.date) newErrors.date = validationMessages.date;
+    if (!expenseData.transactionType)
+      newErrors.transactionType = validationMessages.transactionType;
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) return;
@@ -212,21 +315,21 @@ const EditExpense = ({}) => {
           friendId || ""
         )
       );
-      setToastMessage("Expense updated successfully!");
+      setToastMessage(successMessage);
+      setToastSeverity("success");
       setOpenToast(true);
       navigate(-1, {
-        state: { successMessage: "Expense updated successfully!" },
+        state: { successMessage },
       });
     } catch (err) {
       console.error("Error updating expense:", err);
-      setToastMessage("Something went wrong!");
+      setToastMessage(updateErrorMessage);
+      setToastSeverity("error");
       setOpenToast(true);
     }
   };
 
   const handleLinkBudgets = () => {
-    const fetchDate = expense?.date || today;
-
     setShowTable(true);
   };
 
@@ -270,63 +373,66 @@ const EditExpense = ({}) => {
   };
 
   // Render input fields with consistent style and required asterisk
-  const renderInput = (id, type = "text", isTextarea = false) => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center">
-        <label
-          htmlFor={id}
-          style={{ color: colors.primary_text, ...inputWrapper }}
-          className={labelStyle}
-        >
-          {id
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())}
-          {["expenseName", "amount", "date", "transactionType"].includes(
-            id
-          ) && <span className="text-red-500"> *</span>}
-        </label>
-        {isTextarea ? (
-          <textarea
-            id={id}
-            name={id}
-            value={expenseData[id]}
-            onChange={handleInputChange}
-            placeholder={`Enter ${id}`}
-            rows="3"
-            className={fieldStyles}
-            style={{
-              height: "80px",
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-              borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
-              borderWidth: errors[id] ? "2px" : "1px",
-            }}
-          />
-        ) : (
-          <input
-            id={id}
-            name={id}
-            type={type}
-            value={expenseData[id]}
-            onChange={handleInputChange}
-            placeholder={`Enter ${id}`}
-            className={fieldStyles}
-            style={{
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-              borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
-              borderWidth: errors[id] ? "2px" : "1px",
-            }}
-          />
+  const renderInput = (id, type = "text", isTextarea = false) => {
+    const labelText = getFieldLabel(id);
+    const placeholderText = getPlaceholder(id, labelText);
+
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="flex items-center">
+          <label
+            htmlFor={id}
+            style={{ color: colors.primary_text, ...inputWrapper }}
+            className={labelStyle}
+          >
+            {labelText}
+            {["expenseName", "amount", "date", "transactionType"].includes(
+              id
+            ) && <span className="text-red-500"> *</span>}
+          </label>
+          {isTextarea ? (
+            <textarea
+              id={id}
+              name={id}
+              value={expenseData[id]}
+              onChange={handleInputChange}
+              placeholder={placeholderText}
+              rows="3"
+              className={fieldStyles}
+              style={{
+                height: "80px",
+                backgroundColor: colors.primary_bg,
+                color: colors.primary_text,
+                borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
+                borderWidth: errors[id] ? "2px" : "1px",
+              }}
+            />
+          ) : (
+            <input
+              id={id}
+              name={id}
+              type={type}
+              value={expenseData[id]}
+              onChange={handleInputChange}
+              placeholder={placeholderText}
+              className={fieldStyles}
+              style={{
+                backgroundColor: colors.primary_bg,
+                color: colors.primary_text,
+                borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
+                borderWidth: errors[id] ? "2px" : "1px",
+              }}
+            />
+          )}
+        </div>
+        {errors[id] && (
+          <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
+            {errors[id]}
+          </span>
         )}
       </div>
-      {errors[id] && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors[id]}
-        </span>
-      )}
-    </div>
-  );
+    );
+  };
 
   const renderSelect = (id, options) => (
     <div className="flex flex-col flex-1">
@@ -336,9 +442,7 @@ const EditExpense = ({}) => {
           style={{ color: colors.primary_text, ...inputWrapper }}
           className={labelStyle}
         >
-          {id
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())}
+          {getFieldLabel(id)}
         </label>
         <select
           id={id}
@@ -374,7 +478,8 @@ const EditExpense = ({}) => {
           style={{ color: colors.primary_text, ...inputWrapper }}
           className={labelStyle}
         >
-          Date<span className="text-red-500"> *</span>
+          {fieldLabels.date}
+          <span className="text-red-500"> *</span>
         </label>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
@@ -404,6 +509,7 @@ const EditExpense = ({}) => {
               textField: {
                 size: "medium",
                 variant: "outlined",
+                placeholder: fieldPlaceholders.date,
                 sx: {
                   color: colors.primary_text,
                   height: 56,
@@ -447,7 +553,7 @@ const EditExpense = ({}) => {
           style={{ color: colors.primary_text, ...inputWrapper }}
           className={labelStyle}
         >
-          Category
+          {fieldLabels.category}
         </label>
         <CategoryAutocomplete
           value={expenseData.category}
@@ -458,7 +564,7 @@ const EditExpense = ({}) => {
             }));
           }}
           friendId={friendId}
-          placeholder="Search category"
+          placeholder={fieldPlaceholders.category}
           size="medium"
           error={!!errors.category}
         />
@@ -479,7 +585,7 @@ const EditExpense = ({}) => {
           style={{ color: colors.primary_text, ...inputWrapper }}
           className={labelStyle}
         >
-          Payment Method
+          {fieldLabels.paymentMethod}
         </label>
         <PaymentMethodAutocomplete
           value={expenseData.paymentMethod}
@@ -491,7 +597,7 @@ const EditExpense = ({}) => {
           }}
           transactionType={expenseData.transactionType}
           friendId={friendId}
-          placeholder="Select payment method"
+          placeholder={fieldPlaceholders.paymentMethod}
           size="medium"
         />
       </div>
@@ -518,6 +624,7 @@ const EditExpense = ({}) => {
           }}
           className="h-5 w-5 border-gray-700 rounded focus:ring-[#00dac6]"
           style={{ accentColor: "#00b8a0", marginLeft: 2, marginRight: 2 }}
+          aria-label={tableHeaders.inBudget}
         />
       ),
       flex: 0.25,
@@ -535,17 +642,37 @@ const EditExpense = ({}) => {
         />
       ),
     },
-    { field: "name", headerName: "Name", flex: 1, minWidth: 120 },
-    { field: "description", headerName: "Description", flex: 1, minWidth: 120 },
-    { field: "startDate", headerName: "Start Date", flex: 1, minWidth: 100 },
-    { field: "endDate", headerName: "End Date", flex: 1, minWidth: 100 },
+    { field: "name", headerName: tableHeaders.name, flex: 1, minWidth: 120 },
     {
-      field: "remainingAmount",
-      headerName: "Remaining Amount",
+      field: "description",
+      headerName: tableHeaders.description,
       flex: 1,
       minWidth: 120,
     },
-    { field: "amount", headerName: "Amount", flex: 1, minWidth: 100 },
+    {
+      field: "startDate",
+      headerName: tableHeaders.startDate,
+      flex: 1,
+      minWidth: 100,
+    },
+    {
+      field: "endDate",
+      headerName: tableHeaders.endDate,
+      flex: 1,
+      minWidth: 100,
+    },
+    {
+      field: "remainingAmount",
+      headerName: tableHeaders.remainingAmount,
+      flex: 1,
+      minWidth: 120,
+    },
+    {
+      field: "amount",
+      headerName: tableHeaders.amount,
+      flex: 1,
+      minWidth: 100,
+    },
   ];
 
   // DataGrid rows for budgets
@@ -574,12 +701,12 @@ const EditExpense = ({}) => {
   const columns = useMemo(
     () => [
       {
-        header: "Name",
+        header: tableHeaders.name,
         accessorKey: "name",
         size: 150,
       },
       {
-        header: "In Budget",
+        header: tableHeaders.inBudget,
         accessorKey: "includeInBudget",
         size: 80,
         cell: ({ row }) => (
@@ -592,32 +719,32 @@ const EditExpense = ({}) => {
         ),
       },
       {
-        header: "Description",
+        header: tableHeaders.description,
         accessorKey: "description",
         size: 200,
       },
       {
-        header: "Start Date",
+        header: tableHeaders.startDate,
         accessorKey: "startDate",
         size: 120,
       },
       {
-        header: "End Date",
+        header: tableHeaders.endDate,
         accessorKey: "endDate",
         size: 120,
       },
       {
-        header: "Remaining Amount",
+        header: tableHeaders.remainingAmount,
         accessorKey: "remainingAmount",
         size: 120,
       },
       {
-        header: "Amount",
+        header: tableHeaders.amount,
         accessorKey: "amount",
         size: 100,
       },
     ],
-    [checkboxStates]
+    [checkboxStates, tableHeaders]
   );
 
   const table = useReactTable({
@@ -652,7 +779,8 @@ const EditExpense = ({}) => {
           style={{ color: colors.primary_text, ...inputWrapper }}
           className={labelStyle}
         >
-          Expense Name<span className="text-red-500"> *</span>
+          {fieldLabels.expenseName}
+          <span className="text-red-500"> *</span>
         </label>
         <ExpenseNameAutocomplete
           value={expenseData.expenseName}
@@ -660,7 +788,7 @@ const EditExpense = ({}) => {
             setExpenseData((prev) => ({ ...prev, expenseName: val }))
           }
           friendId={friendId}
-          placeholder="Enter expense name"
+          placeholder={fieldPlaceholders.expenseName}
           error={!!errors.expenseName}
           size="medium"
         />
@@ -690,7 +818,7 @@ const EditExpense = ({}) => {
           padding: "20px",
         }}
       >
-        <PageHeader title="Edit Expense" onClose={handleOnClose} />
+        <PageHeader title={pageTitle} onClose={handleOnClose} />
 
         <div className={firstFormRow}>
           {/* Expense Name (MUI Autocomplete with suggestions) */}
@@ -716,9 +844,9 @@ const EditExpense = ({}) => {
                     amount: e.target.value,
                   }))
                 }
-                placeholder="Enter amount"
+                placeholder={fieldPlaceholders.amount}
                 variant="outlined"
-                error={errors.amount}
+                error={!!errors.amount}
                 InputProps={{
                   className: fieldStyles,
                   style: {
@@ -786,26 +914,27 @@ const EditExpense = ({}) => {
                 style={{ color: colors.primary_text, ...inputWrapper }}
                 className={labelStyle}
               >
-                Transaction Type<span className="text-red-500"> *</span>
+                {fieldLabels.transactionType}
+                <span className="text-red-500"> *</span>
               </label>
               <Autocomplete
                 autoHighlight
-                options={["Gain", "Loss"]}
-                getOptionLabel={(option) => option}
-                value={expenseData.transactionType || ""}
+                options={typeOptions}
+                getOptionLabel={(option) => getTransactionTypeLabel(option)}
+                value={(expenseData.transactionType || "").toLowerCase()}
                 onInputChange={(event, newValue) => {
                   setExpenseData((prev) => ({
                     ...prev,
-                    transactionType: newValue,
+                    transactionType: (newValue || "").toLowerCase(),
                   }));
                 }}
                 onChange={(event, newValue) => {
                   setExpenseData((prev) => ({
                     ...prev,
-                    transactionType: newValue,
+                    transactionType: (newValue || "").toLowerCase(),
                   }));
                 }}
-                noOptionsText="No options found"
+                noOptionsText={noOptionsText}
                 sx={{
                   width: "100%",
                   maxWidth: "300px",
@@ -843,9 +972,9 @@ const EditExpense = ({}) => {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Select transaction type"
+                    placeholder={fieldPlaceholders.transactionType}
                     variant="outlined"
-                    error={errors.transactionType}
+                    error={!!errors.transactionType}
                     InputProps={{
                       ...params.InputProps,
                       className: fieldStyles,
@@ -868,9 +997,9 @@ const EditExpense = ({}) => {
                       textOverflow: "ellipsis",
                       maxWidth: 300,
                     }}
-                    title={option}
+                    title={getTransactionTypeLabel(option)}
                   >
-                    {highlightText(option, inputValue)}
+                    {highlightText(getTransactionTypeLabel(option), inputValue)}
                   </li>
                 )}
               />
@@ -895,7 +1024,7 @@ const EditExpense = ({}) => {
                 style={{ color: colors.primary_text, ...inputWrapper }}
                 className={labelStyle}
               >
-                Comments
+                {fieldLabels.comments}
               </label>
               <TextField
                 id="comments"
@@ -907,7 +1036,7 @@ const EditExpense = ({}) => {
                     comments: e.target.value,
                   }))
                 }
-                placeholder="Enter comments (optional)"
+                placeholder={fieldPlaceholders.comments}
                 variant="outlined"
                 multiline
                 minRows={3}
@@ -949,13 +1078,15 @@ const EditExpense = ({}) => {
         <div className="mt-6 w-full flex flex-col sm:flex-row items-center justify-between gap-2">
           <button
             onClick={handleLinkBudgets}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[150px]"
+            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-auto"
+            style={{ whiteSpace: "nowrap" }}
           >
-            Link Budgets
+            {linkBudgetsLabel}
           </button>
           {showTable && (
             <button
               onClick={handleCloseTable}
+              aria-label={closeLabel}
               className="px-2 py-1 border rounded hover:bg-[#3a3a3a] mt-2 sm:mt-0 hidden sm:block"
               style={{
                 backgroundColor: colors.active_bg,
@@ -974,6 +1105,7 @@ const EditExpense = ({}) => {
               <div className="flex justify-end mb-2">
                 <button
                   onClick={handleCloseTable}
+                  aria-label={closeLabel}
                   className="px-2 py-1 border rounded hover:bg-[#3a3a3a]"
                   style={{
                     backgroundColor: colors.active_bg,
@@ -989,7 +1121,7 @@ const EditExpense = ({}) => {
                   style={{ color: colors.secondary_text }}
                   className="text-center py-8"
                 >
-                  No rows found
+                  {tableNoRowsText}
                 </div>
               ) : (
                 budgets.map((row, index) => (
@@ -1013,7 +1145,7 @@ const EditExpense = ({}) => {
                           style={{ color: colors.secondary_text }}
                           className="text-sm"
                         >
-                          In Budget
+                          {tableHeaders.inBudget}
                         </span>
                         <input
                           type="checkbox"
@@ -1028,23 +1160,33 @@ const EditExpense = ({}) => {
                       className="text-sm space-y-1"
                     >
                       <p>
-                        <span className="font-medium">Description:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.description}:
+                        </span>{" "}
                         {row.description}
                       </p>
                       <p>
-                        <span className="font-medium">Start Date:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.startDate}:
+                        </span>{" "}
                         {row.startDate}
                       </p>
                       <p>
-                        <span className="font-medium">End Date:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.endDate}:
+                        </span>{" "}
                         {row.endDate}
                       </p>
                       <p>
-                        <span className="font-medium">Remaining Amount:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.remainingAmount}:
+                        </span>{" "}
                         {row.remainingAmount}
                       </p>
                       <p>
-                        <span className="font-medium">Amount:</span>{" "}
+                        <span className="font-medium">
+                          {tableHeaders.amount}:
+                        </span>{" "}
                         {row.amount}
                       </p>
                     </div>
@@ -1070,6 +1212,7 @@ const EditExpense = ({}) => {
                   pageSizeOptions={[5, 10, 20]}
                   selectionModel={selectedIds}
                   onRowSelectionModelChange={handleDataGridSelection}
+                  localeText={{ noRowsLabel: tableNoRowsText }}
                   initialState={{
                     pagination: {
                       paginationModel: { page: 0, pageSize: pageSize },
@@ -1095,7 +1238,7 @@ const EditExpense = ({}) => {
 
         {budgetError && (
           <div className="text-red-500 text-sm mt-4">
-            Error: {budgetError.message || "Failed to load budgets."}
+            {errorLoadingBudgets}: {budgetError.message || tableNoRowsText}
           </div>
         )}
 
@@ -1103,9 +1246,10 @@ const EditExpense = ({}) => {
           {hasWriteAccess && (
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-[120px]"
+              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-auto"
+              style={{ whiteSpace: "nowrap" }}
             >
-              Submit
+              {submitLabel}
             </button>
           )}
         </div>
@@ -1227,7 +1371,7 @@ const EditExpense = ({}) => {
         >
           <MuiAlert
             onClose={() => setOpenToast(false)}
-            severity="success"
+            severity={toastSeverity}
             sx={{ width: "100%" }}
           >
             {toastMessage}
