@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{subject}}</title>
+    <style>
+      /* Basic resets */
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        color: #111827;
+      }
+
+      a {
+        color: #2563eb;
+        text-decoration: none;
+      }
+
+      /* Container */
+      .email-wrapper {
+        width: 100%;
+        background-color: #e5e7eb;
+        padding: 24px 8px;
+        box-sizing: border-box;
+      }
+
+      .email-container {
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+        overflow: hidden;
+      }
+
+      /* Header - simple brand bar */
+      .email-header {
+        padding: 18px 20px;
+        background: #111827;
+        color: #f9fafb;
+      }
+
+      .email-header-title {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .email-header-subtitle {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #9ca3af;
+      }
+
+      /* Body */
+      .email-body {
+        padding: 20px;
+        background: #f9fafb;
+      }
+
+      .section-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        padding: 16px 16px 14px 16px;
+        margin-bottom: 14px;
+      }
+
+      .section-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #4b5563;
+        margin-bottom: 4px;
+      }
+
+      .section-subtitle {
+        font-size: 11px;
+        color: #6b7280;
+        margin-bottom: 10px;
+      }
+
+      .summary-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 16px;
+      }
+
+      .summary-item {
+        flex: 1 1 150px;
+      }
+
+      .summary-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #9ca3af;
+        margin-bottom: 2px;
+      }
+
+      .summary-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .summary-value.negative {
+        color: #dc2626;
+      }
+
+      .summary-value.positive {
+        color: #16a34a;
+      }
+
+      /* Stats table */
+      .stats-table-wrapper {
+        margin-top: 10px;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+      }
+
+      table.stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      .stats-table thead {
+        background: #f3f4f6;
+      }
+
+      .stats-table th,
+      .stats-table td {
+        padding: 8px 10px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .stats-table th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+      }
+
+      .stats-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .stats-label {
+        color: #4b5563;
+      }
+
+      .stats-value {
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .stats-muted {
+        color: #9ca3af;
+      }
+
+      /* Footer */
+      .email-footer {
+        padding: 14px 20px 18px 20px;
+        font-size: 11px;
+        color: #9ca3af;
+        background: #ffffff;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .footer-brand {
+        font-weight: 600;
+        color: #4b5563;
+        margin-bottom: 4px;
+      }
+
+      .footer-links {
+        margin-top: 8px;
+      }
+
+      .footer-links a {
+        color: #6b7280;
+        margin-right: 12px;
+        font-size: 11px;
+      }
+
+      /* Responsive */
+      @media (max-width: 600px) {
+        .email-body {
+          padding: 14px;
+        }
+        .summary-item {
+          flex: 1 1 100%;
+        }
+        .stats-table th,
+        .stats-table td {
+          padding: 6px 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-wrapper">
+      <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+          <div class="email-header-title">Expensio Finance</div>
+          <div class="email-header-subtitle">{{subject}}</div>
+        </div>
+
+        <!-- Body -->
+        <div class="email-body">
+          <!-- High-level snapshot -->
+          <div class="section-card">
+            <div class="section-title">Overview</div>
+            <div class="summary-row">
+              <div class="summary-item">
+                <div class="summary-label">Total expenses</div>
+                <div class="summary-value negative">{{totalExpenses}}</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Total bills</div>
+                <div class="summary-value">{{totalBills}}</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Total expense</div>
+                <div class="summary-value negative">{{totalExpenseAmount}}</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Total bill</div>
+                <div class="summary-value">{{totalBillAmount}}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detailed stats table -->
+          <div class="section-card">
+            <div class="section-title">Summary</div>
+            <div class="section-subtitle">
+              Key metrics from your attached <strong>Expenses</strong> and
+              <strong>Bills</strong> reports.
+            </div>
+            <div class="stats-table-wrapper">
+              <table class="stats-table" role="presentation">
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                    <th class="stats-muted">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="stats-label">Highest Expense</td>
+                    <td class="stats-value">{{maxExpenseAmount}}</td>
+                    <td class="stats-muted">{{maxExpenseCategory}}</td>
+                  </tr>
+                  <tr>
+                    <td class="stats-label">Average Expense</td>
+                    <td class="stats-value">{{avgExpenseAmount}}</td>
+                    <td class="stats-muted">Across all recorded expenses</td>
+                  </tr>
+                  <tr>
+                    <td class="stats-label">Highest Bill</td>
+                    <td class="stats-value">{{maxBillAmount}}</td>
+                    <td class="stats-muted">Type: {{maxBillType}}</td>
+                  </tr>
+                  <tr>
+                    <td class="stats-label">Average Bill</td>
+                    <td class="stats-value">{{avgBillAmount}}</td>
+                    <td class="stats-muted">Across all recorded bills</td>
+                  </tr>
+                  <tr>
+                    <td class="stats-label">Most used payment method</td>
+                    <td class="stats-value">{{topPaymentMethod}}</td>
+                    <td class="stats-muted">Combined for expenses + bills</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Explanation -->
+          <div class="section-card">
+            <div class="section-title">How to use this email</div>
+            <div class="section-subtitle">
+              Your Excel attachments contain the full, row-by-row details.
+            </div>
+            <p
+              style="
+                font-size: 11px;
+                color: #4b5563;
+                line-height: 1.6;
+                margin: 0 0 6px 0;
+              "
+            >
+              • Open the <strong>Expenses</strong> file to review individual
+              transactions, categories and payment methods.
+            </p>
+            <p
+              style="
+                font-size: 11px;
+                color: #4b5563;
+                line-height: 1.6;
+                margin: 0 0 6px 0;
+              "
+            >
+              • Open the <strong>Bills</strong> file to see due dates, recurring
+              payments and outstanding amounts.
+            </p>
+            <p
+              style="
+                font-size: 11px;
+                color: #4b5563;
+                line-height: 1.6;
+                margin: 0;
+              "
+            >
+              • Use filters and pivot tables in Excel or Google Sheets to
+              explore trends by month, category or payment method.
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="email-footer">
+          <div class="footer-brand">Expensio Finance</div>
+          <div>Smart expense tracking, budgets & insights.</div>
+          <div style="margin-top: 6px">
+            © {{year}} Expensio. All rights reserved.
+          </div>
+          <div class="footer-links">
+            <a href="{{settingsUrl}}">Notification settings</a>
+            <a href="{{privacyUrl}}">Privacy</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

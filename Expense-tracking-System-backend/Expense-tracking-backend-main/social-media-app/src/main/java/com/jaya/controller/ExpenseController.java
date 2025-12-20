@@ -1043,7 +1043,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+    User targetUser = getTargetUserWithPermission(jwt, targetId, false);
     String reportName = "All Expenses Report";
     String reportType = "All Expenses";
     String expensesFileName = "all_expenses.xlsx";
@@ -1055,41 +1055,171 @@ public class ExpenseController extends BaseExpenseController {
             if (expenseReportPath == null || expenseReportPath.isBlank()) {
                 throw new RuntimeException("Expense report service returned empty path for Excel export");
             }
-            byte[] expenseBytes = Files.readAllBytes(Path.of(expenseReportPath.trim()));
+        byte[] expenseBytes = Files.readAllBytes(Path.of(expenseReportPath.trim()));
 
-            // Still fetch expenses list for logging count
-            List<Expense> expenses = expenseService.getAllExpenses(targetUser.getId());
+        // Fetch expenses list for logging & stats
+        List<Expense> expenses = expenseService.getAllExpenses(targetUser.getId());
 
-            // 2) Call Bill-Service export endpoint via Feign to generate bills Excel
-            //    The Bill service returns a message like
-            //    "Excel file generated successfully at: C:\\path\\file.xlsx"
-            String billsResponse = billExportClient.exportUserBillsToExcel(jwt, null);
-            if (billsResponse == null || billsResponse.isBlank()) {
-                throw new RuntimeException("Bill-Service returned empty response for Excel export");
+        // Compute expense stats based on linked ExpenseDetails
+        double totalExpenseAmount = expenses.stream()
+            .map(Expense::getExpense)
+            .filter(Objects::nonNull)
+            .mapToDouble(ExpenseDetails::getAmount)
+            .sum();
+
+        Optional<ExpenseDetails> maxExpenseDetailsOpt = expenses.stream()
+            .map(Expense::getExpense)
+            .filter(Objects::nonNull)
+            .max(Comparator.comparingDouble(ExpenseDetails::getAmount));
+
+    double avgExpenseAmount = expenses.isEmpty() ? 0.0 : totalExpenseAmount / expenses.size();
+
+    // Round all numeric stats to whole numbers for email display
+    long totalExpenseAmountRounded = Math.round(totalExpenseAmount);
+    long avgExpenseAmountRounded = Math.round(avgExpenseAmount);
+
+            // Defaults for the case when there are no bills or Bill-Service errors
+            byte[] billsBytes = null;
+            List<Object> rawBills = java.util.Collections.emptyList();
+
+            try {
+                // 2) Call Bill-Service export endpoint via Feign to generate bills Excel
+                //    The Bill service returns a message like
+                //    "Excel file generated successfully at: C:\\path\\file.xlsx"
+                String billsResponse = billExportClient.exportUserBillsToExcel(jwt, null);
+                if (billsResponse != null && !billsResponse.isBlank()) {
+
+                    String billsFilePath = billsResponse;
+                    int idx = billsResponse.indexOf("C:");
+                    if (idx >= 0) {
+                        billsFilePath = billsResponse.substring(idx).trim();
+                    }
+
+                    if (!billsFilePath.isBlank()) {
+                        billsBytes = Files.readAllBytes(Path.of(billsFilePath));
+                    }
+                }
+
+                // Fetch bills for stats using Feign (respecting same targetId rules)
+                rawBills = billExportClient.getAllBills(jwt, targetId);
+            } catch (Exception billEx) {
+                // If Bill-Service returns 400 (e.g., no bills) or any other error,
+                // we gracefully continue with just expenses.
+                billsBytes = null;
+                rawBills = java.util.Collections.emptyList();
             }
 
-            String billsFilePath = billsResponse;
-            int idx = billsResponse.indexOf("C:");
-            if (idx >= 0) {
-                billsFilePath = billsResponse.substring(idx).trim();
+            // Safely map rawBills into a lightweight view to avoid compile-time
+            // dependency on Bill entity from another module.
+            class BillView {
+                final double amount;
+                final String name;
+                final String paymentMethod;
+
+                BillView(double amount, String name, String paymentMethod) {
+                    this.amount = amount;
+                    this.name = name;
+                    this.paymentMethod = paymentMethod;
+                }
             }
 
-            if (billsFilePath.isBlank()) {
-                throw new RuntimeException("Could not extract bill Excel path from Bill-Service response: " + billsResponse);
+            List<BillView> bills = new ArrayList<>();
+            if (rawBills != null) {
+                for (Object o : rawBills) {
+                    if (o instanceof Map) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> m = (Map<String, Object>) o;
+                        double amount = 0.0;
+                        Object amountVal = m.get("amount");
+                        if (amountVal instanceof Number) {
+                            amount = ((Number) amountVal).doubleValue();
+                        }
+                        String name = Objects.toString(m.get("name"), null);
+                        String paymentMethod = Objects.toString(m.get("paymentMethod"), null);
+                        bills.add(new BillView(amount, name, paymentMethod));
+                    }
+                }
             }
 
-            byte[] billsBytes = Files.readAllBytes(Path.of(billsFilePath));
+        long totalBillsCount = bills.size();
+        double totalBillAmount = bills.stream()
+            .mapToDouble(b -> b.amount)
+            .sum();
+
+            Optional<BillView> maxBillOpt = bills.isEmpty() ? Optional.empty()
+                    : bills.stream().max(Comparator.comparingDouble(b -> b.amount));
+
+            double avgBillAmount = bills.isEmpty() ? 0.0 : totalBillAmount / bills.size();
+
+            long totalBillAmountRounded = Math.round(totalBillAmount);
+            long avgBillAmountRounded = Math.round(avgBillAmount);
+
+            // Combine payment methods from expenses and bills for a unified "top" method
+        Map<String, Long> paymentMethodFrequency = new HashMap<>();
+
+        expenses.stream()
+            .map(Expense::getExpense)
+            .filter(Objects::nonNull)
+            .map(ExpenseDetails::getPaymentMethod)
+            .filter(Objects::nonNull)
+            .forEach(pm -> paymentMethodFrequency.merge(pm, 1L, Long::sum));
+
+        bills.stream()
+            .map(b -> b.paymentMethod)
+            .filter(Objects::nonNull)
+            .forEach(pm -> paymentMethodFrequency.merge(pm, 1L, Long::sum));
+
+        String topPaymentMethodCombined = paymentMethodFrequency.entrySet().stream()
+            .max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey)
+            .orElse("—");
 
         // 3) Build attachments map and send single email containing both files
         Map<String, org.springframework.core.io.ByteArrayResource> attachments = new HashMap<>();
         attachments.put(expensesFileName, new ByteArrayResource(expenseBytes));
-        attachments.put(billsFileName, new ByteArrayResource(billsBytes));
+        if (billsBytes != null) {
+            attachments.put(billsFileName, new ByteArrayResource(billsBytes));
+        }
 
-        String subject = reportName;
+        // Build subject with generated time (12-hour format hh:mm:ss a)
+        LocalDateTime generatedAt = LocalDateTime.now();
+        java.time.format.DateTimeFormatter timeFormatter = java.time.format.DateTimeFormatter
+            .ofPattern("hh:mm:ss a");
+        String timeLabel = generatedAt.format(timeFormatter);
+        String subject = reportName + " - Generated at " + timeLabel;
+
+        // Build rich HTML body using the shared template
+        Map<String, String> templateVars = new HashMap<>();
+        templateVars.put("subject", subject);
+        templateVars.put("tagline", "All expenses & bills");
+        templateVars.put("headline", "Your consolidated");
+        templateVars.put("headlineAccent", "money overview");
+        templateVars.put("subHeadline", "A complete Excel snapshot of your expenses and bill payments.");
+        templateVars.put("reportRange", "All expenses");
+        templateVars.put("totalExpenses", String.valueOf(expenses.size()));
+        templateVars.put("totalBills", String.valueOf(totalBillsCount));
+        templateVars.put("generatedOn", timeLabel);
+        templateVars.put("totalExpenseAmount", Long.toString(totalExpenseAmountRounded));
+        templateVars.put("totalBillAmount", Long.toString(totalBillAmountRounded));
+        templateVars.put("maxExpenseAmount", maxExpenseDetailsOpt
+            .map(d -> Long.toString(Math.round(d.getAmount()))).orElse("—"));
+        templateVars.put("maxExpenseCategory", maxExpenseDetailsOpt.map(ExpenseDetails::getExpenseName)
+            .orElse("—"));
+        templateVars.put("avgExpenseAmount", Long.toString(avgExpenseAmountRounded));
+        templateVars.put("maxBillAmount", maxBillOpt
+            .map(b -> Long.toString(Math.round(b.amount)))
+            .orElse("—"));
+        templateVars.put("maxBillType",
+            maxBillOpt.map(b -> b.name).orElse("—"));
+        templateVars.put("avgBillAmount", Long.toString(avgBillAmountRounded));
+        templateVars.put("topPaymentMethod", topPaymentMethodCombined);
+        templateVars.put("ctaUrl", "https://localhost:3000");
+        String htmlBody = emailService.buildBaseTemplateBody(templateVars);
+
         emailService.sendEmailWithAttachments(
             email,
             subject,
-            "Please find attached the list of all expenses and related bills.",
+            htmlBody,
             attachments);
 
         // Log successful report generation (store primary attachment name + count)
