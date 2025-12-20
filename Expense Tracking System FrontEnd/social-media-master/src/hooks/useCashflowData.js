@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useDeferredValue } from "react";
+import { useState, useEffect, useMemo, useDeferredValue, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { fetchCashflowExpenses } from "../Redux/Expenses/expense.action";
@@ -24,15 +24,109 @@ const buildSearchBlob = (item) => {
     .join("|");
 };
 
+const VIEW_STATE_DEFAULTS = {
+  activeRange: "month",
+  offset: 0,
+  flowTab: "all",
+};
+
+const VALID_RANGES = new Set(["week", "month", "year"]);
+const VALID_FLOW_TABS = new Set(["all", "inflow", "outflow"]);
+
+const getCashflowViewStorageKey = (friendId, isFriendView) => {
+  const scope = isFriendView
+    ? `friend-${friendId || "unknown"}`
+    : "self";
+  return `cashflow:view-state:${scope}`;
+};
+
+const sanitizeViewState = (state = VIEW_STATE_DEFAULTS) => ({
+  activeRange: VALID_RANGES.has(state.activeRange)
+    ? state.activeRange
+    : VIEW_STATE_DEFAULTS.activeRange,
+  offset:
+    typeof state.offset === "number" && Number.isFinite(state.offset)
+      ? state.offset
+      : VIEW_STATE_DEFAULTS.offset,
+  flowTab: VALID_FLOW_TABS.has(state.flowTab)
+    ? state.flowTab
+    : VIEW_STATE_DEFAULTS.flowTab,
+});
+
+const readPersistedViewState = (key) => {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return { ...VIEW_STATE_DEFAULTS };
+  }
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) {
+      return { ...VIEW_STATE_DEFAULTS };
+    }
+    const parsed = JSON.parse(raw);
+    return sanitizeViewState(parsed);
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Failed to parse cashflow view state", error);
+    }
+    return { ...VIEW_STATE_DEFAULTS };
+  }
+};
+
+const persistViewState = (key, state) => {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  try {
+    window.localStorage.setItem(key, JSON.stringify(sanitizeViewState(state)));
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Failed to persist cashflow view state", error);
+    }
+  }
+};
+
 export default function useCashflowData({ friendId, isFriendView, search }) {
   const dispatch = useDispatch();
-  // Default to 'month' to align with CategoryFlow initial range
-  const [activeRange, setActiveRange] = useState("month");
-  const [offset, setOffset] = useState(0);
-  const [flowTab, setFlowTab] = useState("all");
+  const storageKey = getCashflowViewStorageKey(friendId, isFriendView);
+  const initialViewState = useMemo(
+    () => readPersistedViewState(storageKey),
+    [storageKey]
+  );
+  const [activeRange, setActiveRange] = useState(
+    initialViewState.activeRange
+  );
+  const [offset, setOffset] = useState(initialViewState.offset);
+  const [flowTab, setFlowTab] = useState(initialViewState.flowTab);
   const { cashflowExpenses, loading } = useSelector((s) => s.expenses || {});
   const { settings } = useSelector((s) => s.userSettings || {});
   const maskSensitiveData = settings?.maskSensitiveData;
+  const skipOffsetResetRef = useRef(true);
+  const previousStorageKeyRef = useRef(storageKey);
+  const hydratedStorageKeyRef = useRef(storageKey);
+
+  useEffect(() => {
+    if (hydratedStorageKeyRef.current !== storageKey) {
+      return;
+    }
+    persistViewState(storageKey, { activeRange, offset, flowTab });
+  }, [storageKey, activeRange, offset, flowTab]);
+
+  useEffect(() => {
+    if (previousStorageKeyRef.current === storageKey) {
+      return;
+    }
+    previousStorageKeyRef.current = storageKey;
+    const persisted = readPersistedViewState(storageKey);
+    skipOffsetResetRef.current = true;
+    setActiveRange((prev) =>
+      prev === persisted.activeRange ? prev : persisted.activeRange
+    );
+    setOffset((prev) => (prev === persisted.offset ? prev : persisted.offset));
+    setFlowTab((prev) =>
+      prev === persisted.flowTab ? prev : persisted.flowTab
+    );
+    hydratedStorageKeyRef.current = storageKey;
+  }, [storageKey]);
 
   // fetch
   useEffect(() => {
@@ -59,6 +153,10 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
 
   // reset offset when range changes
   useEffect(() => {
+    if (skipOffsetResetRef.current) {
+      skipOffsetResetRef.current = false;
+      return;
+    }
     setOffset(0);
   }, [activeRange]);
 
