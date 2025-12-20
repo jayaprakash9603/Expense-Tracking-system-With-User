@@ -86,18 +86,17 @@ function CashFlowExpenseCards({
       return [];
     }
 
-    const maxIndex = data?.length ?? 0;
     const seen = new Set();
     return selectedCardIdx.filter((idx) => {
       const isValidIndex =
-        typeof idx === "number" && idx >= 0 && idx < maxIndex;
+        typeof idx === "number" && Number.isFinite(idx) && idx >= 0;
       if (!isValidIndex || seen.has(idx)) {
         return false;
       }
       seen.add(idx);
       return true;
     });
-  }, [selectedCardIdx, data.length]);
+  }, [selectedCardIdx]);
 
   const selectedIndicesSet = React.useMemo(
     () => new Set(normalizedSelectedCardIdx),
