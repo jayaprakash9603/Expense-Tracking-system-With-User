@@ -33,6 +33,8 @@ import jakarta.mail.MessagingException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -59,6 +61,7 @@ public class ExpenseController extends BaseExpenseController {
     private final TaskExecutor taskExecutor;
     private final ExpenseNotificationService expenseNotificationService;
     private final ReportHistoryService reportHistoryService;
+    private final com.jaya.service.BillExportClient billExportClient;
 
     @Autowired
     public ExpenseController(ExpenseService expenseService,
@@ -73,7 +76,8 @@ public class ExpenseController extends BaseExpenseController {
             BulkProgressTracker progressTracker,
             TaskExecutor taskExecutor,
             ExpenseNotificationService expenseNotificationService,
-            ReportHistoryService reportHistoryService) {
+            ReportHistoryService reportHistoryService,
+            com.jaya.service.BillExportClient billExportClient) {
         this.helper = helper;
         this.userService = userService;
         this.excelService = excelService;
@@ -83,6 +87,7 @@ public class ExpenseController extends BaseExpenseController {
         this.taskExecutor = taskExecutor;
         this.expenseNotificationService = expenseNotificationService;
         this.reportHistoryService = reportHistoryService;
+    this.billExportClient = billExportClient;
     }
 
     @PostMapping("/add-expense")
@@ -1039,33 +1044,64 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         User targetUser = getTargetUserWithPermission(jwt, targetId, false);
-        String reportName = "All Expenses Report";
-        String reportType = "All Expenses";
-        String fileName = "all_expenses.xlsx";
+    String reportName = "All Expenses Report";
+    String reportType = "All Expenses";
+    String expensesFileName = "all_expenses.xlsx";
+    String billsFileName = "all_bills.xlsx";
 
         try {
+            // 1) Generate expenses Excel file on disk via existing report service
+            String expenseReportPath = expenseService.generateExcelReport(targetUser.getId());
+            if (expenseReportPath == null || expenseReportPath.isBlank()) {
+                throw new RuntimeException("Expense report service returned empty path for Excel export");
+            }
+            byte[] expenseBytes = Files.readAllBytes(Path.of(expenseReportPath.trim()));
+
+            // Still fetch expenses list for logging count
             List<Expense> expenses = expenseService.getAllExpenses(targetUser.getId());
-            ByteArrayInputStream in = excelService.generateExcel(expenses);
-            byte[] bytes = in.readAllBytes();
 
-            String subject = reportName;
-            emailService.sendEmailWithAttachment(
-                    email,
-                    subject,
-                    "Please find attached the list of all expenses.",
-                    new ByteArrayResource(bytes),
-                    fileName);
+            // 2) Call Bill-Service export endpoint via Feign to generate bills Excel
+            //    The Bill service returns a message like
+            //    "Excel file generated successfully at: C:\\path\\file.xlsx"
+            String billsResponse = billExportClient.exportUserBillsToExcel(jwt, null);
+            if (billsResponse == null || billsResponse.isBlank()) {
+                throw new RuntimeException("Bill-Service returned empty response for Excel export");
+            }
 
-            // Log successful report generation
-            reportHistoryService.logReportSuccess(
-                    targetUser,
-                    reportName,
-                    reportType,
-                    "Complete list of all expenses",
-                    email,
-                    expenses.size(),
-                    fileName,
-                    null);
+            String billsFilePath = billsResponse;
+            int idx = billsResponse.indexOf("C:");
+            if (idx >= 0) {
+                billsFilePath = billsResponse.substring(idx).trim();
+            }
+
+            if (billsFilePath.isBlank()) {
+                throw new RuntimeException("Could not extract bill Excel path from Bill-Service response: " + billsResponse);
+            }
+
+            byte[] billsBytes = Files.readAllBytes(Path.of(billsFilePath));
+
+        // 3) Build attachments map and send single email containing both files
+        Map<String, org.springframework.core.io.ByteArrayResource> attachments = new HashMap<>();
+        attachments.put(expensesFileName, new ByteArrayResource(expenseBytes));
+        attachments.put(billsFileName, new ByteArrayResource(billsBytes));
+
+        String subject = reportName;
+        emailService.sendEmailWithAttachments(
+            email,
+            subject,
+            "Please find attached the list of all expenses and related bills.",
+            attachments);
+
+        // Log successful report generation (store primary attachment name + count)
+        reportHistoryService.logReportSuccess(
+            targetUser,
+            reportName,
+            reportType,
+            "Complete list of all expenses and bills",
+            email,
+            expenses.size(),
+            expensesFileName + "," + billsFileName,
+            null);
 
             return ResponseEntity.ok("Email sent successfully");
 

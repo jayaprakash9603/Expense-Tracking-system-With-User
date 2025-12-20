@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 @Service
 public class EmailService {
 
@@ -56,6 +58,50 @@ public class EmailService {
         attachmentDetails.put("filename", attachmentFilename);
         attachmentDetails.put("size", String.valueOf(attachment.contentLength()));
 
+        emailLog.setAttachmentDetails(attachmentDetails);
+
+        emailLogRepository.save(emailLog);
+    }
+
+    /**
+     * Send an email with multiple attachments.
+     * This is used when we need to attach both expenses and bills Excel reports
+     * in a single email (e.g. "All Expenses" case on the frontend).
+     */
+    public void sendEmailWithAttachments(String to,
+                                         String subject,
+                                         String text,
+                                         Map<String, ByteArrayResource> attachments) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        helper.setFrom("jjayaprakash2002@gmail.com");
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(text);
+
+        if (attachments != null) {
+            for (Map.Entry<String, ByteArrayResource> entry : attachments.entrySet()) {
+                String filename = requireNonNull(entry.getKey(), "Attachment filename must not be null");
+                ByteArrayResource resource = requireNonNull(entry.getValue(), "Attachment resource must not be null");
+                helper.addAttachment(filename, resource);
+            }
+        }
+
+        mailSender.send(message);
+
+        // Log the email sending history with attachment metadata
+        EmailLog emailLog = new EmailLog();
+        emailLog.setToEmail(to);
+        emailLog.setSubject(subject);
+        emailLog.setText(text);
+        emailLog.setSentAt(LocalDateTime.now());
+
+        Map<String, String> attachmentDetails = new HashMap<>();
+        if (attachments != null) {
+            // Store comma-separated filenames; sizes are not cheap to read from ByteArrayResource
+            String filenames = String.join(",", attachments.keySet());
+            attachmentDetails.put("filenames", filenames);
+        }
         emailLog.setAttachmentDetails(attachmentDetails);
 
         emailLogRepository.save(emailLog);
