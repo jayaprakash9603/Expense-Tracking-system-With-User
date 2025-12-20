@@ -266,6 +266,147 @@ export const te = {
     },
   },
 
+  // బిల్లు సంబంధిత అనువాదాలు
+  billCommon: {
+    fields: {
+      name: "బిల్లు పేరు",
+      description: "వివరణ",
+      date: "తేదీ",
+      paymentMethod: "చెల్లింపు విధానం",
+      type: "రకం",
+      category: "వర్గం",
+    },
+    placeholders: {
+      billName: "బిల్లు పేరును నమోదు చేయండి",
+      searchBillName: "బిల్లు పేరును శోధించండి లేదా టైప్ చేయండి",
+      description: "వివరణను నమోదు చేయండి",
+      paymentMethod: "చెల్లింపు విధానాన్ని ఎంచుకోండి",
+      type: "రకాన్ని ఎంచుకోండి",
+      category: "వర్గాన్ని శోధించండి",
+      itemName: "అంశం పేరు",
+      quantity: "పరిమాణం *",
+      unitPrice: "యూనిట్ ధర *",
+      comments: "వ్యాఖ్యలు",
+    },
+    typeOptions: {
+      gain: "లాభం",
+      loss: "నష్టం",
+    },
+    indicators: {
+      previouslyAdded: "మునుపు జోడించబడింది",
+      autoFilled: "స్వయంచాలకంగా నింపబడింది",
+    },
+    actions: {
+      linkBudgets: "బడ్జెట్‌లను లింక్ చేయండి",
+      hideBudgets: "బడ్జెట్‌లను దాచండి",
+      addExpenses: "ఖర్చు అంశాలను జోడించండి",
+      editExpenses: "ఖర్చు అంశాలను సవరించండి",
+      hideExpenses: "ఖర్చు అంశాలను దాచండి",
+      addRow: "వరుసను జోడించండి",
+      saveExpenses: "ఖర్చులను సేవ్ చేయండి",
+      saveChanges: "మార్పులను సేవ్ చేయండి",
+      submit: "సమర్పించండి",
+      update: "నవీకరించండి",
+    },
+    budgets: {
+      heading: "ఎంచుకున్న తేదీకి అందుబాటులో ఉన్న బడ్జెట్‌లు",
+      noBudgets: "ఎంచుకున్న తేదీకి బడ్జెట్‌లు కనబడలేదు",
+      errorMessage: "లోపం: {{message}}",
+      fallbackError: "బడ్జెట్‌లను లోడ్ చేయలేకపోయాం.",
+      columns: {
+        name: "పేరు",
+        description: "వివరణ",
+        startDate: "ప్రారంభ తేదీ",
+        endDate: "ముగింపు తేదీ",
+        remainingAmount: "మిగిలిన మొత్తం",
+        amount: "మొత్తం",
+      },
+    },
+    expenseTable: {
+      headers: {
+        itemName: "అంశం పేరు *",
+        quantity: "పరిమాణం *",
+        unitPrice: "యూనిట్ ధర *",
+        totalPrice: "మొత్తం ధర",
+        comments: "వ్యాఖ్యలు",
+        actions: "చర్యలు",
+      },
+      validationHintDetailed:
+        "ప్రస్తుత అంశాన్ని (అంశం పేరు, పరిమాణం, యూనిట్ ధర అవసరం) పూర్తి చేసి మరిన్ని వరుసలు జోడించండి",
+      validationHintSimple:
+        "మరిన్ని వరుసలు జోడించడానికి ప్రస్తుత అంశాన్ని పూర్తి చేయండి",
+      totalLabel: "మొత్తం మొత్తం",
+      summaryLabels: {
+        qty: "పరిమాణం",
+        unit: "యూనిట్",
+        calc: "లెక్కింపు",
+        comments: "వ్యాఖ్యలు",
+      },
+    },
+    summary: {
+      title: "ఖర్చు అంశాల సారాంశం",
+      singleItem: "{{count}} అంశం జోడించబడింది",
+      multipleItems: "{{count}} అంశాలు జోడించబడ్డాయి",
+      noItemsTitle: "⚠️ ఎలాంటి ఖర్చు అంశాలు ఇంకా జోడించబడలేదు",
+    },
+    messages: {
+      noItemsCreate: "బిల్లు సృష్టించడానికి కనీసం ఒక ఖర్చు అంశం అవసరం",
+      noItemsEdit: "బిల్లు నవీకరించడానికి కనీసం ఒక ఖర్చు అంశం అవసరం",
+      unsavedChanges:
+        "మీ వద్ద సేవ్ చేయని ఖర్చు అంశాలు ఉన్నాయి. సేవ్ చేయకుండా మూసివేయాలా? అన్ని నమోదు చేసిన డేటా కోల్పోతారు.",
+      addExpenseValidationDetailed:
+        "సేవ్ చేయడానికి ముందు కనీసం ఒక పూర్తి ఖర్చు అంశాన్ని జోడించండి. అంశం పేరు, పరిమాణం, యూనిట్ ధర అన్నీ అవసరం.",
+      addExpenseValidationSimple:
+        "దయచేసి సేవ్ చేసే ముందు కనీసం ఒక పూర్తి ఖర్చు అంశాన్ని జోడించండి.",
+      expensesRequiredCreate:
+        "బిల్లు సృష్టించడానికి కనీసం ఒక ఖర్చు అంశాన్ని జోడించండి.",
+      expensesRequiredUpdate:
+        "బిల్లు నవీకరించడానికి కనీసం ఒక ఖర్చు అంశాన్ని జోడించండి.",
+      totalAmountInvalid: "మొత్తం మొత్తం సున్నా కంటే ఎక్కువగా ఉండాలి.",
+      invalidQuantityOrPrice:
+        "పరిమాణం మరియు యూనిట్ ధరకు సరైన ధనాత్మక విలువలను నమోదు చేయండి.",
+    },
+  },
+
+  // బిల్లు సృష్టించండి
+  createBill: {
+    title: "బిల్లు సృష్టించండి",
+    labels: {
+      expenseTableTitle: "ఖర్చు అంశాలు",
+    },
+    messages: {
+      success: "బిల్లు విజయవంతంగా సృష్టించబడింది!",
+      failure: "బిల్లు సృష్టించడం విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
+      errorWithReason: "బిల్లు సృష్టించేటప్పుడు లోపం: {{message}}",
+      budgetLoadError: "బడ్జెట్‌లను లోడ్ చేయలేకపోయాం.",
+    },
+    summary: {
+      noItemsSubtitle: "బిల్లు సృష్టించడానికి కనీసం ఒక ఖర్చు అంశం అవసరం",
+    },
+  },
+
+  // బిల్లు సవరించండి (అదనపు)
+  editBill: {
+    title: "బిల్లు సవరించండి",
+    labels: {
+      expenseTableTitle: "ఖర్చు అంశాలను సవరించండి",
+    },
+    messages: {
+      success: "బిల్లు విజయవంతంగా నవీకరించబడింది!",
+      errorWithReason: "బిల్లు నవీకరించేటప్పుడు లోపం: {{message}}",
+      loadErrorTitle: "⚠️ బిల్లు లోడ్ లోపం",
+      noBillId: "ఎటువంటి బిల్లు ఐడీ ఇవ్వలేదు.",
+      invalidData: "బిల్లు డేటా అందుబాటులో లేదు లేదా చెల్లదు.",
+    },
+    buttons: {
+      retry: "మళ్లీ ప్రయత్నించండి",
+      goBack: "వెనక్కి వెళ్ళండి",
+    },
+    summary: {
+      noItemsSubtitle: "బిల్లు నవీకరించడానికి కనీసం ఒక ఖర్చు అంశం అవసరం",
+    },
+  },
+
   // Cashflow
   cashflow: {
     searchPlaceholder: "ఖర్చులను శోధించండి...",

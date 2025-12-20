@@ -266,6 +266,145 @@ export const hi = {
     },
   },
 
+  // बिल साझा अनुवाद
+  billCommon: {
+    fields: {
+      name: "बिल का नाम",
+      description: "विवरण",
+      date: "तारीख",
+      paymentMethod: "भुगतान विधि",
+      type: "प्रकार",
+      category: "श्रेणी",
+    },
+    placeholders: {
+      billName: "बिल का नाम दर्ज करें",
+      searchBillName: "बिल का नाम खोजें या लिखें",
+      description: "विवरण दर्ज करें",
+      paymentMethod: "भुगतान विधि चुनें",
+      type: "प्रकार चुनें",
+      category: "श्रेणी खोजें",
+      itemName: "आइटम का नाम",
+      quantity: "मात्रा *",
+      unitPrice: "इकाई मूल्य *",
+      comments: "टिप्पणियाँ",
+    },
+    typeOptions: {
+      gain: "लाभ",
+      loss: "हानि",
+    },
+    indicators: {
+      previouslyAdded: "पहले जोड़ा गया",
+      autoFilled: "स्वतः भरा गया",
+    },
+    actions: {
+      linkBudgets: "बजट लिंक करें",
+      hideBudgets: "बजट छुपाएँ",
+      addExpenses: "खर्च आइटम जोड़ें",
+      editExpenses: "खर्च आइटम संपादित करें",
+      hideExpenses: "खर्च आइटम छुपाएँ",
+      addRow: "पंक्ति जोड़ें",
+      saveExpenses: "खर्च सहेजें",
+      saveChanges: "परिवर्तन सहेजें",
+      submit: "जमा करें",
+      update: "अपडेट करें",
+    },
+    budgets: {
+      heading: "चयनित तारीख के उपलब्ध बजट",
+      noBudgets: "चयनित तारीख के लिए कोई बजट नहीं मिला",
+      errorMessage: "त्रुटि: {{message}}",
+      fallbackError: "बजट लोड नहीं हो पाए।",
+      columns: {
+        name: "नाम",
+        description: "विवरण",
+        startDate: "प्रारंभ तिथि",
+        endDate: "समाप्ति तिथि",
+        remainingAmount: "शेष राशि",
+        amount: "राशि",
+      },
+    },
+    expenseTable: {
+      headers: {
+        itemName: "आइटम नाम *",
+        quantity: "मात्रा *",
+        unitPrice: "इकाई मूल्य *",
+        totalPrice: "कुल मूल्य",
+        comments: "टिप्पणियाँ",
+        actions: "क्रियाएँ",
+      },
+      validationHintDetailed:
+        "वर्तमान आइटम (आइटम नाम, मात्रा और इकाई मूल्य आवश्यक हैं) पूरा करें ताकि और पंक्तियाँ जोड़ सकें",
+      validationHintSimple: "और पंक्तियाँ जोड़ने के लिए वर्तमान आइटम पूरा करें",
+      totalLabel: "कुल राशि",
+      summaryLabels: {
+        qty: "मात्रा",
+        unit: "इकाई",
+        calc: "गणना",
+        comments: "टिप्पणियाँ",
+      },
+    },
+    summary: {
+      title: "खर्च आइटम सारांश",
+      singleItem: "{{count}} आइटम जोड़ा गया",
+      multipleItems: "{{count}} आइटम जोड़े गए",
+      noItemsTitle: "⚠️ कोई खर्च आइटम अभी तक नहीं जोड़ा गया",
+    },
+    messages: {
+      noItemsCreate: "बिल बनाने के लिए कम से कम एक खर्च आइटम आवश्यक है",
+      noItemsEdit: "बिल अपडेट करने के लिए कम से कम एक खर्च आइटम आवश्यक है",
+      unsavedChanges:
+        "आपके पास बिना सहेजे खर्च आइटम हैं। क्या आप बिना सहेजे बंद करना चाहते हैं? सभी दर्ज डेटा खो जाएगा।",
+      addExpenseValidationDetailed:
+        "सहेजने से पहले कम से कम एक पूरा खर्च आइटम जोड़ें। आइटम नाम, मात्रा और इकाई मूल्य सभी आवश्यक हैं।",
+      addExpenseValidationSimple:
+        "कृपया सहेजने से पहले कम से कम एक पूरा खर्च आइटम जोड़ें।",
+      expensesRequiredCreate: "बिल बनाने के लिए कम से कम एक खर्च आइटम जोड़ें।",
+      expensesRequiredUpdate:
+        "बिल अपडेट करने के लिए कम से कम एक खर्च आइटम जोड़ें।",
+      totalAmountInvalid: "कुल राशि शून्य से अधिक होनी चाहिए।",
+      invalidQuantityOrPrice:
+        "मात्रा और इकाई मूल्य दोनों के लिए मान्य धनात्मक मान दर्ज करें।",
+    },
+  },
+
+  // बिल बनाएँ
+  createBill: {
+    title: "बिल बनाएँ",
+    labels: {
+      expenseTableTitle: "खर्च आइटम",
+    },
+    messages: {
+      success: "बिल सफलतापूर्वक बनाया गया!",
+      failure: "बिल बनाने में विफल। कृपया पुनः प्रयास करें।",
+      errorWithReason: "बिल बनाने में त्रुटि: {{message}}",
+      budgetLoadError: "बजट लोड नहीं हो पाए।",
+    },
+    summary: {
+      noItemsSubtitle: "बिल बनाने के लिए कम से कम एक खर्च आइटम आवश्यक है",
+    },
+  },
+
+  // बिल संपादित करें (पूरक)
+  editBill: {
+    title: "बिल संपादित करें",
+    labels: {
+      expenseTableTitle: "खर्च आइटम संपादित करें",
+    },
+    messages: {
+      success: "बिल सफलतापूर्वक अपडेट किया गया!",
+      errorWithReason: "बिल अपडेट करते समय त्रुटि: {{message}}",
+      loadErrorTitle: "⚠️ बिल लोड करने में त्रुटि",
+      noBillId: "कोई बिल आईडी प्रदान नहीं की गई।",
+      invalidData: "बिल डेटा अनुपलब्ध या अमान्य है।",
+    },
+    buttons: {
+      retry: "पुनः प्रयास करें",
+      goBack: "वापस जाएँ",
+    },
+    summary: {
+      noItemsSubtitle: "बिल अपडेट करने के लिए कम से कम एक खर्च आइटम आवश्यक है",
+    },
+  },
+
   // Cashflow
   cashflow: {
     searchPlaceholder: "खर्च खोजें...",

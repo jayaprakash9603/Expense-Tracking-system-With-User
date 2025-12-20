@@ -431,6 +431,147 @@ export const en = {
     },
   },
 
+  // Bill Shared Translations
+  billCommon: {
+    fields: {
+      name: "Bill Name",
+      description: "Description",
+      date: "Date",
+      paymentMethod: "Payment Method",
+      type: "Type",
+      category: "Category",
+    },
+    placeholders: {
+      billName: "Enter bill name",
+      searchBillName: "Search or type bill name",
+      description: "Enter description",
+      paymentMethod: "Select payment method",
+      type: "Select type",
+      category: "Search category",
+      itemName: "Item name",
+      quantity: "Qty *",
+      unitPrice: "Unit Price *",
+      comments: "Comments",
+    },
+    typeOptions: {
+      gain: "Gain",
+      loss: "Loss",
+    },
+    indicators: {
+      previouslyAdded: "Previously Added",
+      autoFilled: "Auto-filled",
+    },
+    actions: {
+      linkBudgets: "Link Budgets",
+      hideBudgets: "Hide Budgets",
+      addExpenses: "Add Expense Items",
+      editExpenses: "Edit Expense Items",
+      hideExpenses: "Hide Expense Items",
+      addRow: "Add Row",
+      saveExpenses: "Save Expenses",
+      saveChanges: "Save Changes",
+      submit: "Submit",
+      update: "Update",
+    },
+    budgets: {
+      heading: "Available Budgets for Selected Date",
+      noBudgets: "No budgets found for the selected date",
+      errorMessage: "Error: {{message}}",
+      fallbackError: "Failed to load budgets.",
+      columns: {
+        name: "Name",
+        description: "Description",
+        startDate: "Start Date",
+        endDate: "End Date",
+        remainingAmount: "Remaining Amount",
+        amount: "Amount",
+      },
+    },
+    expenseTable: {
+      headers: {
+        itemName: "Item Name *",
+        quantity: "Quantity *",
+        unitPrice: "Unit Price *",
+        totalPrice: "Total Price",
+        comments: "Comments",
+        actions: "Actions",
+      },
+      validationHintDetailed:
+        "Complete the current item (Item Name, Quantity, and Unit Price are required) to add more rows",
+      validationHintSimple: "Complete the current item to add more rows",
+      totalLabel: "Total Amount",
+      summaryLabels: {
+        qty: "Qty",
+        unit: "Unit",
+        calc: "Calc",
+        comments: "Comments",
+      },
+    },
+    summary: {
+      title: "Expense Items Summary",
+      singleItem: "{{count}} item added",
+      multipleItems: "{{count}} items added",
+      noItemsTitle: "⚠️ No expense items added yet",
+    },
+    messages: {
+      noItemsCreate: "At least one expense item is required to create a bill",
+      noItemsEdit: "At least one expense item is required to update the bill",
+      unsavedChanges:
+        "You have unsaved expense items. Are you sure you want to close without saving? All entered data will be lost.",
+      addExpenseValidationDetailed:
+        "Please add at least one complete expense item before saving. Item Name, Quantity, and Unit Price are all required.",
+      addExpenseValidationSimple:
+        "Please add at least one complete expense item before saving.",
+      expensesRequiredCreate:
+        "At least one expense item should be added to create a bill.",
+      expensesRequiredUpdate:
+        "At least one expense item should be added to update the bill.",
+      totalAmountInvalid: "Total amount must be greater than zero.",
+      invalidQuantityOrPrice:
+        "Please enter valid positive values for both quantity and unit price.",
+    },
+  },
+
+  // Create Bill
+  createBill: {
+    title: "Create Bill",
+    labels: {
+      expenseTableTitle: "Expense Items",
+    },
+    messages: {
+      success: "Bill created successfully!",
+      failure: "Failed to create bill. Please try again.",
+      errorWithReason: "Error creating bill: {{message}}",
+      budgetLoadError: "Failed to load budgets.",
+    },
+    summary: {
+      noItemsSubtitle: "At least one expense item is required to create a bill",
+    },
+  },
+
+  // Edit Bill
+  editBill: {
+    title: "Edit Bill",
+    labels: {
+      expenseTableTitle: "Edit Expense Items",
+    },
+    messages: {
+      success: "Bill updated successfully!",
+      errorWithReason: "Error updating bill: {{message}}",
+      loadErrorTitle: "⚠️ Error Loading Bill",
+      noBillId: "No bill ID provided.",
+      invalidData: "Bill data is missing or invalid.",
+    },
+    buttons: {
+      retry: "Retry",
+      goBack: "Go Back",
+    },
+    summary: {
+      noItemsSubtitle:
+        "At least one expense item is required to update the bill",
+    },
+  },
+
   // Dashboard
   dashboard: {
     title: "Financial Dashboard",
