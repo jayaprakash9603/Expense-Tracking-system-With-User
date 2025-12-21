@@ -24,6 +24,8 @@ public class EmailLog {
 
     private String toEmail;
     private String subject;
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String text;
     private LocalDateTime sentAt;
 
