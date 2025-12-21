@@ -16,6 +16,7 @@ import dayjs from "dayjs"; // kept for potential future date ops not covered by 
 import useAverageLine from "./cashflow/useAverageLine";
 import useTooltipFormatter from "./cashflow/useTooltipFormatter";
 import useSelectionHelpers from "./cashflow/useSelectionHelpers";
+import CashFlowTooltip from "./cashflow/CashFlowTooltip";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
 import { useTranslation } from "../hooks/useTranslation";
@@ -85,11 +86,44 @@ const CashFlowChart = ({
     localizedWeekDays
   );
   const { getFlowBaseRGBA, getSelectedFill } = useSelectionHelpers(flowTab);
+  const flowBaseRGB = getFlowBaseRGBA();
   const selectedColor = getSelectedFill();
   // Precompute hover map for quick lookup
   const selectedIndexSet = useMemo(
     () => new Set(selectedBars.map((b) => b.idx)),
     [selectedBars]
+  );
+  const tooltipContent = useMemo(
+    () =>
+      function renderTooltip(tooltipProps) {
+        return (
+          <CashFlowTooltip
+            {...tooltipProps}
+            colors={colors}
+            currencySymbol={currencySymbol}
+            formatCurrencyCompact={formatCurrencyCompact}
+            formatNumberFull={formatNumberFull}
+            labelFormatter={tooltipFormatter}
+            accentColor={selectedColor}
+            accentRGB={flowBaseRGB}
+            t={t}
+            isHovering={hoverBarIndex !== null}
+            mode={mode}
+          />
+        );
+      },
+    [
+      colors,
+      currencySymbol,
+      formatCurrencyCompact,
+      formatNumberFull,
+      tooltipFormatter,
+      selectedColor,
+      flowBaseRGB,
+      t,
+      hoverBarIndex,
+      mode,
+    ]
   );
 
   // Theme-aware colors
@@ -106,11 +140,15 @@ const CashFlowChart = ({
         hideNumbers={barChartStyles?.hideNumbers}
         margin={{ right: isMobile ? 0 : 40 }}
         onMouseMove={(state) => {
-          if (state && typeof state.activeTooltipIndex === "number") {
-            setHoverBarIndex(state.activeTooltipIndex);
-          } else {
+          if (!state || state.isTooltipActive === false) {
             setHoverBarIndex(null);
+            return;
           }
+          if (typeof state.activeTooltipIndex === "number") {
+            setHoverBarIndex(state.activeTooltipIndex);
+            return;
+          }
+          setHoverBarIndex(null);
         }}
         onMouseLeave={() => setHoverBarIndex(null)}
         onClick={(e) => {
@@ -213,26 +251,14 @@ const CashFlowChart = ({
         />
         <Tooltip
           cursor={false}
-          contentStyle={{
-            backgroundColor: colors.secondary_bg,
-            border: `1px solid ${colors.border_color}`,
-            borderRadius: "8px",
-            color: colors.primary_text,
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+          content={tooltipContent}
+          wrapperStyle={{
+            zIndex: 1200,
+            outline: "none",
+            overflow: "visible",
+            pointerEvents: "none",
           }}
-          labelStyle={{
-            color: colors.primary_text,
-            fontWeight: "600",
-          }}
-          itemStyle={{
-            color: colors.primary_text,
-          }}
-          formatter={(value) => [
-            formatCurrencyCompact(value, currencySymbol),
-            t("cashflow.chart.tooltipAmount"),
-          ]}
-          wrapperStyle={{ zIndex: 10 }}
-          labelFormatter={tooltipFormatter}
+          allowEscapeViewBox={{ x: false, y: true }}
         />
         {Array.isArray(chartData) && chartData.length > 0 && (
           <ReferenceLine
