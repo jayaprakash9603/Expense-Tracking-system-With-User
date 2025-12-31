@@ -149,6 +149,7 @@ const NewBudget = () => {
   const genericErrorMessage = t("newBudget.messages.createError");
   const expenseErrorFallback = t("newBudget.messages.expenseLoadError");
   const budgetErrorFallback = t("newBudget.messages.createError");
+  const minActionButtonWidth = 132;
 
   const clearFieldError = useCallback((field) => {
     setErrors((prev) => {
@@ -910,7 +911,7 @@ const NewBudget = () => {
               style={{
                 position: "relative",
                 opacity: isSubmitting ? 0.7 : 1,
-                minWidth: isSubmitting ? 180 : undefined,
+                minWidth: isSubmitting ? 180 : minActionButtonWidth,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
