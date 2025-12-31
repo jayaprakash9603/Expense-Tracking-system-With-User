@@ -848,6 +848,24 @@ function CashFlowExpenseCards({
       })
     : "";
 
+  const getWeekSortValue = (yearKey, monthKey, weekKey) => {
+    const weekGroups = groupedExpenses.groups?.[yearKey]?.[monthKey]?.[weekKey];
+
+    if (!weekGroups) {
+      return Number.NEGATIVE_INFINITY;
+    }
+
+    return Object.keys(weekGroups).reduce((latest, dateKey) => {
+      const parsedDate = dayjs(dateKey);
+      if (!parsedDate.isValid()) {
+        return latest;
+      }
+
+      const timestamp = parsedDate.valueOf();
+      return timestamp > latest ? timestamp : latest;
+    }, Number.NEGATIVE_INFINITY);
+  };
+
   const renderExpenseCard = (row, idx) => {
     const sourceIndex =
       typeof row.originalIndex === "number" ? row.originalIndex : idx;
@@ -1680,7 +1698,7 @@ function CashFlowExpenseCards({
 
         {Object.keys(groupedExpenses.groups || {})
           .sort((a, b) => (sortOrder === "desc" ? b - a : a - b))
-          .map((year) => (
+          .map((year, yearIndex) => (
             <div key={year} style={{ marginBottom: "32px" }}>
               {/* Months in Year */}
               {Object.keys(groupedExpenses.groups[year])
@@ -1691,18 +1709,16 @@ function CashFlowExpenseCards({
                     : dayjs(a, "MMMM YYYY").valueOf() -
                       dayjs(b, "MMMM YYYY").valueOf()
                 )
-                .map((month) => (
+                .map((month, monthIndex) => (
                   <div key={month} style={{ marginBottom: "24px" }}>
                     {/* Weeks in Month */}
                     {Object.keys(groupedExpenses.groups[year][month])
-                      .sort((a, b) => {
-                        const weekA = parseInt(a.replace("Week ", ""));
-                        const weekB = parseInt(b.replace("Week ", ""));
-                        return sortOrder === "desc"
-                          ? weekB - weekA
-                          : weekA - weekB;
+                      .sort((weekA, weekB) => {
+                        const tsA = getWeekSortValue(year, month, weekA);
+                        const tsB = getWeekSortValue(year, month, weekB);
+                        return sortOrder === "desc" ? tsB - tsA : tsA - tsB;
                       })
-                      .map((week) => (
+                      .map((week, weekIndex) => (
                         <div key={week} style={{ marginBottom: "18px" }}>
                           {/* Dates in Week */}
                           {Object.keys(
@@ -1713,41 +1729,15 @@ function CashFlowExpenseCards({
                                 ? b.localeCompare(a)
                                 : a.localeCompare(b)
                             )
-                            .map((dateKey, dateIndex, allDates) => {
+                            .map((dateKey, dateIndex) => {
                               const dateGroup =
                                 groupedExpenses.groups[year][month][week][
                                   dateKey
                                 ];
                               const isFirstDate =
-                                year ===
-                                  Object.keys(groupedExpenses.groups).sort(
-                                    (a, b) =>
-                                      sortOrder === "desc" ? b - a : a - b
-                                  )[0] &&
-                                month ===
-                                  Object.keys(
-                                    groupedExpenses.groups[year]
-                                  ).sort((a, b) =>
-                                    sortOrder === "desc"
-                                      ? dayjs(b, "MMMM YYYY").valueOf() -
-                                        dayjs(a, "MMMM YYYY").valueOf()
-                                      : dayjs(a, "MMMM YYYY").valueOf() -
-                                        dayjs(b, "MMMM YYYY").valueOf()
-                                  )[0] &&
-                                week ===
-                                  Object.keys(
-                                    groupedExpenses.groups[year][month]
-                                  ).sort((a, b) => {
-                                    const weekA = parseInt(
-                                      a.replace("Week ", "")
-                                    );
-                                    const weekB = parseInt(
-                                      b.replace("Week ", "")
-                                    );
-                                    return sortOrder === "desc"
-                                      ? weekB - weekA
-                                      : weekA - weekB;
-                                  })[0] &&
+                                yearIndex === 0 &&
+                                monthIndex === 0 &&
+                                weekIndex === 0 &&
                                 dateIndex === 0;
 
                               return (
