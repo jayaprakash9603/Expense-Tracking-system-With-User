@@ -20,6 +20,10 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useMasking } from "../../hooks/useMasking";
 import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
+import { useTranslation } from "../../hooks/useTranslation";
+import SelectionNavigator from "./SelectionNavigator";
+
+import CashFlowExpenseCardsSkeleton from "../skeletons/CashFlowExpenseCardsSkeleton";
 
 dayjs.extend(weekOfYear);
 
@@ -52,6 +56,7 @@ function CashFlowExpenseCards({
   const settings = useUserSettings();
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const { maskAmount, isMasking } = useMasking();
+  const { t } = useTranslation();
   const scrollContainerRef = useRef(null);
   const savedScrollPositionRef = useRef(0);
   const [sortOrder, setSortOrder] = React.useState("desc"); // "asc" or "desc"
@@ -66,10 +71,210 @@ function CashFlowExpenseCards({
   const [monthPickerAnchor, setMonthPickerAnchor] = React.useState(null);
   const [showScrollTop, setShowScrollTop] = React.useState(false);
   const [showScrollBottom, setShowScrollBottom] = React.useState(false);
+  const [selectedNavigatorIndex, setSelectedNavigatorIndex] = React.useState(0);
+  const previousSelectionLengthRef = useRef(0);
+  const autoScrollSuppressedRef = useRef(false);
+  const autoScrollResetTimeoutRef = useRef(null);
+  const manualSelectionChangeRef = useRef({
+    active: false,
+    preserveScroll: false,
+    focusCardIndex: null,
+  });
+
+  const normalizedSelectedCardIdx = React.useMemo(() => {
+    if (!Array.isArray(selectedCardIdx) || selectedCardIdx.length === 0) {
+      return [];
+    }
+
+    const seen = new Set();
+    return selectedCardIdx.filter((idx) => {
+      const isValidIndex =
+        typeof idx === "number" && Number.isFinite(idx) && idx >= 0;
+      if (!isValidIndex || seen.has(idx)) {
+        return false;
+      }
+      seen.add(idx);
+      return true;
+    });
+  }, [selectedCardIdx]);
+
+  const selectedIndicesSet = React.useMemo(
+    () => new Set(normalizedSelectedCardIdx),
+    [normalizedSelectedCardIdx]
+  );
+
+  const hasSelections = normalizedSelectedCardIdx.length > 0;
+  const hasMultipleSelections = normalizedSelectedCardIdx.length > 1;
+
+  const scrollToCardByIndex = React.useCallback(
+    (cardIndex, behavior = "smooth") => {
+      if (typeof cardIndex !== "number") return;
+
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const targetCard = container.querySelector(
+        `[data-card-index="${cardIndex}"]`
+      );
+
+      if (!targetCard) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const cardRect = targetCard.getBoundingClientRect();
+      const offset = cardRect.top - containerRect.top;
+      const targetTop = container.scrollTop + offset - 80;
+
+      container.scrollTo({
+        top: Math.max(targetTop, 0),
+        behavior,
+      });
+
+      targetCard.classList.add("selected-card-focus");
+      setTimeout(() => {
+        targetCard.classList.remove("selected-card-focus");
+      }, 400);
+    },
+    []
+  );
+
+  const suppressAutoScrollTemporarily = React.useCallback(() => {
+    autoScrollSuppressedRef.current = true;
+    if (autoScrollResetTimeoutRef.current) {
+      clearTimeout(autoScrollResetTimeoutRef.current);
+    }
+    autoScrollResetTimeoutRef.current = setTimeout(() => {
+      autoScrollSuppressedRef.current = false;
+      autoScrollResetTimeoutRef.current = null;
+    }, 250);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (autoScrollResetTimeoutRef.current) {
+        clearTimeout(autoScrollResetTimeoutRef.current);
+        autoScrollResetTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasSelections) {
+      setSelectedNavigatorIndex(0);
+      previousSelectionLengthRef.current = 0;
+      return;
+    }
+
+    const prevLength = previousSelectionLengthRef.current;
+    let nextIndex = prevLength === 0 ? 0 : selectedNavigatorIndex;
+    let shouldScroll = prevLength === 0;
+
+    const manualState = manualSelectionChangeRef.current;
+    const manualTargetIndex =
+      manualState.active &&
+      manualState.focusCardIndex !== null &&
+      !manualState.preserveScroll
+        ? normalizedSelectedCardIdx.indexOf(manualState.focusCardIndex)
+        : -1;
+
+    if (manualTargetIndex !== -1) {
+      nextIndex = manualTargetIndex;
+      shouldScroll = true;
+    } else if (normalizedSelectedCardIdx.length > prevLength) {
+      nextIndex = normalizedSelectedCardIdx.length - 1;
+      shouldScroll = true;
+    }
+
+    if (nextIndex >= normalizedSelectedCardIdx.length) {
+      nextIndex = normalizedSelectedCardIdx.length - 1;
+    }
+    if (nextIndex < 0) {
+      nextIndex = 0;
+    }
+
+    const targetCardIndex = normalizedSelectedCardIdx[nextIndex];
+    if (
+      shouldScroll &&
+      !autoScrollSuppressedRef.current &&
+      typeof targetCardIndex === "number"
+    ) {
+      requestAnimationFrame(() => {
+        scrollToCardByIndex(
+          targetCardIndex,
+          prevLength === 0 ? "auto" : "smooth"
+        );
+      });
+    }
+
+    previousSelectionLengthRef.current = normalizedSelectedCardIdx.length;
+
+    if (selectedNavigatorIndex !== nextIndex) {
+      setSelectedNavigatorIndex(nextIndex);
+    }
+  }, [
+    hasSelections,
+    normalizedSelectedCardIdx,
+    scrollToCardByIndex,
+    selectedNavigatorIndex,
+  ]);
+
+  useEffect(() => {
+    const manualState = manualSelectionChangeRef.current;
+    if (!manualState.active) {
+      return;
+    }
+
+    manualSelectionChangeRef.current = {
+      active: false,
+      preserveScroll: false,
+      focusCardIndex: null,
+    };
+
+    if (!manualState.preserveScroll) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      container.scrollTop = savedScrollPositionRef.current;
+    });
+  }, [normalizedSelectedCardIdx]);
+
+  const handleSelectionNavigate = React.useCallback(
+    (direction) => {
+      if (!hasSelections) return;
+      suppressAutoScrollTemporarily();
+
+      setSelectedNavigatorIndex((prev) => {
+        const isPrev = direction === "prev";
+        const isAtBoundary = isPrev
+          ? prev === 0
+          : prev === normalizedSelectedCardIdx.length - 1;
+
+        if (isAtBoundary) {
+          return prev;
+        }
+
+        const nextIndex = isPrev ? prev - 1 : prev + 1;
+        const targetCardIndex = normalizedSelectedCardIdx[nextIndex];
+        scrollToCardByIndex(targetCardIndex);
+        return nextIndex;
+      });
+    },
+    [
+      hasSelections,
+      normalizedSelectedCardIdx,
+      scrollToCardByIndex,
+      suppressAutoScrollTemporarily,
+    ]
+  );
 
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
-    
+
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({
         top: 0,
@@ -418,6 +623,12 @@ function CashFlowExpenseCards({
     const availableDatesSet = new Set();
 
     data.forEach((expense, idx) => {
+      const sourceIndex =
+        typeof expense.__sourceIndex === "number"
+          ? expense.__sourceIndex
+          : typeof expense.originalIndex === "number"
+          ? expense.originalIndex
+          : idx;
       const dt = expense.date || expense.expense?.date;
       if (!dt || !dayjs(dt).isValid()) return;
 
@@ -464,7 +675,7 @@ function CashFlowExpenseCards({
 
       groups[year][month][weekLabel][dateKey].expenses.push({
         ...expense,
-        originalIndex: idx,
+        originalIndex: sourceIndex,
       });
     });
 
@@ -602,17 +813,7 @@ function CashFlowExpenseCards({
   if (loading && !search && data.length === 0) {
     return (
       <div className={wrapperClass} style={wrapperStyle}>
-        {Array.from({ length: 3 }).map((_, idx) => (
-          <Skeleton
-            key={idx}
-            variant="rectangular"
-            width={340}
-            height={155}
-            animation="wave"
-            sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
-            style={{ minWidth: 220, maxWidth: 340, margin: "0 8px 16px 0" }}
-          />
-        ))}
+        <CashFlowExpenseCardsSkeleton />
       </div>
     );
   }
@@ -625,19 +826,50 @@ function CashFlowExpenseCards({
           fullWidth
           iconSize={isMobile ? 54 : 72}
           style={{ minHeight: isMobile ? 260 : 340 }}
-          message={search ? "No matches" : "No data found"}
+          message={
+            search
+              ? t("cashflow.messages.noMatches")
+              : t("cashflow.messages.noData")
+          }
           subMessage={
             search
-              ? "Try a different search term"
-              : "Adjust filters or change the period"
+              ? t("cashflow.messages.searchSuggestion")
+              : t("cashflow.messages.adjustPeriod")
           }
         />
       </div>
     );
   }
 
+  const selectionNavigatorLabel = hasMultipleSelections
+    ? t("cashflow.labels.selectionCounter", {
+        current: selectedNavigatorIndex + 1,
+        total: normalizedSelectedCardIdx.length,
+      })
+    : "";
+
+  const getWeekSortValue = (yearKey, monthKey, weekKey) => {
+    const weekGroups = groupedExpenses.groups?.[yearKey]?.[monthKey]?.[weekKey];
+
+    if (!weekGroups) {
+      return Number.NEGATIVE_INFINITY;
+    }
+
+    return Object.keys(weekGroups).reduce((latest, dateKey) => {
+      const parsedDate = dayjs(dateKey);
+      if (!parsedDate.isValid()) {
+        return latest;
+      }
+
+      const timestamp = parsedDate.valueOf();
+      return timestamp > latest ? timestamp : latest;
+    }, Number.NEGATIVE_INFINITY);
+  };
+
   const renderExpenseCard = (row, idx) => {
-    const isSelected = selectedCardIdx.includes(idx);
+    const sourceIndex =
+      typeof row.originalIndex === "number" ? row.originalIndex : idx;
+    const isSelected = selectedIndicesSet.has(sourceIndex);
     const type =
       flowTab === "all" ? row.type || row.expense?.type || "outflow" : flowTab;
     const isGain = !(type === "outflow" || type === "loss");
@@ -702,13 +934,13 @@ function CashFlowExpenseCards({
       row.category?.name ||
       row.category ||
       row.expense?.category ||
-      "Uncategorized";
+      t("cashflow.labels.uncategorized");
     const rawPaymentMethod =
       row.paymentMethodName ||
       row.paymentMethod?.name ||
       row.paymentMethod ||
       row.expense?.paymentMethod ||
-      "Unknown";
+      t("cashflow.labels.unknownPayment");
     const paymentMethodName = formatPaymentMethodName(rawPaymentMethod);
     const isBill = row.bill === true;
 
@@ -716,6 +948,7 @@ function CashFlowExpenseCards({
       <div
         key={row.id || row.expenseId || `expense-${idx}`}
         className="rounded-lg shadow-md flex flex-col justify-between relative group"
+        data-card-index={sourceIndex}
         style={{
           minHeight: "155px",
           maxHeight: "155px",
@@ -758,45 +991,67 @@ function CashFlowExpenseCards({
           contain: "layout style paint", // Isolate layout calculations
           // Removed scale transform to prevent browser auto-scroll
           boxShadow: isSelected ? "0 4px 12px rgba(0,0,0,0.1)" : "none",
+          "--selection-outline-color": isGain ? "#06d6a0" : "#ff4d4f",
         }}
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
-          
+          const isCurrentlySelected = selectedIndicesSet.has(sourceIndex);
+          const willClearAll =
+            isCurrentlySelected && normalizedSelectedCardIdx.length === 1;
+          const shouldPreserveScroll = isCurrentlySelected;
+
+          manualSelectionChangeRef.current = {
+            active: true,
+            preserveScroll: shouldPreserveScroll,
+            focusCardIndex: sourceIndex,
+          };
+
+          if (shouldPreserveScroll) {
+            suppressAutoScrollTemporarily();
+          } else {
+            if (autoScrollResetTimeoutRef.current) {
+              clearTimeout(autoScrollResetTimeoutRef.current);
+              autoScrollResetTimeoutRef.current = null;
+            }
+            autoScrollSuppressedRef.current = false;
+          }
+
           const container = scrollContainerRef.current;
-          const cardElement = event.currentTarget;
-          
+
           if (container) {
             const scrollBeforeClick = container.scrollTop;
             savedScrollPositionRef.current = scrollBeforeClick;
-            
-            handleCardClick(idx, event);
-            
-            requestAnimationFrame(() => {
-              if (container) {
-                container.scrollTop = scrollBeforeClick;
-              }
-            });
-            
-            setTimeout(() => {
-              if (container) {
-                container.scrollTop = scrollBeforeClick;
-              }
-            }, 0);
-            
-            setTimeout(() => {
-              if (container) {
-                container.scrollTop = scrollBeforeClick;
-              }
-            }, 10);
-            
-            setTimeout(() => {
-              if (container) {
-                container.scrollTop = scrollBeforeClick;
-              }
-            }, 50);
+
+            handleCardClick(sourceIndex, event);
+
+            if (shouldPreserveScroll) {
+              requestAnimationFrame(() => {
+                if (container) {
+                  container.scrollTop = scrollBeforeClick;
+                }
+              });
+
+              setTimeout(() => {
+                if (container) {
+                  container.scrollTop = scrollBeforeClick;
+                }
+              }, 0);
+
+              setTimeout(() => {
+                if (container) {
+                  container.scrollTop = scrollBeforeClick;
+                }
+              }, 10);
+
+              setTimeout(() => {
+                if (container) {
+                  container.scrollTop = scrollBeforeClick;
+                }
+              }, 50);
+            }
           } else {
-            handleCardClick(idx, event);
+            handleCardClick(sourceIndex, event);
           }
         }}
         onFocus={(e) => {
@@ -848,8 +1103,10 @@ function CashFlowExpenseCards({
                 }}
                 title={
                   row.expense?.masked || (isMasking() && row.amount)
-                    ? "Amount masked"
-                    : `Amount: ${formatNumberFull(row.amount)}`
+                    ? t("cashflow.labels.amountMasked")
+                    : t("cashflow.labels.amountWithValue", {
+                        amount: formatNumberFull(row.amount),
+                      })
                 }
               >
                 {row.expense?.masked || (isMasking() && row.amount)
@@ -873,10 +1130,10 @@ function CashFlowExpenseCards({
                   textTransform: "uppercase",
                   lineHeight: "1.1",
                 }}
-                title="This is a bill expense"
+                title={t("cashflow.tooltips.billExpense")}
               >
                 <ReceiptIcon sx={{ fontSize: 10, color: "#fff" }} />
-                Bill
+                {t("cashflow.labels.billBadge")}
               </span>
             )}
           </div>
@@ -888,7 +1145,9 @@ function CashFlowExpenseCards({
           >
             <div
               className="flex items-center gap-1 min-w-0 flex-1"
-              title={`Category: ${categoryName}`}
+              title={t("cashflow.tooltips.category", {
+                category: categoryName,
+              })}
             >
               <LocalOfferIcon
                 sx={{ fontSize: 13, color: colors.primary_accent }}
@@ -902,7 +1161,9 @@ function CashFlowExpenseCards({
             </div>
             <div
               className="flex items-center gap-1 min-w-0 flex-1"
-              title={`Payment: ${paymentMethodName}`}
+              title={t("cashflow.tooltips.paymentMethod", {
+                method: paymentMethodName,
+              })}
             >
               <AccountBalanceWalletIcon
                 sx={{ fontSize: 13, color: colors.secondary_accent }}
@@ -935,81 +1196,83 @@ function CashFlowExpenseCards({
             }}
             title={row.comments}
           >
-            {row.comments || "No comments"}
+            {row.comments || t("cashflow.labels.noComments")}
           </div>
         </div>
-        {isSelected && selectedCardIdx.length === 1 && hasWriteAccess && (
-          <div
-            className="absolute bottom-2 right-2 flex gap-2 opacity-90"
-            style={{
-              zIndex: 2,
-              background: colors.active_bg,
-              borderRadius: 8,
-              boxShadow: "0 2px 8px #0002",
-              padding: 4,
-              display: "flex",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <IconButton
-              size="small"
-              sx={{
-                color: "#5b7fff",
-                p: "4px",
+        {isSelected &&
+          normalizedSelectedCardIdx.length === 1 &&
+          hasWriteAccess && (
+            <div
+              className="absolute bottom-2 right-2 flex gap-2 opacity-90"
+              style={{
+                zIndex: 2,
                 background: colors.active_bg,
-                borderRadius: 1,
-                boxShadow: 1,
-                "&:hover": { background: colors.hover_bg, color: "#fff" },
+                borderRadius: 8,
+                boxShadow: "0 2px 8px #0002",
+                padding: 4,
+                display: "flex",
               }}
-              onClick={async () => {
-                dispatch(
-                  getListOfBudgetsByExpenseId({
-                    id: row.id || row.expenseId,
-                    date: dayjs().format("YYYY-MM-DD"),
-                    friendId: friendId || null,
-                  })
-                );
-                const expensedata = await dispatch(
-                  getExpenseAction(row.id, friendId || "")
-                );
-                const bill = expensedata.bill
-                  ? await dispatch(getBillByExpenseId(row.id, friendId || ""))
-                  : false;
-                if (expensedata.bill) {
-                  navigate(
-                    isFriendView
-                      ? `/bill/edit/${bill.id}/friend/${friendId}`
-                      : `/bill/edit/${bill.id}`
-                  );
-                } else {
-                  navigate(
-                    isFriendView
-                      ? `/expenses/edit/${row.id}/friend/${friendId}`
-                      : `/expenses/edit/${row.id}`
-                  );
-                }
-              }}
-              aria-label="Edit Expense"
+              onClick={(e) => e.stopPropagation()}
             >
-              <EditIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              sx={{
-                color: "#ff4d4f",
-                p: "4px",
-                background: colors.active_bg,
-                borderRadius: 1,
-                boxShadow: 1,
-                "&:hover": { background: colors.hover_bg, color: "#fff" },
-              }}
-              onClick={() => handleDeleteClick(row, idx)}
-              aria-label="Delete Expense"
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </div>
-        )}
+              <IconButton
+                size="small"
+                sx={{
+                  color: "#5b7fff",
+                  p: "4px",
+                  background: colors.active_bg,
+                  borderRadius: 1,
+                  boxShadow: 1,
+                  "&:hover": { background: colors.hover_bg, color: "#fff" },
+                }}
+                onClick={async () => {
+                  dispatch(
+                    getListOfBudgetsByExpenseId({
+                      id: row.id || row.expenseId,
+                      date: dayjs().format("YYYY-MM-DD"),
+                      friendId: friendId || null,
+                    })
+                  );
+                  const expensedata = await dispatch(
+                    getExpenseAction(row.id, friendId || "")
+                  );
+                  const bill = expensedata.bill
+                    ? await dispatch(getBillByExpenseId(row.id, friendId || ""))
+                    : false;
+                  if (expensedata.bill) {
+                    navigate(
+                      isFriendView
+                        ? `/bill/edit/${bill.id}/friend/${friendId}`
+                        : `/bill/edit/${bill.id}`
+                    );
+                  } else {
+                    navigate(
+                      isFriendView
+                        ? `/expenses/edit/${row.id}/friend/${friendId}`
+                        : `/expenses/edit/${row.id}`
+                    );
+                  }
+                }}
+                aria-label={t("cashflow.actions.editExpense")}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                sx={{
+                  color: "#ff4d4f",
+                  p: "4px",
+                  background: colors.active_bg,
+                  borderRadius: 1,
+                  boxShadow: 1,
+                  "&:hover": { background: colors.hover_bg, color: "#fff" },
+                }}
+                onClick={() => handleDeleteClick(row, idx)}
+                aria-label={t("cashflow.actions.deleteExpense")}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </div>
+          )}
       </div>
     );
   };
@@ -1021,6 +1284,11 @@ function CashFlowExpenseCards({
         {`
           .custom-scrollbar::-webkit-scrollbar {
             display: none;
+          }
+
+          .selected-card-focus {
+            box-shadow: 0 0 0 2px var(--selection-outline-color, ${colors.primary_accent}) inset,
+              0 6px 18px rgba(0, 0, 0, 0.12) !important;
           }
         `}
       </style>
@@ -1046,7 +1314,7 @@ function CashFlowExpenseCards({
               transform: "scale(1.1)",
             },
           }}
-          title="Scroll to Top"
+          title={t("cashflow.tooltips.scrollTop")}
         >
           <KeyboardArrowUpIcon sx={{ fontSize: 18 }} />
         </IconButton>
@@ -1073,7 +1341,7 @@ function CashFlowExpenseCards({
               transform: "scale(1.1)",
             },
           }}
-          title="Scroll to Bottom"
+          title={t("cashflow.tooltips.scrollBottom")}
         >
           <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
         </IconButton>
@@ -1095,6 +1363,8 @@ function CashFlowExpenseCards({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            flexWrap: isMobile ? "wrap" : "nowrap",
+            gap: "12px",
             padding: "10px 16px",
             background: colors.primary_bg,
             borderRadius: "8px",
@@ -1141,7 +1411,7 @@ function CashFlowExpenseCards({
                   },
                   transition: "all 0.2s ease",
                 }}
-                title="Previous Month"
+                title={t("cashflow.tooltips.previousMonth")}
               >
                 <KeyboardArrowUpIcon sx={{ fontSize: 18 }} />
               </IconButton>
@@ -1181,11 +1451,11 @@ function CashFlowExpenseCards({
               }
               title={
                 activeRange === "year"
-                  ? "Click to select a month"
-                  : currentHeader.month || "Month"
+                  ? t("cashflow.tooltips.selectMonth")
+                  : currentHeader.month || t("cashflow.labels.monthPlaceholder")
               }
             >
-              {currentHeader.month || "Month"}
+              {currentHeader.month || t("cashflow.labels.monthPlaceholder")}
             </div>
 
             {/* Month Picker Dropdown - Only show in year view */}
@@ -1225,7 +1495,7 @@ function CashFlowExpenseCards({
                   },
                   transition: "all 0.2s ease",
                 }}
-                title="Next Month"
+                title={t("cashflow.tooltips.nextMonth")}
               >
                 <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
               </IconButton>
@@ -1267,7 +1537,7 @@ function CashFlowExpenseCards({
                 },
                 transition: "all 0.2s ease",
               }}
-              title="Previous Date"
+              title={t("cashflow.tooltips.previousDate")}
             >
               <KeyboardArrowUpIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -1294,9 +1564,9 @@ function CashFlowExpenseCards({
                 e.currentTarget.style.background = `${colors.primary_accent}15`;
                 e.currentTarget.style.transform = "scale(1)";
               }}
-              title="Click to jump to a specific date"
+              title={t("cashflow.tooltips.selectDate")}
             >
-              {currentHeader.date || "Date"}
+              {currentHeader.date || t("cashflow.labels.datePlaceholder")}
             </div>
 
             {/* Next Date Arrow */}
@@ -1323,7 +1593,7 @@ function CashFlowExpenseCards({
                 },
                 transition: "all 0.2s ease",
               }}
-              title="Next Date"
+              title={t("cashflow.tooltips.nextDate")}
             >
               <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -1342,68 +1612,93 @@ function CashFlowExpenseCards({
             maxDate={groupedExpenses.maxDate}
           />
 
-          {/* Right Side - Sort Toggle */}
+          {/* Right Side - Selection Navigator & Sort Toggle */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "6px",
-              cursor: "pointer",
-              padding: "6px 12px",
-              borderRadius: "20px",
-              background: `${colors.primary_accent}15`,
-              border: `1px solid ${colors.primary_accent}40`,
-              transition: "all 0.3s ease",
-            }}
-            onClick={toggleSortOrder}
-            title={
-              sortOrder === "desc"
-                ? "Sort by Oldest First (Ascending Order)"
-                : "Sort by Newest First (Descending Order)"
-            }
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = `${colors.primary_accent}25`;
-              e.currentTarget.style.transform = "scale(1.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = `${colors.primary_accent}15`;
-              e.currentTarget.style.transform = "scale(1)";
+              gap: "10px",
+              flexWrap: isMobile ? "wrap" : "nowrap",
+              justifyContent: isMobile ? "space-between" : "flex-end",
+              marginLeft: "auto",
             }}
           >
-            {sortOrder === "desc" ? (
-              <AccessTimeIcon
-                sx={{
-                  fontSize: 16,
-                  color: colors.primary_accent,
-                  transition: "all 0.3s ease-in-out",
-                }}
-              />
-            ) : (
-              <HistoryIcon
-                sx={{
-                  fontSize: 16,
-                  color: colors.primary_accent,
-                  transition: "all 0.3s ease-in-out",
-                }}
+            {hasMultipleSelections && (
+              <SelectionNavigator
+                label={selectionNavigatorLabel}
+                onNavigate={handleSelectionNavigate}
+                disablePrev={selectedNavigatorIndex === 0}
+                disableNext={
+                  selectedNavigatorIndex ===
+                  normalizedSelectedCardIdx.length - 1
+                }
               />
             )}
-            <span
+
+            <div
               style={{
-                fontSize: "11px",
-                fontWeight: "600",
-                color: colors.primary_accent,
-                letterSpacing: "0.3px",
-                textTransform: "uppercase",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                cursor: "pointer",
+                padding: "6px 12px",
+                borderRadius: "20px",
+                background: `${colors.primary_accent}15`,
+                border: `1px solid ${colors.primary_accent}40`,
+                transition: "all 0.3s ease",
+              }}
+              onClick={toggleSortOrder}
+              title={
+                sortOrder === "desc"
+                  ? t("cashflow.tooltips.sortAscending")
+                  : t("cashflow.tooltips.sortDescending")
+              }
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `${colors.primary_accent}25`;
+                e.currentTarget.style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `${colors.primary_accent}15`;
+                e.currentTarget.style.transform = "scale(1)";
               }}
             >
-              {sortOrder === "desc" ? "Recent First" : "Old First"}
-            </span>
+              {sortOrder === "desc" ? (
+                <AccessTimeIcon
+                  sx={{
+                    fontSize: 16,
+                    color: colors.primary_accent,
+                    transition: "all 0.3s ease-in-out",
+                  }}
+                />
+              ) : (
+                <HistoryIcon
+                  sx={{
+                    fontSize: 16,
+                    color: colors.primary_accent,
+                    transition: "all 0.3s ease-in-out",
+                  }}
+                />
+              )}
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: colors.primary_accent,
+                  letterSpacing: "0.3px",
+                  textTransform: "uppercase",
+                }}
+              >
+                {sortOrder === "desc"
+                  ? t("cashflow.labels.recentFirst")
+                  : t("cashflow.labels.oldFirst")}
+              </span>
+            </div>
           </div>
         </div>
 
         {Object.keys(groupedExpenses.groups || {})
           .sort((a, b) => (sortOrder === "desc" ? b - a : a - b))
-          .map((year) => (
+          .map((year, yearIndex) => (
             <div key={year} style={{ marginBottom: "32px" }}>
               {/* Months in Year */}
               {Object.keys(groupedExpenses.groups[year])
@@ -1414,18 +1709,16 @@ function CashFlowExpenseCards({
                     : dayjs(a, "MMMM YYYY").valueOf() -
                       dayjs(b, "MMMM YYYY").valueOf()
                 )
-                .map((month) => (
+                .map((month, monthIndex) => (
                   <div key={month} style={{ marginBottom: "24px" }}>
                     {/* Weeks in Month */}
                     {Object.keys(groupedExpenses.groups[year][month])
-                      .sort((a, b) => {
-                        const weekA = parseInt(a.replace("Week ", ""));
-                        const weekB = parseInt(b.replace("Week ", ""));
-                        return sortOrder === "desc"
-                          ? weekB - weekA
-                          : weekA - weekB;
+                      .sort((weekA, weekB) => {
+                        const tsA = getWeekSortValue(year, month, weekA);
+                        const tsB = getWeekSortValue(year, month, weekB);
+                        return sortOrder === "desc" ? tsB - tsA : tsA - tsB;
                       })
-                      .map((week) => (
+                      .map((week, weekIndex) => (
                         <div key={week} style={{ marginBottom: "18px" }}>
                           {/* Dates in Week */}
                           {Object.keys(
@@ -1436,41 +1729,15 @@ function CashFlowExpenseCards({
                                 ? b.localeCompare(a)
                                 : a.localeCompare(b)
                             )
-                            .map((dateKey, dateIndex, allDates) => {
+                            .map((dateKey, dateIndex) => {
                               const dateGroup =
                                 groupedExpenses.groups[year][month][week][
                                   dateKey
                                 ];
                               const isFirstDate =
-                                year ===
-                                  Object.keys(groupedExpenses.groups).sort(
-                                    (a, b) =>
-                                      sortOrder === "desc" ? b - a : a - b
-                                  )[0] &&
-                                month ===
-                                  Object.keys(
-                                    groupedExpenses.groups[year]
-                                  ).sort((a, b) =>
-                                    sortOrder === "desc"
-                                      ? dayjs(b, "MMMM YYYY").valueOf() -
-                                        dayjs(a, "MMMM YYYY").valueOf()
-                                      : dayjs(a, "MMMM YYYY").valueOf() -
-                                        dayjs(b, "MMMM YYYY").valueOf()
-                                  )[0] &&
-                                week ===
-                                  Object.keys(
-                                    groupedExpenses.groups[year][month]
-                                  ).sort((a, b) => {
-                                    const weekA = parseInt(
-                                      a.replace("Week ", "")
-                                    );
-                                    const weekB = parseInt(
-                                      b.replace("Week ", "")
-                                    );
-                                    return sortOrder === "desc"
-                                      ? weekB - weekA
-                                      : weekA - weekB;
-                                  })[0] &&
+                                yearIndex === 0 &&
+                                monthIndex === 0 &&
+                                weekIndex === 0 &&
                                 dateIndex === 0;
 
                               return (

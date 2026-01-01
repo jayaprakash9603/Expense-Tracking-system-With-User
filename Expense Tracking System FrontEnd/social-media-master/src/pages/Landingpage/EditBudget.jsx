@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -16,19 +16,20 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
-import useFriendAccess from "../../hooks/useFriendAccess";
 import { DataGrid } from "@mui/x-data-grid";
-import { Box, TextField, CircularProgress } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import PageHeader from "../../components/PageHeader";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const EditBudget = () => {
   const { colors } = useTheme();
   const settings = useUserSettings();
+  const { t } = useTranslation();
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const navigate = useNavigate();
   const { id, friendId } = useParams(); // Get budget ID from URL
@@ -77,6 +78,106 @@ const EditBudget = () => {
   const fieldStyles = `px-3 py-2 rounded w-full text-base sm:max-w-[300px] max-w-[200px] border-0 focus:outline-none focus:ring-2 focus:ring-[#00dac6]`;
   const labelStyle = "text-base sm:text-base text-sm font-semibold mr-3";
   const formRow = "mt-6 flex flex-col sm:flex-row sm:items-center gap-4 w-full";
+
+  const fieldLabels = useMemo(
+    () => ({
+      name: t("editBudget.fields.name"),
+      description: t("editBudget.fields.description"),
+      startDate: t("editBudget.fields.startDate"),
+      endDate: t("editBudget.fields.endDate"),
+      amount: t("editBudget.fields.amount"),
+    }),
+    [t]
+  );
+
+  const fieldPlaceholders = useMemo(
+    () => ({
+      name: t("editBudget.placeholders.name"),
+      description: t("editBudget.placeholders.description"),
+      startDate: t("editBudget.placeholders.startDate"),
+      endDate: t("editBudget.placeholders.endDate"),
+      amount: t("editBudget.placeholders.amount"),
+    }),
+    [t]
+  );
+
+  const validationMessages = useMemo(
+    () => ({
+      name: t("editBudget.validation.name"),
+      description: t("editBudget.validation.description"),
+      startDate: t("editBudget.validation.startDate"),
+      endDate: t("editBudget.validation.endDate"),
+      amount: t("editBudget.validation.amount"),
+    }),
+    [t]
+  );
+
+  const tableHeaders = useMemo(
+    () => ({
+      date: t("editBudget.table.headers.date"),
+      expenseName: t("editBudget.table.headers.expenseName"),
+      amount: t("editBudget.table.headers.amount"),
+      paymentMethod: t("editBudget.table.headers.paymentMethod"),
+      type: t("editBudget.table.headers.type"),
+      comments: t("editBudget.table.headers.comments"),
+      inBudget: t("editBudget.table.headers.inBudget"),
+    }),
+    [t]
+  );
+
+  const requiredFields = [
+    "name",
+    "description",
+    "startDate",
+    "endDate",
+    "amount",
+  ];
+
+  const formatLabelFromId = useCallback((value = "") => {
+    return value
+      ? value
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase())
+      : "";
+  }, []);
+
+  const getFieldLabel = useCallback(
+    (fieldId) => fieldLabels[fieldId] || formatLabelFromId(fieldId),
+    [fieldLabels, formatLabelFromId]
+  );
+
+  const getPlaceholderForField = useCallback(
+    (fieldId, fallbackLabel) =>
+      fieldPlaceholders[fieldId] ||
+      t("editBudget.placeholders.generic", {
+        field: fallbackLabel || formatLabelFromId(fieldId),
+      }),
+    [fieldPlaceholders, formatLabelFromId, t]
+  );
+
+  const tableNoRowsLabel = t("editBudget.table.noRows");
+  const linkExpensesLabel = t("editBudget.actions.linkExpenses");
+  const submitLabel = t("editBudget.actions.submit");
+  const submittingLabel = t("editBudget.actions.submitting");
+  const closeLabel = t("common.close");
+  const notAvailableLabel = t("common.notAvailable");
+  const pageTitle = t("editBudget.title");
+  const successMessage = t("editBudget.messages.updateSuccess");
+  const genericErrorMessage = t("editBudget.messages.updateError");
+  const expenseErrorFallback = t("editBudget.messages.expenseLoadError");
+  const budgetErrorFallback = t("editBudget.messages.budgetLoadError");
+  const minActionButtonWidth = 132;
+
+  const clearFieldError = useCallback((field) => {
+    setErrors((prev) => {
+      if (!prev[field]) {
+        return prev;
+      }
+      const updated = { ...prev };
+      delete updated[field];
+      return updated;
+    });
+  }, []);
 
   // Pre-populate form with budget data
   useEffect(() => {
@@ -130,6 +231,7 @@ const EditBudget = () => {
       }
       return updatedFormData;
     });
+    clearFieldError(name);
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -137,55 +239,55 @@ const EditBudget = () => {
     e.preventDefault();
     if (!hasWriteAccess) return; // block if read-only
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    if (!formData.name.trim()) newErrors.name = validationMessages.name;
     if (!formData.description.trim())
-      newErrors.description = "Description is required.";
-    if (!formData.startDate) newErrors.startDate = "Start date is required.";
-    if (!formData.endDate) newErrors.endDate = "End date is required.";
+      newErrors.description = validationMessages.description;
+    if (!formData.startDate) newErrors.startDate = validationMessages.startDate;
+    if (!formData.endDate) newErrors.endDate = validationMessages.endDate;
     if (!formData.amount || isNaN(parseFloat(formData.amount)))
-      newErrors.amount = "Valid amount is required.";
+      newErrors.amount = validationMessages.amount;
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length === 0) {
-      setIsSubmitting(true);
-      try {
-        // Collect expense IDs where includeInBudget is checked
-        const expenseIds = expenses
-          .filter((expense, index) => checkboxStates[index])
-          .map((expense) => expense.id);
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
 
-        const budgetData = {
-          id,
-          name: formData.name.trim(),
-          description: formData.description.trim(),
-          startDate: formData.startDate,
-          endDate: formData.endDate,
-          amount: parseFloat(formData.amount) || 0,
-          expenseIds: expenseIds,
-        };
+    setIsSubmitting(true);
+    try {
+      // Collect expense IDs where includeInBudget is checked
+      const expenseIds = expenses
+        .filter((expense, index) => checkboxStates[index])
+        .map((expense) => expense.id);
 
-        const updatedExpenses = expenses.map((expense, index) => ({
-          ...expense,
-          includeInBudget: checkboxStates[index],
-        }));
+      const budgetData = {
+        id,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        amount: parseFloat(formData.amount) || 0,
+        expenseIds: expenseIds,
+      };
 
-        console.log("Submitting budget data:", budgetData);
-        await dispatch(
-          editBudgetAction(budgetData.id, budgetData, friendId || "")
-        );
-        // if (updatedExpenses.length > 0) {
-        //   await dispatch(editMultipleExpenseAction(updatedExpenses));
-        // }
+      const updatedExpenses = expenses.map((expense, index) => ({
+        ...expense,
+        includeInBudget: checkboxStates[index],
+      }));
 
-        navigate(-1, "budget updated successfully.", "success");
-      } catch (error) {
-        console.error("Submission error:", error);
-        navigate(-1, "Budget updated successfully.", "success");
-      } finally {
-        setIsSubmitting(false);
-      }
-    } else {
-      navigate(-1, "Please fill out all required fields correctly.", "error");
+      console.log("Submitting budget data:", budgetData);
+      await dispatch(
+        editBudgetAction(budgetData.id, budgetData, friendId || "")
+      );
+      // if (updatedExpenses.length > 0) {
+      //   await dispatch(editMultipleExpenseAction(updatedExpenses));
+      // }
+
+      navigate(-1, successMessage, "success");
+    } catch (error) {
+      console.error("Submission error:", error);
+      navigate(-1, error?.message || genericErrorMessage, "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -252,22 +354,32 @@ const EditBudget = () => {
         />
       ),
     },
-    { field: "date", headerName: "Date", flex: 0.5, minWidth: 60 },
+    { field: "date", headerName: tableHeaders.date, flex: 0.5, minWidth: 60 },
     {
       field: "expenseName",
-      headerName: "Expense Name",
+      headerName: tableHeaders.expenseName,
       flex: 1,
       minWidth: 120,
     },
-    { field: "amount", headerName: "Amount", flex: 0.4, minWidth: 50 },
+    {
+      field: "amount",
+      headerName: tableHeaders.amount,
+      flex: 0.4,
+      minWidth: 50,
+    },
     {
       field: "paymentMethod",
-      headerName: "Payment Method",
+      headerName: tableHeaders.paymentMethod,
       flex: 0.7,
       minWidth: 80,
     },
-    { field: "type", headerName: "Type", flex: 0.4, minWidth: 50 },
-    { field: "comments", headerName: "Comments", flex: 2, minWidth: 200 },
+    { field: "type", headerName: tableHeaders.type, flex: 0.4, minWidth: 50 },
+    {
+      field: "comments",
+      headerName: tableHeaders.comments,
+      flex: 2,
+      minWidth: 200,
+    },
   ];
 
   // DataGrid rows
@@ -289,12 +401,12 @@ const EditBudget = () => {
   const columns = useMemo(
     () => [
       {
-        header: "Date",
+        header: tableHeaders.date,
         accessorKey: "date",
         size: 120,
       },
       {
-        header: "In Budget",
+        header: tableHeaders.inBudget,
         accessorKey: "includeInBudget",
         size: 80,
         cell: ({ row }) => (
@@ -307,32 +419,32 @@ const EditBudget = () => {
         ),
       },
       {
-        header: "Expense Name",
+        header: tableHeaders.expenseName,
         accessorKey: "expense.expenseName",
         size: 150,
       },
       {
-        header: "Amount",
+        header: tableHeaders.amount,
         accessorKey: "expense.amount",
         size: 80,
       },
       {
-        header: "Payment Method",
+        header: tableHeaders.paymentMethod,
         accessorKey: "expense.paymentMethod",
         size: 120,
       },
       {
-        header: "Type",
+        header: tableHeaders.type,
         accessorKey: "expense.type",
         size: 80,
       },
       {
-        header: "Comments",
+        header: tableHeaders.comments,
         accessorKey: "expense.comments",
         size: 200,
       },
     ],
-    [checkboxStates]
+    [checkboxStates, tableHeaders]
   );
 
   const table = useReactTable({
@@ -361,238 +473,246 @@ const EditBudget = () => {
   };
 
   // Render input function with MUI TextField
-  const renderInput = (id, type = "text") => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center">
-        <label
-          htmlFor={id}
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
-          }}
-        >
-          {id
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())}
-          {["name", "description", "startDate", "endDate", "amount"].includes(
-            id
-          ) && <span className="text-red-500"> *</span>}
-        </label>
-        <TextField
-          id={id}
-          name={id}
-          type={type === "date" ? "text" : type}
-          value={formData[id]}
-          onChange={handleInputChange}
-          placeholder={`Enter ${id}`}
-          error={!!errors[id]}
-          variant="outlined"
-          size="small"
-          InputProps={{
-            className: fieldStyles,
-            style: {
-              height: "52px",
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-            },
-          }}
-          sx={{
-            width: "100%",
-            maxWidth: { xs: "250px", sm: "300px" },
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-              "& fieldset": {
-                borderColor: errors[id] ? "#ef4444" : colors.border_color,
-              },
-              "&:hover fieldset": {
-                borderColor: errors[id] ? "#ef4444" : colors.border_color,
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: errors[id] ? "#ef4444" : colors.primary_accent,
-              },
-            },
-            "& .MuiInputBase-input": {
-              color: colors.primary_text,
-            },
-            "& .MuiInputBase-input::placeholder": {
-              color: colors.icon_muted,
-              opacity: 1,
-            },
-          }}
-        />
-      </div>
-    </div>
-  );
+  const renderInput = (id, type = "text") => {
+    const labelText = getFieldLabel(id);
+    const placeholderText = getPlaceholderForField(id, labelText);
+    const isRequired = requiredFields.includes(id);
 
-  const renderDateInput = (id) => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center">
-        <label
-          htmlFor={id}
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
-          }}
-        >
-          {id
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())}
-          <span className="text-red-500"> *</span>
-        </label>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            value={formData[id] ? dayjs(formData[id]) : null}
-            onChange={(newValue) => {
-              if (newValue) {
-                const formatted = dayjs(newValue).format("YYYY-MM-DD");
-                setFormData((prev) => {
-                  const updatedFormData = { ...prev, [id]: formatted };
-                  if ((id === "startDate" || id === "endDate") && showTable) {
-                    dispatch(
-                      getExpensesByBudget(
-                        budget?.id || budget.id,
-                        id === "startDate"
-                          ? formatted
-                          : updatedFormData.startDate,
-                        id === "endDate" ? formatted : updatedFormData.endDate,
-                        friendId || ""
-                      )
-                    );
-                  }
-                  return updatedFormData;
-                });
-              }
-              if (errors[id]) {
-                setErrors({ ...errors, [id]: false });
-              }
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="flex items-center">
+          <label
+            htmlFor={id}
+            style={{
+              ...inputWrapper,
+              color: colors.primary_text,
+              fontSize: "0.875rem",
+              fontWeight: "600",
+            }}
+          >
+            {labelText}
+            {isRequired && <span className="text-red-500"> *</span>}
+          </label>
+          <TextField
+            id={id}
+            name={id}
+            type={type === "date" ? "text" : type}
+            value={formData[id]}
+            onChange={handleInputChange}
+            placeholder={placeholderText}
+            error={!!errors[id]}
+            variant="outlined"
+            size="small"
+            InputProps={{
+              className: fieldStyles,
+              style: {
+                height: "52px",
+                backgroundColor: colors.primary_bg,
+                color: colors.primary_text,
+              },
             }}
             sx={{
-              background: colors.primary_bg,
-              borderRadius: 2,
-              color: colors.primary_text,
-              ".MuiInputBase-input": {
+              width: "100%",
+              maxWidth: { xs: "250px", sm: "300px" },
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: colors.primary_bg,
                 color: colors.primary_text,
-                height: 32,
-                fontSize: 18,
+                "& fieldset": {
+                  borderColor: errors[id] ? "#ef4444" : colors.border_color,
+                },
+                "&:hover fieldset": {
+                  borderColor: errors[id] ? "#ef4444" : colors.border_color,
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: errors[id] ? "#ef4444" : colors.primary_accent,
+                },
               },
-              ".MuiSvgIcon-root": { color: "#00dac6" },
-              width: 300,
-              height: 56,
-              minHeight: 56,
-              maxHeight: 56,
+              "& .MuiInputBase-input": {
+                color: colors.primary_text,
+              },
+              "& .MuiInputBase-input::placeholder": {
+                color: colors.icon_muted,
+                opacity: 1,
+              },
             }}
-            slotProps={{
-              textField: {
-                size: "medium",
-                variant: "outlined",
-                sx: {
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const renderDateInput = (id) => {
+    const labelText = getFieldLabel(id);
+
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="flex items-center">
+          <label
+            htmlFor={id}
+            style={{
+              ...inputWrapper,
+              color: colors.primary_text,
+              fontSize: "0.875rem",
+              fontWeight: "600",
+            }}
+          >
+            {labelText}
+            <span className="text-red-500"> *</span>
+          </label>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              value={formData[id] ? dayjs(formData[id]) : null}
+              onChange={(newValue) => {
+                if (newValue) {
+                  const formatted = dayjs(newValue).format("YYYY-MM-DD");
+                  setFormData((prev) => {
+                    const updatedFormData = { ...prev, [id]: formatted };
+                    if ((id === "startDate" || id === "endDate") && showTable) {
+                      dispatch(
+                        getExpensesByBudget(
+                          budget?.id || budget.id,
+                          id === "startDate"
+                            ? formatted
+                            : updatedFormData.startDate,
+                          id === "endDate"
+                            ? formatted
+                            : updatedFormData.endDate,
+                          friendId || ""
+                        )
+                      );
+                    }
+                    return updatedFormData;
+                  });
+                }
+                clearFieldError(id);
+              }}
+              sx={{
+                background: colors.primary_bg,
+                borderRadius: 2,
+                color: colors.primary_text,
+                ".MuiInputBase-input": {
                   color: colors.primary_text,
-                  height: 56,
-                  minHeight: 56,
-                  maxHeight: 56,
-                  width: 300,
+                  height: 32,
                   fontSize: 18,
-                  "& .MuiInputBase-root": {
+                },
+                ".MuiSvgIcon-root": { color: "#00dac6" },
+                width: 300,
+                height: 56,
+                minHeight: 56,
+                maxHeight: 56,
+              }}
+              slotProps={{
+                textField: {
+                  size: "medium",
+                  variant: "outlined",
+                  sx: {
+                    color: colors.primary_text,
                     height: 56,
                     minHeight: 56,
                     maxHeight: 56,
-                  },
-                  "& input": {
-                    height: 32,
+                    width: 300,
                     fontSize: 18,
-                    color: colors.primary_text,
+                    "& .MuiInputBase-root": {
+                      height: 56,
+                      minHeight: 56,
+                      maxHeight: 56,
+                    },
+                    "& input": {
+                      height: 32,
+                      fontSize: 18,
+                      color: colors.primary_text,
+                    },
                   },
                 },
+              }}
+              format={dateFormat}
+            />
+          </LocalizationProvider>
+        </div>
+        {errors[id] && (
+          <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
+            {errors[id]}
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  const renderAmountInput = () => {
+    const labelText = getFieldLabel("amount");
+    const placeholderText = getPlaceholderForField("amount", labelText);
+
+    return (
+      <div className="flex flex-col flex-1">
+        <div className="flex items-center">
+          <label
+            htmlFor="amount"
+            style={{
+              ...inputWrapper,
+              color: colors.primary_text,
+              fontSize: "0.875rem",
+              fontWeight: "600",
+            }}
+          >
+            {labelText}
+            <span className="text-red-500"> *</span>
+          </label>
+          <TextField
+            id="amount"
+            name="amount"
+            type="number"
+            value={formData.amount || ""}
+            onChange={(e) => {
+              handleInputChange(e);
+              clearFieldError("amount");
+            }}
+            placeholder={placeholderText}
+            variant="outlined"
+            error={!!errors.amount}
+            InputProps={{
+              className: fieldStyles,
+              style: {
+                height: "52px",
+                backgroundColor: colors.primary_bg,
+                color: colors.primary_text,
+                borderColor: errors.amount ? "#ef4444" : colors.border_color,
+                borderWidth: errors.amount ? "2px" : "1px",
               },
             }}
-            format={dateFormat}
+            sx={{
+              width: "100%",
+              maxWidth: "300px",
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: errors.amount ? "#ef4444" : colors.border_color,
+                  borderWidth: errors.amount ? "2px" : "1px",
+                  borderStyle: "solid",
+                },
+                "&:hover fieldset": {
+                  borderColor: errors.amount ? "#ef4444" : colors.border_color,
+                  borderWidth: errors.amount ? "2px" : "1px",
+                  borderStyle: "solid",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: errors.amount ? "#ef4444" : "#00dac6",
+                  borderWidth: errors.amount ? "2px" : "2px",
+                  borderStyle: "solid",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: errors.amount ? "#ef4444" : colors.border_color,
+                  borderWidth: errors.amount ? "2px" : "1px",
+                  borderStyle: "solid",
+                },
+              },
+              "& .MuiInputBase-input": {
+                color: colors.primary_text,
+              },
+            }}
           />
-        </LocalizationProvider>
+        </div>
       </div>
-      {errors[id] && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-          {errors[id]}
-        </span>
-      )}
-    </div>
-  );
-
-  const renderAmountInput = () => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center">
-        <label
-          htmlFor="amount"
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
-          }}
-        >
-          Amount<span className="text-red-500"> *</span>
-        </label>
-        <TextField
-          id="amount"
-          name="amount"
-          type="number"
-          value={formData.amount || ""}
-          onChange={(e) => {
-            handleInputChange(e);
-            if (errors.amount) {
-              setErrors({ ...errors, amount: false });
-            }
-          }}
-          placeholder="Enter amount"
-          variant="outlined"
-          error={errors.amount}
-          InputProps={{
-            className: fieldStyles,
-            style: {
-              height: "52px",
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-              borderColor: errors.amount ? "#ef4444" : colors.border_color,
-              borderWidth: errors.amount ? "2px" : "1px",
-            },
-          }}
-          sx={{
-            width: "100%",
-            maxWidth: "300px",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: errors.amount ? "#ef4444" : colors.border_color,
-                borderWidth: errors.amount ? "2px" : "1px",
-                borderStyle: "solid",
-              },
-              "&:hover fieldset": {
-                borderColor: errors.amount ? "#ef4444" : colors.border_color,
-                borderWidth: errors.amount ? "2px" : "1px",
-                borderStyle: "solid",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: errors.amount ? "#ef4444" : "#00dac6",
-                borderWidth: errors.amount ? "2px" : "2px",
-                borderStyle: "solid",
-              },
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: errors.amount ? "#ef4444" : colors.border_color,
-                borderWidth: errors.amount ? "2px" : "1px",
-                borderStyle: "solid",
-              },
-            },
-            "& .MuiInputBase-input": {
-              color: colors.primary_text,
-            },
-          }}
-        />
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div style={{ backgroundColor: colors.primary_bg }}>
@@ -612,7 +732,7 @@ const EditBudget = () => {
       >
         <div>
           <PageHeader
-            title="Edit Budget"
+            title={pageTitle}
             onClose={handleCloseBudget}
             // titleClassName="font-extrabold text-2xl sm:text-3xl"
             // containerClassName="w-full flex justify-between items-center mb-4"
@@ -631,21 +751,25 @@ const EditBudget = () => {
           </div>
           {budgetError && (
             <div className="text-red-500 text-sm mb-4">
-              Error: {budgetError.message || "Failed to load or update budget."}
+              {budgetError.message || budgetErrorFallback}
             </div>
           )}
           {expenseError && (
             <div className="text-red-500 text-sm mb-4">
-              Error: {expenseError.message || "Failed to load expenses."}
+              {expenseError.message || expenseErrorFallback}
             </div>
           )}
           <div className="mt-4 sm:mt-[50px] w-full flex flex-col sm:flex-row items-center justify-between gap-2">
             <button
               onClick={handleLinkExpenses}
-              className="px-6 py-2 font-semibold rounded w-full sm:w-[150px]"
+              className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
               style={{
                 backgroundColor: colors.button_bg,
                 color: colors.button_text,
+                whiteSpace: "nowrap",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
               onMouseEnter={(e) =>
                 (e.target.style.backgroundColor = colors.button_hover)
@@ -654,7 +778,7 @@ const EditBudget = () => {
                 (e.target.style.backgroundColor = colors.button_bg)
               }
             >
-              Link Expenses
+              {linkExpensesLabel}
             </button>
             {showTable && (
               <button
@@ -664,6 +788,10 @@ const EditBudget = () => {
                   backgroundColor: colors.active_bg,
                   color: colors.primary_text,
                   borderColor: colors.border_color,
+                  whiteSpace: "nowrap",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
                 onMouseEnter={(e) =>
                   (e.target.style.backgroundColor = colors.hover_bg)
@@ -672,7 +800,7 @@ const EditBudget = () => {
                   (e.target.style.backgroundColor = colors.active_bg)
                 }
               >
-                X
+                {closeLabel}
               </button>
             )}
           </div>
@@ -687,6 +815,10 @@ const EditBudget = () => {
                       backgroundColor: colors.active_bg,
                       color: colors.primary_text,
                       borderColor: colors.border_color,
+                      whiteSpace: "nowrap",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                     onMouseEnter={(e) =>
                       (e.target.style.backgroundColor = colors.hover_bg)
@@ -695,15 +827,15 @@ const EditBudget = () => {
                       (e.target.style.backgroundColor = colors.active_bg)
                     }
                   >
-                    X
+                    {closeLabel}
                   </button>
                 </div>
-                {expenses.length === 0 ? (
+                {!Array.isArray(expenses) || expenses.length === 0 ? (
                   <div
                     className="text-center py-8"
                     style={{ color: colors.icon_muted }}
                   >
-                    No rows found
+                    {tableNoRowsLabel}
                   </div>
                 ) : (
                   table.getRowModel().rows.map((row) => (
@@ -727,7 +859,7 @@ const EditBudget = () => {
                             className="text-sm"
                             style={{ color: colors.secondary_text }}
                           >
-                            In Budget
+                            {tableHeaders.inBudget}
                           </span>
                           <input
                             type="checkbox"
@@ -745,24 +877,34 @@ const EditBudget = () => {
                         style={{ color: colors.secondary_text }}
                       >
                         <p>
-                          <span className="font-medium">Date:</span>{" "}
+                          <span className="font-medium">
+                            {tableHeaders.date}:
+                          </span>{" "}
                           {row.original.date}
                         </p>
                         <p>
-                          <span className="font-medium">Amount:</span>{" "}
+                          <span className="font-medium">
+                            {tableHeaders.amount}:
+                          </span>{" "}
                           {row.original.expense.amount}
                         </p>
                         <p>
-                          <span className="font-medium">Payment Method:</span>{" "}
+                          <span className="font-medium">
+                            {tableHeaders.paymentMethod}:
+                          </span>{" "}
                           {row.original.expense.paymentMethod}
                         </p>
                         <p>
-                          <span className="font-medium">Type:</span>{" "}
+                          <span className="font-medium">
+                            {tableHeaders.type}:
+                          </span>{" "}
                           {row.original.expense.type}
                         </p>
                         <p>
-                          <span className="font-medium">Comments:</span>{" "}
-                          {row.original.expense.comments || "N/A"}
+                          <span className="font-medium">
+                            {tableHeaders.comments}:
+                          </span>{" "}
+                          {row.original.expense.comments || notAvailableLabel}
                         </p>
                       </div>
                     </div>
@@ -792,6 +934,9 @@ const EditBudget = () => {
                     }}
                     rowHeight={45}
                     headerHeight={32}
+                    localeText={{
+                      noRowsLabel: tableNoRowsLabel,
+                    }}
                     sx={{
                       color: colors.primary_text,
                       border: 0,
@@ -830,14 +975,12 @@ const EditBudget = () => {
           <div className="w-full flex justify-end mt-4 sm:mt-8">
             <button
               onClick={handleSubmit}
-              className={`py-2 font-semibold rounded transition-all duration-200 w-full sm:w-[120px] ${
-                isSubmitting ? "sm:w-[180px]" : ""
-              }`}
+              className="py-2 font-semibold rounded transition-all duration-200 w-full sm:w-auto"
               disabled={isSubmitting || !hasWriteAccess}
               style={{
                 position: "relative",
                 opacity: isSubmitting ? 0.7 : 1,
-                minWidth: isSubmitting ? 180 : 120,
+                minWidth: isSubmitting ? 180 : minActionButtonWidth,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -845,6 +988,7 @@ const EditBudget = () => {
                 gap: isSubmitting ? 10 : 0,
                 backgroundColor: colors.button_bg,
                 color: colors.button_text,
+                whiteSpace: "nowrap",
               }}
               onMouseEnter={(e) => {
                 if (!isSubmitting) {
@@ -870,10 +1014,10 @@ const EditBudget = () => {
                       marginRight: 10,
                     }}
                   ></span>
-                  <span>Submitting...</span>
+                  <span>{submittingLabel}</span>
                 </>
               ) : (
-                "Submit"
+                submitLabel
               )}
             </button>
           </div>

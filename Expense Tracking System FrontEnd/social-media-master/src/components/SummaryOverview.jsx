@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
+import { useTranslation } from "../hooks/useTranslation";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -20,51 +21,95 @@ const formatNumber0 = (v) =>
 
 /**
  * SummaryOverview
- * Consolidated application metrics card with mini area sparkline + top expenses list.
- * Accepts a summary object; falls back to defaults for missing values.
+ * Modern, UI/UX optimized application metrics card with enhanced visual design
+ * Now uses only dynamic data from backend - no fallback static data
  */
-const SummaryOverview = ({ summary }) => {
+const SummaryOverview = ({ summary, loading = false }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
+  const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
   const isMobile = useMediaQuery("(max-width:600px)");
+
+  // Return null if no data and not loading
+  if (!summary && !loading) {
+    return null;
+  }
+
   const s = {
-    totalExpenses: summary?.totalExpenses ?? 30557,
-    creditDue: summary?.creditDue ?? -4709,
-    budgetsActive: summary?.budgetsActive ?? 4,
-    friendsCount: summary?.friendsCount ?? 12,
-    groupsCount: summary?.groupsCount ?? 3,
-    monthlySpending: summary?.monthlySpending ?? [
-      8000, 0, 469, 1200, 900, 1500, 2000, 1800,
-    ],
-    averageDaily: summary?.averageDaily ?? 1425,
-    savingsRate: summary?.savingsRate ?? 18.6,
-    upcomingBills: summary?.upcomingBills ?? 2,
-    topCategories: summary?.topCategories ?? [
-      { name: "Investment", value: 13000 },
-      { name: "Pg Rent", value: 7000 },
-      { name: "Mother Expenses", value: 8000 },
-    ],
-    topExpenses: summary?.topExpenses ?? [
-      { name: "Grocery - Big Bazaar", amount: 4200, date: "2025-08-10" },
-      { name: "Electricity Bill", amount: 2400, date: "2025-08-08" },
-      { name: "Rent - PG", amount: 7000, date: "2025-08-01" },
-      { name: "Investment - SIP", amount: 13000, date: "2025-08-03" },
-    ],
-    savingsGoals: summary?.savingsGoals ?? [
-      { name: "Emergency Fund", current: 12000, target: 50000 },
-      { name: "Vacation", current: 8000, target: 15000 },
-    ],
-    recommendations: summary?.recommendations ?? [
-      { id: 1, text: `Reduce dining out to save ~${currencySymbol}1500/month` },
-      { id: 2, text: `Move ${currencySymbol}2000 to high-yield savings` },
-    ],
+    totalExpenses: summary?.totalExpenses ?? 0,
+    creditDue: summary?.creditDue ?? 0,
+    budgetsActive: summary?.budgetsActive ?? 0,
+    friendsCount: summary?.friendsCount ?? 0,
+    groupsCount: summary?.groupsCount ?? 0,
+    averageDaily: summary?.averageDaily ?? 0,
+    savingsRate: summary?.savingsRate ?? 0,
+    upcomingBills: summary?.upcomingBills ?? 0,
+    topExpenses: summary?.topExpenses ?? [],
   };
 
-  const chartData = s.monthlySpending.map((val, i) => ({
-    month: `M${i + 1}`,
-    value: val,
-  }));
+  const formatPercent1 = (v) =>
+    Number(v ?? 0).toLocaleString(undefined, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+
+  const metricsData = [
+    {
+      icon: "💸",
+      title: t("dashboard.overview.totalExpenses"),
+      value: `${currencySymbol}${formatNumber0(s.totalExpenses)}`,
+      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    },
+    {
+      icon: "🏦",
+      title: t("dashboard.overview.creditDue"),
+      value: `${currencySymbol}${formatNumber0(Math.abs(s.creditDue))}`,
+      gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+    },
+    {
+      icon: "📊",
+      title: t("dashboard.overview.activeBudgets"),
+      value: s.budgetsActive,
+      gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+    },
+    {
+      icon: "👥",
+      title: t("dashboard.overview.friends"),
+      value: s.friendsCount,
+      gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+    },
+    {
+      icon: "🧑‍🤝‍🧑",
+      title: t("dashboard.overview.groups"),
+      value: s.groupsCount,
+      gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+    },
+  ];
+
+  const kpiData = [
+    {
+      icon: "📈",
+      title: t("dashboard.overview.avgDailySpend"),
+      value: `${currencySymbol}${formatNumber0(s.averageDaily)}`,
+      subtitle: t("dashboard.overview.last30Days"),
+      color: "#667eea",
+    },
+    {
+      icon: "💰",
+      title: t("dashboard.overview.savingsRate"),
+      value: `${formatPercent1(s.savingsRate)}%`,
+      subtitle: t("dashboard.overview.ofIncome"),
+      color: "#43e97b",
+    },
+    {
+      icon: "📅",
+      title: t("dashboard.overview.upcomingBills"),
+      value: `${currencySymbol}${formatNumber0(s.upcomingBills)}`,
+      subtitle: t("dashboard.overview.dueThisPeriod"),
+      color: "#f5576c",
+    },
+  ];
 
   return (
     <div
@@ -72,205 +117,417 @@ const SummaryOverview = ({ summary }) => {
       style={{
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
+        borderRadius: "16px",
+        overflow: "hidden",
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
       }}
     >
-      <div className="chart-header">
-        <h3 style={{ color: colors.primary_text }}>🔎 Application Overview</h3>
-        <div className="total-amount" style={{ color: colors.primary_accent }}>
-          Live Summary
-        </div>
-      </div>
-      <div className="overview-content">
-        <div className="overview-metrics">
-          {[
-            [
-              "💸",
-              "Total Expenses",
-              `${currencySymbol}${formatNumber0(s.totalExpenses)}`,
-            ],
-            [
-              "🏦",
-              "Credit Due",
-              `${currencySymbol}${formatNumber0(Math.abs(s.creditDue))}`,
-            ],
-            ["📊", "Active Budgets", s.budgetsActive],
-            ["👥", "Friends", s.friendsCount],
-            ["🧑‍🤝‍🧑", "Groups", s.groupsCount],
-          ].map(([icon, title, val], i) => (
-            <div
-              className="overview-metric"
-              key={i}
-              style={{
-                backgroundColor: colors.tertiary_bg,
-                border: `1px solid ${colors.border_color}`,
-              }}
-            >
-              <div
-                className="metric-icon"
-                style={{ color: colors.primary_accent }}
-              >
-                {icon}
-              </div>
-              <div className="metric-body">
-                <div
-                  className="metric-title"
-                  style={{ color: colors.secondary_text }}
-                >
-                  {title}
-                </div>
-                <div
-                  className="metric-value"
-                  style={{ color: colors.primary_text }}
-                >
-                  {val}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="overview-chart">
-          <ResponsiveContainer width="100%" height={isMobile ? 90 : 120}>
-            <AreaChart
-              data={chartData}
-              margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="ovGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor={colors.primary_accent}
-                    stopOpacity={0.8}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor={colors.primary_accent}
-                    stopOpacity={0.08}
-                  />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="month" hide />
-              <YAxis hide />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: colors.tertiary_bg,
-                  border: `1px solid ${colors.primary_accent}`,
-                  borderRadius: 8,
-                  color: colors.primary_text,
-                }}
-                formatter={(value) => [
-                  `${currencySymbol}${formatNumber0(value)}`,
-                  "Spending",
-                ]}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke={colors.primary_accent}
-                fillOpacity={1}
-                fill="url(#ovGrad)"
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="overview-extra">
-        <div className="kpi-row">
-          {[
-            [
-              "Avg Daily Spend",
-              `${currencySymbol}${formatNumber0(s.averageDaily)}`,
-              "Last 30 days",
-            ],
-            ["Savings Rate", `${s.savingsRate}%`, "of income"],
-            ["Upcoming Bills", s.upcomingBills, "due this week"],
-          ].map(([title, val, sub], i) => (
-            <div
-              className="kpi-card"
-              key={i}
-              style={{
-                backgroundColor: colors.tertiary_bg,
-                border: `1px solid ${colors.border_color}`,
-              }}
-            >
-              <div
-                className="kpi-title"
-                style={{ color: colors.secondary_text }}
-              >
-                {title}
-              </div>
-              <div className="kpi-value" style={{ color: colors.primary_text }}>
-                {val}
-              </div>
-              <div className="kpi-sub" style={{ color: colors.secondary_text }}>
-                {sub}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="overview-bottom">
+      {/* Header Section */}
+      <div
+        className="chart-header"
+        style={{
+          background: `linear-gradient(135deg, ${colors.primary_accent}15 0%, ${colors.primary_accent}05 100%)`,
+          padding: "14px 24px",
+          borderBottom: `1px solid ${colors.border_color}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div
-            className="top-expenses full-width"
             style={{
-              backgroundColor: colors.tertiary_bg,
-              border: `1px solid ${colors.border_color}`,
+              fontSize: "24px",
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+            }}
+          >
+            🔎
+          </div>
+          <h3
+            style={{
+              color: colors.primary_text,
+              margin: 0,
+              fontSize: "18px",
+              fontWeight: "600",
+              letterSpacing: "-0.5px",
+            }}
+          >
+            {t("dashboard.overview.title")}
+          </h3>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "6px 12px",
+            borderRadius: "20px",
+            background: `linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)`,
+            boxShadow: "0 2px 8px rgba(67, 233, 123, 0.3)",
+          }}
+        >
+          <span
+            style={{
+              display: "inline-block",
+              width: "6px",
+              height: "6px",
+              borderRadius: "50%",
+              backgroundColor: "#ffffff",
+              animation: "pulse 2s infinite",
+            }}
+          />
+          <span
+            style={{
+              color: "#ffffff",
+              fontSize: "12px",
+              fontWeight: "600",
+              letterSpacing: "0.3px",
+            }}
+          >
+            {t("dashboard.overview.liveSummary")}
+          </span>
+        </div>
+      </div>
+
+      {/* Quick Metrics Grid */}
+      <div style={{ padding: "20px 24px 16px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(5, 1fr)",
+            gap: "12px",
+          }}
+        >
+          {metricsData.map((metric, i) => (
+            <div
+              key={i}
+              style={{
+                background: colors.tertiary_bg,
+                borderRadius: "12px",
+                padding: "16px 12px",
+                border: `1px solid ${colors.border_color}`,
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                cursor: "pointer",
+                position: "relative",
+                overflow: "hidden",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(0, 0, 0, 0.12)";
+                e.currentTarget.style.borderColor = colors.primary_accent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+                e.currentTarget.style.borderColor = colors.border_color;
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: "60px",
+                  height: "60px",
+                  background: metric.gradient,
+                  opacity: 0.08,
+                  borderRadius: "50%",
+                  transform: "translate(30%, -30%)",
+                }}
+              />
+              <div
+                style={{
+                  fontSize: "24px",
+                  marginBottom: "8px",
+                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+                }}
+              >
+                {metric.icon}
+              </div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: colors.secondary_text,
+                  marginBottom: "4px",
+                  fontWeight: "500",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {metric.title}
+              </div>
+              <div
+                style={{
+                  fontSize: "18px",
+                  color: colors.primary_text,
+                  fontWeight: "700",
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                {metric.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div style={{ padding: "0 24px 20px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+            gap: "12px",
+          }}
+        >
+          {kpiData.map((kpi, i) => (
+            <div
+              key={i}
+              style={{
+                background: colors.tertiary_bg,
+                borderRadius: "12px",
+                padding: "16px",
+                border: `1px solid ${colors.border_color}`,
+                transition: "all 0.3s ease",
+                position: "relative",
+                overflow: "hidden",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = kpi.color;
+                e.currentTarget.style.boxShadow = `0 4px 16px ${kpi.color}20`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = colors.border_color;
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-10px",
+                  right: "-10px",
+                  fontSize: "48px",
+                  opacity: 0.1,
+                }}
+              >
+                {kpi.icon}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "8px",
+                }}
+              >
+                <span style={{ fontSize: "20px" }}>{kpi.icon}</span>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: colors.secondary_text,
+                    fontWeight: "500",
+                  }}
+                >
+                  {kpi.title}
+                </div>
+              </div>
+              <div
+                style={{
+                  fontSize: "24px",
+                  color: colors.primary_text,
+                  fontWeight: "700",
+                  marginBottom: "4px",
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                {kpi.value}
+              </div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  color: colors.secondary_text,
+                  opacity: 0.8,
+                }}
+              >
+                {kpi.subtitle}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Top Expenses Section */}
+      <div style={{ padding: "0 24px 24px" }}>
+        <div
+          style={{
+            background: colors.tertiary_bg,
+            borderRadius: "12px",
+            border: `1px solid ${colors.border_color}`,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              padding: "16px",
+              borderBottom: `1px solid ${colors.border_color}`,
+              background: `linear-gradient(135deg, ${colors.primary_accent}08 0%, transparent 100%)`,
             }}
           >
             <div
-              className="small-header"
-              style={{ color: colors.primary_text }}
+              style={{
+                fontSize: "14px",
+                color: colors.primary_text,
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
             >
-              Top Expenses
+              <span>🔝</span>
+              {t("dashboard.overview.topExpenses")}
             </div>
-            <ul>
+          </div>
+          {s.topExpenses.length > 0 ? (
+            <div
+              style={{
+                padding: "8px",
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
+                gap: "8px",
+              }}
+            >
               {s.topExpenses.map((e, i) => (
-                <li
+                <div
                   key={i}
-                  className="top-expense-item"
                   style={{
-                    borderBottom: `1px solid ${colors.border_color}`,
+                    padding: "12px",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    transition: "all 0.2s ease",
+                    cursor: "pointer",
+                    background: "transparent",
+                    border: `1px solid ${colors.border_color}`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = `${colors.primary_accent}10`;
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 12px rgba(0,0,0,0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 >
-                  <div className="expense-left">
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      flex: 1,
+                      minWidth: 0,
+                    }}
+                  >
                     <div
-                      className="cat-name"
-                      title={e.name}
-                      style={{ color: colors.primary_text }}
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "8px",
+                        background: `linear-gradient(135deg, ${colors.primary_accent}20 0%, ${colors.primary_accent}10 100%)`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "16px",
+                        fontWeight: "700",
+                        color: colors.primary_accent,
+                        flexShrink: 0,
+                      }}
                     >
-                      {e.name}
+                      {i + 1}
                     </div>
-                    <div
-                      className="cat-sub"
-                      style={{ color: colors.secondary_text }}
-                    >
-                      {new Date(e.date).toLocaleDateString(undefined, {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: "13px",
+                          color: colors.primary_text,
+                          fontWeight: "600",
+                          marginBottom: "2px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                        title={e.name}
+                      >
+                        {e.name}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "10px",
+                          color: colors.secondary_text,
+                        }}
+                      >
+                        {new Date(e.date).toLocaleDateString(undefined, {
+                          day: "2-digit",
+                          month: "short",
+                        })}
+                      </div>
                     </div>
                   </div>
-                  <div className="expense-right">
-                    <span
-                      className="cat-value"
-                      style={{ color: colors.primary_text }}
-                    >
-                      {currencySymbol}
-                      {formatNumber0(e.amount)}
-                    </span>
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      color: colors.primary_text,
+                      fontWeight: "700",
+                      whiteSpace: "nowrap",
+                      marginLeft: "8px",
+                    }}
+                  >
+                    {currencySymbol}
+                    {formatNumber0(e.amount)}
                   </div>
-                </li>
+                </div>
               ))}
-            </ul>
-          </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                padding: "32px",
+                textAlign: "center",
+                color: colors.secondary_text,
+              }}
+            >
+              <div style={{ fontSize: "32px", marginBottom: "8px" }}>📊</div>
+              <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                {t("dashboard.overview.noExpensesData")}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      <style>
+        {`
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
 
 SummaryOverview.propTypes = {
   summary: PropTypes.object,
+  loading: PropTypes.bool,
 };
 
 export default SummaryOverview;

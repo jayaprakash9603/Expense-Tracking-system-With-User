@@ -24,7 +24,6 @@ import {
   Menu,
   MenuItem,
   Typography,
-  Skeleton,
   Box,
   Divider,
   useMediaQuery,
@@ -70,6 +69,7 @@ import useFriendAccess from "../../hooks/useFriendAccess";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
+import BudgetCardsSkeleton from "../../components/skeletons/BudgetCardsSkeleton";
 
 const Budget = () => {
   const { colors, isDarkMode } = useTheme();
@@ -931,7 +931,7 @@ const Budget = () => {
     <>
       <Box
         sx={{
-          bgcolor: colors.secondary_bg,
+          backgroundColor: colors.secondary_bg,
           width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
           borderRadius: "8px",
@@ -1505,20 +1505,10 @@ const Budget = () => {
           }}
         >
           {loading ? (
-            <Grid container spacing={2}>
-              {[...Array(6)].map((_, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Skeleton
-                    variant="rectangular"
-                    sx={{
-                      height: 280,
-                      borderRadius: "12px",
-                      bgcolor: colors.tertiary_bg,
-                    }}
-                  />
-                </Grid>
-              ))}
-            </Grid>
+            <BudgetCardsSkeleton
+              cardCount={6}
+              isMediumScreen={isMediumScreen}
+            />
           ) : error ? (
             <Box
               sx={{

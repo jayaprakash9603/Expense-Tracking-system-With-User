@@ -1,22 +1,31 @@
 import React, { useState } from "react";
 import axios from "axios";
 import {
-  Autocomplete,
   Box,
   Button,
   CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
   Typography,
   Alert,
-  useTheme,
+  useTheme as useMuiTheme,
   useMediaQuery,
+  Stack,
+  Grid,
+  Chip,
+  Fade,
+  InputAdornment,
 } from "@mui/material";
+import EmailIcon from "@mui/icons-material/Email";
+import SendIcon from "@mui/icons-material/Send";
+import ClearIcon from "@mui/icons-material/Clear";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import CategoryIcon from "@mui/icons-material/Category";
+import PaymentIcon from "@mui/icons-material/Payment";
 import { api, API_BASE_URL } from "../../config/api";
 import { expensesTypesEmail } from "../Input Fields/InputFields";
+import ReusableAutocomplete from "../../components/ReusableAutocomplete";
+import ReusableFilterField from "../../components/ReusableFilterField";
+import { useTheme } from "../../hooks/useTheme";
 
 const ExpenseEmail = () => {
   const [logTypes] = useState(expensesTypesEmail);
@@ -42,8 +51,23 @@ const ExpenseEmail = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const jwt = localStorage.getItem("jwt");
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const muiTheme = useMuiTheme();
+  const { colors, mode } = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
+  const disabledTextColor =
+    mode === "light" ? "rgba(26, 26, 26, 0.45)" : "rgba(255, 255, 255, 0.45)";
+  const sectionBorder = colors.border_color;
+  const cardShadow =
+    mode === "dark"
+      ? "0 18px 40px rgba(0, 0, 0, 0.6)"
+      : "0 14px 32px rgba(15, 23, 42, 0.08)";
+  const formSectionStyles = {
+    border: `1px solid ${sectionBorder}`,
+    borderRadius: 2,
+    p: isMobile ? 2 : 2.5,
+    bgcolor: colors.primary_bg,
+    minHeight: 108,
+  };
 
   const handleSendEmail = async () => {
     if (!email) {
@@ -174,36 +198,255 @@ const ExpenseEmail = () => {
   const highlightText = (option, inputValue) => {
     if (!inputValue) return <div>{option}</div>;
     const regex = new RegExp(
-      `(${inputValue.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")})`,
+      `(${inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
       "gi"
     );
     const parts = option.split(regex);
+    const normalizedInput = inputValue.toLowerCase();
     return (
-      <div>
+      <span>
         {parts.map((part, index) =>
-          regex.test(part) ? (
-            <span key={index} style={{ fontWeight: "bold", color: "#00dac6" }}>
+          part.toLowerCase() === normalizedInput ? (
+            <Typography
+              key={`${part}-${index}`}
+              component="span"
+              sx={{
+                color: "#00dac6",
+                fontWeight: 600,
+              }}
+            >
               {part}
-            </span>
+            </Typography>
           ) : (
-            <span key={index}>{part}</span>
+            <Typography
+              key={`${part}-${index}`}
+              component="span"
+              sx={{ color: colors.primary_text }}
+            >
+              {part}
+            </Typography>
           )
         )}
-      </div>
+      </span>
     );
   };
+
+  const renderDynamicFields = () => {
+    switch (searchTerm) {
+      case "Particular Date Expenses":
+        return (
+          <ReusableFilterField
+            type="date"
+            label="Select Date"
+            value={fromDay}
+            onChange={(e) => setFromDay(e.target.value)}
+          />
+        );
+      case "Particular Month Expenses":
+        return (
+          <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+            <ReusableFilterField
+              type="number"
+              label="Year"
+              value={startYear}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow typing, but limit length
+                if (value === "" || value.length <= 4) {
+                  setStartYear(value);
+                }
+              }}
+              placeholder="e.g., 2025"
+              inputProps={{ 
+                min: 1900, 
+                max: 2100,
+                step: 1
+              }}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+            <ReusableFilterField
+              type="select"
+              label="Month"
+              value={startMonth}
+              onChange={(e) => setStartMonth(e.target.value)}
+              options={[
+                { value: "", label: "Select Month" },
+                { value: "1", label: "January" },
+                { value: "2", label: "February" },
+                { value: "3", label: "March" },
+                { value: "4", label: "April" },
+                { value: "5", label: "May" },
+                { value: "6", label: "June" },
+                { value: "7", label: "July" },
+                { value: "8", label: "August" },
+                { value: "9", label: "September" },
+                { value: "10", label: "October" },
+                { value: "11", label: "November" },
+                { value: "12", label: "December" },
+              ]}
+              startAdornment={<CalendarTodayIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+          </Grid>
+        );
+      case "Expenses By Name":
+        return (
+          <ReusableFilterField
+            type="text"
+            label="Expense Name"
+            value={expenseName}
+            onChange={(e) => setExpenseName(e.target.value)}
+            placeholder="Enter expense name..."
+            startAdornment={<CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+          />
+        );
+      case "Expenses By Payment Method":
+        return (
+          <ReusableFilterField
+            type="select"
+            label="Payment Method"
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            options={[
+              { value: "", label: "Select Method" },
+              { value: "cash", label: "Cash" },
+              { value: "creditNeedToPaid", label: "Credit Due" },
+              { value: "creditPaid", label: "Credit Paid" },
+            ]}
+            startAdornment={<PaymentIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+          />
+        );
+      case "Within Range Expenses":
+        return (
+          <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+            <ReusableFilterField
+              type="date"
+              label="From Date"
+              value={fromDay}
+              onChange={(e) => setFromDay(e.target.value)}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+            <ReusableFilterField
+              type="date"
+              label="To Date"
+              value={toDay}
+              onChange={(e) => setToDay(e.target.value)}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+          </Grid>
+        );
+      case "Expenses By Type and Payment Method":
+        return (
+          <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+            <ReusableFilterField
+              type="select"
+              label="Category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              options={[
+                { value: "", label: "Select Category" },
+                { value: "loss", label: "Loss" },
+                { value: "gain", label: "Gain" },
+              ]}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+            <ReusableFilterField
+              type="select"
+              label="Payment Method"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              options={[
+                { value: "", label: "Select Method" },
+                { value: "cash", label: "Cash" },
+                { value: "creditNeedToPaid", label: "Credit Due" },
+                { value: "creditPaid", label: "Credit Paid" },
+              ]}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+          </Grid>
+        );
+      case "Expenses By Type":
+        return (
+          <ReusableFilterField
+            type="select"
+            label="Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            options={[
+              { value: "", label: "Select Category" },
+              { value: "loss", label: "Loss" },
+              { value: "gain", label: "Gain" },
+            ]}
+            startAdornment={<CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+          />
+        );
+      case "Expenses Within Amount Range":
+        return (
+          <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+            <ReusableFilterField
+              type="number"
+              label="Minimum Amount"
+              value={minAmount}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow empty or positive numbers
+                if (value === "" || !value.startsWith("-")) {
+                  setMinAmount(value);
+                }
+              }}
+              placeholder="e.g., 100.00"
+              inputProps={{ 
+                min: 0,
+                step: "0.01"
+              }}
+              startAdornment={<AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+            <ReusableFilterField
+              type="number"
+              label="Maximum Amount"
+              value={maxAmount}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow empty or positive numbers
+                if (value === "" || !value.startsWith("-")) {
+                  setMaxAmount(value);
+                }
+              }}
+              placeholder="e.g., 1000.00"
+              inputProps={{ 
+                min: 0,
+                step: "0.01"
+              }}
+              startAdornment={<AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              gridProps={{ xs: 12, sm: 6 }}
+            />
+          </Grid>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const dynamicFieldsContent = renderDynamicFields();
+  const showDynamicFields = Boolean(dynamicFieldsContent);
 
   if (loading) {
     return (
       <Box
         sx={{
           display: "flex",
+          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          height: "100%",
+          minHeight: 300,
+          gap: 2,
         }}
       >
-        <CircularProgress />
+        <CircularProgress size={48} sx={{ color: "#00dac6" }} />
+        <Typography variant="body1" sx={{ color: "#888" }}>
+          Sending your report...
+        </Typography>
       </Box>
     );
   }
@@ -211,255 +454,196 @@ const ExpenseEmail = () => {
   return (
     <Box
       sx={{
-        p: isMobile ? 2 : 3,
-        borderRadius: "8px",
-        maxWidth: isMobile ? "100%" : 400, // Outer width remains the same
         width: "100%",
-        background: "#1b1b1b",
-        mx: isMobile ? 0 : "0", // Align to the left side
+        maxWidth: 900,
+        mx: "auto",
+        border: `1px solid ${sectionBorder}`,
+        borderRadius: 3,
+        p: isMobile ? 2 : 3,
+        bgcolor: colors.secondary_bg,
+        boxShadow: cardShadow,
+        minHeight: 420,
       }}
     >
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
+        <Fade in>
+          <Alert
+            severity="error"
+            sx={{
+              mb: 3,
+              borderRadius: 2,
+              "& .MuiAlert-icon": {
+                color: "#ff5252",
+              },
+            }}
+            onClose={() => setError("")}
+          >
+            {error}
+          </Alert>
+        </Fade>
       )}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-        }}
-      >
-        <Typography variant="h6" sx={{ mb: isMobile ? 1 : 0 }}>
-          Filters
-        </Typography>
-        <Button
-          variant="text"
-          onClick={handleClearAll}
-          sx={{
-            textTransform: "none",
-            color: "#00dac6",
-            backgroundColor: "rgba(0, 218, 198, 0.1)",
-            "&:hover": {
-              backgroundColor: "rgba(0, 218, 198, 0.1)",
-            },
-          }}
+
+      <Stack spacing={3} sx={{ width: "100%" }}>
+        <Box sx={formSectionStyles}>
+          <Grid container spacing={2} alignItems="flex-start">
+            {/* Report Period Row */}
+            <Grid item xs={12} md={showDynamicFields ? 6 : 12}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: colors.secondary_text,
+                  mb: 1,
+                  display: "block",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}
+              >
+                Report Period
+              </Typography>
+              <ReusableAutocomplete
+                options={logTypes}
+                value={searchTerm}
+                onChange={(event, newValue) => setSearchTerm(newValue || "")}
+                onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
+                loading={loadingSuggestions}
+                loadingText="Loading options..."
+                noOptionsText="No matching period found"
+                placeholder="Select report period"
+                autoHighlight
+                getOptionLabel={(option) => option || ""}
+                isOptionEqualToValue={(option, value) => option === value}
+                backgroundColor={colors.primary_bg}
+                textColor={colors.primary_text}
+                borderColor={colors.border_color}
+                focusBorderColor="#00dac6"
+                placeholderColor={colors.placeholder_text}
+                startAdornment={
+                  <InputAdornment position="start">
+                    <CalendarTodayIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+                  </InputAdornment>
+                }
+                renderOption={(props, option, { inputValue }) => {
+                  const { key, ...optionProps } = props;
+                  return (
+                    <li key={key} {...optionProps} style={{ padding: "12px 16px" }}>
+                      {highlightText(option, inputValue)}
+                    </li>
+                  );
+                }}
+                sx={{ width: "100%" }}
+              />
+            </Grid>
+
+            {/* Right Column: Additional Filters */}
+            {showDynamicFields && (
+              <Fade in timeout={400} mountOnEnter unmountOnExit>
+                <Grid item xs={12} md={6}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: colors.secondary_text,
+                      mb: 1,
+                      display: "block",
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      letterSpacing: 1,
+                    }}
+                  >
+                    Additional Filters
+                  </Typography>
+                  <Box>{dynamicFieldsContent}</Box>
+                </Grid>
+              </Fade>
+            )}
+
+            {/* Recipient Email - Full Width Row */}
+            <Grid item xs={12}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: colors.secondary_text,
+                  mb: 1,
+                  display: "block",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}
+              >
+                Recipient Email
+              </Typography>
+              <ReusableFilterField
+                type="email"
+                placeholder="your.email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                startAdornment={<EmailIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          sx={{ width: "100%" }}
         >
-          Clear All
-        </Button>
-      </Box>
-      <Typography variant="h5" sx={{ mb: 3 }}>
-        Send Expenses by Email
-      </Typography>
-      <div className="mb-3">
-        <Autocomplete
-          autoHighlight
-          options={logTypes}
-          value={searchTerm}
-          onChange={(event, newValue) => setSearchTerm(newValue || "")}
-          onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
-          loading={loadingSuggestions}
-          loadingText="Loading"
-          noOptionsText="No Data Found"
-          openOnFocus
-          sx={{ width: "100%" }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Search expense period"
-              variant="outlined"
-              fullWidth
-              InputProps={{
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {loadingSuggestions ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              }}
-            />
-          )}
-          renderOption={(props, option, { inputValue }) => {
-            const { key, ...optionProps } = props;
-            return (
-              <li key={key} {...optionProps}>
-                {highlightText(option, inputValue)}
-              </li>
-            );
-          }}
-        />
-      </div>
-      {searchTerm === "Particular Date Expenses" && (
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            label="Enter Date"
-            type="date"
-            value={fromDay}
-            onChange={(e) => setFromDay(e.target.value)}
-            fullWidth
-            sx={{ width: "100%" }}
-            InputLabelProps={{ shrink: true }}
-          />
-        </Box>
-      )}
-      {searchTerm === "Particular Month Expenses" && (
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            label="Enter Start Year"
-            type="number"
-            value={startYear}
-            onChange={(e) => setStartYear(e.target.value)}
-            fullWidth
-            sx={{ width: "100%" }}
-          />
-          <TextField
-            label="Enter Start Month"
-            type="number"
-            value={startMonth}
-            onChange={(e) => setStartMonth(e.target.value)}
-            fullWidth
-            sx={{ width: "100%" }}
-          />
-        </Box>
-      )}
-      {searchTerm === "Expenses By Name" && (
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            label="Enter Expense Name"
-            value={expenseName}
-            onChange={(e) => setExpenseName(e.target.value)}
-            fullWidth
-            sx={{ width: "100%" }}
-          />
-        </Box>
-      )}
-      {searchTerm === "Expenses By Payment Method" && (
-        <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth>
-            <InputLabel>Select Payment Method</InputLabel>
-            <Select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            >
-              <MenuItem value="">-- Select Payment Method --</MenuItem>
-              <MenuItem value="cash">Cash</MenuItem>
-              <MenuItem value="creditNeedToPaid">Credit Due</MenuItem>
-              <MenuItem value="creditPaid">Credit Paid</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      )}
-      {searchTerm === "Within Range Expenses" && (
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            label="From Date"
-            type="date"
-            value={fromDay}
-            onChange={(e) => setFromDay(e.target.value)}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="To Date"
-            type="date"
-            value={toDay}
-            onChange={(e) => setToDay(e.target.value)}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
-        </Box>
-      )}
-      {searchTerm === "Expenses By Type and Payment Method" && (
-        <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Select Category</InputLabel>
-            <Select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <MenuItem value="">-- Select Category --</MenuItem>
-              <MenuItem value="loss">Loss</MenuItem>
-              <MenuItem value="gain">Gain</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel>Select Payment Method</InputLabel>
-            <Select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            >
-              <MenuItem value="">-- Select Payment Method --</MenuItem>
-              <MenuItem value="cash">Cash</MenuItem>
-              <MenuItem value="creditNeedToPaid">Credit Due</MenuItem>
-              <MenuItem value="creditPaid">Credit Paid</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      )}
-      {searchTerm === "Expenses By Type" && (
-        <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth>
-            <InputLabel>Select Category</InputLabel>
-            <Select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <MenuItem value="">-- Select Category --</MenuItem>
-              <MenuItem value="loss">Loss</MenuItem>
-              <MenuItem value="gain">Gain</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      )}
-      {searchTerm === "Expenses Within Amount Range" && (
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            label="Enter Minimum Amount"
-            type="number"
-            step="0.01"
-            value={minAmount}
-            onChange={(e) => setMinAmount(e.target.value)}
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Enter Maximum Amount"
-            type="number"
-            step="0.01"
-            value={maxAmount}
-            onChange={(e) => setMaxAmount(e.target.value)}
-            fullWidth
-          />
-        </Box>
-      )}
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          label="Enter Your Email Address"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          fullWidth
-          sx={{ width: "100%" }}
-        />
-      </Box>
-      <Button
-        variant="contained"
-        onClick={handleSendEmail}
-        sx={{
-          textTransform: "none",
-          width: "100%",
-          py: 1.5,
-        }}
-      >
-        Send Email
-      </Button>
+          <Button
+            variant="outlined"
+            onClick={handleClearAll}
+            startIcon={<ClearIcon />}
+            sx={{
+              flex: 1,
+              textTransform: "none",
+              borderColor: "#ef4444",
+              color: "#ef4444",
+              borderRadius: 2,
+              py: 1.5,
+              fontWeight: 600,
+              "&:hover": {
+                borderColor: "#dc2626",
+                bgcolor: "rgba(239, 68, 68, 0.08)",
+                color: "#dc2626",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Clear
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSendEmail}
+            startIcon={loading ? <CircularProgress size={20} sx={{ color: "inherit" }} /> : <SendIcon />}
+            disabled={loading || !email || searchTerm === "select" || searchTerm === ""}
+            sx={{
+              flex: 2,
+              textTransform: "none",
+              bgcolor: colors.button_bg,
+              color: colors.button_text,
+              borderRadius: 2,
+              py: 1.5,
+              fontWeight: 600,
+              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.18)",
+              "&:hover": {
+                bgcolor: colors.button_hover,
+                color: colors.button_text,
+                transform: "translateY(-2px)",
+                boxShadow: `0 12px 24px ${colors.primary_accent}33`,
+              },
+              "&:disabled": {
+                bgcolor: colors.button_inactive,
+                color: disabledTextColor,
+                boxShadow: "none",
+                cursor: "not-allowed",
+                pointerEvents: "auto",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            {loading ? "Sending..." : "Send Report"}
+          </Button>
+        </Stack>
+      </Stack>
     </Box>
   );
 };

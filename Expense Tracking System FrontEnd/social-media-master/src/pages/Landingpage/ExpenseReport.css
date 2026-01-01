@@ -60,14 +60,21 @@
   align-items: center;
   margin-bottom: 32px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border-color, #2a2a2a);
   /* sticky within the scrollable container */
   position: sticky;
   top: 0;
   z-index: 20;
-  background: #0f0f0f;
+  background: var(--report-bg, #0f0f0f);
   padding-top: 24px;
+}
+
+.dark .expense-report-header {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+}
+
+.light .expense-report-header {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .expense-report .header-left h1 {
@@ -79,7 +86,7 @@
 
 .expense-report .header-left p {
   margin: 4px 0 0 0;
-  color: #888;
+  color: var(--secondary-text, #888);
   font-size: 14px;
 }
 
@@ -90,9 +97,9 @@
 }
 
 .expense-timeframe-selector {
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  color: #fff;
+  background: var(--chart-bg, #1a1a1a);
+  border: 1px solid var(--border-color, #2a2a2a);
+  color: var(--report-text, #fff);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 14px;
@@ -131,30 +138,30 @@
 
 .filter-select {
   padding: 10px 15px;
-  border: 2px solid #333333;
+  border: 2px solid var(--border-color, #333333);
   border-radius: 8px;
-  background: #0b0b0b;
-  color: #ffffff;
+  background: var(--report-bg, #0b0b0b);
+  color: var(--report-text, #ffffff);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .filter-select:hover {
-  border-color: #14b8a6;
-  background: #1b1b1b;
+  border-color: var(--primary-accent, #14b8a6);
+  background: var(--hover-bg, #1b1b1b);
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #14b8a6;
+  border-color: var(--primary-accent, #14b8a6);
   box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
-  background: #1b1b1b;
+  background: var(--hover-bg, #1b1b1b);
 }
 
 .filter-select option {
-  background: #1b1b1b;
-  color: #ffffff;
+  background: var(--hover-bg, #1b1b1b);
+  color: var(--report-text, #ffffff);
 }
 
 .summary-cards {
@@ -165,11 +172,11 @@
 }
 
 .summary-card {
-  background: linear-gradient(135deg, #1b1b1b 0%, #0b0b0b 100%);
+  background: linear-gradient(135deg, var(--hover-bg, #1b1b1b) 0%, var(--report-bg, #0b0b0b) 100%);
   padding: 25px;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  border: 1px solid #333333;
+  border: 1px solid var(--border-color, #333333);
   display: flex;
   align-items: center;
   gap: 20px;
@@ -179,7 +186,7 @@
 .summary-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-  border-color: #14b8a6;
+  border-color: var(--primary-accent, #14b8a6);
 }
 
 .card-icon {

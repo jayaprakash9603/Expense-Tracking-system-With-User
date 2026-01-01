@@ -12,9 +12,11 @@ import MyGroupsTab from "./MyGroupsTab";
 import AllGroupsTab from "./AllGroupsTab";
 import InvitationsTab from "./InvitationsTab";
 import DiscoverTab from "./DiscoverTab";
+import { useTheme } from "../../hooks/useTheme";
 
 const Groups = () => {
   const userId = useReduxSelector((state) => state.auth?.user?.id);
+  const { colors } = useTheme();
   const groupRecommendations = useSelector(
     (state) => state.groups.groupRecommendations
   );
@@ -206,13 +208,13 @@ const Groups = () => {
 
   return (
     <div
-      className="shadow-2xl rounded-2xl flex flex-col"
+      className="rounded-2xl flex flex-col"
       style={{
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
-        // marginTop: "50px",
         marginRight: "20px",
-        backgroundColor: "#0b0b0b",
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
       }}
     >
       {/* Custom Scrollbar Styles */}
@@ -221,19 +223,19 @@ const Groups = () => {
           width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #2a2a2a;
+          background: ${colors.hover_bg};
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #14b8a6;
+          background: ${colors.primary_accent};
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #0f9488;
+          background: ${colors.tertiary_accent};
         }
         .custom-scrollbar {
           scrollbar-width: thin;
-          scrollbar-color: #14b8a6 #2a2a2a;
+          scrollbar-color: ${colors.primary_accent} ${colors.hover_bg};
         }
       `}</style>
 
@@ -241,22 +243,34 @@ const Groups = () => {
       <div
         className="p-6 shadow-sm flex-shrink-0"
         style={{
-          backgroundColor: "#0b0b0b",
+          backgroundColor: colors.tertiary_bg,
         }}
       >
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Groups</h1>
-            <p className="text-gray-300">
+            <h1
+              className="text-3xl font-bold mb-2"
+              style={{ color: colors.primary_text }}
+            >
+              Groups
+            </h1>
+            <p style={{ color: colors.secondary_text }}>
               Manage your expense groups and collaborate with others
             </p>
           </div>
           <button
             onClick={handleCreateGroup}
-            className="text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
-            style={{ backgroundColor: "#14b8a6" }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#0f9488")}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = "#14b8a6")}
+            className="px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+            style={{
+              backgroundColor: colors.primary_accent,
+              color: colors.button_text,
+            }}
+            onMouseEnter={(e) =>
+              (e.target.style.backgroundColor = colors.tertiary_accent)
+            }
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = colors.primary_accent)
+            }
           >
             <span className="text-xl">+</span>
             Create Group
@@ -267,34 +281,33 @@ const Groups = () => {
         <div
           className="flex space-x-1 p-1 rounded-xl mb-6"
           style={{
-            backgroundColor: "#2a2a2a",
+            backgroundColor: colors.hover_bg,
           }}
         >
           <button
             onClick={() => setActiveTab("my-groups")}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
-              activeTab === "my-groups"
-                ? "shadow-md"
-                : "text-gray-300 hover:text-white"
-            }`}
+            className="flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300"
             style={
               activeTab === "my-groups"
                 ? {
-                    backgroundColor: "#3a3a3a",
-                    color: "#14b8a6",
+                    backgroundColor: colors.active_bg,
+                    color: colors.active_text,
                   }
                 : {
                     backgroundColor: "transparent",
+                    color: colors.secondary_text,
                   }
             }
             onMouseEnter={(e) => {
               if (activeTab !== "my-groups") {
-                e.target.style.backgroundColor = "#3a3a3a";
+                e.target.style.backgroundColor = colors.active_bg;
+                e.target.style.color = colors.primary_text;
               }
             }}
             onMouseLeave={(e) => {
               if (activeTab !== "my-groups") {
                 e.target.style.backgroundColor = "transparent";
+                e.target.style.color = colors.secondary_text;
               }
             }}
           >
@@ -302,29 +315,28 @@ const Groups = () => {
           </button>
           <button
             onClick={() => setActiveTab("joined-created")}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
-              activeTab === "joined-created"
-                ? "shadow-md"
-                : "text-gray-300 hover:text-white"
-            }`}
+            className="flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300"
             style={
               activeTab === "joined-created"
                 ? {
-                    backgroundColor: "#3a3a3a",
-                    color: "#14b8a6",
+                    backgroundColor: colors.active_bg,
+                    color: colors.active_text,
                   }
                 : {
                     backgroundColor: "transparent",
+                    color: colors.secondary_text,
                   }
             }
             onMouseEnter={(e) => {
               if (activeTab !== "joined-created") {
-                e.target.style.backgroundColor = "#3a3a3a";
+                e.target.style.backgroundColor = colors.active_bg;
+                e.target.style.color = colors.primary_text;
               }
             }}
             onMouseLeave={(e) => {
               if (activeTab !== "joined-created") {
                 e.target.style.backgroundColor = "transparent";
+                e.target.style.color = colors.secondary_text;
               }
             }}
           >
@@ -332,29 +344,28 @@ const Groups = () => {
           </button>
           <button
             onClick={() => setActiveTab("invitations")}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
-              activeTab === "invitations"
-                ? "shadow-md"
-                : "text-gray-300 hover:text-white"
-            }`}
+            className="flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300"
             style={
               activeTab === "invitations"
                 ? {
-                    backgroundColor: "#3a3a3a",
-                    color: "#14b8a6",
+                    backgroundColor: colors.active_bg,
+                    color: colors.active_text,
                   }
                 : {
                     backgroundColor: "transparent",
+                    color: colors.secondary_text,
                   }
             }
             onMouseEnter={(e) => {
               if (activeTab !== "invitations") {
-                e.target.style.backgroundColor = "#3a3a3a";
+                e.target.style.backgroundColor = colors.active_bg;
+                e.target.style.color = colors.primary_text;
               }
             }}
             onMouseLeave={(e) => {
               if (activeTab !== "invitations") {
                 e.target.style.backgroundColor = "transparent";
+                e.target.style.color = colors.secondary_text;
               }
             }}
           >
@@ -362,29 +373,28 @@ const Groups = () => {
           </button>
           <button
             onClick={() => setActiveTab("discover")}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
-              activeTab === "discover"
-                ? "shadow-md"
-                : "text-gray-300 hover:text-white"
-            }`}
+            className="flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300"
             style={
               activeTab === "discover"
                 ? {
-                    backgroundColor: "#3a3a3a",
-                    color: "#14b8a6",
+                    backgroundColor: colors.active_bg,
+                    color: colors.active_text,
                   }
                 : {
                     backgroundColor: "transparent",
+                    color: colors.secondary_text,
                   }
             }
             onMouseEnter={(e) => {
               if (activeTab !== "discover") {
-                e.target.style.backgroundColor = "#3a3a3a";
+                e.target.style.backgroundColor = colors.active_bg;
+                e.target.style.color = colors.primary_text;
               }
             }}
             onMouseLeave={(e) => {
               if (activeTab !== "discover") {
                 e.target.style.backgroundColor = "transparent";
+                e.target.style.color = colors.secondary_text;
               }
             }}
           >
@@ -396,7 +406,8 @@ const Groups = () => {
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <svg
-              className="h-5 w-5 text-gray-400"
+              className="h-5 w-5"
+              style={{ color: colors.placeholder_text }}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -413,25 +424,31 @@ const Groups = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder-gray-400 transition-all duration-300"
+            className="w-full pl-12 pr-4 py-3 rounded-xl transition-all duration-300"
             placeholder={getSearchPlaceholder()}
             style={{
-              backgroundColor: "#2a2a2a",
+              backgroundColor: colors.hover_bg,
+              color: colors.primary_text,
               outline: "none",
             }}
             onFocus={(e) => {
-              e.target.style.boxShadow = `0 0 0 2px #14b8a6`;
-              e.target.style.backgroundColor = "#3a3a3a";
+              e.target.style.boxShadow = `0 0 0 2px ${colors.primary_accent}`;
+              e.target.style.backgroundColor = colors.active_bg;
             }}
             onBlur={(e) => {
               e.target.style.boxShadow = "none";
-              e.target.style.backgroundColor = "#2a2a2a";
+              e.target.style.backgroundColor = colors.hover_bg;
             }}
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-white transition-colors duration-200"
+              className="absolute inset-y-0 right-0 pr-4 flex items-center transition-colors duration-200"
+              style={{ color: colors.placeholder_text }}
+              onMouseEnter={(e) => (e.target.style.color = colors.primary_text)}
+              onMouseLeave={(e) =>
+                (e.target.style.color = colors.placeholder_text)
+              }
             >
               <svg
                 className="h-5 w-5"

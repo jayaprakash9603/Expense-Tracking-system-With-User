@@ -5,9 +5,11 @@ import { useDispatch } from "react-redux";
 import { getGroupById, leaveGroup } from "../../Redux/Groups/groupsActions";
 import { fetchUserGroups } from "../../Redux/Groups/groupsActions";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTheme } from "../../hooks/useTheme";
 
 const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
   const navigate = useNavigate();
+  const { colors } = useTheme();
   const userId = useSelector((state) => state.auth?.user?.id);
   const [openMenuId, setOpenMenuId] = useState(null);
   const dispatch = useDispatch();
@@ -72,10 +74,10 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
               key={group.id}
               className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden relative"
               style={{
-                backgroundColor: "#1a1a1a",
+                backgroundColor: colors.card_bg,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 0 0 2px #14b8a6";
+                e.currentTarget.style.boxShadow = `0 0 0 2px ${colors.primary_accent}`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.boxShadow = "";
@@ -88,11 +90,13 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
                   className="p-2 rounded-full transition-all duration-200 group-menu-btn"
                   style={{
                     backgroundColor:
-                      openMenuId === group.id ? "#14b8a6" : "transparent",
+                      openMenuId === group.id
+                        ? colors.primary_accent
+                        : "transparent",
                   }}
                   onMouseEnter={(e) => {
                     if (openMenuId !== group.id) {
-                      e.target.style.backgroundColor = "#2a2a2a";
+                      e.target.style.backgroundColor = colors.hover_bg;
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -131,8 +135,8 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
                   <div
                     className="absolute right-0 mt-2 w-48 rounded-lg py-2 z-20 group-menu-dropdown"
                     style={{
-                      backgroundColor: "#232323",
-                      border: "1px solid #14b8a6",
+                      backgroundColor: colors.hover_bg,
+                      border: `1px solid ${colors.primary_accent}`,
                     }}
                   >
                     <button
@@ -158,55 +162,80 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
               <div
                 className="h-2 w-full"
                 style={{
-                  backgroundColor: group.color ? group.color : "#14b8a6",
+                  backgroundColor: group.color
+                    ? group.color
+                    : colors.primary_accent,
                 }}
               ></div>
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="text-3xl">{group.avatar}</div>
                   <div className="text-right pr-8">
-                    <div className="text-sm text-gray-400">Total Expenses</div>
-                    <div className="text-xl font-bold text-white">
+                    <div
+                      className="text-sm"
+                      style={{ color: colors.placeholder_text }}
+                    >
+                      Total Expenses
+                    </div>
+                    <div
+                      className="text-xl font-bold"
+                      style={{ color: colors.primary_text }}
+                    >
                       {formatAmount(group.totalExpenses)}
                     </div>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">
+                <h3
+                  className="text-xl font-bold mb-2"
+                  style={{ color: colors.primary_text }}
+                >
                   {group.name}
                 </h3>
-                <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+                <p
+                  className="text-sm mb-3 line-clamp-2"
+                  style={{ color: colors.placeholder_text }}
+                >
                   {group.description}
                 </p>
-                <div className="flex justify-between items-center text-sm text-gray-400 mb-2">
+                <div
+                  className="flex justify-between items-center text-sm mb-2"
+                  style={{ color: colors.placeholder_text }}
+                >
                   <span>{group.totalMembers} members</span>
                   <span
                     className="text-xs px-2 py-1 rounded-full"
                     style={{
                       backgroundColor:
                         group.currentUserRole === "ADMIN"
-                          ? "#14b8a6"
+                          ? colors.primary_accent
                           : group.currentUserRole === "MODERATOR"
                           ? "#f59e0b"
                           : "#6b7280",
-                      color: "white",
+                      color: colors.button_text,
                     }}
                   >
                     {group.currentUserRole}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-sm text-gray-400 mb-4">
+                <div
+                  className="flex justify-between items-center text-sm mb-4"
+                  style={{ color: colors.placeholder_text }}
+                >
                   <span>Created by {group.createdByUsername}</span>
                   <span>Active {group.recentActivity}</span>
                 </div>
                 <div className="flex space-x-2">
                   <button
                     className="flex-1 py-2 px-4 rounded-lg font-medium transition-colors duration-200"
-                    style={{ backgroundColor: "#0f9488", color: "#fff" }}
+                    style={{
+                      backgroundColor: colors.tertiary_accent,
+                      color: colors.button_text,
+                    }}
                     onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = "#14b8a6";
+                      e.target.style.backgroundColor = colors.primary_accent;
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = "#0f9488";
+                      e.target.style.backgroundColor = colors.tertiary_accent;
                     }}
                     onClick={() => {
                       navigate(`/groups/${group.id}`);
@@ -218,14 +247,15 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
                   <button
                     className="flex-1 py-2 px-4 rounded-lg font-medium transition-colors duration-200"
                     style={{
-                      backgroundColor: "#3a3a3a",
-                      color: "#d1d5db",
+                      backgroundColor: colors.active_bg,
+                      color: colors.secondary_text,
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = "#4a4a4a";
+                      e.target.style.backgroundColor = colors.hover_bg;
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = "#3a3a3a";
+                      e.target.style.backgroundColor = colors.active_bg;
+                      e.target.style.color = colors.secondary_text;
                     }}
                   >
                     Add Expense
@@ -238,10 +268,13 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
       ) : (
         <div className="text-center py-20">
           <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-2xl font-bold text-white mb-2">
+          <h3
+            className="text-2xl font-bold mb-2"
+            style={{ color: colors.primary_text }}
+          >
             No Groups Found
           </h3>
-          <p className="text-gray-400">
+          <p style={{ color: colors.placeholder_text }}>
             {searchQuery
               ? `No groups match "${searchQuery}"`
               : "You haven't joined any groups yet"}

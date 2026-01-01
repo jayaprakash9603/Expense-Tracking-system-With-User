@@ -6,6 +6,8 @@ import DashboardHeader from "../../components/DashboardHeader";
 import DashboardCustomizationModal from "../../components/DashboardCustomizationModal";
 import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SummaryOverview from "../../components/SummaryOverview";
+import SummaryOverviewSkeleton from "../../components/SummaryOverviewSkeleton";
+import useApplicationOverview from "../../hooks/useApplicationOverview";
 import MonthlyTrendContainer from "../../components/MonthlyTrendContainer";
 import {
   CategoryBreakdownChart,
@@ -23,41 +25,49 @@ import { createDashboardActions } from "./dashboardActions";
 
 // Section component mapping
 const SECTION_COMPONENTS = {
-  'metrics': ({ analyticsSummary, analyticsLoading, currencySymbol }) => (
+  metrics: ({ analyticsSummary, analyticsLoading, currencySymbol }) => (
     <MetricsGrid
       analyticsSummary={analyticsSummary}
       loading={analyticsLoading}
       currencySymbol={currencySymbol}
     />
   ),
-  'daily-spending': ({ isMobile, isTablet, analyticsLoading }) => (
+  "daily-spending": ({ isMobile, isTablet, analyticsLoading }) => (
     <DailySpendingContainer
-      height={isMobile ? 200 : isTablet ? 240 : 100}
+      height={isMobile ? 200 : isTablet ? 240 : 280}
       refreshTrigger={Math.random()}
       showSkeleton={analyticsLoading}
     />
   ),
-  'quick-access': () => <QuickAccess />,
-  'summary-overview': () => (
-    <SummaryOverview
-      summary={{
-        groupsCreated: 3,
-        groupsMember: 5,
-        pendingInvitations: 2,
-        friendsCount: 12,
-        pendingFriendRequests: 1,
-      }}
-    />
-  ),
-  'category-breakdown': ({ 
-    categoryDistribution, 
-    categoryTimeframe, 
+  "quick-access": () => <QuickAccess />,
+  "summary-overview": ({ appOverviewData, appOverviewLoading }) =>
+    appOverviewLoading ? (
+      <SummaryOverviewSkeleton />
+    ) : (
+      <SummaryOverview
+        summary={{
+          totalExpenses: appOverviewData?.totalExpenses,
+          creditDue: -(appOverviewData?.totalCreditDue || 0),
+          budgetsActive:
+            appOverviewData?.activeBudgets ?? appOverviewData?.totalBudgets,
+          friendsCount: appOverviewData?.friendsCount,
+          groupsCount: appOverviewData?.totalGroups,
+          averageDaily: appOverviewData?.avgDailySpendLast30Days,
+          savingsRate: appOverviewData?.savingsRateLast30Days,
+          upcomingBills: appOverviewData?.upcomingBillsAmount,
+          topExpenses: appOverviewData?.topExpenses,
+        }}
+      />
+    ),
+  "category-breakdown": ({
+    categoryDistribution,
+    categoryTimeframe,
     setCategoryTimeframe,
     categoryFlowType,
     setCategoryFlowType,
     categoryLoading,
     analyticsLoading,
-    isMobile 
+    isMobile,
   }) => (
     <CategoryBreakdownChart
       data={categoryDistribution}
@@ -68,16 +78,12 @@ const SECTION_COMPONENTS = {
       loading={categoryLoading}
       skeleton={
         analyticsLoading ? (
-          <ChartSkeleton
-            height={isMobile ? 380 : 560}
-            variant="pie"
-            noHeader
-          />
+          <ChartSkeleton height={isMobile ? 380 : 560} variant="pie" noHeader />
         ) : null
       }
     />
   ),
-  'monthly-trend': ({ currentYear, analyticsLoading, isMobile, isTablet }) => (
+  "monthly-trend": ({ currentYear, analyticsLoading, isMobile, isTablet }) => (
     <MonthlyTrendContainer
       initialYear={currentYear}
       refreshTrigger={Math.random()}
@@ -86,7 +92,7 @@ const SECTION_COMPONENTS = {
       showSkeleton={analyticsLoading}
     />
   ),
-  'payment-methods': ({ 
+  "payment-methods": ({
     paymentMethodsData,
     paymentMethodsRawData,
     paymentMethodsTimeframe,
@@ -94,7 +100,7 @@ const SECTION_COMPONENTS = {
     paymentMethodsFlowType,
     setPaymentMethodsFlowType,
     paymentMethodsLoading,
-    analyticsLoading 
+    analyticsLoading,
   }) => (
     <PaymentMethodChart
       data={paymentMethodsData}
@@ -111,13 +117,13 @@ const SECTION_COMPONENTS = {
       }
     />
   ),
-  'recent-transactions': ({ analyticsSummary, viewAllTransactions }) => (
+  "recent-transactions": ({ analyticsSummary, viewAllTransactions }) => (
     <RecentTransactions
       transactions={analyticsSummary?.lastTenExpenses ?? []}
       onViewAll={viewAllTransactions}
     />
   ),
-  'budget-overview': ({ analyticsSummary }) => (
+  "budget-overview": ({ analyticsSummary }) => (
     <BudgetOverview
       remainingBudget={analyticsSummary?.remainingBudget ?? 0}
       totalLosses={analyticsSummary?.totalLosses ?? 0}
@@ -130,6 +136,8 @@ export default function DashboardContent() {
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const { data: appOverviewData, loading: appOverviewLoading } =
+    useApplicationOverview();
   const {
     forceRefresh,
     categoryTimeframe,
@@ -170,6 +178,8 @@ export default function DashboardContent() {
   const sectionProps = {
     analyticsSummary,
     analyticsLoading,
+    appOverviewData,
+    appOverviewLoading,
     currencySymbol,
     isMobile,
     isTablet,
@@ -207,9 +217,15 @@ export default function DashboardContent() {
   };
 
   // Group sections by type for rendering
-  const fullWidthSections = layoutConfig.visibleSections.filter(s => s.type === 'full');
-  const halfWidthSections = layoutConfig.visibleSections.filter(s => s.type === 'half');
-  const bottomSections = layoutConfig.visibleSections.filter(s => s.type === 'bottom');
+  const fullWidthSections = layoutConfig.visibleSections.filter(
+    (s) => s.type === "full"
+  );
+  const halfWidthSections = layoutConfig.visibleSections.filter(
+    (s) => s.type === "half"
+  );
+  const bottomSections = layoutConfig.visibleSections.filter(
+    (s) => s.type === "bottom"
+  );
 
   // Group half-width sections into pairs
   const halfWidthPairs = [];
@@ -278,10 +294,10 @@ export default function DashboardContent() {
         <div className="bottom-section">
           {analyticsLoading ? (
             <>
-              {bottomSections.some(s => s.id === 'recent-transactions') && (
+              {bottomSections.some((s) => s.id === "recent-transactions") && (
                 <RecentTransactionsSkeleton count={10} />
               )}
-              {bottomSections.some(s => s.id === 'budget-overview') && (
+              {bottomSections.some((s) => s.id === "budget-overview") && (
                 <BudgetOverviewSkeleton count={4} />
               )}
             </>

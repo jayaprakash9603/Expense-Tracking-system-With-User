@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  attachSystemErrorPayload,
+  buildSystemErrorPayloadFromAxios,
+} from "../utils/systemErrorEvents";
 
 export const API_BASE_URL = "http://localhost:8080";
 
@@ -9,7 +13,7 @@ const getJwtToken = () => {
   return jwtToken;
 };
 
-// Create an Axios instance
+// Create an Axios instance used across the app
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -17,82 +21,115 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor to add JWT token dynamically
-api.interceptors.request.use(
-  (config) => {
+const AUTH_HEADER_KEY = "Authorization";
+
+const handleRequest = (config = {}) => {
+  const requestConfig = config;
+  requestConfig.headers = requestConfig.headers || {};
+  const shouldSkipAuth = requestConfig.skipAuth === true;
+
+  if (!shouldSkipAuth) {
     const token = getJwtToken();
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      requestConfig.headers[AUTH_HEADER_KEY] = `Bearer ${token}`;
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+  } else if (requestConfig.headers[AUTH_HEADER_KEY]) {
+    delete requestConfig.headers[AUTH_HEADER_KEY];
   }
-);
 
-// Response interceptor for global error handling
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response) {
-      const { status } = error.response;
+  if (shouldSkipAuth) {
+    delete requestConfig.skipAuth;
+  }
 
-      switch (status) {
-        case 403:
-          // Dispatch custom event for 403 error
-          window.dispatchEvent(
-            new CustomEvent("show403Error", {
-              detail: {
-                message:
-                  error.response.data?.message ||
-                  "Access denied. You do not have permission to access this resource.",
-                originalError: error,
-              },
-            })
-          );
-          break;
+  return requestConfig;
+};
 
-        case 404:
-          // Dispatch custom event for 404 error
-          window.dispatchEvent(
-            new CustomEvent("show404Error", {
-              detail: {
-                message:
-                  error.response.data?.message ||
-                  "The requested resource was not found.",
-                originalError: error,
-              },
-            })
-          );
-          break;
+const handleRequestError = (error) => Promise.reject(error);
 
-        case 401:
-          // Handle unauthorized - clear token and redirect to login
-          localStorage.removeItem("jwt");
-          window.dispatchEvent(
-            new CustomEvent("unauthorized", {
-              detail: {
-                message: "Your session has expired. Please login again.",
-                originalError: error,
-              },
-            })
-          );
-          break;
+const shouldNormalizeStatus = (status) =>
+  status === 401 ||
+  status === 403 ||
+  (typeof status === "number" && status >= 500 && status < 600);
 
-        default:
-          console.error("API Error:", error.response.data);
-      }
-    } else {
-      // Network error
-      console.error("Network Error:", error.message);
+const handleResponseError = (error) => {
+  if (error.response) {
+    const { status } = error.response;
+    const responseMessage =
+      error.response.data?.message ||
+      error.response.data?.error ||
+      "An unexpected error occurred.";
+    const attachSystemError = () =>
+      attachSystemErrorPayload(error, {
+        status,
+        message: responseMessage,
+      });
+
+    switch (status) {
+      case 403:
+        window.dispatchEvent(
+          new CustomEvent("show403Error", {
+            detail: {
+              message:
+                error.response.data?.message ||
+                "Access denied. You do not have permission to access this resource.",
+              originalError: error,
+            },
+          })
+        );
+        attachSystemError();
+        break;
+      case 404:
+        window.dispatchEvent(
+          new CustomEvent("show404Error", {
+            detail: {
+              message:
+                error.response.data?.message ||
+                "The requested resource was not found.",
+              originalError: error,
+            },
+          })
+        );
+        break;
+      case 401:
+        localStorage.removeItem("jwt");
+        window.dispatchEvent(
+          new CustomEvent("unauthorized", {
+            detail: {
+              message: "Your session has expired. Please login again.",
+              originalError: error,
+            },
+          })
+        );
+        attachSystemError();
+        break;
+      default:
+        if (shouldNormalizeStatus(status)) {
+          attachSystemError();
+        }
+        console.error("API Error:", error.response.data);
     }
-
-    return Promise.reject(error);
+  } else {
+    console.error("Network Error:", error.message);
+    attachSystemErrorPayload(error, {
+      ...buildSystemErrorPayloadFromAxios(error),
+      status: "NETWORK",
+      message: error.message || "Network error",
+    });
   }
-);
+
+  return Promise.reject(error);
+};
+
+const attachInterceptors = (axiosInstance) => {
+  axiosInstance.interceptors.request.use(handleRequest, handleRequestError);
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    handleResponseError
+  );
+};
+
+attachInterceptors(api);
+attachInterceptors(axios);
 
 // Function to update the Authorization header dynamically
 export const updateAuthHeader = () => {

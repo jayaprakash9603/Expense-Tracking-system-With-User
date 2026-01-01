@@ -3,7 +3,6 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useCategoryFlowData from "../../hooks/useCategoryFlowData";
 import { deleteCategory } from "../../Redux/Category/categoryActions";
-import { fetchCategoriesWithExpenses } from "../../Redux/Expenses/expense.action";
 import GenericFlowPage from "../../components/common/GenericFlowPage";
 import CategoryFlowChart from "../../components/categoryflow/CategoryFlowChart";
 import { formatCompactNumber } from "../../utils/numberFormatters";
@@ -33,6 +32,7 @@ const CategoryFlow = () => {
     stackedChartData,
     xAxisKey,
     rangeLabel,
+    refreshCategoryFlow,
   } = useCategoryFlowData({ friendId, isFriendView, search });
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -51,12 +51,6 @@ const CategoryFlow = () => {
   };
   const { hasWriteAccess } = useFriendAccess(friendId);
   const [createCategoryModalOpen, setCreateCategoryModalOpen] = useState(false);
-
-  const onRefresh = () => {
-    dispatch(
-      fetchCategoriesWithExpenses(activeRange, offset, flowTab, friendId)
-    );
-  };
 
   return (
     <GenericFlowPage
@@ -131,7 +125,7 @@ const CategoryFlow = () => {
         onCreated: () => {},
       }}
       onDeleteAction={(id, frId) => dispatch(deleteCategory(id, frId))}
-      onRefresh={onRefresh}
+      onRefresh={refreshCategoryFlow}
       navigate={navigate}
       showBackButton={showBackButton}
       onPageBack={handlePageBack}

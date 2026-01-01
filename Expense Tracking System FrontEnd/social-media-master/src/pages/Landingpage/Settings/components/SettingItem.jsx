@@ -15,6 +15,7 @@ import {
   Check as CheckIcon,
   ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
+import { useTranslation } from "../../../../hooks/useTranslation";
 
 /**
  * SettingItem Component
@@ -51,6 +52,8 @@ const SettingItem = ({
   disabled = false, // NEW: Add disabled prop
   statusChip = null, // NEW: Add statusChip prop for notification status
 }) => {
+  const { t } = useTranslation();
+
   return (
     <Box
       onClick={isNavigation ? onNavigationClick : undefined}
@@ -236,36 +239,42 @@ const SettingItem = ({
                 },
               }}
             >
-              {selectOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      width: "100%",
-                    }}
-                  >
-                    <ListItemText
-                      primary={option.label}
+              {selectOptions.map((option) => {
+                const optionLabel = option.labelKey
+                  ? t(option.labelKey)
+                  : option.label;
+                return (
+                  <MenuItem key={option.value} value={option.value}>
+                    <Box
                       sx={{
-                        "& .MuiListItemText-primary": {
-                          fontSize: "0.9rem",
-                          fontWeight: selectValue === option.value ? 600 : 500,
-                        },
+                        display: "flex",
+                        alignItems: "center",
+                        width: "100%",
                       }}
-                    />
-                    {selectValue === option.value && (
-                      <CheckIcon
+                    >
+                      <ListItemText
+                        primary={optionLabel}
                         sx={{
-                          fontSize: "1.2rem",
-                          color: colors.primary_accent,
-                          ml: 1,
+                          "& .MuiListItemText-primary": {
+                            fontSize: "0.9rem",
+                            fontWeight:
+                              selectValue === option.value ? 600 : 500,
+                          },
                         }}
                       />
-                    )}
-                  </Box>
-                </MenuItem>
-              ))}
+                      {selectValue === option.value && (
+                        <CheckIcon
+                          sx={{
+                            fontSize: "1.2rem",
+                            color: colors.primary_accent,
+                            ml: 1,
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </MenuItem>
+                );
+              })}
             </Select>
           </FormControl>
         )}

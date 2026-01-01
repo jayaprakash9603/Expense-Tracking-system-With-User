@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logoutAction } from "../../Redux/Auth/auth.action";
 import Modal from "./Modal";
+import { useTranslation } from "../../hooks/useTranslation";
 import {
   getThemeColors,
   BRAND_GRADIENT_COLORS,
@@ -25,6 +26,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import HistoryIcon from "@mui/icons-material/History";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import SettingsIcon from "@mui/icons-material/Settings";
+import GroupsIcon from "@mui/icons-material/Groups";
 
 const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
@@ -33,6 +35,7 @@ const Left = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const themeColors = getThemeColors(mode);
+  const { t } = useTranslation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -170,48 +173,48 @@ const Left = () => {
                         clipRule="evenodd"
                       />
                     </svg>
-                    Admin Panel
+                    {t("navigation.adminPanelHeading")}
                   </p>
                 </div>
 
                 <MenuItem
-                  name="Dashboard"
+                  name={t("navigation.dashboard")}
                   path="/admin/dashboard"
                   icon={<DashboardIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="User Management"
+                  name={t("navigation.userManagement")}
                   path="/admin/users"
                   icon={<PersonIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="Role Management"
+                  name={t("navigation.roleManagement")}
                   path="/admin/roles"
                   icon={<AdminPanelSettingsIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="System Analytics"
+                  name={t("navigation.systemAnalytics")}
                   path="/admin/analytics"
                   icon={<BarChartIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="Audit Logs"
+                  name={t("navigation.auditLogs")}
                   path="/admin/audit"
                   icon={<HistoryIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="Reports"
+                  name={t("navigation.reports")}
                   path="/admin/reports"
                   icon={<AssessmentIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="Settings"
+                  name={t("navigation.settings")}
                   path="/admin/settings"
                   icon={<SettingsIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
@@ -221,47 +224,59 @@ const Left = () => {
               <>
                 {/* USER MODE - Show regular user menu items */}
                 <MenuItem
-                  name="Home"
+                  name={t("navigation.home")}
                   path="/dashboard"
                   icon={<HomeIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="Expenses"
+                  name={t("navigation.expenses")}
                   path="/expenses"
                   icon={<ReceiptLongIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
 
                 <MenuItem
-                  name="Categories"
+                  name={t("navigation.categories")}
                   path="/category-flow"
                   icon={<CategoryIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
 
                 <MenuItem
-                  name="Payments"
+                  name={t("navigation.payments")}
                   path="/payment-method"
                   icon={<PaymentIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="Bill"
+                  name={t("navigation.bill")}
                   path="/bill"
                   icon={<ReceiptIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="Friends"
+                  name={t("navigation.friends")}
                   path="/friends"
                   icon={<PeopleIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name="Budgets"
+                  name={t("navigation.groups")}
+                  path="/groups"
+                  icon={<GroupsIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name={t("navigation.budgets")}
                   path="/budget"
                   icon={<AccountBalanceWalletIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name={t("navigation.reports")}
+                  path="/reports"
+                  icon={<AssessmentIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
               </>
@@ -338,12 +353,12 @@ const Left = () => {
       <Modal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
-        title="Logout Confirmation"
-        confirmationText="Are you sure Logout ?"
+        title={t("modals.logoutTitle")}
+        confirmationText={t("modals.logoutPrompt")}
         onApprove={handleLogout}
         onDecline={handleDeclineConfirm}
-        approveText="Yes"
-        declineText="No"
+        approveText={t("common.yes")}
+        declineText={t("common.no")}
       />
     </>
   );

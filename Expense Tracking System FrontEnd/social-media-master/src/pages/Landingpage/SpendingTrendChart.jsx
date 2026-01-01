@@ -2,14 +2,33 @@ import React from "react";
 import { Card, CardContent, Typography, Chip } from "@mui/material";
 import { TrendingUp, TrendingDown } from "@mui/icons-material";
 import LineChart from "./LineChart";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const SpendingTrendChart = ({ data, timeframe = "monthly" }) => {
+  const { t } = useTranslation();
+  const defaultLabels = ["jan", "feb", "mar", "apr", "may", "jun"].map(
+    (monthKey) => t(`cashflow.monthsShort.${monthKey}`)
+  );
+  const incomeLabel =
+    data?.incomeLabel || t("dashboard.charts.datasetLabels.income");
+  const expensesLabel =
+    data?.expensesLabel || t("dashboard.charts.datasetLabels.expenses");
+  const savingsLabel =
+    data?.savingsLabel || t("dashboard.charts.datasetLabels.savings");
+  const timeframeChipLabels = {
+    weekly: t("dashboard.charts.timeframeChips.weekly"),
+    monthly: t("dashboard.charts.timeframeChips.monthly"),
+    quarterly: t("dashboard.charts.timeframeChips.quarterly"),
+    yearly: t("dashboard.charts.timeframeChips.yearly"),
+  };
+  const timeframeLabel = timeframeChipLabels[timeframe] || timeframe;
+
   // Generate sample data based on your backend structure
   const chartData = {
-    labels: data?.labels || ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    labels: data?.labels || defaultLabels,
     datasets: [
       {
-        label: "Income",
+        label: incomeLabel,
         data: data?.income || [3200, 3400, 3100, 3600, 3300, 3500],
         borderColor: "#10b981",
         backgroundColor: "rgba(16, 185, 129, 0.1)",
@@ -22,7 +41,7 @@ const SpendingTrendChart = ({ data, timeframe = "monthly" }) => {
         pointHoverRadius: 8,
       },
       {
-        label: "Expenses",
+        label: expensesLabel,
         data: data?.expenses || [2800, 2900, 2700, 3100, 2850, 2950],
         borderColor: "#ef4444",
         backgroundColor: "rgba(239, 68, 68, 0.1)",
@@ -35,7 +54,7 @@ const SpendingTrendChart = ({ data, timeframe = "monthly" }) => {
         pointHoverRadius: 8,
       },
       {
-        label: "Savings",
+        label: savingsLabel,
         data: data?.savings || [400, 500, 400, 500, 450, 550],
         borderColor: "#14b8a6",
         backgroundColor: "rgba(20, 184, 166, 0.1)",
@@ -81,11 +100,11 @@ const SpendingTrendChart = ({ data, timeframe = "monthly" }) => {
       <CardContent>
         <div className="flex items-center justify-between mb-4">
           <Typography variant="h6" sx={{ color: "white", fontWeight: "bold" }}>
-            Spending Trends
+            {t("dashboard.charts.titles.spendingTrends")}
           </Typography>
           <div className="flex gap-2">
             <Chip
-              label={timeframe}
+              label={timeframeLabel}
               size="small"
               sx={{ backgroundColor: "#14b8a620", color: "#14b8a6" }}
             />

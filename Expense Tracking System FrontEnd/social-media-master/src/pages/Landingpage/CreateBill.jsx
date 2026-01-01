@@ -34,10 +34,12 @@ import usePreviousExpense from "../../hooks/usePreviousExpense";
 import { createBill } from "../../Redux/Bill/bill.action";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const CreateBill = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
+  const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
 
@@ -412,9 +414,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
           });
 
           // Focus on the item name input of the new row
-          const itemNameInput = lastRowRef.current.querySelector(
-            'input[placeholder="Item name"]'
-          );
+          const itemNameInput = lastRowRef.current.querySelector("input");
           if (itemNameInput) {
             itemNameInput.focus();
           }
@@ -451,9 +451,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
     );
 
     if (validExpenses.length === 0) {
-      alert(
-        "Please add at least one complete expense item before saving. Item Name, Quantity, and Unit Price are all required."
-      );
+      alert(t("billCommon.messages.addExpenseValidationDetailed"));
       return;
     }
 
@@ -505,7 +503,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
     // Check if there are unsaved changes and valid entries
     if (hasUnsavedExpenseChanges && hasValidExpenseEntries()) {
       const confirmClose = window.confirm(
-        "You have unsaved expense items. Are you sure you want to close without saving? All entered data will be lost."
+        t("billCommon.messages.unsavedChanges")
       );
 
       if (confirmClose) {
@@ -564,7 +562,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
     if (validExpenses.length === 0) {
       newErrors.expenses = true;
-      alert("At least one expense item should be added to create a bill.");
+      alert(t("billCommon.messages.expensesRequiredCreate"));
     }
 
     setErrors(newErrors);
@@ -579,7 +577,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
       // Validate total amount
       if (totalAmount <= 0) {
-        alert("Total amount must be greater than zero.");
+        alert(t("billCommon.messages.totalAmountInvalid"));
         return;
       }
 
@@ -626,7 +624,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
       if (resultAction && !resultAction.error) {
         // Success case
         console.log("Bill created successfully:", resultAction);
-        alert("Bill created successfully!");
+        alert(t("createBill.messages.success"));
 
         // Reset form data
         setBillData({
@@ -677,14 +675,16 @@ const CreateBill = ({ onClose, onSuccess }) => {
           "Failed to create bill. Please try again.";
 
         console.error("Bill creation failed:", errorMessage);
-        alert(`Error creating bill: ${errorMessage}`);
+        alert(
+          t("createBill.messages.errorWithReason", { message: errorMessage })
+        );
       }
     } catch (error) {
       console.error("Error during bill submission:", error);
       alert(
-        `Error creating bill: ${
-          error.message || "An unexpected error occurred. Please try again."
-        }`
+        t("createBill.messages.errorWithReason", {
+          message: error.message || t("createBill.messages.failure"),
+        })
       );
     }
   };
@@ -703,7 +703,8 @@ const CreateBill = ({ onClose, onSuccess }) => {
           className={labelStyle}
           style={{ ...inputWrapper, color: colors.primary_text }}
         >
-          Name<span className="text-red-500"> *</span>
+          {t("billCommon.fields.name")}
+          <span className="text-red-500"> *</span>
         </label>
         <ExpenseNameAutocomplete
           value={billData.name}
@@ -713,7 +714,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
               setErrors((prev) => ({ ...prev, name: false }));
           }}
           friendId={friendId}
-          placeholder="Search or type bill name"
+          placeholder={t("billCommon.placeholders.searchBillName")}
           error={errors.name}
           size="medium"
         />
@@ -729,7 +730,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
           className={labelStyle}
           style={{ ...inputWrapper, color: colors.primary_text }}
         >
-          Description
+          {t("billCommon.fields.description")}
         </label>
         <div className="relative flex-1" style={{ maxWidth: "300px" }}>
           {autoFilledFields.description && (
@@ -747,7 +748,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 zIndex: 10,
               }}
             >
-              Auto-filled
+              {t("billCommon.indicators.autoFilled")}
             </div>
           )}
           <TextField
@@ -768,7 +769,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 }));
               }
             }}
-            placeholder="Enter description"
+            placeholder={t("billCommon.placeholders.description")}
             variant="outlined"
             sx={{
               width: "100%",
@@ -817,7 +818,8 @@ const CreateBill = ({ onClose, onSuccess }) => {
           className={labelStyle}
           style={{ ...inputWrapper, color: colors.primary_text }}
         >
-          Date<span className="text-red-500"> *</span>
+          {t("billCommon.fields.date")}
+          <span className="text-red-500"> *</span>
         </label>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
@@ -896,7 +898,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
           className={labelStyle}
           style={{ ...inputWrapper, color: colors.primary_text }}
         >
-          Payment Method
+          {t("billCommon.fields.paymentMethod")}
         </label>
         <div className="relative flex-1" style={{ maxWidth: "300px" }}>
           <PaymentMethodAutocomplete
@@ -920,7 +922,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
             }}
             transactionType={billData.type}
             friendId={friendId}
-            placeholder="Select payment method"
+            placeholder={t("billCommon.placeholders.paymentMethod")}
             size="medium"
           />
           {autoFilledFields.paymentMethod && (
@@ -938,7 +940,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 zIndex: 10,
               }}
             >
-              Auto-filled
+              {t("billCommon.indicators.autoFilled")}
             </div>
           )}
         </div>
@@ -954,15 +956,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
           className={labelStyle}
           style={{ ...inputWrapper, color: colors.primary_text }}
         >
-          Type<span className="text-red-500"> *</span>
+          {t("billCommon.fields.type")}
+          <span className="text-red-500"> *</span>
         </label>
         <div className="relative flex-1" style={{ maxWidth: "300px" }}>
           <Autocomplete
             autoHighlight
             options={typeOptions}
-            getOptionLabel={(option) =>
-              option.charAt(0).toUpperCase() + option.slice(1)
-            }
+            getOptionLabel={(option) => t(`billCommon.typeOptions.${option}`)}
             value={billData.type || ""}
             onChange={(event, newValue) => {
               handleTypeChange(event, newValue);
@@ -975,7 +976,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
             renderInput={(params) => (
               <TextField
                 {...params}
-                placeholder="Select type"
+                placeholder={t("billCommon.placeholders.type")}
                 variant="outlined"
                 error={errors.type}
                 sx={{
@@ -1034,7 +1035,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 zIndex: 10,
               }}
             >
-              Auto-filled
+              {t("billCommon.indicators.autoFilled")}
             </div>
           )}
         </div>
@@ -1050,7 +1051,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
           className={labelStyle}
           style={{ ...inputWrapper, color: colors.primary_text }}
         >
-          Category
+          {t("billCommon.fields.category")}
         </label>
         <div className="relative flex-1" style={{ maxWidth: "300px" }}>
           <CategoryAutocomplete
@@ -1067,7 +1068,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
               }
             }}
             friendId={friendId}
-            placeholder="Search category"
+            placeholder={t("billCommon.placeholders.category")}
             size="medium"
           />
           {autoFilledFields.category && (
@@ -1085,7 +1086,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 zIndex: 10,
               }}
             >
-              Auto-filled
+              {t("billCommon.indicators.autoFilled")}
             </div>
           )}
         </div>
@@ -1130,17 +1131,42 @@ const CreateBill = ({ onClose, onSuccess }) => {
         />
       ),
     },
-    { field: "name", headerName: "Name", flex: 1, minWidth: 120 },
-    { field: "description", headerName: "Description", flex: 1, minWidth: 120 },
-    { field: "startDate", headerName: "Start Date", flex: 1, minWidth: 100 },
-    { field: "endDate", headerName: "End Date", flex: 1, minWidth: 100 },
     {
-      field: "remainingAmount",
-      headerName: "Remaining Amount",
+      field: "name",
+      headerName: t("billCommon.budgets.columns.name"),
       flex: 1,
       minWidth: 120,
     },
-    { field: "amount", headerName: "Amount", flex: 1, minWidth: 100 },
+    {
+      field: "description",
+      headerName: t("billCommon.budgets.columns.description"),
+      flex: 1,
+      minWidth: 120,
+    },
+    {
+      field: "startDate",
+      headerName: t("billCommon.budgets.columns.startDate"),
+      flex: 1,
+      minWidth: 100,
+    },
+    {
+      field: "endDate",
+      headerName: t("billCommon.budgets.columns.endDate"),
+      flex: 1,
+      minWidth: 100,
+    },
+    {
+      field: "remainingAmount",
+      headerName: t("billCommon.budgets.columns.remainingAmount"),
+      flex: 1,
+      minWidth: 120,
+    },
+    {
+      field: "amount",
+      headerName: t("billCommon.budgets.columns.amount"),
+      flex: 1,
+      minWidth: 100,
+    },
   ];
 
   // DataGrid rows for budgets
@@ -1166,6 +1192,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
     setCheckboxStates(newCheckboxStates);
   };
 
+  const expenseSummaryCountKey =
+    expenses.length === 1
+      ? "billCommon.summary.singleItem"
+      : "billCommon.summary.multipleItems";
+  const expenseSummaryCountLabel = t(expenseSummaryCountKey, {
+    count: expenses.length,
+  });
+
   return (
     <>
       <div
@@ -1182,7 +1216,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
         }}
       >
         <PageHeader
-          title="Create Bill"
+          title={t("createBill.title")}
           onClose={() => {
             if (onClose) {
               onClose();
@@ -1200,7 +1234,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 variant="gradient"
                 showTooltip={true}
                 dateFormat={dateFormat}
-                label="Previously Added"
+                label={t("billCommon.indicators.previouslyAdded")}
                 labelPosition="top"
                 icon="calendar"
                 tooltipConfig={{
@@ -1247,7 +1281,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
               },
             }}
           >
-            {showBudgetTable ? "Hide" : "Link"} Budgets
+            {showBudgetTable
+              ? t("billCommon.actions.hideBudgets")
+              : t("billCommon.actions.linkBudgets")}
           </Button>
 
           <Button
@@ -1263,7 +1299,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
               },
             }}
           >
-            {showExpenseTable ? "Hide" : "Add"} Expense Items
+            {showExpenseTable
+              ? t("billCommon.actions.hideExpenses")
+              : t("billCommon.actions.addExpenses")}
           </Button>
         </div>
 
@@ -1275,7 +1313,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 className="text-xl font-semibold"
                 style={{ color: colors.primary_text }}
               >
-                Available Budgets for Selected Date
+                {t("billCommon.budgets.heading")}
               </h3>
               <IconButton
                 onClick={handleCloseBudgetTable}
@@ -1292,7 +1330,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
             {budgetError && (
               <div className="text-red-500 text-sm mb-4">
-                Error: {budgetError.message || "Failed to load budgets."}
+                {t("billCommon.budgets.errorMessage", {
+                  message:
+                    budgetError.message ||
+                    t("billCommon.budgets.fallbackError"),
+                })}
               </div>
             )}
 
@@ -1309,7 +1351,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   borderColor: colors.border_color,
                 }}
               >
-                No budgets found for the selected date
+                {t("billCommon.budgets.noBudgets")}
               </div>
             ) : (
               <Box
@@ -1362,7 +1404,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 className="text-xl font-semibold"
                 style={{ color: colors.primary_text }}
               >
-                Expense Items
+                {t("createBill.labels.expenseTableTitle")}
               </h3>
               <IconButton
                 onClick={handleCloseExpenseTableWithConfirmation} // Use the new function
@@ -1393,38 +1435,38 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   className="font-semibold text-sm col-span-1"
                   style={{ color: colors.primary_text }}
                 >
-                  Item Name *
+                  {t("billCommon.expenseTable.headers.itemName")}
                 </div>
                 <div
                   className="font-semibold text-sm col-span-1"
                   style={{ color: colors.primary_text }}
                 >
-                  Quantity *
+                  {t("billCommon.expenseTable.headers.quantity")}
                 </div>
                 <div
                   className="font-semibold text-sm col-span-1"
                   style={{ color: colors.primary_text }}
                 >
-                  Unit Price *
+                  {t("billCommon.expenseTable.headers.unitPrice")}
                 </div>
                 <div
                   className="font-semibold text-sm col-span-1"
                   style={{ color: colors.primary_text }}
                 >
-                  Total Price
+                  {t("billCommon.expenseTable.headers.totalPrice")}
                 </div>
 
                 <div
                   className="font-semibold text-sm col-span-1"
                   style={{ color: colors.primary_text }}
                 >
-                  Comments
+                  {t("billCommon.expenseTable.headers.comments")}
                 </div>
                 <div
                   className="font-semibold text-sm col-span-1"
                   style={{ color: colors.primary_text }}
                 >
-                  Actions
+                  {t("billCommon.expenseTable.headers.actions")}
                 </div>
               </div>
 
@@ -1461,7 +1503,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                           onChange={(event, newValue) =>
                             handleItemNameChange(index, event, newValue)
                           }
-                          placeholder="Item name"
+                          placeholder={t("billCommon.placeholders.itemName")}
                           autoFocus={isLastRow && expense.itemName === ""}
                         />
                       </div>
@@ -1470,7 +1512,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       <div className="col-span-1">
                         <input
                           type="number"
-                          placeholder="Qty *"
+                          placeholder={t("billCommon.placeholders.quantity")}
                           value={expense.quantity}
                           onChange={(e) => {
                             const value = e.target.value;
@@ -1523,7 +1565,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       <div className="col-span-1">
                         <input
                           type="number"
-                          placeholder="Unit Price *"
+                          placeholder={t("billCommon.placeholders.unitPrice")}
                           value={expense.unitPrice}
                           onChange={(e) => {
                             const value = e.target.value;
@@ -1588,7 +1630,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       <div className="col-span-1">
                         <input
                           type="text"
-                          placeholder="Comments"
+                          placeholder={t("billCommon.placeholders.comments")}
                           value={expense.comments || ""}
                           onChange={(e) =>
                             handleTempExpenseChange(
@@ -1675,15 +1717,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       }}
                       size="small"
                     >
-                      Add Row
+                      {t("billCommon.actions.addRow")}
                     </Button>
 
                     {!isCurrentRowComplete(
                       tempExpenses[tempExpenses.length - 1]
                     ) && (
                       <div className="text-red-400 text-xs mt-1">
-                        Complete the current item (Item Name, Quantity, and Unit
-                        Price are all required) to add more rows
+                        {t("billCommon.expenseTable.validationHintDetailed")}
                       </div>
                     )}
                   </div>
@@ -1694,7 +1735,8 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       className="font-semibold"
                       style={{ color: colors.primary_text }}
                     >
-                      Total Amount: {currencySymbol}
+                      {t("billCommon.expenseTable.totalLabel")}:{" "}
+                      {currencySymbol}
                       {tempExpenses
                         .reduce(
                           (sum, expense) => sum + (expense.totalPrice || 0),
@@ -1718,7 +1760,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       }}
                       size="small"
                     >
-                      Cancel
+                      {t("common.cancel")}
                     </Button>
                     <Button
                       onClick={handleSaveExpenses}
@@ -1734,7 +1776,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       }}
                       size="small"
                     >
-                      Save Expenses
+                      {t("billCommon.actions.saveExpenses")}
                     </Button>
                   </div>
                 </div>
@@ -1759,13 +1801,13 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   className="font-semibold text-base"
                   style={{ color: colors.primary_text }}
                 >
-                  Expense Items Summary
+                  {t("billCommon.summary.title")}
                 </h4>
                 <span
                   className="text-sm font-medium"
                   style={{ color: colors.secondary_accent }}
                 >
-                  {expenses.length} item{expenses.length !== 1 ? "s" : ""} added
+                  {expenseSummaryCountLabel}
                 </span>
               </div>
 
@@ -1781,10 +1823,10 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   }}
                 >
                   <p className="text-red-400 text-sm mb-1">
-                    ⚠️ No expense items added yet
+                    {t("billCommon.summary.noItemsTitle")}
                   </p>
                   <p className="text-xs" style={{ color: colors.icon_muted }}>
-                    At least one expense item is required to create a bill
+                    {t("createBill.summary.noItemsSubtitle")}
                   </p>
                 </div>
               ) : (
@@ -1830,7 +1872,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                           <div className="space-y-1 text-[10px]">
                             <div className="flex justify-between">
                               <span style={{ color: colors.icon_muted }}>
-                                Qty
+                                {t("billCommon.expenseTable.summaryLabels.qty")}
                               </span>
                               <span
                                 className="font-medium"
@@ -1841,7 +1883,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
                             </div>
                             <div className="flex justify-between">
                               <span style={{ color: colors.icon_muted }}>
-                                Unit
+                                {t(
+                                  "billCommon.expenseTable.summaryLabels.unit"
+                                )}
                               </span>
                               <span
                                 className="font-medium"
@@ -1853,7 +1897,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
                             </div>
                             <div className="flex justify-between">
                               <span style={{ color: colors.icon_muted }}>
-                                Calc
+                                {t(
+                                  "billCommon.expenseTable.summaryLabels.calc"
+                                )}
                               </span>
                               <span style={{ color: colors.secondary_text }}>
                                 {expense.quantity} × {currencySymbol}
@@ -1871,7 +1917,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
                                   className="text-[10px] mb-0.5"
                                   style={{ color: colors.icon_muted }}
                                 >
-                                  Comments
+                                  {t(
+                                    "billCommon.expenseTable.summaryLabels.comments"
+                                  )}
                                 </div>
                                 <div
                                   className="text-[10px] p-1 rounded border break-words max-h-16 overflow-auto"
@@ -1894,7 +1942,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   <div className="border-t border-gray-600 pt-3 mt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 font-medium text-sm">
-                        Total Amount:
+                        {t("billCommon.expenseTable.totalLabel")}:
                       </span>
                       <span className="text-[#00dac6] font-bold text-lg">
                         {currencySymbol}
@@ -1934,7 +1982,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   sx={{ color: colors.button_text }}
                 />
               ) : (
-                "Submit"
+                t("billCommon.actions.submit")
               )}
             </button>
           </div>

@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
     friend_request_notifications BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Enable friend request notifications',
     
     -- Preference Settings
-    language VARCHAR(5) NOT NULL DEFAULT 'en' COMMENT 'Language code: en, es, fr, de, hi',
+    language VARCHAR(5) NOT NULL DEFAULT 'en' COMMENT 'Language code: ISO 639-1 (e.g., en, hi, te)',
     currency VARCHAR(5) NOT NULL DEFAULT 'USD' COMMENT 'Currency code: USD, EUR, GBP, INR, JPY',
     date_format VARCHAR(15) NOT NULL DEFAULT 'MM/DD/YYYY' COMMENT 'Date format: MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD',
     

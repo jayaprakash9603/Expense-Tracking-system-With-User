@@ -348,18 +348,18 @@
 }
 
 /* All chart containers should fill parent height and have equal heights in same row */
-.chart-row > div > *,
-.chart-row > div > .chart-container,
-.chart-row > div > .summary-overview,
-.chart-row > div > .category-breakdown,
-.chart-row > div > .metrics-grid {
+.expense-dashboard .chart-row > div > *,
+.expense-dashboard .chart-row > div > .chart-container,
+.expense-dashboard .chart-row > div > .summary-overview,
+.expense-dashboard .chart-row > div > .category-breakdown,
+.expense-dashboard .chart-row > div > .metrics-grid {
   flex: 1; /* Fill available space */
   display: flex;
   flex-direction: column;
   min-height: 450px; /* Minimum height for consistency */
 }
 
-.chart-container {
+.expense-dashboard .chart-container {
   /* background removed - using inline style from component */
   /* border removed - using inline style from component */
   border-radius: 16px;
@@ -390,17 +390,17 @@
   }
 }
 
-.summary-overview {
+.expense-dashboard .summary-overview {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.summary-overview ul li span:first-child {
+.expense-dashboard .summary-overview ul li span:first-child {
   color: #cfd8dc;
 }
 
-.summary-overview ul li span:last-child {
+.expense-dashboard .summary-overview ul li span:last-child {
   color: #14b8a6;
 }
 
@@ -408,31 +408,31 @@
 /* Removed - now handled by flex: 1 on all chart-row children */
 
 /* Match Category Breakdown height to Application Overview (metrics-grid) */
-.chart-row > div > .category-breakdown {
+.expense-dashboard .chart-row > div > .category-breakdown {
   position: relative; /* For absolute positioned total badge */
 }
 
-.summary-overview .recharts-wrapper {
+.expense-dashboard .expense-dashboard .summary-overview .recharts-wrapper {
   width: 110px !important;
   height: 110px !important;
 }
 
 /* Overview card styling */
-.summary-overview .overview-content {
+.expense-dashboard .summary-overview .overview-content {
   display: flex;
   gap: 18px;
   align-items: center;
   justify-content: space-between;
 }
 
-.summary-overview .overview-metrics {
+.expense-dashboard .summary-overview .overview-metrics {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   flex: 1 1 60%;
 }
 
-.summary-overview .overview-metric {
+.expense-dashboard .summary-overview .overview-metric {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -442,7 +442,7 @@
   border-radius: 10px;
 }
 
-.summary-overview .metric-icon {
+.expense-dashboard .summary-overview .metric-icon {
   width: 44px;
   height: 44px;
   display: flex;
@@ -453,18 +453,18 @@
   font-size: 18px;
 }
 
-.summary-overview .metric-title {
+.expense-dashboard .summary-overview .metric-title {
   font-size: 0.8rem;
   color: #cfd8dc;
 }
 
-.summary-overview .metric-value {
+.expense-dashboard .summary-overview .metric-value {
   font-size: 1.1rem;
   font-weight: 700;
   color: #fff;
 }
 
-.summary-overview .overview-chart {
+.expense-dashboard .summary-overview .overview-chart {
   width: 40%;
   min-width: 180px;
   display: flex;
@@ -473,20 +473,20 @@
 }
 
 /* New overview extra content */
-.overview-extra {
+.expense-dashboard .overview-extra {
   margin-top: 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.kpi-row {
+.expense-dashboard .kpi-row {
   display: flex;
   gap: 12px;
   justify-content: space-between;
 }
 
-.kpi-card {
+.expense-dashboard .kpi-card {
   flex: 1;
   background: rgba(20, 184, 166, 0.03);
   border: 1px solid rgba(20, 184, 166, 0.06);
@@ -494,31 +494,31 @@
   border-radius: 10px;
 }
 
-.kpi-title {
+.expense-dashboard .kpi-title {
   font-size: 0.75rem;
   color: #cfd8dc;
   margin-bottom: 6px;
 }
 
-.kpi-value {
+.expense-dashboard .kpi-value {
   font-size: 1.1rem;
   font-weight: 700;
   color: #fff;
 }
 
-.kpi-sub {
+.expense-dashboard .kpi-sub {
   font-size: 0.75rem;
   color: #888;
   margin-top: 4px;
 }
 
-.overview-bottom {
+.expense-dashboard .overview-bottom {
   display: flex;
   gap: 12px;
   margin-top: 6px;
 }
 
-.top-categories {
+.expense-dashboard .top-categories {
   flex: 1.2;
   background: rgba(20, 184, 166, 0.03);
   border: 1px solid rgba(20, 184, 166, 0.06);
@@ -526,13 +526,13 @@
   border-radius: 10px;
 }
 
-.top-categories .small-header {
+.expense-dashboard .top-categories .small-header {
   font-size: 0.85rem;
   color: #cfd8dc;
   margin-bottom: 8px;
 }
 
-.top-categories ul {
+.expense-dashboard .top-categories ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -541,25 +541,25 @@
   gap: 8px;
 }
 
-.top-category-item {
+.expense-dashboard .top-category-item {
   display: flex;
   align-items: center;
   gap: 12px;
   position: relative;
 }
 
-.top-category-item .cat-name {
+.expense-dashboard .top-category-item .cat-name {
   flex: 1;
   color: #fff;
   font-weight: 600;
 }
 
-.top-category-item .cat-value {
+.expense-dashboard .top-category-item .cat-value {
   color: #14b8a6;
   font-weight: 700;
 }
 
-.category-progress {
+.expense-dashboard .category-progress {
   position: absolute;
   left: 0;
   bottom: -6px;
@@ -569,25 +569,25 @@
   opacity: 0.9;
 }
 
-.details-column {
+.expense-dashboard .details-column {
   flex: 0.8;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.top-categories.full-width {
+.expense-dashboard .top-categories.full-width {
   width: 100%;
 }
 
-.top-categories.full-width ul {
+.expense-dashboard .top-categories.full-width ul {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   align-items: start;
 }
 
-.top-category-item {
+.expense-dashboard .top-category-item {
   background: rgba(20, 184, 166, 0.03);
   border: 1px solid rgba(20, 184, 166, 0.06);
   padding: 10px;
@@ -595,15 +595,15 @@
   position: relative;
 }
 
-.top-category-item .cat-name {
+.expense-dashboard .top-category-item .cat-name {
   font-weight: 700;
   color: #fff;
 }
-.top-category-item .cat-value {
+.expense-dashboard .top-category-item .cat-value {
   color: #14b8a6;
   font-weight: 700;
 }
-.top-category-item .category-progress {
+.expense-dashboard .top-category-item .category-progress {
   height: 6px;
   position: absolute;
   left: 10px;
@@ -614,7 +614,7 @@
 }
 
 /* Top Expenses - same responsive grid but with date shown */
-.top-expenses.full-width ul {
+.expense-dashboard .top-expenses.full-width ul {
   display: grid;
   /* larger minimum width per card so cards appear wider on large screens */
   grid-template-columns: repeat(
@@ -624,7 +624,7 @@
   gap: 16px;
 }
 
-.top-expense-item {
+.expense-dashboard .top-expense-item {
   background: rgba(20, 184, 166, 0.03);
   border: 1px solid rgba(20, 184, 166, 0.06);
   padding: 14px 18px; /* increased padding for larger feel */
@@ -636,7 +636,7 @@
   gap: 16px;
 }
 
-.top-expense-item .cat-name {
+.expense-dashboard .top-expense-item .cat-name {
   font-weight: 700;
   color: #fff;
   flex: 1 1 auto;
@@ -645,7 +645,7 @@
   text-overflow: ellipsis;
   white-space: nowrap; /* keep name on a single line with ellipsis */
 }
-.top-expense-item .cat-sub {
+.expense-dashboard .top-expense-item .cat-sub {
   color: #888;
   font-size: 0.85rem;
   margin-top: 4px;
@@ -2634,7 +2634,7 @@
     font-size: 10px;
     padding: 3px 6px;
   }
-  
+
   .expense-dashboard.customization-active .dashboard-section {
     padding: 6px;
   }

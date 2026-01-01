@@ -48,15 +48,12 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
     private final ExpenseRepository expenseRepository;
 
-
     public ExpenseAnalyticsServiceImpl(ExpenseRepository expenseRepository, ExpenseCoreService expenseCoreService) {
         this.expenseRepository = expenseRepository;
         this.expenseCoreService = expenseCoreService;
     }
 
     private ExpenseCoreService expenseCoreService;
-
-
 
     @Override
     public MonthlySummary getMonthlySummary(Integer year, Integer month, Integer userId) {
@@ -91,7 +88,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
     @Override
     public List<MonthlySummary> getSummaryBetweenDates(Integer startYear, Integer startMonth,
-                                                       Integer endYear, Integer endMonth, Integer userId) {
+            Integer endYear, Integer endMonth, Integer userId) {
         List<MonthlySummary> summaries = new ArrayList<>();
         LocalDate currentDate = LocalDate.of(startYear, startMonth, 1);
         LocalDate endDate = LocalDate.of(endYear, endMonth, 1)
@@ -117,9 +114,9 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             calculator.processExpense(expense, currentPeriod);
         }
 
-    List<Expense> lastTenExpenses = getLastNExpenses(expenses, 10);
+        List<Expense> lastTenExpenses = getLastNExpenses(expenses, 10);
 
-    return calculator.buildSummaryResponse(lastTenExpenses);
+        return calculator.buildSummaryResponse(lastTenExpenses);
     }
 
     @Override
@@ -191,13 +188,15 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
         for (Expense expense : expenses) {
             ExpenseDetails details = expense.getExpense();
-            if (details == null) continue;
+            if (details == null)
+                continue;
 
             String paymentMethod = details.getPaymentMethod();
             String expenseType = details.getType();
             double amount = details.getAmount();
 
-            Map<String, Double> methodSummary = paymentMethodSummary.computeIfAbsent(paymentMethod, k -> new HashMap<>());
+            Map<String, Double> methodSummary = paymentMethodSummary.computeIfAbsent(paymentMethod,
+                    k -> new HashMap<>());
             String key = createPaymentMethodKey(paymentMethod, expenseType);
             methodSummary.merge(key, amount, Double::sum);
         }
@@ -229,8 +228,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
     public Map<String, Object> getMonthlySpendingInsights(int year, int month, Integer userId) {
         DatePeriod period = new DatePeriod(
                 LocalDate.of(year, Month.of(month), 1),
-                LocalDate.of(year, Month.of(month), 1).withDayOfMonth(LocalDate.of(year, Month.of(month), 1).lengthOfMonth())
-        );
+                LocalDate.of(year, Month.of(month), 1)
+                        .withDayOfMonth(LocalDate.of(year, Month.of(month), 1).lengthOfMonth()));
 
         List<Expense> expenses = getExpensesForPeriod(userId, period);
         Map<String, Double> categoryWiseSpending = calculateCategoryWiseSpending(expenses);
@@ -302,8 +301,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                 .filter(e -> e.getExpense() != null)
                 .collect(Collectors.groupingBy(
                         e -> e.getExpense().getExpenseName(),
-                        Collectors.summingDouble(e -> e.getExpense().getAmount())
-                ))
+                        Collectors.summingDouble(e -> e.getExpense().getAmount())))
                 .entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                 .limit(5)
@@ -377,7 +375,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
     }
 
     @Override
-    public List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate, String type) {
+    public List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate,
+            String type) {
         DatePeriod dateRangePeriod = new DatePeriod(fromDate, toDate);
         List<Expense> expenses = getExpensesForPeriod(userId, dateRangePeriod);
 
@@ -385,8 +384,6 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
         return generateDailySpendingResponse(dateRangePeriod, dailySpending);
     }
-
-
 
     // Helper Classes and Methods
 
@@ -399,8 +396,24 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             this.endDate = endDate;
         }
 
-        public LocalDate getStartDate() { return startDate; }
-        public LocalDate getEndDate() { return endDate; }
+        public LocalDate getStartDate() {
+            return startDate;
+        }
+
+        public LocalDate getEndDate() {
+            return endDate;
+        }
+    }
+
+    private static class AggregatedExpense {
+        private final String name;
+        private double totalAmount;
+        private int count;
+        private LocalDate lastDate;
+
+        private AggregatedExpense(String name) {
+            this.name = name;
+        }
     }
 
     private static class CreditCalculationResult {
@@ -412,8 +425,13 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             this.currentMonthCreditDue = currentMonthCreditDue;
         }
 
-        public BigDecimal getCreditDue() { return creditDue; }
-        public BigDecimal getCurrentMonthCreditDue() { return currentMonthCreditDue; }
+        public BigDecimal getCreditDue() {
+            return creditDue;
+        }
+
+        public BigDecimal getCurrentMonthCreditDue() {
+            return currentMonthCreditDue;
+        }
     }
 
     private static class ExpenseCalculationResult {
@@ -424,7 +442,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         private final CashSummary cashSummary;
 
         public ExpenseCalculationResult(BigDecimal totalGain, BigDecimal totalLoss, BigDecimal totalCreditPaid,
-                                        Map<String, BigDecimal> categoryBreakdown, CashSummary cashSummary) {
+                Map<String, BigDecimal> categoryBreakdown, CashSummary cashSummary) {
             this.totalGain = totalGain;
             this.totalLoss = totalLoss;
             this.totalCreditPaid = totalCreditPaid;
@@ -432,14 +450,26 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             this.cashSummary = cashSummary;
         }
 
-        public BigDecimal getTotalGain() { return totalGain; }
-        public BigDecimal getTotalLoss() { return totalLoss; }
-        public BigDecimal getTotalCreditPaid() { return totalCreditPaid; }
-        public Map<String, BigDecimal> getCategoryBreakdown() { return categoryBreakdown; }
-        public CashSummary getCashSummary() { return cashSummary; }
+        public BigDecimal getTotalGain() {
+            return totalGain;
+        }
+
+        public BigDecimal getTotalLoss() {
+            return totalLoss;
+        }
+
+        public BigDecimal getTotalCreditPaid() {
+            return totalCreditPaid;
+        }
+
+        public Map<String, BigDecimal> getCategoryBreakdown() {
+            return categoryBreakdown;
+        }
+
+        public CashSummary getCashSummary() {
+            return cashSummary;
+        }
     }
-
-
 
     private class ExpenseSummaryCalculator {
         private double totalGains = 0.0;
@@ -450,6 +480,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         private double currentMonthLosses = 0.0;
         private final Map<String, Double> lossesByPaymentMethod = new HashMap<>();
         private final LocalDate today = LocalDate.now();
+        private final LocalDate last30DaysStart = LocalDate.now().minusDays(29);
         private double creditPaidLastMonth = 0.0;
 
         private double lastMonthLosses = 0.0;
@@ -464,12 +495,27 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         private LocalDate previousCreditBillPaidDate = null;
         private double currentMonthBillPaid = 0.0; // New field for current month bill paid
 
+        // Last 30 days metrics
+        private double last30DaysTotalLosses = 0.0;
+        private double last30DaysSavings = 0.0;
+
+        // Upcoming bills (current credit period outstanding amount)
+        private double creditDueCurrentPeriod = 0.0;
+
+        // Payments made after the current credit period end, treated as bill payments
+        private double creditBillPaidAfterCurrentPeriod = 0.0;
+
+        // Aggregated top expenses for last 30 days
+        private final Map<String, AggregatedExpense> last30DaysExpenseAggregates = new HashMap<>();
+
         public void processExpense(Expense expense, DatePeriod currentPeriod) {
             ExpenseDetails details = expense.getExpense();
-            if (details == null) return;
+            if (details == null)
+                return;
 
             LocalDate date = expense.getDate();
-            if (date == null) return;
+            if (date == null)
+                return;
 
             String type = details.getType();
             String paymentMethod = details.getPaymentMethod();
@@ -478,10 +524,51 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             processGainExpense(type, paymentMethod, amount);
             processLossExpense(type, paymentMethod, amount, date, currentPeriod);
             processTodayExpense(type, amount, date);
-            processCreditExpense(paymentMethod, amount);
+            processCreditExpense(paymentMethod, amount, date, currentPeriod);
             processCreditPaidLastMonth(paymentMethod, amount, date);
             processLastMonthComparison(type, paymentMethod, amount, date);
             processCreditBillPayments(paymentMethod, amount, date); // Updated method
+            processLast30DaysMetrics(expense, details);
+        }
+
+        private void processLast30DaysMetrics(Expense expense, ExpenseDetails details) {
+            LocalDate date = expense.getDate();
+            if (date == null)
+                return;
+
+            if (date.isBefore(last30DaysStart) || date.isAfter(today)) {
+                return;
+            }
+
+            String type = details.getType();
+            double amount = details.getAmount();
+
+            if (LOSS.equalsIgnoreCase(type)) {
+                last30DaysTotalLosses += amount;
+
+                String categoryName = expense.getCategoryName() != null
+                        ? expense.getCategoryName().trim()
+                        : "";
+                if ("investment".equalsIgnoreCase(categoryName)) {
+                    last30DaysSavings += amount;
+                }
+
+                // Aggregate by expense name (excluding credit bill payments) for top 4 view
+                String paymentMethod = details.getPaymentMethod();
+                if (!CREDIT_PAID.equalsIgnoreCase(paymentMethod)) {
+                    String expenseName = details.getExpenseName() != null
+                            ? details.getExpenseName().trim()
+                            : "Unknown";
+                    AggregatedExpense agg = last30DaysExpenseAggregates.computeIfAbsent(
+                            expenseName,
+                            AggregatedExpense::new);
+                    agg.totalAmount += amount;
+                    agg.count++;
+                    if (agg.lastDate == null || date.isAfter(agg.lastDate)) {
+                        agg.lastDate = date;
+                    }
+                }
+            }
         }
 
         private void processGainExpense(String type, String paymentMethod, double amount) {
@@ -491,7 +578,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         }
 
         private void processLossExpense(String type, String paymentMethod, double amount,
-                                        LocalDate date, DatePeriod currentPeriod) {
+                LocalDate date, DatePeriod currentPeriod) {
             if (LOSS.equalsIgnoreCase(type) && CASH.equalsIgnoreCase(paymentMethod)) {
                 totalLosses += amount;
                 lossesByPaymentMethod.merge(paymentMethod.toLowerCase(), amount, Double::sum);
@@ -512,12 +599,22 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             }
         }
 
-        private void processCreditExpense(String paymentMethod, double amount) {
+        private void processCreditExpense(String paymentMethod, double amount, LocalDate date,
+                DatePeriod currentPeriod) {
             if (CREDIT_NEED_TO_PAID.equalsIgnoreCase(paymentMethod)) {
                 totalCreditDue += amount;
+                if (isDateInPeriod(date, currentPeriod)) {
+                    creditDueCurrentPeriod += amount;
+                }
             } else if (CREDIT_PAID.equalsIgnoreCase(paymentMethod)) {
                 totalCreditDue -= amount;
                 totalCreditPaid += amount;
+                if (isDateInPeriod(date, currentPeriod)) {
+                    creditDueCurrentPeriod -= amount;
+                } else if (date.isAfter(currentPeriod.getEndDate())) {
+                    // Treat payments after the credit period end as bill payments against that bill
+                    creditBillPaidAfterCurrentPeriod += amount;
+                }
             }
         }
 
@@ -536,7 +633,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                 DatePeriod lastMonthCreditPeriod = getLastMonthCreditPeriod();
                 DatePeriod currentMonthBillPeriod = getCurrentMonthBillPeriod();
 
-                // Check if this payment is within the current month bill period (17th to 5th next month)
+                // Check if this payment is within the current month bill period (17th to 5th
+                // next month)
                 if (isDateInPeriod(date, currentMonthBillPeriod)) {
                     currentMonthBillPaid += amount;
                     // Update last credit bill payment if this is more recent or first one found
@@ -645,7 +743,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                     comparison.put("trend", "stable");
                 }
             } else {
-                double percentageChange = ((currentForComparison - lastMonthForComparison) / lastMonthForComparison) * 100;
+                double percentageChange = ((currentForComparison - lastMonthForComparison) / lastMonthForComparison)
+                        * 100;
                 String trend;
                 String changeText;
 
@@ -673,9 +772,11 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             Map<String, Object> comparison = new HashMap<>();
 
             comparison.put("lastCreditBillPaid", lastCreditBillPaidAmount);
-            comparison.put("lastCreditBillPaidDate", lastCreditBillPaidDate != null ? lastCreditBillPaidDate.toString() : null);
+            comparison.put("lastCreditBillPaidDate",
+                    lastCreditBillPaidDate != null ? lastCreditBillPaidDate.toString() : null);
             comparison.put("previousCreditBillPaid", previousCreditBillPaidAmount);
-            comparison.put("previousCreditBillPaidDate", previousCreditBillPaidDate != null ? previousCreditBillPaidDate.toString() : null);
+            comparison.put("previousCreditBillPaidDate",
+                    previousCreditBillPaidDate != null ? previousCreditBillPaidDate.toString() : null);
             comparison.put("currentMonthBillPaid", currentMonthBillPaid); // New field
 
             if (previousCreditBillPaidAmount == 0.0) {
@@ -689,7 +790,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                     comparison.put("rawPercentage", 0.0);
                 }
             } else {
-                double percentageChange = ((lastCreditBillPaidAmount - previousCreditBillPaidAmount) / previousCreditBillPaidAmount) * 100;
+                double percentageChange = ((lastCreditBillPaidAmount - previousCreditBillPaidAmount)
+                        / previousCreditBillPaidAmount) * 100;
                 String trend;
                 String changeText;
 
@@ -712,8 +814,16 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             return comparison;
         }
 
-    public Map<String, Object> buildSummaryResponse(List<Expense> recentExpenses) {
+        public Map<String, Object> buildSummaryResponse(List<Expense> recentExpenses) {
             double remainingBudget = totalGains - totalLosses - totalCreditPaid;
+
+            double avgDailySpendLast30Days = 0.0;
+            double savingsRateLast30Days = 0.0;
+
+            if (last30DaysTotalLosses > 0.0) {
+                avgDailySpendLast30Days = last30DaysTotalLosses / 30.0;
+                savingsRateLast30Days = (last30DaysSavings / last30DaysTotalLosses) * 100.0;
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("totalGains", totalGains);
@@ -721,13 +831,18 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             response.put("totalCreditDue", totalCreditDue);
             response.put("totalCreditPaid", totalCreditPaid);
             response.put("lossesByPaymentMethod", lossesByPaymentMethod);
-           
-           
+
             response.put("lastTenExpenses", recentExpenses);
             response.put("todayExpenses", todayExpenses);
             response.put("remainingBudget", remainingBudget);
             response.put("currentMonthLosses", currentMonthLosses);
             response.put("creditPaidLastMonth", creditPaidLastMonth);
+
+            // Last 30 days metrics
+            response.put("last30DaysTotalLosses", last30DaysTotalLosses);
+            response.put("last30DaysSavings", last30DaysSavings);
+            response.put("avgDailySpendLast30Days", avgDailySpendLast30Days);
+            response.put("savingsRateLast30Days", savingsRateLast30Days);
 
             // Last month values for specific fields
             response.put("lastMonthLosses", lastMonthLosses);
@@ -737,16 +852,55 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
             // Credit bill payment tracking
             response.put("lastCreditBillPaidAmount", lastCreditBillPaidAmount);
-            response.put("lastCreditBillPaidDate", lastCreditBillPaidDate != null ? lastCreditBillPaidDate.toString() : null);
+            response.put("lastCreditBillPaidDate",
+                    lastCreditBillPaidDate != null ? lastCreditBillPaidDate.toString() : null);
             response.put("previousCreditBillPaidAmount", previousCreditBillPaidAmount);
-            response.put("previousCreditBillPaidDate", previousCreditBillPaidDate != null ? previousCreditBillPaidDate.toString() : null);
+            response.put("previousCreditBillPaidDate",
+                    previousCreditBillPaidDate != null ? previousCreditBillPaidDate.toString() : null);
             response.put("currentMonthBillPaid", currentMonthBillPaid); // New field
 
+            // Upcoming bills amount based on current credit period outstanding and bill
+            // payments
+            // If we are before or on the credit period end date, show the full outstanding
+            // amount.
+            // After the period end (statement date), subtract any bill payments made; if
+            // fully paid, show 0.
+            DatePeriod currentCreditPeriod = getCurrentCreditPeriod();
+            LocalDate statementDate = currentCreditPeriod.getEndDate().plusDays(1);
+            double upcomingBillsAmount;
+            if (!today.isBefore(statementDate)) {
+                double remainingBill = creditDueCurrentPeriod - creditBillPaidAfterCurrentPeriod;
+                upcomingBillsAmount = Math.max(remainingBill, 0.0);
+            } else {
+                upcomingBillsAmount = creditDueCurrentPeriod;
+            }
+            response.put("upcomingBillsAmount", upcomingBillsAmount);
+
+            // Top aggregated expenses for the last 30 days (grouped by name), top 4 by
+            // total amount
+            List<Map<String, Object>> topExpenses = last30DaysExpenseAggregates.values().stream()
+                    .sorted((a, b) -> Double.compare(b.totalAmount, a.totalAmount))
+                    .limit(4)
+                    .map(agg -> {
+                        Map<String, Object> m = new HashMap<>();
+                        m.put("name", agg.name);
+                        m.put("amount", agg.totalAmount);
+                        m.put("date", agg.lastDate != null ? agg.lastDate.toString() : null);
+                        m.put("count", agg.count);
+                        return m;
+                    })
+                    .toList();
+            response.put("topExpenses", topExpenses);
+
             // Comparisons with percentage changes for specific fields only
-            response.put("currentMonthLossesComparison", calculateComparison("currentMonthLosses", currentMonthLosses, lastMonthLosses));
-            response.put("creditPaidLastMonthComparison", calculateComparison("creditPaidLastMonth", creditPaidLastMonth, lastMonthCreditPaidAmount));
-            response.put("totalCreditDueComparison", calculateComparison("totalCreditDue", totalCreditDue, lastMonthCreditDue));
-            response.put("remainingBudgetComparison", calculateComparison("remainingBudget", remainingBudget, lastMonthRemainingBudget));
+            response.put("currentMonthLossesComparison",
+                    calculateComparison("currentMonthLosses", currentMonthLosses, lastMonthLosses));
+            response.put("creditPaidLastMonthComparison",
+                    calculateComparison("creditPaidLastMonth", creditPaidLastMonth, lastMonthCreditPaidAmount));
+            response.put("totalCreditDueComparison",
+                    calculateComparison("totalCreditDue", totalCreditDue, lastMonthCreditDue));
+            response.put("remainingBudgetComparison",
+                    calculateComparison("remainingBudget", remainingBudget, lastMonthRemainingBudget));
 
             // Credit bill payment comparison
             response.put("creditBillPaymentComparison", calculateCreditBillComparison());
@@ -767,14 +921,15 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         }
 
         private void processExpensesForTimeAnalysis(List<Expense> expenses,
-                                                    Map<String, Map<Integer, Double>> monthlySums,
-                                                    Map<String, Double> totalPerExpense) {
+                Map<String, Map<Integer, Double>> monthlySums,
+                Map<String, Double> totalPerExpense) {
             for (Expense expense : expenses) {
                 ExpenseDetails details = expense.getExpense();
-                if (expense.getExpense() == null || expense.getDate() == null || details.getExpenseName().toLowerCase().contains("given")) continue;
+                if (expense.getExpense() == null || expense.getDate() == null
+                        || details.getExpenseName().toLowerCase().contains("given"))
+                    continue;
 
                 String expenseName = details.getExpenseName();
-
 
                 int month = expense.getDate().getMonthValue();
                 double amount = details.getAmount();
@@ -793,7 +948,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         }
 
         private Map<String, Object> buildTimeAnalysisResponse(Map<String, Map<Integer, Double>> monthlySums,
-                                                              List<String> topExpenseNames) {
+                List<String> topExpenseNames) {
             Map<String, Object> response = new LinkedHashMap<>();
             response.put(LABELS, MONTH_LABELS);
 
@@ -832,7 +987,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
             for (Expense expense : expenses) {
                 ExpenseDetails details = expense.getExpense();
-                if (details == null) continue;
+                if (details == null)
+                    continue;
 
                 Month month = expense.getDate().getMonth();
                 double amount = details.getAmount();
@@ -906,7 +1062,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
         for (Expense expense : creditDueExpenses) {
             ExpenseDetails details = expense.getExpense();
-            if (details == null) continue;
+            if (details == null)
+                continue;
 
             BigDecimal amount = BigDecimal.valueOf(details.getAmount());
             String paymentMethod = details.getPaymentMethod();
@@ -931,7 +1088,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
         for (Expense expense : generalExpenses) {
             ExpenseDetails details = expense.getExpense();
-            if (details == null) continue;
+            if (details == null)
+                continue;
 
             String category = details.getType();
             String paymentMethod = details.getPaymentMethod();
@@ -954,13 +1112,15 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         return new ExpenseCalculationResult(totalGain, totalLoss, totalCreditPaid, categoryBreakdown, cashSummary);
     }
 
-    private MonthlySummary buildMonthlySummary(ExpenseCalculationResult expenseResult, CreditCalculationResult creditResult) {
+    private MonthlySummary buildMonthlySummary(ExpenseCalculationResult expenseResult,
+            CreditCalculationResult creditResult) {
         BigDecimal balanceRemaining = expenseResult.getTotalGain()
                 .subtract(expenseResult.getTotalLoss())
                 .setScale(SCALE, ROUNDING_MODE);
 
         MonthlySummary summary = new MonthlySummary();
-        summary.setTotalAmount(expenseResult.getTotalGain().add(expenseResult.getTotalLoss()).setScale(SCALE, ROUNDING_MODE));
+        summary.setTotalAmount(
+                expenseResult.getTotalGain().add(expenseResult.getTotalLoss()).setScale(SCALE, ROUNDING_MODE));
         summary.setCategoryBreakdown(expenseResult.getCategoryBreakdown());
         summary.setBalanceRemaining(balanceRemaining);
         summary.setCurrentMonthCreditDue(creditResult.getCurrentMonthCreditDue().setScale(SCALE, ROUNDING_MODE));
@@ -1092,7 +1252,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             String expenseName = ((String) result[0]).trim().toLowerCase();
             String paymentMethod = (String) result[1];
             Double totalAmount = (Double) result[2];
-            groupedExpenses.computeIfAbsent(expenseName, k -> new HashMap<>()).merge(paymentMethod, totalAmount, Double::sum);
+            groupedExpenses.computeIfAbsent(expenseName, k -> new HashMap<>()).merge(paymentMethod, totalAmount,
+                    Double::sum);
         }
         return groupedExpenses;
     }
@@ -1122,7 +1283,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
     private double calculateAverageDailyExpenses(Map<String, Double> categoryWiseSpending, DatePeriod period) {
         Double lossAmount = categoryWiseSpending.get(LOSS);
-        if (lossAmount == null) return 0.0;
+        if (lossAmount == null)
+            return 0.0;
 
         int daysInMonth = period.getStartDate().lengthOfMonth();
         if (daysInMonth > 0) {
@@ -1249,7 +1411,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         return dailySpending;
     }
 
-    private List<Map<String, Object>> generateDailySpendingResponse(DatePeriod period, Map<LocalDate, Double> dailySpending) {
+    private List<Map<String, Object>> generateDailySpendingResponse(DatePeriod period,
+            Map<LocalDate, Double> dailySpending) {
         List<Map<String, Object>> response = new ArrayList<>();
         LocalDate date = period.getStartDate();
 
@@ -1263,9 +1426,6 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
         return response;
     }
-
-
-
 
     private Map<LocalDate, Double> calculateDailySpendingByType(List<Expense> expenses, String type) {
         Map<LocalDate, Double> dailySpending = new HashMap<>();
@@ -1298,16 +1458,12 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         return LOSS.equalsIgnoreCase(expenseType);
     }
 
-
-
-
     @Override
-    public Map<String, Object> getPaymentMethodDistributionByDateRange(Integer userId, LocalDate startDate, LocalDate endDate, String flowType, String type) {
-        List<Object[]> results = expenseRepository.findPaymentMethodDistributionByDateRange(startDate, endDate, userId, flowType, type);
+    public Map<String, Object> getPaymentMethodDistributionByDateRange(Integer userId, LocalDate startDate,
+            LocalDate endDate, String flowType, String type) {
+        List<Object[]> results = expenseRepository.findPaymentMethodDistributionByDateRange(startDate, endDate, userId,
+                flowType, type);
         return createDistributionChart(results);
     }
-
-
-
 
 }

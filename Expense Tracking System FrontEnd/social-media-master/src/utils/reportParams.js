@@ -3,7 +3,7 @@
 
 /**
  * Compute an inclusive UTC date range for a given timeframe keyword.
- * @param {'week'|'month'|'quarter'|'year'} timeframe
+ * @param {'week'|'month'|'quarter'|'year'|'last_year'|'all_time'} timeframe
  * @param {Date} [now=new Date()] reference date (client local time, we convert to UTC boundaries)
  * @returns {{fromDate:string,toDate:string}}
  */
@@ -29,6 +29,19 @@ export function computeDateRange(timeframe, now = new Date()) {
       from = new Date(Date.UTC(to.getUTCFullYear(), 0, 1));
       break;
     }
+    case "last_year": {
+      const lastYear = to.getUTCFullYear() - 1;
+      from = new Date(Date.UTC(lastYear, 0, 1));
+      // Full last calendar year through Dec 31
+      const endOfLastYear = new Date(Date.UTC(lastYear, 11, 31));
+      const fmt = (dt) => dt.toISOString().slice(0, 10);
+      return { fromDate: fmt(from), toDate: fmt(endOfLastYear) };
+    }
+    case "all_time": {
+      // Global all-time reports start from 2002-01-15
+      from = new Date(Date.UTC(2002, 0, 15));
+      break;
+    }
     case "month":
     default: {
       from = new Date(Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), 1));
@@ -42,7 +55,7 @@ export function computeDateRange(timeframe, now = new Date()) {
 /**
  * Build API params for analytics endpoints.
  * @param {object} opts
- * @param {'week'|'month'|'quarter'|'year'} opts.timeframe
+ * @param {'week'|'month'|'quarter'|'year'|'last_year'|'all_time'} opts.timeframe
  * @param {'all'|'inflow'|'outflow'} [opts.flowType]
  * @param {string|number} [opts.friendId]
  * @returns {Record<string, string|number>}

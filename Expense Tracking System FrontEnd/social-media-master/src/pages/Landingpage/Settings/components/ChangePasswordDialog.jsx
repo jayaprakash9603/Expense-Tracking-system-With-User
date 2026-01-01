@@ -7,6 +7,7 @@ import {
   Button,
   TextField,
 } from "@mui/material";
+import { useTranslation } from "../../../../hooks/useTranslation";
 
 /**
  * ChangePasswordDialog Component
@@ -20,6 +21,7 @@ const ChangePasswordDialog = ({
   colors,
   isSmallScreen,
 }) => {
+  const { t } = useTranslation();
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -90,12 +92,12 @@ const ChangePasswordDialog = ({
           borderBottom: `1px solid ${colors.border_color}`,
         }}
       >
-        Change Password
+        {t("settings.changePassword")}
       </DialogTitle>
       <DialogContent sx={{ mt: 2 }}>
         <TextField
           fullWidth
-          label="Current Password"
+          label={t("auth.password")}
           type="password"
           variant="outlined"
           value={passwordData.currentPassword}
@@ -108,7 +110,7 @@ const ChangePasswordDialog = ({
         />
         <TextField
           fullWidth
-          label="New Password"
+          label={t("auth.password")}
           type="password"
           variant="outlined"
           value={passwordData.newPassword}
@@ -121,7 +123,7 @@ const ChangePasswordDialog = ({
         />
         <TextField
           fullWidth
-          label="Confirm New Password"
+          label={t("auth.confirmPassword")}
           type="password"
           variant="outlined"
           value={passwordData.confirmPassword}
@@ -143,7 +145,7 @@ const ChangePasswordDialog = ({
             fontWeight: 600,
           }}
         >
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button
           onClick={handleSubmit}

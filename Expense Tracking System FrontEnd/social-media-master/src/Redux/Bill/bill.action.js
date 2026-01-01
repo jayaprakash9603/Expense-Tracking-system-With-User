@@ -57,13 +57,26 @@ export const fetchBills =
   };
 
 export const fetchAllBills =
-  (targetId = null) =>
+  (targetId = null, filters = {}) =>
   async (dispatch) => {
     dispatch({ type: FETCH_BILLS_REQUEST });
     try {
-      const config = {
-        params: targetId ? { targetId } : {},
-      };
+      const params = { ...(filters || {}) };
+      if (targetId) {
+        params.targetId = targetId;
+      }
+
+      Object.keys(params).forEach((key) => {
+        if (
+          params[key] === undefined ||
+          params[key] === null ||
+          params[key] === ""
+        ) {
+          delete params[key];
+        }
+      });
+
+      const config = { params };
       const response = await api.get(`api/bills`, config);
       console.log("Fetched Bills:", response.data); // Debug log
       dispatch({

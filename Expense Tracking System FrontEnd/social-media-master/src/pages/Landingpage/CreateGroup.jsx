@@ -18,10 +18,12 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFriends } from "../../Redux/Friends/friendsActions";
 import { createGroup } from "../../Redux/Groups/groupsActions";
+import { useTheme } from "../../hooks/useTheme";
 
 const CreateGroup = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { colors } = useTheme();
   const friends = useSelector((state) => state.friends.friends);
   const loadingFriends = useSelector((state) => state.friends.loadingFriends);
   const friendsError = useSelector((state) => state.friends.friendsError);
@@ -257,13 +259,13 @@ const CreateGroup = () => {
 
   return (
     <div
-      className="shadow-2xl rounded-2xl flex flex-col relative"
+      className="rounded-2xl flex flex-col relative"
       style={{
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
-        // marginTop: "50px",
         marginRight: "20px",
-        backgroundColor: "#0b0b0b",
+        backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
       }}
     >
       {/* Custom Scrollbar Styles */}
@@ -272,19 +274,19 @@ const CreateGroup = () => {
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #2a2a2a;
+          background: ${colors.hover_bg};
           border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #14b8a6;
+          background: ${colors.primary_accent};
           border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #0f9488;
+          background: ${colors.tertiary_accent};
         }
         .custom-scrollbar {
           scrollbar-width: thin;
-          scrollbar-color: #14b8a6 #2a2a2a;
+          scrollbar-color: ${colors.primary_accent} ${colors.hover_bg};
         }
       `}</style>
 
@@ -292,11 +294,19 @@ const CreateGroup = () => {
       <div className="px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Create New Group</h1>
+            <h1
+              className="text-2xl font-bold"
+              style={{ color: colors.primary_text }}
+            >
+              Create New Group
+            </h1>
           </div>
           <button
             onClick={() => navigate("/groups")}
-            className="text-gray-400 hover:text-white transition-colors duration-200"
+            className="transition-colors duration-200"
+            style={{ color: colors.secondary_text }}
+            onMouseEnter={(e) => (e.target.style.color = colors.primary_text)}
+            onMouseLeave={(e) => (e.target.style.color = colors.secondary_text)}
           >
             <svg
               className="w-5 h-5"
@@ -319,9 +329,15 @@ const CreateGroup = () => {
       <div className="flex-1 overflow-hidden">
         <form onSubmit={handleSubmit} className="h-full flex">
           {/* Left Column - Group Info */}
-          <div className="w-1/2 p-4 border-r border-gray-700 overflow-y-auto custom-scrollbar">
+          <div
+            className="w-1/2 p-4 overflow-y-auto custom-scrollbar"
+            style={{ borderRight: `1px solid ${colors.border_color}` }}
+          >
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-white">
+              <h2
+                className="text-lg font-semibold"
+                style={{ color: colors.primary_text }}
+              >
                 Group Information
               </h2>
 
@@ -329,7 +345,10 @@ const CreateGroup = () => {
               <div className="space-y-3">
                 {/* Group Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: colors.secondary_text }}
+                  >
                     Group Name *
                   </label>
                   <TextField
@@ -343,15 +362,18 @@ const CreateGroup = () => {
                       startAdornment: (
                         <InputAdornment position="start">
                           <span
-                            style={{ fontSize: "1.5rem", color: "#14b8a6" }}
+                            style={{
+                              fontSize: "1.5rem",
+                              color: colors.primary_accent,
+                            }}
                           >
                             {formData.avatar}
                           </span>
                         </InputAdornment>
                       ),
                       style: {
-                        backgroundColor: "#1a1a1a",
-                        color: "#fff",
+                        backgroundColor: colors.tertiary_bg,
+                        color: colors.primary_text,
                         borderRadius: "8px",
                         fontSize: "1rem",
                       },
@@ -359,23 +381,23 @@ const CreateGroup = () => {
                     inputProps={{
                       style: {
                         paddingLeft: 0,
-                        color: "#fff",
+                        color: colors.primary_text,
                       },
                     }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "& fieldset": {
-                          borderColor: "#14b8a6",
+                          borderColor: colors.primary_accent,
                         },
                         "&:hover fieldset": {
-                          borderColor: "#14b8a6",
+                          borderColor: colors.primary_accent,
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: "#14b8a6",
+                          borderColor: colors.primary_accent,
                         },
                       },
                       input: {
-                        color: "#fff",
+                        color: colors.primary_text,
                       },
                     }}
                     error={!!errors.name}
@@ -385,7 +407,10 @@ const CreateGroup = () => {
 
                 {/* Group Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: colors.secondary_text }}
+                  >
                     Description *
                   </label>
                   <textarea
@@ -393,10 +418,11 @@ const CreateGroup = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={4}
-                    className="w-full px-3 py-2 rounded-lg text-white placeholder-gray-400 text-sm resize-none"
+                    className="w-full px-3 py-2 rounded-lg text-sm resize-none"
                     placeholder="Describe what this group is for..."
                     style={{
-                      backgroundColor: "#2a2a2a",
+                      backgroundColor: colors.hover_bg,
+                      color: colors.primary_text,
                       outline: "none",
                       border: errors.description
                         ? "1px solid #ef4444"
@@ -413,7 +439,10 @@ const CreateGroup = () => {
 
               {/* Avatar Selection with Tabs */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  className="block text-sm font-medium mb-2"
+                  style={{ color: colors.secondary_text }}
+                >
                   Choose Avatar
                 </label>
 
@@ -428,15 +457,15 @@ const CreateGroup = () => {
                     indicatorColor="primary"
                     sx={{
                       "& .MuiTabs-scrollButtons": {
-                        color: "#14b8a6",
+                        color: colors.primary_accent,
                         opacity: 1,
                       },
                       "& .MuiTab-root": {
-                        color: "#fff", // Unselected tab text color
+                        color: colors.primary_text,
                         fontWeight: 600,
                         fontSize: "1rem",
                         textTransform: "none",
-                        backgroundColor: "#0b0b0b", // Black background
+                        backgroundColor: colors.primary_bg,
                         borderRadius: "8px 8px 0 0",
                         mx: 0.5,
                         transition:
@@ -450,8 +479,8 @@ const CreateGroup = () => {
                         paddingBottom: "0px",
                       },
                       "& .Mui-selected": {
-                        color: "#14b8a6", // Selected tab text color (theme)
-                        backgroundColor: "#222", // Slightly lighter than black for contrast
+                        color: colors.primary_accent,
+                        backgroundColor: colors.active_bg,
                         borderRadius: "8px 8px 0 0",
                         transition:
                           "background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -464,7 +493,7 @@ const CreateGroup = () => {
                         paddingBottom: "0px",
                       },
                       "& .MuiTabs-indicator": {
-                        backgroundColor: "#14b8a6",
+                        backgroundColor: colors.primary_accent,
                         height: "4px",
                         borderRadius: "2px",
                       },
@@ -491,7 +520,11 @@ const CreateGroup = () => {
 
                 {/* Avatar Table */}
                 <div
-                  className="bg-[#111] rounded-lg p-3 border border-gray-700 relative"
+                  className="rounded-lg p-3 relative"
+                  style={{
+                    backgroundColor: colors.primary_bg,
+                    border: `1px solid ${colors.border_color}`,
+                  }}
                   style={{ minHeight: "320px" }}
                 >
                   <div className="grid grid-cols-8 gap-2">
@@ -500,18 +533,33 @@ const CreateGroup = () => {
                         key={idx}
                         type="button"
                         onClick={() => handleAvatarSelect(avatar)}
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl border transition-all duration-200
-                          ${
-                            formData.avatar === avatar
-                              ? "border-teal-400 bg-teal-600 text-white"
-                              : "border-gray-600 bg-[#181818] text-white hover:border-teal-400 hover:bg-[#222]"
-                          }
-                        `}
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-xl border transition-all duration-200"
                         style={{
+                          backgroundColor:
+                            formData.avatar === avatar
+                              ? colors.primary_accent
+                              : colors.tertiary_bg,
+                          borderColor:
+                            formData.avatar === avatar
+                              ? colors.primary_accent
+                              : colors.border_color,
+                          color: colors.primary_text,
                           boxShadow:
                             formData.avatar === avatar
-                              ? "0 0 0 2px #14b8a6"
+                              ? `0 0 0 2px ${colors.primary_accent}`
                               : "none",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (formData.avatar !== avatar) {
+                            e.target.style.borderColor = colors.primary_accent;
+                            e.target.style.backgroundColor = colors.hover_bg;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (formData.avatar !== avatar) {
+                            e.target.style.borderColor = colors.border_color;
+                            e.target.style.backgroundColor = colors.tertiary_bg;
+                          }
                         }}
                       >
                         {avatar}
@@ -528,15 +576,32 @@ const CreateGroup = () => {
                         type="button"
                         onClick={() => setAvatarPage((p) => Math.max(0, p - 1))}
                         disabled={avatarPage === 0}
-                        className={`px-3 py-1 rounded bg-gray-700 text-white text-sm font-medium transition-colors duration-200 ${
-                          avatarPage === 0
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:bg-teal-600"
-                        }`}
+                        className="px-3 py-1 rounded text-sm font-medium transition-colors duration-200"
+                        style={{
+                          backgroundColor:
+                            avatarPage === 0
+                              ? colors.hover_bg
+                              : colors.tertiary_bg,
+                          color: colors.primary_text,
+                          opacity: avatarPage === 0 ? 0.5 : 1,
+                          cursor: avatarPage === 0 ? "not-allowed" : "pointer",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (avatarPage !== 0)
+                            e.target.style.backgroundColor =
+                              colors.primary_accent;
+                        }}
+                        onMouseLeave={(e) => {
+                          if (avatarPage !== 0)
+                            e.target.style.backgroundColor = colors.tertiary_bg;
+                        }}
                       >
                         Prev
                       </button>
-                      <span className="text-white text-xs">
+                      <span
+                        className="text-xs"
+                        style={{ color: colors.primary_text }}
+                      >
                         Page {avatarPage + 1} of {totalAvatarPages}
                       </span>
                       <button
@@ -547,11 +612,29 @@ const CreateGroup = () => {
                           )
                         }
                         disabled={avatarPage === totalAvatarPages - 1}
-                        className={`px-3 py-1 rounded bg-gray-700 text-white text-sm font-medium transition-colors duration-200 ${
-                          avatarPage === totalAvatarPages - 1
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:bg-teal-600"
-                        }`}
+                        className="px-3 py-1 rounded text-sm font-medium transition-colors duration-200"
+                        style={{
+                          backgroundColor:
+                            avatarPage === totalAvatarPages - 1
+                              ? colors.hover_bg
+                              : colors.tertiary_bg,
+                          color: colors.primary_text,
+                          opacity:
+                            avatarPage === totalAvatarPages - 1 ? 0.5 : 1,
+                          cursor:
+                            avatarPage === totalAvatarPages - 1
+                              ? "not-allowed"
+                              : "pointer",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (avatarPage !== totalAvatarPages - 1)
+                            e.target.style.backgroundColor =
+                              colors.primary_accent;
+                        }}
+                        onMouseLeave={(e) => {
+                          if (avatarPage !== totalAvatarPages - 1)
+                            e.target.style.backgroundColor = colors.tertiary_bg;
+                        }}
                       >
                         Next
                       </button>

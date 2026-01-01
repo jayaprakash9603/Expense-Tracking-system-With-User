@@ -8,7 +8,7 @@ import { api } from "../config/api";
  * and request cancellation to avoid race conditions on rapid changes.
  *
  * Inputs:
- *  - timeframe: string ("this_month" | "last_month" | "last_3_months" | custom)
+ *  - timeframe: string ("this_month" | "last_month" | "last_3_months" | "this_year" | "last_year" | "all_time" | custom)
  *  - type: string ("loss" | "gain" | null/undefined to fetch all types)
  *  - targetId: optional target ID for filtering
  *  - includeTypeInRequest: boolean (default true) - whether to send type in API request
@@ -54,6 +54,19 @@ export default function useDailySpendingData({
     } else if (timeframe === "last_3_months" || timeframe === "last_3") {
       // 90 days back from today
       startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      endDate = now;
+    } else if (timeframe === "this_year") {
+      // From January 1st of current year to today
+      startDate = new Date(now.getFullYear(), 0, 1);
+      endDate = now;
+    } else if (timeframe === "last_year") {
+      // From January 1st to December 31st of previous year
+      const previousYear = now.getFullYear() - 1;
+      startDate = new Date(previousYear, 0, 1);
+      endDate = new Date(previousYear, 11, 31);
+    } else if (timeframe === "all_time") {
+      // From 2002-01-15 to today (all available time)
+      startDate = new Date(2002, 0, 15);
       endDate = now;
     } else {
       // Default to current month

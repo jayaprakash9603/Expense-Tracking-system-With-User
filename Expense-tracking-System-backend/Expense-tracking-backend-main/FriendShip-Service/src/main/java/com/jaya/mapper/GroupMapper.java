@@ -22,7 +22,7 @@ public class GroupMapper {
         group.setName(dto.getName());
         group.setDescription(dto.getDescription());
         group.setCreatedBy(dto.getCreatedBy());
-        group.setMemberIds(dto.getMemberIds() != null ? new ArrayList<>(dto.getMemberIds()) : new ArrayList<>());
+        group.setMemberIds(dto.getMemberIds() != null ? new HashSet<>(dto.getMemberIds()) : new HashSet<>());
         group.setMemberRoles(new HashMap<>());
         group.setMemberJoinedDates(new HashMap<>());
         group.setMemberAddedBy(new HashMap<>());
@@ -37,11 +37,11 @@ public class GroupMapper {
         dto.setCreatedBy(group.getCreatedBy());
         dto.setCreatedAt(group.getCreatedAt());
         dto.setUpdatedAt(group.getUpdatedAt());
-        dto.setMemberIds(group.getMemberIds());
+        dto.setMemberIds(group.getMemberIds() != null ? new ArrayList<>(group.getMemberIds()) : new ArrayList<>());
         dto.setTotalMembers(group.getMemberIds() != null ? group.getMemberIds().size() : 0);
 
-    // Set avatar
-    dto.setAvatar(group.getAvatar());
+        // Set avatar
+        dto.setAvatar(group.getAvatar());
 
         // Set creator username
         try {
@@ -116,8 +116,7 @@ public class GroupMapper {
                                 memberId,
                                 group.getUserRole(memberId),
                                 group.getMemberJoinedDate(memberId),
-                                group.getMemberAddedBy(memberId)
-                        );
+                                group.getMemberAddedBy(memberId));
                     }
                 })
                 .collect(Collectors.toList());
@@ -131,9 +130,7 @@ public class GroupMapper {
                 roleCount.put(role.name(), 0);
             }
 
-            group.getMemberRoles().values().forEach(role ->
-                    roleCount.merge(role.name(), 1, Integer::sum)
-            );
+            group.getMemberRoles().values().forEach(role -> roleCount.merge(role.name(), 1, Integer::sum));
         }
 
         return roleCount;

@@ -108,7 +108,7 @@ export const useFriendInfoBar = (friendId, options = {}) => {
           navigate(errorRedirectPath);
         }
 
-        throw error; // Re-throw so components can handle it
+        return error; // Re-throw so components can handle it
       } finally {
         setIsRefreshing(false);
       }

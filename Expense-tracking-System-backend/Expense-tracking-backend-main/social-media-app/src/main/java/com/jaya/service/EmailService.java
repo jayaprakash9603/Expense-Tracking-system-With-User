@@ -13,10 +13,14 @@ import org.springframework.stereotype.Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Objects.requireNonNull;
 
 @Service
 public class EmailService {
@@ -29,13 +33,29 @@ public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
+    private static final String BASE_TEMPLATE_PATH = "templates/email/base-template.html";
+    private static final int MAX_LOG_TEXT_LENGTH = 2000;
+
+    private String truncateForLog(String content) {
+        if (content == null) {
+            return null;
+        }
+        if (content.length() <= MAX_LOG_TEXT_LENGTH) {
+            return content;
+        }
+        return content.substring(0, MAX_LOG_TEXT_LENGTH);
+    }
+
     public void sendEmailWithAttachment(String to, String subject, String text, ByteArrayResource attachment, String attachmentFilename) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        // Enable multipart + HTML support
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
         helper.setFrom("jjayaprakash2002@gmail.com");
         helper.setTo(to);
         helper.setSubject(subject);
-        helper.setText(text);
+        // Treat body as HTML if it looks like HTML, otherwise as plain text
+        boolean isHtml = text != null && text.trim().startsWith("<");
+        helper.setText(text, isHtml);
         helper.addAttachment(attachmentFilename, attachment);
 
         System.out.println("email was sending");
@@ -47,8 +67,8 @@ public class EmailService {
         // Log the email sending history
         EmailLog emailLog = new EmailLog();
         emailLog.setToEmail(to);
-        emailLog.setSubject(subject);
-        emailLog.setText(text);
+    emailLog.setSubject(subject);
+    emailLog.setText(truncateForLog(text));
         emailLog.setSentAt(LocalDateTime.now());
 
         // Create a map to store attachment details
@@ -59,6 +79,106 @@ public class EmailService {
         emailLog.setAttachmentDetails(attachmentDetails);
 
         emailLogRepository.save(emailLog);
+    }
+
+    /**
+     * Send an email with multiple attachments.
+     * This is used when we need to attach both expenses and bills Excel reports
+     * in a single email (e.g. "All Expenses" case on the frontend).
+     */
+    public void sendEmailWithAttachments(String to,
+                                         String subject,
+                                         String text,
+                                         Map<String, ByteArrayResource> attachments) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        // Enable multipart + HTML support
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+        helper.setFrom("jjayaprakash2002@gmail.com");
+        helper.setTo(to);
+        helper.setSubject(subject);
+        // Treat body as HTML if it looks like HTML, otherwise as plain text
+        boolean isHtml = text != null && text.trim().startsWith("<");
+        helper.setText(text, isHtml);
+
+        if (attachments != null) {
+            for (Map.Entry<String, ByteArrayResource> entry : attachments.entrySet()) {
+                String filename = requireNonNull(entry.getKey(), "Attachment filename must not be null");
+                ByteArrayResource resource = requireNonNull(entry.getValue(), "Attachment resource must not be null");
+                helper.addAttachment(filename, resource);
+            }
+        }
+
+        mailSender.send(message);
+
+        // Log the email sending history with attachment metadata
+        EmailLog emailLog = new EmailLog();
+        emailLog.setToEmail(to);
+    emailLog.setSubject(subject);
+    emailLog.setText(truncateForLog(text));
+        emailLog.setSentAt(LocalDateTime.now());
+
+        Map<String, String> attachmentDetails = new HashMap<>();
+        if (attachments != null) {
+            // Store comma-separated filenames; sizes are not cheap to read from ByteArrayResource
+            String filenames = String.join(",", attachments.keySet());
+            attachmentDetails.put("filenames", filenames);
+        }
+        emailLog.setAttachmentDetails(attachmentDetails);
+
+        emailLogRepository.save(emailLog);
+    }
+
+    /**
+     * Load the base HTML template and replace simple {{placeholders}}.
+     * This keeps email body generation centralized and reusable.
+     */
+    public String buildBaseTemplateBody(Map<String, String> variables) {
+        try {
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            if (cl == null) {
+                cl = EmailService.class.getClassLoader();
+            }
+
+            try (var is = cl.getResourceAsStream(BASE_TEMPLATE_PATH)) {
+                if (is == null) {
+                    logger.warn("Email base template not found at {} - falling back to plain text body", BASE_TEMPLATE_PATH);
+                    return variables.getOrDefault("fallbackText", "");
+                }
+
+                String template = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+                Map<String, String> merged = new HashMap<>();
+                // Default values
+                merged.put("subject", variables.getOrDefault("subject", "Expensio Report"));
+                merged.put("tagline", variables.getOrDefault("tagline", "Automated Report"));
+                merged.put("headline", variables.getOrDefault("headline", "Your latest"));
+                merged.put("headlineAccent", variables.getOrDefault("headlineAccent", "money snapshot"));
+                merged.put("subHeadline", variables.getOrDefault("subHeadline", "A consolidated view of your recent activity."));
+                merged.put("reportRange", variables.getOrDefault("reportRange", "All time"));
+                merged.put("totalExpenses", variables.getOrDefault("totalExpenses", "—"));
+                merged.put("totalBills", variables.getOrDefault("totalBills", "—"));
+                merged.put("generatedOn", variables.getOrDefault("generatedOn", LocalDateTime.now().toLocalDate().toString()));
+                merged.put("ctaUrl", variables.getOrDefault("ctaUrl", "https://localhost:3000"));
+                merged.put("year", variables.getOrDefault("year", String.valueOf(LocalDateTime.now().getYear())));
+                merged.put("settingsUrl", variables.getOrDefault("settingsUrl", "https://localhost:3000/settings/notifications"));
+                merged.put("privacyUrl", variables.getOrDefault("privacyUrl", "https://localhost:3000/privacy"));
+
+                // Apply overrides from caller
+                merged.putAll(variables);
+
+                String body = template;
+                for (Map.Entry<String, String> entry : merged.entrySet()) {
+                    body = body.replace("{{" + entry.getKey() + "}}", entry.getValue() != null ? entry.getValue() : "");
+                }
+
+                // Clean up any unreplaced placeholders
+                body = body.replaceAll("\\{\\{[a-zA-Z0-9_]+}}", "");
+                return body;
+            }
+        } catch (IOException e) {
+            logger.error("Failed to load email base template", e);
+            return variables.getOrDefault("fallbackText", "");
+        }
     }
 
     public void sendOtpEmail(String to, String otp) {

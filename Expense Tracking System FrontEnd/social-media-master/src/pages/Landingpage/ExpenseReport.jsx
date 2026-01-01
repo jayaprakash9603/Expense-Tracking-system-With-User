@@ -26,6 +26,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTheme } from "../../hooks/useTheme";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -108,6 +109,7 @@ const ReportHeader = ({
   handleReportActionClose,
   handleReportMenuItemClick,
   onBack,
+  colors,
 }) => (
   <div className="expense-report-header">
     <div
@@ -116,9 +118,9 @@ const ReportHeader = ({
     >
       <IconButton
         sx={{
-          color: "#00DAC6",
-          backgroundColor: "#1b1b1b",
-          "&:hover": { backgroundColor: "#28282a" },
+          color: colors.primary_accent,
+          backgroundColor: colors.secondary_bg,
+          "&:hover": { backgroundColor: colors.hover_bg },
           zIndex: 10,
           transform: "translateY(-15px)",
         }}
@@ -134,7 +136,7 @@ const ReportHeader = ({
         >
           <path
             d="M15 18L9 12L15 6"
-            stroke="#00DAC6"
+            stroke={colors.primary_accent}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -142,8 +144,10 @@ const ReportHeader = ({
         </svg>
       </IconButton>
       <div>
-        <h1 style={{ margin: 0 }}>📊 Bill Report</h1>
-        <p style={{ margin: "6px 0 0 0", color: "#888" }}>
+        <h1 style={{ margin: 0, color: colors.primary_text }}>
+          📊 Bill Report
+        </h1>
+        <p style={{ margin: "6px 0 0 0", color: colors.secondary_text }}>
           Spending overview and insights
         </p>
       </div>
@@ -157,7 +161,8 @@ const ReportHeader = ({
         <option value="all">All Time</option>
         <option value="week">Week</option>
         <option value="month">Month</option>
-        <option value="year">Year</option>
+        <option value="year">This Year</option>
+        <option value="last_year">Last Year</option>
       </select>
       <select
         value={selectedCategory}
@@ -174,7 +179,7 @@ const ReportHeader = ({
 
       <IconButton
         onClick={handleReportActionClick}
-        sx={{ color: "#14b8a6", ml: 1 }}
+        sx={{ color: colors.primary_accent, ml: 1 }}
         size="small"
         aria-label="More actions"
       >
@@ -202,8 +207,8 @@ const ReportHeader = ({
                 reportActionAnchorEl?.getBoundingClientRect().bottom + 6 || 0,
               left:
                 reportActionAnchorEl?.getBoundingClientRect().left - 100 || 0,
-              backgroundColor: "#1b1b1b",
-              border: "1px solid #14b8a6",
+              backgroundColor: colors.secondary_bg,
+              border: `1px solid ${colors.primary_accent}`,
               borderRadius: "8px",
               boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
               zIndex: 1000,
@@ -214,14 +219,14 @@ const ReportHeader = ({
               <div
                 onClick={() => handleReportMenuItemClick("refresh")}
                 style={{
-                  color: "#fff",
+                  color: colors.primary_text,
                   padding: "10px 18px",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                 }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#28282a")
+                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
                 }
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.backgroundColor = "transparent")
@@ -234,14 +239,14 @@ const ReportHeader = ({
               <div
                 onClick={() => handleReportMenuItemClick("export")}
                 style={{
-                  color: "#fff",
+                  color: colors.primary_text,
                   padding: "10px 18px",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                 }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#28282a")
+                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
                 }
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.backgroundColor = "transparent")
@@ -254,14 +259,14 @@ const ReportHeader = ({
               <div
                 onClick={() => handleReportMenuItemClick("pdf")}
                 style={{
-                  color: "#fff",
+                  color: colors.primary_text,
                   padding: "10px 18px",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                 }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#28282a")
+                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
                 }
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.backgroundColor = "transparent")
@@ -289,7 +294,15 @@ const FilterInfo = ({
     <p>
       Showing {filteredBills.length} bills
       {selectedCategory !== "all" && ` in ${selectedCategory}`}
-      {selectedTimeframe !== "all" && ` for ${selectedTimeframe}`}
+      {selectedTimeframe !== "all" &&
+        ` for ${
+          {
+            week: "Last 7 days",
+            month: "This month",
+            year: "This year",
+            last_year: "Last year",
+          }[selectedTimeframe] || selectedTimeframe
+        }`}
       {filteredBills.length !== allBills.length &&
         ` (filtered from ${allBills.length} total)`}
     </p>
@@ -408,6 +421,7 @@ const DailyTrendChart = ({
   onPrev,
   onNext,
   currencySymbol = "₹",
+  colors,
 }) => (
   <div className="chart-container full-width">
     <div
@@ -418,14 +432,14 @@ const DailyTrendChart = ({
         marginBottom: 8,
       }}
     >
-      <h3 style={{ margin: 0 }}>Expense Trend</h3>
+      <h3 style={{ margin: 0, color: colors.primary_text }}>Expense Trend</h3>
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <button className="page-btn" onClick={onPrev}>
           Prev
         </button>
         <div
           style={{
-            color: "#cccccc",
+            color: colors.secondary_text,
             fontSize: 14,
             width: 260,
             textAlign: "center",
@@ -433,18 +447,21 @@ const DailyTrendChart = ({
         >
           {timeframe === "all" || timeframe === "year"
             ? trendCursor.getFullYear()
+            : timeframe === "last_year"
+            ? trendCursor.getFullYear() - 1
             : timeframe === "month"
             ? trendCursor.toLocaleString("default", {
                 month: "long",
                 year: "numeric",
               })
-            : (() => {
-                // week label
+            : timeframe === "week"
+            ? (() => {
                 const start = new Date(trendCursor);
                 const end = new Date(trendCursor);
                 end.setDate(end.getDate() + 6);
                 return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-              })()}
+              })()
+            : ""}
         </div>
         <button className="page-btn" onClick={onNext}>
           Next
@@ -756,6 +773,7 @@ const ExpenseReport = () => {
   const navigate = useNavigate();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const { colors, mode } = useTheme();
 
   const handleBack = () => {
     // Always go to bill root of current context
@@ -816,23 +834,31 @@ const ExpenseReport = () => {
         const billDateTime = new Date(bill.date);
 
         switch (selectedTimeframe) {
-          case "week":
+          case "week": {
             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
             return billDateTime >= weekAgo;
-          case "month":
+          }
+          case "month": {
             const monthAgo = new Date(
               now.getFullYear(),
               now.getMonth() - 1,
               now.getDate()
             );
             return billDateTime >= monthAgo;
-          case "year":
-            const yearAgo = new Date(
-              now.getFullYear() - 1,
-              now.getMonth(),
-              now.getDate()
+          }
+          case "year": {
+            // Current calendar year
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            return billDateTime >= startOfYear;
+          }
+          case "last_year": {
+            const lastYear = now.getFullYear() - 1;
+            const startOfLastYear = new Date(lastYear, 0, 1);
+            const endOfLastYear = new Date(lastYear, 11, 31, 23, 59, 59, 999);
+            return (
+              billDateTime >= startOfLastYear && billDateTime <= endOfLastYear
             );
-            return billDateTime >= yearAgo;
+          }
           default:
             return true;
         }
@@ -1122,7 +1148,7 @@ const ExpenseReport = () => {
   }
 
   return (
-    <div className="expense-report" style={{ position: "relative" }}>
+    <div className={`expense-report ${mode}`} style={{ position: "relative" }}>
       <ReportHeader
         selectedTimeframe={selectedTimeframe}
         setSelectedTimeframe={setSelectedTimeframe}
@@ -1134,6 +1160,7 @@ const ExpenseReport = () => {
         handleReportActionClose={handleReportActionClose}
         handleReportMenuItemClick={handleReportMenuItemClick}
         onBack={handleBack}
+        colors={colors}
       />
 
       <FilterInfo
@@ -1173,6 +1200,7 @@ const ExpenseReport = () => {
                 onPrev={handleTrendPrev}
                 onNext={handleTrendNext}
                 currencySymbol={currencySymbol}
+                colors={colors}
               />
             )}
 

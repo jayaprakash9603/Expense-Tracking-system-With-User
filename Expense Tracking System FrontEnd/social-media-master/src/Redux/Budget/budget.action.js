@@ -294,7 +294,7 @@ export const getDetailedBudgetReport =
         type: GET_DETAILED_BUDGET_REPORT_FAILURE,
         payload: errorMessage,
       });
-      throw error;
+      return error;
     }
   };
 
@@ -336,7 +336,7 @@ export const getFilteredBudgetsReport =
         type: GET_FILTERED_BUDGETS_REPORT_FAILURE,
         payload: error.response?.data || error.message,
       });
-      throw error;
+      return error;
     }
   };
 

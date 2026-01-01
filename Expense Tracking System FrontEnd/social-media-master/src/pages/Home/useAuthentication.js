@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getProfileAction } from "../../Redux/Auth/auth.action";
+import { LOGOUT } from "../../Redux/Auth/auth.actionType";
 
 const useAuthentication = (jwt) => {
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -23,7 +24,7 @@ const useAuthentication = (jwt) => {
 
   useEffect(() => {
     if (!jwt) {
-      dispatch({ type: "LOGOUT" });
+      dispatch({ type: LOGOUT });
       navigate("/login");
     } else {
       dispatch(getProfileAction(jwt));

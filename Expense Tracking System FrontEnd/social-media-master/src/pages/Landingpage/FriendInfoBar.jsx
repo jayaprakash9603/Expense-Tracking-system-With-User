@@ -217,7 +217,7 @@ const FriendInfoBar = ({
             navigate(customErrorRedirectPath);
             return;
           }
-          throw error; // Re-throw if it's not a 403 error
+          return error; // Re-throw if it's not a 403 error
         }
       } else if (onFriendChange) {
         // Fallback to existing onFriendChange
@@ -230,7 +230,7 @@ const FriendInfoBar = ({
             navigate(customErrorRedirectPath);
             return;
           }
-          throw error; // Re-throw if it's not a 403 error
+          return error; // Re-throw if it's not a 403 error
         }
       } else {
         // Default navigation behavior
@@ -251,7 +251,7 @@ const FriendInfoBar = ({
             navigate(customErrorRedirectPath);
             return;
           }
-          throw error; // Re-throw if it's not a 403 error
+          return error; // Re-throw if it's not a 403 error
         }
       }
     } catch (error) {

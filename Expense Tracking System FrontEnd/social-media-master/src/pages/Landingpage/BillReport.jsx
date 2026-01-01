@@ -98,12 +98,64 @@ const TableSkeleton = () => (
   </div>
 );
 
+const formatISODate = (date) => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const buildTimeframeRange = (timeframe) => {
+  const now = new Date();
+  const startOfMonth = (base) =>
+    new Date(base.getFullYear(), base.getMonth(), 1);
+  const endOfMonth = (base) =>
+    new Date(base.getFullYear(), base.getMonth() + 1, 0);
+  const startOfYear = (year) => new Date(year, 0, 1);
+  const endOfYear = (year) => new Date(year, 11, 31);
+
+  switch (timeframe) {
+    case "this_month": {
+      const start = startOfMonth(now);
+      const end = endOfMonth(now);
+      return { label: "This Month", start, end };
+    }
+    case "last_month": {
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const start = startOfMonth(lastMonth);
+      const end = endOfMonth(lastMonth);
+      return { label: "Last Month", start, end };
+    }
+    case "this_year": {
+      const year = now.getFullYear();
+      return {
+        label: "This Year",
+        start: startOfYear(year),
+        end: endOfYear(year),
+      };
+    }
+    case "last_year": {
+      const year = now.getFullYear() - 1;
+      return {
+        label: "Last Year",
+        start: startOfYear(year),
+        end: endOfYear(year),
+      };
+    }
+    default:
+      return { label: "All Time", start: null, end: null };
+  }
+};
+
 // Header Component
 const ReportHeader = ({
   selectedTimeframe,
   setSelectedTimeframe,
   selectedCategory,
   setSelectedCategory,
+  selectedType,
+  setSelectedType,
   uniqueCategories,
   handleReportActionClick,
   reportActionAnchorEl,
@@ -165,9 +217,10 @@ const ReportHeader = ({
         className="bill-timeframe-selector"
       >
         <option value="all">All Time</option>
-        <option value="week">Week</option>
-        <option value="month">Month</option>
-        <option value="year">Year</option>
+        <option value="this_month">This Month</option>
+        <option value="last_month">Last Month</option>
+        <option value="this_year">This Year</option>
+        <option value="last_year">Last Year</option>
       </select>
       <select
         value={selectedCategory}
@@ -180,6 +233,16 @@ const ReportHeader = ({
             {category}
           </option>
         ))}
+      </select>
+
+      <select
+        value={selectedType}
+        onChange={(e) => setSelectedType(e.target.value)}
+        className="bill-timeframe-selector"
+      >
+        <option value="all">All Types</option>
+        <option value="loss">Loss</option>
+        <option value="gain">Gain</option>
       </select>
 
       <IconButton
@@ -295,12 +358,30 @@ const FilterInfo = ({
   allBills,
   selectedCategory,
   selectedTimeframe,
+  selectedType,
+  fromDate,
+  toDate,
+  dateFormat,
 }) => (
   <div className="filter-info">
     <p>
       Showing {filteredBills.length} bills
       {selectedCategory !== "all" && ` in ${selectedCategory}`}
-      {selectedTimeframe !== "all" && ` for ${selectedTimeframe}`}
+      {selectedTimeframe !== "all" &&
+        ` for ${
+          {
+            week: "Last 7 days",
+            month: "This month",
+            year: "This year",
+            last_year: "Last year",
+          }[selectedTimeframe] || selectedTimeframe
+        }`}
+      {selectedType !== "all" &&
+        ` marked as ${selectedType === "gain" ? "gains" : "losses"}`}
+      {(fromDate || toDate) &&
+        ` between ${
+          fromDate ? formatDate(fromDate, dateFormat) : "start"
+        } and ${toDate ? formatDate(toDate, dateFormat) : "now"}`}
       {filteredBills.length !== allBills.length &&
         ` (filtered from ${allBills.length} total)`}
     </p>
@@ -437,19 +518,24 @@ const DailyTrendChart = ({
             textAlign: "center",
           }}
         >
-          {timeframe === "all" || timeframe === "year"
-            ? trendCursor.getFullYear()
-            : timeframe === "month"
-            ? trendCursor.toLocaleString("default", {
+          {(() => {
+            if (timeframe === "all") {
+              return trendCursor.getFullYear();
+            }
+            if (timeframe === "this_year" || timeframe === "last_year") {
+              return trendCursor.getFullYear();
+            }
+            if (timeframe === "this_month" || timeframe === "last_month") {
+              return trendCursor.toLocaleString("default", {
                 month: "long",
                 year: "numeric",
-              })
-            : (() => {
-                const start = new Date(trendCursor);
-                const end = new Date(trendCursor);
-                end.setDate(end.getDate() + 6);
-                return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-              })()}
+              });
+            }
+            const start = new Date(trendCursor);
+            const end = new Date(trendCursor);
+            end.setDate(end.getDate() + 6);
+            return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+          })()}
         </div>
         <button className="page-btn" onClick={onNext}>
           Next
@@ -567,69 +653,100 @@ const BillsTable = ({
   filteredBills,
   currencySymbol = "₹",
   dateFormat = "DD/MM/YYYY",
-}) => (
-  <div className="bills-table-container mt-[30px]">
-    <h3>📋 Recent Bills</h3>
-    <div className="table-wrapper">
-      <table className="bills-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Bill Name</th>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Payment Method</th>
-            <th>Items</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredBills.map((bill) => (
-            <tr key={bill.id}>
-              <td>{formatDate(bill.date, dateFormat)}</td>
-              <td>
-                <div className="bill-name">
-                  <strong title={bill.name}>{bill.name}</strong>
-                  <small title={bill.description}>{bill.description}</small>
-                </div>
-              </td>
-              <td>
-                <span className="category-badge">{bill.category}</span>
-              </td>
-              <td
-                className={`amount-cell ${
-                  bill.type === "gain" ? "gain" : "loss"
-                }`}
-              >
-                {bill.type === "gain" ? "+" : "-"}
-                {currencySymbol}
-                {Math.abs(bill.amount).toFixed(2)}
-              </td>
-              <td>
-                <span className={`payment-method ${bill.paymentMethod}`}>
-                  {bill.paymentMethod === "creditNeedToPaid"
-                    ? "Credit Due"
-                    : bill.paymentMethod === "creditPaid"
-                    ? "Credit Paid"
-                    : bill.paymentMethod.toUpperCase()}
-                </span>
-              </td>
-              <td>
-                <div className="items-list">
-                  {bill.expenses.map((expense, idx) => (
-                    <div key={idx} className="expense-item">
-                      {expense.itemName} ({currencySymbol}
-                      {expense.totalPrice})
+  selectedTimeframe,
+  selectedType,
+  timeframeLabel,
+}) => {
+  const tableSummaryParts = [];
+  if (timeframeLabel) {
+    tableSummaryParts.push(timeframeLabel);
+  }
+  if (selectedType && selectedType !== "all") {
+    tableSummaryParts.push(
+      selectedType === "gain" ? "showing gains" : "showing losses"
+    );
+  }
+
+  return (
+    <div className="chart-container full-width bills-table-container">
+      <div className="table-header">
+        <div>
+          <h3>📋 Detailed Bills</h3>
+          <p>
+            {filteredBills.length} bill{filteredBills.length === 1 ? "" : "s"}
+            {tableSummaryParts.length > 0 &&
+              ` · ${tableSummaryParts.join(" · ")}`}
+          </p>
+        </div>
+      </div>
+
+      {filteredBills.length === 0 ? (
+        <div className="empty-state">
+          <p>No bills available for the selected filters.</p>
+        </div>
+      ) : (
+        <div className="table-wrapper">
+          <table className="bills-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Bill Name</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Payment Method</th>
+                <th>Items</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredBills.map((bill) => (
+                <tr key={bill.id}>
+                  <td>{formatDate(bill.date, dateFormat)}</td>
+                  <td>
+                    <div className="bill-name">
+                      <strong title={bill.name}>{bill.name}</strong>
+                      <small title={bill.description}>{bill.description}</small>
                     </div>
-                  ))}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  </td>
+                  <td>
+                    <span className="category-badge">{bill.category}</span>
+                  </td>
+                  <td
+                    className={`amount-cell ${
+                      bill.type === "gain" ? "gain" : "loss"
+                    }`}
+                  >
+                    {bill.type === "gain" ? "+" : "-"}
+                    {currencySymbol}
+                    {Math.abs(bill.amount).toFixed(2)}
+                  </td>
+                  <td>
+                    <span className={`payment-method ${bill.paymentMethod}`}>
+                      {bill.paymentMethod === "creditNeedToPaid"
+                        ? "Credit Due"
+                        : bill.paymentMethod === "creditPaid"
+                        ? "Credit Paid"
+                        : bill.paymentMethod.toUpperCase()}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="items-list">
+                      {(bill.expenses || []).map((expense, idx) => (
+                        <div key={idx} className="expense-item">
+                          {expense.itemName} ({currencySymbol}
+                          {expense.totalPrice})
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const CategoryDetails = ({ analytics, currencySymbol = "₹" }) => (
   <div className="category-details">
@@ -741,6 +858,11 @@ const LoadingSkeleton = () => (
 const BillReport = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
+  const timeframeRange = useMemo(
+    () => buildTimeframeRange(selectedTimeframe),
+    [selectedTimeframe]
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const [reportActionAnchorEl, setReportActionAnchorEl] = useState(null);
@@ -757,6 +879,18 @@ const BillReport = () => {
   // Theme hook must be called unconditionally at top-level (before any early returns)
   const { colors, mode } = useTheme();
 
+  const billQueryParams = useMemo(() => {
+    const params = {};
+    if (selectedType !== "all") {
+      params.type = selectedType;
+    }
+    if (timeframeRange.start && timeframeRange.end) {
+      params.fromDate = formatISODate(timeframeRange.start);
+      params.toDate = formatISODate(timeframeRange.end);
+    }
+    return params;
+  }, [selectedType, timeframeRange]);
+
   const handleBack = () => {
     if (friendId) {
       navigate(`/bill/${friendId}`);
@@ -766,8 +900,18 @@ const BillReport = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchAllBills(friendId ? friendId : null));
-  }, [dispatch, friendId]);
+    dispatch(fetchAllBills(friendId ? friendId : null, billQueryParams));
+  }, [dispatch, friendId, billQueryParams]);
+
+  useEffect(() => {
+    const base = new Date();
+    if (selectedTimeframe === "last_month") {
+      base.setMonth(base.getMonth() - 1);
+    } else if (selectedTimeframe === "last_year") {
+      base.setFullYear(base.getFullYear() - 1);
+    }
+    setTrendCursor(base);
+  }, [selectedTimeframe]);
 
   const handleReportActionClick = (event) => {
     setReportActionAnchorEl(event.currentTarget);
@@ -781,7 +925,7 @@ const BillReport = () => {
   const handleReportMenuItemClick = (action) => {
     setSelectedReportAction(action);
     if (action === "refresh") {
-      dispatch(fetchAllBills(friendId || ""));
+      dispatch(fetchAllBills(friendId ? friendId : null, billQueryParams));
     } else if (action === "export") {
       console.log("Export CSV requested");
     } else if (action === "pdf") {
@@ -808,38 +952,32 @@ const BillReport = () => {
       filtered = filtered.filter((bill) => bill.category === selectedCategory);
     }
 
-    if (selectedTimeframe !== "all") {
-      const now = new Date();
-
+    if (selectedType !== "all") {
       filtered = filtered.filter((bill) => {
-        const billDateTime = new Date(bill.date);
+        const billType = (bill.type || "loss").toLowerCase();
+        return billType === selectedType;
+      });
+    }
 
-        switch (selectedTimeframe) {
-          case "week":
-            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            return billDateTime >= weekAgo;
-          case "month":
-            const monthAgo = new Date(
-              now.getFullYear(),
-              now.getMonth() - 1,
-              now.getDate()
-            );
-            return billDateTime >= monthAgo;
-          case "year":
-            const yearAgo = new Date(
-              now.getFullYear() - 1,
-              now.getMonth(),
-              now.getDate()
-            );
-            return billDateTime >= yearAgo;
-          default:
-            return true;
-        }
+    if (timeframeRange.start && timeframeRange.end) {
+      filtered = filtered.filter((bill) => {
+        if (!bill.date) return false;
+        const billDateTime = new Date(bill.date);
+        return (
+          billDateTime >= timeframeRange.start &&
+          billDateTime <= timeframeRange.end
+        );
       });
     }
 
     return filtered;
-  }, [allBills, selectedCategory, selectedTimeframe]);
+  }, [
+    allBills,
+    selectedCategory,
+    selectedTimeframe,
+    selectedType,
+    timeframeRange,
+  ]);
 
   const totalPages = Math.max(
     1,
@@ -847,7 +985,7 @@ const BillReport = () => {
   );
   useEffect(() => {
     setCurrentPage(1);
-  }, [filteredBills.length, selectedCategory, selectedTimeframe]);
+  }, [filteredBills.length, selectedCategory, selectedTimeframe, selectedType]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(1);
@@ -952,16 +1090,6 @@ const BillReport = () => {
     return s;
   };
 
-  const sampleWeekly = (startDate) => {
-    const s = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(startDate);
-      d.setDate(d.getDate() + i);
-      s.push(isoLocal(d.getFullYear(), d.getMonth(), d.getDate()));
-    }
-    return s;
-  };
-
   const dailyTrendData = useMemo(() => {
     let points = [];
 
@@ -975,7 +1103,10 @@ const BillReport = () => {
         }),
         amount: analytics.dailyExpenses[iso] || 0,
       }));
-    } else if (selectedTimeframe === "year") {
+    } else if (
+      selectedTimeframe === "this_year" ||
+      selectedTimeframe === "last_year"
+    ) {
       const y = trendCursor.getFullYear();
       const samples = sampleYearly(y);
       points = samples.map((iso) => ({
@@ -985,23 +1116,15 @@ const BillReport = () => {
         }),
         amount: analytics.dailyExpenses[iso] || 0,
       }));
-    } else if (selectedTimeframe === "month") {
+    } else if (
+      selectedTimeframe === "this_month" ||
+      selectedTimeframe === "last_month"
+    ) {
       const y = trendCursor.getFullYear();
       const m = trendCursor.getMonth();
       const samples = sampleMonthly(y, m);
       points = samples.map((iso) => ({
         date: new Date(iso).toLocaleDateString("en-US", { day: "numeric" }),
-        amount: analytics.dailyExpenses[iso] || 0,
-      }));
-    } else if (selectedTimeframe === "week") {
-      const start = new Date(trendCursor);
-      start.setHours(0, 0, 0, 0);
-      const samples = sampleWeekly(start);
-      points = samples.map((iso) => ({
-        date: new Date(iso).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
         amount: analytics.dailyExpenses[iso] || 0,
       }));
     } else {
@@ -1027,24 +1150,34 @@ const BillReport = () => {
 
   const handleTrendPrev = () => {
     const c = new Date(trendCursor);
-    if (selectedTimeframe === "all" || selectedTimeframe === "year") {
+    if (
+      selectedTimeframe === "all" ||
+      selectedTimeframe === "this_year" ||
+      selectedTimeframe === "last_year"
+    ) {
       c.setFullYear(c.getFullYear() - 1);
-    } else if (selectedTimeframe === "month") {
+    } else if (
+      selectedTimeframe === "this_month" ||
+      selectedTimeframe === "last_month"
+    ) {
       c.setMonth(c.getMonth() - 1);
-    } else if (selectedTimeframe === "week") {
-      c.setDate(c.getDate() - 7);
     }
     setTrendCursor(c);
   };
 
   const handleTrendNext = () => {
     const c = new Date(trendCursor);
-    if (selectedTimeframe === "all" || selectedTimeframe === "year") {
+    if (
+      selectedTimeframe === "all" ||
+      selectedTimeframe === "this_year" ||
+      selectedTimeframe === "last_year"
+    ) {
       c.setFullYear(c.getFullYear() + 1);
-    } else if (selectedTimeframe === "month") {
+    } else if (
+      selectedTimeframe === "this_month" ||
+      selectedTimeframe === "last_month"
+    ) {
       c.setMonth(c.getMonth() + 1);
-    } else if (selectedTimeframe === "week") {
-      c.setDate(c.getDate() + 7);
     }
     setTrendCursor(c);
   };
@@ -1094,7 +1227,12 @@ const BillReport = () => {
     return null;
   };
 
-  const uniqueCategories = [...new Set(allBills.map((bill) => bill.category))];
+  const uniqueCategories = useMemo(() => {
+    const categories = allBills
+      .map((bill) => bill.category)
+      .filter((category) => category && category.trim().length > 0);
+    return [...new Set(categories)];
+  }, [allBills]);
 
   if (loading) {
     // Keep skeleton lightweight; optionally we could pass theme classes here.
@@ -1116,6 +1254,8 @@ const BillReport = () => {
         setSelectedTimeframe={setSelectedTimeframe}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
         uniqueCategories={uniqueCategories}
         handleReportActionClick={handleReportActionClick}
         reportActionAnchorEl={reportActionAnchorEl}
@@ -1131,6 +1271,8 @@ const BillReport = () => {
         allBills={allBills}
         selectedCategory={selectedCategory}
         selectedTimeframe={selectedTimeframe}
+        selectedType={selectedType}
+        timeframeLabel={timeframeRange.label}
       />
 
       <SummaryCards analytics={analytics} currencySymbol={currencySymbol} />

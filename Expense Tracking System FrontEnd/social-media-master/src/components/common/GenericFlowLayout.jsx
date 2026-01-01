@@ -4,11 +4,12 @@ import DeletionConfirmationWithToast from "./DeletionConfirmationWithToast";
 import SearchNavigationBar from "../cashflow/SearchNavigationBar";
 import SortPopover from "../cashflow/SortPopover";
 import FlowToggleButton from "../cashflow/FlowToggleButton";
-import Skeleton from "@mui/material/Skeleton";
+import CashFlowChartSkeleton from "../skeletons/CashFlowChartSkeleton";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import { rangeTypes } from "../../utils/flowDateUtils";
 import recentPng from "../../assests/recent.png";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 
 // Flexible layout wrapper used by CashFlow to integrate multi-selection and bulk deletion.
 const GenericFlowLayout = ({
@@ -78,6 +79,7 @@ const GenericFlowLayout = ({
   formatters: { formatCompactNumber, formatCurrencyCompact, formatNumberFull },
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <div
@@ -102,19 +104,19 @@ const GenericFlowLayout = ({
         isDeleting={isDeleting}
         expenseData={expenseData}
         headerNames={{
-          name: "Expense Name",
-          amount: "Amount",
-          type: "Type",
-          paymentMethod: "Payment Method",
-          netAmount: "Net Amount",
-          comments: "Comments",
-          creditDue: "Credit Due",
-          date: "Date",
+          name: t("cashflow.tableHeaders.name"),
+          amount: t("cashflow.tableHeaders.amount"),
+          type: t("cashflow.tableHeaders.type"),
+          paymentMethod: t("cashflow.tableHeaders.paymentMethod"),
+          netAmount: t("cashflow.tableHeaders.netAmount"),
+          comments: t("cashflow.tableHeaders.comments"),
+          creditDue: t("cashflow.tableHeaders.creditDue"),
+          date: t("cashflow.tableHeaders.date"),
         }}
         onApprove={onApprove}
         onDecline={onDecline}
-        approveText="Yes, Delete"
-        declineText="No, Cancel"
+        approveText={t("cashflow.deletion.approve")}
+        declineText={t("cashflow.deletion.decline")}
         confirmationText={confirmationText}
       />
       <div
@@ -178,22 +180,13 @@ const GenericFlowLayout = ({
         }}
       >
         {loading && !search ? (
-          <Skeleton
-            variant="rectangular"
-            width="100%"
-            height={160}
-            animation="wave"
-            sx={{
-              bgcolor: colors.hover_bg,
-              borderRadius: 2,
-            }}
-          />
+          <CashFlowChartSkeleton />
         ) : chartData.length === 0 ? (
           <NoDataPlaceholder
             size={isMobile ? "md" : "lg"}
             fullWidth
-            message="No data to display"
-            subMessage="Try adjusting filters or date range"
+            message={t("cashflow.messages.noDataChart")}
+            subMessage={t("cashflow.messages.adjustFilters")}
           />
         ) : (
           <ChartComponent
@@ -228,7 +221,7 @@ const GenericFlowLayout = ({
         hasWriteAccess={hasWriteAccess}
         navigate={navigate}
         addNewOptions={addNewOptions}
-        placeholder="Search expenses..."
+        placeholder={t("cashflow.searchPlaceholder")}
         // Use 'expenses' as origin so other flows back button returns to the main expenses view
         currentFlow="expenses"
       />

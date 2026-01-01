@@ -3,6 +3,36 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { getThemeColors, getIconFilter } from "../../config/themeConfig";
 
+const CASHFLOW_VIEW_STATE_PREFIX = "cashflow:view-state:";
+const CATEGORY_FLOW_VIEW_STATE_PREFIX = "categoryflow:view-state:";
+const PAYMENT_METHOD_FLOW_VIEW_STATE_PREFIX = "paymentmethodflow:view-state:";
+
+const isCashflowRoute = (pathname = "") => pathname.includes("/expenses");
+const isCategoryFlowRoute = (pathname = "") =>
+  pathname.includes("/category-flow");
+const isPaymentMethodFlowRoute = (pathname = "") =>
+  pathname.includes("/payment-method");
+
+const clearCachedViewStateByPrefix = (prefix) => {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  const keysToRemove = [];
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    if (key && key.startsWith(prefix)) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+};
+const clearCachedCashflowViewState = () =>
+  clearCachedViewStateByPrefix(CASHFLOW_VIEW_STATE_PREFIX);
+const clearCachedCategoryFlowViewState = () =>
+  clearCachedViewStateByPrefix(CATEGORY_FLOW_VIEW_STATE_PREFIX);
+const clearCachedPaymentMethodFlowViewState = () =>
+  clearCachedViewStateByPrefix(PAYMENT_METHOD_FLOW_VIEW_STATE_PREFIX);
+
 const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -15,6 +45,22 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
     if (onClick) {
       onClick(); // Custom action (e.g., logout)
     } else {
+      const leavingCashflow =
+        isCashflowRoute(location.pathname) && !isCashflowRoute(path);
+      if (leavingCashflow) {
+        clearCachedCashflowViewState();
+      }
+      const leavingCategoryFlow =
+        isCategoryFlowRoute(location.pathname) && !isCategoryFlowRoute(path);
+      if (leavingCategoryFlow) {
+        clearCachedCategoryFlowViewState();
+      }
+      const leavingPaymentMethodFlow =
+        isPaymentMethodFlowRoute(location.pathname) &&
+        !isPaymentMethodFlowRoute(path);
+      if (leavingPaymentMethodFlow) {
+        clearCachedPaymentMethodFlowViewState();
+      }
       // Always pass fromSidebar state so target pages know origin
       navigate(path, { state: { fromSidebar: true } });
     }
@@ -22,7 +68,7 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
   };
 
   // Check if icon is a React component or a string (image URL)
-  const isReactComponent = typeof icon === 'function' || (icon && icon.type);
+  const isReactComponent = typeof icon === "function" || (icon && icon.type);
 
   return (
     <div
@@ -42,7 +88,14 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
           <>
             {isReactComponent ? (
               // Render React icon component
-              <span className="mr-3" style={{ color: isActive ? themeColors.active_text : themeColors.primary_text }}>
+              <span
+                className="mr-3"
+                style={{
+                  color: isActive
+                    ? themeColors.active_text
+                    : themeColors.primary_text,
+                }}
+              >
                 {icon}
               </span>
             ) : (

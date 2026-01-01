@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Box, useMediaQuery, Chip } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 import ToastNotification from "./ToastNotification";
 import { fetchNotificationPreferences } from "../../Redux/NotificationPreferences/notificationPreferences.action";
 
@@ -50,6 +51,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { colors, mode } = useTheme();
+  const { t } = useTranslation();
   const { settings: userSettings } = useSelector(
     (state) => state.userSettings || {}
   );
@@ -95,35 +97,36 @@ const Settings = () => {
     userSettings,
     showSnackbar
   );
-  const { handleThemeToggle, executeAction } = useSettingsActions(
-    navigate,
-    showSnackbar,
-    setDeleteDialogOpen,
-    setPasswordDialogOpen,
-    isDark
-  );
+  const { handleThemeToggle, handleLanguageChange, executeAction } =
+    useSettingsActions(
+      navigate,
+      showSnackbar,
+      setDeleteDialogOpen,
+      setPasswordDialogOpen,
+      isDark
+    );
 
   // Render switch-type setting
   const renderSwitchSetting = (item) => {
     const stateKey = item.stateKey;
     const settingsKey = item.settingsKey;
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
 
     return (
       <SettingItem
         key={item.id}
         icon={item.icon}
-        title={item.title}
-        description={item.description}
+        title={title}
+        description={description}
         isSwitch
         switchChecked={settingsState[stateKey]}
         onSwitchChange={(e) => {
           const checked = e.target.checked;
           updateSetting(stateKey, checked);
-          updateSetting(
-            settingsKey,
-            checked,
-            getToggleMessage(item.title, checked)
-          );
+          updateSetting(settingsKey, checked, getToggleMessage(title, checked));
         }}
         colors={colors}
       />
@@ -134,13 +137,38 @@ const Settings = () => {
   const renderSelectSetting = (item) => {
     const stateKey = item.stateKey;
     const settingsKey = item.settingsKey;
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
+
+    // Special handling for language select
+    if (item.id === "language") {
+      return (
+        <SettingItem
+          key={item.id}
+          icon={item.icon}
+          title={title}
+          description={description}
+          isSelect
+          selectValue={settingsState[stateKey]}
+          selectOptions={item.options}
+          onSelectChange={(e) => {
+            const value = e.target.value;
+            updateSetting(stateKey, value);
+            handleLanguageChange(value); // Use dedicated language handler
+          }}
+          colors={colors}
+        />
+      );
+    }
 
     return (
       <SettingItem
         key={item.id}
         icon={item.icon}
-        title={item.title}
-        description={item.description}
+        title={title}
+        description={description}
         isSelect
         selectValue={settingsState[stateKey]}
         selectOptions={item.options}
@@ -149,7 +177,7 @@ const Settings = () => {
           updateSetting(stateKey, value);
           const message = item.customMessage
             ? PROFILE_VISIBILITY_MESSAGES[value]
-            : `${item.title} updated`;
+            : `${title} updated`;
           updateSetting(settingsKey, value, message);
         }}
         colors={colors}
@@ -158,22 +186,37 @@ const Settings = () => {
   };
 
   // Render button-type setting
-  const renderButtonSetting = (item) => (
-    <SettingItem
-      key={item.id}
-      icon={item.icon}
-      title={item.title}
-      description={item.description}
-      isButton
-      buttonText={item.buttonText}
-      onButtonClick={() => executeAction(item.action)}
-      isDanger={item.isDanger}
-      colors={colors}
-    />
-  );
+  const renderButtonSetting = (item) => {
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
+    const buttonText = item.buttonTextKey
+      ? t(item.buttonTextKey)
+      : item.buttonText;
+
+    return (
+      <SettingItem
+        key={item.id}
+        icon={item.icon}
+        title={title}
+        description={description}
+        isButton
+        buttonText={buttonText}
+        onButtonClick={() => executeAction(item.action)}
+        isDanger={item.isDanger}
+        colors={colors}
+      />
+    );
+  };
 
   // Render navigation-type setting
   const renderNavigationSetting = (item) => {
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
+
     // Check if this item should show status (notification settings)
     const shouldShowStatus =
       item.showStatus && item.id === "notificationSettings";
@@ -183,8 +226,8 @@ const Settings = () => {
       <SettingItem
         key={item.id}
         icon={item.icon}
-        title={item.title}
-        description={item.description}
+        title={title}
+        description={description}
         isNavigation
         onNavigationClick={() => executeAction(item.action)}
         colors={colors}
@@ -215,13 +258,17 @@ const Settings = () => {
   const renderSliderSetting = (item) => {
     const stateKey = item.stateKey;
     const settingsKey = item.settingsKey;
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
 
     return (
       <SettingItem
         key={item.id}
         icon={item.icon}
-        title={item.title}
-        description={item.description}
+        title={title}
+        description={description}
         isSlider
         sliderValue={settingsState[stateKey]}
         sliderMin={item.min}
@@ -230,11 +277,7 @@ const Settings = () => {
         sliderMarks={item.marks}
         onSliderChange={(e, value) => {
           updateSetting(stateKey, value);
-          updateSetting(
-            settingsKey,
-            value,
-            `${item.title} updated to ${value}`
-          );
+          updateSetting(settingsKey, value, `${title} updated to ${value}`);
         }}
         colors={colors}
       />
@@ -249,8 +292,10 @@ const Settings = () => {
         <SettingItem
           key={item.id}
           icon={getThemeIcon(isDark)}
-          title={item.title}
-          description={getThemeDescription(isDark)}
+          title={t("settings.theme")}
+          description={
+            isDark ? t("settings.themeDark") : t("settings.themeLight")
+          }
           isSwitch
           switchChecked={isDark}
           onSwitchChange={handleThemeToggle}
@@ -281,16 +326,18 @@ const Settings = () => {
       return <AppInfoSection key={section.id} colors={colors} />;
     }
 
+    const title = section.titleKey ? t(section.titleKey) : section.title;
+
     return (
       <SettingSection
         key={section.id}
         icon={section.icon}
-        title={section.title}
+        title={title}
         colors={colors}
         showChip={section.showChip}
         chipLabel={
           section.showChip
-            ? getProfileVisibilityLabel(settingsState.profileVisibility)
+            ? getProfileVisibilityLabel(settingsState.profileVisibility, t)
             : ""
         }
       >

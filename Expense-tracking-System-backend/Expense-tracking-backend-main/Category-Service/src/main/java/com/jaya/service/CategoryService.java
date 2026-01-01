@@ -105,12 +105,10 @@ public class CategoryService {
     public List<Category> getAll(Integer userId) throws Exception {
         // Fetch user-specific categories
         User user=helper.validateUser(userId);
-        List<Category> userCategories = categoryRepository.findAll().stream()
-                .filter(category -> category.getUserId() != null && category.getUserId().equals(user.getId()))
-                .collect(Collectors.toList());
+        List<Category> userCategories = categoryRepository.findAllWithDetailsByUserId(user.getId());
 
         // Fetch global categories where the user is NOT in userIds or editUserIds
-        List<Category> globalCategories = categoryRepository.findAllByIsGlobalTrue().stream()
+        List<Category> globalCategories = categoryRepository.findAllGlobalWithDetails().stream()
                 .filter(category ->
                         !category.getUserIds().contains(userId) &&
                                 !category.getEditUserIds().contains(userId)

@@ -5,6 +5,7 @@ import {
   LOGIN_FAILURE,
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
+  LOGOUT,
   REGISTER_FAILURE,
   REGISTER_REQUEST,
   REGISTER_SUCCESS,
@@ -79,7 +80,7 @@ export const authReducer = (state = initialState, action) => {
         currentMode: action.payload.currentMode,
         user: action.payload.user || state.user,
       };
-    case "LOGOUT":
+    case LOGOUT:
       return { ...state, user: null, jwt: null, currentMode: null };
     default:
       return state;

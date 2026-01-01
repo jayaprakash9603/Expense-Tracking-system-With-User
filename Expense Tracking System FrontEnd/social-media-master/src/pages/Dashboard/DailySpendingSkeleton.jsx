@@ -16,7 +16,7 @@ const DailySpendingSkeleton = ({
   const { colors } = useTheme();
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:1024px)");
-  const computed = isMobile ? 200 : isTablet ? 240 : 100;
+  const computed = isMobile ? 200 : isTablet ? 240 : 280;
   const height = overrideHeight || computed;
 
   return (
