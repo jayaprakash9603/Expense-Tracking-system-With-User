@@ -228,6 +228,9 @@ public class BillController {
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
             @RequestParam(required = false) LocalDate date,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
             @RequestParam(required = false) LocalDate expenseDate, @RequestParam(required = false) Integer targetId)
             throws Exception {
         try {
@@ -252,6 +255,14 @@ public class BillController {
 
                 System.out.print("all bills called");
                 bills = billService.getAllBillsForUser(targetUser.getId());
+            }
+
+            boolean applyTypeFilter = type != null && !type.isBlank();
+            if (applyTypeFilter || fromDate != null || toDate != null) {
+                bills = billService.filterBillsByTypeAndRange(targetUser.getId(), bills,
+                        type,
+                        fromDate,
+                        toDate);
             }
             return ResponseEntity.ok(bills);
         } catch (Exception e) {

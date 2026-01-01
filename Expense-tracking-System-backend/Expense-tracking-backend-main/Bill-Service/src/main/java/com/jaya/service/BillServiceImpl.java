@@ -297,6 +297,56 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
+    public List<Bill> filterBillsByTypeAndRange(Integer userId, List<Bill> bills, String type,
+            LocalDate fromDate, LocalDate toDate) throws Exception {
+
+        helper.validateUser(userId);
+
+        List<Bill> source = bills == null ? billRepository.findByUserId(userId) : bills;
+        if (source == null || source.isEmpty()) {
+            return source == null ? Collections.emptyList() : source;
+        }
+
+        String normalizedType = type == null ? null : type.trim().toLowerCase();
+        boolean typeFilterEnabled = normalizedType != null && !normalizedType.isEmpty()
+                && !"all".equals(normalizedType);
+
+        if (typeFilterEnabled && !"loss".equals(normalizedType) && !"gain".equals(normalizedType)) {
+            throw new IllegalArgumentException("Type must be either 'loss' or 'gain'");
+        }
+
+        if (fromDate != null && toDate != null && toDate.isBefore(fromDate)) {
+            throw new IllegalArgumentException("toDate cannot be earlier than fromDate");
+        }
+
+        return source.stream()
+                .filter(bill -> {
+                    if (typeFilterEnabled) {
+                        String billType = bill.getType() == null ? "loss" : bill.getType().toLowerCase();
+                        if (!billType.equals(normalizedType)) {
+                            return false;
+                        }
+                    }
+
+                    LocalDate billDate = bill.getDate();
+                    if (fromDate != null) {
+                        if (billDate == null || billDate.isBefore(fromDate)) {
+                            return false;
+                        }
+                    }
+
+                    if (toDate != null) {
+                        if (billDate == null || billDate.isAfter(toDate)) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<ExpenseDTO> getAllExpensesForBill(Integer userId, LocalDate startDate, LocalDate endDate)
             throws Exception {
 

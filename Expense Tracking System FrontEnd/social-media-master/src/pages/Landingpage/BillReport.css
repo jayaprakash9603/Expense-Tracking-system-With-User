@@ -60,6 +60,7 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .bill-timeframe-selector {
@@ -69,6 +70,46 @@
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 14px;
+}
+
+.bill-date-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.bill-date-input {
+  background: var(--selector-bg, #1a1a1a);
+  border: 1px solid var(--selector-border, #2a2a2a);
+  color: var(--selector-text, #ffffff);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.bill-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(var(--date-picker-filter, 0));
+}
+
+.bill-date-reset-btn {
+  background: transparent;
+  border: 1px dashed var(--primary-accent, #14b8a6);
+  color: var(--primary-accent, #14b8a6);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.bill-date-reset-btn:hover {
+  background: rgba(20, 184, 166, 0.1);
+}
+
+.date-separator {
+  color: var(--secondary-text, #888888);
+  font-size: 12px;
 }
 .light.bill-report,
 .light .bill-report {
@@ -165,6 +206,7 @@
   --skeleton-end: #e0e0e0;
   --primary-text: #1a1a1a;
   --primary-accent: #14b8a6;
+  --date-picker-filter: 0;
 }
 .dark.bill-report,
 .dark .bill-report {
@@ -205,6 +247,7 @@
   --skeleton-end: #2a2a2a;
   --primary-text: #ffffff;
   --primary-accent: #14b8a6;
+  --date-picker-filter: 1;
 }
 
 /* Table theming */
@@ -1347,6 +1390,20 @@
   animation: skeletonShimmer 1.6s linear infinite;
 }
 
+.bill-report-header .skeleton-date {
+  height: 36px;
+  width: 150px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-start, #2a2a2a) 25%,
+    var(--skeleton-mid, #3a3a3a) 50%,
+    var(--skeleton-end, #2a2a2a) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s linear infinite;
+}
+
 .bill-report-header .skeleton-back-btn {
   width: 44px;
   height: 44px;
@@ -1370,6 +1427,20 @@
   height: 36px;
   width: 140px;
   border-radius: 8px;
+}
+
+.skeleton-date {
+  height: 36px;
+  width: 150px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-start, #2a2a2a) 25%,
+    var(--skeleton-mid, #3a3a3a) 50%,
+    var(--skeleton-end, #2a2a2a) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.6s linear infinite;
 }
 
 .summary-card-skeleton {
