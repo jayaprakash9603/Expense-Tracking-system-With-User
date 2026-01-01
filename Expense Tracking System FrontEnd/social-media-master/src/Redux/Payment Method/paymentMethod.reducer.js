@@ -28,7 +28,17 @@ const initialState = {
   paymentMethods: [],
   loading: false,
   error: null,
+  paymentMethodFlowCache: {},
+  paymentMethodFlowLastFetchedSignature: null,
+  paymentMethodFlowOwnerId: null,
 };
+
+const clearPaymentMethodFlowCaches = (state) => ({
+  ...state,
+  paymentMethodFlowCache: {},
+  paymentMethodFlowLastFetchedSignature: null,
+  paymentMethodFlowOwnerId: null,
+});
 
 export const paymentMethodReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -45,13 +55,23 @@ export const paymentMethodReducer = (state = initialState, action) => {
         error: null,
       };
 
-    case FETCH_PAYMENT_METHODS_WITH_EXPENSES_SUCCESS:
+    case FETCH_PAYMENT_METHODS_WITH_EXPENSES_SUCCESS: {
+      const signature = action.meta?.requestSignature ?? null;
+      const payloadOwnerId = action.meta?.requestDescriptor?.ownerId ?? null;
+      const nextCache =
+        signature === null
+          ? state.paymentMethodFlowCache
+          : { ...state.paymentMethodFlowCache, [signature]: action.payload };
       return {
         ...state,
         loading: false,
         paymentMethodExpenses: action.payload,
+        paymentMethodFlowCache: nextCache,
+        paymentMethodFlowLastFetchedSignature: signature,
+        paymentMethodFlowOwnerId: payloadOwnerId,
         error: null,
       };
+    }
 
     case GET_ALL_PAYMENT_METHOD_SUCCESS:
       return {
@@ -62,18 +82,18 @@ export const paymentMethodReducer = (state = initialState, action) => {
       };
 
     case DELETE_PAYMENT_METHOD_SUCCESS:
-      return {
+      return clearPaymentMethodFlowCaches({
         ...state,
         loading: false,
         error: null,
-      };
+      });
 
     case CREATE_PAYMENT_METHOD_SUCCESS:
-      return {
+      return clearPaymentMethodFlowCaches({
         ...state,
         loading: false,
         error: null,
-      };
+      });
 
     case FETCH_PAYMENT_METHOD_BY_ID_SUCCESS:
     case FETCH_PAYMENT_METHOD_BY_TARGET_ID_SUCCESS:
@@ -85,12 +105,12 @@ export const paymentMethodReducer = (state = initialState, action) => {
       };
 
     case UPDATE_PAYMENT_METHOD_SUCCESS:
-      return {
+      return clearPaymentMethodFlowCaches({
         ...state,
         loading: false,
         paymentMethod: action.payload,
         error: null,
-      };
+      });
 
     case FETCH_PAYMENT_METHODS_WITH_EXPENSES_FAILURE:
     case DELETE_PAYMENT_METHOD_FAILURE:

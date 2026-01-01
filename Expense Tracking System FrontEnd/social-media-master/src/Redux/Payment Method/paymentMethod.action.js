@@ -1,5 +1,9 @@
 import { api } from "../../config/api";
 import {
+  getPaymentMethodFlowCacheDescriptor,
+  getPaymentMethodFlowCacheKeyFromDescriptor,
+} from "../../utils/paymentMethodFlowCacheUtils";
+import {
   CREATE_PAYMENT_METHOD_FAILURE,
   CREATE_PAYMENT_METHOD_REQUEST,
   CREATE_PAYMENT_METHOD_SUCCESS,
@@ -21,27 +25,63 @@ import {
 } from "./paymentMethod.actionType";
 
 export const fetchPaymentMethodsWithExpenses =
-  (rangeType, offset, flowType, friendId) => async (dispatch) => {
-    dispatch({ type: FETCH_PAYMENT_METHODS_WITH_EXPENSES_REQUEST });
-    try {
-      const endpoint =
-        friendId && friendId !== "undefined"
-          ? `/api/expenses/all-by-payment-method/detailed/filtered`
-          : "/api/expenses/all-by-payment-method/detailed/filtered";
+  ({ forceRefetch = false, ...rawParams } = {}) =>
+  async (dispatch, getState) => {
+    const normalizedParams = getPaymentMethodFlowCacheDescriptor(rawParams);
+    const requestSignature =
+      getPaymentMethodFlowCacheKeyFromDescriptor(normalizedParams);
+    const cachedData =
+      getState()?.paymentMethod?.paymentMethodFlowCache?.[requestSignature];
 
-      const { data } = await api.get(endpoint, {
-        params: { rangeType, offset, flowType, targetId: friendId },
+    if (!forceRefetch && cachedData !== undefined) {
+      dispatch({
+        type: FETCH_PAYMENT_METHODS_WITH_EXPENSES_SUCCESS,
+        payload: cachedData,
+        meta: {
+          requestDescriptor: normalizedParams,
+          requestSignature,
+          cached: true,
+        },
       });
+      return cachedData;
+    }
+
+    try {
+      dispatch({ type: FETCH_PAYMENT_METHODS_WITH_EXPENSES_REQUEST });
+
+      const queryParams = new URLSearchParams();
+      queryParams.append("rangeType", normalizedParams.rangeType || "month");
+      queryParams.append("offset", String(normalizedParams.offset));
+      if (normalizedParams.flowType) {
+        queryParams.append("flowType", normalizedParams.flowType);
+      }
+
+      const { data } = await api.get(
+        `/api/expenses/all-by-payment-method/detailed/filtered?${queryParams.toString()}`,
+        {
+          params: {
+            targetId: normalizedParams.targetId || "",
+          },
+        }
+      );
 
       dispatch({
         type: FETCH_PAYMENT_METHODS_WITH_EXPENSES_SUCCESS,
         payload: data,
+        meta: {
+          requestDescriptor: normalizedParams,
+          requestSignature,
+          cached: false,
+        },
       });
+
+      return data;
     } catch (error) {
       dispatch({
         type: FETCH_PAYMENT_METHODS_WITH_EXPENSES_FAILURE,
         payload: error.response?.data?.message || error.message,
       });
+      throw error;
     }
   };
 

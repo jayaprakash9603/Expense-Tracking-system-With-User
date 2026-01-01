@@ -1,12 +1,9 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import usePaymentMethodFlowData from "../../hooks/usePaymentMethodFlowData";
-import {
-  deletePaymentMethod,
-  fetchPaymentMethodsWithExpenses,
-} from "../../Redux/Payment Method/paymentMethod.action";
+import { useDispatch } from "react-redux";
+import { deletePaymentMethod } from "../../Redux/Payment Method/paymentMethod.action";
 import { formatCompactNumber } from "../../utils/numberFormatters";
 import CreatePaymentMethod from "./CreatePaymentMethod";
 import GenericFlowPage from "../../components/common/GenericFlowPage";
@@ -32,6 +29,7 @@ const PaymentMethodFlow = () => {
     stackedChartData,
     xAxisKey,
     rangeLabel,
+    refreshPaymentMethodFlow,
   } = usePaymentMethodFlowData({ friendId, isFriendView, search });
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -52,12 +50,6 @@ const PaymentMethodFlow = () => {
   const { hasWriteAccess } = useFriendAccess(friendId);
   const [createPaymentMethodModalOpen, setCreatePaymentMethodModalOpen] =
     useState(false);
-
-  const onRefresh = () => {
-    dispatch(
-      fetchPaymentMethodsWithExpenses(activeRange, offset, flowTab, friendId)
-    );
-  };
 
   return (
     <GenericFlowPage
@@ -129,7 +121,7 @@ const PaymentMethodFlow = () => {
         onCreated: () => {},
       }}
       onDeleteAction={(id, frId) => dispatch(deletePaymentMethod(id, frId))}
-      onRefresh={onRefresh}
+      onRefresh={refreshPaymentMethodFlow}
       navigate={navigate}
       showBackButton={showBackButton}
       onPageBack={handlePageBack}

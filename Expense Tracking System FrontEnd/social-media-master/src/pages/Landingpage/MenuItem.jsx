@@ -5,10 +5,13 @@ import { getThemeColors, getIconFilter } from "../../config/themeConfig";
 
 const CASHFLOW_VIEW_STATE_PREFIX = "cashflow:view-state:";
 const CATEGORY_FLOW_VIEW_STATE_PREFIX = "categoryflow:view-state:";
+const PAYMENT_METHOD_FLOW_VIEW_STATE_PREFIX = "paymentmethodflow:view-state:";
 
 const isCashflowRoute = (pathname = "") => pathname.includes("/expenses");
 const isCategoryFlowRoute = (pathname = "") =>
   pathname.includes("/category-flow");
+const isPaymentMethodFlowRoute = (pathname = "") =>
+  pathname.includes("/payment-method");
 
 const clearCachedViewStateByPrefix = (prefix) => {
   if (typeof window === "undefined" || !window.localStorage) {
@@ -27,6 +30,8 @@ const clearCachedCashflowViewState = () =>
   clearCachedViewStateByPrefix(CASHFLOW_VIEW_STATE_PREFIX);
 const clearCachedCategoryFlowViewState = () =>
   clearCachedViewStateByPrefix(CATEGORY_FLOW_VIEW_STATE_PREFIX);
+const clearCachedPaymentMethodFlowViewState = () =>
+  clearCachedViewStateByPrefix(PAYMENT_METHOD_FLOW_VIEW_STATE_PREFIX);
 
 const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
   const location = useLocation();
@@ -49,6 +54,12 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
         isCategoryFlowRoute(location.pathname) && !isCategoryFlowRoute(path);
       if (leavingCategoryFlow) {
         clearCachedCategoryFlowViewState();
+      }
+      const leavingPaymentMethodFlow =
+        isPaymentMethodFlowRoute(location.pathname) &&
+        !isPaymentMethodFlowRoute(path);
+      if (leavingPaymentMethodFlow) {
+        clearCachedPaymentMethodFlowViewState();
       }
       // Always pass fromSidebar state so target pages know origin
       navigate(path, { state: { fromSidebar: true } });
