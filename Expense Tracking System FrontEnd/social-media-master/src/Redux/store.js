@@ -6,6 +6,7 @@ import {
 } from "redux";
 import { thunk } from "redux-thunk";
 import { authReducer } from "./Auth/auth.reducer";
+import { LOGOUT } from "./Auth/auth.actionType";
 import {
   expenseReducer,
   saveExpensesReducer,
@@ -25,7 +26,7 @@ import notificationPreferencesReducer from "./NotificationPreferences/notificati
 import { reportHistoryReducer } from "./ReportHistory/reportHistory.reducer";
 
 // Combine reducers
-const rootreducers = combineReducers({
+const appReducer = combineReducers({
   auth: authReducer,
   expenses: expenseReducer,
   fileUpload: uploadReducer,
@@ -44,11 +45,18 @@ const rootreducers = combineReducers({
   reportHistory: reportHistoryReducer,
 });
 
+const rootReducer = (state, action) => {
+  if (action.type === LOGOUT) {
+    state = undefined;
+  }
+  return appReducer(state, action);
+};
+
 // Compose enhancer with DevTools support
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 // Create store with DevTools and middleware
 export const store = legacy_createStore(
-  rootreducers,
+  rootReducer,
   composeEnhancers(applyMiddleware(thunk))
 );

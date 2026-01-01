@@ -69,6 +69,10 @@ import {
   UPLOAD_CATEGORIES_SUCCESS,
   UPLOAD_CATEGORIES_FAILURE,
 } from "./expense.actionType";
+import {
+  getCashflowCacheDescriptor,
+  getCashflowCacheKeyFromDescriptor,
+} from "../../utils/cashflowCacheUtils";
 
 export const getExpensesAction =
   (sortOrder = "desc", targetId) =>
@@ -538,30 +542,80 @@ export const fetchCashflowExpenses =
     endDate,
     groupBy = false,
     targetId,
+    ownerId,
   }) =>
-  async (dispatch) => {
+  async (dispatch, getState) => {
+    const normalizedParams = getCashflowCacheDescriptor({
+      range,
+      offset,
+      flowType,
+      category,
+      type,
+      startDate,
+      endDate,
+      groupBy,
+      targetId,
+      ownerId,
+    });
+    const requestSignature =
+      getCashflowCacheKeyFromDescriptor(normalizedParams);
+    const cachedData = getState()?.expenses?.cashflowCache?.[requestSignature];
+
+    if (cachedData !== undefined) {
+      dispatch({
+        type: FETCH_CASHFLOW_EXPENSES_SUCCESS,
+        payload: cachedData,
+        meta: {
+          requestDescriptor: normalizedParams,
+          requestSignature,
+          cached: true,
+        },
+      });
+      return cachedData;
+    }
+
     try {
       dispatch({ type: FETCH_CASHFLOW_EXPENSES_REQUEST });
 
       const params = new URLSearchParams();
-      if (startDate && endDate) {
-        params.append("startDate", startDate);
-        params.append("endDate", endDate);
+      if (normalizedParams.startDate && normalizedParams.endDate) {
+        params.append("startDate", normalizedParams.startDate);
+        params.append("endDate", normalizedParams.endDate);
       } else {
-        if (range) params.append("range", range);
-        params.append("offset", String(offset));
+        if (normalizedParams.range) {
+          params.append("range", normalizedParams.range);
+        }
+        params.append("offset", String(normalizedParams.offset));
       }
-      if (flowType && flowType !== "all") params.append("flowType", flowType);
-      if (category) params.append("category", category);
-      if (type) params.append("type", type); // loss|gain
-      if (groupBy) params.append("groupBy", "true");
-      if (targetId) params.append("targetId", targetId);
+      if (normalizedParams.flowType) {
+        params.append("flowType", normalizedParams.flowType);
+      }
+      if (normalizedParams.category) {
+        params.append("category", normalizedParams.category);
+      }
+      if (normalizedParams.type) {
+        params.append("type", normalizedParams.type);
+      }
+      if (normalizedParams.groupBy) {
+        params.append("groupBy", "true");
+      }
+      if (normalizedParams.targetId) {
+        params.append("targetId", normalizedParams.targetId);
+      }
 
       const { data } = await api.get(
         `/api/expenses/cashflow?${params.toString()}`
       );
 
-      dispatch({ type: FETCH_CASHFLOW_EXPENSES_SUCCESS, payload: data });
+      dispatch({
+        type: FETCH_CASHFLOW_EXPENSES_SUCCESS,
+        payload: data,
+        meta: {
+          requestDescriptor: normalizedParams,
+          requestSignature,
+          cached: false,
+        },
+      });
       return data;
     } catch (error) {
       console.log("Error fetching cashflow expenses:", error);

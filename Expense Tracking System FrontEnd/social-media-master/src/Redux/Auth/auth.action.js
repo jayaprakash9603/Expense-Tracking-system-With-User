@@ -7,6 +7,7 @@ import {
   LOGIN_FAILURE,
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
+  LOGOUT,
   RESET_CLOUDINARY_STATE,
   UPDATE_PROFILE_FAILURE,
   UPDATE_PROFILE_REQUEST,
@@ -103,6 +104,37 @@ const CLOUDINARY_UPLOAD_PRESET = "expense_tracker";
 const CLOUDINARY_CLOUD_NAME = "dtun8attk";
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
+const clearBrowserStorage = () => {
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage?.clear?.();
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("localStorage clear failed", error);
+      }
+    }
+    try {
+      window.sessionStorage?.clear?.();
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("sessionStorage clear failed", error);
+      }
+    }
+  }
+
+  if (typeof document !== "undefined") {
+    const cookies = document.cookie ? document.cookie.split(";") : [];
+    cookies.forEach((cookie) => {
+      const eqIndex = cookie.indexOf("=");
+      const name =
+        eqIndex > -1 ? cookie.substring(0, eqIndex).trim() : cookie.trim();
+      if (name) {
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax`;
+      }
+    });
+  }
+};
+
 // Action Creators
 export const uploadToCloudinary = (file) => {
   return async (dispatch) => {
@@ -177,7 +209,7 @@ export const getProfileAction = (jwt) => async (dispatch) => {
     if (status === 401 || status === 403 || !error.response) {
       console.log("Invalid or expired token, clearing JWT and logging out");
       localStorage.removeItem("jwt");
-      dispatch({ type: "LOGOUT" });
+      dispatch({ type: LOGOUT });
     }
 
     dispatch({ type: GET_PROFILE_FAILURE, payload: error });
@@ -218,16 +250,9 @@ export const updateProfileAction = (reqData) => async (dispatch) => {
 
 // Logout Action
 export const logoutAction = () => (dispatch) => {
-  // Clear authentication
-  localStorage.removeItem("jwt");
+  clearBrowserStorage();
 
-  // Clear theme preference
-  localStorage.removeItem("theme");
-
-  // Clear dashboard layout configuration
-  localStorage.removeItem("dashboard_layout_config");
-
-  dispatch({ type: "LOGOUT" });
+  dispatch({ type: LOGOUT });
   dispatch({ type: CLEAR_USER_SETTINGS }); // Clear user settings on logout
   updateAuthHeader();
 };

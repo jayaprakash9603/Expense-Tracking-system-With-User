@@ -24,43 +24,71 @@ const buildSearchBlob = (item) => {
     .join("|");
 };
 
+const createDefaultRangeOffsets = () => ({
+  week: 0,
+  month: 0,
+  year: 0,
+});
+
 const VIEW_STATE_DEFAULTS = {
   activeRange: "month",
   offset: 0,
   flowTab: "all",
 };
 
+const buildDefaultViewState = () => ({
+  ...VIEW_STATE_DEFAULTS,
+  rangeOffsets: createDefaultRangeOffsets(),
+});
+
 const VALID_RANGES = new Set(["week", "month", "year"]);
 const VALID_FLOW_TABS = new Set(["all", "inflow", "outflow"]);
 
-const getCashflowViewStorageKey = (friendId, isFriendView) => {
-  const scope = isFriendView
-    ? `friend-${friendId || "unknown"}`
-    : "self";
-  return `cashflow:view-state:${scope}`;
+const getCashflowViewStorageKey = (friendId, isFriendView, ownerId) => {
+  const ownerSegment = ownerId ? `owner-${ownerId}` : "owner-unknown";
+  const scope = isFriendView ? `friend-${friendId || "unknown"}` : "self";
+  return `cashflow:view-state:${ownerSegment}:${scope}`;
 };
 
-const sanitizeViewState = (state = VIEW_STATE_DEFAULTS) => ({
-  activeRange: VALID_RANGES.has(state.activeRange)
+const sanitizeViewState = (incomingState = buildDefaultViewState()) => {
+  const state = incomingState || buildDefaultViewState();
+  const activeRange = VALID_RANGES.has(state.activeRange)
     ? state.activeRange
-    : VIEW_STATE_DEFAULTS.activeRange,
-  offset:
-    typeof state.offset === "number" && Number.isFinite(state.offset)
-      ? state.offset
-      : VIEW_STATE_DEFAULTS.offset,
-  flowTab: VALID_FLOW_TABS.has(state.flowTab)
-    ? state.flowTab
-    : VIEW_STATE_DEFAULTS.flowTab,
-});
+    : VIEW_STATE_DEFAULTS.activeRange;
+  const sanitizedOffsets = {
+    ...createDefaultRangeOffsets(),
+    ...(state.rangeOffsets || {}),
+  };
+
+  if (
+    typeof state.offset === "number" &&
+    Number.isFinite(state.offset) &&
+    sanitizedOffsets[activeRange] === undefined
+  ) {
+    sanitizedOffsets[activeRange] = state.offset;
+  }
+
+  return {
+    activeRange,
+    offset:
+      typeof state.offset === "number" && Number.isFinite(state.offset)
+        ? state.offset
+        : sanitizedOffsets[activeRange] ?? VIEW_STATE_DEFAULTS.offset,
+    flowTab: VALID_FLOW_TABS.has(state.flowTab)
+      ? state.flowTab
+      : VIEW_STATE_DEFAULTS.flowTab,
+    rangeOffsets: sanitizedOffsets,
+  };
+};
 
 const readPersistedViewState = (key) => {
   if (typeof window === "undefined" || !window.localStorage) {
-    return { ...VIEW_STATE_DEFAULTS };
+    return buildDefaultViewState();
   }
   try {
     const raw = window.localStorage.getItem(key);
     if (!raw) {
-      return { ...VIEW_STATE_DEFAULTS };
+      return buildDefaultViewState();
     }
     const parsed = JSON.parse(raw);
     return sanitizeViewState(parsed);
@@ -68,7 +96,7 @@ const readPersistedViewState = (key) => {
     if (process.env.NODE_ENV !== "production") {
       console.warn("Failed to parse cashflow view state", error);
     }
-    return { ...VIEW_STATE_DEFAULTS };
+    return buildDefaultViewState();
   }
 };
 
@@ -77,7 +105,8 @@ const persistViewState = (key, state) => {
     return;
   }
   try {
-    window.localStorage.setItem(key, JSON.stringify(sanitizeViewState(state)));
+    const sanitized = sanitizeViewState(state);
+    window.localStorage.setItem(key, JSON.stringify(sanitized));
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       console.warn("Failed to persist cashflow view state", error);
@@ -87,29 +116,78 @@ const persistViewState = (key, state) => {
 
 export default function useCashflowData({ friendId, isFriendView, search }) {
   const dispatch = useDispatch();
-  const storageKey = getCashflowViewStorageKey(friendId, isFriendView);
+  const { user } = useSelector((s) => s.auth || {});
+  const ownerIdRaw =
+    user?.id ?? user?._id ?? user?.userId ?? user?.user_id ?? null;
+  const ownerId = ownerIdRaw == null ? null : String(ownerIdRaw);
+  const storageKey = useMemo(
+    () => getCashflowViewStorageKey(friendId, isFriendView, ownerId),
+    [friendId, isFriendView, ownerId]
+  );
   const initialViewState = useMemo(
     () => readPersistedViewState(storageKey),
     [storageKey]
   );
-  const [activeRange, setActiveRange] = useState(
-    initialViewState.activeRange
+  const [activeRange, setActiveRange] = useState(initialViewState.activeRange);
+  const [rangeOffsets, setRangeOffsets] = useState(
+    initialViewState.rangeOffsets || createDefaultRangeOffsets()
   );
-  const [offset, setOffset] = useState(initialViewState.offset);
   const [flowTab, setFlowTab] = useState(initialViewState.flowTab);
-  const { cashflowExpenses, loading } = useSelector((s) => s.expenses || {});
+  const { cashflowExpenses, cashflowOwnerId, loading } = useSelector(
+    (s) => s.expenses || {}
+  );
   const { settings } = useSelector((s) => s.userSettings || {});
   const maskSensitiveData = settings?.maskSensitiveData;
-  const skipOffsetResetRef = useRef(true);
   const previousStorageKeyRef = useRef(storageKey);
   const hydratedStorageKeyRef = useRef(storageKey);
+
+  const normalizedRangeOffsets = useMemo(() => {
+    if (
+      !rangeOffsets ||
+      typeof rangeOffsets !== "object" ||
+      Array.isArray(rangeOffsets)
+    ) {
+      return createDefaultRangeOffsets();
+    }
+    return {
+      ...createDefaultRangeOffsets(),
+      ...Object.entries(rangeOffsets).reduce((acc, [key, value]) => {
+        acc[key] = Number.isFinite(value) ? value : 0;
+        return acc;
+      }, {}),
+    };
+  }, [rangeOffsets]);
+
+  const offset = normalizedRangeOffsets[activeRange] ?? 0;
+
+  const setOffset = (valueOrUpdater) => {
+    setRangeOffsets((prev = createDefaultRangeOffsets()) => {
+      const current = prev[activeRange] ?? 0;
+      const next =
+        typeof valueOrUpdater === "function"
+          ? valueOrUpdater(current)
+          : valueOrUpdater;
+      if (next === current || !Number.isFinite(next)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [activeRange]: next,
+      };
+    });
+  };
 
   useEffect(() => {
     if (hydratedStorageKeyRef.current !== storageKey) {
       return;
     }
-    persistViewState(storageKey, { activeRange, offset, flowTab });
-  }, [storageKey, activeRange, offset, flowTab]);
+    persistViewState(storageKey, {
+      activeRange,
+      offset,
+      flowTab,
+      rangeOffsets: normalizedRangeOffsets,
+    });
+  }, [storageKey, activeRange, offset, flowTab, normalizedRangeOffsets]);
 
   useEffect(() => {
     if (previousStorageKeyRef.current === storageKey) {
@@ -117,11 +195,10 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     }
     previousStorageKeyRef.current = storageKey;
     const persisted = readPersistedViewState(storageKey);
-    skipOffsetResetRef.current = true;
     setActiveRange((prev) =>
       prev === persisted.activeRange ? prev : persisted.activeRange
     );
-    setOffset((prev) => (prev === persisted.offset ? prev : persisted.offset));
+    setRangeOffsets(persisted.rangeOffsets || createDefaultRangeOffsets());
     setFlowTab((prev) =>
       prev === persisted.flowTab ? prev : persisted.flowTab
     );
@@ -138,6 +215,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
         // category intentionally null for base cashflow screen filtering by text search only
         // type left undefined to fetch both loss & gain unless flowTab narrows via flowType
         targetId: isFriendView ? friendId : undefined,
+        ownerId,
         groupBy: false, // flat list for timeline visualization
       })
     );
@@ -149,21 +227,18 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     friendId,
     isFriendView,
     maskSensitiveData,
+    ownerId,
   ]);
 
-  // reset offset when range changes
-  useEffect(() => {
-    if (skipOffsetResetRef.current) {
-      skipOffsetResetRef.current = false;
-      return;
-    }
-    setOffset(0);
-  }, [activeRange]);
+  const isMismatchedOwner =
+    ownerId && cashflowOwnerId && cashflowOwnerId !== ownerId;
 
-  const expenseList = useMemo(
-    () => (Array.isArray(cashflowExpenses) ? cashflowExpenses : []),
-    [cashflowExpenses]
-  );
+  const expenseList = useMemo(() => {
+    if (isMismatchedOwner) {
+      return [];
+    }
+    return Array.isArray(cashflowExpenses) ? cashflowExpenses : [];
+  }, [cashflowExpenses, isMismatchedOwner]);
 
   const searchIndex = useMemo(
     () => expenseList.map((item) => ({ item, blob: buildSearchBlob(item) })),

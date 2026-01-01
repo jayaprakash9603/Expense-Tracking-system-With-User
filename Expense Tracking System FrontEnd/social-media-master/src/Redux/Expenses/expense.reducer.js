@@ -4,6 +4,10 @@ import {
   CLEAR_ERROR,
   CREATE_EXPENSE_REQUEST,
   CREATE_EXPENSE_SUCCESS,
+  EDIT_EXPENSE_REQUEST,
+  EDIT_EXPENSE_SUCCESS,
+  EDIT_MUTLTIPLE_EXPENSE_REQUEST,
+  EDIT_MUTLTIPLE_EXPENSE_SUCCESS,
   DELETE_EXPENSE_FAILURE,
   DELETE_EXPENSE_REQUEST,
   DELETE_EXPENSE_SUCCESS,
@@ -76,6 +80,9 @@ const initialState = {
   history: [],
   budgetExpenses: [],
   cashflowExpenses: [],
+  cashflowCache: {},
+  cashflowLastFetchedSignature: null,
+  cashflowOwnerId: null,
   particularDateExpenses: [],
   categoryExpenses: {},
   uploadCategoriesLoading: false,
@@ -83,14 +90,23 @@ const initialState = {
   uploadedCategoriesPreview: [],
 };
 
+const clearCashflowCache = (state) => ({
+  ...state,
+  cashflowCache: {},
+  cashflowLastFetchedSignature: null,
+  cashflowOwnerId: null,
+});
+
 export const expenseReducer = (state = initialState, action) => {
   switch (action.type) {
     // Request actions
     case GET_ALL_EXPENSES_REQUEST:
     case CREATE_EXPENSE_REQUEST:
+    case EDIT_EXPENSE_REQUEST:
     case UPDATE_PROFILE_REQUEST:
     case GET_EXPENSE_REQUEST:
     case DELETE_EXPENSE_REQUEST:
+    case EDIT_MUTLTIPLE_EXPENSE_REQUEST:
     case GET_DATE_EXPENSES_REQUEST:
     case GET_EXPENSE_SUMMARY_REQUEST:
     case GET_EXPENSES_SUGGESTIONS_REQUEST:
@@ -125,13 +141,23 @@ export const expenseReducer = (state = initialState, action) => {
         uploadedCategoriesPreview: action.payload,
       };
 
-    case FETCH_CASHFLOW_EXPENSES_SUCCESS:
+    case FETCH_CASHFLOW_EXPENSES_SUCCESS: {
+      const signature = action.meta?.requestSignature ?? null;
+      const payloadOwnerId = action.meta?.requestDescriptor?.ownerId ?? null;
+      const nextCache =
+        signature === null
+          ? state.cashflowCache
+          : { ...state.cashflowCache, [signature]: action.payload };
       return {
         ...state,
         loading: false,
         cashflowExpenses: action.payload,
+        cashflowCache: nextCache,
+        cashflowLastFetchedSignature: signature,
+        cashflowOwnerId: payloadOwnerId,
         error: null,
       };
+    }
     case GET_ALL_EXPENSES_SUCCESS:
     case GET_SELECTED_EXPENSE_BUDGET_SUCCESS:
       return {
@@ -184,14 +210,22 @@ export const expenseReducer = (state = initialState, action) => {
         loading: false,
         error: null,
       };
-    case CREATE_EXPENSE_SUCCESS:
-    case COPY_EXPENSE_SUCCESS:
-      return {
+    case CREATE_EXPENSE_SUCCESS: {
+      const nextState = {
         ...state,
-        expenses: [...state.expenses, action.payload], // Assuming payload contains the new expense
+        expenses: [...state.expenses, action.payload],
         loading: false,
         error: null,
       };
+      return clearCashflowCache(nextState);
+    }
+    case EDIT_EXPENSE_SUCCESS:
+    case EDIT_MUTLTIPLE_EXPENSE_SUCCESS:
+      return clearCashflowCache({
+        ...state,
+        loading: false,
+        error: null,
+      });
     case GET_EXPENSE_SUMMARY_SUCCESS:
       return {
         ...state,
@@ -203,7 +237,7 @@ export const expenseReducer = (state = initialState, action) => {
       return { ...state, error: null };
     case GET_EXPENSE_SUCCESS:
       return { ...state, expense: action.payload, loading: false, error: null };
-    case DELETE_EXPENSE_SUCCESS:
+    case DELETE_EXPENSE_SUCCESS: {
       const updatedExpenses = { ...state.expenses };
 
       // Loop through each date key and filter the deleted expense by id
@@ -212,12 +246,12 @@ export const expenseReducer = (state = initialState, action) => {
           (expense) => expense.id !== action.payload
         );
       });
-
-      return {
+      return clearCashflowCache({
         ...state,
         expenses: updatedExpenses,
         loading: false,
-      };
+      });
+    }
     case GET_PARTICULAR_DATE_EXPENSES_SUCCESS:
       return {
         ...state,
@@ -225,6 +259,9 @@ export const expenseReducer = (state = initialState, action) => {
         error: null,
         particularDateExpenses: action.payload,
       };
+    case UPLOAD_FILE_SUCCESS:
+    case SAVE_EXPENSES_SUCCESS:
+      return clearCashflowCache(state);
 
     // Failure actions
     case GET_ALL_EXPENSES_FAILURE:
