@@ -547,8 +547,11 @@ export const fetchCashflowExpenses =
     groupBy = false,
     targetId,
     ownerId,
+    search,
   }) =>
   async (dispatch, getState) => {
+    const sanitizedSearch =
+      typeof search === "string" && search.trim().length ? search.trim() : null;
     const normalizedParams = getCashflowCacheDescriptor({
       range,
       offset,
@@ -560,6 +563,7 @@ export const fetchCashflowExpenses =
       groupBy,
       targetId,
       ownerId,
+      search: sanitizedSearch,
     });
     const requestSignature =
       getCashflowCacheKeyFromDescriptor(normalizedParams);
@@ -605,6 +609,9 @@ export const fetchCashflowExpenses =
       }
       if (normalizedParams.targetId) {
         params.append("targetId", normalizedParams.targetId);
+      }
+      if (normalizedParams.search) {
+        params.append("search", normalizedParams.search);
       }
 
       const { data } = await api.get(

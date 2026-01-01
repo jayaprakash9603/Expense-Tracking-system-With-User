@@ -17,6 +17,14 @@ const normalizeOffset = (value) => {
   return Number.isFinite(numeric) ? numeric : 0;
 };
 
+const normalizeSearchTerm = (value) => {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  const trimmed = String(value).trim();
+  return trimmed.length ? trimmed : null;
+};
+
 export const getCashflowCacheDescriptor = (params = {}) => ({
   range: params.range || null,
   offset: normalizeOffset(params.offset),
@@ -28,6 +36,7 @@ export const getCashflowCacheDescriptor = (params = {}) => ({
   groupBy: Boolean(params.groupBy),
   targetId: normalizeTargetId(params.targetId),
   ownerId: normalizeTargetId(params.ownerId),
+  search: normalizeSearchTerm(params.search),
 });
 
 export const getCashflowCacheKeyFromDescriptor = (descriptor = {}) =>

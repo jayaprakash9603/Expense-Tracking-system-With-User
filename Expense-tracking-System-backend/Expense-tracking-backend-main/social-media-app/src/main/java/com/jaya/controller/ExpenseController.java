@@ -28,6 +28,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.mapper.ExpenseMapper;
+import com.jaya.dto.cashflow.CashflowDashboardResponse;
+import com.jaya.service.cashflow.CashflowAggregationService;
 
 import jakarta.mail.MessagingException;
 
@@ -62,6 +64,7 @@ public class ExpenseController extends BaseExpenseController {
     private final ExpenseNotificationService expenseNotificationService;
     private final ReportHistoryService reportHistoryService;
     private final com.jaya.service.BillExportClient billExportClient;
+    private final CashflowAggregationService cashflowAggregationService;
 
     @Autowired
     public ExpenseController(ExpenseService expenseService,
@@ -77,7 +80,8 @@ public class ExpenseController extends BaseExpenseController {
             TaskExecutor taskExecutor,
             ExpenseNotificationService expenseNotificationService,
             ReportHistoryService reportHistoryService,
-            com.jaya.service.BillExportClient billExportClient) {
+            com.jaya.service.BillExportClient billExportClient,
+            CashflowAggregationService cashflowAggregationService) {
         this.helper = helper;
         this.userService = userService;
         this.excelService = excelService;
@@ -87,7 +91,8 @@ public class ExpenseController extends BaseExpenseController {
         this.taskExecutor = taskExecutor;
         this.expenseNotificationService = expenseNotificationService;
         this.reportHistoryService = reportHistoryService;
-    this.billExportClient = billExportClient;
+        this.billExportClient = billExportClient;
+        this.cashflowAggregationService = cashflowAggregationService;
     }
 
     @PostMapping("/add-expense")
@@ -1043,11 +1048,11 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-    User targetUser = getTargetUserWithPermission(jwt, targetId, false);
-    String reportName = "All Expenses Report";
-    String reportType = "All Expenses";
-    String expensesFileName = "all_expenses.xlsx";
-    String billsFileName = "all_bills.xlsx";
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+        String reportName = "All Expenses Report";
+        String reportType = "All Expenses";
+        String expensesFileName = "all_expenses.xlsx";
+        String billsFileName = "all_bills.xlsx";
 
         try {
             // 1) Generate expenses Excel file on disk via existing report service
@@ -1055,28 +1060,28 @@ public class ExpenseController extends BaseExpenseController {
             if (expenseReportPath == null || expenseReportPath.isBlank()) {
                 throw new RuntimeException("Expense report service returned empty path for Excel export");
             }
-        byte[] expenseBytes = Files.readAllBytes(Path.of(expenseReportPath.trim()));
+            byte[] expenseBytes = Files.readAllBytes(Path.of(expenseReportPath.trim()));
 
-        // Fetch expenses list for logging & stats
-        List<Expense> expenses = expenseService.getAllExpenses(targetUser.getId());
+            // Fetch expenses list for logging & stats
+            List<Expense> expenses = expenseService.getAllExpenses(targetUser.getId());
 
-        // Compute expense stats based on linked ExpenseDetails
-        double totalExpenseAmount = expenses.stream()
-            .map(Expense::getExpense)
-            .filter(Objects::nonNull)
-            .mapToDouble(ExpenseDetails::getAmount)
-            .sum();
+            // Compute expense stats based on linked ExpenseDetails
+            double totalExpenseAmount = expenses.stream()
+                    .map(Expense::getExpense)
+                    .filter(Objects::nonNull)
+                    .mapToDouble(ExpenseDetails::getAmount)
+                    .sum();
 
-        Optional<ExpenseDetails> maxExpenseDetailsOpt = expenses.stream()
-            .map(Expense::getExpense)
-            .filter(Objects::nonNull)
-            .max(Comparator.comparingDouble(ExpenseDetails::getAmount));
+            Optional<ExpenseDetails> maxExpenseDetailsOpt = expenses.stream()
+                    .map(Expense::getExpense)
+                    .filter(Objects::nonNull)
+                    .max(Comparator.comparingDouble(ExpenseDetails::getAmount));
 
-    double avgExpenseAmount = expenses.isEmpty() ? 0.0 : totalExpenseAmount / expenses.size();
+            double avgExpenseAmount = expenses.isEmpty() ? 0.0 : totalExpenseAmount / expenses.size();
 
-    // Round all numeric stats to whole numbers for email display
-    long totalExpenseAmountRounded = Math.round(totalExpenseAmount);
-    long avgExpenseAmountRounded = Math.round(avgExpenseAmount);
+            // Round all numeric stats to whole numbers for email display
+            long totalExpenseAmountRounded = Math.round(totalExpenseAmount);
+            long avgExpenseAmountRounded = Math.round(avgExpenseAmount);
 
             // Defaults for the case when there are no bills or Bill-Service errors
             byte[] billsBytes = null;
@@ -1084,8 +1089,8 @@ public class ExpenseController extends BaseExpenseController {
 
             try {
                 // 2) Call Bill-Service export endpoint via Feign to generate bills Excel
-                //    The Bill service returns a message like
-                //    "Excel file generated successfully at: C:\\path\\file.xlsx"
+                // The Bill service returns a message like
+                // "Excel file generated successfully at: C:\\path\\file.xlsx"
                 String billsResponse = billExportClient.exportUserBillsToExcel(jwt, null);
                 if (billsResponse != null && !billsResponse.isBlank()) {
 
@@ -1141,10 +1146,10 @@ public class ExpenseController extends BaseExpenseController {
                 }
             }
 
-        long totalBillsCount = bills.size();
-        double totalBillAmount = bills.stream()
-            .mapToDouble(b -> b.amount)
-            .sum();
+            long totalBillsCount = bills.size();
+            double totalBillAmount = bills.stream()
+                    .mapToDouble(b -> b.amount)
+                    .sum();
 
             Optional<BillView> maxBillOpt = bills.isEmpty() ? Optional.empty()
                     : bills.stream().max(Comparator.comparingDouble(b -> b.amount));
@@ -1155,83 +1160,83 @@ public class ExpenseController extends BaseExpenseController {
             long avgBillAmountRounded = Math.round(avgBillAmount);
 
             // Combine payment methods from expenses and bills for a unified "top" method
-        Map<String, Long> paymentMethodFrequency = new HashMap<>();
+            Map<String, Long> paymentMethodFrequency = new HashMap<>();
 
-        expenses.stream()
-            .map(Expense::getExpense)
-            .filter(Objects::nonNull)
-            .map(ExpenseDetails::getPaymentMethod)
-            .filter(Objects::nonNull)
-            .forEach(pm -> paymentMethodFrequency.merge(pm, 1L, Long::sum));
+            expenses.stream()
+                    .map(Expense::getExpense)
+                    .filter(Objects::nonNull)
+                    .map(ExpenseDetails::getPaymentMethod)
+                    .filter(Objects::nonNull)
+                    .forEach(pm -> paymentMethodFrequency.merge(pm, 1L, Long::sum));
 
-        bills.stream()
-            .map(b -> b.paymentMethod)
-            .filter(Objects::nonNull)
-            .forEach(pm -> paymentMethodFrequency.merge(pm, 1L, Long::sum));
+            bills.stream()
+                    .map(b -> b.paymentMethod)
+                    .filter(Objects::nonNull)
+                    .forEach(pm -> paymentMethodFrequency.merge(pm, 1L, Long::sum));
 
-        String topPaymentMethodCombined = paymentMethodFrequency.entrySet().stream()
-            .max(Map.Entry.comparingByValue())
-            .map(Map.Entry::getKey)
-            .orElse("—");
+            String topPaymentMethodCombined = paymentMethodFrequency.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse("—");
 
-        // 3) Build attachments map and send single email containing both files
-        Map<String, org.springframework.core.io.ByteArrayResource> attachments = new HashMap<>();
-        attachments.put(expensesFileName, new ByteArrayResource(expenseBytes));
-        if (billsBytes != null) {
-            attachments.put(billsFileName, new ByteArrayResource(billsBytes));
-        }
+            // 3) Build attachments map and send single email containing both files
+            Map<String, org.springframework.core.io.ByteArrayResource> attachments = new HashMap<>();
+            attachments.put(expensesFileName, new ByteArrayResource(expenseBytes));
+            if (billsBytes != null) {
+                attachments.put(billsFileName, new ByteArrayResource(billsBytes));
+            }
 
-        // Build subject with generated time (12-hour format hh:mm:ss a)
-        LocalDateTime generatedAt = LocalDateTime.now();
-        java.time.format.DateTimeFormatter timeFormatter = java.time.format.DateTimeFormatter
-            .ofPattern("hh:mm:ss a");
-        String timeLabel = generatedAt.format(timeFormatter);
-        String subject = reportName + " - Generated at " + timeLabel;
+            // Build subject with generated time (12-hour format hh:mm:ss a)
+            LocalDateTime generatedAt = LocalDateTime.now();
+            java.time.format.DateTimeFormatter timeFormatter = java.time.format.DateTimeFormatter
+                    .ofPattern("hh:mm:ss a");
+            String timeLabel = generatedAt.format(timeFormatter);
+            String subject = reportName + " - Generated at " + timeLabel;
 
-        // Build rich HTML body using the shared template
-        Map<String, String> templateVars = new HashMap<>();
-        templateVars.put("subject", subject);
-        templateVars.put("tagline", "All expenses & bills");
-        templateVars.put("headline", "Your consolidated");
-        templateVars.put("headlineAccent", "money overview");
-        templateVars.put("subHeadline", "A complete Excel snapshot of your expenses and bill payments.");
-        templateVars.put("reportRange", "All expenses");
-        templateVars.put("totalExpenses", String.valueOf(expenses.size()));
-        templateVars.put("totalBills", String.valueOf(totalBillsCount));
-        templateVars.put("generatedOn", timeLabel);
-        templateVars.put("totalExpenseAmount", Long.toString(totalExpenseAmountRounded));
-        templateVars.put("totalBillAmount", Long.toString(totalBillAmountRounded));
-        templateVars.put("maxExpenseAmount", maxExpenseDetailsOpt
-            .map(d -> Long.toString(Math.round(d.getAmount()))).orElse("—"));
-        templateVars.put("maxExpenseCategory", maxExpenseDetailsOpt.map(ExpenseDetails::getExpenseName)
-            .orElse("—"));
-        templateVars.put("avgExpenseAmount", Long.toString(avgExpenseAmountRounded));
-        templateVars.put("maxBillAmount", maxBillOpt
-            .map(b -> Long.toString(Math.round(b.amount)))
-            .orElse("—"));
-        templateVars.put("maxBillType",
-            maxBillOpt.map(b -> b.name).orElse("—"));
-        templateVars.put("avgBillAmount", Long.toString(avgBillAmountRounded));
-        templateVars.put("topPaymentMethod", topPaymentMethodCombined);
-        templateVars.put("ctaUrl", "https://localhost:3000");
-        String htmlBody = emailService.buildBaseTemplateBody(templateVars);
+            // Build rich HTML body using the shared template
+            Map<String, String> templateVars = new HashMap<>();
+            templateVars.put("subject", subject);
+            templateVars.put("tagline", "All expenses & bills");
+            templateVars.put("headline", "Your consolidated");
+            templateVars.put("headlineAccent", "money overview");
+            templateVars.put("subHeadline", "A complete Excel snapshot of your expenses and bill payments.");
+            templateVars.put("reportRange", "All expenses");
+            templateVars.put("totalExpenses", String.valueOf(expenses.size()));
+            templateVars.put("totalBills", String.valueOf(totalBillsCount));
+            templateVars.put("generatedOn", timeLabel);
+            templateVars.put("totalExpenseAmount", Long.toString(totalExpenseAmountRounded));
+            templateVars.put("totalBillAmount", Long.toString(totalBillAmountRounded));
+            templateVars.put("maxExpenseAmount", maxExpenseDetailsOpt
+                    .map(d -> Long.toString(Math.round(d.getAmount()))).orElse("—"));
+            templateVars.put("maxExpenseCategory", maxExpenseDetailsOpt.map(ExpenseDetails::getExpenseName)
+                    .orElse("—"));
+            templateVars.put("avgExpenseAmount", Long.toString(avgExpenseAmountRounded));
+            templateVars.put("maxBillAmount", maxBillOpt
+                    .map(b -> Long.toString(Math.round(b.amount)))
+                    .orElse("—"));
+            templateVars.put("maxBillType",
+                    maxBillOpt.map(b -> b.name).orElse("—"));
+            templateVars.put("avgBillAmount", Long.toString(avgBillAmountRounded));
+            templateVars.put("topPaymentMethod", topPaymentMethodCombined);
+            templateVars.put("ctaUrl", "https://localhost:3000");
+            String htmlBody = emailService.buildBaseTemplateBody(templateVars);
 
-        emailService.sendEmailWithAttachments(
-            email,
-            subject,
-            htmlBody,
-            attachments);
+            emailService.sendEmailWithAttachments(
+                    email,
+                    subject,
+                    htmlBody,
+                    attachments);
 
-        // Log successful report generation (store primary attachment name + count)
-        reportHistoryService.logReportSuccess(
-            targetUser,
-            reportName,
-            reportType,
-            "Complete list of all expenses and bills",
-            email,
-            expenses.size(),
-            expensesFileName + "," + billsFileName,
-            null);
+            // Log successful report generation (store primary attachment name + count)
+            reportHistoryService.logReportSuccess(
+                    targetUser,
+                    reportName,
+                    reportType,
+                    "Complete list of all expenses and bills",
+                    email,
+                    expenses.size(),
+                    expensesFileName + "," + billsFileName,
+                    null);
 
             return ResponseEntity.ok("Email sent successfully");
 
@@ -2629,6 +2634,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false, defaultValue = "false") Boolean groupBy,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) Integer targetId,
             @RequestHeader("Authorization") String jwt) throws Exception {
 
@@ -2722,99 +2728,101 @@ public class ExpenseController extends BaseExpenseController {
                 .map(expense -> expenseMapper.toDTO(expense, maskSensitiveData))
                 .collect(Collectors.toList());
 
-        // If groupBy flag not set or false, return the flat list (existing behavior)
-        if (groupBy == null || !groupBy) {
-            return ResponseEntity.ok(expenseDTOs);
+        List<ExpenseDTO> filteredExpenseDTOs = cashflowAggregationService.filterExpensesBySearchTerm(expenseDTOs,
+                search);
+
+        if (Boolean.TRUE.equals(groupBy)) {
+            // Group by EXPENSE NAME (fallback to "unknown") instead of payment method
+            Map<String, List<ExpenseDTO>> grouped = filteredExpenseDTOs.stream()
+                    .collect(Collectors.groupingBy(e -> {
+                        if (e.getExpense() == null || e.getExpense().getExpenseName() == null
+                                || e.getExpense().getExpenseName().isBlank()) {
+                            return "unknown";
+                        }
+                        return e.getExpense().getExpenseName();
+                    }));
+
+            // Calculate totals per expense name and overall stats
+            Map<String, Double> expenseNameTotals = new LinkedHashMap<>();
+            grouped.forEach((expenseName, list) -> {
+                double total = list.stream()
+                        .filter(exp -> exp.getExpense() != null)
+                        .mapToDouble(exp -> exp.getExpense().getAmountAsDouble())
+                        .sum();
+                expenseNameTotals.put(expenseName, total);
+            });
+            double grandTotal = expenseNameTotals.values().stream().mapToDouble(Double::doubleValue).sum();
+
+            Map<String, Object> summary = new LinkedHashMap<>();
+            summary.put("totalAmount", grandTotal);
+            Map<String, Object> dateRange = new LinkedHashMap<>();
+            dateRange.put("fromDate", effectiveStart.toString());
+            dateRange.put("toDate", effectiveEnd.toString());
+            dateRange.put("flowType", flowType);
+            summary.put("dateRange", dateRange);
+            summary.put("totalExpenseNames", expenseNameTotals.size());
+            summary.put("totalExpenses", filteredExpenseDTOs.size());
+            summary.put("expenseNameTotals", expenseNameTotals);
+            summary.put("totalPaymentMethods", expenseNameTotals.size());
+            summary.put("paymentMethodTotals", expenseNameTotals);
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("summary", summary);
+
+            grouped.forEach((expenseName, list) -> {
+                Map<String, Object> groupBlock = new LinkedHashMap<>();
+                groupBlock.put("expenseCount", list.size());
+                groupBlock.put("totalAmount", expenseNameTotals.getOrDefault(expenseName, 0.0));
+                groupBlock.put("expenseName", expenseName);
+                groupBlock.put("paymentMethod", expenseName);
+
+                Set<String> paymentMethods = list.stream()
+                        .map(e -> e.getExpense() != null ? e.getExpense().getPaymentMethod() : null)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
+                groupBlock.put("paymentMethods", paymentMethods);
+
+                List<Map<String, Object>> expenseEntries = list.stream().map(expDTO -> {
+                    Map<String, Object> entry = new LinkedHashMap<>();
+                    if (expDTO.getDate() != null) {
+                        entry.put("date", expDTO.getDate());
+                    }
+                    entry.put("id", expDTO.getId());
+
+                    Map<String, Object> details = new LinkedHashMap<>();
+                    ExpenseDetailsDTO d = expDTO.getExpense();
+                    if (d != null) {
+                        details.put("amount", d.getAmount());
+                        details.put("comments", d.getComments());
+                        details.put("netAmount", d.getNetAmount());
+                        details.put("paymentMethod", d.getPaymentMethod());
+                        details.put("id", d.getId());
+                        details.put("type", d.getType());
+                        details.put("expenseName", d.getExpenseName());
+                        details.put("creditDue", d.getCreditDue());
+                        details.put("masked", d.isMasked());
+                    }
+                    entry.put("details", details);
+                    return entry;
+                }).collect(Collectors.toList());
+
+                groupBlock.put("expenses", expenseEntries);
+                response.put(expenseName, groupBlock);
+            });
+
+            return ResponseEntity.ok(response);
         }
 
-        // Group by EXPENSE NAME (fallback to "unknown") instead of payment method
-        Map<String, List<ExpenseDTO>> grouped = expenseDTOs.stream()
-                .collect(Collectors.groupingBy(e -> {
-                    if (e.getExpense() == null || e.getExpense().getExpenseName() == null
-                            || e.getExpense().getExpenseName().isBlank()) {
-                        return "unknown";
-                    }
-                    return e.getExpense().getExpenseName();
-                }));
+        CashflowDashboardResponse dashboardResponse = cashflowAggregationService.buildDashboardResponse(
+                filteredExpenseDTOs,
+                range,
+                offset,
+                effectiveStart,
+                effectiveEnd,
+                flowType,
+                search);
 
-        // Calculate totals per expense name and overall stats
-        Map<String, Double> expenseNameTotals = new LinkedHashMap<>();
-        grouped.forEach((expenseName, list) -> {
-            double total = list.stream()
-                    .filter(exp -> exp.getExpense() != null)
-                    .mapToDouble(exp -> exp.getExpense().getAmountAsDouble())
-                    .sum();
-            expenseNameTotals.put(expenseName, total);
-        });
-        double grandTotal = expenseNameTotals.values().stream().mapToDouble(Double::doubleValue).sum();
-
-        // Prepare summary section (renamed keys but keep old ones for backward
-        // compatibility where sensible)
-        Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("totalAmount", grandTotal);
-        Map<String, Object> dateRange = new LinkedHashMap<>();
-        dateRange.put("fromDate", effectiveStart.toString());
-        dateRange.put("toDate", effectiveEnd.toString());
-        dateRange.put("flowType", flowType);
-        summary.put("dateRange", dateRange);
-        summary.put("totalExpenseNames", expenseNameTotals.size());
-        summary.put("totalExpenses", expenseDTOs.size());
-        summary.put("expenseNameTotals", expenseNameTotals);
-        // Backward compatible aliases (if frontend still expecting these temporarily)
-        summary.put("totalPaymentMethods", expenseNameTotals.size());
-        summary.put("paymentMethodTotals", expenseNameTotals);
-
-        // Assemble final response with summary first, then each expense name section
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("summary", summary);
-
-        grouped.forEach((expenseName, list) -> {
-            Map<String, Object> groupBlock = new LinkedHashMap<>();
-            groupBlock.put("expenseCount", list.size());
-            groupBlock.put("totalAmount", expenseNameTotals.getOrDefault(expenseName, 0.0));
-            groupBlock.put("expenseName", expenseName); // primary grouping key
-            groupBlock.put("paymentMethod", expenseName); // backward compat alias for frontend expecting this key
-
-            // Gather set of distinct payment methods in this expense name group (optional
-            // insight)
-            Set<String> paymentMethods = list.stream()
-                    .map(e -> e.getExpense() != null ? e.getExpense().getPaymentMethod() : null)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-            groupBlock.put("paymentMethods", paymentMethods);
-
-            // Transform each expense DTO into a simplified structure
-            List<Map<String, Object>> expenseEntries = list.stream().map(expDTO -> {
-                Map<String, Object> entry = new LinkedHashMap<>();
-                if (expDTO.getDate() != null) {
-                    entry.put("date", expDTO.getDate());
-                }
-                entry.put("id", expDTO.getId());
-
-                Map<String, Object> details = new LinkedHashMap<>();
-                ExpenseDetailsDTO d = expDTO.getExpense();
-                if (d != null) {
-                    details.put("amount", d.getAmount()); // Can be Double or String ("*****")
-                    details.put("comments", d.getComments());
-                    details.put("netAmount", d.getNetAmount()); // Can be Double or String ("*****")
-                    details.put("paymentMethod", d.getPaymentMethod());
-                    details.put("id", d.getId());
-                    details.put("type", d.getType());
-                    details.put("expenseName", d.getExpenseName());
-                    details.put("creditDue", d.getCreditDue()); // Can be Double or String ("*****")
-                    details.put("masked", d.isMasked()); // Masking flag
-                }
-                entry.put("details", details);
-                return entry;
-            }).collect(Collectors.toList());
-
-            groupBlock.put("expenses", expenseEntries);
-            // Backward compatible key (if frontend used paymentMethod previously as map
-            // key)
-            response.put(expenseName, groupBlock);
-        });
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(dashboardResponse);
     }
 
     @GetMapping("/range/offset")

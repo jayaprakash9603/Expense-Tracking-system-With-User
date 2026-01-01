@@ -80,6 +80,7 @@ const initialState = {
   history: [],
   budgetExpenses: [],
   cashflowExpenses: [],
+  cashflowDashboard: null,
   cashflowCache: {},
   cashflowLastFetchedSignature: null,
   cashflowOwnerId: null,
@@ -98,6 +99,7 @@ const clearExpenseFlowCaches = (state) => ({
   cashflowCache: {},
   cashflowLastFetchedSignature: null,
   cashflowOwnerId: null,
+  cashflowDashboard: null,
   categoryFlowCache: {},
   categoryFlowLastFetchedSignature: null,
   categoryFlowOwnerId: null,
@@ -160,14 +162,35 @@ export const expenseReducer = (state = initialState, action) => {
     case FETCH_CASHFLOW_EXPENSES_SUCCESS: {
       const signature = action.meta?.requestSignature ?? null;
       const payloadOwnerId = action.meta?.requestDescriptor?.ownerId ?? null;
+      const payload = action.payload;
+      const isDashboardPayload =
+        payload &&
+        !Array.isArray(payload) &&
+        (Array.isArray(payload?.rawExpenses) ||
+          Array.isArray(payload?.chartData) ||
+          Array.isArray(payload?.cardData) ||
+          payload?.rangeContext);
+      let normalizedRawExpenses;
+      if (Array.isArray(payload)) {
+        normalizedRawExpenses = payload;
+      } else if (Array.isArray(payload?.rawExpenses)) {
+        normalizedRawExpenses = payload.rawExpenses;
+      } else if (Array.isArray(payload?.expenses)) {
+        normalizedRawExpenses = payload.expenses;
+      } else {
+        normalizedRawExpenses = state.cashflowExpenses;
+      }
       const nextCache =
         signature === null
           ? state.cashflowCache
-          : { ...state.cashflowCache, [signature]: action.payload };
+          : { ...state.cashflowCache, [signature]: payload };
       return {
         ...state,
         loading: false,
-        cashflowExpenses: action.payload,
+        cashflowExpenses: normalizedRawExpenses,
+        cashflowDashboard: isDashboardPayload
+          ? payload
+          : state.cashflowDashboard,
         cashflowCache: nextCache,
         cashflowLastFetchedSignature: signature,
         cashflowOwnerId: payloadOwnerId,

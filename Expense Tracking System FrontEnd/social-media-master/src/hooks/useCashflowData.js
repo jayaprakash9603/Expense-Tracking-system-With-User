@@ -133,11 +133,17 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     initialViewState.rangeOffsets || createDefaultRangeOffsets()
   );
   const [flowTab, setFlowTab] = useState(initialViewState.flowTab);
-  const { cashflowExpenses, cashflowOwnerId, loading } = useSelector(
-    (s) => s.expenses || {}
-  );
+  const { cashflowExpenses, cashflowDashboard, cashflowOwnerId, loading } =
+    useSelector((s) => s.expenses || {});
   const { settings } = useSelector((s) => s.userSettings || {});
   const maskSensitiveData = settings?.maskSensitiveData;
+  const trimmedSearch = useMemo(() => (search || "").trim(), [search]);
+  const deferredSearch = useDeferredValue(trimmedSearch);
+  const normalizedSearch = useMemo(
+    () => deferredSearch.toLowerCase(),
+    [deferredSearch]
+  );
+  const searchQuery = deferredSearch.length ? deferredSearch : null;
   const previousStorageKeyRef = useRef(storageKey);
   const hydratedStorageKeyRef = useRef(storageKey);
 
@@ -217,6 +223,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
         targetId: isFriendView ? friendId : undefined,
         ownerId,
         groupBy: false, // flat list for timeline visualization
+        search: searchQuery,
       })
     );
   }, [
@@ -228,6 +235,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     isFriendView,
     maskSensitiveData,
     ownerId,
+    searchQuery,
   ]);
 
   const isMismatchedOwner =
@@ -240,31 +248,63 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     return Array.isArray(cashflowExpenses) ? cashflowExpenses : [];
   }, [cashflowExpenses, isMismatchedOwner]);
 
-  const searchIndex = useMemo(
-    () => expenseList.map((item) => ({ item, blob: buildSearchBlob(item) })),
-    [expenseList]
-  );
+  const dashboardPayload = useMemo(() => {
+    if (isMismatchedOwner) {
+      return null;
+    }
+    if (!cashflowDashboard || typeof cashflowDashboard !== "object") {
+      return null;
+    }
+    return cashflowDashboard;
+  }, [cashflowDashboard, isMismatchedOwner]);
 
-  const normalizedSearch = useMemo(
-    () => (search || "").trim().toLowerCase(),
-    [search]
-  );
-  const deferredSearch = useDeferredValue(normalizedSearch);
+  const shouldUseClientAggregation = !dashboardPayload;
+
+  const searchIndex = useMemo(() => {
+    if (!shouldUseClientAggregation) {
+      return [];
+    }
+    return expenseList.map((item) => ({ item, blob: buildSearchBlob(item) }));
+  }, [expenseList, shouldUseClientAggregation]);
 
   const filteredExpensesForView = useMemo(() => {
-    if (!deferredSearch) return expenseList;
+    if (!shouldUseClientAggregation) {
+      return expenseList;
+    }
+    if (!normalizedSearch) return expenseList;
     return searchIndex
-      .filter(({ blob }) => blob.includes(deferredSearch))
+      .filter(({ blob }) => blob.includes(normalizedSearch))
       .map(({ item }) => item);
-  }, [expenseList, searchIndex, deferredSearch]);
+  }, [expenseList, normalizedSearch, searchIndex, shouldUseClientAggregation]);
 
-  const { chartData, cardData } = useMemo(() => {
+  const fallbackAggregation = useMemo(() => {
+    if (!shouldUseClientAggregation) {
+      return null;
+    }
     if (
       !Array.isArray(filteredExpensesForView) ||
       filteredExpensesForView.length === 0
     ) {
-      return { chartData: [], cardData: [] };
+      return {
+        chartData: [],
+        cardData: [],
+        totals: { inflow: 0, outflow: 0, total: 0 },
+        xKey: activeRange === "year" ? "month" : "day",
+      };
     }
+
+    const buildCardsFromExpenses = (expenses, transform) =>
+      expenses.map((item) => ({
+        ...item,
+        name: item.expense?.expenseName || "",
+        amount: item.expense?.amount || 0,
+        comments: item.expense?.comments || "",
+        ...transform(item),
+      }));
+
+    let chartData = [];
+    let cardData = [];
+
     if (activeRange === "week") {
       const weekMap = {};
       weekDays.forEach(
@@ -273,28 +313,19 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
       filteredExpensesForView.forEach((item) => {
         const date = item.date || item.expense?.date;
         const dayIdx = dayjs(date).day();
-        const weekDay = weekDays[(dayIdx + 6) % 7]; // shift to start Monday
+        const weekDay = weekDays[(dayIdx + 6) % 7];
         weekMap[weekDay].amount += item.expense?.amount || 0;
         weekMap[weekDay].expenses.push(item);
       });
-      return {
-        chartData: weekDays.map((d) => ({
-          day: d,
-          amount: weekMap[d].amount,
-          expenses: weekMap[d].expenses,
-        })),
-        cardData: weekDays.flatMap((d) =>
-          weekMap[d].expenses.map((item) => ({
-            ...item,
-            day: d,
-            name: item.expense?.expenseName || "",
-            amount: item.expense?.amount || 0,
-            comments: item.expense?.comments || "",
-          }))
-        ),
-      };
-    }
-    if (activeRange === "month") {
+      chartData = weekDays.map((d) => ({
+        day: d,
+        amount: weekMap[d].amount,
+        expenses: weekMap[d].expenses,
+      }));
+      cardData = weekDays.flatMap((d) =>
+        buildCardsFromExpenses(weekMap[d].expenses, () => ({ day: d }))
+      );
+    } else if (activeRange === "month") {
       const targetMonth = dayjs().startOf("month").add(offset, "month");
       const daysInMonth = targetMonth.daysInMonth();
       const monthMap = {};
@@ -312,24 +343,17 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
           }
         }
       });
-      return {
-        chartData: Array.from({ length: daysInMonth }, (_, i) => ({
+      chartData = Array.from({ length: daysInMonth }, (_, i) => ({
+        day: (i + 1).toString(),
+        amount: monthMap[i + 1].amount,
+        expenses: monthMap[i + 1].expenses,
+      }));
+      cardData = Array.from({ length: daysInMonth }, (_, i) =>
+        buildCardsFromExpenses(monthMap[i + 1].expenses, () => ({
           day: (i + 1).toString(),
-          amount: monthMap[i + 1].amount,
-          expenses: monthMap[i + 1].expenses,
-        })),
-        cardData: Array.from({ length: daysInMonth }, (_, i) =>
-          monthMap[i + 1].expenses.map((item) => ({
-            ...item,
-            day: (i + 1).toString(),
-            name: item.expense?.expenseName || "",
-            amount: item.expense?.amount || 0,
-            comments: item.expense?.comments || "",
-          }))
-        ).flat(),
-      };
-    }
-    if (activeRange === "year") {
+        }))
+      ).flat();
+    } else if (activeRange === "year") {
       const targetYear = dayjs().add(offset, "year").year();
       const yearMap = {};
       yearMonths.forEach(
@@ -344,42 +368,69 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
           yearMap[monthIdx].expenses.push(item);
         }
       });
-      return {
-        chartData: yearMonths.map((m, idx) => ({
-          month: m,
-          amount: yearMap[idx].amount,
-          expenses: yearMap[idx].expenses,
-        })),
-        cardData: yearMonths.flatMap((m, idx) =>
-          yearMap[idx].expenses.map((item) => ({
-            ...item,
-            month: m,
-            name: item.expense?.expenseName || "",
-            amount: item.expense?.amount || 0,
-            comments: item.expense?.comments || "",
-          }))
-        ),
-      };
+      chartData = yearMonths.map((m, idx) => ({
+        month: m,
+        amount: yearMap[idx].amount,
+        expenses: yearMap[idx].expenses,
+      }));
+      cardData = yearMonths.flatMap((m, idx) =>
+        buildCardsFromExpenses(yearMap[idx].expenses, () => ({ month: m }))
+      );
+    } else {
+      chartData = [];
+      cardData = buildCardsFromExpenses(filteredExpensesForView, () => ({}));
     }
-    return { chartData: [], cardData: [] };
-  }, [filteredExpensesForView, activeRange, offset]);
 
-  const xKey =
-    activeRange === "week" ? "day" : activeRange === "month" ? "day" : "month";
-
-  const totals = useMemo(() => {
-    let inflow = 0,
-      outflow = 0;
+    let inflow = 0;
+    let outflow = 0;
     filteredExpensesForView.forEach((item) => {
       const amount = item.expense?.amount || item.amount || 0;
       const type = (item.type || item.expense?.type || "outflow").toLowerCase();
       if (type === "inflow" || type === "gain") inflow += amount;
       else outflow += amount;
     });
-    return { inflow, outflow, total: inflow + outflow };
-  }, [filteredExpensesForView]);
 
-  const rangeLabel = getRangeLabel(activeRange, offset, "cashflow");
+    return {
+      chartData,
+      cardData,
+      totals: { inflow, outflow, total: inflow + outflow },
+      xKey: activeRange === "year" ? "month" : "day",
+    };
+  }, [
+    shouldUseClientAggregation,
+    filteredExpensesForView,
+    activeRange,
+    offset,
+  ]);
+
+  const resolvedChartData =
+    dashboardPayload?.chartData ?? fallbackAggregation?.chartData ?? [];
+  const resolvedCardData =
+    dashboardPayload?.cardData ?? fallbackAggregation?.cardData ?? [];
+  const resolvedTotals = dashboardPayload?.totals ??
+    fallbackAggregation?.totals ?? {
+      inflow: 0,
+      outflow: 0,
+      total: 0,
+    };
+  const xKey =
+    dashboardPayload?.xKey ??
+    fallbackAggregation?.xKey ??
+    (activeRange === "year" ? "month" : "day");
+
+  const normalizedCardData = useMemo(
+    () =>
+      resolvedCardData.map((card, idx) => ({
+        ...card,
+        originalIndex:
+          typeof card?.originalIndex === "number" ? card.originalIndex : idx,
+      })),
+    [resolvedCardData]
+  );
+
+  const rangeLabel =
+    dashboardPayload?.rangeContext?.label ??
+    getRangeLabel(activeRange, offset, "cashflow");
 
   const barChartStyles = {
     barWidth: 20,
@@ -396,11 +447,11 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     setFlowTab,
     cashflowExpenses,
     loading,
-    chartData,
-    cardData,
+    chartData: resolvedChartData,
+    cardData: normalizedCardData,
     xKey,
     barChartStyles,
-    totals,
+    totals: resolvedTotals,
     rangeLabel,
   };
 }
