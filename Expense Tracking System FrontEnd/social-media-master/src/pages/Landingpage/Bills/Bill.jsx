@@ -27,6 +27,7 @@ import EmptyBillState from "./EmptyBillState";
 import Modal from "../../Landingpage/Modal";
 import BillAccordion from "./BillAccordian";
 import useFriendAccess from "../../../hooks/useFriendAccess";
+import BillSkeleton from "./BillSkeleton";
 
 const Bill = () => {
   // Router hooks
@@ -297,7 +298,9 @@ const Bill = () => {
             },
           }}
         >
-          {paginatedData.length > 0 ? (
+          {loading ? (
+            <BillSkeleton count={isSmallScreen ? 3 : 4} />
+          ) : paginatedData.length > 0 ? (
             paginatedData.map((bill) => (
               <BillAccordion
                 key={bill.id}
@@ -322,7 +325,7 @@ const Bill = () => {
           )}
         </Box>
 
-        {totalPages > 1 && (
+        {!loading && totalPages > 1 && (
           <Box sx={{ display: "flex", justifyContent: "center", mb: 0.5 }}>
             <Pagination
               count={totalPages}
@@ -346,12 +349,16 @@ const Bill = () => {
           </Box>
         )}
 
-        {filteredBills.length > 0 && (
-          <BillSummary
-            billStats={billStats}
-            selectedDate={selectedDate}
-            currencySymbol={currencySymbol}
-          />
+        {loading ? (
+          <BillSkeleton variant="summary" />
+        ) : (
+          filteredBills.length > 0 && (
+            <BillSummary
+              billStats={billStats}
+              selectedDate={selectedDate}
+              currencySymbol={currencySymbol}
+            />
+          )
         )}
       </Box>
     </Box>
