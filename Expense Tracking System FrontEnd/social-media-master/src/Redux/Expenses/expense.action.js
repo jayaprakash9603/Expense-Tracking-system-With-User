@@ -428,7 +428,7 @@ export const uploadCategoriesFile = (file, targetId) => async (dispatch) => {
       type: UPLOAD_CATEGORIES_FAILURE,
       payload: error.response?.data?.message || error.message,
     });
-    throw error;
+    return error;
   }
 };
 
@@ -630,11 +630,20 @@ export const fetchCashflowExpenses =
       return data;
     } catch (error) {
       console.log("Error fetching cashflow expenses:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch expenses";
       dispatch({
         type: FETCH_CASHFLOW_EXPENSES_FAILURE,
-        payload: error.response?.data?.message || "Failed to fetch expenses",
+        payload: errorMessage,
+        meta: {
+          requestDescriptor: normalizedParams,
+          requestSignature,
+        },
       });
-      throw error;
+      return { error: errorMessage };
     }
   };
 export const getExpensesByParticularDate =
@@ -712,12 +721,20 @@ export const fetchCategoriesWithExpenses =
 
       return data;
     } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch expenses";
       console.log("Error fetching categories with expenses:", error);
       dispatch({
         type: FETCH_CATEGORIES_WITH_EXPENSES_FAILURE,
-        payload:
-          error.response?.data?.message || "Failed to fetch category expenses",
+        payload: errorMessage,
+        meta: {
+          requestDescriptor: normalizedParams,
+          requestSignature,
+        },
       });
-      throw error;
+      return { error: errorMessage };
     }
   };

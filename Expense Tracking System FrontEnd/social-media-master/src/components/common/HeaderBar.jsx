@@ -13,6 +13,7 @@ import {
 import { updateUserSettings } from "../../Redux/UserSettings/userSettings.action";
 import Modal from "../../pages/Landingpage/Modal";
 import NotificationsPanelRedux from "./NotificationsPanelRedux";
+import SystemErrorIndicator from "./SystemErrorIndicator";
 import { useTranslation } from "../../hooks/useTranslation";
 
 /**
@@ -190,6 +191,8 @@ const HeaderBar = () => {
               </svg>
             )}
           </button>
+
+          <SystemErrorIndicator isDark={isDark} />
 
           {/* Notifications Button */}
           <div className="relative">

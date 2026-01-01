@@ -34,7 +34,7 @@ export const fetchNotifications =
         payload: errorMessage,
       });
 
-      throw error;
+      return error;
     }
   };
 
@@ -64,7 +64,7 @@ export const fetchUnreadNotifications = () => async (dispatch) => {
       payload: errorMessage,
     });
 
-    throw error;
+    return error;
   }
 };
 
@@ -94,7 +94,7 @@ export const fetchUnreadCount = () => async (dispatch) => {
       payload: errorMessage,
     });
 
-    throw error;
+    return error;
   }
 };
 
@@ -129,7 +129,7 @@ export const markNotificationAsRead = (notificationId) => async (dispatch) => {
       payload: errorMessage,
     });
 
-    throw error;
+    return error;
   }
 };
 
@@ -162,7 +162,7 @@ export const markAllNotificationsAsRead = () => async (dispatch) => {
       payload: errorMessage,
     });
 
-    throw error;
+    return error;
   }
 };
 
@@ -197,7 +197,7 @@ export const deleteNotification = (notificationId) => async (dispatch) => {
       payload: errorMessage,
     });
 
-    throw error;
+    return error;
   }
 };
 
@@ -232,7 +232,7 @@ export const deleteAllNotifications = () => async (dispatch) => {
       payload: errorMessage,
     });
 
-    throw error;
+    return error;
   }
 };
 
@@ -262,7 +262,7 @@ export const fetchNotificationPreferences = () => async (dispatch) => {
       payload: errorMessage,
     });
 
-    throw error;
+    return error;
   }
 };
 
@@ -296,7 +296,7 @@ export const updateNotificationPreferences =
         payload: errorMessage,
       });
 
-      throw error;
+      return error;
     }
   };
 
@@ -330,7 +330,7 @@ export const sendTestNotification =
         payload: errorMessage,
       });
 
-      throw error;
+      return error;
     }
   };
 
@@ -412,6 +412,6 @@ export const fetchFilteredNotifications =
         payload: errorMessage,
       });
 
-      throw error;
+      return error;
     }
   };

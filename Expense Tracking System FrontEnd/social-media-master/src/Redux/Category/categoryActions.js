@@ -100,7 +100,7 @@ export const fetchCategoryById =
         type: FETCH_CATEGORY_FAILURE,
         payload: error.response?.data?.message || "Failed to fetch category",
       });
-      throw error;
+      return error;
     }
   };
 
@@ -137,7 +137,7 @@ export const updateCategory =
         type: UPDATE_CATEGORY_FAILURE,
         payload: error.response?.data?.message || "Failed to update category",
       });
-      throw error;
+      return error;
     }
   };
 
@@ -171,7 +171,7 @@ export const fetchCategoryExpenses =
         payload:
           error.response?.data?.message || "Failed to fetch category expenses",
       });
-      throw error;
+      return error;
     }
   };
 

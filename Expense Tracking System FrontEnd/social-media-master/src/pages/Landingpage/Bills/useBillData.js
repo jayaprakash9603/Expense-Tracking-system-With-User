@@ -38,7 +38,7 @@ export const useBillData = (friendId) => {
         return true;
       } catch (error) {
         setError(error.message);
-        throw error;
+        return error;
       } finally {
         setLoading(false);
       }

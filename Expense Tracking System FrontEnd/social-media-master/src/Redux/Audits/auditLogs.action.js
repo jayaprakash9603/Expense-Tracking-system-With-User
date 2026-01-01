@@ -160,6 +160,6 @@ export const sendAuditLogsByEmail = (email, filters) => async (dispatch) => {
       type: SEND_AUDIT_LOGS_EMAIL_FAILURE,
       payload: error.response?.data?.message || error.message,
     });
-    throw error;
+    return error;
   }
 };

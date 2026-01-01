@@ -77,11 +77,20 @@ export const fetchPaymentMethodsWithExpenses =
 
       return data;
     } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch expenses";
       dispatch({
         type: FETCH_PAYMENT_METHODS_WITH_EXPENSES_FAILURE,
-        payload: error.response?.data?.message || error.message,
+        payload: errorMessage,
+        meta: {
+          requestDescriptor: normalizedParams,
+          requestSignature,
+        },
       });
-      throw error;
+      return { error: errorMessage };
     }
   };
 
@@ -105,7 +114,7 @@ export const deletePaymentMethod =
         type: DELETE_PAYMENT_METHOD_FAILURE,
         payload: error.response?.data?.message || error.message,
       });
-      throw error;
+      return error;
     }
   };
 
@@ -131,7 +140,7 @@ export const createPaymentMethod =
         type: CREATE_PAYMENT_METHOD_FAILURE,
         payload: error.response?.data?.message || error.message,
       });
-      throw error;
+      return error;
     }
   };
 
@@ -159,8 +168,8 @@ export const fetchPaymentMethodByTargetId =
         payload: error.response?.data?.message || error.message,
       });
 
-      // Re-throw the error so it can be caught in the component
-      throw error;
+      // Re-return the error so it can be caught in the component
+      return error;
     }
   };
 
@@ -186,7 +195,7 @@ export const updatePaymentMethod =
         type: UPDATE_PAYMENT_METHOD_FAILURE,
         payload: error.response?.data?.message || error.message,
       });
-      throw error;
+      return error;
     }
   };
 
@@ -213,7 +222,7 @@ export const fetchAllPaymentMethods = (targetId) => async (dispatch) => {
       payload: error.response?.data?.message || error.message,
     });
 
-    // Re-throw the error so it can be caught in the component
-    throw error;
+    // Re-return the error so it can be caught in the component
+    return error;
   }
 };

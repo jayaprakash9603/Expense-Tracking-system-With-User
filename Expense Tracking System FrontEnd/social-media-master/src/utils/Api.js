@@ -1,4 +1,5 @@
 import { api } from "../config/api";
+import { flagAndDispatchError } from "./errorHandling";
 
 /**
  * Fetch daily spending from backend.
@@ -19,8 +20,7 @@ export async function fetchDailySpending(params = {}, options = {}) {
       spending: Number(item.spending ?? item.amount ?? item.value ?? 0),
     }));
   } catch (err) {
-    // Bubble error to caller; caller can fallback to sample data
-    throw err;
+    throw flagAndDispatchError(err);
   }
 }
 
@@ -35,7 +35,7 @@ export async function fetchExpenseSummary(params = {}) {
     const res = await api.get("/api/expenses/summary-expenses", { params });
     return res.data ?? {};
   } catch (err) {
-    throw err;
+    throw flagAndDispatchError(err);
   }
 }
 
@@ -51,7 +51,7 @@ export async function fetchMonthlyExpenses(params = {}, options = {}) {
     const res = await api.get("/api/expenses/monthly", { params, signal });
     return res.data ?? [];
   } catch (err) {
-    throw err;
+    throw flagAndDispatchError(err);
   }
 }
 
@@ -71,10 +71,10 @@ export async function fetchPaymentMethods(params = {}) {
         params,
       }
     );
-    
+
     return res.data ?? {};
   } catch (err) {
-    throw err;
+    throw flagAndDispatchError(err);
   }
 }
 
@@ -93,7 +93,7 @@ export async function fetchCategoriesSummary(params = {}) {
     );
     return res.data ?? {};
   } catch (err) {
-    throw err;
+    throw flagAndDispatchError(err);
   }
 }
 
@@ -106,7 +106,7 @@ export async function fetchPaymentSummary(params = {}) {
     );
     return res.data ?? {};
   } catch (err) {
-    throw err;
+    throw flagAndDispatchError(err);
   }
 }
 

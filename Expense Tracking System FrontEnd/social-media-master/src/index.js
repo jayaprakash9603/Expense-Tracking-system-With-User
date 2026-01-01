@@ -9,6 +9,7 @@ import { store } from "./Redux/store";
 import { ThemeProvider } from "@emotion/react";
 import createAppTheme from "./pages/Landingpage/theme";
 import { getStore, setStore } from "./utils/store";
+import "./config/globalErrorHandlers";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 

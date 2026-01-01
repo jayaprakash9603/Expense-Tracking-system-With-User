@@ -1,153 +1,133 @@
-import axios from "axios";
+import { api } from "../../config/api";
+import { safeApiCall } from "../../utils/safeApiCall";
 import * as actionTypes from "./userSettings.actionType";
-
-const API_BASE_URL = "http://localhost:8080";
-
-// Get authorization header
-const getAuthHeader = () => {
-  const jwt = localStorage.getItem("jwt");
-  return {
-    Authorization: `Bearer ${jwt}`,
-    "Content-Type": "application/json",
-  };
-};
 
 // Fetch User Settings
 export const getUserSettings = () => async (dispatch) => {
   dispatch({ type: actionTypes.FETCH_USER_SETTINGS_REQUEST });
 
-  try {
-    const { data } = await axios.get(`${API_BASE_URL}/api/settings`, {
-      headers: getAuthHeader(),
-    });
+  const { data, error } = await safeApiCall(() => api.get(`/api/settings`));
 
-    dispatch({
-      type: actionTypes.FETCH_USER_SETTINGS_SUCCESS,
-      payload: data,
-    });
-
-    return data;
-  } catch (error) {
+  if (error) {
+    const message = error.message || "Failed to fetch settings";
     console.error("Error fetching user settings:", error);
     dispatch({
       type: actionTypes.FETCH_USER_SETTINGS_FAILURE,
-      payload: error.response?.data?.message || "Failed to fetch settings",
+      payload: message,
     });
-    throw error;
+    return error;
   }
+
+  dispatch({
+    type: actionTypes.FETCH_USER_SETTINGS_SUCCESS,
+    payload: data,
+  });
+
+  return data;
 };
 
 // Update User Settings (Partial Update)
 export const updateUserSettings = (settingsData) => async (dispatch) => {
   dispatch({ type: actionTypes.UPDATE_USER_SETTINGS_REQUEST });
 
-  try {
-    const { data } = await axios.put(
-      `${API_BASE_URL}/api/settings`,
-      settingsData,
-      {
-        headers: getAuthHeader(),
-      }
-    );
+  const { data, error } = await safeApiCall(() =>
+    api.put(`/api/settings`, settingsData)
+  );
 
-    dispatch({
-      type: actionTypes.UPDATE_USER_SETTINGS_SUCCESS,
-      payload: data,
-    });
-
-    return data;
-  } catch (error) {
+  if (error) {
+    const message = error.message || "Failed to update settings";
     console.error("Error updating user settings:", error);
     dispatch({
       type: actionTypes.UPDATE_USER_SETTINGS_FAILURE,
-      payload: error.response?.data?.message || "Failed to update settings",
+      payload: message,
     });
-    throw error;
+    return error;
   }
+
+  dispatch({
+    type: actionTypes.UPDATE_USER_SETTINGS_SUCCESS,
+    payload: data,
+  });
+
+  return data;
 };
 
 // Create Default Settings
 export const createDefaultSettings = () => async (dispatch) => {
   dispatch({ type: actionTypes.CREATE_DEFAULT_SETTINGS_REQUEST });
 
-  try {
-    const { data } = await axios.post(
-      `${API_BASE_URL}/api/settings/default`,
-      {},
-      {
-        headers: getAuthHeader(),
-      }
-    );
+  const { data, error } = await safeApiCall(() =>
+    api.post(`/api/settings/default`, {})
+  );
 
-    dispatch({
-      type: actionTypes.CREATE_DEFAULT_SETTINGS_SUCCESS,
-      payload: data,
-    });
-
-    return data;
-  } catch (error) {
+  if (error) {
+    const message = error.message || "Failed to create default settings";
     console.error("Error creating default settings:", error);
     dispatch({
       type: actionTypes.CREATE_DEFAULT_SETTINGS_FAILURE,
-      payload:
-        error.response?.data?.message || "Failed to create default settings",
+      payload: message,
     });
-    throw error;
+    return error;
   }
+
+  dispatch({
+    type: actionTypes.CREATE_DEFAULT_SETTINGS_SUCCESS,
+    payload: data,
+  });
+
+  return data;
 };
 
 // Reset Settings to Default
 export const resetUserSettings = () => async (dispatch) => {
   dispatch({ type: actionTypes.RESET_USER_SETTINGS_REQUEST });
 
-  try {
-    const { data } = await axios.post(
-      `${API_BASE_URL}/api/settings/reset`,
-      {},
-      {
-        headers: getAuthHeader(),
-      }
-    );
+  const { data, error } = await safeApiCall(() =>
+    api.post(`/api/settings/reset`, {})
+  );
 
-    dispatch({
-      type: actionTypes.RESET_USER_SETTINGS_SUCCESS,
-      payload: data,
-    });
-
-    return data;
-  } catch (error) {
+  if (error) {
+    const message = error.message || "Failed to reset settings";
     console.error("Error resetting user settings:", error);
     dispatch({
       type: actionTypes.RESET_USER_SETTINGS_FAILURE,
-      payload: error.response?.data?.message || "Failed to reset settings",
+      payload: message,
     });
-    throw error;
+    return error;
   }
+
+  dispatch({
+    type: actionTypes.RESET_USER_SETTINGS_SUCCESS,
+    payload: data,
+  });
+
+  return data;
 };
 
 // Check if Settings Exist
 export const checkSettingsExist = () => async (dispatch) => {
   dispatch({ type: actionTypes.CHECK_SETTINGS_EXIST_REQUEST });
 
-  try {
-    const { data } = await axios.get(`${API_BASE_URL}/api/settings/exists`, {
-      headers: getAuthHeader(),
-    });
+  const { data, error } = await safeApiCall(() =>
+    api.get(`/api/settings/exists`)
+  );
 
-    dispatch({
-      type: actionTypes.CHECK_SETTINGS_EXIST_SUCCESS,
-      payload: data,
-    });
-
-    return data;
-  } catch (error) {
+  if (error) {
+    const message = error.message || "Failed to check settings";
     console.error("Error checking settings existence:", error);
     dispatch({
       type: actionTypes.CHECK_SETTINGS_EXIST_FAILURE,
-      payload: error.response?.data?.message || "Failed to check settings",
+      payload: message,
     });
-    throw error;
+    return error;
   }
+
+  dispatch({
+    type: actionTypes.CHECK_SETTINGS_EXIST_SUCCESS,
+    payload: data,
+  });
+
+  return data;
 };
 
 // Fetch or Create Settings (Smart Action for Login)
@@ -158,13 +138,13 @@ export const fetchOrCreateUserSettings = () => async (dispatch) => {
     return settings;
   } catch (error) {
     // If settings don't exist (404), create default settings
-    if (error.response?.status === 404) {
+    if (error?.status === 404) {
       console.log("Settings not found, creating default settings...");
       const defaultSettings = await dispatch(createDefaultSettings());
       return defaultSettings;
     }
-    // For other errors, rethrow
-    throw error;
+    // For other errors, rereturn
+    return error;
   }
 };
 

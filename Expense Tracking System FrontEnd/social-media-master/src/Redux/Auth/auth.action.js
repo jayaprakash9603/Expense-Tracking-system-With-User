@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { api, API_BASE_URL, updateAuthHeader } from "../../config/api";
+import { api, updateAuthHeader } from "../../config/api";
 import {
   GET_PROFILE_FAILURE,
   GET_PROFILE_REQUEST,
@@ -17,7 +17,7 @@ import {
   UPLOAD_TO_CLOUDINARY_SUCCESS,
 } from "./auth.actionType";
 import { CLEAR_USER_SETTINGS } from "../UserSettings/userSettings.actionType";
-import axios from "axios";
+import { safeApiCall } from "../../utils/safeApiCall";
 
 // Redirect helper function
 const redirectToHome = (navigate) => {
@@ -26,78 +26,70 @@ const redirectToHome = (navigate) => {
 
 // Load user dashboard preferences after login
 const loadUserDashboardPreferences = async () => {
-  try {
-    const dashboardResponse = await api.get("/api/user/dashboard-preferences");
-    if (dashboardResponse.data && dashboardResponse.data.layoutConfig) {
-      // Store in localStorage - will be picked up by useDashboardLayout hook
-      localStorage.setItem(
-        "dashboard_layout_config",
-        dashboardResponse.data.layoutConfig
-      );
-      console.log(
-        "Dashboard preferences loaded:",
-        dashboardResponse.data.id ? "custom layout" : "default layout"
-      );
-      return true;
+  const { data, error } = await safeApiCall(() =>
+    api.get("/api/user/dashboard-preferences")
+  );
+
+  if (error || !data?.layoutConfig) {
+    if (error?.message) {
+      console.log("Could not load dashboard preferences:", error.message);
     }
-  } catch (error) {
-    console.log("Could not load dashboard preferences:", error.message);
     return false;
   }
+
+  localStorage.setItem("dashboard_layout_config", data.layoutConfig);
+  console.log(
+    "Dashboard preferences loaded:",
+    data.id ? "custom layout" : "default layout"
+  );
+  return true;
 };
 
 // Login User Action
 export const loginUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
 
-  try {
-    const { data } = await axios.post(
-      `${API_BASE_URL}/auth/signin`,
-      loginData.data
-    );
+  const { data, error } = await safeApiCall(() =>
+    api.post("/auth/signin", loginData.data, { skipAuth: true })
+  );
 
-    console.log("Login response data:", data.jwt);
-
-    dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
-    if (data.jwt) {
-      localStorage.setItem("jwt", data.jwt);
-    }
-
-    // Immediately fetch the user profile after login
-    const profileResponse = await dispatch(getProfileAction(data.jwt));
-    updateAuthHeader();
-
-    // Load user dashboard preferences (non-blocking)
-    loadUserDashboardPreferences().catch((err) =>
-      console.log("Failed to load dashboard preferences:", err)
-    );
-
-    console.log("Profile Response:", profileResponse);
-    console.log("Returning from loginUserAction:", {
-      success: true,
-      user: profileResponse,
-      currentMode: profileResponse?.currentMode,
-      role: profileResponse?.role,
-    });
-
-    // Return success with user data for navigation
-    return {
-      success: true,
-      user: profileResponse,
-      currentMode: profileResponse?.currentMode,
-      role: profileResponse?.role,
-    };
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || "Login failed. Please try again.";
+  if (error || !data?.jwt) {
+    const errorMessage = error?.message || "Login failed. Please try again.";
     console.log("Login error:", errorMessage);
     dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
-
     return {
       success: false,
       message: errorMessage,
     };
   }
+
+  dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
+  localStorage.setItem("jwt", data.jwt);
+
+  // Immediately fetch the user profile after login
+  const profileResult = await dispatch(getProfileAction(data.jwt));
+  updateAuthHeader();
+
+  // Load user dashboard preferences (non-blocking)
+  loadUserDashboardPreferences().catch((err) =>
+    console.log("Failed to load dashboard preferences:", err)
+  );
+
+  if (!profileResult?.success) {
+    const message =
+      profileResult?.error?.message || "Failed to load profile after login.";
+    console.log("Profile load error:", message);
+    return { success: false, message };
+  }
+
+  const userProfile = profileResult.data;
+
+  return {
+    success: true,
+    user: userProfile,
+    currentMode: userProfile?.currentMode,
+    role: userProfile?.role,
+  };
 };
 
 const CLOUDINARY_UPLOAD_PRESET = "expense_tracker";
@@ -145,15 +137,30 @@ export const uploadToCloudinary = (file) => {
       uploadData.append("file", file);
       uploadData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-      const response = await axios.post(CLOUDINARY_UPLOAD_URL, uploadData);
+      const { data, error } = await safeApiCall(() =>
+        api.post(CLOUDINARY_UPLOAD_URL, uploadData, {
+          skipAuth: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+      );
+
+      if (error) {
+        throw new Error(
+          error.message || "Image upload failed. Please try again."
+        );
+      }
+
       dispatch({
         type: UPLOAD_TO_CLOUDINARY_SUCCESS,
-        payload: response.data.secure_url,
+        payload: data?.secure_url,
       });
     } catch (error) {
+      const message = error?.message || "Image upload failed";
       dispatch({
         type: UPLOAD_TO_CLOUDINARY_FAILURE,
-        payload: error.response?.data?.message || "Image upload failed",
+        payload: message,
       });
     }
   };
@@ -166,55 +173,54 @@ export const resetCloudinaryState = () => ({
 // Register User Action (no auto-login; user must manually sign in)
 export const registerUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
-  try {
-    const { data } = await axios.post(
-      `${API_BASE_URL}/auth/signup`,
-      loginData.data
-    );
-    console.log("Register response data:", data);
-    // Do NOT store token or mark as logged in; require explicit login afterwards
-    dispatch({ type: LOGIN_SUCCESS, payload: null });
-    return { success: true };
-  } catch (error) {
-    console.log("Register error:", error);
-    const message = error.response?.data?.message || error.message;
+  const { data, error } = await safeApiCall(() =>
+    api.post("/auth/signup", loginData.data, { skipAuth: true })
+  );
+
+  if (error) {
+    const message = error.message || "Registration failed.";
+    console.log("Register error:", message);
     dispatch({ type: LOGIN_FAILURE, payload: message });
     return { success: false, message };
   }
+
+  console.log("Register response data:", data);
+  // Do NOT store token or mark as logged in; require explicit login afterwards
+  dispatch({ type: LOGIN_SUCCESS, payload: null });
+  return { success: true };
 };
 
 // Get Profile Action
 export const getProfileAction = (jwt) => async (dispatch) => {
   dispatch({ type: GET_PROFILE_REQUEST });
 
-  try {
-    const { data } = await axios.get(`${API_BASE_URL}/api/user/profile`, {
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-      },
-    });
+  const requestConfig = jwt
+    ? {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      }
+    : undefined;
 
-    const firstName = data.firstName;
+  const { data, error } = await safeApiCall(() =>
+    api.get(`/api/user/profile`, requestConfig)
+  );
 
-    console.log("First Name:", firstName);
-    dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
-
-    // Return the user data
-    return data;
-  } catch (error) {
+  if (error) {
     console.error("Get profile error:", error);
-
-    // If profile fetch fails (401, 403, or connection error), clear JWT and logout
-    const status = error.response?.status;
-    if (status === 401 || status === 403 || !error.response) {
+    const status = error.status;
+    if (status === 401 || status === 403 || status === undefined) {
       console.log("Invalid or expired token, clearing JWT and logging out");
       localStorage.removeItem("jwt");
       dispatch({ type: LOGOUT });
     }
 
     dispatch({ type: GET_PROFILE_FAILURE, payload: error });
-    throw error; // Re-throw so App.js can catch it
+    return { success: false, error };
   }
+
+  dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
+  return { success: true, data };
 };
 
 // Update Profile Action

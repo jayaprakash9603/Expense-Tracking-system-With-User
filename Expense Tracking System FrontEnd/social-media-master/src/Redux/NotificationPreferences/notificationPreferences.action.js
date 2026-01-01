@@ -57,7 +57,7 @@ export const updateNotificationPreference =
         type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_FAILURE,
         payload: error.response?.data?.message || error.message,
       });
-      throw error;
+      return error;
     }
   };
 
@@ -90,7 +90,7 @@ export const resetNotificationPreferences = (targetId) => async (dispatch) => {
       type: actionTypes.RESET_NOTIFICATION_PREFERENCES_FAILURE,
       payload: error.response?.data?.message || error.message,
     });
-    throw error;
+    return error;
   }
 };
 
@@ -117,7 +117,7 @@ export const deleteNotificationPreferences = (targetId) => async (dispatch) => {
       type: actionTypes.DELETE_NOTIFICATION_PREFERENCES_FAILURE,
       payload: error.response?.data?.message || error.message,
     });
-    throw error;
+    return error;
   }
 };
 
@@ -152,7 +152,7 @@ export const checkNotificationPreferencesExist =
         type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_FAILURE,
         payload: error.response?.data?.message || error.message,
       });
-      throw error;
+      return error;
     }
   };
 
@@ -188,6 +188,6 @@ export const createDefaultNotificationPreferences =
         type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_FAILURE,
         payload: error.response?.data?.message || error.message,
       });
-      throw error;
+      return error;
     }
   };
