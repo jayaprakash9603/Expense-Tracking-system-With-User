@@ -73,6 +73,10 @@ import {
   getCashflowCacheDescriptor,
   getCashflowCacheKeyFromDescriptor,
 } from "../../utils/cashflowCacheUtils";
+import {
+  getCategoryFlowCacheDescriptor,
+  getCategoryFlowCacheKeyFromDescriptor,
+} from "../../utils/categoryFlowCacheUtils";
 
 export const getExpensesAction =
   (sortOrder = "desc", targetId) =>
@@ -649,22 +653,42 @@ export const getExpensesByParticularDate =
   };
 
 export const fetchCategoriesWithExpenses =
-  (rangeType, offset, flowType, targetId) => async (dispatch) => {
-    dispatch({ type: FETCH_CATEGORIES_WITH_EXPENSES_REQUEST });
+  ({ forceRefetch = false, ...rawParams } = {}) =>
+  async (dispatch, getState) => {
+    const normalizedParams = getCategoryFlowCacheDescriptor(rawParams);
+    const requestSignature =
+      getCategoryFlowCacheKeyFromDescriptor(normalizedParams);
+    const cachedData =
+      getState()?.expenses?.categoryFlowCache?.[requestSignature];
+
+    if (!forceRefetch && cachedData !== undefined) {
+      dispatch({
+        type: FETCH_CATEGORIES_WITH_EXPENSES_SUCCESS,
+        payload: cachedData,
+        meta: {
+          requestDescriptor: normalizedParams,
+          requestSignature,
+          cached: true,
+        },
+      });
+      return cachedData;
+    }
 
     try {
-      // Build the query parameters
-      let queryParams = `?rangeType=${rangeType}&offset=${offset}`;
-      if (flowType && flowType !== "all") {
-        queryParams += `&flowType=${flowType}`;
+      dispatch({ type: FETCH_CATEGORIES_WITH_EXPENSES_REQUEST });
+
+      const queryParams = new URLSearchParams();
+      queryParams.append("rangeType", normalizedParams.rangeType || "month");
+      queryParams.append("offset", String(normalizedParams.offset));
+      if (normalizedParams.flowType) {
+        queryParams.append("flowType", normalizedParams.flowType);
       }
 
-      // Use the api instance that's already configured with headers
       const { data } = await api.get(
-        `/api/expenses/all-by-categories/detailed/filtered${queryParams}`,
+        `/api/expenses/all-by-categories/detailed/filtered?${queryParams.toString()}`,
         {
           params: {
-            targetId: targetId || "", // Include targetId if provided
+            targetId: normalizedParams.targetId || "",
           },
         }
       );
@@ -672,6 +696,11 @@ export const fetchCategoriesWithExpenses =
       dispatch({
         type: FETCH_CATEGORIES_WITH_EXPENSES_SUCCESS,
         payload: data,
+        meta: {
+          requestDescriptor: normalizedParams,
+          requestSignature,
+          cached: false,
+        },
       });
 
       return data;

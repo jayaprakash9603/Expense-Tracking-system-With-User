@@ -85,16 +85,22 @@ const initialState = {
   cashflowOwnerId: null,
   particularDateExpenses: [],
   categoryExpenses: {},
+  categoryFlowCache: {},
+  categoryFlowLastFetchedSignature: null,
+  categoryFlowOwnerId: null,
   uploadCategoriesLoading: false,
   uploadCategoriesError: null,
   uploadedCategoriesPreview: [],
 };
 
-const clearCashflowCache = (state) => ({
+const clearExpenseFlowCaches = (state) => ({
   ...state,
   cashflowCache: {},
   cashflowLastFetchedSignature: null,
   cashflowOwnerId: null,
+  categoryFlowCache: {},
+  categoryFlowLastFetchedSignature: null,
+  categoryFlowOwnerId: null,
 });
 
 export const expenseReducer = (state = initialState, action) => {
@@ -128,12 +134,22 @@ export const expenseReducer = (state = initialState, action) => {
 
     // Success actions
 
-    case FETCH_CATEGORIES_WITH_EXPENSES_SUCCESS:
+    case FETCH_CATEGORIES_WITH_EXPENSES_SUCCESS: {
+      const signature = action.meta?.requestSignature ?? null;
+      const payloadOwnerId = action.meta?.requestDescriptor?.ownerId ?? null;
+      const nextCache =
+        signature === null
+          ? state.categoryFlowCache
+          : { ...state.categoryFlowCache, [signature]: action.payload };
       return {
         ...state,
         loading: false,
         categoryExpenses: action.payload,
+        categoryFlowCache: nextCache,
+        categoryFlowLastFetchedSignature: signature,
+        categoryFlowOwnerId: payloadOwnerId,
       };
+    }
     case UPLOAD_CATEGORIES_SUCCESS:
       return {
         ...state,
@@ -217,11 +233,11 @@ export const expenseReducer = (state = initialState, action) => {
         loading: false,
         error: null,
       };
-      return clearCashflowCache(nextState);
+      return clearExpenseFlowCaches(nextState);
     }
     case EDIT_EXPENSE_SUCCESS:
     case EDIT_MUTLTIPLE_EXPENSE_SUCCESS:
-      return clearCashflowCache({
+      return clearExpenseFlowCaches({
         ...state,
         loading: false,
         error: null,
@@ -246,7 +262,7 @@ export const expenseReducer = (state = initialState, action) => {
           (expense) => expense.id !== action.payload
         );
       });
-      return clearCashflowCache({
+      return clearExpenseFlowCaches({
         ...state,
         expenses: updatedExpenses,
         loading: false,
@@ -261,7 +277,7 @@ export const expenseReducer = (state = initialState, action) => {
       };
     case UPLOAD_FILE_SUCCESS:
     case SAVE_EXPENSES_SUCCESS:
-      return clearCashflowCache(state);
+      return clearExpenseFlowCaches(state);
 
     // Failure actions
     case GET_ALL_EXPENSES_FAILURE:
