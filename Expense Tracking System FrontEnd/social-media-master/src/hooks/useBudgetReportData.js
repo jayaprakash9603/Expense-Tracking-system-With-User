@@ -15,11 +15,13 @@ const COLORS = getChartColors();
  */
 const useBudgetReportData = ({ friendId }) => {
   const dispatch = useDispatch();
-  const [timeframe, setTimeframe] = useState("month");
+  const [timeframe, setTimeframe] = useState("all_time");
   const [flowType, setFlowType] = useState("loss");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dateRange, setDateRange] = useState(() => computeDateRange("month"));
+  const [dateRange, setDateRange] = useState(() =>
+    computeDateRange("all_time")
+  );
   const [isCustomRange, setIsCustomRange] = useState(false);
 
   const { filteredBudgetsReport } = useSelector((state) => state.budgets);
