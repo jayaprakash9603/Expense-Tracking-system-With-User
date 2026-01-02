@@ -239,7 +239,6 @@ const ReusablePieChart = ({
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-
     // Force the correct color based on theme
     const textColor = themeMode === "light" ? "#1a1a1a" : "#ffffff";
 
@@ -288,6 +287,9 @@ const ReusablePieChart = ({
                 <option value="this_month">This Month</option>
                 <option value="last_month">Last Month</option>
                 <option value="last_3_months">Last 3 Months</option>
+                <option value="this_year">This Year</option>
+                <option value="last_year">Last Year</option>
+                <option value="all_time">All Time</option>
               </select>
             )}
             {onFlowTypeChange && (

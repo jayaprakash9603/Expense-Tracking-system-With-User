@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchCategoriesSummary, fetchExpenseSummary } from "../utils/Api";
+import { computeDateRange } from "../utils/reportParams";
 
 /**
  * useCategoryDistributionData
@@ -23,7 +24,19 @@ export default function useCategoryDistributionData({
       return `${y}-${m}-${day}`;
     };
     const params = {};
-    if (timeframe === "this_month" || timeframe === "month") {
+
+    const applyRange = ({ fromDate, toDate }) => {
+      if (fromDate) params.fromDate = fromDate;
+      if (toDate) params.toDate = toDate;
+    };
+
+    if (timeframe === "this_year" || timeframe === "year") {
+      applyRange(computeDateRange("year", now));
+    } else if (timeframe === "last_year") {
+      applyRange(computeDateRange("last_year", now));
+    } else if (timeframe === "all_time") {
+      applyRange(computeDateRange("all_time", now));
+    } else if (timeframe === "this_month" || timeframe === "month") {
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
       const end = now;
       params.fromDate = fmt(start);
