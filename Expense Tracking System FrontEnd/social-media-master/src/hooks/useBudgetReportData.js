@@ -36,10 +36,9 @@ const useBudgetReportData = ({ friendId }) => {
         targetId: friendId || null,
       };
 
-      if (isCustomRange && dateRange?.fromDate && dateRange?.toDate) {
+      if (dateRange?.fromDate && dateRange?.toDate) {
         payload.fromDate = dateRange.fromDate;
         payload.toDate = dateRange.toDate;
-        delete payload.rangeType;
       }
 
       await dispatch(getFilteredBudgetsReport(payload));
@@ -153,6 +152,7 @@ const useBudgetReportData = ({ friendId }) => {
             return {
               method,
               amount: methodData.amount || 0,
+              totalAmount: methodData.amount || 0,
               transactions: methodData.transactions || 0,
               percentage: methodData.percentage || 0,
               color,
