@@ -31,6 +31,54 @@ const BillHeader = ({
   const open = Boolean(menuAnchorEl);
   const { colors } = useTheme();
 
+  // Shared button styles for reusability
+  const baseButtonSx = {
+    fontWeight: 600,
+    px: 2.5,
+    py: 1,
+    borderRadius: 2,
+    textTransform: "none",
+    fontSize: "0.85rem",
+    minHeight: "40px",
+    boxShadow: "none",
+    "@media (max-width:600px)": { display: "none" },
+  };
+
+  const primaryButtonSx = {
+    ...baseButtonSx,
+    backgroundColor: colors.primary_accent,
+    color: colors.button_text,
+    "&:hover": { backgroundColor: colors.button_hover },
+  };
+
+  const secondaryButtonSx = {
+    ...baseButtonSx,
+    color: colors.primary_accent,
+    borderColor: colors.primary_accent,
+    backgroundColor: colors.primary_bg,
+    "&:hover": {
+      backgroundColor: colors.hover_bg,
+      borderColor: colors.primary_accent,
+      color: colors.primary_accent,
+    },
+  };
+
+  const ActionButton = ({
+    label,
+    icon: Icon,
+    onClick,
+    variant = "contained",
+  }) => (
+    <Button
+      variant={variant}
+      startIcon={<Icon />}
+      onClick={onClick}
+      sx={variant === "contained" ? primaryButtonSx : secondaryButtonSx}
+    >
+      {label}
+    </Button>
+  );
+
   const handleDirectCreateBill = () => {
     // Utilize existing menu routing logic by calling onMenuItemClick with 'new'
     onMenuItemClick("new");
@@ -67,28 +115,25 @@ const BillHeader = ({
         }}
       >
         {hasWriteAccess && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
+          <ActionButton
+            label="Create Bill"
+            icon={AddIcon}
             onClick={handleDirectCreateBill}
-            sx={{
-              backgroundColor: colors.primary_accent,
-              color: colors.button_text,
-              fontWeight: 600,
-              px: 2.5,
-              py: 1,
-              borderRadius: 2,
-              textTransform: "none",
-              fontSize: "0.85rem",
-              minHeight: "40px",
-              boxShadow: "none",
-              "&:hover": { backgroundColor: colors.button_hover },
-              "@media (max-width:600px)": { display: "none" },
-            }}
-          >
-            Create Bill
-          </Button>
+            variant="contained"
+          />
         )}
+        <ActionButton
+          label="Bill Report"
+          icon={AssessmentIcon}
+          onClick={() => onMenuItemClick("report")}
+          variant="outlined"
+        />
+        <ActionButton
+          label="Bill Calendar"
+          icon={CalendarIcon}
+          onClick={() => onMenuItemClick("calendar")}
+          variant="outlined"
+        />
         <IconButton
           sx={{
             color: colors.secondary_accent,
