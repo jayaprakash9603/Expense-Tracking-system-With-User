@@ -665,8 +665,12 @@ const SpendingChartTooltip = ({
   // Early return if tooltip is not active
   if (!active || !payload || !payload.length) return null;
 
-  // Extract data
-  const data = payload[0].payload;
+  // Extract primary/average entries (support multi-series charts)
+  const amountEntry = payload.find((p) => p.dataKey === "amount") || payload[0];
+  const averageEntry = payload.find((p) => p.dataKey === "average") || null;
+  const data = amountEntry?.payload || payload[0]?.payload || {};
+  const amountValue = Number(amountEntry?.value ?? 0);
+  const averageValue = averageEntry ? Number(averageEntry.value ?? 0) : null;
   const expenses = data.expenses || [];
   const maxToShow = config.maxExpensesToShow || 5;
 
@@ -720,12 +724,15 @@ const SpendingChartTooltip = ({
     timeframe === "last_year"
   ) {
     // Aggregated views: use the chart label (e.g., "Apr 2025", "Jan")
-    dateLabel = data?.xLabel || "";
+    dateLabel = data?.xLabel || data?.date || "";
   } else {
     const dayLabel = data?.day
       ? `${t("dashboard.charts.tooltip.dayPrefix")} ${data.day}`
       : "";
-    dateLabel = formatDate(data.date, data.day, dayLabel);
+    dateLabel =
+      formatDate(data.rawDate || data.date, data.day, dayLabel) ||
+      data?.xLabel ||
+      "";
   }
   const isLoss = selectedType === "loss";
 
@@ -733,13 +740,35 @@ const SpendingChartTooltip = ({
     <div style={containerStyles}>
       <TooltipHeader
         dateLabel={dateLabel}
-        amount={payload[0].value}
+        amount={amountValue}
         isLoss={isLoss}
         theme={theme}
         styles={customStyles}
         responsiveStyles={responsiveStyles}
         currencySymbol={currencySymbol}
       />
+      {averageValue !== null && Number.isFinite(averageValue) && (
+        <div
+          style={{
+            padding: "8px 12px 0 12px",
+            backgroundColor: theme.divider || "rgba(0, 0, 0, 0.35)",
+            color: colors.primary_text,
+            fontSize: 11,
+            fontWeight: 600,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>
+            {t("dashboard.charts.tooltip.runningAverage") || "Average"}
+          </span>
+          <span>
+            {currencySymbol}
+            {formatNumber(averageValue)}
+          </span>
+        </div>
+      )}
       <TransactionsList
         expenses={expenses}
         displayExpenses={displayExpenses}

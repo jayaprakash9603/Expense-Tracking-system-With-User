@@ -632,6 +632,7 @@ export const hi = {
         dayPrefix: "दिन",
         transactions: "लेन-देन",
         moreLabel: "और",
+        runningAverage: "औसत",
       },
       datasetLabels: {
         income: "आय",
