@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchPaymentSummary } from "../utils/Api";
-import { buildReportParams } from "../utils/reportParams";
+import { buildReportParams, computeDateRange } from "../utils/reportParams";
 import { assemblePaymentReport } from "../utils/paymentReportData";
 
 const DEFAULT_COLORS = [
@@ -25,6 +25,10 @@ export default function usePaymentReportData({
 }) {
   const [timeframe, setTimeframe] = useState(initialTimeframe);
   const [flowType, setFlowType] = useState(initialFlowType);
+  const [dateRange, setDateRange] = useState(() =>
+    computeDateRange(initialTimeframe)
+  );
+  const [isCustomRange, setIsCustomRange] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [methodsData, setMethodsData] = useState([]);
@@ -33,22 +37,30 @@ export default function usePaymentReportData({
   const [categories, setCategories] = useState([]);
 
   const fetchData = useCallback(
-    async (tf = timeframe, fl = flowType) => {
+    async ({ nextTimeframe, nextFlowType, nextRange } = {}) => {
+      const resolvedTimeframe = nextTimeframe ?? timeframe;
+      const resolvedFlowType = nextFlowType ?? flowType;
+      const resolvedRange = nextRange ?? dateRange;
+
       try {
         setLoading(true);
         setError("");
         const params = buildReportParams({
-          timeframe: tf,
-          flowType: fl,
+          timeframe: resolvedTimeframe,
+          flowType: resolvedFlowType,
           friendId,
         });
+        if (resolvedRange?.fromDate && resolvedRange?.toDate) {
+          params.fromDate = resolvedRange.fromDate;
+          params.toDate = resolvedRange.toDate;
+        }
         const raw = await fetchPaymentSummary(params);
         const {
           methodsData: mData,
           txSizeData: txBins,
           categoryBreakdown: catBreak,
           categories: cats,
-        } = assemblePaymentReport(raw, fl, DEFAULT_COLORS);
+        } = assemblePaymentReport(raw, resolvedFlowType, DEFAULT_COLORS);
         setMethodsData(mData);
         setTxSizeData(txBins);
         setCategoryBreakdown(catBreak);
@@ -66,24 +78,46 @@ export default function usePaymentReportData({
         setLoading(false);
       }
     },
-    [friendId, timeframe, flowType]
+    [friendId, timeframe, flowType, dateRange]
   );
 
   useEffect(() => {
     fetchData();
   }, [friendId, fetchData]);
 
+  const handleTimeframeChange = useCallback((tf) => {
+    setTimeframe(tf);
+    setDateRange(computeDateRange(tf));
+    setIsCustomRange(false);
+  }, []);
+
+  const handleFlowTypeChange = useCallback((fl) => {
+    setFlowType(fl);
+  }, []);
+
+  const setCustomDateRange = useCallback((range) => {
+    if (!range?.fromDate || !range?.toDate) return;
+    setDateRange({
+      fromDate: range.fromDate.slice(0, 10),
+      toDate: range.toDate.slice(0, 10),
+    });
+    setIsCustomRange(true);
+  }, []);
+
+  const resetDateRange = useCallback(() => {
+    setDateRange(computeDateRange(timeframe));
+    setIsCustomRange(false);
+  }, [timeframe]);
+
   return {
     timeframe,
     flowType,
-    setTimeframe: (tf) => {
-      setTimeframe(tf);
-      fetchData(tf, flowType);
-    },
-    setFlowType: (fl) => {
-      setFlowType(fl);
-      fetchData(timeframe, fl);
-    },
+    dateRange,
+    isCustomRange,
+    setTimeframe: handleTimeframeChange,
+    setFlowType: handleFlowTypeChange,
+    setCustomDateRange,
+    resetDateRange,
     loading,
     error,
     methodsData,
