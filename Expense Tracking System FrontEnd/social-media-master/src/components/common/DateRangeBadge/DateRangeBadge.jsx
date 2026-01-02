@@ -1,15 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Button, Stack, Typography, Popover, Box } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useTheme } from "../../../hooks/useTheme";
 
 const formatDate = (value, format) =>
@@ -30,7 +24,7 @@ const DateRangeBadge = ({
   buttonLabels = { from: "From", to: "To" },
 }) => {
   const { colors } = useTheme();
-  const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const [pendingRange, setPendingRange] = useState({ fromDate, toDate });
   const [error, setError] = useState("");
 
@@ -38,6 +32,56 @@ const DateRangeBadge = ({
     setPendingRange({ fromDate, toDate });
     setError("");
   }, [fromDate, toDate]);
+
+  const minDayjs = useMemo(() => (minDate ? dayjs(minDate) : null), [minDate]);
+  const maxDayjs = useMemo(() => (maxDate ? dayjs(maxDate) : null), [maxDate]);
+  const textFieldStyles = useMemo(
+    () => ({
+      flex: 1,
+      minWidth: 150,
+      "& .MuiInputBase-root": {
+        background: colors.secondary_bg,
+        color: colors.primary_text,
+      },
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: colors.border_color,
+      },
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: colors.primary_accent,
+      },
+      "& .MuiSvgIcon-root": {
+        color: colors.primary_accent,
+      },
+    }),
+    [colors]
+  );
+  const popperSlotProps = useMemo(
+    () => ({
+      sx: {
+        "& .MuiPaper-root": {
+          background: colors.primary_bg,
+          border: `1px solid ${colors.border_color}`,
+        },
+        "& .MuiPickersDay-root": {
+          color: colors.primary_text,
+          "&.Mui-selected": {
+            background: colors.primary_accent,
+            color: "#fff",
+          },
+          "&:hover": {
+            background: `${colors.primary_accent}25`,
+          },
+        },
+        "& .MuiPickersCalendarHeader-label": {
+          color: colors.primary_text,
+        },
+        "& .MuiDayCalendar-weekDayLabel": {
+          color: colors.secondary_text,
+        },
+      },
+    }),
+    [colors]
+  );
 
   const formattedFrom = useMemo(
     () => formatDate(fromDate, dateFormat),
@@ -48,18 +92,19 @@ const DateRangeBadge = ({
     [toDate, dateFormat]
   );
 
-  const handleOpen = () => {
-    setPendingRange({ fromDate, toDate });
-    setError("");
-    setOpen(true);
-  };
-
   const handleClose = () => {
-    setOpen(false);
+    setAnchorEl(null);
   };
 
   const handlePendingChange = (field, value) => {
     setPendingRange((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleDatePickerChange = (field, value) => {
+    const formattedValue =
+      value && value.isValid() ? value.format("YYYY-MM-DD") : "";
+    handlePendingChange(field, formattedValue);
+    setError("");
   };
 
   const validateRange = () => {
@@ -97,12 +142,12 @@ const DateRangeBadge = ({
       fromDate: pendingRange.fromDate,
       toDate: pendingRange.toDate,
     });
-    setOpen(false);
+    handleClose();
   };
 
   const handleReset = () => {
     onReset?.();
-    setOpen(false);
+    handleClose();
   };
 
   const {
@@ -133,7 +178,9 @@ const DateRangeBadge = ({
     if (event?.defaultPrevented) {
       return;
     }
-    handleOpen();
+    setPendingRange({ fromDate, toDate });
+    setError("");
+    setAnchorEl(event.currentTarget);
   };
 
   return (
@@ -152,60 +199,114 @@ const DateRangeBadge = ({
         <span style={{ color: colors.primary_accent }}>{buttonLabels.to}</span>
         <span>{formattedTo}</span>
       </button>
-
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
-        <DialogTitle>{dialogTitle}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <TextField
-              label={buttonLabels.from}
-              type="date"
-              value={pendingRange?.fromDate || ""}
-              onChange={(e) => handlePendingChange("fromDate", e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              inputProps={{ min: minDate, max: maxDate }}
-            />
-            <TextField
-              label={buttonLabels.to}
-              type="date"
-              value={pendingRange?.toDate || ""}
-              onChange={(e) => handlePendingChange("toDate", e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              inputProps={{ min: minDate, max: maxDate }}
-            />
-          </Stack>
-          {error ? (
-            <Typography color="error" variant="caption" mt={1} display="block">
-              {error}
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        transformOrigin={{ vertical: "top", horizontal: "center" }}
+        PaperProps={{
+          sx: {
+            p: 2.5,
+            width: 480,
+            maxWidth: "calc(100vw - 32px)",
+            background: colors.primary_bg,
+            border: `1px solid ${colors.border_color}`,
+            borderRadius: "16px",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
+          },
+        }}
+      >
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Box>
+            <Typography variant="subtitle1" fontWeight={600} mb={2}>
+              {dialogTitle}
             </Typography>
-          ) : null}
-          {helperText ? (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              mt={1}
-              display="block"
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              alignItems="flex-start"
             >
-              {helperText}
-            </Typography>
-          ) : null}
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 3 }}>
-          {!disableReset && (
-            <Button color="secondary" onClick={handleReset}>
-              Reset
-            </Button>
-          )}
-          <div style={{ display: "flex", gap: 8 }}>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button variant="contained" onClick={handleApply}>
-              Apply
-            </Button>
-          </div>
-        </DialogActions>
-      </Dialog>
+              <DatePicker
+                label={buttonLabels.from}
+                value={
+                  pendingRange?.fromDate ? dayjs(pendingRange.fromDate) : null
+                }
+                onChange={(value) => handleDatePickerChange("fromDate", value)}
+                format={dateFormat}
+                minDate={minDayjs}
+                maxDate={
+                  pendingRange?.toDate ? dayjs(pendingRange.toDate) : maxDayjs
+                }
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: textFieldStyles,
+                  },
+                  popper: popperSlotProps,
+                }}
+              />
+              <DatePicker
+                label={buttonLabels.to}
+                value={pendingRange?.toDate ? dayjs(pendingRange.toDate) : null}
+                onChange={(value) => handleDatePickerChange("toDate", value)}
+                format={dateFormat}
+                minDate={
+                  pendingRange?.fromDate
+                    ? dayjs(pendingRange.fromDate)
+                    : minDayjs
+                }
+                maxDate={maxDayjs}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    sx: textFieldStyles,
+                  },
+                  popper: popperSlotProps,
+                }}
+              />
+            </Stack>
+            {error ? (
+              <Typography
+                color="error"
+                variant="caption"
+                mt={1}
+                display="block"
+              >
+                {error}
+              </Typography>
+            ) : null}
+            {helperText ? (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                mt={1}
+                display="block"
+              >
+                {helperText}
+              </Typography>
+            ) : null}
+            <Stack
+              direction="row"
+              justifyContent={disableReset ? "flex-end" : "space-between"}
+              alignItems="center"
+              mt={2}
+            >
+              {!disableReset && (
+                <Button color="secondary" onClick={handleReset}>
+                  Reset
+                </Button>
+              )}
+              <Box sx={{ display: "flex", gap: 1.5 }}>
+                <Button onClick={handleClose}>Cancel</Button>
+                <Button variant="contained" onClick={handleApply}>
+                  Apply
+                </Button>
+              </Box>
+            </Stack>
+          </Box>
+        </LocalizationProvider>
+      </Popover>
     </>
   );
 };

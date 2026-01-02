@@ -124,7 +124,6 @@ export default function CombinedExpenseReport() {
           top: 0,
           zIndex: 100,
           background: colors.secondary_bg,
-          paddingTop: "24px",
           paddingLeft: "24px",
           paddingRight: "24px",
         }}
