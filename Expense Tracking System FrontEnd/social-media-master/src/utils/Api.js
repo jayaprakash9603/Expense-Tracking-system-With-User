@@ -1,5 +1,12 @@
+import axios from "axios";
 import { api } from "../config/api";
 import { flagAndDispatchError } from "./errorHandling";
+
+const isCanceledError = (err) =>
+  axios.isCancel(err) ||
+  err?.code === "ERR_CANCELED" ||
+  err?.message === "canceled" ||
+  err?.name === "CanceledError";
 
 /**
  * Fetch daily spending from backend.
@@ -20,6 +27,7 @@ export async function fetchDailySpending(params = {}, options = {}) {
       spending: Number(item.spending ?? item.amount ?? item.value ?? 0),
     }));
   } catch (err) {
+    if (isCanceledError(err)) return [];
     throw flagAndDispatchError(err);
   }
 }
@@ -35,6 +43,7 @@ export async function fetchExpenseSummary(params = {}) {
     const res = await api.get("/api/expenses/summary-expenses", { params });
     return res.data ?? {};
   } catch (err) {
+    if (isCanceledError(err)) return {};
     throw flagAndDispatchError(err);
   }
 }
@@ -51,6 +60,7 @@ export async function fetchMonthlyExpenses(params = {}, options = {}) {
     const res = await api.get("/api/expenses/monthly", { params, signal });
     return res.data ?? [];
   } catch (err) {
+    if (isCanceledError(err)) return [];
     throw flagAndDispatchError(err);
   }
 }
@@ -74,6 +84,7 @@ export async function fetchPaymentMethods(params = {}) {
 
     return res.data ?? {};
   } catch (err) {
+    if (isCanceledError(err)) return {};
     throw flagAndDispatchError(err);
   }
 }
@@ -93,6 +104,7 @@ export async function fetchCategoriesSummary(params = {}) {
     );
     return res.data ?? {};
   } catch (err) {
+    if (isCanceledError(err)) return {};
     throw flagAndDispatchError(err);
   }
 }
@@ -106,6 +118,7 @@ export async function fetchPaymentSummary(params = {}) {
     );
     return res.data ?? {};
   } catch (err) {
+    if (isCanceledError(err)) return {};
     throw flagAndDispatchError(err);
   }
 }
