@@ -27,6 +27,9 @@ const AllBudgetsReport = () => {
     flowType,
     setTimeframe,
     setFlowType,
+    dateRange,
+    setCustomDateRange,
+    resetDateRange,
     loading,
     error,
     budgetsData,
@@ -79,6 +82,12 @@ const AllBudgetsReport = () => {
         onBack={handleBack}
         flowType={flowType}
         onFlowTypeChange={handleFlowTypeChange}
+        dateRangeProps={{
+          fromDate: dateRange?.fromDate,
+          toDate: dateRange?.toDate,
+          onApply: setCustomDateRange,
+          onReset: resetDateRange,
+        }}
       />
 
       {error ? (

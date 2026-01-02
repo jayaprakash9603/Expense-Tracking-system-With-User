@@ -10,7 +10,8 @@ const useSingleBudgetReport = (
   budgetId,
   timeFrame = "All",
   flowType = "all",
-  targetId = null
+  targetId = null,
+  customRange = null
 ) => {
   const dispatch = useDispatch();
   const budgetState = useSelector((store) => store.budget || {});
@@ -84,6 +85,11 @@ const useSingleBudgetReport = (
               fromDate = null;
               toDate = null;
           }
+        }
+
+        if (customRange?.fromDate && customRange?.toDate) {
+          fromDate = customRange.fromDate.slice(0, 10);
+          toDate = customRange.toDate.slice(0, 10);
         }
 
         // Dispatch Redux action with explicit dates if calculated
@@ -206,7 +212,7 @@ const useSingleBudgetReport = (
     };
 
     fetchBudgetReport();
-  }, [budgetId, timeFrame, flowType, targetId, dispatch]);
+  }, [budgetId, timeFrame, flowType, targetId, customRange, dispatch]);
 
   return {
     loading,

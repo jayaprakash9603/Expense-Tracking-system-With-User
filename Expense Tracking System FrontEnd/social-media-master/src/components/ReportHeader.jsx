@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { IconButton } from "@mui/material";
 import { Filter, Download } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
+import DateRangeBadge from "./common/DateRangeBadge";
 
 /**
  * ReportHeader - Generic header for analytics report pages (payment methods, categories, etc.)
@@ -19,6 +20,8 @@ import { useTheme } from "../hooks/useTheme";
  * - timeframeOptions: Optional override of timeframe options [{ value, label }]
  * - flowTypeOptions: Optional override of flow type options [{ value, label }]
  * - className: Extra class name to differentiate contexts
+ * - enableDateRangeBadge: enable/disable built-in date range badge (default: true)
+ * - dateRangeProps: props forwarded to DateRangeBadge (fromDate, toDate, onApply, onReset, etc.)
  */
 const DEFAULT_TIMEFRAMES = [
   { value: "week", label: "This Week" },
@@ -49,8 +52,29 @@ const ReportHeader = ({
   flowTypeOptions = DEFAULT_FLOW_TYPES,
   className = "",
   centerContent = null,
+  enableDateRangeBadge = true,
+  dateRangeProps = null,
 }) => {
   const { colors } = useTheme();
+
+  const derivedCenterContent = useMemo(() => {
+    if (centerContent) {
+      return centerContent;
+    }
+
+    const hasDateRangeProps =
+      enableDateRangeBadge &&
+      dateRangeProps &&
+      dateRangeProps.fromDate &&
+      dateRangeProps.toDate &&
+      typeof dateRangeProps.onApply === "function";
+
+    if (!hasDateRangeProps) {
+      return null;
+    }
+
+    return <DateRangeBadge {...dateRangeProps} />;
+  }, [centerContent, enableDateRangeBadge, dateRangeProps]);
 
   return (
     <div
@@ -140,7 +164,7 @@ const ReportHeader = ({
           </div>
         </div>
 
-        {centerContent ? (
+        {derivedCenterContent ? (
           <div
             className="header-center"
             style={{
@@ -151,7 +175,7 @@ const ReportHeader = ({
               alignItems: "center",
             }}
           >
-            {centerContent}
+            {derivedCenterContent}
           </div>
         ) : null}
 

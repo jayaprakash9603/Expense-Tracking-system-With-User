@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { api } from "../config/api"; // adjust if path differs
+import { computeDateRange } from "../utils/reportParams";
 import {
   FETCH_CASHFLOW_EXPENSES_REQUEST,
   FETCH_CASHFLOW_EXPENSES_FAILURE,
@@ -27,56 +28,27 @@ export function useGroupedCashflow({
 } = {}) {
   const dispatch = useDispatch();
 
-  const [timeframe, setTimeframe] = useState(initialTimeframe);
-  const [flowType, setFlowType] = useState(initialFlowType);
+  const [timeframe, setTimeframeState] = useState(initialTimeframe);
+  const [flowType, setFlowTypeState] = useState(initialFlowType);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [rawData, setRawData] = useState(null);
-  const [startDate] = useState(null); // reserved for future custom range integration
-  const [endDate] = useState(null);
+  const [customRange, setCustomRange] = useState(null);
 
-  // Compute date boundaries based on timeframe (week/month/year)
+  // Compute date boundaries based on timeframe or custom range
   const computedDates = useMemo(() => {
-    if (startDate && endDate) return { start: startDate, end: endDate };
-    const now = new Date();
-    if (timeframe === "week") {
-      const d = new Date(now);
-      const day = d.getDay();
-      const diff = day === 0 ? -6 : 1 - day; // Monday as start
-      const monday = new Date(d.setDate(d.getDate() + diff));
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      return {
-        start: monday.toISOString().slice(0, 10),
-        end: sunday.toISOString().slice(0, 10),
-      };
+    if (customRange?.fromDate && customRange?.toDate) {
+      return { start: customRange.fromDate, end: customRange.toDate };
     }
-    if (timeframe === "year") {
-      const start = `${now.getFullYear()}-01-01`;
-      const end = `${now.getFullYear()}-12-31`;
-      return { start, end };
-    }
-    if (timeframe === "last_year") {
-      const lastYear = now.getFullYear() - 1;
-      const start = `${lastYear}-01-01`;
-      const end = `${lastYear}-12-31`;
-      return { start, end };
-    }
-    if (timeframe === "all_time") {
-      // Global all-time range starts from 2002-01-15
-      const start = "2002-01-15";
-      const end = now.toISOString().slice(0, 10);
-      return { start, end };
-    }
-    // default month
-    const start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-01`;
-    const endDateObj = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const endStr = endDateObj.toISOString().slice(0, 10);
-    return { start, end: endStr };
-  }, [timeframe, startDate, endDate]);
+    const normalizedTimeframe = timeframe === "all" ? "all_time" : timeframe;
+    const range = computeDateRange(normalizedTimeframe);
+    return { start: range.fromDate, end: range.toDate };
+  }, [customRange, timeframe]);
+
+  const dateRange = useMemo(
+    () => ({ fromDate: computedDates.start, toDate: computedDates.end }),
+    [computedDates]
+  );
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -136,11 +108,34 @@ export function useGroupedCashflow({
       .sort((a, b) => b.totalAmount - a.totalAmount);
   }, [rawData, summary]);
 
+  const handleSetTimeframe = useCallback((tf) => {
+    setCustomRange(null);
+    setTimeframeState(tf);
+  }, []);
+
+  const handleSetFlowType = useCallback((ft) => {
+    setFlowTypeState(ft);
+  }, []);
+
+  const setCustomDateRange = useCallback((range) => {
+    if (!range?.fromDate || !range?.toDate) {
+      return;
+    }
+    setCustomRange({
+      fromDate: range.fromDate.slice(0, 10),
+      toDate: range.toDate.slice(0, 10),
+    });
+  }, []);
+
+  const resetDateRange = useCallback(() => {
+    setCustomRange(null);
+  }, []);
+
   return {
     timeframe,
-    setTimeframe,
+    setTimeframe: handleSetTimeframe,
     flowType,
-    setFlowType,
+    setFlowType: handleSetFlowType,
     loading,
     error,
     rawData,
@@ -148,6 +143,10 @@ export function useGroupedCashflow({
     methodsData,
     refetch: fetchData,
     computedDates,
+    dateRange,
+    setCustomDateRange,
+    resetDateRange,
+    isCustomRange: Boolean(customRange),
   };
 }
 

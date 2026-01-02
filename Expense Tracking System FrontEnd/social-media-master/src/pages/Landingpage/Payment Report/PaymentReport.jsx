@@ -15,7 +15,6 @@ import TransactionSizeChart from "../../../components/charts/TransactionSizeChar
 import CategoryPaymentBreakdown from "../../../components/charts/CategoryPaymentBreakdown";
 import { getChartColors } from "../../../utils/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
-import DateRangeBadge from "../../../components/common/DateRangeBadge";
 
 const COLORS = getChartColors();
 
@@ -69,15 +68,6 @@ const PaymentMethodsReport = () => {
     return <PaymentLoadingSkeleton />;
   }
 
-  const rangeBadge = (
-    <DateRangeBadge
-      fromDate={dateRange?.fromDate}
-      toDate={dateRange?.toDate}
-      onApply={setCustomDateRange}
-      onReset={resetDateRange}
-    />
-  );
-
   return (
     <div
       className="payment-methods-report"
@@ -94,7 +84,12 @@ const PaymentMethodsReport = () => {
         onBack={handleBack}
         flowType={flowType}
         onFlowTypeChange={handleFlowTypeChange}
-        centerContent={rangeBadge}
+        dateRangeProps={{
+          fromDate: dateRange?.fromDate,
+          toDate: dateRange?.toDate,
+          onApply: setCustomDateRange,
+          onReset: resetDateRange,
+        }}
       />
 
       {error ? (

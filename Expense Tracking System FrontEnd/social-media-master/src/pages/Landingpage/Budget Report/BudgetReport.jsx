@@ -9,6 +9,7 @@ import GroupedExpensesAccordion from "../../../components/GroupedExpensesAccordi
 import { BudgetReportLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
 import ReportHeader from "../../../components/ReportHeader";
 import { getChartColors } from "../../../utils/chartColors";
+import { computeDateRange } from "../../../utils/reportParams";
 
 const BudgetReport = () => {
   const { budgetId } = useParams();
@@ -17,6 +18,7 @@ const BudgetReport = () => {
   const settings = useUserSettings();
   const [timeFrame, setTimeFrame] = useState("budget");
   const [flowType, setFlowType] = useState("all");
+  const [customRange, setCustomRange] = useState(null);
 
   // Custom timeframe options for budget report
   const timeframeOptions = [
@@ -31,8 +33,62 @@ const BudgetReport = () => {
   const { loading, error, budgetData } = useSingleBudgetReport(
     budgetId,
     timeFrame,
-    flowType
+    flowType,
+    null,
+    customRange
   );
+  const summaryRange = useMemo(() => {
+    const summary = budgetData?.summary;
+    if (!summary?.startDate || !summary?.endDate) {
+      return null;
+    }
+    return {
+      fromDate: summary.startDate.slice(0, 10),
+      toDate: summary.endDate.slice(0, 10),
+    };
+  }, [budgetData?.summary]);
+
+  const defaultRange = useMemo(() => {
+    if (timeFrame === "budget") {
+      return summaryRange || computeDateRange("month");
+    }
+    if (timeFrame === "all") {
+      return computeDateRange("all_time");
+    }
+    const supported = new Set(["week", "month", "quarter", "year"]);
+    const normalized = supported.has(timeFrame) ? timeFrame : "month";
+    return computeDateRange(normalized);
+  }, [timeFrame, summaryRange]);
+
+  const activeRange = customRange || defaultRange;
+
+  const handleCustomRangeApply = (range) => {
+    if (!range?.fromDate || !range?.toDate) {
+      return;
+    }
+    setCustomRange({
+      fromDate: range.fromDate.slice(0, 10),
+      toDate: range.toDate.slice(0, 10),
+    });
+  };
+
+  const handleResetRange = () => {
+    setCustomRange(null);
+  };
+
+  const handleTimeframeChange = (nextTimeframe) => {
+    setTimeFrame(nextTimeframe);
+    setCustomRange(null);
+  };
+
+  const dateRangeProps = activeRange
+    ? {
+        fromDate: activeRange.fromDate,
+        toDate: activeRange.toDate,
+        onApply: handleCustomRangeApply,
+        onReset: handleResetRange,
+      }
+    : undefined;
 
   const COLORS = getChartColors();
 
@@ -96,8 +152,9 @@ const BudgetReport = () => {
         onBack={() => navigate("/budget")}
         onFilter={() => {}}
         onExport={() => {}}
-        onTimeframeChange={(t) => setTimeFrame(t)}
+        onTimeframeChange={handleTimeframeChange}
         onFlowTypeChange={(f) => setFlowType(f)}
+        dateRangeProps={dateRangeProps}
       />
 
       {error ? (

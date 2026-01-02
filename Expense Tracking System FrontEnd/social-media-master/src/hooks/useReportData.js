@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { buildReportParams } from "../utils/reportParams";
+import { buildReportParams, computeDateRange } from "../utils/reportParams";
 
 /**
  * useReportData - Shared base hook for report data fetching
@@ -30,9 +30,13 @@ export default function useReportData({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [data, setData] = useState(null);
+  const [dateRange, setDateRange] = useState(() =>
+    computeDateRange(initialTimeframe)
+  );
+  const [isCustomRange, setIsCustomRange] = useState(false);
 
   const fetchData = useCallback(
-    async (tf = timeframe, fl = flowType) => {
+    async (tf = timeframe, fl = flowType, range = dateRange) => {
       try {
         setLoading(true);
         setError("");
@@ -42,6 +46,7 @@ export default function useReportData({
           timeframe: tf,
           flowType: fl,
           friendId,
+          rangeOverride: range,
         });
 
         // Fetch raw data
@@ -61,27 +66,51 @@ export default function useReportData({
         setLoading(false);
       }
     },
-    [friendId, timeframe, flowType, fetchFn, transformFn]
+    [friendId, timeframe, flowType, fetchFn, transformFn, dateRange]
   );
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  const handleSetTimeframe = (tf) => {
+    setTimeframe(tf);
+    setDateRange(computeDateRange(tf));
+    setIsCustomRange(false);
+  };
+
+  const handleSetFlowType = (fl) => {
+    setFlowType(fl);
+  };
+
+  const setCustomDateRange = (range) => {
+    if (!range?.fromDate || !range?.toDate) {
+      return;
+    }
+    setDateRange({
+      fromDate: range.fromDate.slice(0, 10),
+      toDate: range.toDate.slice(0, 10),
+    });
+    setIsCustomRange(true);
+  };
+
+  const resetDateRange = () => {
+    setDateRange(computeDateRange(timeframe));
+    setIsCustomRange(false);
+  };
+
   return {
     timeframe,
     flowType,
-    setTimeframe: (tf) => {
-      setTimeframe(tf);
-      fetchData(tf, flowType);
-    },
-    setFlowType: (fl) => {
-      setFlowType(fl);
-      fetchData(timeframe, fl);
-    },
+    dateRange,
+    isCustomRange,
+    setTimeframe: handleSetTimeframe,
+    setFlowType: handleSetFlowType,
+    setCustomDateRange,
+    resetDateRange,
     loading,
     error,
     data,
-    refresh: () => fetchData(),
+    refresh: () => fetchData(timeframe, flowType, dateRange),
   };
 }
