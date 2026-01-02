@@ -122,6 +122,7 @@ import { useMediaQuery } from "@mui/material";
 import ChartTimeframeSelector from "../../components/charts/ChartTimeframeSelector";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 import SpendingChartTooltip from "../../components/charts/SpendingChartTooltip";
+import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Import configuration and utilities
 import {
@@ -362,6 +363,7 @@ const DailySpendingChart = ({
       : DEFAULT_TIMEFRAME_OPTIONS;
   const typeSelectorOptions =
     typeOptions && typeOptions.length > 0 ? typeOptions : DEFAULT_TYPE_OPTIONS;
+  const showEmpty = !loading && (chartData.length === 0 || totalSpending === 0);
 
   return (
     <div
@@ -393,92 +395,102 @@ const DailySpendingChart = ({
       </div>
 
       {/* Chart visualization */}
-      <ResponsiveContainer width="100%" height={chartHeight}>
-        <AreaChart data={chartData} key={animationKey}>
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={theme.color} stopOpacity={0.8} />
-              <stop offset="95%" stopColor={theme.color} stopOpacity={0.1} />
-            </linearGradient>
-          </defs>
+      {showEmpty ? (
+        <EmptyStateCard
+          icon="📉"
+          title="No spending data"
+          message="No transactions available for this timeframe yet."
+          height={chartHeight + 40}
+          bordered={false}
+        />
+      ) : (
+        <ResponsiveContainer width="100%" height={chartHeight}>
+          <AreaChart data={chartData} key={animationKey}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={theme.color} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={theme.color} stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
 
-          <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
 
-          <XAxis
-            dataKey="xLabel"
-            stroke={colors.primary_text}
-            fontSize={12}
-            tickLine={false}
-            tickFormatter={xTickFormatter}
-            hide={hideXAxis}
-          />
+            <XAxis
+              dataKey="xLabel"
+              stroke={colors.primary_text}
+              fontSize={12}
+              tickLine={false}
+              tickFormatter={xTickFormatter}
+              hide={hideXAxis}
+            />
 
-          <YAxis
-            stroke={colors.primary_text}
-            fontSize={12}
-            tickLine={false}
-            tickFormatter={(value) =>
-              `${currencySymbol}${Math.round(value / 1000)}K`
-            }
-          />
+            <YAxis
+              stroke={colors.primary_text}
+              fontSize={12}
+              tickLine={false}
+              tickFormatter={(value) =>
+                `${currencySymbol}${Math.round(value / 1000)}K`
+              }
+            />
 
-          <Tooltip
-            wrapperStyle={{
-              zIndex: 9999,
-              outline: "none",
-            }}
-            cursor={{
-              stroke: theme.color,
-              strokeWidth: 2,
-              strokeDasharray: "5 5",
-              opacity: 0.5,
-            }}
-            position={{ y: 0 }}
-            allowEscapeViewBox={{ x: false, y: true }}
-            animationDuration={150}
-            animationEasing="ease-out"
-            content={(props) => (
-              <SpendingChartTooltip
-                {...props}
-                selectedType={activeType}
-                timeframe={timeframe}
-                config={tooltipConfig || TOOLTIP_CONFIG}
-                theme={theme}
+            <Tooltip
+              wrapperStyle={{
+                zIndex: 9999,
+                outline: "none",
+              }}
+              cursor={{
+                stroke: theme.color,
+                strokeWidth: 2,
+                strokeDasharray: "5 5",
+                opacity: 0.5,
+              }}
+              position={{ y: 0 }}
+              allowEscapeViewBox={{ x: false, y: true }}
+              animationDuration={150}
+              animationEasing="ease-out"
+              content={(props) => (
+                <SpendingChartTooltip
+                  {...props}
+                  selectedType={activeType}
+                  timeframe={timeframe}
+                  config={tooltipConfig || TOOLTIP_CONFIG}
+                  theme={theme}
+                />
+              )}
+            />
+
+            {averageSpending > 0 && averageLabelText && (
+              <ReferenceLine
+                y={averageSpending}
+                stroke={averageLineColor}
+                strokeDasharray="4 4"
+                strokeWidth={3}
+                ifOverflow="extendDomain"
+                label={{
+                  value: averageLabelText,
+                  position: "top",
+                  fill: averageLineColor,
+                  fontSize: 11,
+                  fontWeight: 600,
+                }}
               />
             )}
-          />
 
-          {averageSpending > 0 && averageLabelText && (
-            <ReferenceLine
-              y={averageSpending}
-              stroke={averageLineColor}
-              strokeDasharray="4 4"
-              strokeWidth={3}
-              ifOverflow="extendDomain"
-              label={{
-                value: averageLabelText,
-                position: "top",
-                fill: averageLineColor,
-                fontSize: 11,
-                fontWeight: 600,
-              }}
+            <Area
+              type="monotone"
+              dataKey="spending"
+              stroke={theme.color}
+              fillOpacity={0.3}
+              fill={`url(#${gradientId})`}
+              strokeWidth={2}
+              isAnimationActive={true}
+              animationBegin={0}
+              animationDuration={900}
+              animationEasing="ease-out"
             />
-          )}
-
-          <Area
-            type="monotone"
-            dataKey="spending"
-            stroke={theme.color}
-            fillOpacity={0.3}
-            fill={`url(#${gradientId})`}
-            strokeWidth={2}
-            isAnimationActive={true}
-            animationBegin={0}
-            animationDuration={900}
-            animationEasing="ease-out"
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+          </AreaChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 };
