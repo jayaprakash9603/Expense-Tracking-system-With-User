@@ -194,99 +194,130 @@ const DailySpendingChart = ({
     (timeframe === "last_3_months" || isMobile);
   const safeData = Array.isArray(data) ? data : [];
   const activeType = selectedType || "loss";
+  const filteredData = filterDataByType(safeData, activeType);
+  const normalizedData = transformChartData(filteredData, {
+    timeframe,
+    locale,
+  });
 
-  // Filter and transform data
-  const filteredData = activeType
-    ? safeData.filter((item) => item.type === activeType || !item.type)
-    : safeData;
+  const trimLeadingZeroSpending = (points) => {
+    let seenValue = false;
+    return points.filter((p) => {
+      const hasValue = (p.spending ?? 0) > 0 || (p.expenses?.length ?? 0) > 0;
+      if (hasValue) {
+        seenValue = true;
+      }
+      return seenValue;
+    });
+  };
 
-  let chartData;
+  const fillMissingDaysToToday = (points) => {
+    if (timeframe !== "this_month" && timeframe !== "this_year") {
+      return points;
+    }
 
-  if (isYearView) {
-    const monthlyMap = {};
-    const monthFormatter = new Intl.DateTimeFormat(locale, { month: "short" });
+    const formatIso = (date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
 
-    filteredData.forEach((item) => {
-      if (!item.day) return;
-      const dateObj = new Date(item.day);
-      if (Number.isNaN(dateObj.getTime())) return;
+    const today = new Date();
+    const startDate =
+      timeframe === "this_month"
+        ? new Date(today.getFullYear(), today.getMonth(), 1)
+        : new Date(today.getFullYear(), 0, 1);
 
-      const monthIndex = dateObj.getMonth();
-      const year = dateObj.getFullYear();
+    const map = new Map();
+    points.forEach((p) => {
+      if (!p.date) return;
+      map.set(p.date, p);
+    });
+
+    const filled = [];
+    for (
+      let cursor = new Date(startDate);
+      cursor <= today;
+      cursor.setDate(cursor.getDate() + 1)
+    ) {
+      const iso = formatIso(cursor);
+      if (map.has(iso)) {
+        filled.push(map.get(iso));
+      } else {
+        filled.push({
+          xLabel: cursor.getDate(),
+          spending: 0,
+          date: iso,
+          dateObj: new Date(cursor),
+          type: activeType,
+          expenses: [],
+        });
+      }
+    }
+
+    return filled;
+  };
+
+  const trimmedData =
+    timeframe === "all_time"
+      ? trimLeadingZeroSpending(normalizedData)
+      : normalizedData;
+
+  const normalizedWithFill = fillMissingDaysToToday(trimmedData);
+
+  const buildMonthlyBuckets = (points, labelWithYear = false) => {
+    const monthFormatter = new Intl.DateTimeFormat(locale || undefined, {
+      month: "short",
+    });
+    const map = {};
+
+    points.forEach((point) => {
+      if (!point.dateObj) return;
+      const monthIndex = point.dateObj.getMonth();
+      const year = point.dateObj.getFullYear();
       const key = `${year}-${monthIndex}`;
 
-      if (!monthlyMap[key]) {
-        monthlyMap[key] = {
-          xLabel: monthFormatter.format(dateObj),
+      if (!map[key]) {
+        map[key] = {
+          xLabel: labelWithYear
+            ? `${monthFormatter.format(point.dateObj)} ${year}`
+            : monthFormatter.format(point.dateObj),
           monthIndex,
           year,
           spending: 0,
           expenses: [],
-          type: item.type,
+          type: point.type,
         };
       }
 
-      monthlyMap[key].spending += item.spending ?? 0;
-      if (Array.isArray(item.expenses)) {
-        monthlyMap[key].expenses.push(...item.expenses);
+      map[key].spending += point.spending ?? 0;
+      if (Array.isArray(point.expenses)) {
+        map[key].expenses.push(...point.expenses);
       }
     });
 
-    chartData = Object.values(monthlyMap).sort((a, b) =>
+    return Object.values(map).sort((a, b) =>
       a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
     );
-  } else if (isAllTimeView) {
-    const monthlyMap = {};
-    const monthFormatter = new Intl.DateTimeFormat(locale, { month: "short" });
+  };
 
-    filteredData.forEach((item) => {
-      if (!item.day) return;
-      const dateObj = new Date(item.day);
-      if (Number.isNaN(dateObj.getTime())) return;
+  const chartData = (() => {
+    if (isYearView) {
+      return buildMonthlyBuckets(normalizedWithFill, false);
+    }
+    if (isAllTimeView) {
+      return buildMonthlyBuckets(trimmedData, true);
+    }
 
-      const year = dateObj.getFullYear();
-      const monthIndex = dateObj.getMonth();
-      const key = `${year}-${monthIndex}`;
-
-      if (!monthlyMap[key]) {
-        monthlyMap[key] = {
-          xLabel: `${monthFormatter.format(dateObj)} ${year}`,
-          year,
-          monthIndex,
-          spending: 0,
-          expenses: [],
-          type: item.type,
-        };
-      }
-
-      monthlyMap[key].spending += item.spending ?? 0;
-      if (Array.isArray(item.expenses)) {
-        monthlyMap[key].expenses.push(...item.expenses);
-      }
-    });
-
-    chartData = Object.values(monthlyMap).sort((a, b) =>
-      a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
-    );
-  } else {
-    chartData = filteredData.map((item) => {
-      let label = "";
-      if (item.day) {
-        const dateObj = new Date(item.day);
-        if (!Number.isNaN(dateObj.getTime())) {
-          label = dateObj.getDate();
-        }
-      }
-
-      return {
-        xLabel: label,
-        spending: item.spending ?? 0,
-        date: item.day,
-        type: item.type,
-        expenses: item.expenses || [],
-      };
-    });
-  }
+    return normalizedWithFill.map((point) => ({
+      xLabel: point.xLabel,
+      spending: point.spending,
+      date: point.date,
+      type: point.type,
+      expenses: point.expenses,
+    }));
+  })();
 
   const totalPoints = chartData.length || 0;
   const totalSpending = chartData.reduce(

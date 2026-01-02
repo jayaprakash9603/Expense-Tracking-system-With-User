@@ -52,7 +52,13 @@ export const getThemeColors = (type, themeConfig) => {
  */
 export const filterDataByType = (data, type) => {
   if (!type) return data;
-  return data.filter((item) => item.type === type || !item.type);
+  return data.filter((item) => {
+    if (!item || !type) return true;
+    const itemType = item.type;
+    if (!itemType) return true; // show untyped buckets
+    if (itemType === "mixed") return true; // mixed buckets belong in both views
+    return itemType === type;
+  });
 };
 
 /**
@@ -60,12 +66,55 @@ export const filterDataByType = (data, type) => {
  * @param {Array} data - Raw data array
  * @returns {Array} Transformed data
  */
-export const transformChartData = (data) => {
-  return data.map((item) => ({
-    day: item.day ? new Date(item.day).getDate() : "",
-    spending: item.spending ?? 0,
-    date: item.day,
-    type: item.type,
-    expenses: item.expenses || [],
-  }));
+export const transformChartData = (data, { timeframe, locale } = {}) => {
+  const isIsoDate = (value) =>
+    typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value);
+
+  return (Array.isArray(data) ? data : []).map((item, index) => {
+    const dateString =
+      item?.isoDate ||
+      item?.date ||
+      (isIsoDate(item?.day) ? item.day : null) ||
+      null;
+
+    const dateObj = dateString ? new Date(dateString) : null;
+    const spendingValue = item?.spending ?? item?.amount ?? item?.total ?? 0;
+    const safeSpending = Number.isFinite(spendingValue)
+      ? spendingValue
+      : Number(spendingValue) || 0;
+
+    const explicitLabel =
+      item?.label ||
+      item?.bucketLabel ||
+      item?.dayLabel ||
+      item?.monthLabel ||
+      item?.weekLabel ||
+      null;
+
+    let xLabel = explicitLabel || item?.day || `#${index + 1}`;
+
+    if (!explicitLabel && dateObj && !Number.isNaN(dateObj.getTime())) {
+      if (timeframe === "this_year" || timeframe === "last_year") {
+        xLabel = new Intl.DateTimeFormat(locale || undefined, {
+          month: "short",
+        }).format(dateObj);
+      } else if (timeframe === "all_time") {
+        xLabel = new Intl.DateTimeFormat(locale || undefined, {
+          month: "short",
+          year: "numeric",
+        }).format(dateObj);
+      } else {
+        xLabel = dateObj.getDate();
+      }
+    }
+
+    return {
+      xLabel,
+      spending: Math.abs(safeSpending),
+      date: dateString,
+      dateObj: dateObj && !Number.isNaN(dateObj.getTime()) ? dateObj : null,
+      type: item?.type || null,
+      expenses: Array.isArray(item?.expenses) ? item.expenses : [],
+    };
+  });
 };
