@@ -71,10 +71,20 @@ export default function usePaymentMethodsData({
         params,
         buildReportParams({ timeframe: "week", flowType: reportFlow })
       );
-    } else if (timeframe === "year") {
+    } else if (timeframe === "this_year" || timeframe === "year") {
       Object.assign(
         params,
         buildReportParams({ timeframe: "year", flowType: reportFlow })
+      );
+    } else if (timeframe === "last_year") {
+      Object.assign(
+        params,
+        buildReportParams({ timeframe: "last_year", flowType: reportFlow })
+      );
+    } else if (timeframe === "all_time") {
+      Object.assign(
+        params,
+        buildReportParams({ timeframe: "all_time", flowType: reportFlow })
       );
     } else {
       // Fallback: try buildReportParams with given timeframe

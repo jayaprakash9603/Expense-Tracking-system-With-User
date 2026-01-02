@@ -31,6 +31,7 @@ import { Box, useMediaQuery } from "@mui/material";
 import { useTheme } from "../../../hooks/useTheme";
 import FloatingNotificationItem from "./FloatingNotificationItem";
 import { getNotificationConfig } from "./constants/notificationTypes";
+import { fetchNotificationPreferences as fetchNotificationPreferenceSettings } from "../../../Redux/NotificationPreferences/notificationPreferences.action";
 
 /**
  * Configuration Constants
@@ -64,9 +65,12 @@ const FloatingNotificationContainer = () => {
   const notifications = useSelector(
     (state) => state.notifications?.notifications || []
   );
-  const preferences = useSelector(
+  const legacyPreferences = useSelector(
     (state) => state.notifications?.preferences || null
   );
+  const { preferences: managedPreferences, loading: preferencesLoading } =
+    useSelector((state) => state.notificationPreferences || {});
+  const preferences = managedPreferences || legacyPreferences;
 
   // Local state for displayed notifications
   const [displayedNotifications, setDisplayedNotifications] = useState([]);
@@ -74,12 +78,28 @@ const FloatingNotificationContainer = () => {
   const processedIds = useRef(new Set());
   const audioRef = useRef(null);
   const isInitialLoad = useRef(true); // Track if it's the first load
+  const preferencesFetchAttempted = useRef(false);
+
+  // Fetch preferences once so floating notifications honor saved settings globally
+  useEffect(() => {
+    if (
+      !preferences &&
+      !preferencesLoading &&
+      !preferencesFetchAttempted.current
+    ) {
+      preferencesFetchAttempted.current = true;
+      dispatch(fetchNotificationPreferenceSettings()).catch(() => {
+        // Allow retry if the request failed
+        preferencesFetchAttempted.current = false;
+      });
+    }
+  }, [dispatch, preferences, preferencesLoading]);
 
   /**
    * Check if floating notifications are enabled
    */
   const floatingNotificationsEnabled = useMemo(() => {
-    if (!preferences) return true; // Default enabled
+    if (!preferences) return false; // Wait until preferences load
 
     // Check master toggle
     if (preferences.masterEnabled === false) return false;
@@ -87,11 +107,27 @@ const FloatingNotificationContainer = () => {
     // Check floating notifications specific toggle
     if (preferences.floatingNotifications === false) return false;
 
+    // Respect in-app notification preference (disables floating as well)
+
     // Check do not disturb mode
     if (preferences.doNotDisturb === true) return false;
 
     return true;
   }, [preferences]);
+  {
+    console.log(
+      "Floating Notifications Enabled:",
+      floatingNotificationsEnabled
+    );
+  }
+
+  // Clear any displayed/queued notifications when the setting is off
+  useEffect(() => {
+    if (!floatingNotificationsEnabled) {
+      setDisplayedNotifications([]);
+      setQueue([]);
+    }
+  }, [floatingNotificationsEnabled]);
 
   /**
    * Check if notification sound is enabled

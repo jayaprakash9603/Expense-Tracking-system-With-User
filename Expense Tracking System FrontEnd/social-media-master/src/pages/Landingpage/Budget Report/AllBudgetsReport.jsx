@@ -27,6 +27,9 @@ const AllBudgetsReport = () => {
     flowType,
     setTimeframe,
     setFlowType,
+    dateRange,
+    setCustomDateRange,
+    resetDateRange,
     loading,
     error,
     budgetsData,
@@ -71,7 +74,7 @@ const AllBudgetsReport = () => {
       <ReportHeader
         className="payment-methods-header"
         title="💰 Budget Analytics"
-        subtitle="Comprehensive analysis of budget allocation, spending, and performance"
+        subtitle="Comprehensive analysis of budget allocations and spending trends"
         onFilter={handleFilter}
         onExport={handleExport}
         onTimeframeChange={handleTimeframeChange}
@@ -79,6 +82,12 @@ const AllBudgetsReport = () => {
         onBack={handleBack}
         flowType={flowType}
         onFlowTypeChange={handleFlowTypeChange}
+        dateRangeProps={{
+          fromDate: dateRange?.fromDate,
+          toDate: dateRange?.toDate,
+          onApply: setCustomDateRange,
+          onReset: resetDateRange,
+        }}
       />
 
       {error ? (

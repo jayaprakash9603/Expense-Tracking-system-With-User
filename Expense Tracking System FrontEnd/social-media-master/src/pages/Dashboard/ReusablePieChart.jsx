@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import PieChartTooltip from "../../components/charts/PieChartTooltip";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
+import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Generic reusable Pie/Donut chart component
 // Props:
@@ -128,6 +129,8 @@ const ReusablePieChart = ({
     ...item,
     percentage: totalAmount > 0 ? (item.value / totalAmount) * 100 : 0,
   }));
+  const showEmpty =
+    !loading && (!pieDataWithPercentage.length || totalAmount === 0);
 
   // Responsive radii fallback
   const isMobile = window.matchMedia("(max-width:600px)").matches;
@@ -239,7 +242,6 @@ const ReusablePieChart = ({
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-
     // Force the correct color based on theme
     const textColor = themeMode === "light" ? "#1a1a1a" : "#ffffff";
 
@@ -288,6 +290,9 @@ const ReusablePieChart = ({
                 <option value="this_month">This Month</option>
                 <option value="last_month">Last Month</option>
                 <option value="last_3_months">Last 3 Months</option>
+                <option value="this_year">This Year</option>
+                <option value="last_year">Last Year</option>
+                <option value="all_time">All Time</option>
               </select>
             )}
             {onFlowTypeChange && (
@@ -313,76 +318,85 @@ const ReusablePieChart = ({
           ref={chartRef}
           style={{ position: "relative", width: "100%", height }}
         >
-          <ResponsiveContainer width="100%" height={height}>
-            <PieChart>
-              <Pie
-                data={pieDataWithPercentage}
-                cx="50%"
-                cy="50%"
-                innerRadius={iRadius}
-                outerRadius={oRadius}
-                paddingAngle={2}
-                dataKey="value"
-                onMouseEnter={onPieEnter}
-                onMouseLeave={onPieLeave}
-                label={renderCustomLabel}
-                labelLine={{
-                  stroke: themeColors.border_color,
-                  strokeWidth: 1,
-                }}
-                activeIndex={activeIndex}
-                activeShape={{
-                  outerRadius: oRadius + 10,
-                  stroke: themeColors.primary_accent,
-                  strokeWidth: 2,
-                }}
-              >
-                {pieDataWithPercentage.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={colors[index % colors.length]}
-                    opacity={
-                      activeIndex === null || activeIndex === index ? 1 : 0.6
-                    }
-                    style={{
-                      filter:
-                        activeIndex === index ? "brightness(1.2)" : "none",
-                      cursor: "pointer",
-                      transition: "all 0.3s ease",
-                    }}
-                  />
-                ))}
-              </Pie>
-              {/* Only show Recharts tooltip when legend is not hovered */}
-              {!isLegendHovered && (
-                <Tooltip
-                  content={(props) => (
-                    <PieChartTooltip {...props} data={rawData || data} />
-                  )}
-                  cursor={{ fill: "transparent" }}
-                  isAnimationActive={false}
-                  trigger="hover"
-                  allowEscapeViewBox={{ x: true, y: true }}
-                />
-              )}
-              {legend && (
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                  wrapperStyle={{
-                    color: themeColors.primary_text,
-                    fontSize: isMobile ? "10px" : "12px",
+          {showEmpty ? (
+            <EmptyStateCard
+              icon="📊"
+              title="No distribution data"
+              message="We couldn't find any data for this timeframe yet."
+              height={height}
+              bordered={false}
+            />
+          ) : (
+            <ResponsiveContainer width="100%" height={height}>
+              <PieChart>
+                <Pie
+                  data={pieDataWithPercentage}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={iRadius}
+                  outerRadius={oRadius}
+                  paddingAngle={2}
+                  dataKey="value"
+                  onMouseEnter={onPieEnter}
+                  onMouseLeave={onPieLeave}
+                  label={renderCustomLabel}
+                  labelLine={{
+                    stroke: themeColors.border_color,
+                    strokeWidth: 1,
                   }}
-                  onMouseEnter={handleLegendMouseEnter}
-                  onMouseLeave={handleLegendMouseLeave}
-                />
-              )}
-            </PieChart>
-          </ResponsiveContainer>
+                  activeIndex={activeIndex}
+                  activeShape={{
+                    outerRadius: oRadius + 10,
+                    stroke: themeColors.primary_accent,
+                    strokeWidth: 2,
+                  }}
+                >
+                  {pieDataWithPercentage.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={colors[index % colors.length]}
+                      opacity={
+                        activeIndex === null || activeIndex === index ? 1 : 0.6
+                      }
+                      style={{
+                        filter:
+                          activeIndex === index ? "brightness(1.2)" : "none",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                      }}
+                    />
+                  ))}
+                </Pie>
+                {!isLegendHovered && (
+                  <Tooltip
+                    content={(props) => (
+                      <PieChartTooltip {...props} data={rawData || data} />
+                    )}
+                    cursor={{ fill: "transparent" }}
+                    isAnimationActive={false}
+                    trigger="hover"
+                    allowEscapeViewBox={{ x: true, y: true }}
+                  />
+                )}
+                {legend && (
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    wrapperStyle={{
+                      color: themeColors.primary_text,
+                      fontSize: isMobile ? "10px" : "12px",
+                    }}
+                    onMouseEnter={handleLegendMouseEnter}
+                    onMouseLeave={handleLegendMouseLeave}
+                  />
+                )}
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </div>
       )}
       {/* Render footer total only after data has loaded to avoid showing misleading 0 during skeleton */}
-      {renderFooterTotal && !loading && (
+      {renderFooterTotal && !loading && !showEmpty && (
         <div
           className="total-amount total-amount-bottom"
           style={{ color: themeColors.primary_text }}

@@ -5,6 +5,7 @@ import {
   clearFilteredBudgetsReport,
 } from "../Redux/Budget/budget.action";
 import { getChartColors } from "../utils/chartColors";
+import { computeDateRange } from "../utils/reportParams";
 
 const COLORS = getChartColors();
 
@@ -14,10 +15,14 @@ const COLORS = getChartColors();
  */
 const useBudgetReportData = ({ friendId }) => {
   const dispatch = useDispatch();
-  const [timeframe, setTimeframe] = useState("month");
+  const [timeframe, setTimeframe] = useState("all_time");
   const [flowType, setFlowType] = useState("loss");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dateRange, setDateRange] = useState(() =>
+    computeDateRange("all_time")
+  );
+  const [isCustomRange, setIsCustomRange] = useState(false);
 
   const { filteredBudgetsReport } = useSelector((state) => state.budgets);
 
@@ -26,21 +31,26 @@ const useBudgetReportData = ({ friendId }) => {
     setError(null);
 
     try {
-      await dispatch(
-        getFilteredBudgetsReport({
-          rangeType: timeframe,
-          offset: 0,
-          flowType: flowType === "all" ? null : flowType,
-          targetId: friendId || null,
-        })
-      );
+      const payload = {
+        rangeType: timeframe,
+        offset: 0,
+        flowType: flowType === "all" ? null : flowType,
+        targetId: friendId || null,
+      };
+
+      if (dateRange?.fromDate && dateRange?.toDate) {
+        payload.fromDate = dateRange.fromDate;
+        payload.toDate = dateRange.toDate;
+      }
+
+      await dispatch(getFilteredBudgetsReport(payload));
     } catch (err) {
       console.error("Error fetching budget report:", err);
       setError(err.message || "Failed to fetch budget report");
     } finally {
       setLoading(false);
     }
-  }, [dispatch, timeframe, flowType, friendId]);
+  }, [dispatch, timeframe, flowType, friendId, dateRange, isCustomRange]);
 
   useEffect(() => {
     fetchData();
@@ -144,6 +154,7 @@ const useBudgetReportData = ({ friendId }) => {
             return {
               method,
               amount: methodData.amount || 0,
+              totalAmount: methodData.amount || 0,
               transactions: methodData.transactions || 0,
               percentage: methodData.percentage || 0,
               color,
@@ -167,11 +178,43 @@ const useBudgetReportData = ({ friendId }) => {
     fetchData();
   }, [fetchData]);
 
+  const handleSetTimeframe = (nextTimeframe) => {
+    setTimeframe(nextTimeframe);
+    const normalized = nextTimeframe === "all" ? "all_time" : nextTimeframe;
+    setDateRange(computeDateRange(normalized));
+    setIsCustomRange(false);
+  };
+
+  const handleSetFlowType = (nextFlowType) => {
+    setFlowType(nextFlowType);
+  };
+
+  const handleSetCustomRange = (range) => {
+    if (!range?.fromDate || !range?.toDate) {
+      return;
+    }
+    setDateRange({
+      fromDate: range.fromDate.slice(0, 10),
+      toDate: range.toDate.slice(0, 10),
+    });
+    setIsCustomRange(true);
+  };
+
+  const handleResetRange = () => {
+    const normalized = timeframe === "all" ? "all_time" : timeframe;
+    setDateRange(computeDateRange(normalized));
+    setIsCustomRange(false);
+  };
+
   return {
     timeframe,
     flowType,
-    setTimeframe,
-    setFlowType,
+    setTimeframe: handleSetTimeframe,
+    setFlowType: handleSetFlowType,
+    dateRange,
+    setCustomDateRange: handleSetCustomRange,
+    resetDateRange: handleResetRange,
+    isCustomRange,
     loading,
     error,
     budgetsData,

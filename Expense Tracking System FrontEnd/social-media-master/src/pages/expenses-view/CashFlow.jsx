@@ -299,20 +299,6 @@ const Cashflow = () => {
               : "/upload/expenses",
             color: "#5b7fff",
           },
-          {
-            label: t("budget.addBudget"),
-            route: isFriendView
-              ? `/budget/create/${friendId}`
-              : "/budget/create",
-            color: "#FFC107",
-          },
-          {
-            label: t("categories.addCategory"),
-            route: isFriendView
-              ? `/category-flow/create/${friendId}`
-              : "/category-flow/create",
-            color: "#ff6b6b",
-          },
         ],
         navItems: [
           {

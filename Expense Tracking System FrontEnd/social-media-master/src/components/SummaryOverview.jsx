@@ -12,6 +12,7 @@ import {
   Tooltip,
 } from "recharts";
 import { useMediaQuery } from "@mui/material";
+import EmptyStateCard from "./EmptyStateCard";
 
 const formatNumber0 = (v) =>
   Number(v ?? 0).toLocaleString(undefined, {
@@ -31,9 +32,43 @@ const SummaryOverview = ({ summary, loading = false }) => {
   const currencySymbol = settings.getCurrency().symbol;
   const isMobile = useMediaQuery("(max-width:600px)");
 
+  const containerStyle = {
+    backgroundColor: colors.secondary_bg,
+    border: `1px solid ${colors.border_color}`,
+    borderRadius: "16px",
+    overflow: "hidden",
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+  };
+
+  const showEmpty = !summary && !loading;
+
   // Return null if no data and not loading
-  if (!summary && !loading) {
-    return null;
+  if (showEmpty) {
+    return (
+      <div className="chart-container summary-overview" style={containerStyle}>
+        <div
+          className="chart-header"
+          style={{
+            background: `linear-gradient(135deg, ${colors.primary_accent}15 0%, ${colors.primary_accent}05 100%)`,
+            padding: "14px 24px",
+            borderBottom: `1px solid ${colors.border_color}`,
+          }}
+        >
+          <h3 style={{ color: colors.primary_text, margin: 0 }}>
+            {t("dashboard.overview.title")}
+          </h3>
+        </div>
+        <div style={{ padding: "20px" }}>
+          <EmptyStateCard
+            icon="🔎"
+            title={t("dashboard.overview.title")}
+            message="No application overview data available yet."
+            height={200}
+            bordered={false}
+          />
+        </div>
+      </div>
+    );
   }
 
   const s = {

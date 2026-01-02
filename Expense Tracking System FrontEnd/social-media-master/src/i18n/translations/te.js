@@ -637,6 +637,7 @@ export const te = {
         dayPrefix: "రోజు",
         transactions: "లావాదేవీలు",
         moreLabel: "ఇంకా",
+        runningAverage: "సగటు",
       },
       datasetLabels: {
         income: "ఆదాయం",

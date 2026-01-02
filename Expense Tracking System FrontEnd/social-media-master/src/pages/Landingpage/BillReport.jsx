@@ -19,6 +19,8 @@ import {
   ComposedChart,
   Line,
 } from "recharts";
+import SpendingChartTooltip from "../../components/charts/SpendingChartTooltip";
+import { CHART_THEME, TOOLTIP_CONFIG } from "../../config/chartConfig";
 import "./BillReport.css";
 import { fetchAllBills } from "../../Redux/Bill/bill.action";
 import { IconButton } from "@mui/material";
@@ -168,7 +170,7 @@ const ReportHeader = ({
   <div
     className="bill-report-header"
     style={{
-      background: colors.tertiary_bg,
+      // background: colors.tertiary_bg,
       borderBottom: `1px solid ${colors.border_color}`,
     }}
   >
@@ -491,94 +493,86 @@ const PaymentMethodPieChart = ({
 const DailyTrendChart = ({
   dailyTrendData,
   timeframe,
-  trendCursor,
-  onPrev,
-  onNext,
+  timeframeRange,
+  selectedType,
   currencySymbol = "₹",
-}) => (
-  <div className="chart-container full-width">
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 8,
-      }}
-    >
-      <h3 style={{ margin: 0 }}>Expense Trend</h3>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <button className="page-btn" onClick={onPrev}>
-          Prev
-        </button>
-        <div
-          style={{
-            color: "#cccccc",
-            fontSize: 14,
-            width: 260,
-            textAlign: "center",
-          }}
-        >
-          {(() => {
-            if (timeframe === "all") {
-              return trendCursor.getFullYear();
-            }
-            if (timeframe === "this_year" || timeframe === "last_year") {
-              return trendCursor.getFullYear();
-            }
-            if (timeframe === "this_month" || timeframe === "last_month") {
-              return trendCursor.toLocaleString("default", {
-                month: "long",
-                year: "numeric",
-              });
-            }
-            const start = new Date(trendCursor);
-            const end = new Date(trendCursor);
-            end.setDate(end.getDate() + 6);
-            return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-          })()}
-        </div>
-        <button className="page-btn" onClick={onNext}>
-          Next
-        </button>
-      </div>
-    </div>
+}) => {
+  const theme = CHART_THEME[selectedType === "gain" ? "gain" : "loss"];
 
-    <ResponsiveContainer width="100%" height={300}>
-      <ComposedChart data={dailyTrendData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip
-          formatter={(value, name) => {
-            if (name === "average")
-              return [
-                `${currencySymbol}${Number(value).toFixed(2)}`,
-                "Running Avg",
-              ];
-            return [`${currencySymbol}${value}`, "Amount"];
-          }}
-        />
-        <Legend />
-        <Area
-          type="monotone"
-          dataKey="amount"
-          name="Amount"
-          stroke="#14b8a6"
-          fill="#14b8a6"
-          fillOpacity={0.3}
-        />
-        <Line
-          type="monotone"
-          dataKey="average"
-          name="Running Avg"
-          stroke="#ffb703"
-          strokeWidth={2}
-          dot={false}
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
-  </div>
-);
+  return (
+    <div className="chart-container full-width">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 8,
+        }}
+      >
+        <h3 style={{ margin: 0 }}>Expense Trend</h3>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div
+            style={{
+              color: "#cccccc",
+              fontSize: 14,
+              width: 260,
+              textAlign: "center",
+            }}
+          >
+            {(() => {
+              if (timeframe === "all") return "All time";
+              if (timeframeRange?.start && timeframeRange?.end) {
+                return `${timeframeRange.start.toLocaleDateString()} - ${timeframeRange.end.toLocaleDateString()}`;
+              }
+              return "";
+            })()}
+          </div>
+        </div>
+      </div>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <ComposedChart data={dailyTrendData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="xLabel" />
+          <YAxis />
+          <Tooltip
+            cursor={{
+              stroke: theme.color,
+              strokeWidth: 1,
+              strokeDasharray: "4 4",
+            }}
+            content={(props) => (
+              <SpendingChartTooltip
+                {...props}
+                selectedType={selectedType === "gain" ? "gain" : "loss"}
+                timeframe={timeframe}
+                config={TOOLTIP_CONFIG}
+                theme={theme}
+              />
+            )}
+          />
+          <Legend />
+          <Area
+            type="monotone"
+            dataKey="amount"
+            name="Amount"
+            stroke="#14b8a6"
+            fill="#14b8a6"
+            fillOpacity={0.3}
+          />
+          <Line
+            type="monotone"
+            dataKey="average"
+            name="Running Avg"
+            stroke="#ffb703"
+            strokeWidth={2}
+            dot={false}
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
 
 const TopItemsRadialChart = ({
   topItemsRadialData,
@@ -903,16 +897,6 @@ const BillReport = () => {
     dispatch(fetchAllBills(friendId ? friendId : null, billQueryParams));
   }, [dispatch, friendId, billQueryParams]);
 
-  useEffect(() => {
-    const base = new Date();
-    if (selectedTimeframe === "last_month") {
-      base.setMonth(base.getMonth() - 1);
-    } else if (selectedTimeframe === "last_year") {
-      base.setFullYear(base.getFullYear() - 1);
-    }
-    setTrendCursor(base);
-  }, [selectedTimeframe]);
-
   const handleReportActionClick = (event) => {
     setReportActionAnchorEl(event.currentTarget);
   };
@@ -1067,120 +1051,100 @@ const BillReport = () => {
     value: amount,
   }));
 
-  const [trendCursor, setTrendCursor] = useState(() => new Date());
-
-  const pad = (n) => String(n).padStart(2, "0");
-  const isoLocal = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
-
-  const sampleYearly = (year) => {
-    const samples = [];
-    for (let m = 0; m < 12; m++) {
-      samples.push(isoLocal(year, m, 1));
-      samples.push(isoLocal(year, m, 15));
-    }
-    return samples;
-  };
-
-  const sampleMonthly = (year, month) => {
-    const s = [];
-    const lastDay = new Date(year, month + 1, 0).getDate();
-    for (let d = 1; d <= lastDay; d++) {
-      s.push(isoLocal(year, month, d));
-    }
-    return s;
-  };
-
   const dailyTrendData = useMemo(() => {
-    let points = [];
+    const map = analytics.dailyExpenses || {};
+    const points = [];
 
-    if (selectedTimeframe === "all") {
-      const y = trendCursor.getFullYear();
-      const samples = sampleYearly(y);
-      points = samples.map((iso) => ({
-        date: new Date(iso).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
-        amount: analytics.dailyExpenses[iso] || 0,
-      }));
-    } else if (
-      selectedTimeframe === "this_year" ||
-      selectedTimeframe === "last_year"
-    ) {
-      const y = trendCursor.getFullYear();
-      const samples = sampleYearly(y);
-      points = samples.map((iso) => ({
-        date: new Date(iso).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
-        amount: analytics.dailyExpenses[iso] || 0,
-      }));
-    } else if (
-      selectedTimeframe === "this_month" ||
-      selectedTimeframe === "last_month"
-    ) {
-      const y = trendCursor.getFullYear();
-      const m = trendCursor.getMonth();
-      const samples = sampleMonthly(y, m);
-      points = samples.map((iso) => ({
-        date: new Date(iso).toLocaleDateString("en-US", { day: "numeric" }),
-        amount: analytics.dailyExpenses[iso] || 0,
-      }));
+    const addPoint = (dateObj) => {
+      const iso = formatISODate(dateObj);
+      const amount = map[iso] || 0;
+      points.push({ dateObj: new Date(dateObj), iso, amount });
+    };
+
+    if (timeframeRange?.start && timeframeRange?.end) {
+      const cursor = new Date(timeframeRange.start);
+      const end = new Date(timeframeRange.end);
+      while (cursor <= end) {
+        addPoint(cursor);
+        cursor.setDate(cursor.getDate() + 1);
+      }
     } else {
-      points = Object.entries(analytics.dailyExpenses)
-        .sort(([a], [b]) => new Date(a) - new Date(b))
-        .map(([date, amount]) => ({
-          date: new Date(date).toLocaleDateString("en-US", {
+      Object.keys(map)
+        .sort((a, b) => new Date(a) - new Date(b))
+        .forEach((iso) => addPoint(new Date(iso)));
+    }
+    const isYearLike =
+      selectedTimeframe === "this_year" ||
+      selectedTimeframe === "last_year" ||
+      selectedTimeframe === "all";
+
+    let series = [];
+
+    if (isYearLike) {
+      // Aggregate by month for year/all views
+      const buckets = points.reduce((acc, p) => {
+        const y = p.dateObj.getFullYear();
+        const m = p.dateObj.getMonth();
+        const key = `${y}-${m}`;
+        if (!acc[key]) {
+          acc[key] = {
+            year: y,
+            month: m,
+            amount: 0,
+            count: 0,
+          };
+        }
+        acc[key].amount += Number(p.amount || 0);
+        acc[key].count += 1;
+        return acc;
+      }, {});
+
+      series = Object.values(buckets)
+        .sort((a, b) =>
+          a.year === b.year ? a.month - b.month : a.year - b.year
+        )
+        .map((b) => {
+          const monthDate = new Date(b.year, b.month, 1);
+          const label = monthDate.toLocaleString("default", {
             month: "short",
-            day: "numeric",
-          }),
-          amount,
-        }));
+            year: selectedTimeframe === "all" ? "numeric" : undefined,
+          });
+          return {
+            xLabel: label,
+            rawDate: formatISODate(monthDate),
+            date: formatISODate(monthDate),
+            amount: b.amount,
+          };
+        });
+    } else {
+      const formatter = (() => {
+        if (
+          selectedTimeframe === "this_month" ||
+          selectedTimeframe === "last_month"
+        ) {
+          return (d) => d.getDate().toString();
+        }
+        return (d) =>
+          d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      })();
+
+      series = points.map((p) => ({
+        ...p,
+        xLabel: formatter(p.dateObj),
+        rawDate: p.iso,
+        date: p.iso,
+        amount: p.amount,
+      }));
     }
 
     let running = 0;
-    return points.map((p, idx) => {
+    return series.map((p, idx) => {
       running += Number(p.amount || 0);
       const avgRaw = running / (idx + 1);
       const average = Math.round(avgRaw * 100) / 100;
       return { ...p, average };
     });
-  }, [analytics.dailyExpenses, selectedTimeframe, trendCursor]);
-
-  const handleTrendPrev = () => {
-    const c = new Date(trendCursor);
-    if (
-      selectedTimeframe === "all" ||
-      selectedTimeframe === "this_year" ||
-      selectedTimeframe === "last_year"
-    ) {
-      c.setFullYear(c.getFullYear() - 1);
-    } else if (
-      selectedTimeframe === "this_month" ||
-      selectedTimeframe === "last_month"
-    ) {
-      c.setMonth(c.getMonth() - 1);
-    }
-    setTrendCursor(c);
-  };
-
-  const handleTrendNext = () => {
-    const c = new Date(trendCursor);
-    if (
-      selectedTimeframe === "all" ||
-      selectedTimeframe === "this_year" ||
-      selectedTimeframe === "last_year"
-    ) {
-      c.setFullYear(c.getFullYear() + 1);
-    } else if (
-      selectedTimeframe === "this_month" ||
-      selectedTimeframe === "last_month"
-    ) {
-      c.setMonth(c.getMonth() + 1);
-    }
-    setTrendCursor(c);
-  };
+  }, [analytics.dailyExpenses, selectedTimeframe, timeframeRange]);
 
   const topItemsRadialData = Object.entries(analytics.itemBreakdown)
     .sort(([, a], [, b]) => b.total - a.total)
@@ -1301,9 +1265,8 @@ const BillReport = () => {
               <DailyTrendChart
                 dailyTrendData={dailyTrendData}
                 timeframe={selectedTimeframe}
-                trendCursor={trendCursor}
-                onPrev={handleTrendPrev}
-                onNext={handleTrendNext}
+                timeframeRange={timeframeRange}
+                selectedType={selectedType}
                 currencySymbol={currencySymbol}
               />
             )}

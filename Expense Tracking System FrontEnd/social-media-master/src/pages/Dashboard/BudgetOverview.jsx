@@ -2,6 +2,7 @@ import React from "react";
 import BudgetOverviewSkeleton from "./BudgetOverviewSkeleton";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Flexible BudgetOverview component
 // Supports either a list of detailed budgets or a simple remaining/total view.
@@ -29,11 +30,21 @@ const BudgetOverview = ({
   if (loading) return <BudgetOverviewSkeleton count={maxItems} />;
 
   const hasList = Array.isArray(budgets) && budgets.length > 0;
+  const hasSummaryValues = remainingBudget != null || totalLosses != null;
+  const showEmpty = !hasList && !hasSummaryValues;
+
+  if (showEmpty) {
+    return (
+      <EmptyStateCard
+        icon="📊"
+        title="No budget data yet"
+        message="Add budgets to track allocations and spending insightfully."
+      />
+    );
+  }
+
   const useSummary =
-    mode === "summary" ||
-    (mode === "auto" &&
-      !hasList &&
-      (remainingBudget != null || totalLosses != null));
+    mode === "summary" || (mode === "auto" && !hasList && hasSummaryValues);
 
   if (useSummary) {
     const absRemain = Math.abs(remainingBudget || 0);
@@ -276,12 +287,13 @@ const BudgetOverview = ({
           );
         })}
         {!list.length && (
-          <div
-            className="budget-empty"
-            style={{ color: colors.secondary_text }}
-          >
-            No budgets configured yet.
-          </div>
+          <EmptyStateCard
+            icon="📋"
+            title="No budgets configured"
+            message="Create a budget to monitor allocations and spending."
+            height={180}
+            bordered={false}
+          />
         )}
       </div>
     </div>

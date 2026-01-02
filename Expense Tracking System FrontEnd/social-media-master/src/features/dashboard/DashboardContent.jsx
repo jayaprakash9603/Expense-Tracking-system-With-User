@@ -22,6 +22,7 @@ import {
 import QuickAccess from "../../pages/Landingpage/QuickAccess";
 import { useDashboardContext } from "./DashboardProvider";
 import { createDashboardActions } from "./dashboardActions";
+import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Section component mapping
 const SECTION_COMPONENTS = {
@@ -174,6 +175,30 @@ export default function DashboardContent() {
   const isMobile = window.matchMedia("(max-width:600px)").matches;
   const isTablet = window.matchMedia("(max-width:1024px)").matches;
 
+  const hasTransactions =
+    Array.isArray(analyticsSummary?.lastTenExpenses) &&
+    analyticsSummary.lastTenExpenses.length > 0;
+  const hasBudgetData = Array.isArray(analyticsSummary?.budgets)
+    ? analyticsSummary.budgets.length > 0
+    : analyticsSummary?.remainingBudget != null ||
+      analyticsSummary?.totalLosses != null;
+  const hasCategoryData =
+    Array.isArray(categoryDistribution) && categoryDistribution.length > 0;
+  const hasPaymentData =
+    Array.isArray(paymentMethodsData) && paymentMethodsData.length > 0;
+  const hasDailySpending =
+    (Array.isArray(dailySpendingData) && dailySpendingData.length > 0) ||
+    (Array.isArray(dailySpendingData?.data) &&
+      dailySpendingData.data.length > 0) ||
+    (Array.isArray(dailySpendingData?.datasets?.[0]?.data) &&
+      dailySpendingData.datasets[0].data.some((v) => Number.isFinite(v)));
+  const hasAnySectionData =
+    hasDailySpending ||
+    hasCategoryData ||
+    hasPaymentData ||
+    hasTransactions ||
+    hasBudgetData;
+
   // Prepare props for section components
   const sectionProps = {
     analyticsSummary,
@@ -304,6 +329,17 @@ export default function DashboardContent() {
           ) : (
             bottomSections.map(renderSection)
           )}
+        </div>
+      )}
+
+      {!analyticsLoading && !hasAnySectionData && (
+        <div style={{ marginTop: isMobile ? 16 : 24 }}>
+          <EmptyStateCard
+            icon="📊"
+            title="No dashboard data yet"
+            message="Add expenses, budgets, or categories to see your personalized analytics."
+            height={220}
+          />
         </div>
       )}
     </div>

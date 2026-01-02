@@ -26,6 +26,9 @@ const CategoryReport = () => {
     flowType,
     setTimeframe,
     setFlowType,
+    dateRange,
+    setCustomDateRange,
+    resetDateRange,
     loading,
     error,
     categories: categorySpending,
@@ -78,6 +81,16 @@ const CategoryReport = () => {
         onBack={handleBack}
         flowType={flowType}
         onFlowTypeChange={handleFlowTypeChange}
+        dateRangeProps={
+          dateRange
+            ? {
+                fromDate: dateRange.fromDate,
+                toDate: dateRange.toDate,
+                onApply: setCustomDateRange,
+                onReset: resetDateRange,
+              }
+            : undefined
+        }
       />
 
       {error ? (

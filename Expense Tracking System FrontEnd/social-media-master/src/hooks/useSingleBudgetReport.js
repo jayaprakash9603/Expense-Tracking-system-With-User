@@ -10,7 +10,8 @@ const useSingleBudgetReport = (
   budgetId,
   timeFrame = "All",
   flowType = "all",
-  targetId = null
+  targetId = null,
+  customRange = null
 ) => {
   const dispatch = useDispatch();
   const budgetState = useSelector((store) => store.budget || {});
@@ -86,6 +87,11 @@ const useSingleBudgetReport = (
           }
         }
 
+        if (customRange?.fromDate && customRange?.toDate) {
+          fromDate = customRange.fromDate.slice(0, 10);
+          toDate = customRange.toDate.slice(0, 10);
+        }
+
         // Dispatch Redux action with explicit dates if calculated
         const data = await dispatch(
           getDetailedBudgetReport(
@@ -157,26 +163,73 @@ const useSingleBudgetReport = (
 
         // Transform payment method totals to payment breakdown with percentage
         if (data.summary?.paymentMethodTotals) {
-          const paymentTotal = data.summary.paymentMethodTotals.reduce(
-            (sum, item) => sum + (item.totalAmount ?? 0),
-            0
-          );
-          transformedData.paymentMethodBreakdown =
-            data.summary.paymentMethodTotals.map((item) => {
-              const amount = item.totalAmount ?? 0;
+          const totals = data.summary.paymentMethodTotals;
+          const isArrayShape = Array.isArray(totals);
+
+          const normalizeEntry = (entry) => {
+            if (!entry && entry !== 0) return 0;
+            if (typeof entry === "number") return entry;
+            if (typeof entry === "string") return Number(entry) || 0;
+            if (typeof entry === "object") {
+              return (
+                Number(
+                  entry.totalAmount ??
+                    entry.total ??
+                    entry.value ??
+                    entry.amount ??
+                    0
+                ) || 0
+              );
+            }
+            return 0;
+          };
+
+          const paymentTotal = isArrayShape
+            ? totals.reduce((sum, item) => sum + normalizeEntry(item), 0)
+            : Object.values(totals).reduce(
+                (sum, value) => sum + normalizeEntry(value),
+                0
+              );
+
+          const breakdownEntries = isArrayShape
+            ? totals.map((item) => ({
+                method:
+                  item.paymentMethod ?? item.method ?? item.label ?? "Unknown",
+                amount: normalizeEntry(item),
+                count: item.count ?? item.transactions ?? 0,
+                icon: item.icon,
+              }))
+            : Object.entries(totals).map(([method, value]) => ({
+                method,
+                amount: normalizeEntry(value),
+                count:
+                  typeof value === "object"
+                    ? value.count ??
+                      value.transactions ??
+                      value.expenseCount ??
+                      0
+                    : 0,
+                icon: value?.icon,
+              }));
+
+          transformedData.paymentMethodBreakdown = breakdownEntries.map(
+            ({ method, amount, count, icon }) => {
+              const value = Number(amount) || 0;
               const percentage =
                 paymentTotal > 0
-                  ? Math.round((amount / paymentTotal) * 100 * 10) / 10
+                  ? Math.round((value / paymentTotal) * 100 * 10) / 10
                   : 0;
               return {
-                name: item.paymentMethod,
-                method: item.paymentMethod, // for SharedDistributionChart payment mode
-                amount,
-                totalAmount: amount, // for SharedDistributionChart payment mode
-                count: item.count,
+                name: method,
+                method,
+                amount: value,
+                totalAmount: value,
+                count,
                 percentage,
+                icon,
               };
-            });
+            }
+          );
         }
 
         // Transform expense groups for overview cards (needs totalAmount, transactions, expenses)
@@ -206,7 +259,7 @@ const useSingleBudgetReport = (
     };
 
     fetchBudgetReport();
-  }, [budgetId, timeFrame, flowType, targetId, dispatch]);
+  }, [budgetId, timeFrame, flowType, targetId, customRange, dispatch]);
 
   return {
     loading,

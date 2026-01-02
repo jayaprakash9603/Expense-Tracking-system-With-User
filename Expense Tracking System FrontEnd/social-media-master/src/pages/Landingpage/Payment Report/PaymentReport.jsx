@@ -28,6 +28,9 @@ const PaymentMethodsReport = () => {
     flowType,
     setTimeframe,
     setFlowType,
+    dateRange,
+    setCustomDateRange,
+    resetDateRange,
     loading,
     error,
     methodsData,
@@ -81,6 +84,12 @@ const PaymentMethodsReport = () => {
         onBack={handleBack}
         flowType={flowType}
         onFlowTypeChange={handleFlowTypeChange}
+        dateRangeProps={{
+          fromDate: dateRange?.fromDate,
+          toDate: dateRange?.toDate,
+          onApply: setCustomDateRange,
+          onReset: resetDateRange,
+        }}
       />
 
       {error ? (

@@ -58,11 +58,23 @@ export function computeDateRange(timeframe, now = new Date()) {
  * @param {'week'|'month'|'quarter'|'year'|'last_year'|'all_time'} opts.timeframe
  * @param {'all'|'inflow'|'outflow'} [opts.flowType]
  * @param {string|number} [opts.friendId]
+ * @param {{fromDate:string,toDate:string}} [opts.rangeOverride]
  * @returns {Record<string, string|number>}
  */
-export function buildReportParams({ timeframe, flowType, friendId }) {
-  const { fromDate, toDate } = computeDateRange(timeframe);
-  const params = { fromDate, toDate };
+export function buildReportParams({
+  timeframe,
+  flowType,
+  friendId,
+  rangeOverride,
+}) {
+  const baseRange =
+    rangeOverride && rangeOverride.fromDate && rangeOverride.toDate
+      ? rangeOverride
+      : computeDateRange(timeframe);
+  const params = {
+    fromDate: baseRange.fromDate,
+    toDate: baseRange.toDate,
+  };
   if (flowType && flowType !== "all") params.flowType = flowType;
   if (friendId) params.targetId = friendId;
   return params;
@@ -79,8 +91,13 @@ export function buildReportParams({ timeframe, flowType, friendId }) {
  */
 export async function fetchWithReportParams(
   apiFn,
-  { timeframe, flowType, friendId }
+  { timeframe, flowType, friendId, rangeOverride }
 ) {
-  const params = buildReportParams({ timeframe, flowType, friendId });
+  const params = buildReportParams({
+    timeframe,
+    flowType,
+    friendId,
+    rangeOverride,
+  });
   return apiFn(params);
 }

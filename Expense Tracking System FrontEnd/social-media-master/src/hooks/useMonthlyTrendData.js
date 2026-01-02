@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import { fetchMonthlyExpenses } from "../utils/Api";
 
 /**
@@ -106,7 +107,14 @@ export default function useMonthlyTrendData({ year, refreshTrigger }) {
           setData(normalized ?? null);
         }
       } catch (e) {
-        if (e.name === "AbortError") return; // ignore abort
+        if (
+          e.name === "AbortError" ||
+          axios.isCancel(e) ||
+          e?.code === "ERR_CANCELED" ||
+          e?.message === "canceled"
+        ) {
+          return; // ignore cancellations
+        }
         console.error("Failed to load monthly expenses:", e);
         if (mounted) setError(e);
       } finally {

@@ -634,6 +634,7 @@ export const en = {
         dayPrefix: "Day",
         transactions: "Transactions",
         moreLabel: "more",
+        runningAverage: "Average",
       },
       datasetLabels: {
         income: "Income",

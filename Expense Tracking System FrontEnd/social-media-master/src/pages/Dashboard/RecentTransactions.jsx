@@ -2,6 +2,7 @@ import React from "react";
 import ListSkeleton from "../../components/ListSkeleton";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Reusable Recent Transactions list
 // Props:
@@ -20,6 +21,15 @@ const RecentTransactions = ({
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const showEmpty =
+    !loading && (!Array.isArray(transactions) || transactions.length === 0);
+  const listStyle = showEmpty
+    ? {
+        display: "grid",
+        gridTemplateColumns: "1fr",
+        gridAutoRows: "auto",
+      }
+    : undefined;
 
   return (
     <div
@@ -42,9 +52,17 @@ const RecentTransactions = ({
           View All
         </button>
       </div>
-      <div className="transactions-list">
+      <div className="transactions-list" style={listStyle}>
         {loading ? (
           <ListSkeleton count={skeletonCount} dense variant="user" />
+        ) : showEmpty ? (
+          <EmptyStateCard
+            icon="🧾"
+            title="No recent transactions"
+            message="New transactions will appear here once recorded."
+            height={400}
+            bordered={false}
+          />
         ) : (
           (Array.isArray(transactions)
             ? transactions.slice(0, maxItems)

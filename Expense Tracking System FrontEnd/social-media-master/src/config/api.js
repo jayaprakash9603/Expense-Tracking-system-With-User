@@ -4,6 +4,12 @@ import {
   buildSystemErrorPayloadFromAxios,
 } from "../utils/systemErrorEvents";
 
+const isCanceledError = (error) =>
+  axios.isCancel(error) ||
+  error?.code === "ERR_CANCELED" ||
+  error?.message === "canceled" ||
+  error?.name === "CanceledError";
+
 export const API_BASE_URL = "http://localhost:8080";
 
 // Function to get the JWT token from localStorage
@@ -52,6 +58,10 @@ const shouldNormalizeStatus = (status) =>
   (typeof status === "number" && status >= 500 && status < 600);
 
 const handleResponseError = (error) => {
+  if (isCanceledError(error)) {
+    return Promise.reject(error);
+  }
+
   if (error.response) {
     const { status } = error.response;
     const responseMessage =
