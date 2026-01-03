@@ -87,9 +87,7 @@ const ScrollingSuppressionBanner = ({
                 <>
                   <span className="separator"> · </span>
                   <span>Paused for </span>
-                  <span
-                    className={isCriticalPhase ? "critical-text" : ""}
-                  >
+                  <span className={isCriticalPhase ? "critical-text" : ""}>
                     {formatDuration(elapsedMs)}
                   </span>
                 </>

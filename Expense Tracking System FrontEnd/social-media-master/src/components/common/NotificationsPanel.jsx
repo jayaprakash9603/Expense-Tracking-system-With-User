@@ -1,4 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { useTheme } from "../../hooks/useTheme";
 import useNotifications from "../../hooks/useNotifications";
 import { useSelector } from "react-redux";
@@ -41,6 +47,10 @@ import {
  * @param {function} onClose - Callback to close the panel
  * @param {function} onNotificationRead - Callback with unread count when notifications are read
  */
+const MAX_PANEL_NOTIFICATIONS = 100;
+const PANEL_PROCESSING_BATCH_SIZE = 20;
+const PANEL_PROCESSING_DELAY_MS = 12;
+
 const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
   const { colors, mode } = useTheme();
   const isDark = mode === "dark";
@@ -51,7 +61,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
 
   // Use notifications hook
   const {
-    notifications,
+    notifications: rawNotifications,
     isConnected,
     unreadCount,
     markAsRead,
@@ -71,6 +81,115 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
   });
 
   const [filter, setFilter] = useState("all"); // all, unread, read
+  const [displayedNotifications, setDisplayedNotifications] = useState([]);
+  const pendingPanelQueue = useRef([]);
+  const panelProcessingTimerRef = useRef(null);
+  const processedPanelIdsRef = useRef(new Set());
+  const isPanelInitializedRef = useRef(false);
+
+  const limitedNotifications = useMemo(() => {
+    if (!rawNotifications || rawNotifications.length === 0) {
+      return [];
+    }
+    if (rawNotifications.length <= MAX_PANEL_NOTIFICATIONS) {
+      return rawNotifications;
+    }
+    return rawNotifications.slice(-MAX_PANEL_NOTIFICATIONS);
+  }, [rawNotifications]);
+
+  const clearPanelProcessingTimer = useCallback(() => {
+    if (panelProcessingTimerRef.current) {
+      clearTimeout(panelProcessingTimerRef.current);
+      panelProcessingTimerRef.current = null;
+    }
+  }, []);
+
+  const processPanelBatch = useCallback(() => {
+    clearPanelProcessingTimer();
+
+    if (pendingPanelQueue.current.length === 0) {
+      return;
+    }
+
+    const batch = pendingPanelQueue.current.splice(
+      0,
+      PANEL_PROCESSING_BATCH_SIZE
+    );
+
+    setDisplayedNotifications((current) => {
+      const merged = [...current, ...batch];
+      const trimmed = merged.slice(-MAX_PANEL_NOTIFICATIONS);
+      processedPanelIdsRef.current = new Set(
+        trimmed.map((notification) => notification.id)
+      );
+      return trimmed;
+    });
+
+    if (pendingPanelQueue.current.length > 0) {
+      panelProcessingTimerRef.current = setTimeout(
+        processPanelBatch,
+        PANEL_PROCESSING_DELAY_MS
+      );
+    }
+  }, [clearPanelProcessingTimer]);
+
+  const schedulePanelProcessing = useCallback(() => {
+    if (
+      panelProcessingTimerRef.current ||
+      pendingPanelQueue.current.length === 0
+    ) {
+      return;
+    }
+    panelProcessingTimerRef.current = setTimeout(
+      processPanelBatch,
+      PANEL_PROCESSING_DELAY_MS
+    );
+  }, [processPanelBatch]);
+
+  useEffect(() => {
+    const latestById = new Map(
+      limitedNotifications.map((notification) => [
+        notification.id,
+        notification,
+      ])
+    );
+
+    setDisplayedNotifications((current) =>
+      current
+        .filter((notif) => latestById.has(notif.id))
+        .map((notif) => latestById.get(notif.id))
+    );
+
+    processedPanelIdsRef.current = new Set(
+      [...processedPanelIdsRef.current].filter((id) => latestById.has(id))
+    );
+
+    const newNotifications = limitedNotifications.filter(
+      (notif) => !processedPanelIdsRef.current.has(notif.id)
+    );
+
+    if (!isPanelInitializedRef.current) {
+      processedPanelIdsRef.current = new Set(
+        limitedNotifications.map((notification) => notification.id)
+      );
+      setDisplayedNotifications(limitedNotifications);
+      isPanelInitializedRef.current = true;
+      return;
+    }
+
+    if (newNotifications.length > 0) {
+      pendingPanelQueue.current.push(...newNotifications);
+      schedulePanelProcessing();
+    }
+  }, [limitedNotifications, schedulePanelProcessing]);
+
+  useEffect(
+    () => () => {
+      clearPanelProcessingTimer();
+      pendingPanelQueue.current = [];
+    },
+    [clearPanelProcessingTimer]
+  );
 
   // Request notification permission on mount
   useEffect(() => {
@@ -182,11 +301,11 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
   // Filter notifications
   const getFilteredNotifications = () => {
     if (filter === "unread") {
-      return notifications.filter((n) => !n.read);
+      return displayedNotifications.filter((n) => !n.read);
     } else if (filter === "read") {
-      return notifications.filter((n) => n.read);
+      return displayedNotifications.filter((n) => n.read);
     }
-    return notifications;
+    return displayedNotifications;
   };
 
   const filteredNotifications = getFilteredNotifications();
@@ -291,7 +410,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
         </div>
 
         {/* Action Buttons */}
-        {notifications.length > 0 && (
+        {displayedNotifications.length > 0 && (
           <div
             className="px-4 py-2 border-b flex gap-2"
             style={{ borderColor: colors.border_color }}
@@ -449,7 +568,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
         </div>
 
         {/* Footer */}
-        {notifications.length > 0 && (
+        {displayedNotifications.length > 0 && (
           <div
             className="px-4 py-3 border-t text-center"
             style={{ borderColor: colors.border_color }}
