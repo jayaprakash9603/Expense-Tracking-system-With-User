@@ -15,6 +15,7 @@ import Modal from "../../pages/Landingpage/Modal";
 import NotificationsPanelRedux from "./NotificationsPanelRedux";
 import SystemErrorIndicator from "./SystemErrorIndicator";
 import { useTranslation } from "../../hooks/useTranslation";
+import GlobalHeaderMessageSlot from "./GlobalHeaderMessage/GlobalHeaderMessageSlot";
 
 /**
  * HeaderBar Component
@@ -120,10 +121,16 @@ const HeaderBar = () => {
   return (
     <>
       <div
-        className={`h-[50px] flex items-center justify-end px-4 sm:px-6  transition-colors ${
+        className={`h-[50px] flex items-center justify-between px-4 sm:px-6  transition-colors ${
           isDark ? "bg-[#1b1b1b] " : "bg-white "
         }`}
       >
+        <div className="flex-1 flex justify-center px-2">
+          <div className="w-full" style={{ maxWidth: 360 }}>
+            <GlobalHeaderMessageSlot className="justify-center" />
+          </div>
+        </div>
+
         {/* Right Section: Theme Toggle & Profile */}
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Masking Toggle Button */}

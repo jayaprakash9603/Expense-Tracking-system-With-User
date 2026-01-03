@@ -32,11 +32,17 @@ import { useTheme } from "../../../hooks/useTheme";
 import FloatingNotificationItem from "./FloatingNotificationItem";
 import { getNotificationConfig } from "./constants/notificationTypes";
 import { fetchNotificationPreferences as fetchNotificationPreferenceSettings } from "../../../Redux/NotificationPreferences/notificationPreferences.action";
+import {
+  publishGlobalMessage,
+  clearGlobalMessage,
+} from "../../../utils/globalMessageBus";
 
 /**
  * Configuration Constants
  */
 const MAX_VISIBLE_NOTIFICATIONS = 5; // Max notifications visible at once
+const CLEAR_SUPPRESSION_DURATION_MS = 5 * 8 * 1000;
+const FLOATING_SUPPRESSION_MESSAGE_ID = "floating-notification-suppression";
 const NOTIFICATION_POSITION = {
   top: "24px",
   right: "24px",
@@ -75,10 +81,37 @@ const FloatingNotificationContainer = () => {
   // Local state for displayed notifications
   const [displayedNotifications, setDisplayedNotifications] = useState([]);
   const [queue, setQueue] = useState([]);
+  const [suppressUntil, setSuppressUntil] = useState(null);
+  const [suppressStartedAt, setSuppressStartedAt] = useState(null);
   const processedIds = useRef(new Set());
+  const clearSuppression = useCallback(() => {
+    setSuppressUntil(null);
+    setSuppressStartedAt(null);
+  }, []);
+  const isSuppressed = useMemo(() => {
+    if (!suppressUntil) return false;
+    return suppressUntil > Date.now();
+  }, [suppressUntil]);
+
+  useEffect(() => {
+    if (!suppressUntil) return undefined;
+    const remaining = suppressUntil - Date.now();
+    if (remaining <= 0) {
+      clearSuppression();
+      return undefined;
+    }
+    const timer = setTimeout(() => clearSuppression(), remaining);
+    return () => clearTimeout(timer);
+  }, [suppressUntil, clearSuppression]);
+
   const audioRef = useRef(null);
   const isInitialLoad = useRef(true); // Track if it's the first load
   const preferencesFetchAttempted = useRef(false);
+
+  useEffect(
+    () => () => clearGlobalMessage(FLOATING_SUPPRESSION_MESSAGE_ID),
+    []
+  );
 
   // Fetch preferences once so floating notifications honor saved settings globally
   useEffect(() => {
@@ -126,8 +159,44 @@ const FloatingNotificationContainer = () => {
     if (!floatingNotificationsEnabled) {
       setDisplayedNotifications([]);
       setQueue([]);
+      clearSuppression();
+      clearGlobalMessage(FLOATING_SUPPRESSION_MESSAGE_ID);
+      isInitialLoad.current = true; // Treat next enable as a fresh session
+
+      if (notifications && notifications.length > 0) {
+        notifications.forEach((notification) => {
+          if (notification && notification.id) {
+            processedIds.current.add(notification.id);
+          }
+        });
+      }
     }
-  }, [floatingNotificationsEnabled]);
+  }, [floatingNotificationsEnabled, notifications, clearSuppression]);
+
+  useEffect(() => {
+    if (!floatingNotificationsEnabled) {
+      return;
+    }
+
+    if (suppressUntil) {
+      publishGlobalMessage({
+        id: FLOATING_SUPPRESSION_MESSAGE_ID,
+        renderer: "floatingSuppressionTicker",
+        props: {
+          suppressUntil,
+          suppressStartedAt,
+          onResume: clearSuppression,
+        },
+      });
+    } else {
+      clearGlobalMessage(FLOATING_SUPPRESSION_MESSAGE_ID);
+    }
+  }, [
+    suppressUntil,
+    suppressStartedAt,
+    floatingNotificationsEnabled,
+    clearSuppression,
+  ]);
 
   /**
    * Check if notification sound is enabled
@@ -219,6 +288,13 @@ const FloatingNotificationContainer = () => {
 
     if (newNotifications.length === 0) return;
 
+    if (isSuppressed) {
+      newNotifications.forEach((notification) => {
+        processedIds.current.add(notification.id);
+      });
+      return;
+    }
+
     console.log("🎯 New real-time notifications to display:", newNotifications);
 
     newNotifications.forEach((notification) => {
@@ -245,6 +321,7 @@ const FloatingNotificationContainer = () => {
     floatingNotificationsEnabled,
     isNotificationTypeEnabled,
     playNotificationSound,
+    isSuppressed,
   ]);
 
   /**
@@ -257,6 +334,7 @@ const FloatingNotificationContainer = () => {
       queue.length > 0 &&
       displayedNotifications.length < MAX_VISIBLE_NOTIFICATIONS
     ) {
+      if (isSuppressed) return;
       const [nextNotification, ...remainingQueue] = queue;
       setQueue(remainingQueue);
       setDisplayedNotifications((current) => [...current, nextNotification]);
@@ -272,6 +350,7 @@ const FloatingNotificationContainer = () => {
     displayedNotifications.length,
     floatingNotificationsEnabled,
     playNotificationSound,
+    isSuppressed,
   ]);
 
   /**
@@ -359,7 +438,17 @@ const FloatingNotificationContainer = () => {
   const handleClearAll = useCallback(() => {
     setDisplayedNotifications([]);
     setQueue([]);
-  }, []);
+    if (notifications && notifications.length > 0) {
+      notifications.forEach((notification) => {
+        if (notification && notification.id) {
+          processedIds.current.add(notification.id);
+        }
+      });
+    }
+    const now = Date.now();
+    setSuppressStartedAt(now);
+    setSuppressUntil(now + CLEAR_SUPPRESSION_DURATION_MS);
+  }, [notifications]);
   useEffect(() => {
     const interval = setInterval(() => {
       // Keep only recent 100 IDs
