@@ -94,11 +94,72 @@ const ReportHeader = ({
       dateRangeProps.toDate;
 
     if (hasValidProps) {
-      return <DateRangeBadge {...dateRangeProps} />;
+      const showInlineReset =
+        isCustomRangeActive && typeof dateRangeProps.onReset === "function";
+
+      return (
+        <div
+          style={{
+            position: "relative",
+            display: "inline-block",
+          }}
+        >
+          <DateRangeBadge {...dateRangeProps} />
+          {showInlineReset ? (
+            <button
+              type="button"
+              aria-label="Clear custom date range"
+              title="Clear custom date range"
+              onClick={dateRangeProps.onReset}
+              style={{
+                border: "none",
+                background: colors.primary_bg,
+                color: colors.secondary_text,
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                boxShadow: `0 0 0 1px ${colors.border_color}`,
+                transition: "all 0.2s ease",
+                position: "absolute",
+                right: -32,
+                top: "50%",
+                transform: "translateY(-50%)",
+                fontWeight: 700,
+                fontSize: "14px",
+                lineHeight: 1,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = colors.hover_bg;
+                e.currentTarget.style.color = colors.primary_accent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = colors.primary_bg;
+                e.currentTarget.style.color = colors.secondary_text;
+              }}
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
+      );
     }
 
     return null;
-  }, [centerContent, enableDateRangeBadge, dateRangeProps, colors.primary_bg]);
+  }, [
+    centerContent,
+    enableDateRangeBadge,
+    dateRangeProps,
+    isCustomRangeActive,
+    colors.primary_bg,
+    colors.secondary_text,
+    colors.hover_bg,
+    colors.primary_accent,
+    colors.border_color,
+  ]);
 
   if (isLoading) {
     return <ReportHeaderSkeleton controls={skeletonControls} />;

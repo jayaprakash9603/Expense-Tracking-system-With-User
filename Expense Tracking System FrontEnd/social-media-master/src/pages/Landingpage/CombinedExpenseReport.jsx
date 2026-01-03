@@ -126,7 +126,7 @@ export default function CombinedExpenseReport() {
         style={{
           position: "sticky",
           top: 0,
-          zIndex: 100,
+          zIndex: 20,
           background: colors.secondary_bg,
           paddingLeft: "24px",
           paddingRight: "24px",
