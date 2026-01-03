@@ -23,6 +23,7 @@ import { ReportHeaderSkeleton } from "./skeletons/CommonSkeletons";
  * - className: Extra class name to differentiate contexts
  * - enableDateRangeBadge: enable/disable built-in date range badge (default: true)
  * - dateRangeProps: props forwarded to DateRangeBadge (fromDate, toDate, onApply, onReset, etc.)
+ * - isCustomRangeActive: indicates whether a custom date range is active
  */
 const DEFAULT_TIMEFRAMES = [
   { value: "week", label: "This Week" },
@@ -38,6 +39,8 @@ const DEFAULT_FLOW_TYPES = [
   { value: "outflow", label: "Outflow" },
   { value: "inflow", label: "Inflow" },
 ];
+
+const CUSTOM_TIMEFRAME_PLACEHOLDER = "__custom_timeframe__";
 
 const ReportHeader = ({
   title,
@@ -57,8 +60,24 @@ const ReportHeader = ({
   dateRangeProps = null,
   isLoading = false,
   skeletonControls = 4,
+  isCustomRangeActive = false,
 }) => {
   const { colors } = useTheme();
+
+  const hasMatchingTimeframe = useMemo(
+    () => timeframeOptions.some((option) => option.value === timeframe),
+    [timeframe, timeframeOptions]
+  );
+  const hasExplicitTimeframe =
+    timeframe !== undefined && timeframe !== null && timeframe !== "";
+  const shouldShowPlaceholderOption =
+    (isCustomRangeActive || !hasMatchingTimeframe) &&
+    (hasExplicitTimeframe || isCustomRangeActive);
+  const timeframeSelectValue = shouldShowPlaceholderOption
+    ? CUSTOM_TIMEFRAME_PLACEHOLDER
+    : hasExplicitTimeframe
+    ? timeframe
+    : "";
 
   const derivedCenterContent = useMemo(() => {
     if (centerContent) {
@@ -224,7 +243,7 @@ const ReportHeader = ({
             ))}
           </select>
           <select
-            value={timeframe}
+            value={timeframeSelectValue}
             onChange={(e) =>
               onTimeframeChange && onTimeframeChange(e.target.value)
             }
@@ -240,6 +259,11 @@ const ReportHeader = ({
             }}
             aria-label="Timeframe"
           >
+            {shouldShowPlaceholderOption ? (
+              <option value={CUSTOM_TIMEFRAME_PLACEHOLDER} disabled>
+                Select option
+              </option>
+            ) : null}
             {timeframeOptions.map((t) => (
               <option key={t.value} value={t.value}>
                 {t.label}

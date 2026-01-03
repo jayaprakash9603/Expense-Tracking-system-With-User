@@ -30,6 +30,7 @@ const AllBudgetsReport = () => {
     dateRange,
     setCustomDateRange,
     resetDateRange,
+    isCustomRange,
     loading,
     error,
     budgetsData,
@@ -88,6 +89,7 @@ const AllBudgetsReport = () => {
           onApply: setCustomDateRange,
           onReset: resetDateRange,
         }}
+        isCustomRangeActive={isCustomRange}
       />
 
       {error ? (

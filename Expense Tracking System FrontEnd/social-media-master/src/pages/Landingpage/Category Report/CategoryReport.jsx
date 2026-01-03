@@ -29,6 +29,7 @@ const CategoryReport = () => {
     dateRange,
     setCustomDateRange,
     resetDateRange,
+    isCustomRange,
     loading,
     error,
     categories: categorySpending,
@@ -91,6 +92,7 @@ const CategoryReport = () => {
               }
             : undefined
         }
+        isCustomRangeActive={isCustomRange}
       />
 
       {error ? (

@@ -155,6 +155,7 @@ const BudgetReport = () => {
         onTimeframeChange={handleTimeframeChange}
         onFlowTypeChange={(f) => setFlowType(f)}
         dateRangeProps={dateRangeProps}
+        isCustomRangeActive={Boolean(customRange)}
       />
 
       {error ? (

@@ -31,6 +31,7 @@ const PaymentMethodsReport = () => {
     dateRange,
     setCustomDateRange,
     resetDateRange,
+    isCustomRange,
     loading,
     error,
     methodsData,
@@ -90,6 +91,7 @@ const PaymentMethodsReport = () => {
           onApply: setCustomDateRange,
           onReset: resetDateRange,
         }}
+        isCustomRangeActive={isCustomRange}
       />
 
       {error ? (

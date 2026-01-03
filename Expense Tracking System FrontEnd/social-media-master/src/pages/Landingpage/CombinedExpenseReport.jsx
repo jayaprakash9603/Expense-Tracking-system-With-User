@@ -46,6 +46,7 @@ export default function CombinedExpenseReport() {
     dateRange,
     setCustomDateRange,
     resetDateRange,
+    isCustomRange,
   } = useGroupedCashflow({ friendId });
 
   // Fetch category data with independent state
@@ -148,6 +149,7 @@ export default function CombinedExpenseReport() {
             onApply: setCustomDateRange,
             onReset: resetDateRange,
           }}
+          isCustomRangeActive={isCustomRange}
         />
       </div>
 
