@@ -134,7 +134,7 @@ export default function CombinedExpenseReport() {
         <ReportHeader
           className="payment-methods-header"
           title="🧾 Expenses Report"
-          subtitle="Expenses grouped togethere"
+          subtitle="Expenses grouped together"
           timeframe={timeframe}
           onTimeframeChange={setTimeframe}
           onFilter={handleFilter}

@@ -3,6 +3,7 @@ import { IconButton } from "@mui/material";
 import { Filter, Download } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import DateRangeBadge from "./common/DateRangeBadge";
+import { ReportHeaderSkeleton } from "./skeletons/CommonSkeletons";
 
 /**
  * ReportHeader - Generic header for analytics report pages (payment methods, categories, etc.)
@@ -54,6 +55,8 @@ const ReportHeader = ({
   centerContent = null,
   enableDateRangeBadge = true,
   dateRangeProps = null,
+  isLoading = false,
+  skeletonControls = 4,
 }) => {
   const { colors } = useTheme();
 
@@ -62,19 +65,25 @@ const ReportHeader = ({
       return centerContent;
     }
 
-    const hasDateRangeProps =
-      enableDateRangeBadge &&
-      dateRangeProps &&
-      dateRangeProps.fromDate &&
-      dateRangeProps.toDate &&
-      typeof dateRangeProps.onApply === "function";
-
-    if (!hasDateRangeProps) {
+    if (!enableDateRangeBadge || !dateRangeProps) {
       return null;
     }
 
-    return <DateRangeBadge {...dateRangeProps} />;
-  }, [centerContent, enableDateRangeBadge, dateRangeProps]);
+    const hasValidProps =
+      typeof dateRangeProps.onApply === "function" &&
+      dateRangeProps.fromDate &&
+      dateRangeProps.toDate;
+
+    if (hasValidProps) {
+      return <DateRangeBadge {...dateRangeProps} />;
+    }
+
+    return null;
+  }, [centerContent, enableDateRangeBadge, dateRangeProps, colors.primary_bg]);
+
+  if (isLoading) {
+    return <ReportHeaderSkeleton controls={skeletonControls} />;
+  }
 
   return (
     <div
