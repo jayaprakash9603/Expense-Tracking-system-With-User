@@ -1,5 +1,6 @@
 import React from "react";
 import { useTheme } from "../../hooks/useTheme";
+import { DailySpendingSkeleton } from "../../pages/Dashboard";
 
 /**
  * Shared Skeleton Components
@@ -152,6 +153,27 @@ export const ReportHeaderSkeleton = ({ controls = 4 }) => {
         </div>
       </div>
       <div
+        className="header-center"
+        style={{
+          flex: "1 1 220px",
+          minWidth: 220,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div
+          className="skeleton-date-range"
+          style={{
+            width: 280,
+            height: 48,
+            borderRadius: "999px",
+            ...getSkeletonStyle(mode),
+            opacity: 0.5,
+          }}
+        />
+      </div>
+      <div
         className="header-controls"
         style={{
           display: "flex",
@@ -165,7 +187,7 @@ export const ReportHeaderSkeleton = ({ controls = 4 }) => {
             className="skeleton-control"
             style={{
               height: "36px",
-              width: i < 2 ? "100px" : "90px", // First 2 are selects, last 2 are buttons
+              width: i < 2 ? "100px" : "90px",
               ...getSkeletonStyle(mode),
               borderRadius: "6px",
             }}
@@ -704,14 +726,14 @@ export const ExpensesLoadingSkeleton = () => {
       <PieChartSkeleton height={360} />
     </div> */}
       <div className="charts-grid">
-        {/* <div className="chart-row full-width">
-        <ChartSkeleton height={300} />
-      </div>
+        <div className="chart-row full-width">
+          <DailySpendingSkeleton height={200} />
+        </div>
 
-      <div className="chart-row">
-        <ChartSkeleton height={400} />
-        <ChartSkeleton height={400} />
-      </div> */}
+        <div className="chart-row">
+          <PieChartSkeleton height={360} />
+          <PieChartSkeleton height={360} />
+        </div>
 
         <div className="charts-grid">
           <div className="chart-row full-width">

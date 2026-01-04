@@ -1,16 +1,17 @@
 import React, { useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import dayjs from "dayjs";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { fetchBillsForCalendar } from "../../Redux/Bill/bill.action";
 import MonthlyCalendarView from "../../components/calendar/MonthlyCalendarView";
+import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 
 const BillCalendarView = () => {
   const dispatch = useDispatch();
   const { billsCalendarData } = useSelector((state) => state.bill);
-  const navigate = useNavigate();
   const { friendId } = useParams();
   const [monthOffset, setMonthOffset] = React.useState(0);
+  const { navigateWithState } = usePreserveNavigationState();
 
   // Fetch bills for the selected month
   React.useEffect(() => {
@@ -42,9 +43,9 @@ const BillCalendarView = () => {
   // Handle day click
   const handleDayClick = (dateStr) => {
     if (friendId && friendId !== "undefined") {
-      navigate(`/bill-day-view/${dateStr}/friend/${friendId}`);
+      navigateWithState(`/bill-day-view/${dateStr}/friend/${friendId}`);
     } else {
-      navigate(`/bill-day-view/${dateStr}`);
+      navigateWithState(`/bill-day-view/${dateStr}`);
     }
   };
 
@@ -56,9 +57,9 @@ const BillCalendarView = () => {
   // Handle back button
   const handleBack = () => {
     if (friendId && friendId !== "undefined") {
-      navigate(`/bill/${friendId}`);
+      navigateWithState(`/bill/${friendId}`);
     } else {
-      navigate("/bill");
+      navigateWithState("/bill");
     }
   };
 

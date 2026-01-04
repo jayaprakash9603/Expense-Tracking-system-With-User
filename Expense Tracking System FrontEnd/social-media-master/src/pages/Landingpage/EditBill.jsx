@@ -25,7 +25,7 @@ import {
   Close as CloseIcon,
 } from "@mui/icons-material";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // retains gating
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { updateBill, getBillById } from "../../Redux/Bill/bill.action";
@@ -33,6 +33,7 @@ import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
+import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 
 const EditBill = ({ onClose, onSuccess, billId }) => {
   const { colors } = useTheme();
@@ -49,7 +50,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     alignItems: "center",
   };
   const location = useLocation();
-  const navigate = useNavigate();
+  const { navigateWithState } = usePreserveNavigationState();
   const dispatch = useDispatch();
   const { id, friendId } = useParams();
   const { hasWriteAccess } = useFriendAccess(friendId);
@@ -490,7 +491,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         if (onClose) {
           onClose();
         } else {
-          navigate(-1);
+          navigateWithState(-1, { preserve: false });
         }
       }
     } catch (error) {
@@ -597,7 +598,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                 if (onClose) {
                   onClose();
                 } else {
-                  navigate(-1);
+                  navigateWithState(-1, { preserve: false });
                 }
               }}
               sx={{
@@ -1004,7 +1005,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             if (onClose) {
               onClose();
             } else {
-              navigate(-1);
+              navigateWithState(-1, { preserve: false });
             }
           }}
         />

@@ -60,7 +60,7 @@ export const en = {
       reports: "Reports",
       categories: "Categories",
       budget: "Budget",
-      paymentMethod: "Payment Method",
+      paymentMethod: "Payments",
       bill: "Bill",
       calendar: "Calendar",
     },

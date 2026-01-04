@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { Box, Skeleton, IconButton, useMediaQuery } from "@mui/material";
 import {
   DataGrid,
@@ -29,7 +35,15 @@ import Modal from "./Modal";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
 import { useTheme } from "../../hooks/useTheme";
 
-const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
+const ExpensesTable = ({
+  expenses: propExpenses,
+  friendId,
+  isUploadPreview = false,
+  onUploadRowUpdate,
+  onUploadRowDelete,
+  onUploadRowCopy,
+  disableActions = {},
+}) => {
   const dispatch = useDispatch();
   const { expenses: reduxExpenses, loading } = useSelector(
     (state) => state.expenses || {}
@@ -40,7 +54,7 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
 
   // Get theme mode from Redux for MUI ThemeProvider
   const themeMode = useSelector((state) => state.theme?.mode || "dark");
-  const theme = React.useMemo(() => createAppTheme(themeMode), [themeMode]);
+  const theme = useMemo(() => createAppTheme(themeMode), [themeMode]);
 
   const [selectedIds, setSelectedIds] = useState([]);
   const navigate = useNavigate();
@@ -54,6 +68,15 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
   const isSmallScreen = useMediaQuery("(max-width:640px)");
 
   const expenses = propExpenses || reduxExpenses;
+
+  const resolvedDisableActions = useMemo(() => {
+    const disableAll = Boolean(disableActions?.all);
+    return {
+      edit: disableAll || Boolean(disableActions?.edit),
+      delete: disableAll || Boolean(disableActions?.delete),
+      copy: disableAll || Boolean(disableActions?.copy),
+    };
+  }, [disableActions]);
 
   useEffect(() => {
     if (!propExpenses) {
@@ -73,15 +96,51 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
     setToastMessage("");
   };
 
+  const handleProcessRowUpdate = useCallback(
+    (newRow, oldRow) => {
+      if (isUploadPreview && typeof onUploadRowUpdate === "function") {
+        onUploadRowUpdate(newRow.id, newRow);
+      }
+      return newRow;
+    },
+    [isUploadPreview, onUploadRowUpdate]
+  );
+
+  const handleRowUpdateError = useCallback((error) => {
+    console.error("Inline edit failed:", error);
+  }, []);
+
+  const triggerInlineEdit = useCallback(
+    (rowId) => {
+      if (!isUploadPreview || !apiRef.current || !rowId) return;
+      const defaultField = !isSmallScreen ? "expenseName" : "amount";
+      try {
+        apiRef.current.setCellFocus(rowId, defaultField);
+        apiRef.current.startCellEditMode({ id: rowId, field: defaultField });
+      } catch (err) {
+        console.error("Unable to start inline edit:", err);
+      }
+    },
+    [isUploadPreview, isSmallScreen]
+  );
+
   const rows = Array.isArray(expenses)
     ? expenses
-        .filter((item) => item && typeof item === "object" && item.id != null)
-        .map((item, index) => ({
-          id: item.id ?? `temp-${index}-${Date.now()}`,
-          date: item.date || "",
-          ...item.expense,
-          expenseId: item.id ?? `temp-${index}-${Date.now()}`,
-        }))
+        .filter((item) => item && typeof item === "object")
+        .map((item, index) => {
+          const expensePayload = item.expense || {};
+          const derivedId =
+            item.id ??
+            item.__clientId ??
+            expensePayload.id ??
+            `temp-${index}-${expensePayload.expenseName || "expense"}`;
+          return {
+            id: derivedId,
+            date: item.date || expensePayload.date || "",
+            ...expensePayload,
+            expenseId: derivedId,
+          };
+        })
     : [];
 
   const handleSelectionChange = (newSelection) => {
@@ -100,6 +159,10 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
 
   const ActionMenu = ({ expenseId }) => {
     const [anchorEl, setAnchorEl] = useState(null);
+    const isEditDisabled = resolvedDisableActions.edit;
+    const isDeleteDisabled = resolvedDisableActions.delete;
+    const isCopyDisabled = resolvedDisableActions.copy;
+    const isMenuDisabled = isEditDisabled && isDeleteDisabled && isCopyDisabled;
 
     const handleClick = (event) => {
       event.stopPropagation();
@@ -109,6 +172,15 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
     const handleClose = () => setAnchorEl(null);
 
     const handleEdit = () => {
+      if (isEditDisabled) {
+        handleClose();
+        return;
+      }
+      if (isUploadPreview) {
+        triggerInlineEdit(expenseId);
+        handleClose();
+        return;
+      }
       if (friendId == "") {
         navigate(`/expenses/edit/${expenseId}`);
       } else if (friendId != "") {
@@ -119,6 +191,15 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
     };
 
     const handleDelete = () => {
+      if (isDeleteDisabled) {
+        handleClose();
+        return;
+      }
+      if (isUploadPreview) {
+        onUploadRowDelete?.(expenseId);
+        handleClose();
+        return;
+      }
       const expense = rows.find((row) => row.expenseId === expenseId);
       if (expense) {
         setExpenseData({ ...expense });
@@ -129,6 +210,15 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
     };
 
     const handleCopy = async () => {
+      if (isCopyDisabled) {
+        handleClose();
+        return;
+      }
+      if (isUploadPreview) {
+        onUploadRowCopy?.(expenseId);
+        handleClose();
+        return;
+      }
       try {
         // Dispatch the copy action
         await dispatch(copyExpenseAction(expenseId, friendId || ""));
@@ -147,7 +237,12 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
     };
     return (
       <>
-        <IconButton onClick={handleClick} size="small">
+        <IconButton
+          onClick={handleClick}
+          size="small"
+          disabled={isMenuDisabled}
+          aria-disabled={isMenuDisabled}
+        >
           <MoreVertIcon fontSize="small" />
         </IconButton>
         <Menu
@@ -155,14 +250,35 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
           open={Boolean(anchorEl)}
           onClose={handleClose}
         >
-          <MenuItem onClick={handleEdit} sx={{ color: "green" }}>
-            <EditIcon sx={{ color: "green", mr: 1 }} /> Edit
+          <MenuItem
+            onClick={handleEdit}
+            disabled={isEditDisabled}
+            sx={{ color: isEditDisabled ? "text.disabled" : "green" }}
+          >
+            <EditIcon
+              sx={{ color: isEditDisabled ? "text.disabled" : "green", mr: 1 }}
+            />
+            Edit
           </MenuItem>
-          <MenuItem onClick={handleDelete} sx={{ color: "red" }}>
-            <DeleteIcon sx={{ color: "red", mr: 1 }} /> Delete
+          <MenuItem
+            onClick={handleDelete}
+            disabled={isDeleteDisabled}
+            sx={{ color: isDeleteDisabled ? "text.disabled" : "red" }}
+          >
+            <DeleteIcon
+              sx={{ color: isDeleteDisabled ? "text.disabled" : "red", mr: 1 }}
+            />
+            Delete
           </MenuItem>
-          <MenuItem onClick={handleCopy} sx={{ color: "blue" }}>
-            <CopyIcon sx={{ color: "blue", mr: 1 }} /> Copy
+          <MenuItem
+            onClick={handleCopy}
+            disabled={isCopyDisabled}
+            sx={{ color: isCopyDisabled ? "text.disabled" : "blue" }}
+          >
+            <CopyIcon
+              sx={{ color: isCopyDisabled ? "text.disabled" : "blue", mr: 1 }}
+            />
+            Copy
           </MenuItem>
         </Menu>
       </>
@@ -259,12 +375,14 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
       headerName: "Date",
       flex: 1,
       minWidth: 80,
+      editable: isUploadPreview,
     },
     {
       field: "expenseName",
       headerName: "Name",
       flex: 1,
       minWidth: 80,
+      editable: isUploadPreview,
     },
     {
       field: "amount",
@@ -292,18 +410,21 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
           </Box>
         );
       },
+      editable: isUploadPreview,
     },
     !isSmallScreen && {
       field: "type",
       headerName: "Type",
       flex: 1,
       minWidth: 80,
+      editable: isUploadPreview,
     },
     !isSmallScreen && {
       field: "paymentMethod",
       headerName: "Payment",
       flex: 1,
       minWidth: 80,
+      editable: isUploadPreview,
     },
     !isSmallScreen && {
       field: "netAmount",
@@ -311,12 +432,14 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
       type: "number",
       flex: 1,
       minWidth: 80,
+      editable: isUploadPreview,
     },
     !isSmallScreen && {
       field: "comments",
       headerName: "Comments",
       flex: 1,
       minWidth: 120,
+      editable: isUploadPreview,
     },
     !isSmallScreen && {
       field: "creditDue",
@@ -324,6 +447,7 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
       type: "number",
       flex: 1,
       minWidth: 80,
+      editable: isUploadPreview,
     },
     {
       field: "actions",
@@ -401,6 +525,12 @@ const ExpensesTable = ({ expenses: propExpenses, friendId }) => {
             rowHeight={isSmallScreen ? 53 : 53}
             headerHeight={isSmallScreen ? 45 : 40}
             autoHeight={false}
+            processRowUpdate={
+              isUploadPreview ? handleProcessRowUpdate : undefined
+            }
+            onProcessRowUpdateError={
+              isUploadPreview ? handleRowUpdateError : undefined
+            }
             slots={{ toolbar: CustomToolbar }}
             slotProps={{
               toolbar: {

@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import DayUnifiedView from "../../components/DayUnifiedView/DayUnifiedView";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import {
@@ -8,14 +8,15 @@ import {
   getBillByExpenseId,
   deleteBill,
 } from "../../Redux/Bill/bill.action";
+import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 
 // Wrapper using generic DayUnifiedView with async id resolution
 const DayBillsView = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { date, friendId } = useParams();
   const { hasWriteAccess } = useFriendAccess(friendId);
   const { particularDateBills = [], loading } = useSelector((s) => s.bill);
+  const { navigateWithState } = usePreserveNavigationState();
 
   const fetchAction = useCallback(
     (dateStr) => dispatch(getBillsByParticularDate(dateStr, friendId || "")),
@@ -48,7 +49,7 @@ const DayBillsView = () => {
       fetchAction={fetchAction}
       deleteAction={deleteAction}
       fetchAfterDelete={refetch}
-      navigate={navigate}
+      navigate={navigateWithState}
       routes={{
         calendarBase: "/bill/calendar",
         dayBase: "/bill-day-view",

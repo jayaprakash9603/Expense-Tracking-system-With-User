@@ -113,7 +113,10 @@ const DateRangeBadge = ({
       return false;
     }
 
-    if (dayjs(pendingRange.fromDate).isAfter(dayjs(pendingRange.toDate))) {
+    const fromDay = dayjs(pendingRange.fromDate);
+    const toDay = dayjs(pendingRange.toDate);
+
+    if (fromDay.isAfter(toDay)) {
       setError("From date cannot be after To date.");
       return false;
     }
@@ -137,13 +140,19 @@ const DateRangeBadge = ({
     if (!validateRange()) {
       return;
     }
-
     onApply?.({
       fromDate: pendingRange.fromDate,
       toDate: pendingRange.toDate,
     });
     handleClose();
   };
+
+  const isRangeInvalid = useMemo(() => {
+    if (!pendingRange?.fromDate || !pendingRange?.toDate) {
+      return true;
+    }
+    return dayjs(pendingRange.fromDate).isAfter(dayjs(pendingRange.toDate));
+  }, [pendingRange?.fromDate, pendingRange?.toDate]);
 
   const handleReset = () => {
     onReset?.();
@@ -293,13 +302,22 @@ const DateRangeBadge = ({
               mt={2}
             >
               {!disableReset && (
-                <Button color="secondary" onClick={handleReset}>
+                <Button
+                  color="error"
+                  onClick={handleReset}
+                  variant="outlined"
+                  sx={{ fontWeight: 600 }}
+                >
                   Reset
                 </Button>
               )}
               <Box sx={{ display: "flex", gap: 1.5 }}>
                 <Button onClick={handleClose}>Cancel</Button>
-                <Button variant="contained" onClick={handleApply}>
+                <Button
+                  variant="contained"
+                  onClick={handleApply}
+                  disabled={isRangeInvalid}
+                >
                   Apply
                 </Button>
               </Box>

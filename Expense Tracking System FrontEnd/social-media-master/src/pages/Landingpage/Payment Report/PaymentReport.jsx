@@ -15,6 +15,8 @@ import TransactionSizeChart from "../../../components/charts/TransactionSizeChar
 import CategoryPaymentBreakdown from "../../../components/charts/CategoryPaymentBreakdown";
 import { getChartColors } from "../../../utils/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
+import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
+import usePaymentReportFilters from "../../../hooks/reportFilters/usePaymentReportFilters";
 
 const COLORS = getChartColors();
 
@@ -31,6 +33,7 @@ const PaymentMethodsReport = () => {
     dateRange,
     setCustomDateRange,
     resetDateRange,
+    isCustomRange,
     loading,
     error,
     methodsData,
@@ -40,12 +43,36 @@ const PaymentMethodsReport = () => {
     refresh,
   } = usePaymentReportData({ friendId });
 
+  const {
+    filterDefaults: basePaymentFilterDefaults,
+    filterValues,
+    sections: paymentFilterSections,
+    isFilterOpen,
+    openFilters,
+    closeFilters,
+    handleApplyFilters,
+    handleResetFilters,
+    filtersActive,
+    filteredMethodsData,
+    filteredCategoryBreakdown,
+    filteredTxSizeData,
+  } = usePaymentReportFilters({
+    timeframe,
+    flowType,
+    setTimeframe,
+    setFlowType,
+    dateRange,
+    setCustomDateRange,
+    resetDateRange,
+    isCustomRange,
+    methodsData,
+    txSizeData,
+    categoryBreakdown,
+    categories,
+  });
+
   // Responsive detection
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
-
-  const handleFilter = () => {
-    console.log("Opening payment methods filters...");
-  };
 
   const handleExport = () => {
     console.log("Exporting payment methods report...");
@@ -77,7 +104,7 @@ const PaymentMethodsReport = () => {
         className="payment-methods-header"
         title="💳 Payment Methods Analytics"
         subtitle="Comprehensive analysis of payment method usage and trends"
-        onFilter={handleFilter}
+        onFilter={openFilters}
         onExport={handleExport}
         onTimeframeChange={handleTimeframeChange}
         timeframe={timeframe}
@@ -90,6 +117,9 @@ const PaymentMethodsReport = () => {
           onApply: setCustomDateRange,
           onReset: resetDateRange,
         }}
+        isCustomRangeActive={isCustomRange}
+        showFilterButton={paymentFilterSections.length > 0}
+        isFilterActive={filtersActive}
       />
 
       {error ? (
@@ -109,7 +139,7 @@ const PaymentMethodsReport = () => {
         </div>
       ) : null}
 
-      <SharedOverviewCards data={methodsData} mode="payment" />
+      <SharedOverviewCards data={filteredMethodsData} mode="payment" />
 
       <div className="charts-grid">
         {/* Row 1: Distribution (full width) */}
@@ -123,7 +153,7 @@ const PaymentMethodsReport = () => {
           }}
         >
           <SharedDistributionChart
-            data={methodsData}
+            data={filteredMethodsData}
             mode="payment"
             colorsFallback={COLORS}
           />
@@ -139,23 +169,23 @@ const PaymentMethodsReport = () => {
             width: "100%",
           }}
         >
-          <PaymentUsageChart data={methodsData} />
+          <PaymentUsageChart data={filteredMethodsData} />
         </div>
 
         {/* Row 3: Transaction Sizes (computed) */}
-        {txSizeData.length > 0 ? (
+        {filteredTxSizeData.length > 0 ? (
           <div className="chart-row">
             <TransactionSizeChart
-              data={txSizeData}
-              methodsColors={methodsData.map(({ method, color }) => ({
+              data={filteredTxSizeData}
+              methodsColors={filteredMethodsData.map(({ method, color }) => ({
                 method,
                 color,
               }))}
             />
-            {categoryBreakdown.length > 0 ? (
+            {filteredCategoryBreakdown.length > 0 ? (
               <CategoryPaymentBreakdown
-                data={categoryBreakdown}
-                methodsColors={methodsData.map(({ method, color }) => ({
+                data={filteredCategoryBreakdown}
+                methodsColors={filteredMethodsData.map(({ method, color }) => ({
                   method,
                   color,
                 }))}
@@ -186,10 +216,19 @@ const PaymentMethodsReport = () => {
                 Expand a method to view individual expenses (Loss / Gain tabs)
               </div>
             </div>
-            <PaymentMethodAccordionGroup methods={methodsData} />
+            <PaymentMethodAccordionGroup methods={filteredMethodsData} />
           </div>
         </div>
       </div>
+      <ReportFilterDrawer
+        open={isFilterOpen}
+        onClose={closeFilters}
+        sections={paymentFilterSections}
+        values={filterValues}
+        initialValues={basePaymentFilterDefaults}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+      />
     </div>
   );
 };

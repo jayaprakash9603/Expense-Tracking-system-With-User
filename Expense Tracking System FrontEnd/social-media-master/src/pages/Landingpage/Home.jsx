@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Left from "./Left.jsx";
 import { Outlet, useParams, useLocation, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +10,8 @@ import {
 } from "../../Redux/Friends/friendsActions";
 import { useTheme } from "../../hooks/useTheme";
 import { FloatingNotificationContainer } from "../../components/common/FloatingNotifications";
+import NotFound from "./Errors/NotFound";
+import Loader from "../../components/Loaders/Loader";
 
 const Home = () => {
   const { colors } = useTheme();
@@ -21,15 +23,49 @@ const Home = () => {
   const { friendship, friends, loading } = useSelector(
     (state) => state.friends || {}
   );
+  const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
   const [showFriendInfo, setShowFriendInfo] = useState(true);
+  const [isModeSwitching, setIsModeSwitching] = useState(false);
+  const previousModeRef = useRef(currentMode);
+  const isAdminMode = currentMode === "ADMIN";
+  const currentPath = location.pathname || "/";
+  const isAdminRoute = currentPath.startsWith("/admin");
+  const rawShouldBlock = Boolean(currentMode)
+    ? (isAdminMode && !isAdminRoute) || (!isAdminMode && isAdminRoute)
+    : false;
+  const shouldBlockAccess = !isModeSwitching && rawShouldBlock;
+
+  useLayoutEffect(() => {
+    if (!currentMode) return;
+    if (previousModeRef.current === currentMode) return;
+
+    previousModeRef.current = currentMode;
+    setIsModeSwitching(true);
+
+    const targetRoute =
+      currentMode === "ADMIN" ? "/admin/dashboard" : "/dashboard";
+    navigate(targetRoute, { replace: true, state: { fromModeToggle: true } });
+  }, [currentMode, navigate]);
+
+  useEffect(() => {
+    if (!isModeSwitching) return;
+    const modeMatchesRoute =
+      currentMode === "ADMIN" ? isAdminRoute : !isAdminRoute;
+    if (modeMatchesRoute) {
+      setIsModeSwitching(false);
+    }
+  }, [isModeSwitching, currentMode, isAdminRoute]);
 
   // Fetch friendship & friends list when entering friend view or switching friend
   useEffect(() => {
+    if (shouldBlockAccess || isModeSwitching) {
+      return;
+    }
     if (isFriendView) {
       if (friendId) dispatch(fetchFriendship(friendId));
       dispatch(fetchFriendsDetailed());
     }
-  }, [dispatch, friendId, isFriendView]);
+  }, [dispatch, friendId, isFriendView, shouldBlockAccess, isModeSwitching]);
 
   // Helper: replace current friendId segment in path
   const handleRouteChange = async (newFriendId) => {
@@ -51,6 +87,21 @@ const Home = () => {
     dispatch(fetchFriendship(id));
     dispatch(fetchFriendsDetailed());
   };
+
+  if (isModeSwitching) {
+    return (
+      <div
+        className="flex items-center justify-center min-h-screen"
+        style={{ backgroundColor: colors.primary_bg }}
+      >
+        <Loader />
+      </div>
+    );
+  }
+
+  if (shouldBlockAccess) {
+    return <NotFound />;
+  }
 
   return (
     <div

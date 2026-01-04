@@ -26,10 +26,17 @@ import { fetchAllBills } from "../../Redux/Bill/bill.action";
 import { IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useParams } from "react-router";
-import { useNavigate } from "react-router-dom";
+import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTheme } from "../../hooks/useTheme";
 import { formatDate } from "../../utils/dateFormatter";
+import ReportHeader from "../../components/ReportHeader";
+import ReportFilterDrawer from "../../components/reportFilters/ReportFilterDrawer";
+import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
+import useBillReportFilters, {
+  BILL_TIMEFRAME_OPTIONS,
+  BILL_FLOW_TYPE_OPTIONS,
+} from "../../hooks/reportFilters/useBillReportFilters";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -150,287 +157,6 @@ const buildTimeframeRange = (timeframe) => {
   }
 };
 
-// Header Component
-const ReportHeader = ({
-  selectedTimeframe,
-  setSelectedTimeframe,
-  selectedCategory,
-  setSelectedCategory,
-  selectedType,
-  setSelectedType,
-  uniqueCategories,
-  handleReportActionClick,
-  reportActionAnchorEl,
-  handleReportActionClose,
-  handleReportMenuItemClick,
-  onBack,
-  colors,
-  mode,
-}) => (
-  <div
-    className="bill-report-header"
-    style={{
-      // background: colors.tertiary_bg,
-      borderBottom: `1px solid ${colors.border_color}`,
-    }}
-  >
-    <div
-      className="header-left"
-      style={{ display: "flex", alignItems: "center", gap: 12 }}
-    >
-      <IconButton
-        sx={{
-          color: colors.secondary_accent,
-          backgroundColor: colors.primary_bg,
-          "&:hover": { backgroundColor: colors.hover_bg },
-          zIndex: 10,
-          transform: "translateY(-15px)",
-        }}
-        onClick={onBack}
-        aria-label="Back"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M15 18L9 12L15 6"
-            stroke={colors.secondary_accent}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </IconButton>
-      <div>
-        <h1 style={{ margin: 0, color: colors.brand_text }}>📊 Bill Report</h1>
-        <p style={{ margin: "6px 0 0 0", color: colors.secondary_text }}>
-          Spending overview and insights
-        </p>
-      </div>
-    </div>
-    <div className="bill-header-controls">
-      <select
-        value={selectedTimeframe}
-        onChange={(e) => setSelectedTimeframe(e.target.value)}
-        className="bill-timeframe-selector"
-      >
-        <option value="all">All Time</option>
-        <option value="this_month">This Month</option>
-        <option value="last_month">Last Month</option>
-        <option value="this_year">This Year</option>
-        <option value="last_year">Last Year</option>
-      </select>
-      <select
-        value={selectedCategory}
-        onChange={(e) => setSelectedCategory(e.target.value)}
-        className="bill-timeframe-selector"
-      >
-        <option value="all">All Categories</option>
-        {uniqueCategories.map((category) => (
-          <option key={category} value={category}>
-            {category}
-          </option>
-        ))}
-      </select>
-
-      <select
-        value={selectedType}
-        onChange={(e) => setSelectedType(e.target.value)}
-        className="bill-timeframe-selector"
-      >
-        <option value="all">All Types</option>
-        <option value="loss">Loss</option>
-        <option value="gain">Gain</option>
-      </select>
-
-      <IconButton
-        onClick={handleReportActionClick}
-        sx={{ color: "#14b8a6", ml: 1 }}
-        size="small"
-        aria-label="More actions"
-      >
-        <MoreVertIcon />
-      </IconButton>
-
-      {Boolean(reportActionAnchorEl) && (
-        <>
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 999,
-            }}
-            onClick={handleReportActionClose}
-          />
-
-          <div
-            style={{
-              position: "fixed",
-              top:
-                reportActionAnchorEl?.getBoundingClientRect().bottom + 6 || 0,
-              left:
-                reportActionAnchorEl?.getBoundingClientRect().left - 100 || 0,
-              backgroundColor: colors.primary_bg,
-              border: `1px solid ${colors.primary_accent}`,
-              borderRadius: "8px",
-              boxShadow: `0 4px 20px rgba(0,0,0,${
-                mode === "dark" ? 0.3 : 0.15
-              })`,
-              zIndex: 1000,
-              minWidth: "160px",
-            }}
-          >
-            <div style={{ padding: "8px 0" }}>
-              <div
-                onClick={() => handleReportMenuItemClick("refresh")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>🔄</span>
-                <span style={{ fontSize: 14 }}>Refresh</span>
-              </div>
-
-              <div
-                onClick={() => handleReportMenuItemClick("export")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>📤</span>
-                <span style={{ fontSize: 14 }}>Export CSV</span>
-              </div>
-
-              <div
-                onClick={() => handleReportMenuItemClick("pdf")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>📥</span>
-                <span style={{ fontSize: 14 }}>Download PDF</span>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  </div>
-);
-
-const FilterInfo = ({
-  filteredBills,
-  allBills,
-  selectedCategory,
-  selectedTimeframe,
-  selectedType,
-  fromDate,
-  toDate,
-  dateFormat,
-}) => (
-  <div className="filter-info">
-    <p>
-      Showing {filteredBills.length} bills
-      {selectedCategory !== "all" && ` in ${selectedCategory}`}
-      {selectedTimeframe !== "all" &&
-        ` for ${
-          {
-            week: "Last 7 days",
-            month: "This month",
-            year: "This year",
-            last_year: "Last year",
-          }[selectedTimeframe] || selectedTimeframe
-        }`}
-      {selectedType !== "all" &&
-        ` marked as ${selectedType === "gain" ? "gains" : "losses"}`}
-      {(fromDate || toDate) &&
-        ` between ${
-          fromDate ? formatDate(fromDate, dateFormat) : "start"
-        } and ${toDate ? formatDate(toDate, dateFormat) : "now"}`}
-      {filteredBills.length !== allBills.length &&
-        ` (filtered from ${allBills.length} total)`}
-    </p>
-  </div>
-);
-
-const SummaryCards = ({ analytics, currencySymbol = "₹" }) => (
-  <div className="summary-cards">
-    <div className="summary-card total">
-      <div className="card-icon">💰</div>
-      <div className="card-content">
-        <h3>Total Expenses</h3>
-        <p className="amount">
-          {currencySymbol}
-          {analytics.totalExpenses.toFixed(2)}
-        </p>
-      </div>
-    </div>
-    <div className="summary-card bills">
-      <div className="card-icon">📄</div>
-      <div className="card-content">
-        <h3>Total Bills</h3>
-        <p className="count">{analytics.totalBills}</p>
-      </div>
-    </div>
-    <div className="summary-card average">
-      <div className="card-icon">📈</div>
-      <div className="card-content">
-        <h3>Average per Bill</h3>
-        <p className="amount">
-          {currencySymbol}
-          {analytics.averageExpense.toFixed(2)}
-        </p>
-      </div>
-    </div>
-    <div className="summary-card categories">
-      <div className="card-icon">🏷️</div>
-      <div className="card-content">
-        <h3>Categories</h3>
-        <p className="count">
-          {Object.keys(analytics.categoryBreakdown).length}
-        </p>
-      </div>
-    </div>
-  </div>
-);
-
 const NoDataMessage = () => (
   <div className="no-data-message">
     <div className="no-data-icon">📊</div>
@@ -493,9 +219,10 @@ const PaymentMethodPieChart = ({
 const DailyTrendChart = ({
   dailyTrendData,
   timeframe,
-  timeframeRange,
+  dateBounds,
   selectedType,
   currencySymbol = "₹",
+  isCustomRangeActive = false,
 }) => {
   const theme = CHART_THEME[selectedType === "gain" ? "gain" : "loss"];
 
@@ -520,9 +247,11 @@ const DailyTrendChart = ({
             }}
           >
             {(() => {
-              if (timeframe === "all") return "All time";
-              if (timeframeRange?.start && timeframeRange?.end) {
-                return `${timeframeRange.start.toLocaleDateString()} - ${timeframeRange.end.toLocaleDateString()}`;
+              if (dateBounds?.start && dateBounds?.end) {
+                return `${dateBounds.start.toLocaleDateString()} - ${dateBounds.end.toLocaleDateString()}`;
+              }
+              if (timeframe === "all" && !isCustomRangeActive) {
+                return "All time";
               }
               return "";
             })()}
@@ -850,13 +579,31 @@ const LoadingSkeleton = () => (
 );
 
 const BillReport = () => {
-  const [selectedTimeframe, setSelectedTimeframe] = useState("all");
+  const [selectedTimeframe, setSelectedTimeframe] = useState("this_month");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
+  const [customRange, setCustomRange] = useState(null);
   const timeframeRange = useMemo(
     () => buildTimeframeRange(selectedTimeframe),
     [selectedTimeframe]
   );
+  const customDateBounds = useMemo(() => {
+    if (!customRange?.fromDate || !customRange?.toDate) {
+      return null;
+    }
+    const start = new Date(customRange.fromDate);
+    const end = new Date(customRange.toDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return null;
+    }
+    return {
+      label: "Custom Range",
+      start,
+      end,
+    };
+  }, [customRange]);
+  const activeDateBounds = customDateBounds || timeframeRange;
+  const isCustomRangeActive = Boolean(customDateBounds);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const [reportActionAnchorEl, setReportActionAnchorEl] = useState(null);
@@ -866,7 +613,7 @@ const BillReport = () => {
   const allBills = useSelector((state) => state.bill.bills) || [];
   const loading = useSelector((state) => state.bill.loading);
   const { friendId } = useParams();
-  const navigate = useNavigate();
+  const { navigateWithState } = usePreserveNavigationState();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
 
@@ -878,18 +625,51 @@ const BillReport = () => {
     if (selectedType !== "all") {
       params.type = selectedType;
     }
-    if (timeframeRange.start && timeframeRange.end) {
+    if (isCustomRangeActive && customRange?.fromDate && customRange?.toDate) {
+      params.fromDate = customRange.fromDate;
+      params.toDate = customRange.toDate;
+    } else if (timeframeRange.start && timeframeRange.end) {
       params.fromDate = formatISODate(timeframeRange.start);
       params.toDate = formatISODate(timeframeRange.end);
     }
     return params;
-  }, [selectedType, timeframeRange]);
+  }, [selectedType, timeframeRange, isCustomRangeActive, customRange]);
+
+  const handleTimeframeChange = (nextTimeframe) => {
+    setSelectedTimeframe(nextTimeframe);
+    setCustomRange(null);
+  };
+
+  const handleCustomRangeApply = (range) => {
+    if (!range?.fromDate || !range?.toDate) {
+      return;
+    }
+    setCustomRange({
+      fromDate: range.fromDate,
+      toDate: range.toDate,
+    });
+  };
+
+  const handleResetRange = () => {
+    setCustomRange(null);
+  };
+
+  const dateRangeProps = {
+    fromDate:
+      customRange?.fromDate ||
+      (timeframeRange.start ? formatISODate(timeframeRange.start) : ""),
+    toDate:
+      customRange?.toDate ||
+      (timeframeRange.end ? formatISODate(timeframeRange.end) : ""),
+    onApply: handleCustomRangeApply,
+    onReset: handleResetRange,
+  };
 
   const handleBack = () => {
     if (friendId) {
-      navigate(`/bill/${friendId}`);
+      navigateWithState(`/bill/${friendId}`);
     } else {
-      navigate(`/bill`);
+      navigateWithState(`/bill`);
     }
   };
 
@@ -929,39 +709,44 @@ const BillReport = () => {
     "#ff6b6b",
   ];
 
-  const filteredBills = useMemo(() => {
-    let filtered = [...allBills];
-
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((bill) => bill.category === selectedCategory);
-    }
-
-    if (selectedType !== "all") {
-      filtered = filtered.filter((bill) => {
-        const billType = (bill.type || "loss").toLowerCase();
-        return billType === selectedType;
-      });
-    }
-
-    if (timeframeRange.start && timeframeRange.end) {
-      filtered = filtered.filter((bill) => {
-        if (!bill.date) return false;
-        const billDateTime = new Date(bill.date);
-        return (
-          billDateTime >= timeframeRange.start &&
-          billDateTime <= timeframeRange.end
-        );
-      });
-    }
-
-    return filtered;
-  }, [
-    allBills,
+  const {
+    filterDefaults,
+    drawerValues,
+    sections,
+    isFilterOpen,
+    openFilters,
+    closeFilters,
+    handleApplyFilters,
+    handleResetFilters,
+    filtersActive,
+    filteredBills,
+    uniqueCategories,
+  } = useBillReportFilters({
+    bills: allBills,
+    timeframe: selectedTimeframe,
+    flowType: selectedType,
     selectedCategory,
-    selectedTimeframe,
-    selectedType,
-    timeframeRange,
-  ]);
+    setTimeframe: handleTimeframeChange,
+    setFlowType: setSelectedType,
+    setSelectedCategory,
+    dateRange: customRange,
+    setCustomDateRange: handleCustomRangeApply,
+    resetDateRange: handleResetRange,
+    isCustomRange: isCustomRangeActive,
+    activeRange: activeDateBounds,
+    timeframeOptions: BILL_TIMEFRAME_OPTIONS,
+  });
+
+  const categorySelectOptions = useMemo(
+    () => [
+      { value: "all", label: "All Categories" },
+      ...uniqueCategories.map((category) => ({
+        value: category,
+        label: category,
+      })),
+    ],
+    [uniqueCategories]
+  );
 
   const totalPages = Math.max(
     1,
@@ -1036,6 +821,17 @@ const BillReport = () => {
     };
   }, [filteredBills]);
 
+  const overviewCardsData = useMemo(() => {
+    const entries = Object.entries(analytics.categoryBreakdown || {}).map(
+      ([category, data]) => ({
+        name: category,
+        amount: data.total,
+        transactions: data.count,
+      })
+    );
+    return entries.sort((a, b) => b.amount - a.amount);
+  }, [analytics]);
+
   const categoryChartData = Object.entries(analytics.categoryBreakdown).map(
     ([category, data]) => ({
       name: category,
@@ -1061,9 +857,9 @@ const BillReport = () => {
       points.push({ dateObj: new Date(dateObj), iso, amount });
     };
 
-    if (timeframeRange?.start && timeframeRange?.end) {
-      const cursor = new Date(timeframeRange.start);
-      const end = new Date(timeframeRange.end);
+    if (activeDateBounds?.start && activeDateBounds?.end) {
+      const cursor = new Date(activeDateBounds.start);
+      const end = new Date(activeDateBounds.end);
       while (cursor <= end) {
         addPoint(cursor);
         cursor.setDate(cursor.getDate() + 1);
@@ -1074,9 +870,10 @@ const BillReport = () => {
         .forEach((iso) => addPoint(new Date(iso)));
     }
     const isYearLike =
-      selectedTimeframe === "this_year" ||
-      selectedTimeframe === "last_year" ||
-      selectedTimeframe === "all";
+      !isCustomRangeActive &&
+      (selectedTimeframe === "this_year" ||
+        selectedTimeframe === "last_year" ||
+        selectedTimeframe === "all");
 
     let series = [];
 
@@ -1144,7 +941,12 @@ const BillReport = () => {
       const average = Math.round(avgRaw * 100) / 100;
       return { ...p, average };
     });
-  }, [analytics.dailyExpenses, selectedTimeframe, timeframeRange]);
+  }, [
+    analytics.dailyExpenses,
+    selectedTimeframe,
+    activeDateBounds,
+    isCustomRangeActive,
+  ]);
 
   const topItemsRadialData = Object.entries(analytics.itemBreakdown)
     .sort(([, a], [, b]) => b.total - a.total)
@@ -1191,17 +993,118 @@ const BillReport = () => {
     return null;
   };
 
-  const uniqueCategories = useMemo(() => {
-    const categories = allBills
-      .map((bill) => bill.category)
-      .filter((category) => category && category.trim().length > 0);
-    return [...new Set(categories)];
-  }, [allBills]);
-
   if (loading) {
     // Keep skeleton lightweight; optionally we could pass theme classes here.
     return <LoadingSkeleton />;
   }
+
+  const reportHeaderActions = (
+    <>
+      <IconButton
+        onClick={handleReportActionClick}
+        sx={{ color: colors.secondary_accent }}
+        size="small"
+        aria-label="More actions"
+      >
+        <MoreVertIcon />
+      </IconButton>
+      {Boolean(reportActionAnchorEl) && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999,
+            }}
+            onClick={handleReportActionClose}
+          />
+
+          <div
+            style={{
+              position: "fixed",
+              top:
+                reportActionAnchorEl?.getBoundingClientRect().bottom + 6 || 0,
+              left:
+                reportActionAnchorEl?.getBoundingClientRect().left - 100 || 0,
+              backgroundColor: colors.primary_bg,
+              border: `1px solid ${colors.primary_accent}`,
+              borderRadius: "8px",
+              boxShadow: `0 4px 20px rgba(0,0,0,${
+                mode === "dark" ? 0.3 : 0.15
+              })`,
+              zIndex: 1000,
+              minWidth: "160px",
+            }}
+          >
+            <div style={{ padding: "8px 0" }}>
+              <div
+                onClick={() => handleReportMenuItemClick("refresh")}
+                style={{
+                  color: colors.primary_text,
+                  padding: "10px 18px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <span style={{ marginRight: 10 }}>🔄</span>
+                <span style={{ fontSize: 14 }}>Refresh</span>
+              </div>
+
+              <div
+                onClick={() => handleReportMenuItemClick("export")}
+                style={{
+                  color: colors.primary_text,
+                  padding: "10px 18px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <span style={{ marginRight: 10 }}>📤</span>
+                <span style={{ fontSize: 14 }}>Export CSV</span>
+              </div>
+
+              <div
+                onClick={() => handleReportMenuItemClick("pdf")}
+                style={{
+                  color: colors.primary_text,
+                  padding: "10px 18px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <span style={{ marginRight: 10 }}>📥</span>
+                <span style={{ fontSize: 14 }}>Download PDF</span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
 
   return (
     <div
@@ -1214,32 +1117,39 @@ const BillReport = () => {
       }}
     >
       <ReportHeader
-        selectedTimeframe={selectedTimeframe}
-        setSelectedTimeframe={setSelectedTimeframe}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        selectedType={selectedType}
-        setSelectedType={setSelectedType}
-        uniqueCategories={uniqueCategories}
-        handleReportActionClick={handleReportActionClick}
-        reportActionAnchorEl={reportActionAnchorEl}
-        handleReportActionClose={handleReportActionClose}
-        handleReportMenuItemClick={handleReportMenuItemClick}
+        title="📊 Bill Report"
+        subtitle="Spending overview and insights"
+        timeframe={selectedTimeframe}
+        flowType={selectedType}
+        timeframeOptions={BILL_TIMEFRAME_OPTIONS}
+        flowTypeOptions={BILL_FLOW_TYPE_OPTIONS}
         onBack={handleBack}
-        colors={colors}
-        mode={mode}
+        onFilter={sections.length ? openFilters : undefined}
+        onTimeframeChange={handleTimeframeChange}
+        onFlowTypeChange={setSelectedType}
+        showFilterButton={sections.length > 0}
+        isFilterActive={filtersActive}
+        dateRangeProps={dateRangeProps}
+        isCustomRangeActive={isCustomRangeActive}
+        extraSelects={[
+          {
+            id: "bill-category",
+            value: selectedCategory,
+            onChange: setSelectedCategory,
+            options: categorySelectOptions,
+            ariaLabel: "Category",
+          },
+        ]}
+        rightActions={reportHeaderActions}
+        filterButtonLabel="Filters"
+        showExportButton={false}
       />
 
-      <FilterInfo
-        filteredBills={filteredBills}
-        allBills={allBills}
-        selectedCategory={selectedCategory}
-        selectedTimeframe={selectedTimeframe}
-        selectedType={selectedType}
-        timeframeLabel={timeframeRange.label}
+      <SharedOverviewCards
+        data={overviewCardsData}
+        mode="category"
+        currencySymbol={currencySymbol}
       />
-
-      <SummaryCards analytics={analytics} currencySymbol={currencySymbol} />
 
       {filteredBills.length === 0 ? (
         <NoDataMessage />
@@ -1265,9 +1175,10 @@ const BillReport = () => {
               <DailyTrendChart
                 dailyTrendData={dailyTrendData}
                 timeframe={selectedTimeframe}
-                timeframeRange={timeframeRange}
+                dateBounds={activeDateBounds}
                 selectedType={selectedType}
                 currencySymbol={currencySymbol}
+                isCustomRangeActive={isCustomRangeActive}
               />
             )}
 
@@ -1370,6 +1281,15 @@ const BillReport = () => {
           />
         </>
       )}
+      <ReportFilterDrawer
+        open={isFilterOpen}
+        onClose={closeFilters}
+        sections={sections}
+        values={drawerValues}
+        initialValues={filterDefaults}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+      />
     </div>
   );
 };

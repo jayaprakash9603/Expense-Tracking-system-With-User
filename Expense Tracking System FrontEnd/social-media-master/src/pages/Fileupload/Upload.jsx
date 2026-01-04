@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import { useSelector, useDispatch } from "react-redux";
 import FileUploadModal from "../Fileupload/FileUploadModal";
 import {
@@ -25,6 +31,32 @@ import PercentageLoader from "../../components/Loaders/PercentageLoader";
 import PulseLoader from "../../components/Loaders/Loader"; // added
 import { api, API_BASE_URL } from "../../config/api";
 import { useTheme } from "../../hooks/useTheme";
+
+const createClientId = () => {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
+  return `upload-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
+const cloneExpenseEntry = (entry = {}) => ({
+  ...entry,
+  expense: { ...(entry?.expense || {}) },
+});
+
+const prepareUploadRows = (items = []) =>
+  items.map((item) => {
+    const cloned = cloneExpenseEntry(item || {});
+    if (!cloned.id && !cloned.__clientId) {
+      cloned.__clientId = createClientId();
+    }
+    return cloned;
+  });
+
+const resolveUploadRowId = (item) => item?.id ?? item?.__clientId;
 
 const Upload = () => {
   const dispatch = useDispatch();
@@ -97,6 +129,48 @@ const Upload = () => {
     setCategorySearchText("");
   };
 
+  const handleUploadRowUpdate = useCallback((rowId, updatedRow) => {
+    if (!rowId) return;
+    setUploadedData((prev) =>
+      prev.map((item) => {
+        if (resolveUploadRowId(item) !== rowId) {
+          return item;
+        }
+        const next = cloneExpenseEntry(item);
+        Object.entries(updatedRow || {}).forEach(([key, value]) => {
+          if (["expenseId", "actions", "id"].includes(key)) {
+            return;
+          }
+          if (key === "date") {
+            next.date = value;
+          } else if (key in next.expense) {
+            next.expense[key] = value;
+          }
+        });
+        return next;
+      })
+    );
+  }, []);
+
+  const handleUploadRowDelete = useCallback((rowId) => {
+    if (!rowId) return;
+    setUploadedData((prev) =>
+      prev.filter((item) => resolveUploadRowId(item) !== rowId)
+    );
+  }, []);
+
+  const handleUploadRowCopy = useCallback((rowId) => {
+    if (!rowId) return;
+    setUploadedData((prev) => {
+      const source = prev.find((item) => resolveUploadRowId(item) === rowId);
+      if (!source) return prev;
+      const clone = cloneExpenseEntry(source);
+      clone.__clientId = createClientId();
+      delete clone.id;
+      return [...prev, clone];
+    });
+  }, []);
+
   const handleSave = async () => {
     if (!hasWriteAccess) return; // safety
     setIsLoading(true);
@@ -106,9 +180,8 @@ const Upload = () => {
     setSaveTotal(uploadedData?.length || 0);
 
     try {
-      const jobId = await dispatch(
-        startTrackedSaveExpenses(uploadedData, friendId)
-      );
+      const payload = uploadedData.map(({ __clientId, ...rest }) => rest);
+      const jobId = await dispatch(startTrackedSaveExpenses(payload, friendId));
 
       // Polling loop
       const poll = async () => {
@@ -185,7 +258,7 @@ const Upload = () => {
   useEffect(() => {
     if (success && data?.length) {
       console.log("Uploaded data:", data);
-      setUploadedData(data);
+      setUploadedData(prepareUploadRows(data));
       setIsTableVisible(true);
       setIsLoading(false);
       setUploadProgress(100);
@@ -227,7 +300,7 @@ const Upload = () => {
       Array.isArray(data) &&
       data.length
     ) {
-      setUploadedData(data);
+      setUploadedData(prepareUploadRows(data));
       setIsTableVisible(true);
     }
   }, [data, isTableVisible, uploadedData.length]);
@@ -295,7 +368,14 @@ const Upload = () => {
 
           {uploadedData.length > 0 ? (
             <div className="relative mt-[50px]">
-              <ExpensesTable expenses={filteredExpenses} />
+              <ExpensesTable
+                expenses={filteredExpenses}
+                isUploadPreview
+                onUploadRowUpdate={handleUploadRowUpdate}
+                onUploadRowDelete={handleUploadRowDelete}
+                onUploadRowCopy={handleUploadRowCopy}
+                disableActions={{ edit: true }}
+              />
 
               {hasWriteAccess && (
                 <div className="flex flex-col sm:flex-row justify-between gap-2 mt-[10px]">

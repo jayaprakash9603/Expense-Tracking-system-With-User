@@ -8,7 +8,7 @@ import {
   getListOfBudgetsById,
   getDetailedBudgetReport,
 } from "../../Redux/Budget/budget.action";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   getExpensesAction,
   getExpensesByBudgetId,
@@ -70,6 +70,7 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
 import BudgetCardsSkeleton from "../../components/skeletons/BudgetCardsSkeleton";
+import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 
 const Budget = () => {
   const { colors, isDarkMode } = useTheme();
@@ -107,14 +108,36 @@ const Budget = () => {
 
   // Router
   const { friendId } = useParams();
-  const location = useLocation();
-  const hideBackButton = location?.state?.fromSidebar === true;
+  const { navigateWithState, preservedState } = usePreserveNavigationState();
+  const hideBackButton = preservedState?.fromSidebar === true;
+  const originFlow = preservedState?.fromFlow;
+  const hasFriendContext = Boolean(friendId && friendId !== "undefined");
   const isFriendView = Boolean(friendId);
 
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { budgets, loading, error } = useSelector((state) => state.budgets);
   const { hasWriteAccess } = useFriendAccess(friendId);
+
+  const handleBackNavigation = () => {
+    if (originFlow) {
+      if (originFlow === "expenses" && hasFriendContext) {
+        navigateWithState(`/friends/expenses/${friendId}`, { preserve: false });
+        return;
+      }
+
+      const targetPath = hasFriendContext
+        ? `/${originFlow}/${friendId}`
+        : `/${originFlow}`;
+      navigateWithState(targetPath, { preserve: false });
+      return;
+    }
+
+    if (hasFriendContext) {
+      navigateWithState(`/friends/expenses/${friendId}`, { preserve: false });
+    } else {
+      navigateWithState("/expenses", { preserve: false });
+    }
+  };
 
   useEffect(() => {
     dispatch(getBudgetData(friendId));
@@ -240,17 +263,17 @@ const Budget = () => {
 
   const handleNewBudgetClick = () => {
     if (friendId && friendId !== "undefined") {
-      navigate(`/budget/create/${friendId}`);
+      navigateWithState(`/budget/create/${friendId}`);
     } else {
-      navigate("/budget/create");
+      navigateWithState("/budget/create");
     }
   };
 
   const handleNavigateReports = () => {
     if (friendId && friendId !== "undefined") {
-      navigate(`/budget/reports/${friendId}`);
+      navigateWithState(`/budget/reports/${friendId}`);
     } else {
-      navigate(`/budget/reports`);
+      navigateWithState(`/budget/reports`);
     }
   };
 
@@ -267,9 +290,9 @@ const Budget = () => {
   const handleEdit = () => {
     dispatch(getBudgetById(menuBudgetId, friendId || ""));
     if (friendId == "" || friendId == undefined) {
-      navigate(`/budget/edit/${menuBudgetId}`);
+      navigateWithState(`/budget/edit/${menuBudgetId}`);
     } else {
-      navigate(`/budget/edit/${menuBudgetId}/friend/${friendId}`);
+      navigateWithState(`/budget/edit/${menuBudgetId}/friend/${friendId}`);
     }
     handleMenuClose();
   };
@@ -280,9 +303,9 @@ const Budget = () => {
     await dispatch(getDetailedBudgetReport(id, friendId || ""));
     handleMenuClose();
     if (friendId && friendId !== "undefined") {
-      navigate(`/budget-report/${id}/${friendId}`);
+      navigateWithState(`/budget-report/${id}/${friendId}`);
     } else {
-      navigate(`/budget-report/${id}`);
+      navigateWithState(`/budget-report/${id}`);
     }
   };
 
@@ -889,14 +912,7 @@ const Budget = () => {
     return isSmallScreen
       ? [...baseSmall, ...actionCol]
       : [...baseLarge, ...actionCol];
-  }, [
-    isSmallScreen,
-    hasWriteAccess,
-    friendId,
-    navigate,
-    colors,
-    currencySymbol,
-  ]);
+  }, [isSmallScreen, hasWriteAccess, friendId, colors, currencySymbol]);
 
   const rows = useMemo(
     () =>
@@ -968,11 +984,7 @@ const Budget = () => {
                   width: 36,
                   height: 36,
                 }}
-                onClick={() =>
-                  friendId && friendId !== "undefined"
-                    ? navigate(`/friends/expenses/${friendId}`)
-                    : navigate("/expenses")
-                }
+                onClick={handleBackNavigation}
                 aria-label="Back"
               >
                 <svg

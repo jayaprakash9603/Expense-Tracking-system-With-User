@@ -32,11 +32,20 @@ import { useTheme } from "../../../hooks/useTheme";
 import FloatingNotificationItem from "./FloatingNotificationItem";
 import { getNotificationConfig } from "./constants/notificationTypes";
 import { fetchNotificationPreferences as fetchNotificationPreferenceSettings } from "../../../Redux/NotificationPreferences/notificationPreferences.action";
+import {
+  publishGlobalMessage,
+  clearGlobalMessage,
+} from "../../../utils/globalMessageBus";
 
 /**
  * Configuration Constants
  */
 const MAX_VISIBLE_NOTIFICATIONS = 5; // Max notifications visible at once
+const MAX_NOTIFICATION_HISTORY = 100; // Only keep latest 100 notifications in memory
+const CLEAR_SUPPRESSION_DURATION_MS = 5 * 60 * 1000;
+const PROCESSING_BATCH_SIZE = 10;
+const PROCESSING_BATCH_DELAY_MS = 12;
+const FLOATING_SUPPRESSION_MESSAGE_ID = "floating-notification-suppression";
 const NOTIFICATION_POSITION = {
   top: "24px",
   right: "24px",
@@ -62,23 +71,186 @@ const FloatingNotificationContainer = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   // Redux state
-  const notifications = useSelector(
+  const rawNotifications = useSelector(
     (state) => state.notifications?.notifications || []
   );
+  const notifications = useMemo(() => {
+    if (!rawNotifications || rawNotifications.length === 0) {
+      return [];
+    }
+    if (rawNotifications.length <= MAX_NOTIFICATION_HISTORY) {
+      return rawNotifications;
+    }
+    return rawNotifications.slice(-MAX_NOTIFICATION_HISTORY);
+  }, [rawNotifications]);
   const legacyPreferences = useSelector(
     (state) => state.notifications?.preferences || null
   );
   const { preferences: managedPreferences, loading: preferencesLoading } =
     useSelector((state) => state.notificationPreferences || {});
   const preferences = managedPreferences || legacyPreferences;
+  const audioRef = useRef(null);
+
+  const soundEnabled = useMemo(() => {
+    if (!preferences) return false;
+    return (
+      preferences.notificationSound === true &&
+      preferences.masterEnabled !== false
+    );
+  }, [preferences]);
+
+  const playNotificationSound = useCallback(() => {
+    if (!soundEnabled) return;
+
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio("/notification-sound.mp3");
+        audioRef.current.volume = 0.5;
+      }
+
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => {
+        console.log("Could not play notification sound:", err);
+      });
+    } catch (error) {
+      console.error("Error playing notification sound:", error);
+    }
+  }, [soundEnabled]);
 
   // Local state for displayed notifications
   const [displayedNotifications, setDisplayedNotifications] = useState([]);
   const [queue, setQueue] = useState([]);
+  const [suppressUntil, setSuppressUntil] = useState(null);
+  const [suppressStartedAt, setSuppressStartedAt] = useState(null);
   const processedIds = useRef(new Set());
-  const audioRef = useRef(null);
+  const pendingRealtimeQueue = useRef([]);
+  const processingTimerRef = useRef(null);
+  const latestSuppressedRef = useRef(false);
+  const clearSuppression = useCallback(() => {
+    setSuppressUntil(null);
+    setSuppressStartedAt(null);
+  }, []);
+  const isSuppressed = useMemo(() => {
+    if (!suppressUntil) return false;
+    return suppressUntil > Date.now();
+  }, [suppressUntil]);
+
+  useEffect(() => {
+    if (!suppressUntil) return undefined;
+    const remaining = suppressUntil - Date.now();
+    if (remaining <= 0) {
+      clearSuppression();
+      return undefined;
+    }
+    const timer = setTimeout(() => clearSuppression(), remaining);
+    return () => clearTimeout(timer);
+  }, [suppressUntil, clearSuppression]);
+
+  const clearProcessingTimer = useCallback(() => {
+    if (processingTimerRef.current) {
+      clearTimeout(processingTimerRef.current);
+      processingTimerRef.current = null;
+    }
+  }, []);
+
+  const displayNotification = useCallback(
+    (notification) => {
+      setDisplayedNotifications((current) => {
+        if (current.length < MAX_VISIBLE_NOTIFICATIONS) {
+          const config = getNotificationConfig(notification.type);
+          if (config.sound) {
+            playNotificationSound();
+          }
+          return [...current, notification];
+        }
+        setQueue((q) => [...q, notification]);
+        return current;
+      });
+    },
+    [playNotificationSound]
+  );
+
+  const processNextBatch = useCallback(() => {
+    clearProcessingTimer();
+
+    if (latestSuppressedRef.current) {
+      pendingRealtimeQueue.current = [];
+      return;
+    }
+
+    const batch = pendingRealtimeQueue.current.splice(0, PROCESSING_BATCH_SIZE);
+
+    if (batch.length === 0) {
+      return;
+    }
+
+    batch.forEach(displayNotification);
+
+    if (pendingRealtimeQueue.current.length > 0) {
+      processingTimerRef.current = setTimeout(
+        processNextBatch,
+        PROCESSING_BATCH_DELAY_MS
+      );
+    }
+  }, [clearProcessingTimer, displayNotification]);
+
+  const scheduleBatchProcessing = useCallback(() => {
+    if (
+      processingTimerRef.current ||
+      pendingRealtimeQueue.current.length === 0
+    ) {
+      return;
+    }
+
+    processingTimerRef.current = setTimeout(
+      processNextBatch,
+      PROCESSING_BATCH_DELAY_MS
+    );
+  }, [processNextBatch]);
+
+  const enqueueNotifications = useCallback(
+    (incoming) => {
+      if (!incoming || incoming.length === 0) {
+        return;
+      }
+
+      incoming.forEach((notification) => {
+        if (notification && notification.id) {
+          processedIds.current.add(notification.id);
+        }
+      });
+
+      pendingRealtimeQueue.current.push(...incoming);
+      scheduleBatchProcessing();
+    },
+    [scheduleBatchProcessing]
+  );
+
+  useEffect(() => {
+    latestSuppressedRef.current = isSuppressed;
+    if (isSuppressed) {
+      pendingRealtimeQueue.current = [];
+      clearProcessingTimer();
+    } else if (pendingRealtimeQueue.current.length > 0) {
+      scheduleBatchProcessing();
+    }
+  }, [isSuppressed, clearProcessingTimer, scheduleBatchProcessing]);
+
+  useEffect(
+    () => () => {
+      clearProcessingTimer();
+      pendingRealtimeQueue.current = [];
+    },
+    [clearProcessingTimer]
+  );
+
   const isInitialLoad = useRef(true); // Track if it's the first load
   const preferencesFetchAttempted = useRef(false);
+
+  useEffect(
+    () => () => clearGlobalMessage(FLOATING_SUPPRESSION_MESSAGE_ID),
+    []
+  );
 
   // Fetch preferences once so floating notifications honor saved settings globally
   useEffect(() => {
@@ -126,19 +298,44 @@ const FloatingNotificationContainer = () => {
     if (!floatingNotificationsEnabled) {
       setDisplayedNotifications([]);
       setQueue([]);
-    }
-  }, [floatingNotificationsEnabled]);
+      clearSuppression();
+      clearGlobalMessage(FLOATING_SUPPRESSION_MESSAGE_ID);
+      isInitialLoad.current = true; // Treat next enable as a fresh session
 
-  /**
-   * Check if notification sound is enabled
-   */
-  const soundEnabled = useMemo(() => {
-    if (!preferences) return false;
-    return (
-      preferences.notificationSound === true &&
-      preferences.masterEnabled !== false
-    );
-  }, [preferences]);
+      if (notifications && notifications.length > 0) {
+        notifications.forEach((notification) => {
+          if (notification && notification.id) {
+            processedIds.current.add(notification.id);
+          }
+        });
+      }
+    }
+  }, [floatingNotificationsEnabled, notifications, clearSuppression]);
+
+  useEffect(() => {
+    if (!floatingNotificationsEnabled) {
+      return;
+    }
+
+    if (suppressUntil) {
+      publishGlobalMessage({
+        id: FLOATING_SUPPRESSION_MESSAGE_ID,
+        renderer: "floatingSuppressionTicker",
+        props: {
+          suppressUntil,
+          suppressStartedAt,
+          onResume: clearSuppression,
+        },
+      });
+    } else {
+      clearGlobalMessage(FLOATING_SUPPRESSION_MESSAGE_ID);
+    }
+  }, [
+    suppressUntil,
+    suppressStartedAt,
+    floatingNotificationsEnabled,
+    clearSuppression,
+  ]);
 
   /**
    * Check if specific notification type is enabled
@@ -163,29 +360,6 @@ const FloatingNotificationContainer = () => {
     },
     [preferences]
   );
-
-  /**
-   * Play notification sound
-   */
-  const playNotificationSound = useCallback(() => {
-    if (!soundEnabled) return;
-
-    try {
-      // Create audio element if it doesn't exist
-      if (!audioRef.current) {
-        audioRef.current = new Audio("/notification-sound.mp3");
-        audioRef.current.volume = 0.5;
-      }
-
-      // Reset and play
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch((err) => {
-        console.log("Could not play notification sound:", err);
-      });
-    } catch (error) {
-      console.error("Error playing notification sound:", error);
-    }
-  }, [soundEnabled]);
 
   /**
    * Process new notifications from Redux
@@ -214,37 +388,26 @@ const FloatingNotificationContainer = () => {
     // Get unread notifications that haven't been processed yet
     const newNotifications = notifications
       .filter((n) => !n.isRead && !processedIds.current.has(n.id))
-      .filter((n) => isNotificationTypeEnabled(n))
-      .slice(0, 10); // Limit to prevent spam
+      .filter((n) => isNotificationTypeEnabled(n));
 
     if (newNotifications.length === 0) return;
 
+    if (isSuppressed) {
+      newNotifications.forEach((notification) => {
+        processedIds.current.add(notification.id);
+      });
+      return;
+    }
+
     console.log("🎯 New real-time notifications to display:", newNotifications);
 
-    newNotifications.forEach((notification) => {
-      processedIds.current.add(notification.id);
-
-      // Check if we can display immediately
-      setDisplayedNotifications((current) => {
-        if (current.length < MAX_VISIBLE_NOTIFICATIONS) {
-          // Play sound for priority notifications
-          const config = getNotificationConfig(notification.type);
-          if (config.sound) {
-            playNotificationSound();
-          }
-          return [...current, notification];
-        } else {
-          // Add to queue
-          setQueue((q) => [...q, notification]);
-          return current;
-        }
-      });
-    });
+    enqueueNotifications(newNotifications);
   }, [
     notifications,
     floatingNotificationsEnabled,
     isNotificationTypeEnabled,
-    playNotificationSound,
+    isSuppressed,
+    enqueueNotifications,
   ]);
 
   /**
@@ -257,6 +420,7 @@ const FloatingNotificationContainer = () => {
       queue.length > 0 &&
       displayedNotifications.length < MAX_VISIBLE_NOTIFICATIONS
     ) {
+      if (isSuppressed) return;
       const [nextNotification, ...remainingQueue] = queue;
       setQueue(remainingQueue);
       setDisplayedNotifications((current) => [...current, nextNotification]);
@@ -272,6 +436,7 @@ const FloatingNotificationContainer = () => {
     displayedNotifications.length,
     floatingNotificationsEnabled,
     playNotificationSound,
+    isSuppressed,
   ]);
 
   /**
@@ -359,13 +524,25 @@ const FloatingNotificationContainer = () => {
   const handleClearAll = useCallback(() => {
     setDisplayedNotifications([]);
     setQueue([]);
-  }, []);
+    if (notifications && notifications.length > 0) {
+      notifications.forEach((notification) => {
+        if (notification && notification.id) {
+          processedIds.current.add(notification.id);
+        }
+      });
+    }
+    const now = Date.now();
+    setSuppressStartedAt(now);
+    setSuppressUntil(now + CLEAR_SUPPRESSION_DURATION_MS);
+  }, [notifications]);
   useEffect(() => {
     const interval = setInterval(() => {
-      // Keep only recent 100 IDs
-      if (processedIds.current.size > 100) {
+      // Keep only recent IDs to match MAX_NOTIFICATION_HISTORY
+      if (processedIds.current.size > MAX_NOTIFICATION_HISTORY) {
         const idsArray = Array.from(processedIds.current);
-        processedIds.current = new Set(idsArray.slice(-100));
+        processedIds.current = new Set(
+          idsArray.slice(-MAX_NOTIFICATION_HISTORY)
+        );
       }
     }, 60000); // Every minute
 

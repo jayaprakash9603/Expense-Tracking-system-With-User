@@ -3,6 +3,11 @@ import { IconButton } from "@mui/material";
 import { Filter, Download } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import DateRangeBadge from "./common/DateRangeBadge";
+import { ReportHeaderSkeleton } from "./skeletons/CommonSkeletons";
+import {
+  DEFAULT_REPORT_TIMEFRAMES,
+  DEFAULT_REPORT_FLOW_TYPES,
+} from "../constants/reportFilters";
 
 /**
  * ReportHeader - Generic header for analytics report pages (payment methods, categories, etc.)
@@ -22,21 +27,12 @@ import DateRangeBadge from "./common/DateRangeBadge";
  * - className: Extra class name to differentiate contexts
  * - enableDateRangeBadge: enable/disable built-in date range badge (default: true)
  * - dateRangeProps: props forwarded to DateRangeBadge (fromDate, toDate, onApply, onReset, etc.)
+ * - isCustomRangeActive: indicates whether a custom date range is active
+ * - extraSelects: optional array of additional select controls rendered alongside timeframe/flow selects
+ * - rightActions: optional React node rendered at the end of the controls row (e.g., action menus)
+ * - showExportButton: toggle export button visibility (default: true)
  */
-const DEFAULT_TIMEFRAMES = [
-  { value: "week", label: "This Week" },
-  { value: "month", label: "This Month" },
-  { value: "quarter", label: "This Quarter" },
-  { value: "year", label: "This Year" },
-  { value: "last_year", label: "Last Year" },
-  { value: "all_time", label: "All Time" },
-];
-
-const DEFAULT_FLOW_TYPES = [
-  { value: "all", label: "All" },
-  { value: "outflow", label: "Outflow" },
-  { value: "inflow", label: "Inflow" },
-];
+const CUSTOM_TIMEFRAME_PLACEHOLDER = "__custom_timeframe__";
 
 const ReportHeader = ({
   title,
@@ -48,33 +44,134 @@ const ReportHeader = ({
   onExport,
   onTimeframeChange,
   onFlowTypeChange,
-  timeframeOptions = DEFAULT_TIMEFRAMES,
-  flowTypeOptions = DEFAULT_FLOW_TYPES,
+  timeframeOptions = DEFAULT_REPORT_TIMEFRAMES,
+  flowTypeOptions = DEFAULT_REPORT_FLOW_TYPES,
   className = "",
   centerContent = null,
   enableDateRangeBadge = true,
   dateRangeProps = null,
+  isLoading = false,
+  skeletonControls = 4,
+  isCustomRangeActive = false,
+  showFilterButton = true,
+  filterButtonLabel = "Filter",
+  isFilterActive = false,
+  extraSelects = [],
+  rightActions = null,
+  showExportButton = true,
 }) => {
   const { colors } = useTheme();
+  const selectStyle = {
+    background: colors.primary_bg,
+    border: `1px solid ${colors.border_color}`,
+    color: colors.primary_text,
+    padding: "8px 12px",
+    borderRadius: "6px",
+    fontSize: "14px",
+    cursor: "pointer",
+  };
+
+  const hasMatchingTimeframe = useMemo(
+    () => timeframeOptions.some((option) => option.value === timeframe),
+    [timeframe, timeframeOptions]
+  );
+  const hasExplicitTimeframe =
+    timeframe !== undefined && timeframe !== null && timeframe !== "";
+  const shouldShowPlaceholderOption =
+    (isCustomRangeActive || !hasMatchingTimeframe) &&
+    (hasExplicitTimeframe || isCustomRangeActive);
+  const timeframeSelectValue = shouldShowPlaceholderOption
+    ? CUSTOM_TIMEFRAME_PLACEHOLDER
+    : hasExplicitTimeframe
+    ? timeframe
+    : "";
 
   const derivedCenterContent = useMemo(() => {
     if (centerContent) {
       return centerContent;
     }
 
-    const hasDateRangeProps =
-      enableDateRangeBadge &&
-      dateRangeProps &&
-      dateRangeProps.fromDate &&
-      dateRangeProps.toDate &&
-      typeof dateRangeProps.onApply === "function";
-
-    if (!hasDateRangeProps) {
+    if (!enableDateRangeBadge || !dateRangeProps) {
       return null;
     }
 
-    return <DateRangeBadge {...dateRangeProps} />;
-  }, [centerContent, enableDateRangeBadge, dateRangeProps]);
+    const hasValidProps =
+      typeof dateRangeProps.onApply === "function" &&
+      dateRangeProps.fromDate &&
+      dateRangeProps.toDate;
+
+    if (hasValidProps) {
+      const canReset =
+        isCustomRangeActive && typeof dateRangeProps.onReset === "function";
+
+      return (
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <DateRangeBadge {...dateRangeProps} />
+          <button
+            type="button"
+            aria-label="Clear custom date range"
+            title="Clear custom date range"
+            onClick={dateRangeProps.onReset}
+            disabled={!canReset}
+            style={{
+              border: "none",
+              background: colors.primary_bg,
+              color: colors.secondary_text,
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: canReset ? "pointer" : "default",
+              boxShadow: `0 0 0 1px ${colors.border_color}`,
+              transition: "all 0.2s ease",
+              fontWeight: 700,
+              fontSize: "14px",
+              lineHeight: 1,
+              opacity: canReset ? 1 : 0,
+              visibility: canReset ? "visible" : "hidden",
+              pointerEvents: canReset ? "auto" : "none",
+            }}
+            onMouseEnter={(e) => {
+              if (!canReset) return;
+              e.currentTarget.style.background = colors.hover_bg;
+              e.currentTarget.style.color = colors.primary_accent;
+            }}
+            onMouseLeave={(e) => {
+              if (!canReset) return;
+              e.currentTarget.style.background = colors.primary_bg;
+              e.currentTarget.style.color = colors.secondary_text;
+            }}
+          >
+            ×
+          </button>
+        </div>
+      );
+    }
+
+    return null;
+  }, [
+    centerContent,
+    enableDateRangeBadge,
+    dateRangeProps,
+    isCustomRangeActive,
+    colors.primary_bg,
+    colors.secondary_text,
+    colors.hover_bg,
+    colors.primary_accent,
+    colors.border_color,
+  ]);
+
+  if (isLoading) {
+    return <ReportHeaderSkeleton controls={skeletonControls} />;
+  }
 
   return (
     <div
@@ -189,6 +286,7 @@ const ReportHeader = ({
             justifyContent: "flex-end",
             flex: "1 1 320px",
             minWidth: 260,
+            marginLeft: "-20px",
           }}
         >
           <select
@@ -197,15 +295,7 @@ const ReportHeader = ({
               onFlowTypeChange && onFlowTypeChange(e.target.value)
             }
             className="timeframe-selector"
-            style={{
-              background: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
-              color: colors.primary_text,
-              padding: "8px 12px",
-              borderRadius: "6px",
-              fontSize: "14px",
-              cursor: "pointer",
-            }}
+            style={selectStyle}
             aria-label="Flow type"
           >
             {flowTypeOptions.map((f) => (
@@ -215,86 +305,159 @@ const ReportHeader = ({
             ))}
           </select>
           <select
-            value={timeframe}
+            value={timeframeSelectValue}
             onChange={(e) =>
               onTimeframeChange && onTimeframeChange(e.target.value)
             }
             className="timeframe-selector"
-            style={{
-              background: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
-              color: colors.primary_text,
-              padding: "8px 12px",
-              borderRadius: "6px",
-              fontSize: "14px",
-              cursor: "pointer",
-            }}
+            style={selectStyle}
             aria-label="Timeframe"
           >
+            {shouldShowPlaceholderOption ? (
+              <option value={CUSTOM_TIMEFRAME_PLACEHOLDER} disabled>
+                Select option
+              </option>
+            ) : null}
             {timeframeOptions.map((t) => (
               <option key={t.value} value={t.value}>
                 {t.label}
               </option>
             ))}
           </select>
-          <button
-            onClick={onFilter}
-            className="control-btn"
-            type="button"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
-              color: colors.primary_text,
-              padding: "8px 12px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "14px",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = colors.hover_bg;
-              e.currentTarget.style.borderColor = colors.primary_accent;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = colors.primary_bg;
-              e.currentTarget.style.borderColor = colors.border_color;
-            }}
-          >
-            <Filter size={16} />
-            Filter
-          </button>
-          <button
-            onClick={onExport}
-            className="control-btn"
-            type="button"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
-              color: colors.primary_text,
-              padding: "8px 12px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "14px",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = colors.hover_bg;
-              e.currentTarget.style.borderColor = colors.primary_accent;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = colors.primary_bg;
-              e.currentTarget.style.borderColor = colors.border_color;
-            }}
-          >
-            <Download size={16} />
-            Export
-          </button>
+          {extraSelects.map((selectConfig, index) => {
+            const options = Array.isArray(selectConfig.options)
+              ? selectConfig.options
+              : [];
+            const value =
+              selectConfig.value === undefined || selectConfig.value === null
+                ? ""
+                : selectConfig.value;
+            return (
+              <select
+                key={selectConfig.id || `extra-select-${index}`}
+                value={value}
+                onChange={(event) =>
+                  selectConfig.onChange?.(event.target.value)
+                }
+                className="timeframe-selector"
+                style={selectStyle}
+                aria-label={selectConfig.ariaLabel || "Additional filter"}
+              >
+                {selectConfig.placeholderOption ? (
+                  <option
+                    value={selectConfig.placeholderOption.value}
+                    disabled={selectConfig.placeholderOption.disabled !== false}
+                  >
+                    {selectConfig.placeholderOption.label}
+                  </option>
+                ) : null}
+                {options.map((option) => (
+                  <option
+                    key={option.value ?? option.label}
+                    value={option.value}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            );
+          })}
+          {showFilterButton && typeof onFilter === "function" ? (
+            <button
+              onClick={onFilter}
+              className="control-btn"
+              type="button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                background: isFilterActive
+                  ? colors.secondary_accent
+                  : colors.primary_bg,
+                border: `1px solid ${
+                  isFilterActive ? colors.secondary_accent : colors.border_color
+                }`,
+                color: isFilterActive
+                  ? colors.tertiary_bg
+                  : colors.primary_text,
+                padding: "8px 12px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "all 0.2s",
+                boxShadow: isFilterActive
+                  ? `0 0 0 2px ${colors.secondary_accent}33`
+                  : "none",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = isFilterActive
+                  ? colors.secondary_accent
+                  : colors.hover_bg;
+                e.currentTarget.style.borderColor = colors.primary_accent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = isFilterActive
+                  ? colors.secondary_accent
+                  : colors.primary_bg;
+                e.currentTarget.style.borderColor = isFilterActive
+                  ? colors.secondary_accent
+                  : colors.border_color;
+              }}
+            >
+              <Filter size={16} />
+              {filterButtonLabel}
+              {isFilterActive ? (
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: colors.tertiary_bg,
+                  }}
+                ></span>
+              ) : null}
+            </button>
+          ) : null}
+          {showExportButton ? (
+            <button
+              onClick={onExport}
+              className="control-btn"
+              type="button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                background: colors.primary_bg,
+                border: `1px solid ${colors.border_color}`,
+                color: colors.primary_text,
+                padding: "8px 12px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = colors.hover_bg;
+                e.currentTarget.style.borderColor = colors.primary_accent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = colors.primary_bg;
+                e.currentTarget.style.borderColor = colors.border_color;
+              }}
+            >
+              <Download size={16} />
+              Export
+            </button>
+          ) : null}
+          {rightActions ? (
+            <div
+              className="header-extra-actions"
+              style={{ display: "flex", alignItems: "center" }}
+            >
+              {rightActions}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

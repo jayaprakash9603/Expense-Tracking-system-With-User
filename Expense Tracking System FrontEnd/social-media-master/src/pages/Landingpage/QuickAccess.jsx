@@ -103,7 +103,7 @@ const QuickAccess = () => {
         <button
           className="qa-box"
           onClick={() => {
-            handleClick("/upload");
+            handleClick("/upload/expenses");
             handleUploadFileClick();
           }}
           style={{
