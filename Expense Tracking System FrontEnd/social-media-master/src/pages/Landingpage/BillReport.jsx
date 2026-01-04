@@ -32,6 +32,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { formatDate } from "../../utils/dateFormatter";
 import ReportHeader from "../../components/ReportHeader";
 import ReportFilterDrawer from "../../components/reportFilters/ReportFilterDrawer";
+import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
 import useBillReportFilters, {
   BILL_TIMEFRAME_OPTIONS,
   BILL_FLOW_TYPE_OPTIONS,
@@ -155,47 +156,6 @@ const buildTimeframeRange = (timeframe) => {
       return { label: "All Time", start: null, end: null };
   }
 };
-
-const SummaryCards = ({ analytics, currencySymbol = "₹" }) => (
-  <div className="summary-cards">
-    <div className="summary-card total">
-      <div className="card-icon">💰</div>
-      <div className="card-content">
-        <h3>Total Expenses</h3>
-        <p className="amount">
-          {currencySymbol}
-          {analytics.totalExpenses.toFixed(2)}
-        </p>
-      </div>
-    </div>
-    <div className="summary-card bills">
-      <div className="card-icon">📄</div>
-      <div className="card-content">
-        <h3>Total Bills</h3>
-        <p className="count">{analytics.totalBills}</p>
-      </div>
-    </div>
-    <div className="summary-card average">
-      <div className="card-icon">📈</div>
-      <div className="card-content">
-        <h3>Average per Bill</h3>
-        <p className="amount">
-          {currencySymbol}
-          {analytics.averageExpense.toFixed(2)}
-        </p>
-      </div>
-    </div>
-    <div className="summary-card categories">
-      <div className="card-icon">🏷️</div>
-      <div className="card-content">
-        <h3>Categories</h3>
-        <p className="count">
-          {Object.keys(analytics.categoryBreakdown).length}
-        </p>
-      </div>
-    </div>
-  </div>
-);
 
 const NoDataMessage = () => (
   <div className="no-data-message">
@@ -861,6 +821,17 @@ const BillReport = () => {
     };
   }, [filteredBills]);
 
+  const overviewCardsData = useMemo(() => {
+    const entries = Object.entries(analytics.categoryBreakdown || {}).map(
+      ([category, data]) => ({
+        name: category,
+        amount: data.total,
+        transactions: data.count,
+      })
+    );
+    return entries.sort((a, b) => b.amount - a.amount);
+  }, [analytics]);
+
   const categoryChartData = Object.entries(analytics.categoryBreakdown).map(
     ([category, data]) => ({
       name: category,
@@ -1174,7 +1145,11 @@ const BillReport = () => {
         showExportButton={false}
       />
 
-      <SummaryCards analytics={analytics} currencySymbol={currencySymbol} />
+      <SharedOverviewCards
+        data={overviewCardsData}
+        mode="category"
+        currencySymbol={currencySymbol}
+      />
 
       {filteredBills.length === 0 ? (
         <NoDataMessage />
