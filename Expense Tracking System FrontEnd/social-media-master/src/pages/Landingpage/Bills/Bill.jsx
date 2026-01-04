@@ -8,9 +8,10 @@ import {
   Pagination,
 } from "@mui/material";
 import dayjs from "dayjs";
-import { useNavigate, useParams, useLocation } from "react-router";
+import { useParams } from "react-router";
 import { useTheme as useAppTheme } from "../../../hooks/useTheme";
 import useUserSettings from "../../../hooks/useUserSettings";
+import usePreserveNavigationState from "../../../hooks/usePreserveNavigationState";
 
 // Custom hooks
 import { useBillData } from "./useBillData";
@@ -31,10 +32,11 @@ import BillSkeleton from "./BillSkeleton";
 
 const Bill = () => {
   // Router hooks
-  const navigate = useNavigate();
   const { friendId } = useParams();
-  const location = useLocation();
-  const hideBackButton = location?.state?.fromSidebar === true;
+  const { preservedState, navigateWithState } = usePreserveNavigationState();
+  const hideBackButton = preservedState?.fromSidebar === true;
+  const originFlow = preservedState?.fromFlow;
+  const hasFriendContext = Boolean(friendId && friendId !== "undefined");
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const { colors } = useAppTheme();
@@ -78,11 +80,23 @@ const Bill = () => {
 
   // Event handlers
   const handleBack = () => {
-    const destination =
-      friendId && friendId !== "undefined"
-        ? `/friends/expenses/${friendId}`
-        : "/expenses";
-    navigate(destination);
+    if (originFlow) {
+      if (originFlow === "expenses" && hasFriendContext) {
+        navigateWithState(`/friends/expenses/${friendId}`, { preserve: false });
+        return;
+      }
+
+      const targetPath = hasFriendContext
+        ? `/${originFlow}/${friendId}`
+        : `/${originFlow}`;
+      navigateWithState(targetPath, { preserve: false });
+      return;
+    }
+
+    const destination = hasFriendContext
+      ? `/friends/expenses/${friendId}`
+      : "/expenses";
+    navigateWithState(destination, { preserve: false });
   };
 
   const handleMenuClick = (event) => {
@@ -103,7 +117,7 @@ const Bill = () => {
     };
 
     if (routes[action]) {
-      navigate(routes[action]);
+      navigateWithState(routes[action]);
     }
   };
 
@@ -154,7 +168,7 @@ const Bill = () => {
     const editRoute = friendId
       ? `/bill/edit/${bill.id}/friend/${friendId}`
       : `/bill/edit/${bill.id}`;
-    navigate(editRoute);
+    navigateWithState(editRoute);
   };
 
   const handleDeleteBill = (bill) => {

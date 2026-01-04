@@ -35,6 +35,7 @@ import { createBill } from "../../Redux/Bill/bill.action";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
+import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 
 const CreateBill = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
@@ -56,6 +57,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const dateFromQuery = searchParams.get("date");
 
   const navigate = useNavigate();
+  const { navigateWithState } = usePreserveNavigationState();
   const today = new Date().toISOString().split("T")[0];
   const dispatch = useDispatch();
   const { friendId } = useParams();
@@ -665,6 +667,8 @@ const CreateBill = ({ onClose, onSuccess }) => {
           onClose();
         } else {
           navigate(-1);
+          navigateWithState(-1, { preserve: false });
+          navigateWithState(-1, { preserve: false });
         }
       } else {
         // Error case - handle both rejected actions and error responses

@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { api } from "../../config/api";
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { formatDate } from "../../utils/dateFormatter";
+import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 import {
   Accordion,
   AccordionSummary,
@@ -66,8 +67,8 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
     process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
   // Routing hooks (used in callbacks and UI)
-  const navigate = useNavigate();
   const { friendId } = useParams();
+  const { navigateWithState } = usePreserveNavigationState();
 
   // Memoized filtered and sorted bills
   const filteredAndSortedBills = useMemo(() => {
@@ -272,9 +273,9 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             // Briefly show final count, then redirect to bill route
             setTimeout(() => {
               if (friendId && friendId !== "undefined") {
-                navigate(`/bill/${friendId}`);
+                navigateWithState(`/bill/${friendId}`);
               } else {
-                navigate("/bill");
+                navigateWithState("/bill");
               }
             }, 1500);
           } else if (progressData.status === "FAILED") {
@@ -311,12 +312,11 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       API_BASE_URL,
       onImportComplete,
       importedBills.length,
-      navigate,
       friendId,
+      navigateWithState,
     ]
   );
 
-  // Reset component state
   const handleReset = useCallback(() => {
     setSelectedFile(null);
     setUploadMessage("");
@@ -454,11 +454,13 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       <div style={{ position: "absolute", top: 16, left: 16, zIndex: 10 }}>
         <button
           aria-label="Back"
-          onClick={() =>
-            friendId && friendId !== "undefined"
-              ? navigate(`/bill/${friendId}`)
-              : navigate("/bill")
-          }
+          onClick={() => {
+            if (friendId && friendId !== "undefined") {
+              navigateWithState(`/bill/${friendId}`);
+            } else {
+              navigateWithState("/bill");
+            }
+          }}
           className="rounded-full"
           style={{
             color: colors.primary_accent,

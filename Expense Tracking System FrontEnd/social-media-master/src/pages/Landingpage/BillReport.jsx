@@ -26,7 +26,7 @@ import { fetchAllBills } from "../../Redux/Bill/bill.action";
 import { IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useParams } from "react-router";
-import { useNavigate } from "react-router-dom";
+import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTheme } from "../../hooks/useTheme";
 import { formatDate } from "../../utils/dateFormatter";
@@ -613,7 +613,7 @@ const BillReport = () => {
   const allBills = useSelector((state) => state.bill.bills) || [];
   const loading = useSelector((state) => state.bill.loading);
   const { friendId } = useParams();
-  const navigate = useNavigate();
+  const { navigateWithState } = usePreserveNavigationState();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
 
@@ -667,9 +667,9 @@ const BillReport = () => {
 
   const handleBack = () => {
     if (friendId) {
-      navigate(`/bill/${friendId}`);
+      navigateWithState(`/bill/${friendId}`);
     } else {
-      navigate(`/bill`);
+      navigateWithState(`/bill`);
     }
   };
 
