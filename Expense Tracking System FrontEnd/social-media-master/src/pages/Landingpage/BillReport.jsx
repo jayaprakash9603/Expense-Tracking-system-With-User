@@ -156,51 +156,6 @@ const buildTimeframeRange = (timeframe) => {
   }
 };
 
-const FilterInfo = ({
-  filteredBills,
-  allBills,
-  selectedCategory,
-  selectedTimeframe,
-  selectedType,
-  fromDate,
-  toDate,
-  dateFormat,
-  timeframeLabel = "",
-}) => (
-  <div className="filter-info">
-    <p>
-      Showing {filteredBills.length} bills
-      {selectedCategory !== "all" && ` in ${selectedCategory}`}
-      {(() => {
-        const timeframeMap = {
-          this_month: "This month",
-          last_month: "Last month",
-          this_year: "This year",
-          last_year: "Last year",
-          week: "Last 7 days",
-          month: "This month",
-          year: "This year",
-        };
-        if (timeframeLabel) {
-          return ` for ${timeframeLabel}`;
-        }
-        if (selectedTimeframe !== "all") {
-          return ` for ${timeframeMap[selectedTimeframe] || selectedTimeframe}`;
-        }
-        return "";
-      })()}
-      {selectedType !== "all" &&
-        ` marked as ${selectedType === "gain" ? "gains" : "losses"}`}
-      {(fromDate || toDate) &&
-        ` between ${
-          fromDate ? formatDate(fromDate, dateFormat) : "start"
-        } and ${toDate ? formatDate(toDate, dateFormat) : "now"}`}
-      {filteredBills.length !== allBills.length &&
-        ` (filtered from ${allBills.length} total)`}
-    </p>
-  </div>
-);
-
 const SummaryCards = ({ analytics, currencySymbol = "₹" }) => (
   <div className="summary-cards">
     <div className="summary-card total">
@@ -1217,20 +1172,6 @@ const BillReport = () => {
         rightActions={reportHeaderActions}
         filterButtonLabel="Filters"
         showExportButton={false}
-      />
-
-      <FilterInfo
-        filteredBills={filteredBills}
-        allBills={allBills}
-        selectedCategory={selectedCategory}
-        selectedTimeframe={selectedTimeframe}
-        selectedType={selectedType}
-        fromDate={activeDateBounds?.start}
-        toDate={activeDateBounds?.end}
-        dateFormat={settings.dateFormat}
-        timeframeLabel={
-          isCustomRangeActive ? "Custom Range" : timeframeRange.label
-        }
       />
 
       <SummaryCards analytics={analytics} currencySymbol={currencySymbol} />
