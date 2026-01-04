@@ -415,7 +415,7 @@ export const te = {
       reports: "రిపోర్టులు",
       categories: "వర్గాలు",
       budget: "బడ్జెట్",
-      paymentMethod: "చెల్లింపు విధానం",
+      paymentMethod: "చెల్లింపు",
       bill: "బిల్లు",
       calendar: "క్యాలెండర్",
     },

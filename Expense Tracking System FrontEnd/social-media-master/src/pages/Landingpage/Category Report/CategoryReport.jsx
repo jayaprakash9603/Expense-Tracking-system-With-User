@@ -11,6 +11,8 @@ import SharedOverviewCards from "../../../components/charts/SharedOverviewCards"
 import SharedDistributionChart from "../../../components/charts/SharedDistributionChart";
 import { getChartColors } from "../../../utils/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
+import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
+import useCategoryReportFilters from "../../../hooks/reportFilters/useCategoryReportFilters";
 
 const COLORS = getChartColors(10); // limit to first 10 for category distribution
 
@@ -38,9 +40,28 @@ const CategoryReport = () => {
     refresh,
   } = useCategoryReportData({ friendId });
 
-  const handleFilter = () => {
-    console.log("Opening category filters...");
-  };
+  const {
+    filterDefaults: baseCategoryFilterDefaults,
+    filterValues,
+    sections: categoryFilterSections,
+    isFilterOpen,
+    openFilters,
+    closeFilters,
+    handleApplyFilters,
+    handleResetFilters,
+    filtersActive,
+    filteredCategories,
+  } = useCategoryReportFilters({
+    timeframe,
+    flowType,
+    setTimeframe,
+    setFlowType,
+    dateRange,
+    setCustomDateRange,
+    resetDateRange,
+    isCustomRange,
+    categorySpending,
+  });
 
   const handleExport = () => {
     console.log("Exporting category report...");
@@ -75,7 +96,7 @@ const CategoryReport = () => {
         className="category-report-header"
         title="📊 Category Analytics"
         subtitle="Comprehensive spending analysis by categories"
-        onFilter={handleFilter}
+        onFilter={openFilters}
         onExport={handleExport}
         onTimeframeChange={handleTimeframeChange}
         timeframe={timeframe}
@@ -93,6 +114,8 @@ const CategoryReport = () => {
             : undefined
         }
         isCustomRangeActive={isCustomRange}
+        showFilterButton={categoryFilterSections.length > 0}
+        isFilterActive={filtersActive}
       />
 
       {error ? (
@@ -117,7 +140,7 @@ const CategoryReport = () => {
         </div>
       ) : null}
 
-      <SharedOverviewCards data={categorySpending} mode="category" />
+      <SharedOverviewCards data={filteredCategories} mode="category" />
 
       <div
         className="charts-grid"
@@ -137,13 +160,11 @@ const CategoryReport = () => {
           }}
         >
           <PaymentUsageChart
-            data={(Array.isArray(categorySpending) ? categorySpending : []).map(
-              (c) => ({
-                method: c.name, // reuse field expected by PaymentUsageChart
-                totalAmount: c.amount,
-                transactions: c.transactions,
-              })
-            )}
+            data={filteredCategories.map((c) => ({
+              method: c.name,
+              totalAmount: c.amount,
+              transactions: c.transactions,
+            }))}
           />
         </div>
         {/* Row 1: Distribution and Spending Analysis */}
@@ -156,7 +177,7 @@ const CategoryReport = () => {
           }}
         >
           <SharedDistributionChart
-            data={categorySpending}
+            data={filteredCategories}
             mode="category"
             colorsFallback={COLORS}
           />
@@ -171,9 +192,18 @@ const CategoryReport = () => {
             gap: "24px",
           }}
         >
-          <CategoryExpensesAccordion categories={categorySpending} />
+          <CategoryExpensesAccordion categories={filteredCategories} />
         </div>
       </div>
+      <ReportFilterDrawer
+        open={isFilterOpen}
+        onClose={closeFilters}
+        sections={categoryFilterSections}
+        values={filterValues}
+        initialValues={baseCategoryFilterDefaults}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+      />
     </div>
   );
 };

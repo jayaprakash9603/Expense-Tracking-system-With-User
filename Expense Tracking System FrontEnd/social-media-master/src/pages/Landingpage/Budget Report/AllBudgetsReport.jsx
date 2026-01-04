@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../../../hooks/useTheme";
 import useBudgetReportData from "../../../hooks/useBudgetReportData";
+import useBudgetReportFilters from "../../../hooks/reportFilters/useBudgetReportFilters";
 import ReportHeader from "../../../components/ReportHeader";
 import BudgetAccordionGroup from "../../../components/BudgetAccordion";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
@@ -9,6 +10,7 @@ import SharedDistributionChart from "../../../components/charts/SharedDistributi
 import BudgetOverviewGrid from "../../../components/budget/BudgetOverviewGrid";
 import { PaymentLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
 import { getChartColors } from "../../../utils/chartColors";
+import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import "../Payment Report/PaymentReport.css";
 
 const COLORS = getChartColors();
@@ -36,15 +38,37 @@ const AllBudgetsReport = () => {
     budgetsData,
     categoryBreakdown,
     paymentMethodBreakdown,
-    summary,
-    refresh,
   } = useBudgetReportData({ friendId });
 
-  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  const {
+    filterDefaults: baseBudgetFilterDefaults,
+    filterValues,
+    sections: budgetFilterSections,
+    isFilterOpen,
+    openFilters,
+    closeFilters,
+    handleApplyFilters,
+    handleResetFilters,
+    filtersActive,
+    filteredBudgets,
+    filteredBudgetSummary,
+    effectiveCategoryBreakdown,
+    effectivePaymentBreakdown,
+  } = useBudgetReportFilters({
+    timeframe,
+    flowType,
+    setTimeframe,
+    setFlowType,
+    dateRange,
+    setCustomDateRange,
+    resetDateRange,
+    isCustomRange,
+    budgetsData,
+    categoryBreakdown,
+    paymentMethodBreakdown,
+  });
 
-  const handleFilter = () => {
-    console.log("Opening budget filters...");
-  };
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
   const handleExport = () => {
     console.log("Exporting budget report...");
@@ -76,7 +100,7 @@ const AllBudgetsReport = () => {
         className="payment-methods-header"
         title="💰 Budget Analytics"
         subtitle="Comprehensive analysis of budget allocations and spending trends"
-        onFilter={handleFilter}
+        onFilter={openFilters}
         onExport={handleExport}
         onTimeframeChange={handleTimeframeChange}
         timeframe={timeframe}
@@ -90,6 +114,8 @@ const AllBudgetsReport = () => {
           onReset: resetDateRange,
         }}
         isCustomRangeActive={isCustomRange}
+        showFilterButton={budgetFilterSections.length > 0}
+        isFilterActive={filtersActive}
       />
 
       {error ? (
@@ -110,25 +136,11 @@ const AllBudgetsReport = () => {
       ) : null}
 
       {/* Summary Cards */}
-      <SharedOverviewCards
-        data={[
-          {
-            totalBudgets: summary.totalBudgets || 0,
-            activeBudgets: budgetsData.filter((b) => !b.isExpired).length || 0,
-            totalSpent: summary.grandTotalSpent || 0,
-            totalRemaining:
-              budgetsData.reduce(
-                (sum, b) => sum + (b.allocatedAmount - b.totalSpent),
-                0
-              ) || 0,
-          },
-        ]}
-        mode="budget"
-      />
+      <SharedOverviewCards data={[filteredBudgetSummary]} mode="budget" />
 
       <div className="charts-grid">
         {/* Row 1: Category Distribution */}
-        {categoryBreakdown.length > 0 && (
+        {effectiveCategoryBreakdown.length > 0 && (
           <div
             className="chart-row"
             style={{
@@ -139,7 +151,7 @@ const AllBudgetsReport = () => {
             }}
           >
             <SharedDistributionChart
-              data={categoryBreakdown}
+              data={effectiveCategoryBreakdown}
               mode="category"
               title="Category Distribution"
               subtitle="Spending breakdown across categories in all budgets"
@@ -149,7 +161,7 @@ const AllBudgetsReport = () => {
         )}
 
         {/* Row 2: Payment Method Distribution */}
-        {paymentMethodBreakdown.length > 0 && (
+        {effectivePaymentBreakdown.length > 0 && (
           <div
             className="chart-row"
             style={{
@@ -160,7 +172,7 @@ const AllBudgetsReport = () => {
             }}
           >
             <SharedDistributionChart
-              data={paymentMethodBreakdown}
+              data={effectivePaymentBreakdown}
               mode="payment"
               title="Payment Method Distribution"
               subtitle="How expenses are paid across all budgets"
@@ -170,7 +182,7 @@ const AllBudgetsReport = () => {
         )}
 
         {/* Row 3: Budget Overview Grid */}
-        {budgetsData.length > 0 && (
+        {filteredBudgets.length > 0 && (
           <div className="chart-row full-width">
             <div
               className="chart-container"
@@ -203,7 +215,7 @@ const AllBudgetsReport = () => {
                   Visual overview of all budget allocations and utilization
                 </div>
               </div>
-              <BudgetOverviewGrid budgets={budgetsData} />
+              <BudgetOverviewGrid budgets={filteredBudgets} />
             </div>
           </div>
         )}
@@ -232,10 +244,19 @@ const AllBudgetsReport = () => {
                 Expand a budget to view expenses and detailed breakdown
               </div>
             </div>
-            <BudgetAccordionGroup budgets={budgetsData} />
+            <BudgetAccordionGroup budgets={filteredBudgets} />
           </div>
         </div>
       </div>
+      <ReportFilterDrawer
+        open={isFilterOpen}
+        onClose={closeFilters}
+        sections={budgetFilterSections}
+        values={filterValues}
+        initialValues={baseBudgetFilterDefaults}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+      />
     </div>
   );
 };

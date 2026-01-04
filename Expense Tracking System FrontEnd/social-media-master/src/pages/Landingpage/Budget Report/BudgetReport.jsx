@@ -3,11 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../../../hooks/useTheme";
 import useUserSettings from "../../../hooks/useUserSettings";
 import useSingleBudgetReport from "../../../hooks/useSingleBudgetReport";
+import useSingleBudgetReportFilters from "../../../hooks/reportFilters/useSingleBudgetReportFilters";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import SharedDistributionChart from "../../../components/charts/SharedDistributionChart";
 import GroupedExpensesAccordion from "../../../components/GroupedExpensesAccordion";
 import { BudgetReportLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
 import ReportHeader from "../../../components/ReportHeader";
+import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import { getChartColors } from "../../../utils/chartColors";
 import { computeDateRange } from "../../../utils/reportParams";
 
@@ -21,14 +23,17 @@ const BudgetReport = () => {
   const [customRange, setCustomRange] = useState(null);
 
   // Custom timeframe options for budget report
-  const timeframeOptions = [
-    { value: "budget", label: "Budget Period" },
-    { value: "week", label: "This Week" },
-    { value: "month", label: "This Month" },
-    { value: "quarter", label: "This Quarter" },
-    { value: "year", label: "This Year" },
-    { value: "all", label: "All Time" },
-  ];
+  const timeframeOptions = useMemo(
+    () => [
+      { value: "budget", label: "Budget Period" },
+      { value: "week", label: "This Week" },
+      { value: "month", label: "This Month" },
+      { value: "quarter", label: "This Quarter" },
+      { value: "year", label: "This Year" },
+      { value: "all", label: "All Time" },
+    ],
+    []
+  );
 
   const { loading, error, budgetData } = useSingleBudgetReport(
     budgetId,
@@ -81,6 +86,7 @@ const BudgetReport = () => {
     setCustomRange(null);
   };
 
+  const isCustomRangeActive = Boolean(customRange);
   const dateRangeProps = activeRange
     ? {
         fromDate: activeRange.fromDate,
@@ -90,38 +96,40 @@ const BudgetReport = () => {
       }
     : undefined;
 
+  const expenseGroups = budgetData?.expenseGroups || [];
+  const categoryBreakdown = budgetData?.categoryBreakdown || [];
+  const paymentBreakdown = budgetData?.paymentMethodBreakdown || [];
+
+  const {
+    filterDefaults,
+    filterValues,
+    sections,
+    isFilterOpen,
+    openFilters,
+    closeFilters,
+    handleApplyFilters,
+    handleResetFilters,
+    filtersActive,
+    filteredCategoryBreakdown,
+    filteredPaymentBreakdown,
+    filteredExpenseGroups,
+  } = useSingleBudgetReportFilters({
+    timeframe: timeFrame,
+    flowType,
+    setTimeframe: setTimeFrame,
+    setFlowType,
+    dateRange: customRange || { fromDate: "", toDate: "" },
+    setCustomDateRange: handleCustomRangeApply,
+    resetDateRange: handleResetRange,
+    isCustomRange: isCustomRangeActive,
+    categoryBreakdown,
+    paymentMethodBreakdown: paymentBreakdown,
+    expenseGroups,
+    timeframeOptions,
+  });
+
   const COLORS = getChartColors();
 
-  // Calculate overview card data
-  const overviewData = useMemo(() => {
-    if (!budgetData?.summary) return null;
-
-    const { summary } = budgetData;
-    return [
-      {
-        title: "Total Amount",
-        value: summary.totalAmount || 0,
-        isCurrency: true,
-      },
-      {
-        title: "Total Expenses",
-        value: summary.totalExpenses || 0,
-        isCurrency: false,
-      },
-      {
-        title: "Expense Categories",
-        value: summary.totalExpenseNames || 0,
-        isCurrency: false,
-      },
-      {
-        title: "Payment Methods",
-        value: summary.paymentMethodTotals?.length || 0,
-        isCurrency: false,
-      },
-    ];
-  }, [budgetData]);
-
-  const textColor = mode === "dark" ? "#e5e7eb" : "#1f2937";
   const bgColor = mode === "dark" ? "#1f2937" : "#ffffff";
 
   if (loading) {
@@ -150,12 +158,14 @@ const BudgetReport = () => {
         flowType={flowType}
         timeframeOptions={timeframeOptions}
         onBack={() => navigate("/budget")}
-        onFilter={() => {}}
+        onFilter={openFilters}
         onExport={() => {}}
+        showFilterButton={sections.length > 0}
+        isFilterActive={filtersActive}
         onTimeframeChange={handleTimeframeChange}
         onFlowTypeChange={(f) => setFlowType(f)}
         dateRangeProps={dateRangeProps}
-        isCustomRangeActive={Boolean(customRange)}
+        isCustomRangeActive={isCustomRangeActive}
       />
 
       {error ? (
@@ -176,9 +186,9 @@ const BudgetReport = () => {
       ) : null}
 
       {/* Summary Cards - use SharedOverviewCards in expenses mode with expenseGroups */}
-      {budgetData?.expenseGroups && (
+      {expenseGroups.length > 0 && (
         <SharedOverviewCards
-          data={budgetData.expenseGroups}
+          data={filteredExpenseGroups}
           mode="expenses"
           currencySymbol={settings.getCurrency().symbol}
         />
@@ -186,46 +196,44 @@ const BudgetReport = () => {
 
       <div className="charts-grid" style={{ padding: "16px" }}>
         {/* Row 1: Category Distribution */}
-        {budgetData?.categoryBreakdown &&
-          budgetData.categoryBreakdown.length > 0 && (
-            <div
-              className="chart-row"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: 24,
-                width: "100%",
-              }}
-            >
-              <SharedDistributionChart
-                data={budgetData.categoryBreakdown}
-                mode="category"
-                colorsFallback={COLORS}
-                currencySymbol={settings.getCurrency().symbol}
-              />
-            </div>
-          )}
+        {filteredCategoryBreakdown.length > 0 && (
+          <div
+            className="chart-row"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr",
+              gap: 24,
+              width: "100%",
+            }}
+          >
+            <SharedDistributionChart
+              data={filteredCategoryBreakdown}
+              mode="category"
+              colorsFallback={COLORS}
+              currencySymbol={settings.getCurrency().symbol}
+            />
+          </div>
+        )}
 
         {/* Row 2: Payment Method Distribution */}
-        {budgetData?.paymentMethodBreakdown &&
-          budgetData.paymentMethodBreakdown.length > 0 && (
-            <div
-              className="chart-row"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: 24,
-                width: "100%",
-              }}
-            >
-              <SharedDistributionChart
-                data={budgetData.paymentMethodBreakdown}
-                mode="payment"
-                colorsFallback={COLORS}
-                currencySymbol={settings.getCurrency().symbol}
-              />
-            </div>
-          )}
+        {filteredPaymentBreakdown.length > 0 && (
+          <div
+            className="chart-row"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr",
+              gap: 24,
+              width: "100%",
+            }}
+          >
+            <SharedDistributionChart
+              data={filteredPaymentBreakdown}
+              mode="payment"
+              colorsFallback={COLORS}
+              currencySymbol={settings.getCurrency().symbol}
+            />
+          </div>
+        )}
 
         {/* Row 3: Expense Details Accordion */}
         <div className="chart-row full-width">
@@ -241,27 +249,31 @@ const BudgetReport = () => {
             <div className="chart-header">
               <h3 style={{ color: colors.primary_text }}>Expense Details</h3>
             </div>
-            {budgetData?.rawData ? (
+            {filteredExpenseGroups.length > 0 ? (
               <GroupedExpensesAccordion
-                rawData={budgetData.rawData}
-                summary={budgetData.summary}
+                methods={filteredExpenseGroups}
+                summary={budgetData?.summary}
                 currencySymbol={settings.getCurrency().symbol}
-              />
-            ) : budgetData?.expenseGroups &&
-              budgetData.expenseGroups.length > 0 ? (
-              <GroupedExpensesAccordion
-                expenseGroups={budgetData.expenseGroups}
-                currencySymbol={settings.getCurrency().symbol}
-                groupBy="expenseName"
               />
             ) : (
               <div style={{ padding: 24, color: colors.secondary_text }}>
-                No expenses found for this budget in the selected time frame.
+                {filtersActive
+                  ? "No expenses match the selected filters."
+                  : "No expenses found for this budget in the selected time frame."}
               </div>
             )}
           </div>
         </div>
       </div>
+      <ReportFilterDrawer
+        open={isFilterOpen}
+        onClose={closeFilters}
+        sections={sections}
+        values={filterValues}
+        initialValues={filterDefaults}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+      />
     </div>
   );
 };

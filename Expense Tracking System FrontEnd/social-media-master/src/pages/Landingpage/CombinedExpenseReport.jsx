@@ -16,6 +16,8 @@ import {
 } from "../../components/skeletons/CommonSkeletons";
 import { getChartColors } from "../../utils/chartColors";
 import { useTheme } from "../../hooks/useTheme";
+import ReportFilterDrawer from "../../components/reportFilters/ReportFilterDrawer";
+import useExpenseReportFilters from "../../hooks/reportFilters/useExpenseReportFilters";
 import "../Landingpage/Payment Report/PaymentReport.css"; // Reuse existing payment report styles
 
 // Combined Expenses Report: Overview, payment method distribution, usage, category distribution, expenses accordion.
@@ -49,6 +51,31 @@ export default function CombinedExpenseReport() {
     isCustomRange,
   } = useGroupedCashflow({ friendId });
 
+  const {
+    filterDefaults: baseExpenseFilterDefaults,
+    filterValues,
+    sections: expenseFilterSections,
+    isFilterOpen,
+    openFilters,
+    closeFilters,
+    handleApplyFilters,
+    handleResetFilters,
+    filtersActive,
+    filteredMethodsData,
+    filteredExpenseSummary,
+  } = useExpenseReportFilters({
+    timeframe,
+    flowType,
+    setTimeframe,
+    setFlowType,
+    dateRange,
+    setCustomDateRange,
+    resetDateRange,
+    isCustomRange,
+    methodsData,
+    summary,
+  });
+
   // Fetch category data with independent state
   const { distribution: categoryDistribution, loading: categoryLoading } =
     useCategoryDistributionData({
@@ -80,9 +107,6 @@ export default function CombinedExpenseReport() {
     }
   };
 
-  const handleFilter = () => {
-    console.log("Filter controls placeholder (not implemented)");
-  };
   const handleExport = () => {
     // Perform export using latest data (placeholder for real export logic/hook)
     console.log(
@@ -138,7 +162,7 @@ export default function CombinedExpenseReport() {
           subtitle="Expenses grouped together"
           timeframe={timeframe}
           onTimeframeChange={setTimeframe}
-          onFilter={handleFilter}
+          onFilter={openFilters}
           onExport={handleExport}
           onBack={handleBack}
           flowType={flowType}
@@ -150,6 +174,9 @@ export default function CombinedExpenseReport() {
             onReset: resetDateRange,
           }}
           isCustomRangeActive={isCustomRange}
+          showFilterButton={expenseFilterSections.length > 0}
+          filterButtonLabel="Filter"
+          isFilterActive={filtersActive}
         />
       </div>
 
@@ -177,7 +204,7 @@ export default function CombinedExpenseReport() {
         )}
 
         {/* Overview cards: expenses mode with grouped payment method data */}
-        <SharedOverviewCards data={methodsData} mode="expenses" />
+        <SharedOverviewCards data={filteredMethodsData} mode="expenses" />
 
         <div
           className="charts-grid"
@@ -248,10 +275,22 @@ export default function CombinedExpenseReport() {
               gap: "24px",
             }}
           >
-            <GroupedExpensesAccordion rawData={rawData} summary={summary} />
+            <GroupedExpensesAccordion
+              methods={filteredMethodsData}
+              summary={filteredExpenseSummary}
+            />
           </div>
         </div>
       </div>
+      <ReportFilterDrawer
+        open={isFilterOpen}
+        onClose={closeFilters}
+        sections={expenseFilterSections}
+        values={filterValues}
+        initialValues={baseExpenseFilterDefaults}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+      />
     </div>
   );
 }

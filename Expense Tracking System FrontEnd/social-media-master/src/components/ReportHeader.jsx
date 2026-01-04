@@ -4,6 +4,10 @@ import { Filter, Download } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import DateRangeBadge from "./common/DateRangeBadge";
 import { ReportHeaderSkeleton } from "./skeletons/CommonSkeletons";
+import {
+  DEFAULT_REPORT_TIMEFRAMES,
+  DEFAULT_REPORT_FLOW_TYPES,
+} from "../constants/reportFilters";
 
 /**
  * ReportHeader - Generic header for analytics report pages (payment methods, categories, etc.)
@@ -25,21 +29,6 @@ import { ReportHeaderSkeleton } from "./skeletons/CommonSkeletons";
  * - dateRangeProps: props forwarded to DateRangeBadge (fromDate, toDate, onApply, onReset, etc.)
  * - isCustomRangeActive: indicates whether a custom date range is active
  */
-const DEFAULT_TIMEFRAMES = [
-  { value: "week", label: "This Week" },
-  { value: "month", label: "This Month" },
-  { value: "quarter", label: "This Quarter" },
-  { value: "year", label: "This Year" },
-  { value: "last_year", label: "Last Year" },
-  { value: "all_time", label: "All Time" },
-];
-
-const DEFAULT_FLOW_TYPES = [
-  { value: "all", label: "All" },
-  { value: "outflow", label: "Outflow" },
-  { value: "inflow", label: "Inflow" },
-];
-
 const CUSTOM_TIMEFRAME_PLACEHOLDER = "__custom_timeframe__";
 
 const ReportHeader = ({
@@ -52,8 +41,8 @@ const ReportHeader = ({
   onExport,
   onTimeframeChange,
   onFlowTypeChange,
-  timeframeOptions = DEFAULT_TIMEFRAMES,
-  flowTypeOptions = DEFAULT_FLOW_TYPES,
+  timeframeOptions = DEFAULT_REPORT_TIMEFRAMES,
+  flowTypeOptions = DEFAULT_REPORT_FLOW_TYPES,
   className = "",
   centerContent = null,
   enableDateRangeBadge = true,
@@ -61,6 +50,9 @@ const ReportHeader = ({
   isLoading = false,
   skeletonControls = 4,
   isCustomRangeActive = false,
+  showFilterButton = true,
+  filterButtonLabel = "Filter",
+  isFilterActive = false,
 }) => {
   const { colors } = useTheme();
 
@@ -331,35 +323,63 @@ const ReportHeader = ({
               </option>
             ))}
           </select>
-          <button
-            onClick={onFilter}
-            className="control-btn"
-            type="button"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
-              color: colors.primary_text,
-              padding: "8px 12px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "14px",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = colors.hover_bg;
-              e.currentTarget.style.borderColor = colors.primary_accent;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = colors.primary_bg;
-              e.currentTarget.style.borderColor = colors.border_color;
-            }}
-          >
-            <Filter size={16} />
-            Filter
-          </button>
+          {showFilterButton && typeof onFilter === "function" ? (
+            <button
+              onClick={onFilter}
+              className="control-btn"
+              type="button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                background: isFilterActive
+                  ? colors.secondary_accent
+                  : colors.primary_bg,
+                border: `1px solid ${
+                  isFilterActive ? colors.secondary_accent : colors.border_color
+                }`,
+                color: isFilterActive
+                  ? colors.tertiary_bg
+                  : colors.primary_text,
+                padding: "8px 12px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "all 0.2s",
+                boxShadow: isFilterActive
+                  ? `0 0 0 2px ${colors.secondary_accent}33`
+                  : "none",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = isFilterActive
+                  ? colors.secondary_accent
+                  : colors.hover_bg;
+                e.currentTarget.style.borderColor = colors.primary_accent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = isFilterActive
+                  ? colors.secondary_accent
+                  : colors.primary_bg;
+                e.currentTarget.style.borderColor = isFilterActive
+                  ? colors.secondary_accent
+                  : colors.border_color;
+              }}
+            >
+              <Filter size={16} />
+              {filterButtonLabel}
+              {isFilterActive ? (
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: colors.tertiary_bg,
+                  }}
+                ></span>
+              ) : null}
+            </button>
+          ) : null}
           <button
             onClick={onExport}
             className="control-btn"
