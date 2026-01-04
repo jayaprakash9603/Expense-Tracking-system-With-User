@@ -63,10 +63,11 @@ const REPORT_FILTER_DEFAULTS = {
     dateRange: { fromDate: "", toDate: "" },
   },
   bills: {
-    timeframe: "month",
+    timeframe: "all",
     flowType: "all",
+    category: "all",
+    paymentMethods: [],
     amountRange: null,
-    billTypes: [],
     dateRange: { fromDate: "", toDate: "" },
   },
 };
@@ -158,6 +159,37 @@ const createMultiSelectSection = ({
   };
 };
 
+const createSingleSelectSection = ({
+  id,
+  field,
+  label,
+  options,
+  helperText,
+  defaultOption,
+}) => {
+  const normalized = normalizeOptions(options);
+  const merged = [];
+  if (defaultOption) {
+    merged.push(defaultOption);
+  }
+  normalized.forEach((option) => {
+    if (!merged.some((entry) => entry.value === option.value)) {
+      merged.push(option);
+    }
+  });
+  if (!merged.length) {
+    return null;
+  }
+  return {
+    id,
+    field,
+    label,
+    type: "radio",
+    options: merged,
+    helperText,
+  };
+};
+
 const createRangeSection = ({ id, field, label, bounds, helperText }) => {
   const normalizedBounds = ensureBounds(bounds);
   return {
@@ -228,6 +260,20 @@ export const buildReportFilterSections = (type = "expenses", context = {}) => {
     });
     if (methodSection) {
       sections.push(methodSection);
+    }
+  }
+
+  if (type === "bills") {
+    const categorySection = createSingleSelectSection({
+      id: "category",
+      field: "category",
+      label: "Category",
+      options: context.availableCategories,
+      helperText: "Limit analytics to a single bill category.",
+      defaultOption: { value: "all", label: "All Categories" },
+    });
+    if (categorySection) {
+      sections.push(categorySection);
     }
   }
 
