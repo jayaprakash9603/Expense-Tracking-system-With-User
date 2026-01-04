@@ -912,13 +912,7 @@ const Budget = () => {
     return isSmallScreen
       ? [...baseSmall, ...actionCol]
       : [...baseLarge, ...actionCol];
-  }, [
-    isSmallScreen,
-    hasWriteAccess,
-    friendId,
-    colors,
-    currencySymbol,
-  ]);
+  }, [isSmallScreen, hasWriteAccess, friendId, colors, currencySymbol]);
 
   const rows = useMemo(
     () =>

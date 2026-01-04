@@ -1,8 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const hasValues = (state) =>
-  state && Object.keys(state).length > 0;
+const hasValues = (state) => state && Object.keys(state).length > 0;
 
 const usePreserveNavigationState = () => {
   const location = useLocation();
