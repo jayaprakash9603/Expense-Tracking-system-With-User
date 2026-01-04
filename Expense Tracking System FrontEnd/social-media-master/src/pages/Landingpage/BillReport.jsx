@@ -664,7 +664,7 @@ const LoadingSkeleton = () => (
 );
 
 const BillReport = () => {
-  const [selectedTimeframe, setSelectedTimeframe] = useState("all");
+  const [selectedTimeframe, setSelectedTimeframe] = useState("this_month");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [customRange, setCustomRange] = useState(null);

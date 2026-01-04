@@ -63,7 +63,7 @@ const REPORT_FILTER_DEFAULTS = {
     dateRange: { fromDate: "", toDate: "" },
   },
   bills: {
-    timeframe: "all",
+    timeframe: "this_month",
     flowType: "all",
     category: "all",
     paymentMethods: [],
