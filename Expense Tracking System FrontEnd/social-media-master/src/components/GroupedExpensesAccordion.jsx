@@ -168,7 +168,7 @@ const GroupedExpensesAccordion = ({
           style={{
             color: mode === "dark" ? "#888" : "#666",
             fontSize: "14px",
-            marginBottom: "16px",
+            marginBottom: "8px",
           }}
         >
           Expand a group to inspect its individual expense entries
@@ -178,6 +178,9 @@ const GroupedExpensesAccordion = ({
         <GenericAccordionGroup
           groups={groups}
           currencySymbol={currencySymbol}
+          enableGroupSearch
+          enableGroupSort
+          enableSelection
           classify={classify}
           columns={columns}
           defaultPageSize={5}

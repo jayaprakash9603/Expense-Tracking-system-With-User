@@ -3,43 +3,43 @@ spring:
     gateway:
       routes:
         - id: USER-SERVICE
-          uri: ${USER_SERVICE_URL}
+          uri: ${USER_SERVICE_URL:lb://USER-SERVICE}
           predicates:
             - Path=/auth/**, /user/**, /api/user/**, /api/admin/**, /api/roles/**, /api/permissions/**
         - id: BUDGET-SERVICE
-          uri: ${BUDGET_SERVICE_URL}
+          uri: ${BUDGET_SERVICE_URL:lb://BUDGET-SERVICE}
           predicates:
             - Path= /api/budgets/**
         - id: CHAT-SERVICE
-          uri: ${CHAT_SERVICE_URL}
+          uri: ${CHAT_SERVICE_URL:lb://CHAT-SERVICE}
           predicates:
             - Path= /api/chats/**
         - id: FRIENDSHIP-SERVICE
-          uri: ${FRIENDSHIP_SERVICE_URL}
+          uri: ${FRIENDSHIP_SERVICE_URL:lb://FRIENDSHIP-SERVICE}
           predicates:
             - Path= /api/friendships/**,/api/groups/**
         - id: PAYMENT-SERVICE
-          uri: ${PAYMENT_SERVICE_URL}
+          uri: ${PAYMENT_SERVICE_URL:lb://PAYMENT-SERVICE}
           predicates:
             - Path= /api/payment-methods/**
         - id: CATEGORY-SERVICE
-          uri: ${CATEGORY_SERVICE_URL}
+          uri: ${CATEGORY_SERVICE_URL:lb://CATEGORY-SERVICE}
           predicates:
             - Path= /api/categories/**
         - id: BILL-SERVICE
-          uri: ${BILL_SERVICE_URL}
+          uri: ${BILL_SERVICE_URL:lb://BILL-SERVICE}
           predicates:
             - Path= /api/bills/**
         - id: AUDIT-SERVICE
-          uri: ${AUDIT_SERVICE_URL}
+          uri: ${AUDIT_SERVICE_URL:lb://AUDIT-SERVICE}
           predicates:
             - Path=/api/audit-logs/**, /audit-logs/**
         - id: EXPENSE-TRACKING-SYSTEM
-          uri: ${EXPENSE_TRACKING_SERVICE_URL}
+          uri: ${EXPENSE_TRACKING_SERVICE_URL:lb://EXPENSE-TRACKING-SYSTEM}
           predicates:
             - Path= /api/expenses/**, /api/settings/**, /api/budgets/**, /api/bills/** , /api/categories/**,/daily-summary/**, /api/friendships/**, /api/investment/**,/api/payment-methods/**
         - id: NOTIFICATION-SERVICE
-          uri: ${NOTIFICATION_SERVICE_URL}
+          uri: ${NOTIFICATION_SERVICE_URL:lb://NOTIFICATION-SERVICE}
           predicates:
             - Path=/api/notifications/**, /notifications/** , /api/notification-preferences/**
       default-filters:

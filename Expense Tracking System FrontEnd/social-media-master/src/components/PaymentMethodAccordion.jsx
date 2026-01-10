@@ -142,6 +142,11 @@ export default function PaymentMethodAccordionGroup({
         groups={groups}
         currencySymbol={displayCurrency}
         defaultOpen={defaultOpen}
+        enableGroupSearch
+        enableGroupSort
+        enableRowSearch
+        enableRowSortControls
+        enableSelection
         classify={classify}
         onToggle={onToggle}
         rowRender={

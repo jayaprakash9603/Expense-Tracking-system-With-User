@@ -11,11 +11,21 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import dayjs from "dayjs";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import DateIndicator from "../DateIndicator";
 import JumpToTodayButton from "../JumpToTodayButton";
 import PropTypes from "prop-types";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import CalendarDayCell from "./CalendarDayCell";
+import SpendingMomentumInsight from "./SpendingMomentumInsight";
+import { FINANCE_COLOR_TOKENS } from "../../config/financeColorTokens";
+import {
+  getDaysArray,
+  getSalaryDateLastWorkingDay,
+  getPaydayDistanceText,
+} from "../../utils/calendar/calendarDates";
+import { computeMonthCalendarStats } from "../../utils/calendar/calendarMetrics";
+import { buildHeatmapBackground } from "../../utils/calendar/calendarHeatmap";
+import { formatCompactNumber } from "../../utils/numberFormatters";
 
 /**
  * ============================================================================
@@ -51,69 +61,6 @@ import useUserSettings from "../../hooks/useUserSettings";
  *   onBack={() => navigate('/expenses')}
  * />
  */
-
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Get the salary date for a given year and month (last working day)
- */
-function getSalaryDate(year, month) {
-  let lastDay = dayjs(`${year}-${month + 1}-01`).endOf("month");
-  let dayOfWeek = lastDay.day();
-
-  if (dayOfWeek === 6) return lastDay.subtract(1, "day"); // Saturday -> Friday
-  if (dayOfWeek === 0) return lastDay.subtract(2, "day"); // Sunday -> Friday
-  return lastDay;
-}
-
-/**
- * Get all days in a month as an array
- */
-function getDaysArray(year, month) {
-  const numDays = dayjs(`${year}-${month + 1}-01`).daysInMonth();
-  return Array.from({ length: numDays }, (_, i) => i + 1);
-}
-
-/**
- * Format numbers with K, M, B, T suffixes
- */
-function formatAmount(num) {
-  if (num === 0) return "0";
-  const absNum = Math.abs(num);
-
-  if (absNum >= 1e12)
-    return (
-      (num / 1e12).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-      }) + "T"
-    );
-  if (absNum >= 1e9)
-    return (
-      (num / 1e9).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-      }) + "B"
-    );
-  if (absNum >= 1e6)
-    return (
-      (num / 1e6).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-      }) + "M"
-    );
-  if (absNum >= 1e3)
-    return (
-      (num / 1e3).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-      }) + "K"
-    );
-
-  return num.toLocaleString();
-}
 
 // ============================================================================
 // SUB-COMPONENTS
@@ -238,7 +185,7 @@ const SummaryCard = ({
           }}
         >
           {currencySymbol}
-          {formatAmount(amount)}
+          {formatCompactNumber(amount)}
         </Typography>
       </Box>
     </Box>
@@ -297,126 +244,7 @@ const MonthNavigator = ({
   </Box>
 );
 
-/**
- * CalendarDay - Individual day cell with spending/income display
- */
-const CalendarDay = ({
-  day,
-  dayData,
-  isToday,
-  isSalaryDay,
-  onClick,
-  isSmallScreen,
-  spendingKey = "spending",
-  incomeKey = "income",
-  colors,
-  currencySymbol = "₹",
-}) => {
-  const rawSpending = Number(dayData?.[spendingKey]);
-  const rawIncome = Number(dayData?.[incomeKey]);
-  const spending = Number.isFinite(rawSpending) ? rawSpending : 0;
-  const income = Number.isFinite(rawIncome) ? rawIncome : 0;
-
-  return (
-    <Box
-      onClick={() => onClick(day)}
-      sx={{
-        borderRadius: 2,
-        background: colors.secondary_bg,
-        cursor: "pointer",
-        p: 1,
-        minHeight: isSmallScreen ? 50 : 60,
-        height: isSmallScreen ? 70 : 80,
-        textAlign: "center",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        position: "relative",
-        zIndex: 3,
-      }}
-    >
-      {/* Salary Day Indicator */}
-      {isSalaryDay && (
-        <DateIndicator
-          type="salary"
-          position="top-right"
-          showAnimation={true}
-          showCornerAccent={true}
-          showBadge={true}
-        />
-      )}
-
-      {/* Today Indicator */}
-      {isToday && (
-        <DateIndicator
-          type="today"
-          position="top-left"
-          showAnimation={true}
-          showCornerAccent={true}
-          showBadge={true}
-        />
-      )}
-
-      {/* Day number */}
-      <Typography variant="body1" fontWeight={700} color={colors.primary_text}>
-        {day}
-      </Typography>
-
-      {/* Amount display */}
-      {(spending !== 0 || income !== 0) && (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            gap: 1,
-            width: "100%",
-            mt: 2.2,
-          }}
-        >
-          {spending !== 0 && (
-            <Typography
-              variant="caption"
-              sx={{
-                color: "#fff",
-                background: "rgba(255, 77, 79, 0.4)",
-                display: "inline-block",
-                fontWeight: 700,
-                borderRadius: 1,
-                px: 1.5,
-                minWidth: 32,
-                textAlign: "center",
-              }}
-            >
-              {currencySymbol}
-              {Math.abs(spending).toFixed(0)}
-            </Typography>
-          )}
-          {income !== 0 && (
-            <Typography
-              variant="caption"
-              sx={{
-                color: "#fff",
-                background: "rgba(6, 214, 160, 0.4)",
-                display: "inline-block",
-                fontWeight: 700,
-                borderRadius: 1,
-                px: 1.5,
-                minWidth: 32,
-                textAlign: "center",
-              }}
-            >
-              {currencySymbol}
-              {income.toFixed(0)}
-            </Typography>
-          )}
-        </Box>
-      )}
-    </Box>
-  );
-};
+// NOTE: Day rendering is implemented in the shared CalendarDayCell component.
 
 // ============================================================================
 // MAIN COMPONENT
@@ -441,12 +269,12 @@ const MonthlyCalendarView = ({
     incomeLabel: "Income",
     spendingKey: "spending",
     incomeKey: "income",
-    spendingColor: "#cf667a",
-    incomeColor: "#437746",
-    spendingIconColor: "#e2a4af",
-    incomeIconColor: "#84ba86",
-    spendingTextColor: "#e6a2af",
-    incomeTextColor: "#83b985",
+    spendingColor: FINANCE_COLOR_TOKENS.calendar.spending.base,
+    incomeColor: FINANCE_COLOR_TOKENS.calendar.income.base,
+    spendingIconColor: FINANCE_COLOR_TOKENS.calendar.spending.icon,
+    incomeIconColor: FINANCE_COLOR_TOKENS.calendar.income.icon,
+    spendingTextColor: FINANCE_COLOR_TOKENS.calendar.spending.text,
+    incomeTextColor: FINANCE_COLOR_TOKENS.calendar.income.text,
   },
 
   // Initial state
@@ -458,6 +286,9 @@ const MonthlyCalendarView = ({
   showTodayIndicator = true,
   showJumpToToday = true,
   showBackButton = true,
+
+  // Optional macro insight (anchored to today, computed outside)
+  momentumInsight,
 
   // Styling
   containerStyle = {},
@@ -483,27 +314,28 @@ const MonthlyCalendarView = ({
   );
 
   // Calculate monthly summary
-  const { totalSpending, totalIncome } = useMemo(() => {
-    let spending = 0;
-    let income = 0;
+  const monthStats = useMemo(
+    () =>
+      computeMonthCalendarStats({
+        data,
+        monthDate: selectedDate,
+        spendingKey: summaryConfig.spendingKey,
+        incomeKey: summaryConfig.incomeKey,
+      }),
+    [data, selectedDate, summaryConfig.spendingKey, summaryConfig.incomeKey]
+  );
 
-    Object.entries(data).forEach(([key, items]) => {
-      if (dayjs(key).isSame(selectedDate, "month")) {
-        const daySpending = Number(items[summaryConfig.spendingKey]);
-        const dayIncome = Number(items[summaryConfig.incomeKey]);
-        spending += Number.isFinite(daySpending) ? daySpending : 0;
-        income += Number.isFinite(dayIncome) ? dayIncome : 0;
-      }
-    });
-
-    return { totalSpending: spending, totalIncome: income };
-  }, [data, selectedDate, summaryConfig.spendingKey, summaryConfig.incomeKey]);
+  const { totalSpending, totalIncome, avgDailySpend, maxSpending, maxIncome } =
+    monthStats;
 
   // Get salary date
   const salaryDate = useMemo(
-    () => getSalaryDate(selectedDate.year(), selectedDate.month()),
+    () =>
+      getSalaryDateLastWorkingDay(selectedDate.year(), selectedDate.month()),
     [selectedDate]
   );
+
+  // NOTE: Spending Momentum is now provided via `momentumInsight`.
 
   // Check if viewing current month
   const isViewingCurrentMonth = useMemo(
@@ -638,6 +470,32 @@ const MonthlyCalendarView = ({
           pt: isSmallScreen ? 0 : 1,
         }}
       >
+        {/* Spending Momentum (macro insight) */}
+        {momentumInsight && (
+          <Box
+            sx={{
+              position: isSmallScreen ? "static" : "absolute",
+              top: isSmallScreen ? "auto" : 64,
+              left: isSmallScreen ? "auto" : 24,
+              transform: isSmallScreen ? "none" : "translateX(-20px)",
+              mb: isSmallScreen ? 1 : 0,
+              mt: isSmallScreen ? 1 : 0,
+              zIndex: 5,
+              opacity: 0.98,
+              display: "flex",
+              justifyContent: isSmallScreen ? "center" : "flex-start",
+              width: isSmallScreen ? "100%" : "auto",
+            }}
+          >
+            <SpendingMomentumInsight
+              insight={momentumInsight}
+              colors={colors}
+              spendingColor={summaryConfig.spendingColor}
+              incomeColor={summaryConfig.incomeColor}
+            />
+          </Box>
+        )}
+
         {/* Spending card */}
         <SummaryCard
           label={summaryConfig.spendingLabel}
@@ -709,7 +567,7 @@ const MonthlyCalendarView = ({
                 if (total === 0)
                   return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
                 const incomePercent = (totalIncome / total) * 100;
-                return `linear-gradient(90deg, #06d6a0 ${incomePercent}%, #ff4d4f ${incomePercent}%, #ff4d4f 100%)`;
+                return `linear-gradient(90deg, ${summaryConfig.incomeColor} ${incomePercent}%, ${summaryConfig.spendingColor} ${incomePercent}%, ${summaryConfig.spendingColor} 100%)`;
               })(),
               zIndex: 1,
             },
@@ -746,15 +604,33 @@ const MonthlyCalendarView = ({
           {days.map((day) => {
             const key = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
             const dayData = data[key];
-            const isToday = dayjs().isSame(
-              dayjs(selectedDate).date(day),
-              "day"
-            );
+            const dateObj = dayjs(selectedDate).date(day);
+            const isToday = dayjs().isSame(dateObj, "day");
+            const isWeekend = dateObj.day() === 0 || dateObj.day() === 6;
             const isSalaryDay =
               showSalaryIndicator &&
               day === salaryDate.date() &&
               selectedDate.month() === salaryDate.month() &&
               selectedDate.year() === salaryDate.year();
+
+            const paydayDistanceText = showSalaryIndicator
+              ? getPaydayDistanceText(dateObj, salaryDate)
+              : "";
+
+            const spending = Number(dayData?.[summaryConfig.spendingKey]) || 0;
+            const income = Number(dayData?.[summaryConfig.incomeKey]) || 0;
+
+            const heatmapBackground = buildHeatmapBackground({
+              baseBg: colors.secondary_bg,
+              accentColor: colors.primary_accent,
+              isWeekend,
+              spending,
+              income,
+              maxSpending,
+              maxIncome,
+              spendingColor: summaryConfig.spendingColor,
+              incomeColor: summaryConfig.incomeColor,
+            });
 
             return (
               <Grid
@@ -767,17 +643,23 @@ const MonthlyCalendarView = ({
                   overflow: "visible",
                 }}
               >
-                <CalendarDay
-                  day={day}
+                <CalendarDayCell
+                  dayNumber={day}
+                  date={dateObj}
                   dayData={dayData}
                   isToday={showTodayIndicator && isToday}
                   isSalaryDay={isSalaryDay}
+                  paydayDistanceText={paydayDistanceText}
                   onClick={handleDayClick}
                   isSmallScreen={isSmallScreen}
                   spendingKey={summaryConfig.spendingKey}
                   incomeKey={summaryConfig.incomeKey}
+                  spendingColor={summaryConfig.spendingColor}
+                  incomeColor={summaryConfig.incomeColor}
                   colors={colors}
                   currencySymbol={currencySymbol}
+                  heatmapBackground={heatmapBackground}
+                  avgDailySpend={avgDailySpend}
                 />
               </Grid>
             );
@@ -825,25 +707,20 @@ MonthNavigator.propTypes = {
   colors: PropTypes.object,
 };
 
-CalendarDay.propTypes = {
-  day: PropTypes.number.isRequired,
-  dayData: PropTypes.object,
-  isToday: PropTypes.bool,
-  isSalaryDay: PropTypes.bool,
-  onClick: PropTypes.func.isRequired,
-  isSmallScreen: PropTypes.bool,
-  spendingKey: PropTypes.string,
-  incomeKey: PropTypes.string,
-  colors: PropTypes.object,
-  currencySymbol: PropTypes.string,
-};
-
 MonthlyCalendarView.propTypes = {
   title: PropTypes.string,
   data: PropTypes.object.isRequired,
   onDayClick: PropTypes.func,
   onMonthChange: PropTypes.func,
   onBack: PropTypes.func,
+  momentumInsight: PropTypes.shape({
+    category: PropTypes.string,
+    tone: PropTypes.oneOf(["bad", "good", "warn", "neutral"]),
+    icon: PropTypes.oneOf(["up", "down", "line", "dot"]),
+    percentChange: PropTypes.number,
+    message: PropTypes.string,
+    key: PropTypes.string,
+  }),
   summaryConfig: PropTypes.shape({
     spendingLabel: PropTypes.string,
     incomeLabel: PropTypes.string,

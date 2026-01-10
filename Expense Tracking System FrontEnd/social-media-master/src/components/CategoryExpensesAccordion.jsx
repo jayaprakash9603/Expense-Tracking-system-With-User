@@ -116,7 +116,7 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
           style={{
             color: mode === "dark" ? "#888" : "#666",
             fontSize: "14px",
-            marginBottom: "16px",
+            marginBottom: "8px",
           }}
         >
           Expandable per-category transactions with tabs & sorting
@@ -126,6 +126,11 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
         <GenericAccordionGroup
           groups={groups}
           currencySymbol={displayCurrency}
+          enableGroupSearch
+          enableGroupSort
+          enableRowSearch
+          enableRowSortControls
+          enableSelection
           classify={classify}
           columns={columns}
           defaultPageSize={5}

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 6px;
   /* Theme variables - can be overridden via inline styles */
   --pm-bg-primary: #141414;
   --pm-bg-secondary: #1d1d1f;
@@ -14,6 +14,116 @@
   --pm-accent-color: #14b8a6;
   --pm-scrollbar-thumb: #14b8a6;
   --pm-scrollbar-track: #1d1d1f;
+}
+
+/* Toolbar (search/sort/selection) */
+.pm-accordion-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  min-height: 56px;
+  border: 1px solid var(--pm-border-color);
+  border-radius: 10px;
+  background: var(--pm-bg-primary);
+}
+.pm-toolbar-left,
+.pm-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pm-toolbar-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--pm-text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.pm-toolbar-label select {
+  background: var(--pm-bg-secondary);
+  color: var(--pm-text-primary);
+  border: 1px solid var(--pm-border-color);
+  border-radius: 8px;
+  padding: 6px 10px;
+  height: 36px;
+}
+.pm-search-input {
+  width: min(320px, 100%);
+  background: var(--pm-bg-secondary);
+  color: var(--pm-text-primary);
+  border: 1px solid var(--pm-border-color);
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 36px;
+  outline: none;
+}
+.pm-search-input::placeholder {
+  color: var(--pm-text-tertiary);
+}
+.pm-toolbar-btn {
+  background: var(--pm-bg-secondary);
+  color: var(--pm-text-primary);
+  border: 1px solid var(--pm-border-color);
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 36px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+}
+.pm-toolbar-btn:hover {
+  background: var(--pm-bg-tertiary);
+}
+
+/* Header row with selection checkbox */
+.pm-accordion-header-row {
+  display: flex;
+  align-items: stretch;
+}
+.pm-accordion-select-wrap {
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 12px;
+  border-right: 1px solid var(--pm-border-color);
+  background: var(--pm-bg-primary);
+}
+.pm-accordion-header-content {
+  flex: 1;
+}
+
+/* Panel toolbar (row search/sort) */
+.pm-panel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0 6px;
+  flex-wrap: wrap;
+}
+.pm-row-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pm-row-search {
+  width: min(360px, 100%);
+}
+
+/* Table selection column */
+.pm-select-col,
+.pm-select-cell {
+  width: 36px;
+  text-align: center;
+}
+.pm-select-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--pm-accent-color);
 }
 
 /* Viewport for group-level pagination/scroll */
