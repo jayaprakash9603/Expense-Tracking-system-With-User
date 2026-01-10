@@ -34,6 +34,7 @@ import dayjs from "dayjs";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import HighlightedText from "../../components/common/HighlightedText";
+import { createFuzzyFilterOptions } from "../../utils/fuzzyMatchUtils";
 
 const EditExpense = ({}) => {
   const { colors } = useTheme();
@@ -144,6 +145,12 @@ const EditExpense = ({}) => {
       option.charAt(0).toUpperCase() + option.slice(1)
     );
   };
+
+  const transactionTypeFilterOptions = useMemo(() => {
+    return createFuzzyFilterOptions({
+      getOptionLabel: getTransactionTypeLabel,
+    });
+  }, [transactionTypeLabels]);
 
   // Dynamic styles based on theme
   const fieldStyles = `px-3 py-2 rounded text-base sm:max-w-[300px] max-w-[200px] border-0`;
@@ -895,6 +902,7 @@ const EditExpense = ({}) => {
                 autoHighlight
                 options={typeOptions}
                 getOptionLabel={(option) => getTransactionTypeLabel(option)}
+                filterOptions={transactionTypeFilterOptions}
                 value={(expenseData.transactionType || "").toLowerCase()}
                 onInputChange={(event, newValue) => {
                   setExpenseData((prev) => ({

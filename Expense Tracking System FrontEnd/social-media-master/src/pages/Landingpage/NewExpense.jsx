@@ -26,6 +26,7 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import HighlightedText from "../../components/common/HighlightedText";
+import { createFuzzyFilterOptions } from "../../utils/fuzzyMatchUtils";
 
 const NewExpense = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
@@ -127,6 +128,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
       option.charAt(0).toUpperCase() + option.slice(1)
     );
   };
+
+  const transactionTypeFilterOptions = useMemo(() => {
+    return createFuzzyFilterOptions({
+      getOptionLabel: getTransactionTypeLabel,
+    });
+  }, [transactionTypeLabels]);
 
   const location = useLocation();
   // Get date from query param if present
@@ -904,6 +911,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
             autoHighlight
             options={typeOptions}
             getOptionLabel={(option) => getTransactionTypeLabel(option)}
+            filterOptions={transactionTypeFilterOptions}
             value={(expenseData.transactionType || "loss").toLowerCase()}
             onInputChange={(event, newValue) => {
               setExpenseData((prev) => ({
