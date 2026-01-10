@@ -23,7 +23,6 @@
 
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
-import { createFilterOptions } from "@mui/material/Autocomplete";
 import ReusableAutocomplete from "./ReusableAutocomplete";
 import useExpenseNames from "../hooks/useExpenseNames";
 import {
@@ -32,7 +31,7 @@ import {
   getNameDisplayLabel,
   sanitizeName,
 } from "../utils/nameUtils";
-import { highlightText } from "../utils/highlightUtils";
+import HighlightedText from "./common/HighlightedText";
 
 /**
  * ExpenseNameAutocomplete Component
@@ -88,18 +87,6 @@ const ExpenseNameAutocomplete = ({
   } = useExpenseNames(friendId, autofetch, maxSuggestions);
 
   /**
-   * Custom filter for better search with spaces and special characters
-   */
-  const filterOptions = createFilterOptions({
-    matchFrom: "any",
-    stringify: (option) => {
-      const label = getNameDisplayLabel(option);
-      return label.toLowerCase().trim();
-    },
-    trim: true,
-  });
-
-  /**
    * Handle name selection change
    */
   const handleChange = (event, newValue) => {
@@ -153,7 +140,7 @@ const ExpenseNameAutocomplete = ({
       }}
       title={option}
     >
-      {highlightText(option, inputValue)}
+      <HighlightedText text={option} query={inputValue} title={option} />
     </li>
   );
 
@@ -190,7 +177,6 @@ const ExpenseNameAutocomplete = ({
         onOpen={fetchNames} // Lazy load on open
         getOptionLabel={getNameDisplayLabel}
         isOptionEqualToValue={(option, val) => areNamesEqual(option, val)}
-        filterOptions={filterOptions}
         renderOption={renderOption}
         placeholder={placeholder}
         placeholderColor="#9ca3af"

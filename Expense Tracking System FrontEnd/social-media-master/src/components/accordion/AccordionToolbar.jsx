@@ -1,9 +1,11 @@
 import React from "react";
 import Button from "@mui/material/Button";
+import ReusableAutocomplete from "../ReusableAutocomplete";
 
 export default function AccordionToolbar({
   showGroupSearch,
   groupSearch,
+  groupSearchOptions,
   onGroupSearchChange,
   showGroupSort,
   groupSort,
@@ -17,12 +19,38 @@ export default function AccordionToolbar({
     <div className="pm-accordion-toolbar">
       <div className="pm-toolbar-left">
         {showGroupSearch ? (
-          <input
-            className="pm-search-input"
+          <ReusableAutocomplete
+            options={
+              Array.isArray(groupSearchOptions) ? groupSearchOptions : []
+            }
             value={groupSearch || ""}
-            onChange={(e) => onGroupSearchChange?.(e.target.value)}
+            onInputChange={(event, value) => onGroupSearchChange?.(value)}
+            onChange={(event, newValue) =>
+              onGroupSearchChange?.(newValue || "")
+            }
+            getOptionLabel={(option) => String(option || "")}
+            isOptionEqualToValue={(option, value) =>
+              String(option || "") === String(value || "")
+            }
             placeholder="Search groups…"
-            aria-label="Search accordion groups"
+            size="small"
+            freeSolo
+            clearOnBlur={false}
+            disableClearable={false}
+            sx={{
+              flex: "1 1 420px",
+              width: "100%",
+              minWidth: "260px",
+              maxWidth: "520px",
+              "& .MuiInputBase-root": {
+                height: "36px",
+                fontSize: "13px",
+                borderRadius: "10px",
+              },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderRadius: "10px" },
+              },
+            }}
           />
         ) : null}
       </div>
@@ -88,7 +116,7 @@ export default function AccordionToolbar({
               },
             }}
           >
-            Clear selection
+            Clear
           </Button>
         ) : null}
       </div>

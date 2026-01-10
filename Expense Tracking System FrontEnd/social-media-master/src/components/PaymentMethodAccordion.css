@@ -35,6 +35,13 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+.pm-toolbar-left {
+  flex: 1 1 auto;
+}
+.pm-toolbar-right {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
 .pm-toolbar-label {
   display: flex;
   align-items: center;
@@ -790,7 +797,7 @@
 /* Group-level pagination (accordion cards) */
 .pm-group-pagination-bar {
   margin-top: 0px;
-  padding: 12px 16px;
+  padding: 7px 16px;
   background: var(--pm-bg-primary);
   border: 1px solid var(--pm-border-color);
   border-radius: 10px;

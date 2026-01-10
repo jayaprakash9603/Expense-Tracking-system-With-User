@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
-import { createFilterOptions } from "@mui/material/Autocomplete";
 import ReusableAutocomplete from "./ReusableAutocomplete";
 import usePaymentMethods from "../hooks/usePaymentMethods";
 import { useTheme } from "../hooks/useTheme";
@@ -10,7 +9,8 @@ import {
   getPaymentMethodDisplayLabel,
   normalizePaymentMethod,
 } from "../utils/paymentMethodUtils";
-import { highlightText } from "../utils/highlightUtils";
+import HighlightedText from "./common/HighlightedText";
+import { createFuzzyFilterOptions } from "../utils/fuzzyMatchUtils";
 
 /**
  * PaymentMethodAutocomplete - A reusable payment method selection component
@@ -60,17 +60,13 @@ const PaymentMethodAutocomplete = ({
 }) => {
   const { colors } = useTheme();
 
-  // Custom filter options for better search with spaces
-  const filterOptions = createFilterOptions({
-    matchFrom: "any",
-    stringify: (option) => {
-      // Combine label and value for searching, remove extra spaces
-      const label = (option.label || "").toLowerCase().trim();
-      const value = (option.value || "").toLowerCase().trim();
-      return `${label} ${value}`;
-    },
-    trim: true,
-  });
+  // Fuzzy filter that searches both label and value
+  const filterOptions = useMemo(() => {
+    return createFuzzyFilterOptions({
+      getOptionLabel: (opt) => opt?.label || "",
+      getOptionSearchText: (opt) => `${opt?.label || ""} ${opt?.value || ""}`,
+    });
+  }, []);
 
   // Use custom hook for payment method management
   const {
@@ -110,7 +106,11 @@ const PaymentMethodAutocomplete = ({
       }}
       title={option.label}
     >
-      {highlightText(option.label, inputValue)}
+      <HighlightedText
+        text={option.label}
+        query={inputValue}
+        title={option.label}
+      />
     </li>
   );
 

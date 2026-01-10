@@ -29,6 +29,10 @@ const NoDataPlaceholder = ({
   maxWidth,
   style,
   iconSize = 44,
+  messageColor,
+  subMessageColor,
+  iconColor,
+  iconOpacity,
 }) => {
   const { colors } = useTheme();
 
@@ -39,6 +43,13 @@ const NoDataPlaceholder = ({
     fill: height || 320,
   };
   const finalHeight = derivedHeights[size] || height;
+
+  const resolvedMessageColor = messageColor ?? colors.primary_text;
+  const resolvedSubMessageColor = subMessageColor ?? colors.secondary_text;
+  const resolvedIconColor = iconColor ?? colors.secondary_text;
+  const resolvedIconOpacity =
+    typeof iconOpacity === "number" ? iconOpacity : 0.6;
+
   return (
     <Box
       sx={{
@@ -54,34 +65,41 @@ const NoDataPlaceholder = ({
         borderRadius: 2,
         px: size === "lg" || size === "fill" ? 4 : 2,
         textAlign: "center",
-        color: colors.secondary_text,
+        color: resolvedSubMessageColor,
         width: fullWidth ? "100%" : undefined,
         minWidth,
         maxWidth,
         ...style,
       }}
     >
-      <Box sx={{ fontSize: iconSize, lineHeight: 1, opacity: 0.6 }}>
+      <Box
+        sx={{
+          fontSize: iconSize,
+          lineHeight: 1,
+          opacity: resolvedIconOpacity,
+          color: resolvedIconColor,
+        }}
+      >
         {icon || (
           <InsertChartOutlinedIcon
             sx={{
               fontSize: iconSize,
-              opacity: 0.6,
-              color: colors.secondary_text,
+              opacity: resolvedIconOpacity,
+              color: resolvedIconColor,
             }}
           />
         )}
       </Box>
       <Typography
         variant="subtitle1"
-        sx={{ fontWeight: 600, color: colors.primary_text }}
+        sx={{ fontWeight: 600, color: resolvedMessageColor }}
       >
         {message}
       </Typography>
       {subMessage && (
         <Typography
           variant="caption"
-          sx={{ maxWidth: 360, color: colors.secondary_text }}
+          sx={{ maxWidth: 360, color: resolvedSubMessageColor }}
         >
           {subMessage}
         </Typography>

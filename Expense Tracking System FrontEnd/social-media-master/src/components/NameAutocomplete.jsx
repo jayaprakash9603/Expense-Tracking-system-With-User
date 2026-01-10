@@ -1,6 +1,8 @@
-import React, { useCallback } from "react";
+import React, { useMemo } from "react";
 import { Autocomplete, TextField, CircularProgress } from "@mui/material";
 import useExpenseNameSuggestions from "../hooks/useExpenseNameSuggestions";
+import HighlightedText from "./common/HighlightedText";
+import { createFuzzyFilterOptions } from "../utils/fuzzyMatchUtils";
 
 /**
  * Generic NameAutocomplete component
@@ -27,29 +29,10 @@ const NameAutocomplete = ({
   const { suggestions, loading, setInputValue, inputValue, fetchIfNeeded } =
     useExpenseNameSuggestions({ autoFetch });
 
-  // Highlight matched parts
-  const highlightText = useCallback((text, needle) => {
-    if (!needle) return text;
-    const safe = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(`(${safe})`, "gi");
-    const parts = String(text).split(regex);
-    return parts.map((part, i) =>
-      regex.test(part) ? (
-        <mark
-          key={i}
-          style={{
-            background: "none",
-            color: "#00dac6",
-            fontWeight: 700,
-            padding: 0,
-          }}
-        >
-          {part}
-        </mark>
-      ) : (
-        <span key={i}>{part}</span>
-      )
-    );
+  const filterOptions = useMemo(() => {
+    return createFuzzyFilterOptions({
+      getOptionLabel: (opt) => String(opt ?? ""),
+    });
   }, []);
 
   return (
@@ -61,6 +44,7 @@ const NameAutocomplete = ({
       loading={loading}
       value={value}
       inputValue={inputValue || value}
+      filterOptions={filterOptions}
       onOpen={fetchIfNeeded}
       onInputChange={(event, newValue) => {
         setInputValue(newValue);
@@ -128,7 +112,7 @@ const NameAutocomplete = ({
           }}
           title={option}
         >
-          {highlightText(option, inputValue)}
+          <HighlightedText text={option} query={inputValue} title={option} />
         </li>
       )}
       sx={{ width: "100%", maxWidth: 300, ...sx }}

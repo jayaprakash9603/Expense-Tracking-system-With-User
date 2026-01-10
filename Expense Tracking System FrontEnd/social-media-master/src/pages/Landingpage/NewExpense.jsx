@@ -25,6 +25,7 @@ import dayjs from "dayjs";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
+import HighlightedText from "../../components/common/HighlightedText";
 
 const NewExpense = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
@@ -109,7 +110,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
           .replace(/^./, (str) => str.toUpperCase())
       : "";
 
-  const getFieldLabel = (fieldId) => fieldLabels[fieldId] || formatLabelFromId(fieldId);
+  const getFieldLabel = (fieldId) =>
+    fieldLabels[fieldId] || formatLabelFromId(fieldId);
 
   const getPlaceholderForField = (fieldId, fallbackLabel) =>
     fieldPlaceholders[fieldId] ||
@@ -1006,7 +1008,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 }}
                 title={getTransactionTypeLabel(option)}
               >
-                {highlightText(getTransactionTypeLabel(option), inputValue)}
+                <HighlightedText
+                  text={getTransactionTypeLabel(option)}
+                  query={inputValue}
+                  title={getTransactionTypeLabel(option)}
+                />
               </li>
             )}
           />
@@ -1081,31 +1087,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
     [checkboxStates, tableHeaders]
   );
 
-  // Highlight utility (used in renderOption functions)
-  const highlightText = (text, needle) => {
-    if (!needle) return text;
-    const safe = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(`(${safe})`, "gi");
-    const parts = String(text).split(regex);
-    return parts.map((part, i) =>
-      regex.test(part) ? (
-        <mark
-          key={i}
-          style={{
-            background: "none",
-            color: "#00dac6",
-            fontWeight: 700,
-            padding: 0,
-          }}
-        >
-          {part}
-        </mark>
-      ) : (
-        <span key={i}>{part}</span>
-      )
-    );
-  };
-
   // DataGrid columns for budgets
   const dataGridColumns = useMemo(
     () => [
@@ -1134,7 +1115,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
         flex: 1,
         minWidth: 120,
       },
-      { field: "amount", headerName: tableHeaders.amount, flex: 1, minWidth: 100 },
+      {
+        field: "amount",
+        headerName: tableHeaders.amount,
+        flex: 1,
+        minWidth: 100,
+      },
     ],
     [tableHeaders]
   );
@@ -1414,7 +1400,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
         {budgetError && (
           <div className="text-red-500 text-sm mt-4">
-            {errorLoadingBudgets}: {" "}
+            {errorLoadingBudgets}:{" "}
             {typeof budgetError === "string"
               ? budgetError
               : budgetError.message || budgetError.error || tableNoRowsText}

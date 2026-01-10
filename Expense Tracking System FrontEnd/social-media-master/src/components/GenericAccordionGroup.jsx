@@ -4,6 +4,7 @@ import { formatAmount as fmt } from "../utils/formatAmount";
 import useUserSettings from "../hooks/useUserSettings";
 import { useTheme } from "../hooks/useTheme";
 import AccordionToolbar from "./accordion/AccordionToolbar";
+import NoDataPlaceholder from "./NoDataPlaceholder";
 
 /**
  * GenericAccordionGroup
@@ -110,6 +111,21 @@ export function GenericAccordionGroup({
   const [rowSearchByGroup, setRowSearchByGroup] = useState({});
   const [rowSortUiByGroup, setRowSortUiByGroup] = useState({});
 
+  const groupSearchOptions = useMemo(() => {
+    if (!enableGroupSearch) return [];
+    const seen = new Set();
+    const out = [];
+    normalizedGroups.forEach(({ group }) => {
+      const label = String(group?.label || "").trim();
+      if (!label) return;
+      const k = label.toLowerCase();
+      if (seen.has(k)) return;
+      seen.add(k);
+      out.push(label);
+    });
+    return out;
+  }, [enableGroupSearch, normalizedGroups]);
+
   // Selection state: { [groupKey]: { [rowKey]: true } }
   const [selectedRowsByGroup, setSelectedRowsByGroup] = useState({});
   // Pagination state
@@ -212,6 +228,9 @@ export function GenericAccordionGroup({
     });
   }, [normalizedGroups, groupSearch, enableGroupSort, groupSort]);
 
+  const isGroupSearchActive =
+    enableGroupSearch && String(groupSearch || "").trim().length > 0;
+
   const totalGroupPages = Math.max(
     1,
     Math.ceil(filteredSortedGroups.length / Math.max(1, groupsPerPage))
@@ -292,6 +311,7 @@ export function GenericAccordionGroup({
       <AccordionToolbar
         showGroupSearch={enableGroupSearch}
         groupSearch={groupSearch}
+        groupSearchOptions={groupSearchOptions}
         onGroupSearchChange={(value) => {
           setGroupSearch(value);
           setGroupsPage(1);
@@ -307,11 +327,24 @@ export function GenericAccordionGroup({
         className={`pm-groups-viewport ${
           scrollMode ? "scroll-mode" : "paged-mode"
         } ${
-          totalGroups < BASE_GROUPS_PER_PAGE || groupsPerPage <= 5
+          (totalGroups < BASE_GROUPS_PER_PAGE && !isGroupSearchActive) ||
+          groupsPerPage <= 5
             ? "compact"
             : ""
         }`}
       >
+        {isGroupSearchActive && filteredSortedGroups.length === 0 ? (
+          <NoDataPlaceholder
+            message="No results found"
+            subMessage="Try a different keyword to find a matching group."
+            height="100%"
+            dense
+            fullWidth
+            messageColor="var(--pm-accent-color)"
+            iconColor="var(--pm-accent-color)"
+            subMessageColor="var(--pm-text-secondary)"
+          />
+        ) : null}
         {visibleGroups.map(({ group, key: groupKey }, localIdx) => {
           const isOpen = groupKey === openGroupKey;
           const activeTab = tabByGroupKey[groupKey] || tabs[0]?.key || "all";

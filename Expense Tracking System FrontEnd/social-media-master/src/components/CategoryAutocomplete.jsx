@@ -10,7 +10,7 @@ import {
   getCategoryDisplayName,
   filterCategoriesWithDeduplication,
 } from "../utils/categoryUtils";
-import { highlightText } from "../utils/highlightUtils";
+import HighlightedText from "./common/HighlightedText";
 
 /**
  * CategoryAutocomplete - A reusable category selection component
@@ -113,7 +113,11 @@ const CategoryAutocomplete = ({
       }}
       title={option.name}
     >
-      {highlightText(option.name, inputValue)}
+      <HighlightedText
+        text={option.name}
+        query={inputValue}
+        title={option.name}
+      />
     </li>
   );
 

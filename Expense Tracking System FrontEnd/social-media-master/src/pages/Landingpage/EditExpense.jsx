@@ -33,6 +33,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
+import HighlightedText from "../../components/common/HighlightedText";
 
 const EditExpense = ({}) => {
   const { colors } = useTheme();
@@ -343,33 +344,6 @@ const EditExpense = ({}) => {
       console.log(`Checkbox ${index} changed. New checkboxStates:`, newStates);
       return newStates;
     });
-  };
-
-  // Highlight matching text in suggestions (update: highlight text, not background)
-  const highlightText = (text, inputValue) => {
-    if (!inputValue) return text;
-    const regex = new RegExp(
-      `(${inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi"
-    );
-    const parts = text.split(regex);
-    return parts.map((part, i) =>
-      regex.test(part) ? (
-        <mark
-          key={i}
-          style={{
-            background: "none",
-            color: "#00dac6",
-            fontWeight: 700,
-            padding: 0,
-          }}
-        >
-          {part}
-        </mark>
-      ) : (
-        <span key={i}>{part}</span>
-      )
-    );
   };
 
   // Render input fields with consistent style and required asterisk
@@ -999,7 +973,11 @@ const EditExpense = ({}) => {
                     }}
                     title={getTransactionTypeLabel(option)}
                   >
-                    {highlightText(getTransactionTypeLabel(option), inputValue)}
+                    <HighlightedText
+                      text={getTransactionTypeLabel(option)}
+                      query={inputValue}
+                      title={getTransactionTypeLabel(option)}
+                    />
                   </li>
                 )}
               />
