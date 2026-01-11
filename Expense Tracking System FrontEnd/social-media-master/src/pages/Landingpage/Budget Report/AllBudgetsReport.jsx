@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../../../hooks/useTheme";
 import useBudgetReportData from "../../../hooks/useBudgetReportData";
@@ -15,6 +15,7 @@ import {
 import { getChartColors } from "../../../utils/chartColors";
 import TopRecurringExpensesCard from "../../../components/budget/TopRecurringExpensesCard";
 import LossGainBreakdownCard from "../../../components/budget/LossGainBreakdownCard";
+import DailySpendingChart from "../../Dashboard/DailySpendingChart";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import "../Payment Report/PaymentReport.css";
 
@@ -75,6 +76,104 @@ const AllBudgetsReport = () => {
   });
 
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+  const dailySpendingData = useMemo(() => {
+    const dayTypeMap = new Map();
+
+    const budgetCatalog = (filteredBudgets || []).map((budget) => {
+      const budgetId = budget?.budgetId ?? budget?.id;
+      const budgetName = String(
+        budget?.budgetName ?? budget?.name ?? ""
+      ).trim();
+      const budgetKey = String((budgetId ?? budgetName) || "Unknown");
+      return {
+        budgetKey,
+        budgetId,
+        budgetName: budgetName || "Unknown budget",
+      };
+    });
+
+    const toIsoDay = (value) => {
+      if (!value) return null;
+      const str = String(value);
+      return str.includes("T") ? str.split("T")[0] : str.slice(0, 10);
+    };
+
+    const getExpenseType = (expense) =>
+      String(expense?.type ?? expense?.expense?.type ?? "").toLowerCase();
+
+    const getAmount = (expense) => {
+      const raw = Number(expense?.amount ?? expense?.expense?.amount ?? 0);
+      return Number.isFinite(raw) ? raw : 0;
+    };
+
+    for (const budget of filteredBudgets || []) {
+      const budgetId = budget?.budgetId ?? budget?.id;
+      const budgetName = String(
+        budget?.budgetName ?? budget?.name ?? ""
+      ).trim();
+
+      const expenses = Array.isArray(budget?.expenses) ? budget.expenses : [];
+      for (const expense of expenses) {
+        const day = toIsoDay(expense?.date ?? expense?.isoDate ?? expense?.day);
+        if (!day) continue;
+
+        const type = getExpenseType(expense);
+        if (type !== "loss" && type !== "gain") continue;
+
+        const amount = Math.abs(getAmount(expense));
+        if (!amount) continue;
+
+        const key = `${day}|${type}`;
+        if (!dayTypeMap.has(key)) {
+          dayTypeMap.set(key, {
+            isoDate: day,
+            type,
+            spending: 0,
+            budgets: new Map(),
+          });
+        }
+
+        const entry = dayTypeMap.get(key);
+        entry.spending += amount;
+
+        const budgetKey = String((budgetId ?? budgetName) || "Unknown");
+        const prev = entry.budgets.get(budgetKey);
+        if (prev) {
+          prev.total += amount;
+        } else {
+          entry.budgets.set(budgetKey, {
+            budgetId,
+            budgetName: budgetName || "Unknown budget",
+            total: amount,
+          });
+        }
+      }
+    }
+
+    return Array.from(dayTypeMap.values())
+      .map((entry) => {
+        const budgetTotals = budgetCatalog
+          .map((b) => {
+            const found = entry.budgets.get(b.budgetKey);
+            const total = found?.total ?? 0;
+            return {
+              budgetId: b.budgetId,
+              budgetName: b.budgetName,
+              total: Math.round(total * 100.0) / 100.0,
+            };
+          })
+          .sort((a, b) => b.total - a.total);
+
+        return {
+          isoDate: entry.isoDate,
+          type: entry.type,
+          spending: Math.round(entry.spending * 100.0) / 100.0,
+          budgetTotals,
+        };
+      })
+      .sort((a, b) => String(a.isoDate).localeCompare(String(b.isoDate)));
+  }, [filteredBudgets]);
 
   const handleExport = () => {
     console.log("Exporting budget report...");
@@ -145,6 +244,22 @@ const AllBudgetsReport = () => {
       <SharedOverviewCards data={[filteredBudgetSummary]} mode="budget" />
 
       <div className="charts-grid">
+        {/* Daily Spending Pattern */}
+        {dailySpendingData.length > 0 && (
+          <div className="chart-row full-width">
+            <DailySpendingChart
+              data={dailySpendingData}
+              timeframe={timeframe}
+              onTimeframeChange={setTimeframe}
+              selectedType={flowType && flowType !== "all" ? flowType : "loss"}
+              onTypeToggle={setFlowType}
+              showBudgetTotalsInTooltip
+              showAllBudgetsInTooltip
+              showBudgetsInTooltip
+            />
+          </div>
+        )}
+
         {(filteredBudgets.length > 0 || topRecurringExpenses.length > 0) && (
           <div className="chart-row">
             <TopRecurringExpensesCard

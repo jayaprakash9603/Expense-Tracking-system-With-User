@@ -173,6 +173,10 @@ const DailySpendingChart = ({
   height,
   tooltipConfig,
   loading = false,
+  showBudgetTotalsInTooltip = false,
+  showAllBudgetsInTooltip = false,
+  showExpensesInTooltip = false,
+  showBudgetsInTooltip = false,
 }) => {
   const { mode, colors } = useTheme();
   const settings = useUserSettings();
@@ -199,7 +203,345 @@ const DailySpendingChart = ({
   const normalizedData = transformChartData(filteredData, {
     timeframe,
     locale,
+  }).map((point, index) => {
+    const source = filteredData[index] || {};
+    return {
+      ...point,
+      budgetTotals: source.budgetTotals,
+    };
   });
+
+  const formatMoney = (value) => {
+    const numeric = Number(value);
+    const safe = Number.isFinite(numeric) ? numeric : 0;
+    return `${currencySymbol}${safe.toLocaleString(locale || undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const BudgetTotalsTooltip = ({ active, payload }) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const point = payload?.[0]?.payload;
+    if (!point) return null;
+
+    const dateLabel = point?.dateObj
+      ? point.dateObj.toLocaleDateString(locale || undefined, {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        })
+      : point?.date || "";
+
+    const budgetTotalsRaw = point?.budgetTotals;
+    const budgetTotals = (() => {
+      if (Array.isArray(budgetTotalsRaw)) {
+        return budgetTotalsRaw
+          .filter((x) => x && (x.budgetName || x.name))
+          .map((x) => ({
+            budgetName: String(x.budgetName ?? x.name ?? "").trim(),
+            total: Number(x.total ?? x.amount ?? 0) || 0,
+          }));
+      }
+
+      if (budgetTotalsRaw && typeof budgetTotalsRaw === "object") {
+        return Object.entries(budgetTotalsRaw)
+          .map(([budgetName, total]) => ({
+            budgetName: String(budgetName).trim(),
+            total: Number(total) || 0,
+          }))
+          .filter((x) => x.budgetName);
+      }
+
+      return [];
+    })()
+      .filter((x) => Number.isFinite(x.total))
+      .filter((x) => (showAllBudgetsInTooltip ? true : x.total !== 0))
+      .sort((a, b) => {
+        const diff = Math.abs(b.total) - Math.abs(a.total);
+        if (diff !== 0) return diff;
+        return a.budgetName.localeCompare(b.budgetName);
+      });
+
+    const maxBudgetsToShow = 6;
+    const visibleBudgets = showBudgetsInTooltip
+      ? budgetTotals.slice(0, maxBudgetsToShow)
+      : [];
+    const remainingBudgets = showBudgetsInTooltip
+      ? Math.max(0, budgetTotals.length - visibleBudgets.length)
+      : 0;
+
+    const tooltipBg = colors.primary_bg;
+    const border = colors.border_color;
+    const titleColor = colors.primary_text;
+    const muted = colors.placeholder_text || colors.secondary_text;
+
+    const typeLabel = (() => {
+      const t = String(point?.type || activeType).toLowerCase();
+      if (t === "gain") return "Total gain";
+      if (t === "loss") return "Total spending";
+      return "Total";
+    })();
+
+    return (
+      <div
+        style={{
+          background: tooltipBg,
+          border: `1px solid ${border}`,
+          borderRadius: 14,
+          padding: 12,
+          minWidth: 260,
+          maxWidth: 340,
+          boxShadow:
+            mode === "dark"
+              ? "0 12px 30px rgba(0,0,0,0.45)"
+              : "0 12px 30px rgba(0,0,0,0.12)",
+        }}
+      >
+        <div
+          style={{ display: "flex", justifyContent: "space-between", gap: 10 }}
+        >
+          <div style={{ color: titleColor, fontWeight: 800, fontSize: 13 }}>
+            {dateLabel}
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: 10,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <div style={{ color: muted, fontSize: 12, fontWeight: 700 }}>
+            {typeLabel}
+          </div>
+          <div
+            style={{
+              color: titleColor,
+              fontWeight: 900,
+              fontSize: 14,
+              fontVariantNumeric: "tabular-nums",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {formatMoney(point?.spending ?? 0)}
+          </div>
+        </div>
+
+        {showBudgetsInTooltip ? (
+          <div style={{ marginTop: 10 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                flexWrap: "wrap",
+              }}
+            >
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  border: `1px solid ${colors.border_color}`,
+                  background: colors.secondary_bg,
+                  color: titleColor,
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                Budgets
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 22,
+                    height: 18,
+                    padding: "0 8px",
+                    borderRadius: 999,
+                    background: colors.active_bg,
+                    border: `1px solid ${colors.border_color}`,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {budgetTotals.length}
+                </span>
+              </div>
+
+              {remainingBudgets > 0 ? (
+                <div
+                  style={{
+                    color: muted,
+                    fontSize: 12,
+                    fontWeight: 700,
+                  }}
+                >
+                  +{remainingBudgets} more
+                </div>
+              ) : null}
+            </div>
+
+            <div
+              style={{
+                marginTop: 10,
+                maxHeight: 280,
+                overflowY: "auto",
+                paddingRight: 2,
+                display: "grid",
+                gap: 10,
+              }}
+            >
+              {visibleBudgets.map((item) => (
+                <div
+                  key={item.budgetName}
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    background: colors.secondary_bg,
+                    border: `1px solid ${colors.border_color}`,
+                    display: "grid",
+                    gap: 6,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: titleColor,
+                        fontSize: 13,
+                        fontWeight: 800,
+                        minWidth: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={item.budgetName}
+                    >
+                      {item.budgetName}
+                    </div>
+                    <div
+                      style={{
+                        color: titleColor,
+                        fontSize: 13,
+                        fontWeight: 900,
+                        whiteSpace: "nowrap",
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      {formatMoney(Math.abs(item.total))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {visibleBudgets.length === 0 ? (
+                <div style={{ color: muted, fontSize: 12 }}>
+                  No budget breakdown available.
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {!showBudgetsInTooltip ? (
+          <>
+            <div
+              style={{
+                height: 1,
+                background: colors.border_color,
+                marginTop: 10,
+                opacity: 0.7,
+              }}
+            />
+
+            <div
+              style={{
+                marginTop: 10,
+                color: muted,
+                fontSize: 12,
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 10,
+              }}
+            >
+              <span>Budget totals</span>
+              <span style={{ whiteSpace: "nowrap" }}>
+                {budgetTotals.length} budget
+                {budgetTotals.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            <div
+              style={{
+                marginTop: 10,
+                display: "grid",
+                gap: 8,
+                maxHeight: showExpensesInTooltip ? 180 : 260,
+                overflowY: "auto",
+                paddingRight: 2,
+              }}
+            >
+              {budgetTotals.length > 0 ? (
+                budgetTotals.map((b, idx) => (
+                  <div
+                    key={b.budgetName}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: titleColor,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        minWidth: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={b.budgetName}
+                    >
+                      {idx + 1}. {b.budgetName}
+                    </div>
+                    <div
+                      style={{
+                        color: titleColor,
+                        fontSize: 12,
+                        fontWeight: 800,
+                        fontVariantNumeric: "tabular-nums",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {formatMoney(Math.abs(b.total))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ color: muted, fontSize: 12 }}>
+                  No budget breakdown available.
+                </div>
+              )}
+            </div>
+          </>
+        ) : null}
+      </div>
+    );
+  };
 
   const trimLeadingZeroSpending = (points) => {
     let seenValue = false;
@@ -448,15 +790,29 @@ const DailySpendingChart = ({
               allowEscapeViewBox={{ x: false, y: true }}
               animationDuration={150}
               animationEasing="ease-out"
-              content={(props) => (
-                <SpendingChartTooltip
-                  {...props}
-                  selectedType={activeType}
-                  timeframe={timeframe}
-                  config={tooltipConfig || TOOLTIP_CONFIG}
-                  theme={theme}
-                />
-              )}
+              content={(props) => {
+                const point = props?.payload?.[0]?.payload;
+                const hasBudgetTotals =
+                  showBudgetTotalsInTooltip &&
+                  point &&
+                  point.budgetTotals &&
+                  (Array.isArray(point.budgetTotals) ||
+                    typeof point.budgetTotals === "object");
+
+                if (hasBudgetTotals) {
+                  return <BudgetTotalsTooltip {...props} />;
+                }
+
+                return (
+                  <SpendingChartTooltip
+                    {...props}
+                    selectedType={activeType}
+                    timeframe={timeframe}
+                    config={tooltipConfig || TOOLTIP_CONFIG}
+                    theme={theme}
+                  />
+                );
+              }}
             />
 
             {averageSpending > 0 && averageLabelText && (

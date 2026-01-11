@@ -1074,6 +1074,11 @@ export const AllBudgetsLoadingSkeleton = () => {
           <RecurringLossGainCardsSkeleton />
         </div>
 
+        {/* Daily spending pattern */}
+        <div className="chart-row full-width">
+          <DailySpendingSkeleton height={300} />
+        </div>
+
         {/* Category Distribution */}
         <div className="chart-row full-width">
           <PieChartSkeleton height={360} />
