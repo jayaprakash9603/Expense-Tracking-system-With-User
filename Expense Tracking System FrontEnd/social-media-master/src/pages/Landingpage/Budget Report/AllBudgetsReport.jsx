@@ -254,7 +254,6 @@ const AllBudgetsReport = () => {
               selectedType={flowType && flowType !== "all" ? flowType : "loss"}
               onTypeToggle={setFlowType}
               showBudgetTotalsInTooltip
-              showAllBudgetsInTooltip
               showBudgetsInTooltip
             />
           </div>

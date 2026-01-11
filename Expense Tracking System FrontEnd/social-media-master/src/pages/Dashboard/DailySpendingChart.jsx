@@ -220,6 +220,50 @@ const DailySpendingChart = ({
     })}`;
   };
 
+  const normalizeBudgetTotals = (budgetTotalsRaw) => {
+    if (Array.isArray(budgetTotalsRaw)) {
+      return budgetTotalsRaw
+        .filter((x) => x && (x.budgetName || x.name))
+        .map((x) => ({
+          budgetName: String(x.budgetName ?? x.name ?? "").trim(),
+          total: Number(x.total ?? x.amount ?? 0) || 0,
+        }))
+        .filter((x) => x.budgetName);
+    }
+
+    if (budgetTotalsRaw && typeof budgetTotalsRaw === "object") {
+      return Object.entries(budgetTotalsRaw)
+        .map(([budgetName, total]) => ({
+          budgetName: String(budgetName).trim(),
+          total: Number(total) || 0,
+        }))
+        .filter((x) => x.budgetName);
+    }
+
+    return [];
+  };
+
+  const hexToRgba = (hex, alpha) => {
+    if (typeof hex !== "string") return null;
+    const value = hex.trim();
+    if (!value.startsWith("#") || (value.length !== 7 && value.length !== 4)) {
+      return null;
+    }
+
+    const normalized =
+      value.length === 4
+        ? `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}`
+        : value;
+
+    const r = parseInt(normalized.slice(1, 3), 16);
+    const g = parseInt(normalized.slice(3, 5), 16);
+    const b = parseInt(normalized.slice(5, 7), 16);
+
+    if (![r, g, b].every((n) => Number.isFinite(n))) return null;
+    const a = Math.min(1, Math.max(0, Number(alpha) || 0));
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+  };
+
   const BudgetTotalsTooltip = ({ active, payload }) => {
     if (!active || !payload || payload.length === 0) return null;
     const point = payload?.[0]?.payload;
@@ -231,30 +275,9 @@ const DailySpendingChart = ({
           day: "2-digit",
           year: "numeric",
         })
-      : point?.date || "";
+      : point?.date || point?.xLabel || "";
 
-    const budgetTotalsRaw = point?.budgetTotals;
-    const budgetTotals = (() => {
-      if (Array.isArray(budgetTotalsRaw)) {
-        return budgetTotalsRaw
-          .filter((x) => x && (x.budgetName || x.name))
-          .map((x) => ({
-            budgetName: String(x.budgetName ?? x.name ?? "").trim(),
-            total: Number(x.total ?? x.amount ?? 0) || 0,
-          }));
-      }
-
-      if (budgetTotalsRaw && typeof budgetTotalsRaw === "object") {
-        return Object.entries(budgetTotalsRaw)
-          .map(([budgetName, total]) => ({
-            budgetName: String(budgetName).trim(),
-            total: Number(total) || 0,
-          }))
-          .filter((x) => x.budgetName);
-      }
-
-      return [];
-    })()
+    const budgetTotals = normalizeBudgetTotals(point?.budgetTotals)
       .filter((x) => Number.isFinite(x.total))
       .filter((x) => (showAllBudgetsInTooltip ? true : x.total !== 0))
       .sort((a, b) => {
@@ -262,14 +285,6 @@ const DailySpendingChart = ({
         if (diff !== 0) return diff;
         return a.budgetName.localeCompare(b.budgetName);
       });
-
-    const maxBudgetsToShow = 6;
-    const visibleBudgets = showBudgetsInTooltip
-      ? budgetTotals.slice(0, maxBudgetsToShow)
-      : [];
-    const remainingBudgets = showBudgetsInTooltip
-      ? Math.max(0, budgetTotals.length - visibleBudgets.length)
-      : 0;
 
     const tooltipBg = colors.primary_bg;
     const border = colors.border_color;
@@ -283,11 +298,17 @@ const DailySpendingChart = ({
       return "Total";
     })();
 
+    const typeKey = String(point?.type || activeType).toLowerCase();
+    const accent = getThemeColors(typeKey, CHART_THEME)?.color;
+    const accentSoft = hexToRgba(accent, mode === "dark" ? 0.22 : 0.16);
+    const accentBorder = hexToRgba(accent, mode === "dark" ? 0.45 : 0.35);
+    const accentText = accent || titleColor;
+
     return (
       <div
         style={{
           background: tooltipBg,
-          border: `1px solid ${border}`,
+          border: `1px solid ${accentBorder || border}`,
           borderRadius: 14,
           padding: 12,
           minWidth: 260,
@@ -299,37 +320,53 @@ const DailySpendingChart = ({
         }}
       >
         <div
-          style={{ display: "flex", justifyContent: "space-between", gap: 10 }}
-        >
-          <div style={{ color: titleColor, fontWeight: 800, fontSize: 13 }}>
-            {dateLabel}
-          </div>
-        </div>
-
-        <div
           style={{
-            marginTop: 10,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 10,
+            margin: -12,
+            padding: "12px 12px 10px",
+            borderTopLeftRadius: 14,
+            borderTopRightRadius: 14,
+            backgroundColor: accentSoft || "transparent",
+            borderBottom: `1px solid ${colors.border_color}`,
           }}
         >
-          <div style={{ color: muted, fontSize: 12, fontWeight: 700 }}>
-            {typeLabel}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 10,
+            }}
+          >
+            <div style={{ color: accentText, fontWeight: 900, fontSize: 13 }}>
+              {dateLabel}
+            </div>
           </div>
           <div
             style={{
-              color: titleColor,
-              fontWeight: 900,
-              fontSize: 14,
-              fontVariantNumeric: "tabular-nums",
-              whiteSpace: "nowrap",
+              marginTop: 8,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 10,
             }}
           >
-            {formatMoney(point?.spending ?? 0)}
+            <div style={{ color: muted, fontSize: 12, fontWeight: 800 }}>
+              {typeLabel}
+            </div>
+            <div
+              style={{
+                color: accentText,
+                fontWeight: 900,
+                fontSize: 14,
+                fontVariantNumeric: "tabular-nums",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {formatMoney(point?.spending ?? 0)}
+            </div>
           </div>
         </div>
+
+        <div style={{ marginTop: 12 }} />
 
         {showBudgetsInTooltip ? (
           <div style={{ marginTop: 10 }}>
@@ -373,18 +410,6 @@ const DailySpendingChart = ({
                   {budgetTotals.length}
                 </span>
               </div>
-
-              {remainingBudgets > 0 ? (
-                <div
-                  style={{
-                    color: muted,
-                    fontSize: 12,
-                    fontWeight: 700,
-                  }}
-                >
-                  +{remainingBudgets} more
-                </div>
-              ) : null}
             </div>
 
             <div
@@ -397,7 +422,7 @@ const DailySpendingChart = ({
                 gap: 10,
               }}
             >
-              {visibleBudgets.map((item) => (
+              {budgetTotals.map((item) => (
                 <div
                   key={item.budgetName}
                   style={{
@@ -433,7 +458,7 @@ const DailySpendingChart = ({
                     </div>
                     <div
                       style={{
-                        color: titleColor,
+                        color: accentText,
                         fontSize: 13,
                         fontWeight: 900,
                         whiteSpace: "nowrap",
@@ -446,7 +471,7 @@ const DailySpendingChart = ({
                 </div>
               ))}
 
-              {visibleBudgets.length === 0 ? (
+              {budgetTotals.length === 0 ? (
                 <div style={{ color: muted, fontSize: 12 }}>
                   No budget breakdown available.
                 </div>
@@ -595,6 +620,7 @@ const DailySpendingChart = ({
           dateObj: new Date(cursor),
           type: activeType,
           expenses: [],
+          budgetTotals: [],
         });
       }
     }
@@ -631,6 +657,7 @@ const DailySpendingChart = ({
           spending: 0,
           expenses: [],
           type: point.type,
+          budgetTotalsAgg: {},
         };
       }
 
@@ -638,11 +665,31 @@ const DailySpendingChart = ({
       if (Array.isArray(point.expenses)) {
         map[key].expenses.push(...point.expenses);
       }
+
+      const normalizedBudgetTotals = normalizeBudgetTotals(point.budgetTotals);
+      normalizedBudgetTotals.forEach((b) => {
+        if (!b?.budgetName) return;
+        const current =
+          Number(map[key].budgetTotalsAgg[b.budgetName] ?? 0) || 0;
+        map[key].budgetTotalsAgg[b.budgetName] =
+          current + (Number(b.total) || 0);
+      });
     });
 
-    return Object.values(map).sort((a, b) =>
-      a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
-    );
+    return Object.values(map)
+      .map((bucket) => ({
+        ...bucket,
+        date: bucket.xLabel,
+        budgetTotals: Object.entries(bucket.budgetTotalsAgg || {}).map(
+          ([budgetName, total]) => ({
+            budgetName: String(budgetName).trim(),
+            total: Number(total) || 0,
+          })
+        ),
+      }))
+      .sort((a, b) =>
+        a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
+      );
   };
 
   const chartData = (() => {
@@ -659,6 +706,7 @@ const DailySpendingChart = ({
       date: point.date,
       type: point.type,
       expenses: point.expenses,
+      budgetTotals: point.budgetTotals,
     }));
   })();
 
