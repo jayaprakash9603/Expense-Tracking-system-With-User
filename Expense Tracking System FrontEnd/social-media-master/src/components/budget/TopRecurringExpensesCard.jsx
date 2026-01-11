@@ -23,6 +23,7 @@ export default function TopRecurringExpensesCard({
   items,
   title,
   subtitle,
+  layout,
 }) {
   const { colors, mode } = useTheme();
   const settings = useUserSettings();
@@ -82,89 +83,93 @@ export default function TopRecurringExpensesCard({
   if ((!budgets || budgets.length === 0) && (!items || items.length === 0))
     return null;
 
-  return (
-    <div className="chart-row full-width">
-      <div
-        className="chart-container"
-        style={{
-          background: colors.primary_bg,
-          border: `1px solid ${colors.border_color}`,
-          borderRadius: "12px",
-          padding: "20px",
-        }}
-      >
-        <div className="chart-header" style={{ marginBottom: "14px" }}>
-          <h3 style={{ color: colors.primary_text, margin: "0 0 4px 0" }}>
-            {title}
-          </h3>
-          <div
-            className="chart-subtitle"
-            style={{ color: mode === "dark" ? "#9ca3af" : "#6b7280" }}
-          >
-            {subtitle}
-          </div>
+  const content = (
+    <div
+      className="chart-container"
+      style={{
+        background: colors.primary_bg,
+        border: `1px solid ${colors.border_color}`,
+        borderRadius: "12px",
+        padding: "20px",
+      }}
+    >
+      <div className="chart-header" style={{ marginBottom: "14px" }}>
+        <h3 style={{ color: colors.primary_text, margin: "0 0 4px 0" }}>
+          {title}
+        </h3>
+        <div
+          className="chart-subtitle"
+          style={{ color: mode === "dark" ? "#9ca3af" : "#6b7280" }}
+        >
+          {subtitle}
         </div>
+      </div>
 
-        {topRecurringExpenses.length > 0 ? (
-          <div style={{ display: "grid", gap: "10px" }}>
-            {topRecurringExpenses.map((item) => (
+      {topRecurringExpenses.length > 0 ? (
+        <div style={{ display: "grid", gap: "10px" }}>
+          {topRecurringExpenses.map((item) => (
+            <div
+              key={item.key}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "12px",
+                padding: "10px 12px",
+                background:
+                  mode === "dark"
+                    ? "rgba(255, 255, 255, 0.04)"
+                    : "rgba(0, 0, 0, 0.03)",
+                borderRadius: "10px",
+                border: `1px solid ${colors.border_color}`,
+              }}
+            >
               <div
-                key={item.key}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "12px",
-                  padding: "10px 12px",
-                  background:
-                    mode === "dark"
-                      ? "rgba(255, 255, 255, 0.04)"
-                      : "rgba(0, 0, 0, 0.03)",
-                  borderRadius: "10px",
-                  border: `1px solid ${colors.border_color}`,
+                  flex: 1,
+                  minWidth: 0,
+                  color: colors.primary_text,
+                  fontWeight: 600,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+                title={item.name}
+              >
+                {item.name}
+              </div>
+              <div style={{ color: colors.secondary_text }}>
+                {item.txCount} tx
+              </div>
+              <div
+                style={{
+                  color: colors.primary_text,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
                 }}
               >
-                <div
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    color: colors.primary_text,
-                    fontWeight: 600,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                  title={item.name}
-                >
-                  {item.name}
-                </div>
-                <div style={{ color: colors.secondary_text }}>
-                  {item.txCount} tx
-                </div>
-                <div
-                  style={{
-                    color: colors.primary_text,
-                    fontWeight: 600,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {fmt(item.totalAmount, {
-                    currencySymbol,
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </div>
+                {fmt(item.totalAmount, {
+                  currencySymbol,
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ color: colors.secondary_text, padding: "8px 0" }}>
-            No recurring expenses found in this range.
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ color: colors.secondary_text, padding: "8px 0" }}>
+          No recurring expenses found in this range.
+        </div>
+      )}
     </div>
   );
+
+  if (layout === "gridItem") {
+    return content;
+  }
+
+  return <div className="chart-row full-width">{content}</div>;
 }
 
 TopRecurringExpensesCard.propTypes = {
@@ -188,6 +193,7 @@ TopRecurringExpensesCard.propTypes = {
   ),
   title: PropTypes.string,
   subtitle: PropTypes.string,
+  layout: PropTypes.oneOf(["fullWidth", "gridItem"]),
 };
 
 TopRecurringExpensesCard.defaultProps = {
@@ -195,4 +201,5 @@ TopRecurringExpensesCard.defaultProps = {
   items: undefined,
   title: "🔁 Top recurring expenses",
   subtitle: "Aggregated by expense name across budgets",
+  layout: "fullWidth",
 };

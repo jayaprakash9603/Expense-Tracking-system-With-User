@@ -14,6 +14,7 @@ import {
 } from "../../../components/skeletons/CommonSkeletons";
 import { getChartColors } from "../../../utils/chartColors";
 import TopRecurringExpensesCard from "../../../components/budget/TopRecurringExpensesCard";
+import LossGainBreakdownCard from "../../../components/budget/LossGainBreakdownCard";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import "../Payment Report/PaymentReport.css";
 
@@ -144,10 +145,19 @@ const AllBudgetsReport = () => {
       <SharedOverviewCards data={[filteredBudgetSummary]} mode="budget" />
 
       <div className="charts-grid">
-        <TopRecurringExpensesCard
-          budgets={filteredBudgets}
-          items={topRecurringExpenses}
-        />
+        {(filteredBudgets.length > 0 || topRecurringExpenses.length > 0) && (
+          <div className="chart-row">
+            <TopRecurringExpensesCard
+              budgets={filteredBudgets}
+              items={topRecurringExpenses}
+              layout="gridItem"
+            />
+            <LossGainBreakdownCard
+              budgets={filteredBudgets}
+              layout="gridItem"
+            />
+          </div>
+        )}
 
         {/* Row 1: Category Distribution */}
         {effectiveCategoryBreakdown.length > 0 && (
