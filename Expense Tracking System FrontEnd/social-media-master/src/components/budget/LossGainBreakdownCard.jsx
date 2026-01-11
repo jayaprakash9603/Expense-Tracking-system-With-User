@@ -46,6 +46,8 @@ export default function LossGainBreakdownCard({
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
 
+  const mutedTextColor = colors.placeholder_text || colors.secondary_text;
+
   const { totalLoss, totalGain, net } = useMemo(() => {
     const list = Array.isArray(budgets) ? budgets : [];
 
@@ -103,10 +105,7 @@ export default function LossGainBreakdownCard({
         <h3 style={{ color: colors.primary_text, margin: "0 0 4px 0" }}>
           {title}
         </h3>
-        <div
-          className="chart-subtitle"
-          style={{ color: colors.secondary_text }}
-        >
+        <div className="chart-subtitle" style={{ color: mutedTextColor }}>
           {subtitle}
         </div>
       </div>
@@ -126,12 +125,12 @@ export default function LossGainBreakdownCard({
                 />
                 <XAxis
                   dataKey="label"
-                  tick={{ fill: colors.secondary_text, fontSize: 12 }}
+                  tick={{ fill: mutedTextColor, fontSize: 12 }}
                   axisLine={{ stroke: colors.border_color }}
                   tickLine={{ stroke: colors.border_color }}
                 />
                 <YAxis
-                  tick={{ fill: colors.secondary_text, fontSize: 12 }}
+                  tick={{ fill: mutedTextColor, fontSize: 12 }}
                   axisLine={{ stroke: colors.border_color }}
                   tickLine={{ stroke: colors.border_color }}
                   width={48}
@@ -146,7 +145,7 @@ export default function LossGainBreakdownCard({
                     color: colors.primary_text,
                   }}
                   labelStyle={{ color: colors.primary_text, fontWeight: 700 }}
-                  itemStyle={{ color: colors.secondary_text }}
+                  itemStyle={{ color: mutedTextColor }}
                 />
                 <Bar dataKey="amount" radius={[6, 6, 0, 0]}>
                   {chartData.map((entry) => (
@@ -167,7 +166,7 @@ export default function LossGainBreakdownCard({
               alignItems: "center",
               justifyContent: "center",
               gap: "20px",
-              color: colors.secondary_text,
+              color: mutedTextColor,
               fontSize: "12px",
             }}
             aria-label="Loss and gain legend"
@@ -223,7 +222,7 @@ export default function LossGainBreakdownCard({
               borderRadius: "12px",
               border: `1px solid ${colors.border_color}`,
               background: colors.secondary_bg,
-              borderLeft: `4px solid ${LOSS_COLOR}`,
+              boxShadow: `inset 5px 0 0 ${LOSS_COLOR}`,
               minWidth: 0,
             }}
           >
@@ -278,7 +277,7 @@ export default function LossGainBreakdownCard({
               borderRadius: "12px",
               border: `1px solid ${colors.border_color}`,
               background: colors.secondary_bg,
-              borderLeft: `4px solid ${GAIN_COLOR}`,
+              boxShadow: `inset 5px 0 0 ${GAIN_COLOR}`,
               minWidth: 0,
             }}
           >
@@ -333,7 +332,7 @@ export default function LossGainBreakdownCard({
               borderRadius: "12px",
               border: `1px solid ${colors.border_color}`,
               background: colors.active_bg,
-              borderLeft: `4px solid ${netAccentColor}`,
+              boxShadow: `inset 5px 0 0 ${netAccentColor}`,
               minWidth: 0,
             }}
           >
