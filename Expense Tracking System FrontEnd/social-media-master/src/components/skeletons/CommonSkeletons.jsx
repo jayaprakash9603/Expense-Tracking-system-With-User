@@ -449,6 +449,183 @@ export const PieChartSkeleton = ({ height = 360, chipCount = 7 }) => {
   );
 };
 
+export const RecurringLossGainCardsSkeleton = ({ rows = 5 }) => {
+  const { colors, mode } = useTheme();
+
+  const containerStyle = {
+    background: colors.primary_bg,
+    border: `1px solid ${colors.border_color}`,
+    borderRadius: "12px",
+    padding: "20px",
+  };
+
+  const headerTitleStyle = {
+    height: 18,
+    width: 220,
+    ...getSkeletonStyle(mode),
+    borderRadius: 6,
+    marginBottom: 8,
+    opacity: 0.7,
+  };
+
+  const headerSubtitleStyle = {
+    height: 14,
+    width: 280,
+    ...getSkeletonStyle(mode),
+    borderRadius: 6,
+    opacity: 0.45,
+  };
+
+  const rowStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: "12px 14px",
+    background: colors.secondary_bg,
+    border: `1px solid ${colors.border_color}`,
+    borderRadius: 12,
+  };
+
+  return (
+    <>
+      {/* Top Recurring Expenses skeleton */}
+      <div className="chart-container skeleton" style={containerStyle}>
+        <div className="chart-header" style={{ marginBottom: 14 }}>
+          <div className="skeleton" style={headerTitleStyle} />
+          <div className="skeleton" style={headerSubtitleStyle} />
+        </div>
+
+        <div style={{ display: "grid", gap: 10 }}>
+          {[...Array(rows)].map((_, i) => (
+            <div key={i} style={rowStyle}>
+              <div
+                className="skeleton"
+                style={{
+                  height: 14,
+                  width: "46%",
+                  ...getSkeletonStyle(mode),
+                  borderRadius: 6,
+                  opacity: 0.55,
+                }}
+              />
+              <div
+                className="skeleton"
+                style={{
+                  height: 20,
+                  width: 56,
+                  ...getSkeletonStyle(mode),
+                  borderRadius: 999,
+                  opacity: 0.45,
+                }}
+              />
+              <div
+                className="skeleton"
+                style={{
+                  height: 16,
+                  width: 92,
+                  ...getSkeletonStyle(mode),
+                  borderRadius: 6,
+                  opacity: 0.6,
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Loss vs Gain breakdown skeleton */}
+      <div className="chart-container skeleton" style={containerStyle}>
+        <div className="chart-header" style={{ marginBottom: 14 }}>
+          <div className="skeleton" style={headerTitleStyle} />
+          <div className="skeleton" style={headerSubtitleStyle} />
+        </div>
+
+        <div
+          style={{
+            height: 220,
+            borderRadius: 12,
+            border: `1px solid ${colors.border_color}`,
+            background: colors.secondary_bg,
+            padding: 16,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            gap: 22,
+          }}
+        >
+          <div
+            className="skeleton"
+            style={{
+              height: "75%",
+              width: 52,
+              ...getSkeletonStyle(mode),
+              borderRadius: "8px 8px 4px 4px",
+              opacity: 0.55,
+            }}
+          />
+          <div
+            className="skeleton"
+            style={{
+              height: "55%",
+              width: 52,
+              ...getSkeletonStyle(mode),
+              borderRadius: "8px 8px 4px 4px",
+              opacity: 0.5,
+            }}
+          />
+        </div>
+
+        {/* Legend line */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: 10,
+          }}
+        >
+          <div
+            className="skeleton"
+            style={{
+              height: 12,
+              width: 220,
+              ...getSkeletonStyle(mode),
+              borderRadius: 6,
+              opacity: 0.35,
+            }}
+          />
+        </div>
+
+        {/* Summary pills row */}
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            marginTop: 12,
+            overflowX: "auto",
+            paddingBottom: 2,
+          }}
+        >
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{
+                height: 34,
+                width: 140,
+                ...getSkeletonStyle(mode),
+                borderRadius: 999,
+                opacity: 0.4,
+                flex: "0 0 auto",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+};
+
 export const TableSkeleton = ({ headerCells = 6, rows = 9, rowCells = 6 }) => {
   const { colors, mode } = useTheme();
 
@@ -891,10 +1068,18 @@ export const AllBudgetsLoadingSkeleton = () => {
           <OverviewCardSkeleton key={i} />
         ))}
       </div>
-      <div className="chart-row full-width" style={{ marginBottom: 32 }}>
-        <PieChartSkeleton height={360} />
-      </div>
       <div className="charts-grid">
+        {/* Top recurring + loss/gain row (side-by-side) */}
+        <div className="chart-row">
+          <RecurringLossGainCardsSkeleton />
+        </div>
+
+        {/* Category Distribution */}
+        <div className="chart-row full-width">
+          <PieChartSkeleton height={360} />
+        </div>
+
+        {/* Payment Method Distribution */}
         <div className="chart-row full-width">
           <PieChartSkeleton height={360} />
         </div>
@@ -1036,6 +1221,7 @@ export default {
   OverviewCardSkeleton,
   ChartSkeleton,
   PieChartSkeleton,
+  RecurringLossGainCardsSkeleton,
   TableSkeleton,
   AccordionSkeleton,
   CategoryLoadingSkeleton,
