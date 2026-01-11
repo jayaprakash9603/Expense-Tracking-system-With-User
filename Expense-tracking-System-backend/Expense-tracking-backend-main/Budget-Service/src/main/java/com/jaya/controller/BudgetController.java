@@ -74,7 +74,6 @@ public class BudgetController {
             createdBudget = budgetService.createBudget(budget, reqUser.getId());
         }
 
-        
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget);
     }
 
@@ -257,11 +256,13 @@ public class BudgetController {
             @RequestParam(required = false) String rangeType,
             @RequestParam(required = false, defaultValue = "0") int offset,
             @RequestParam(required = false) String flowType,
+            @RequestParam(required = false) String type,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDto reqUser = authenticate(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        String effectiveFlowType = (type != null && !type.isBlank()) ? type : flowType;
         Map<String, Object> response = budgetService.getFilteredBudgetsWithExpenses(targetUser.getId(), fromDate,
-                toDate, rangeType, offset, flowType);
+                toDate, rangeType, offset, effectiveFlowType);
         return ResponseEntity.ok(response);
     }
 

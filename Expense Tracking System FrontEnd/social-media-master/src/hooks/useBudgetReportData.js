@@ -67,11 +67,12 @@ const useBudgetReportData = ({ friendId }) => {
         budgetsData: [],
         categoryBreakdown: [],
         paymentMethodBreakdown: [],
+        topRecurringExpenses: [],
         summary: {},
       };
     }
 
-    const { budgets, summary } = filteredBudgetsReport;
+    const { budgets, summary, topRecurringExpenses } = filteredBudgetsReport;
 
     // Defensive deduplication: navigation between pages was producing duplicated budget entries
     // Ensure uniqueness by budgetId (fallback to name if id missing)
@@ -167,12 +168,20 @@ const useBudgetReportData = ({ friendId }) => {
       budgetsData,
       categoryBreakdown,
       paymentMethodBreakdown,
+      topRecurringExpenses: Array.isArray(topRecurringExpenses)
+        ? topRecurringExpenses
+        : [],
       summary: summary || {},
     };
   }, [filteredBudgetsReport]);
 
-  const { budgetsData, categoryBreakdown, paymentMethodBreakdown, summary } =
-    transformBudgetData();
+  const {
+    budgetsData,
+    categoryBreakdown,
+    paymentMethodBreakdown,
+    topRecurringExpenses,
+    summary,
+  } = transformBudgetData();
 
   const refresh = useCallback(() => {
     fetchData();
@@ -220,6 +229,7 @@ const useBudgetReportData = ({ friendId }) => {
     budgetsData,
     categoryBreakdown,
     paymentMethodBreakdown,
+    topRecurringExpenses,
     summary,
     refresh,
   };

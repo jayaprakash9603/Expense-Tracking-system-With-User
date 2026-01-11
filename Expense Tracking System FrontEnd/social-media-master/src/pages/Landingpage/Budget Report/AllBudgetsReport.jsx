@@ -8,8 +8,12 @@ import BudgetAccordionGroup from "../../../components/BudgetAccordion";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import SharedDistributionChart from "../../../components/charts/SharedDistributionChart";
 import BudgetOverviewGrid from "../../../components/budget/BudgetOverviewGrid";
-import { AllBudgetsLoadingSkeleton, PaymentLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
+import {
+  AllBudgetsLoadingSkeleton,
+  PaymentLoadingSkeleton,
+} from "../../../components/skeletons/CommonSkeletons";
 import { getChartColors } from "../../../utils/chartColors";
+import TopRecurringExpensesCard from "../../../components/budget/TopRecurringExpensesCard";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import "../Payment Report/PaymentReport.css";
 
@@ -38,6 +42,7 @@ const AllBudgetsReport = () => {
     budgetsData,
     categoryBreakdown,
     paymentMethodBreakdown,
+    topRecurringExpenses,
   } = useBudgetReportData({ friendId });
 
   const {
@@ -89,8 +94,6 @@ const AllBudgetsReport = () => {
 
   if (loading) {
     return <AllBudgetsLoadingSkeleton />;
-
-
   }
 
   return (
@@ -141,6 +144,11 @@ const AllBudgetsReport = () => {
       <SharedOverviewCards data={[filteredBudgetSummary]} mode="budget" />
 
       <div className="charts-grid">
+        <TopRecurringExpensesCard
+          budgets={filteredBudgets}
+          items={topRecurringExpenses}
+        />
+
         {/* Row 1: Category Distribution */}
         {effectiveCategoryBreakdown.length > 0 && (
           <div

@@ -1258,6 +1258,9 @@ public class BudgetServiceImpl implements BudgetService {
         double overallTotalLoss = 0.0;
         double overallTotalGain = 0.0;
 
+        // Top recurring expenses (loss only), aggregated across all budgets
+        Map<String, Map<String, Object>> recurringByName = new HashMap<>();
+
         for (Budget budget : allBudgets) {
             // Budget active overlap with requested range
             LocalDate budgetStart = budget.getStartDate();
@@ -1305,6 +1308,23 @@ public class BudgetServiceImpl implements BudgetService {
                 String pm = e.getExpense().getPaymentMethod();
                 if ("loss".equalsIgnoreCase(type)) {
                     totalLoss += amt;
+
+                    // Track recurring expenses by name (loss only)
+                    String rawName = e.getExpense().getExpenseName();
+                    String normalizedName = normalizeExpenseName(rawName);
+                    if (!normalizedName.isEmpty()) {
+                        Map<String, Object> agg = recurringByName.computeIfAbsent(normalizedName, k -> {
+                            Map<String, Object> init = new LinkedHashMap<>();
+                            init.put("name", rawName != null ? rawName.trim() : "");
+                            init.put("txCount", 0);
+                            init.put("totalAmount", 0.0);
+                            return init;
+                        });
+                        agg.put("txCount", ((Number) agg.get("txCount")).intValue() + 1);
+                        double absAmount = Math.abs(amt);
+                        agg.put("totalAmount", ((Number) agg.get("totalAmount")).doubleValue() + absAmount);
+                    }
+
                     // Track all payment methods dynamically
                     if (pm != null && !pm.isEmpty()) {
                         budgetPaymentMethodLoss.put(pm, budgetPaymentMethodLoss.getOrDefault(pm, 0.0) + amt);
@@ -1492,7 +1512,48 @@ public class BudgetServiceImpl implements BudgetService {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("summary", summary);
         response.put("budgets", budgetData);
+
+        // Compute top 5 recurring expenses across all budgets (loss only)
+        List<Map<String, Object>> topRecurringExpenses = recurringByName.values().stream()
+                .map(v -> {
+                    Map<String, Object> out = new LinkedHashMap<>();
+                    out.put("name", v.get("name"));
+                    out.put("txCount", ((Number) v.get("txCount")).intValue());
+                    double totalAmount = ((Number) v.get("totalAmount")).doubleValue();
+                    out.put("totalAmount", Math.round(totalAmount * 100.0) / 100.0);
+                    return out;
+                })
+                .sorted((a, b) -> {
+                    int txCmp = Integer.compare(
+                            ((Number) b.get("txCount")).intValue(),
+                            ((Number) a.get("txCount")).intValue());
+                    if (txCmp != 0)
+                        return txCmp;
+                    int amtCmp = Double.compare(
+                            ((Number) b.get("totalAmount")).doubleValue(),
+                            ((Number) a.get("totalAmount")).doubleValue());
+                    if (amtCmp != 0)
+                        return amtCmp;
+                    String an = String.valueOf(a.get("name"));
+                    String bn = String.valueOf(b.get("name"));
+                    return an.compareToIgnoreCase(bn);
+                })
+                .limit(5)
+                .collect(Collectors.toList());
+
+        response.put("topRecurringExpenses", topRecurringExpenses);
         return response;
+    }
+
+    private static String normalizeExpenseName(String name) {
+        if (name == null) {
+            return "";
+        }
+        String trimmed = name.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        return trimmed.replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
     // ==================== Constants ====================
