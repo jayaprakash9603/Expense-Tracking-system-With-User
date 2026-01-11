@@ -189,10 +189,11 @@ export const getAppRoutes = () => (
       </Route>
 
       {/* Detailed Budget Report Routes */}
-      <Route path="/budget-report">
-        <Route path=":budgetId" element={<BudgetReport />} />
-        <Route path=":budgetId/:friendId" element={<BudgetReport />} />
-      </Route>
+      <Route path="budget-report/:budgetId" element={<BudgetReport />} />
+      <Route
+        path="budget-report/:budgetId/:friendId"
+        element={<BudgetReport />}
+      />
 
       {/* Calendar Views */}
       <Route path="/calendar-view">

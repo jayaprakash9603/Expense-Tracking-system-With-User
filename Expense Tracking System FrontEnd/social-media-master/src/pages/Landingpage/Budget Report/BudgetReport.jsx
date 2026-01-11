@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTheme } from "../../../hooks/useTheme";
 import useUserSettings from "../../../hooks/useUserSettings";
 import useSingleBudgetReport from "../../../hooks/useSingleBudgetReport";
@@ -12,15 +12,18 @@ import ReportHeader from "../../../components/ReportHeader";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import { getChartColors } from "../../../utils/chartColors";
 import { computeDateRange } from "../../../utils/reportParams";
+import { api } from "../../../config/api";
 
 const BudgetReport = () => {
-  const { budgetId } = useParams();
+  const { budgetId, friendId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { colors, mode } = useTheme();
   const settings = useUserSettings();
   const [timeFrame, setTimeFrame] = useState("budget");
   const [flowType, setFlowType] = useState("all");
   const [customRange, setCustomRange] = useState(null);
+  const [budgetPeriodRange, setBudgetPeriodRange] = useState(null);
 
   // Custom timeframe options for budget report
   const timeframeOptions = useMemo(
@@ -30,7 +33,6 @@ const BudgetReport = () => {
       { value: "month", label: "This Month" },
       { value: "quarter", label: "This Quarter" },
       { value: "year", label: "This Year" },
-      { value: "all", label: "All Time" },
     ],
     []
   );
@@ -42,6 +44,49 @@ const BudgetReport = () => {
     null,
     customRange
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchBudgetPeriod = async () => {
+      if (!budgetId) {
+        setBudgetPeriodRange(null);
+        return;
+      }
+
+      try {
+        const { data } = await api.get(`/api/budgets/${budgetId}`, {
+          params: {
+            targetId: "",
+          },
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        const start = data?.startDate
+          ? String(data.startDate).slice(0, 10)
+          : "";
+        const end = data?.endDate ? String(data.endDate).slice(0, 10) : "";
+
+        if (start && end) {
+          setBudgetPeriodRange({ fromDate: start, toDate: end });
+        } else {
+          setBudgetPeriodRange(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setBudgetPeriodRange(null);
+        }
+      }
+    };
+
+    fetchBudgetPeriod();
+    return () => {
+      cancelled = true;
+    };
+  }, [budgetId]);
   const summaryRange = useMemo(() => {
     const summary = budgetData?.summary;
     if (!summary?.startDate || !summary?.endDate) {
@@ -53,9 +98,14 @@ const BudgetReport = () => {
     };
   }, [budgetData?.summary]);
 
+  const effectiveBudgetPeriodRange = useMemo(
+    () => budgetPeriodRange || summaryRange,
+    [budgetPeriodRange, summaryRange]
+  );
+
   const defaultRange = useMemo(() => {
     if (timeFrame === "budget") {
-      return summaryRange || computeDateRange("month");
+      return effectiveBudgetPeriodRange || null;
     }
     if (timeFrame === "all") {
       return computeDateRange("all_time");
@@ -63,7 +113,7 @@ const BudgetReport = () => {
     const supported = new Set(["week", "month", "quarter", "year"]);
     const normalized = supported.has(timeFrame) ? timeFrame : "month";
     return computeDateRange(normalized);
-  }, [timeFrame, summaryRange]);
+  }, [timeFrame, effectiveBudgetPeriodRange]);
 
   const activeRange = customRange || defaultRange;
 
@@ -87,14 +137,27 @@ const BudgetReport = () => {
   };
 
   const isCustomRangeActive = Boolean(customRange);
-  const dateRangeProps = activeRange
-    ? {
-        fromDate: activeRange.fromDate,
-        toDate: activeRange.toDate,
-        onApply: handleCustomRangeApply,
-        onReset: handleResetRange,
-      }
-    : undefined;
+  const dateRangeProps =
+    activeRange?.fromDate && activeRange?.toDate
+      ? {
+          fromDate: activeRange.fromDate,
+          toDate: activeRange.toDate,
+          onApply: handleCustomRangeApply,
+          onReset: handleResetRange,
+          minDate:
+            timeFrame === "budget"
+              ? effectiveBudgetPeriodRange?.fromDate
+              : undefined,
+          maxDate:
+            timeFrame === "budget"
+              ? effectiveBudgetPeriodRange?.toDate
+              : undefined,
+          helperText:
+            timeFrame === "budget" && effectiveBudgetPeriodRange
+              ? "Custom range is limited to the budget period."
+              : undefined,
+        }
+      : undefined;
 
   const expenseGroups = budgetData?.expenseGroups || [];
   const categoryBreakdown = budgetData?.categoryBreakdown || [];
@@ -126,11 +189,24 @@ const BudgetReport = () => {
     paymentMethodBreakdown: paymentBreakdown,
     expenseGroups,
     timeframeOptions,
+    budgetPeriodRange: effectiveBudgetPeriodRange,
   });
 
   const COLORS = getChartColors();
 
   const bgColor = mode === "dark" ? "#1f2937" : "#ffffff";
+
+  const isBudgetReportPath = useMemo(() => {
+    const pathname = location?.pathname || "";
+    return (
+      pathname.startsWith("/budget-report") ||
+      pathname.startsWith("/budget/report")
+    );
+  }, [location?.pathname]);
+
+  if (!isBudgetReportPath) {
+    return null;
+  }
 
   if (loading) {
     return <BudgetReportLoadingSkeleton />;
@@ -157,7 +233,13 @@ const BudgetReport = () => {
         timeframe={timeFrame}
         flowType={flowType}
         timeframeOptions={timeframeOptions}
-        onBack={() => navigate("/budget")}
+        onBack={() =>
+          location?.state?.fromSidebar === true || location?.state?.fromFlow
+            ? navigate(-1)
+            : navigate(friendId ? `/budget/${friendId}` : "/budget", {
+                state: location?.state,
+              })
+        }
         onFilter={openFilters}
         onExport={() => {}}
         showFilterButton={sections.length > 0}

@@ -136,6 +136,8 @@ const createDateRangeSection = (overrides = {}) => ({
   type: "date-range",
   helperText:
     overrides.helperText || "Set a specific range to override timeframe.",
+  minDate: overrides.minDate,
+  maxDate: overrides.maxDate,
 });
 
 const createMultiSelectSection = ({
@@ -239,7 +241,14 @@ export const buildReportFilterSections = (type = "expenses", context = {}) => {
   ];
 
   if (context.enableDateRange !== false) {
-    sections.push(createDateRangeSection({ label: context.dateRangeLabel }));
+    sections.push(
+      createDateRangeSection({
+        label: context.dateRangeLabel,
+        helperText: context.dateRangeHelperText,
+        minDate: context.dateRangeMin,
+        maxDate: context.dateRangeMax,
+      })
+    );
   }
 
   if (type === "expenses" || type === "bills") {

@@ -8,7 +8,7 @@ import BudgetAccordionGroup from "../../../components/BudgetAccordion";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import SharedDistributionChart from "../../../components/charts/SharedDistributionChart";
 import BudgetOverviewGrid from "../../../components/budget/BudgetOverviewGrid";
-import { PaymentLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
+import { AllBudgetsLoadingSkeleton, PaymentLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
 import { getChartColors } from "../../../utils/chartColors";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import "../Payment Report/PaymentReport.css";
@@ -88,7 +88,9 @@ const AllBudgetsReport = () => {
   };
 
   if (loading) {
-    return <PaymentLoadingSkeleton />;
+    return <AllBudgetsLoadingSkeleton />;
+
+
   }
 
   return (

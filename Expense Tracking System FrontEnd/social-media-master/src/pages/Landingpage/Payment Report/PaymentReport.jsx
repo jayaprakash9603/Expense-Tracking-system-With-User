@@ -97,7 +97,7 @@ const PaymentMethodsReport = () => {
 
   return (
     <div
-      className="payment-methods-report"
+      className={`payment-methods-report ${mode}`}
       style={{ background: colors.secondary_bg }}
     >
       <ReportHeader

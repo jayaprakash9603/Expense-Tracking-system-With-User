@@ -603,6 +603,210 @@ export const AccordionSkeleton = ({ items = 6 }) => {
   );
 };
 
+export const BudgetOverviewCardSkeleton = () => {
+  const { colors, mode } = useTheme();
+
+  return (
+    <div
+      className="budget-card skeleton"
+      style={{
+        background: colors.primary_bg,
+        border: `1px solid ${colors.border_color}`,
+        borderRadius: 10,
+        padding: 14,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Top indicator bar */}
+      <div
+        className="skeleton"
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 4,
+          ...getSkeletonStyle(mode),
+          borderRadius: 0,
+        }}
+      />
+
+      {/* Header: title + date badge */}
+      <div style={{ marginBottom: 12, marginTop: 6 }}>
+        <div
+          className="skeleton"
+          style={{
+            height: 16,
+            width: "72%",
+            ...getSkeletonStyle(mode),
+            marginBottom: 10,
+            borderRadius: 6,
+          }}
+        />
+        <div
+          className="skeleton"
+          style={{
+            height: 20,
+            width: "62%",
+            ...getSkeletonStyle(mode),
+            borderRadius: 6,
+            opacity: 0.85,
+          }}
+        />
+      </div>
+
+      {/* Utilization row + progress */}
+      <div style={{ marginBottom: 10 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 6,
+            gap: 10,
+          }}
+        >
+          <div
+            className="skeleton"
+            style={{
+              height: 12,
+              width: 70,
+              ...getSkeletonStyle(mode),
+              borderRadius: 6,
+            }}
+          />
+          <div
+            className="skeleton"
+            style={{
+              height: 12,
+              width: 44,
+              ...getSkeletonStyle(mode),
+              borderRadius: 6,
+            }}
+          />
+        </div>
+        <div
+          className="skeleton"
+          style={{
+            height: 6,
+            width: "100%",
+            ...getSkeletonStyle(mode),
+            borderRadius: 999,
+            opacity: 0.55,
+          }}
+        />
+      </div>
+
+      {/* Stats grid: spent + allocated */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 8,
+          marginBottom: 8,
+        }}
+      >
+        {[...Array(2)].map((_, i) => (
+          <div
+            key={i}
+            style={{
+              padding: 8,
+              borderRadius: 6,
+              background: colors.tertiary_bg,
+              border: `1px solid ${colors.border_color}`,
+            }}
+          >
+            <div
+              className="skeleton"
+              style={{
+                height: 10,
+                width: 60,
+                ...getSkeletonStyle(mode),
+                borderRadius: 6,
+                marginBottom: 6,
+              }}
+            />
+            <div
+              className="skeleton"
+              style={{
+                height: 14,
+                width: "70%",
+                ...getSkeletonStyle(mode),
+                borderRadius: 6,
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Remaining row */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: 8,
+          borderRadius: 6,
+          background: colors.tertiary_bg,
+          border: `1px solid ${colors.border_color}`,
+        }}
+      >
+        <div
+          className="skeleton"
+          style={{
+            height: 12,
+            width: 90,
+            ...getSkeletonStyle(mode),
+            borderRadius: 6,
+          }}
+        />
+        <div
+          className="skeleton"
+          style={{
+            height: 12,
+            width: 70,
+            ...getSkeletonStyle(mode),
+            borderRadius: 6,
+          }}
+        />
+      </div>
+
+      {/* Transactions row */}
+      <div
+        style={{
+          marginTop: 8,
+          paddingTop: 8,
+          borderTop: `1px solid ${colors.border_color}`,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div
+          className="skeleton"
+          style={{
+            height: 12,
+            width: 86,
+            ...getSkeletonStyle(mode),
+            borderRadius: 6,
+          }}
+        />
+        <div
+          className="skeleton"
+          style={{
+            height: 12,
+            width: 26,
+            ...getSkeletonStyle(mode),
+            borderRadius: 6,
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
 // Convenience composite for pages needing a full loading layout pattern (optional use)
 export const CategoryLoadingSkeleton = () => {
   const { colors } = useTheme();
@@ -667,6 +871,87 @@ export const PaymentLoadingSkeleton = () => {
           <div className="chart-row full-width">
             <AccordionSkeleton items={8} />
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const AllBudgetsLoadingSkeleton = () => {
+  const { colors, mode } = useTheme();
+
+  return (
+    <div
+      className="payment-methods-report"
+      style={{ background: colors.secondary_bg }}
+    >
+      <ReportHeaderSkeleton rootClassName="payment-methods-header" />
+      <div className="payment-overview-cards">
+        {[...Array(4)].map((_, i) => (
+          <OverviewCardSkeleton key={i} />
+        ))}
+      </div>
+      <div className="chart-row full-width" style={{ marginBottom: 32 }}>
+        <PieChartSkeleton height={360} />
+      </div>
+      <div className="charts-grid">
+        <div className="chart-row full-width">
+          <PieChartSkeleton height={360} />
+        </div>
+
+        {/* Budget Overview cards skeleton */}
+        <div className="chart-row full-width">
+          <div
+            className="chart-container"
+            style={{
+              background: colors.primary_bg,
+              border: `1px solid ${colors.border_color}`,
+              borderRadius: "12px",
+              padding: "24px",
+            }}
+          >
+            <div className="chart-header" style={{ marginBottom: 20 }}>
+              <div
+                className="skeleton"
+                style={{
+                  height: 18,
+                  width: 220,
+                  ...getSkeletonStyle(mode),
+                  borderRadius: 6,
+                  opacity: 0.6,
+                  marginBottom: 8,
+                }}
+              />
+              <div
+                className="skeleton"
+                style={{
+                  height: 14,
+                  width: 320,
+                  ...getSkeletonStyle(mode),
+                  borderRadius: 6,
+                  opacity: 0.4,
+                }}
+              />
+            </div>
+
+            <div
+              className="budget-overview-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                gap: 20,
+                padding: 4,
+              }}
+            >
+              {[...Array(4)].map((_, i) => (
+                <BudgetOverviewCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="chart-row full-width">
+          <AccordionSkeleton items={8} />
         </div>
       </div>
     </div>

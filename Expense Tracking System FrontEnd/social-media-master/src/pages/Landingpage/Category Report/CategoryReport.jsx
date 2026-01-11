@@ -86,7 +86,7 @@ const CategoryReport = () => {
 
   return (
     <div
-      className="category-report"
+      className={`category-report ${mode}`}
       style={{
         background: colors.secondary_bg,
         color: colors.primary_text,
