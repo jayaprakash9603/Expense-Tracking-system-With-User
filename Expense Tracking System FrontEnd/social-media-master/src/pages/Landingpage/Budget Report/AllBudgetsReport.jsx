@@ -250,11 +250,11 @@ const AllBudgetsReport = () => {
             <DailySpendingChart
               data={dailySpendingData}
               timeframe={timeframe}
-              onTimeframeChange={setTimeframe}
-              selectedType={flowType && flowType !== "all" ? flowType : "loss"}
-              onTypeToggle={setFlowType}
+              selectedType={flowType}
               showBudgetTotalsInTooltip
               showBudgetsInTooltip
+              hideControls
+              showBothTypesWhenAll
             />
           </div>
         )}

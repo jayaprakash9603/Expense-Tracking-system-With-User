@@ -316,9 +316,17 @@ export const getFilteredBudgetsReport =
         params.offset = offset;
       }
 
-      // Backend expects `type` query param for flow filtering (all|outflow|inflow)
-      // Always send it to keep the contract explicit.
-      params.type = flowType || "all";
+      // Backend expects `type` query param for flow filtering.
+      // Normalize legacy inflow/outflow values to gain/loss.
+      const normalizeType = (value) => {
+        const key = String(value || "").toLowerCase();
+        if (!key || key === "all") return "all";
+        if (key === "outflow" || key === "loss") return "loss";
+        if (key === "inflow" || key === "gain") return "gain";
+        return "all";
+      };
+
+      params.type = normalizeType(flowType);
 
       const { data } = await api.get(
         `/api/budgets/all-with-expenses/detailed/filtered`,

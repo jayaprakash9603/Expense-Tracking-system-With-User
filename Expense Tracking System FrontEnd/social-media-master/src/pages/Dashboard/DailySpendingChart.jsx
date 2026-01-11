@@ -173,6 +173,8 @@ const DailySpendingChart = ({
   height,
   tooltipConfig,
   loading = false,
+  hideControls = false,
+  showBothTypesWhenAll = false,
   showBudgetTotalsInTooltip = false,
   showAllBudgetsInTooltip = false,
   showExpensesInTooltip = false,
@@ -199,17 +201,41 @@ const DailySpendingChart = ({
     (timeframe === "last_3_months" || isMobile);
   const safeData = Array.isArray(data) ? data : [];
   const activeType = selectedType || "loss";
-  const filteredData = filterDataByType(safeData, activeType);
-  const normalizedData = transformChartData(filteredData, {
-    timeframe,
-    locale,
-  }).map((point, index) => {
-    const source = filteredData[index] || {};
-    return {
-      ...point,
-      budgetTotals: source.budgetTotals,
-    };
-  });
+
+  const isOverlayAllMode =
+    showBothTypesWhenAll && String(activeType).toLowerCase() === "all";
+
+  const buildNormalizedSeries = (type) => {
+    const typed = filterDataByType(safeData, type);
+    return transformChartData(typed, {
+      timeframe,
+      locale,
+    }).map((point, index) => {
+      const source = typed[index] || {};
+      return {
+        ...point,
+        type,
+        budgetTotals: source.budgetTotals,
+      };
+    });
+  };
+
+  const filteredData = isOverlayAllMode
+    ? []
+    : filterDataByType(safeData, String(activeType).toLowerCase());
+
+  const normalizedData = isOverlayAllMode
+    ? []
+    : transformChartData(filteredData, {
+        timeframe,
+        locale,
+      }).map((point, index) => {
+        const source = filteredData[index] || {};
+        return {
+          ...point,
+          budgetTotals: source.budgetTotals,
+        };
+      });
 
   const formatMoney = (value) => {
     const numeric = Number(value);
@@ -299,7 +325,8 @@ const DailySpendingChart = ({
     })();
 
     const typeKey = String(point?.type || activeType).toLowerCase();
-    const accent = getThemeColors(typeKey, CHART_THEME)?.color;
+    const fixedAccent = typeKey === "gain" ? "#00d4c0" : "#ff5252";
+    const accent = fixedAccent;
     const accentSoft = hexToRgba(accent, mode === "dark" ? 0.22 : 0.16);
     const accentBorder = hexToRgba(accent, mode === "dark" ? 0.45 : 0.35);
     const accentText = accent || titleColor;
@@ -579,7 +606,7 @@ const DailySpendingChart = ({
     });
   };
 
-  const fillMissingDaysToToday = (points) => {
+  const fillMissingDaysToToday = (points, typeForFill = activeType) => {
     if (timeframe !== "this_month" && timeframe !== "this_year") {
       return points;
     }
@@ -618,7 +645,7 @@ const DailySpendingChart = ({
           spending: 0,
           date: iso,
           dateObj: new Date(cursor),
-          type: activeType,
+          type: typeForFill,
           expenses: [],
           budgetTotals: [],
         });
@@ -629,11 +656,13 @@ const DailySpendingChart = ({
   };
 
   const trimmedData =
-    timeframe === "all_time"
+    !isOverlayAllMode && timeframe === "all_time"
       ? trimLeadingZeroSpending(normalizedData)
       : normalizedData;
 
-  const normalizedWithFill = fillMissingDaysToToday(trimmedData);
+  const normalizedWithFill = !isOverlayAllMode
+    ? fillMissingDaysToToday(trimmedData)
+    : [];
 
   const buildMonthlyBuckets = (points, labelWithYear = false) => {
     const monthFormatter = new Intl.DateTimeFormat(locale || undefined, {
@@ -692,7 +721,149 @@ const DailySpendingChart = ({
       );
   };
 
+  const buildOverlayAllDaily = (lossPoints, gainPoints) => {
+    const map = new Map();
+
+    lossPoints.forEach((p) => {
+      if (!p?.date) return;
+      map.set(p.date, {
+        xLabel: p.xLabel,
+        date: p.date,
+        dateObj: p.dateObj,
+        spendingLoss: p.spending ?? 0,
+        spendingGain: 0,
+        budgetTotalsLoss: p.budgetTotals,
+        budgetTotalsGain: [],
+      });
+    });
+
+    gainPoints.forEach((p) => {
+      if (!p?.date) return;
+      const existing = map.get(p.date);
+      if (existing) {
+        existing.spendingGain = p.spending ?? 0;
+        existing.budgetTotalsGain = p.budgetTotals;
+        if (!existing.dateObj) existing.dateObj = p.dateObj;
+      } else {
+        map.set(p.date, {
+          xLabel: p.xLabel,
+          date: p.date,
+          dateObj: p.dateObj,
+          spendingLoss: 0,
+          spendingGain: p.spending ?? 0,
+          budgetTotalsLoss: [],
+          budgetTotalsGain: p.budgetTotals,
+        });
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.dateObj && b.dateObj) return a.dateObj - b.dateObj;
+      return String(a.date).localeCompare(String(b.date));
+    });
+  };
+
+  const buildOverlayAllMonthlyBuckets = (
+    lossPoints,
+    gainPoints,
+    labelWithYear
+  ) => {
+    const monthFormatter = new Intl.DateTimeFormat(locale || undefined, {
+      month: "short",
+    });
+    const map = {};
+
+    const upsert = (point, key, isLoss) => {
+      if (!map[key]) {
+        const monthIndex = point.dateObj.getMonth();
+        const year = point.dateObj.getFullYear();
+        map[key] = {
+          xLabel: labelWithYear
+            ? `${monthFormatter.format(point.dateObj)} ${year}`
+            : monthFormatter.format(point.dateObj),
+          monthIndex,
+          year,
+          spendingLoss: 0,
+          spendingGain: 0,
+          budgetTotalsLossAgg: {},
+          budgetTotalsGainAgg: {},
+        };
+      }
+
+      if (isLoss) {
+        map[key].spendingLoss += point.spending ?? 0;
+      } else {
+        map[key].spendingGain += point.spending ?? 0;
+      }
+
+      const normalizedBudgetTotals = normalizeBudgetTotals(point.budgetTotals);
+      normalizedBudgetTotals.forEach((b) => {
+        if (!b?.budgetName) return;
+        const targetAgg = isLoss
+          ? map[key].budgetTotalsLossAgg
+          : map[key].budgetTotalsGainAgg;
+        const current = Number(targetAgg[b.budgetName] ?? 0) || 0;
+        targetAgg[b.budgetName] = current + (Number(b.total) || 0);
+      });
+    };
+
+    lossPoints.forEach((p) => {
+      if (!p?.dateObj) return;
+      const key = `${p.dateObj.getFullYear()}-${p.dateObj.getMonth()}`;
+      upsert(p, key, true);
+    });
+
+    gainPoints.forEach((p) => {
+      if (!p?.dateObj) return;
+      const key = `${p.dateObj.getFullYear()}-${p.dateObj.getMonth()}`;
+      upsert(p, key, false);
+    });
+
+    return Object.values(map)
+      .map((bucket) => ({
+        ...bucket,
+        date: bucket.xLabel,
+        budgetTotalsLoss: Object.entries(bucket.budgetTotalsLossAgg || {}).map(
+          ([budgetName, total]) => ({
+            budgetName: String(budgetName).trim(),
+            total: Number(total) || 0,
+          })
+        ),
+        budgetTotalsGain: Object.entries(bucket.budgetTotalsGainAgg || {}).map(
+          ([budgetName, total]) => ({
+            budgetName: String(budgetName).trim(),
+            total: Number(total) || 0,
+          })
+        ),
+      }))
+      .sort((a, b) =>
+        a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
+      );
+  };
+
   const chartData = (() => {
+    if (isOverlayAllMode) {
+      const lossRaw = buildNormalizedSeries("loss");
+      const gainRaw = buildNormalizedSeries("gain");
+
+      const lossTrimmed =
+        timeframe === "all_time" ? trimLeadingZeroSpending(lossRaw) : lossRaw;
+      const gainTrimmed =
+        timeframe === "all_time" ? trimLeadingZeroSpending(gainRaw) : gainRaw;
+
+      const lossFilled = fillMissingDaysToToday(lossTrimmed, "loss");
+      const gainFilled = fillMissingDaysToToday(gainTrimmed, "gain");
+
+      if (isYearView) {
+        return buildOverlayAllMonthlyBuckets(lossFilled, gainFilled, false);
+      }
+      if (isAllTimeView) {
+        return buildOverlayAllMonthlyBuckets(lossTrimmed, gainTrimmed, true);
+      }
+
+      return buildOverlayAllDaily(lossFilled, gainFilled);
+    }
+
     if (isYearView) {
       return buildMonthlyBuckets(normalizedWithFill, false);
     }
@@ -711,10 +882,12 @@ const DailySpendingChart = ({
   })();
 
   const totalPoints = chartData.length || 0;
-  const totalSpending = chartData.reduce(
-    (sum, item) => sum + (item.spending || 0),
-    0
-  );
+  const totalSpending = chartData.reduce((sum, item) => {
+    if (isOverlayAllMode) {
+      return sum + (item.spendingLoss || 0) + (item.spendingGain || 0);
+    }
+    return sum + (item.spending || 0);
+  }, 0);
   const averageSpending = totalPoints > 0 ? totalSpending / totalPoints : 0;
   const averageLineColor = mode === "dark" ? "#facc15" : "#eab308";
   const averageLabelText =
@@ -743,7 +916,10 @@ const DailySpendingChart = ({
   };
 
   // Theme and styling
-  const theme = getThemeColors(activeType, CHART_THEME);
+  const theme = getThemeColors(
+    isOverlayAllMode ? "loss" : activeType,
+    CHART_THEME
+  );
   const gradientId = `spendingGradient-${activeType}`;
   const animationKey = `${timeframe}-${activeType}-${chartData.length}`;
   const chartTitle = title || t("dashboard.charts.titles.dailySpending");
@@ -754,6 +930,295 @@ const DailySpendingChart = ({
   const typeSelectorOptions =
     typeOptions && typeOptions.length > 0 ? typeOptions : DEFAULT_TYPE_OPTIONS;
   const showEmpty = !loading && (chartData.length === 0 || totalSpending === 0);
+
+  const OverlayAllBudgetTotalsTooltip = ({ active, payload }) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const point = payload?.[0]?.payload;
+    if (!point) return null;
+
+    const dateLabel = point?.dateObj
+      ? point.dateObj.toLocaleDateString(locale || undefined, {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        })
+      : point?.date || point?.xLabel || "";
+
+    const tooltipBg = colors.primary_bg;
+    const border = colors.border_color;
+    const titleColor = colors.primary_text;
+    const muted = colors.placeholder_text || colors.secondary_text;
+
+    const lossAccent = "#ff5252";
+    const gainAccent = "#00d4c0";
+    const lossSoft = hexToRgba(lossAccent, mode === "dark" ? 0.22 : 0.16);
+    const gainSoft = hexToRgba(gainAccent, mode === "dark" ? 0.22 : 0.16);
+
+    const lossTotals = normalizeBudgetTotals(point?.budgetTotalsLoss)
+      .filter((x) => Number.isFinite(x.total))
+      .filter((x) => (showAllBudgetsInTooltip ? true : x.total !== 0))
+      .sort((a, b) => {
+        const diff = Math.abs(b.total) - Math.abs(a.total);
+        if (diff !== 0) return diff;
+        return a.budgetName.localeCompare(b.budgetName);
+      });
+
+    const gainTotals = normalizeBudgetTotals(point?.budgetTotalsGain)
+      .filter((x) => Number.isFinite(x.total))
+      .filter((x) => (showAllBudgetsInTooltip ? true : x.total !== 0))
+      .sort((a, b) => {
+        const diff = Math.abs(b.total) - Math.abs(a.total);
+        if (diff !== 0) return diff;
+        return a.budgetName.localeCompare(b.budgetName);
+      });
+
+    return (
+      <div
+        style={{
+          background: tooltipBg,
+          border: `1px solid ${border}`,
+          borderRadius: 14,
+          padding: 12,
+          minWidth: 280,
+          maxWidth: 380,
+          boxShadow:
+            mode === "dark"
+              ? "0 12px 30px rgba(0,0,0,0.45)"
+              : "0 12px 30px rgba(0,0,0,0.12)",
+        }}
+      >
+        <div style={{ color: titleColor, fontWeight: 900, fontSize: 13 }}>
+          {dateLabel}
+        </div>
+
+        <div
+          style={{
+            marginTop: 10,
+            display: "grid",
+            gap: 8,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <div style={{ color: muted, fontSize: 12, fontWeight: 800 }}>
+              Total spending
+            </div>
+            <div
+              style={{
+                color: lossAccent,
+                fontWeight: 900,
+                fontSize: 14,
+                fontVariantNumeric: "tabular-nums",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {formatMoney(point?.spendingLoss ?? 0)}
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <div style={{ color: muted, fontSize: 12, fontWeight: 800 }}>
+              Total gain
+            </div>
+            <div
+              style={{
+                color: gainAccent,
+                fontWeight: 900,
+                fontSize: 14,
+                fontVariantNumeric: "tabular-nums",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {formatMoney(point?.spendingGain ?? 0)}
+            </div>
+          </div>
+        </div>
+
+        {showBudgetsInTooltip ? (
+          <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+            <div
+              style={{
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: `1px solid ${colors.border_color}`,
+                backgroundColor: lossSoft || colors.secondary_bg,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
+                >
+                  Loss budgets
+                </div>
+                <div
+                  style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}
+                >
+                  {lossTotals.length}
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: 10,
+                  display: "grid",
+                  gap: 8,
+                  maxHeight: 140,
+                  overflowY: "auto",
+                  paddingRight: 2,
+                }}
+              >
+                {lossTotals.length > 0 ? (
+                  lossTotals.map((b) => (
+                    <div
+                      key={`loss-${b.budgetName}`}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: titleColor,
+                          fontSize: 12,
+                          fontWeight: 800,
+                          minWidth: 0,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                        title={b.budgetName}
+                      >
+                        {b.budgetName}
+                      </div>
+                      <div
+                        style={{
+                          color: lossAccent,
+                          fontSize: 12,
+                          fontWeight: 900,
+                          whiteSpace: "nowrap",
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
+                        {formatMoney(Math.abs(b.total))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: muted, fontSize: 12 }}>
+                    No loss budgets.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: `1px solid ${colors.border_color}`,
+                backgroundColor: gainSoft || colors.secondary_bg,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
+                >
+                  Gain budgets
+                </div>
+                <div
+                  style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}
+                >
+                  {gainTotals.length}
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: 10,
+                  display: "grid",
+                  gap: 8,
+                  maxHeight: 140,
+                  overflowY: "auto",
+                  paddingRight: 2,
+                }}
+              >
+                {gainTotals.length > 0 ? (
+                  gainTotals.map((b) => (
+                    <div
+                      key={`gain-${b.budgetName}`}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: titleColor,
+                          fontSize: 12,
+                          fontWeight: 800,
+                          minWidth: 0,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                        title={b.budgetName}
+                      >
+                        {b.budgetName}
+                      </div>
+                      <div
+                        style={{
+                          color: gainAccent,
+                          fontSize: 12,
+                          fontWeight: 900,
+                          whiteSpace: "nowrap",
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
+                        {formatMoney(Math.abs(b.total))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: muted, fontSize: 12 }}>
+                    No gain budgets.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
+  };
 
   return (
     <div
@@ -770,18 +1235,20 @@ const DailySpendingChart = ({
           {icon || ""}
           {chartTitle}
         </h3>
-        <div className="chart-controls">
-          <ChartTimeframeSelector
-            value={timeframe}
-            onChange={onTimeframeChange}
-            options={timeframeSelectorOptions}
-          />
-          <ChartTypeToggle
-            selectedType={activeType}
-            onToggle={onTypeToggle}
-            options={typeSelectorOptions}
-          />
-        </div>
+        {!hideControls ? (
+          <div className="chart-controls">
+            <ChartTimeframeSelector
+              value={timeframe}
+              onChange={onTimeframeChange}
+              options={timeframeSelectorOptions}
+            />
+            <ChartTypeToggle
+              selectedType={activeType}
+              onToggle={onTypeToggle}
+              options={typeSelectorOptions}
+            />
+          </div>
+        ) : null}
       </div>
 
       {/* Chart visualization */}
@@ -797,10 +1264,55 @@ const DailySpendingChart = ({
         <ResponsiveContainer width="100%" height={chartHeight}>
           <AreaChart data={chartData} key={animationKey}>
             <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={theme.color} stopOpacity={0.8} />
-                <stop offset="95%" stopColor={theme.color} stopOpacity={0.1} />
-              </linearGradient>
+              {!isOverlayAllMode ? (
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={theme.color} stopOpacity={0.8} />
+                  <stop
+                    offset="95%"
+                    stopColor={theme.color}
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+              ) : (
+                <>
+                  <linearGradient
+                    id="spendingGradient-loss"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor={getThemeColors("loss", CHART_THEME).color}
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={getThemeColors("loss", CHART_THEME).color}
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                  <linearGradient
+                    id="spendingGradient-gain"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor={getThemeColors("gain", CHART_THEME).color}
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={getThemeColors("gain", CHART_THEME).color}
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </>
+              )}
             </defs>
 
             <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
@@ -840,6 +1352,11 @@ const DailySpendingChart = ({
               animationEasing="ease-out"
               content={(props) => {
                 const point = props?.payload?.[0]?.payload;
+
+                if (isOverlayAllMode && showBudgetTotalsInTooltip) {
+                  return <OverlayAllBudgetTotalsTooltip {...props} />;
+                }
+
                 const hasBudgetTotals =
                   showBudgetTotalsInTooltip &&
                   point &&
@@ -863,7 +1380,7 @@ const DailySpendingChart = ({
               }}
             />
 
-            {averageSpending > 0 && averageLabelText && (
+            {!isOverlayAllMode && averageSpending > 0 && averageLabelText && (
               <ReferenceLine
                 y={averageSpending}
                 stroke={averageLineColor}
@@ -880,18 +1397,47 @@ const DailySpendingChart = ({
               />
             )}
 
-            <Area
-              type="monotone"
-              dataKey="spending"
-              stroke={theme.color}
-              fillOpacity={0.3}
-              fill={`url(#${gradientId})`}
-              strokeWidth={2}
-              isAnimationActive={true}
-              animationBegin={0}
-              animationDuration={900}
-              animationEasing="ease-out"
-            />
+            {!isOverlayAllMode ? (
+              <Area
+                type="monotone"
+                dataKey="spending"
+                stroke={theme.color}
+                fillOpacity={0.3}
+                fill={`url(#${gradientId})`}
+                strokeWidth={2}
+                isAnimationActive={true}
+                animationBegin={0}
+                animationDuration={900}
+                animationEasing="ease-out"
+              />
+            ) : (
+              <>
+                <Area
+                  type="monotone"
+                  dataKey="spendingLoss"
+                  stroke={getThemeColors("loss", CHART_THEME).color}
+                  fillOpacity={0.25}
+                  fill="url(#spendingGradient-loss)"
+                  strokeWidth={2}
+                  isAnimationActive={true}
+                  animationBegin={0}
+                  animationDuration={900}
+                  animationEasing="ease-out"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="spendingGain"
+                  stroke={getThemeColors("gain", CHART_THEME).color}
+                  fillOpacity={0.25}
+                  fill="url(#spendingGradient-gain)"
+                  strokeWidth={2}
+                  isAnimationActive={true}
+                  animationBegin={0}
+                  animationDuration={900}
+                  animationEasing="ease-out"
+                />
+              </>
+            )}
           </AreaChart>
         </ResponsiveContainer>
       )}

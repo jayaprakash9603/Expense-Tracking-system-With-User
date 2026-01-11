@@ -9,8 +9,8 @@ const DEFAULT_REPORT_TIMEFRAMES = [
 
 const DEFAULT_REPORT_FLOW_TYPES = [
   { value: "all", label: "All" },
-  { value: "outflow", label: "Outflow" },
-  { value: "inflow", label: "Inflow" },
+  { value: "loss", label: "Losses" },
+  { value: "gain", label: "Gains" },
 ];
 
 const deepClone = (value) => {
