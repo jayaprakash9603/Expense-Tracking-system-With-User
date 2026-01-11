@@ -59,8 +59,10 @@ const useBudgetReportFilters = ({
     const percentages = budgetsCollection.map((budget) =>
       Number(budget.percentageUsed || 0)
     );
+    // Budgets can exceed 100% utilization (over-budget). Keep the upper bound
+    // large enough to include typical overages while preventing extreme sliders.
     const max = Math.max(...percentages, 100);
-    return { min: 0, max: Math.min(Math.max(max, 100), 200) };
+    return { min: 0, max: Math.min(Math.max(max, 100), 1000) };
   }, [budgetsCollection]);
 
   const sections = useMemo(

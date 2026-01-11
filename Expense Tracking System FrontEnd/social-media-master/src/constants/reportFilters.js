@@ -49,9 +49,10 @@ const REPORT_FILTER_DEFAULTS = {
   },
   budgets: {
     timeframe: "all_time",
-    flowType: "loss",
+    flowType: "all",
     statuses: ["active", "expired"],
-    utilizationRange: { min: 0, max: 100 },
+    // Budgets can exceed 100% utilization (over-budget). Default should include them.
+    utilizationRange: { min: 0, max: 1000 },
     dateRange: { fromDate: "", toDate: "" },
   },
   singleBudget: {

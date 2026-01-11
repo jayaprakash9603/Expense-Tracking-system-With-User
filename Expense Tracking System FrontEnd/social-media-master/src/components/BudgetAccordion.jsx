@@ -301,6 +301,10 @@ const BudgetAccordionGroup = ({ budgets }) => {
         classify={classify}
         headerRender={headerRender}
         rowRender={rowRender}
+        enableGroupSearch
+        enableGroupSort
+        enableRowSearch
+        enableRowSortControls
         defaultPageSize={5}
         pageSizeOptions={[5, 10, 20, 50]}
         groupPaginationThreshold={5}

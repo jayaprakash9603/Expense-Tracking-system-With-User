@@ -16,7 +16,7 @@ const COLORS = getChartColors();
 const useBudgetReportData = ({ friendId }) => {
   const dispatch = useDispatch();
   const [timeframe, setTimeframe] = useState("all_time");
-  const [flowType, setFlowType] = useState("loss");
+  const [flowType, setFlowType] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dateRange, setDateRange] = useState(() =>

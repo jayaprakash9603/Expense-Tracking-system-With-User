@@ -23,6 +23,18 @@ const SharedDistributionChart = ({
   const amountKey = mode === "payment" ? "totalAmount" : "amount";
   const nameKey = mode === "payment" ? "method" : "name";
 
+  const formatPercentage = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return "0.00";
+    }
+    const rounded = Number(parsed.toFixed(2));
+    if (rounded === 0 && parsed > 0) {
+      return "0.01";
+    }
+    return rounded.toFixed(2);
+  };
+
   return (
     <div
       className="chart-container"
@@ -215,7 +227,7 @@ const SharedDistributionChart = ({
                     fontWeight: 600,
                   }}
                 >
-                  {item.percentage}%
+                  {formatPercentage(item.percentage)}%
                 </span>
               </div>
             </div>

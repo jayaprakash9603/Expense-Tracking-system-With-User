@@ -316,9 +316,9 @@ export const getFilteredBudgetsReport =
         params.offset = offset;
       }
 
-      if (flowType && flowType !== "all") {
-        params.flowType = flowType;
-      }
+      // Backend expects `type` query param for flow filtering (all|outflow|inflow)
+      // Always send it to keep the contract explicit.
+      params.type = flowType || "all";
 
       const { data } = await api.get(
         `/api/budgets/all-with-expenses/detailed/filtered`,

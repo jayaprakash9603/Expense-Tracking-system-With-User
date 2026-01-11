@@ -71,12 +71,22 @@ const GroupedExpensesAccordion = ({
   }, [sourceMethods, grandTotal]);
 
   const columns = [
-    { key: "date", label: "Date", width: "100px", value: (row) => row.date },
+    {
+      key: "date",
+      label: "Date",
+      width: "100px",
+      value: (row) => row.date,
+      sortValue: (row) => {
+        const t = row?.date ? new Date(row.date).getTime() : 0;
+        return Number.isFinite(t) ? t : 0;
+      },
+    },
     {
       key: "name",
       label: "Expense Name",
       width: "230px",
       value: (row) => row.details?.expenseName || "-",
+      sortValue: (row) => String(row.details?.expenseName || "").toLowerCase(),
     },
     {
       key: "amount",
@@ -122,6 +132,7 @@ const GroupedExpensesAccordion = ({
       label: "Comments",
       width: "240px",
       value: (row) => row.details?.comments || "",
+      sortValue: (row) => String(row.details?.comments || "").toLowerCase(),
     },
   ];
 
@@ -180,6 +191,8 @@ const GroupedExpensesAccordion = ({
           currencySymbol={currencySymbol}
           enableGroupSearch
           enableGroupSort
+          enableRowSearch
+          enableRowSortControls
           enableSelection
           classify={classify}
           columns={columns}
