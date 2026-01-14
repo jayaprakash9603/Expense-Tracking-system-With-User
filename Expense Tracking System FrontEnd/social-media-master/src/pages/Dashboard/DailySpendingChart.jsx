@@ -179,6 +179,10 @@ const DailySpendingChart = ({
   showAllBudgetsInTooltip = false,
   showExpensesInTooltip = false,
   showBudgetsInTooltip = false,
+  breakdownLabel = "Budgets",
+  breakdownTotalsLabel = "Budget totals",
+  breakdownItemLabel = "budget",
+  breakdownEmptyMessage = "No budget breakdown available.",
 }) => {
   const { mode, colors } = useTheme();
   const settings = useUserSettings();
@@ -419,7 +423,7 @@ const DailySpendingChart = ({
                   fontWeight: 700,
                 }}
               >
-                Budgets
+                {breakdownLabel}
                 <span
                   style={{
                     display: "inline-flex",
@@ -500,7 +504,7 @@ const DailySpendingChart = ({
 
               {budgetTotals.length === 0 ? (
                 <div style={{ color: muted, fontSize: 12 }}>
-                  No budget breakdown available.
+                  {breakdownEmptyMessage}
                 </div>
               ) : null}
             </div>
@@ -528,9 +532,9 @@ const DailySpendingChart = ({
                 gap: 10,
               }}
             >
-              <span>Budget totals</span>
+              <span>{breakdownTotalsLabel}</span>
               <span style={{ whiteSpace: "nowrap" }}>
-                {budgetTotals.length} budget
+                {budgetTotals.length} {breakdownItemLabel}
                 {budgetTotals.length === 1 ? "" : "s"}
               </span>
             </div>
@@ -585,7 +589,7 @@ const DailySpendingChart = ({
                 ))
               ) : (
                 <div style={{ color: muted, fontSize: 12 }}>
-                  No budget breakdown available.
+                  {breakdownEmptyMessage}
                 </div>
               )}
             </div>
@@ -976,6 +980,10 @@ const DailySpendingChart = ({
     const shouldShowGainBudgets = gainTotals.length > 0;
     const shouldShowAnyBudgets = shouldShowLossBudgets || shouldShowGainBudgets;
 
+    const breakdownLabelLower = String(breakdownLabel || "").trim()
+      ? String(breakdownLabel).trim().toLowerCase()
+      : "budgets";
+
     return (
       <div
         style={{
@@ -1073,7 +1081,7 @@ const DailySpendingChart = ({
                   <div
                     style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
                   >
-                    Loss budgets
+                    Loss {breakdownLabelLower}
                   </div>
                   <div
                     style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}
@@ -1152,7 +1160,7 @@ const DailySpendingChart = ({
                   <div
                     style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
                   >
-                    Gain budgets
+                    Gain {breakdownLabelLower}
                   </div>
                   <div
                     style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}

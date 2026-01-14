@@ -17,6 +17,7 @@ import { getChartColors } from "../../../utils/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import usePaymentReportFilters from "../../../hooks/reportFilters/usePaymentReportFilters";
+import PaymentDailySpendingChart from "../../../components/payment/PaymentDailySpendingChart";
 
 const COLORS = getChartColors();
 
@@ -140,6 +141,12 @@ const PaymentMethodsReport = () => {
       ) : null}
 
       <SharedOverviewCards data={filteredMethodsData} mode="payment" />
+
+      <PaymentDailySpendingChart
+        methods={filteredMethodsData}
+        timeframe={timeframe}
+        flowType={flowType}
+      />
 
       <div className="charts-grid">
         {/* Row 1: Distribution (full width) */}
