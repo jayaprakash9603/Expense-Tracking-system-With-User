@@ -316,6 +316,13 @@ const DailySpendingChart = ({
         return a.budgetName.localeCompare(b.budgetName);
       });
 
+    const breakdownMaxItems = 5;
+    const visibleBudgetTotals = budgetTotals.slice(0, breakdownMaxItems);
+    const hiddenBudgetTotalsCount = Math.max(
+      0,
+      budgetTotals.length - visibleBudgetTotals.length
+    );
+
     const tooltipBg = colors.primary_bg;
     const border = colors.border_color;
     const titleColor = colors.primary_text;
@@ -446,14 +453,12 @@ const DailySpendingChart = ({
             <div
               style={{
                 marginTop: 10,
-                maxHeight: 280,
-                overflowY: "auto",
                 paddingRight: 2,
                 display: "grid",
                 gap: 10,
               }}
             >
-              {budgetTotals.map((item) => (
+              {visibleBudgetTotals.map((item) => (
                 <div
                   key={item.budgetName}
                   style={{
@@ -502,6 +507,20 @@ const DailySpendingChart = ({
                 </div>
               ))}
 
+              {hiddenBudgetTotalsCount > 0 ? (
+                <div
+                  style={{
+                    color: muted,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    textAlign: "right",
+                    paddingRight: 2,
+                  }}
+                >
+                  +{hiddenBudgetTotalsCount} more
+                </div>
+              ) : null}
+
               {budgetTotals.length === 0 ? (
                 <div style={{ color: muted, fontSize: 12 }}>
                   {breakdownEmptyMessage}
@@ -544,13 +563,11 @@ const DailySpendingChart = ({
                 marginTop: 10,
                 display: "grid",
                 gap: 8,
-                maxHeight: showExpensesInTooltip ? 180 : 260,
-                overflowY: "auto",
                 paddingRight: 2,
               }}
             >
-              {budgetTotals.length > 0 ? (
-                budgetTotals.map((b, idx) => (
+              {visibleBudgetTotals.length > 0 ? (
+                visibleBudgetTotals.map((b, idx) => (
                   <div
                     key={b.budgetName}
                     style={{
@@ -592,6 +609,20 @@ const DailySpendingChart = ({
                   {breakdownEmptyMessage}
                 </div>
               )}
+
+              {hiddenBudgetTotalsCount > 0 ? (
+                <div
+                  style={{
+                    color: muted,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    textAlign: "right",
+                    paddingRight: 2,
+                  }}
+                >
+                  +{hiddenBudgetTotalsCount} more
+                </div>
+              ) : null}
             </div>
           </>
         ) : null}
@@ -976,6 +1007,18 @@ const DailySpendingChart = ({
         return a.budgetName.localeCompare(b.budgetName);
       });
 
+    const breakdownMaxItems = 5;
+    const visibleLossTotals = lossTotals.slice(0, breakdownMaxItems);
+    const hiddenLossTotalsCount = Math.max(
+      0,
+      lossTotals.length - visibleLossTotals.length
+    );
+    const visibleGainTotals = gainTotals.slice(0, breakdownMaxItems);
+    const hiddenGainTotalsCount = Math.max(
+      0,
+      gainTotals.length - visibleGainTotals.length
+    );
+
     const shouldShowLossBudgets = lossTotals.length > 0;
     const shouldShowGainBudgets = gainTotals.length > 0;
     const shouldShowAnyBudgets = shouldShowLossBudgets || shouldShowGainBudgets;
@@ -1094,12 +1137,10 @@ const DailySpendingChart = ({
                     marginTop: 10,
                     display: "grid",
                     gap: 8,
-                    maxHeight: 140,
-                    overflowY: "auto",
                     paddingRight: 2,
                   }}
                 >
-                  {lossTotals.map((b) => (
+                  {visibleLossTotals.map((b) => (
                     <div
                       key={`loss-${b.budgetName}`}
                       style={{
@@ -1136,6 +1177,20 @@ const DailySpendingChart = ({
                       </div>
                     </div>
                   ))}
+
+                  {hiddenLossTotalsCount > 0 ? (
+                    <div
+                      style={{
+                        color: muted,
+                        fontSize: 12,
+                        fontWeight: 800,
+                        textAlign: "right",
+                        paddingRight: 2,
+                      }}
+                    >
+                      +{hiddenLossTotalsCount} more
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ) : null}
@@ -1173,12 +1228,10 @@ const DailySpendingChart = ({
                     marginTop: 10,
                     display: "grid",
                     gap: 8,
-                    maxHeight: 140,
-                    overflowY: "auto",
                     paddingRight: 2,
                   }}
                 >
-                  {gainTotals.map((b) => (
+                  {visibleGainTotals.map((b) => (
                     <div
                       key={`gain-${b.budgetName}`}
                       style={{
@@ -1215,6 +1268,20 @@ const DailySpendingChart = ({
                       </div>
                     </div>
                   ))}
+
+                  {hiddenGainTotalsCount > 0 ? (
+                    <div
+                      style={{
+                        color: muted,
+                        fontSize: 12,
+                        fontWeight: 800,
+                        textAlign: "right",
+                        paddingRight: 2,
+                      }}
+                    >
+                      +{hiddenGainTotalsCount} more
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ) : null}
