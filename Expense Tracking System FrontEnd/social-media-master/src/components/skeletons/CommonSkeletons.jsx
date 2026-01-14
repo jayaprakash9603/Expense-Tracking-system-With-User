@@ -1068,17 +1068,19 @@ export const AllBudgetsLoadingSkeleton = () => {
           <OverviewCardSkeleton key={i} />
         ))}
       </div>
+
       <div className="charts-grid">
         {/* Top recurring + loss/gain row (side-by-side) */}
-        <div className="chart-row">
-          <RecurringLossGainCardsSkeleton />
-        </div>
-
         {/* Daily spending pattern */}
         <div className="chart-row full-width">
           <DailySpendingSkeleton height={300} />
         </div>
 
+        <div className="chart-row">
+          <RecurringLossGainCardsSkeleton />
+        </div>
+
+        
         {/* Category Distribution */}
         <div className="chart-row full-width">
           <PieChartSkeleton height={360} />

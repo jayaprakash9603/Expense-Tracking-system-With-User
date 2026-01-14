@@ -1224,6 +1224,8 @@ const DailySpendingChart = ({
     <div
       className="chart-container daily-spending-chart fade-in"
       style={{
+        position: "relative",
+        zIndex: 5,
         overflow: "visible",
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
@@ -1337,7 +1339,7 @@ const DailySpendingChart = ({
 
             <Tooltip
               wrapperStyle={{
-                zIndex: 9999,
+                zIndex: 10,
                 outline: "none",
               }}
               cursor={{

@@ -232,7 +232,7 @@
 
 /* Ensure Daily Spending chart has proper z-index for tooltip visibility */
 .chart-row > .daily-spending-chart {
-  z-index: 10;
+  z-index: 5;
 }
 
 /* Enhanced Pie Chart Styles for Better UX with Small Segments */
