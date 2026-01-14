@@ -13,6 +13,7 @@ import { getChartColors } from "../../../utils/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import useCategoryReportFilters from "../../../hooks/reportFilters/useCategoryReportFilters";
+import CategoryDailySpendingChart from "../../../components/category/CategoryDailySpendingChart";
 
 const COLORS = getChartColors(10); // limit to first 10 for category distribution
 
@@ -35,8 +36,6 @@ const CategoryReport = () => {
     loading,
     error,
     categories: categorySpending,
-    monthlyTrends,
-    dailySpending,
     refresh,
   } = useCategoryReportData({ friendId });
 
@@ -141,6 +140,12 @@ const CategoryReport = () => {
       ) : null}
 
       <SharedOverviewCards data={filteredCategories} mode="category" />
+
+      <CategoryDailySpendingChart
+        categories={filteredCategories}
+        timeframe={timeframe}
+        flowType={flowType}
+      />
 
       <div
         className="charts-grid"

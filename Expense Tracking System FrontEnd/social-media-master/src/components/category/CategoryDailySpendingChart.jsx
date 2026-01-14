@@ -5,17 +5,17 @@ import {
   normalizeFlowTypeForChart,
 } from "../../utils/dailySpendingAggregation";
 
-const PaymentDailySpendingChart = ({ methods, timeframe, flowType }) => {
+const CategoryDailySpendingChart = ({ categories, timeframe, flowType }) => {
   const chartSelectedType = normalizeFlowTypeForChart(flowType);
 
   const dailySpendingData = useMemo(() => {
     return buildDailySpendingByBucket(
-      (Array.isArray(methods) ? methods : []).map((m) => ({
-        name: m?.method ?? m?.name ?? m?.paymentMethod,
-        expenses: m?.expenses,
+      (Array.isArray(categories) ? categories : []).map((c) => ({
+        name: c?.name ?? c?.category,
+        expenses: c?.expenses,
       }))
     );
-  }, [methods]);
+  }, [categories]);
 
   if (!dailySpendingData.length) {
     return null;
@@ -31,14 +31,14 @@ const PaymentDailySpendingChart = ({ methods, timeframe, flowType }) => {
         showBothTypesWhenAll
         showBudgetTotalsInTooltip
         showBudgetsInTooltip
-        breakdownLabel="Payment methods"
-        breakdownTotalsLabel="Payment method totals"
-        breakdownItemLabel="payment method"
-        breakdownEmptyMessage="No payment method breakdown available."
-        title="📊 Daily Spending Pattern (Payment Methods)"
+        breakdownLabel="Categories"
+        breakdownTotalsLabel="Category totals"
+        breakdownItemLabel="category"
+        breakdownEmptyMessage="No category breakdown available."
+        title="📊 Daily Spending Pattern (Categories)"
       />
     </div>
   );
 };
 
-export default PaymentDailySpendingChart;
+export default CategoryDailySpendingChart;
