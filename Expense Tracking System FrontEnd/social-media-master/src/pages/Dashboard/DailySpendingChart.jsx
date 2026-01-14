@@ -122,6 +122,7 @@ import { useMediaQuery } from "@mui/material";
 import ChartTimeframeSelector from "../../components/charts/ChartTimeframeSelector";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 import SpendingChartTooltip from "../../components/charts/SpendingChartTooltip";
+import DailySpendingBreakdownTooltip from "../../components/charts/DailySpendingBreakdownTooltip";
 import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Import configuration and utilities
@@ -342,291 +343,48 @@ const DailySpendingChart = ({
     const accentBorder = hexToRgba(accent, mode === "dark" ? 0.45 : 0.35);
     const accentText = accent || titleColor;
 
+    const breakdownItems = budgetTotals.map((x) => ({
+      name: x.budgetName,
+      total: x.total,
+    }));
+
+    const totalLabelForHeader =
+      typeKey === "gain" ? "Total Gain" : "Total Spending";
+
     return (
-      <div
-        style={{
-          background: tooltipBg,
-          border: `1px solid ${accentBorder || border}`,
-          borderRadius: 14,
-          padding: 12,
-          minWidth: 260,
-          maxWidth: 340,
-          boxShadow:
-            mode === "dark"
-              ? "0 12px 30px rgba(0,0,0,0.45)"
-              : "0 12px 30px rgba(0,0,0,0.12)",
-        }}
-      >
-        <div
-          style={{
-            margin: -12,
-            padding: "12px 12px 10px",
-            borderTopLeftRadius: 14,
-            borderTopRightRadius: 14,
-            backgroundColor: accentSoft || "transparent",
-            borderBottom: `1px solid ${colors.border_color}`,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 10,
-            }}
-          >
-            <div style={{ color: accentText, fontWeight: 900, fontSize: 13 }}>
-              {dateLabel}
-            </div>
-          </div>
-          <div
-            style={{
-              marginTop: 8,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <div style={{ color: muted, fontSize: 12, fontWeight: 800 }}>
-              {typeLabel}
-            </div>
-            <div
-              style={{
-                color: accentText,
-                fontWeight: 900,
-                fontSize: 14,
-                fontVariantNumeric: "tabular-nums",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {formatMoney(point?.spending ?? 0)}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ marginTop: 12 }} />
-
-        {showBudgetsInTooltip ? (
-          <div style={{ marginTop: 10 }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                flexWrap: "wrap",
-              }}
-            >
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  border: `1px solid ${colors.border_color}`,
-                  background: colors.secondary_bg,
-                  color: titleColor,
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
-              >
-                {breakdownLabel}
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minWidth: 22,
-                    height: 18,
-                    padding: "0 8px",
-                    borderRadius: 999,
-                    background: colors.active_bg,
-                    border: `1px solid ${colors.border_color}`,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {budgetTotals.length}
-                </span>
-              </div>
-            </div>
-
-            <div
-              style={{
-                marginTop: 10,
-                paddingRight: 2,
-                display: "grid",
-                gap: 10,
-              }}
-            >
-              {visibleBudgetTotals.map((item) => (
-                <div
-                  key={item.budgetName}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 10,
-                    background: colors.secondary_bg,
-                    border: `1px solid ${colors.border_color}`,
-                    display: "grid",
-                    gap: 6,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 10,
-                      alignItems: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        color: titleColor,
-                        fontSize: 13,
-                        fontWeight: 800,
-                        minWidth: 0,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                      title={item.budgetName}
-                    >
-                      {item.budgetName}
-                    </div>
-                    <div
-                      style={{
-                        color: accentText,
-                        fontSize: 13,
-                        fontWeight: 900,
-                        whiteSpace: "nowrap",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      {formatMoney(Math.abs(item.total))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {hiddenBudgetTotalsCount > 0 ? (
-                <div
-                  style={{
-                    color: muted,
-                    fontSize: 12,
-                    fontWeight: 800,
-                    textAlign: "right",
-                    paddingRight: 2,
-                  }}
-                >
-                  +{hiddenBudgetTotalsCount} more
-                </div>
-              ) : null}
-
-              {budgetTotals.length === 0 ? (
-                <div style={{ color: muted, fontSize: 12 }}>
-                  {breakdownEmptyMessage}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
-
-        {!showBudgetsInTooltip ? (
-          <>
-            <div
-              style={{
-                height: 1,
-                background: colors.border_color,
-                marginTop: 10,
-                opacity: 0.7,
-              }}
-            />
-
-            <div
-              style={{
-                marginTop: 10,
-                color: muted,
-                fontSize: 12,
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 10,
-              }}
-            >
-              <span>{breakdownTotalsLabel}</span>
-              <span style={{ whiteSpace: "nowrap" }}>
-                {budgetTotals.length} {breakdownItemLabel}
-                {budgetTotals.length === 1 ? "" : "s"}
-              </span>
-            </div>
-
-            <div
-              style={{
-                marginTop: 10,
-                display: "grid",
-                gap: 8,
-                paddingRight: 2,
-              }}
-            >
-              {visibleBudgetTotals.length > 0 ? (
-                visibleBudgetTotals.map((b, idx) => (
-                  <div
-                    key={b.budgetName}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 10,
-                    }}
-                  >
-                    <div
-                      style={{
-                        color: titleColor,
-                        fontSize: 12,
-                        fontWeight: 700,
-                        minWidth: 0,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                      title={b.budgetName}
-                    >
-                      {idx + 1}. {b.budgetName}
-                    </div>
-                    <div
-                      style={{
-                        color: titleColor,
-                        fontSize: 12,
-                        fontWeight: 800,
-                        fontVariantNumeric: "tabular-nums",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {formatMoney(Math.abs(b.total))}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div style={{ color: muted, fontSize: 12 }}>
-                  {breakdownEmptyMessage}
-                </div>
-              )}
-
-              {hiddenBudgetTotalsCount > 0 ? (
-                <div
-                  style={{
-                    color: muted,
-                    fontSize: 12,
-                    fontWeight: 800,
-                    textAlign: "right",
-                    paddingRight: 2,
-                  }}
-                >
-                  +{hiddenBudgetTotalsCount} more
-                </div>
-              ) : null}
-            </div>
-          </>
-        ) : null}
-      </div>
+      <DailySpendingBreakdownTooltip
+        active={active}
+        payload={payload}
+        mode={mode}
+        colors={colors}
+        locale={locale}
+        formatMoney={formatMoney}
+        dateLabel={dateLabel}
+        totalLabel={totalLabelForHeader}
+        totalAmount={point?.spending ?? 0}
+        totalAmountColor={accentText}
+        lossSection={
+          typeKey === "loss"
+            ? {
+                title: `Loss ${String(breakdownLabel || "Budgets")}`,
+                count: budgetTotals.length,
+                items: breakdownItems,
+                emptyMessage: breakdownEmptyMessage,
+              }
+            : null
+        }
+        gainSection={
+          typeKey === "gain"
+            ? {
+                title: `Gain ${String(breakdownLabel || "Budgets")}`,
+                count: budgetTotals.length,
+                items: breakdownItems,
+                emptyMessage: breakdownEmptyMessage,
+              }
+            : null
+        }
+        maxItems={5}
+      />
     );
   };
 
@@ -1023,271 +781,60 @@ const DailySpendingChart = ({
     const shouldShowGainBudgets = gainTotals.length > 0;
     const shouldShowAnyBudgets = shouldShowLossBudgets || shouldShowGainBudgets;
 
-    const breakdownLabelLower = String(breakdownLabel || "").trim()
-      ? String(breakdownLabel).trim().toLowerCase()
-      : "budgets";
+    const breakdownLabelText = String(breakdownLabel || "").trim()
+      ? String(breakdownLabel).trim()
+      : "Budgets";
+
+    const lossItems = lossTotals.map((x) => ({
+      name: x.budgetName,
+      total: x.total,
+    }));
+    const gainItems = gainTotals.map((x) => ({
+      name: x.budgetName,
+      total: x.total,
+    }));
+
+    const netAmount =
+      (Number(point?.spendingGain) || 0) - (Number(point?.spendingLoss) || 0);
+
+    const shouldShowLossSection = showBudgetsInTooltip && lossTotals.length > 0;
+    const shouldShowGainSection = showBudgetsInTooltip && gainTotals.length > 0;
 
     return (
-      <div
-        style={{
-          background: tooltipBg,
-          border: `1px solid ${border}`,
-          borderRadius: 14,
-          padding: 12,
-          minWidth: 280,
-          maxWidth: 380,
-          boxShadow:
-            mode === "dark"
-              ? "0 12px 30px rgba(0,0,0,0.45)"
-              : "0 12px 30px rgba(0,0,0,0.12)",
-        }}
-      >
-        <div style={{ color: titleColor, fontWeight: 900, fontSize: 13 }}>
-          {dateLabel}
-        </div>
-
-        <div
-          style={{
-            marginTop: 10,
-            display: "grid",
-            gap: 8,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <div style={{ color: muted, fontSize: 12, fontWeight: 800 }}>
-              Total spending
-            </div>
-            <div
-              style={{
-                color: lossAccent,
-                fontWeight: 900,
-                fontSize: 14,
-                fontVariantNumeric: "tabular-nums",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {formatMoney(point?.spendingLoss ?? 0)}
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <div style={{ color: muted, fontSize: 12, fontWeight: 800 }}>
-              Total gain
-            </div>
-            <div
-              style={{
-                color: gainAccent,
-                fontWeight: 900,
-                fontSize: 14,
-                fontVariantNumeric: "tabular-nums",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {formatMoney(point?.spendingGain ?? 0)}
-            </div>
-          </div>
-        </div>
-
-        {showBudgetsInTooltip && shouldShowAnyBudgets ? (
-          <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-            {shouldShowLossBudgets ? (
-              <div
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: `1px solid ${colors.border_color}`,
-                  backgroundColor: lossSoft || colors.secondary_bg,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                    alignItems: "center",
-                  }}
-                >
-                  <div
-                    style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
-                  >
-                    Loss {breakdownLabelLower}
-                  </div>
-                  <div
-                    style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}
-                  >
-                    {lossTotals.length}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    marginTop: 10,
-                    display: "grid",
-                    gap: 8,
-                    paddingRight: 2,
-                  }}
-                >
-                  {visibleLossTotals.map((b) => (
-                    <div
-                      key={`loss-${b.budgetName}`}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
-                    >
-                      <div
-                        style={{
-                          color: titleColor,
-                          fontSize: 12,
-                          fontWeight: 800,
-                          minWidth: 0,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                        title={b.budgetName}
-                      >
-                        {b.budgetName}
-                      </div>
-                      <div
-                        style={{
-                          color: lossAccent,
-                          fontSize: 12,
-                          fontWeight: 900,
-                          whiteSpace: "nowrap",
-                          fontVariantNumeric: "tabular-nums",
-                        }}
-                      >
-                        {formatMoney(Math.abs(b.total))}
-                      </div>
-                    </div>
-                  ))}
-
-                  {hiddenLossTotalsCount > 0 ? (
-                    <div
-                      style={{
-                        color: muted,
-                        fontSize: 12,
-                        fontWeight: 800,
-                        textAlign: "right",
-                        paddingRight: 2,
-                      }}
-                    >
-                      +{hiddenLossTotalsCount} more
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
-
-            {shouldShowGainBudgets ? (
-              <div
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: `1px solid ${colors.border_color}`,
-                  backgroundColor: gainSoft || colors.secondary_bg,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                    alignItems: "center",
-                  }}
-                >
-                  <div
-                    style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
-                  >
-                    Gain {breakdownLabelLower}
-                  </div>
-                  <div
-                    style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}
-                  >
-                    {gainTotals.length}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    marginTop: 10,
-                    display: "grid",
-                    gap: 8,
-                    paddingRight: 2,
-                  }}
-                >
-                  {visibleGainTotals.map((b) => (
-                    <div
-                      key={`gain-${b.budgetName}`}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
-                    >
-                      <div
-                        style={{
-                          color: titleColor,
-                          fontSize: 12,
-                          fontWeight: 800,
-                          minWidth: 0,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                        title={b.budgetName}
-                      >
-                        {b.budgetName}
-                      </div>
-                      <div
-                        style={{
-                          color: gainAccent,
-                          fontSize: 12,
-                          fontWeight: 900,
-                          whiteSpace: "nowrap",
-                          fontVariantNumeric: "tabular-nums",
-                        }}
-                      >
-                        {formatMoney(Math.abs(b.total))}
-                      </div>
-                    </div>
-                  ))}
-
-                  {hiddenGainTotalsCount > 0 ? (
-                    <div
-                      style={{
-                        color: muted,
-                        fontSize: 12,
-                        fontWeight: 800,
-                        textAlign: "right",
-                        paddingRight: 2,
-                      }}
-                    >
-                      +{hiddenGainTotalsCount} more
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
+      <DailySpendingBreakdownTooltip
+        active={active}
+        payload={payload}
+        mode={mode}
+        colors={colors}
+        locale={locale}
+        formatMoney={formatMoney}
+        dateLabel={dateLabel}
+        totalLabel="Total Spending"
+        totalAmount={point?.spendingLoss ?? 0}
+        totalAmountColor="#ff5252"
+        lossSection={
+          shouldShowLossSection
+            ? {
+                title: `Loss ${breakdownLabelText}`,
+                count: lossTotals.length,
+                items: lossItems,
+                emptyMessage: breakdownEmptyMessage,
+              }
+            : null
+        }
+        gainSection={
+          shouldShowGainSection
+            ? {
+                title: `Gain ${breakdownLabelText}`,
+                count: gainTotals.length,
+                items: gainItems,
+                emptyMessage: breakdownEmptyMessage,
+              }
+            : null
+        }
+        net={{ amount: netAmount }}
+        maxItems={5}
+      />
     );
   };
 
