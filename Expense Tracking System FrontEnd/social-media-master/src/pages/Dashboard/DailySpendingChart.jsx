@@ -972,6 +972,10 @@ const DailySpendingChart = ({
         return a.budgetName.localeCompare(b.budgetName);
       });
 
+    const shouldShowLossBudgets = lossTotals.length > 0;
+    const shouldShowGainBudgets = gainTotals.length > 0;
+    const shouldShowAnyBudgets = shouldShowLossBudgets || shouldShowGainBudgets;
+
     return (
       <div
         style={{
@@ -1047,47 +1051,47 @@ const DailySpendingChart = ({
           </div>
         </div>
 
-        {showBudgetsInTooltip ? (
+        {showBudgetsInTooltip && shouldShowAnyBudgets ? (
           <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-            <div
-              style={{
-                padding: "10px 12px",
-                borderRadius: 12,
-                border: `1px solid ${colors.border_color}`,
-                backgroundColor: lossSoft || colors.secondary_bg,
-              }}
-            >
+            {shouldShowLossBudgets ? (
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 10,
-                  alignItems: "center",
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: `1px solid ${colors.border_color}`,
+                  backgroundColor: lossSoft || colors.secondary_bg,
                 }}
               >
                 <div
-                  style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    alignItems: "center",
+                  }}
                 >
-                  Loss budgets
+                  <div
+                    style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
+                  >
+                    Loss budgets
+                  </div>
+                  <div
+                    style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}
+                  >
+                    {lossTotals.length}
+                  </div>
                 </div>
                 <div
-                  style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}
+                  style={{
+                    marginTop: 10,
+                    display: "grid",
+                    gap: 8,
+                    maxHeight: 140,
+                    overflowY: "auto",
+                    paddingRight: 2,
+                  }}
                 >
-                  {lossTotals.length}
-                </div>
-              </div>
-              <div
-                style={{
-                  marginTop: 10,
-                  display: "grid",
-                  gap: 8,
-                  maxHeight: 140,
-                  overflowY: "auto",
-                  paddingRight: 2,
-                }}
-              >
-                {lossTotals.length > 0 ? (
-                  lossTotals.map((b) => (
+                  {lossTotals.map((b) => (
                     <div
                       key={`loss-${b.budgetName}`}
                       style={{
@@ -1123,54 +1127,50 @@ const DailySpendingChart = ({
                         {formatMoney(Math.abs(b.total))}
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div style={{ color: muted, fontSize: 12 }}>
-                    No loss budgets.
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : null}
 
-            <div
-              style={{
-                padding: "10px 12px",
-                borderRadius: 12,
-                border: `1px solid ${colors.border_color}`,
-                backgroundColor: gainSoft || colors.secondary_bg,
-              }}
-            >
+            {shouldShowGainBudgets ? (
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 10,
-                  alignItems: "center",
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: `1px solid ${colors.border_color}`,
+                  backgroundColor: gainSoft || colors.secondary_bg,
                 }}
               >
                 <div
-                  style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    alignItems: "center",
+                  }}
                 >
-                  Gain budgets
+                  <div
+                    style={{ color: titleColor, fontSize: 12, fontWeight: 900 }}
+                  >
+                    Gain budgets
+                  </div>
+                  <div
+                    style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}
+                  >
+                    {gainTotals.length}
+                  </div>
                 </div>
                 <div
-                  style={{ color: titleColor, fontSize: 12, fontWeight: 800 }}
+                  style={{
+                    marginTop: 10,
+                    display: "grid",
+                    gap: 8,
+                    maxHeight: 140,
+                    overflowY: "auto",
+                    paddingRight: 2,
+                  }}
                 >
-                  {gainTotals.length}
-                </div>
-              </div>
-              <div
-                style={{
-                  marginTop: 10,
-                  display: "grid",
-                  gap: 8,
-                  maxHeight: 140,
-                  overflowY: "auto",
-                  paddingRight: 2,
-                }}
-              >
-                {gainTotals.length > 0 ? (
-                  gainTotals.map((b) => (
+                  {gainTotals.map((b) => (
                     <div
                       key={`gain-${b.budgetName}`}
                       style={{
@@ -1206,14 +1206,10 @@ const DailySpendingChart = ({
                         {formatMoney(Math.abs(b.total))}
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div style={{ color: muted, fontSize: 12 }}>
-                    No gain budgets.
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : null}
           </div>
         ) : null}
       </div>
