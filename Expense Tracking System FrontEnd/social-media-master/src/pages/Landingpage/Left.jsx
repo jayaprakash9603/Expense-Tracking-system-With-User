@@ -236,6 +236,13 @@ const Left = () => {
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
 
+                {/* <MenuItem
+                  name={t("navigation.history")}
+                  path="/history"
+                  icon={<HistoryIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                /> */}
+
                 <MenuItem
                   name={t("navigation.categories")}
                   path="/category-flow"

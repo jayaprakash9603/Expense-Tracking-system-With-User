@@ -48,6 +48,7 @@ export const te = {
     friends: "స్నేహితులు",
     groups: "సమూహాలు",
     budgets: "బడ్జెట్‌లు",
+    history: "చరిత్ర",
     paymentMethod: "చెల్లింపు విధానం",
     calendar: "క్యాలెండర్",
   },

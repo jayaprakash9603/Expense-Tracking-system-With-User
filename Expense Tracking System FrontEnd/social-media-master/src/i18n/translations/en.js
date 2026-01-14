@@ -48,6 +48,7 @@ export const en = {
     friends: "Friends",
     groups: "Groups",
     budgets: "Budgets",
+    history: "History",
     paymentMethod: "Payment Method",
     calendar: "Calendar",
   },

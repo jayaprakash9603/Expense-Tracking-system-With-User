@@ -1335,7 +1335,7 @@ const DailySpendingChart = ({
 
             <Tooltip
               wrapperStyle={{
-                zIndex: 10,
+                zIndex: 2000,
                 outline: "none",
               }}
               cursor={{
@@ -1351,7 +1351,40 @@ const DailySpendingChart = ({
               content={(props) => {
                 const point = props?.payload?.[0]?.payload;
 
-                if (isOverlayAllMode && showBudgetTotalsInTooltip) {
+                const hasAnyOverlayBudgets = (() => {
+                  if (!point) return false;
+                  const lossTotals = normalizeBudgetTotals(
+                    point?.budgetTotalsLoss
+                  )
+                    .filter((x) => Number.isFinite(x.total))
+                    .filter((x) =>
+                      showAllBudgetsInTooltip ? true : x.total !== 0
+                    );
+                  const gainTotals = normalizeBudgetTotals(
+                    point?.budgetTotalsGain
+                  )
+                    .filter((x) => Number.isFinite(x.total))
+                    .filter((x) =>
+                      showAllBudgetsInTooltip ? true : x.total !== 0
+                    );
+                  return lossTotals.length > 0 || gainTotals.length > 0;
+                })();
+
+                const hasAnyBudgets = (() => {
+                  if (!point) return false;
+                  const totals = normalizeBudgetTotals(point?.budgetTotals)
+                    .filter((x) => Number.isFinite(x.total))
+                    .filter((x) =>
+                      showAllBudgetsInTooltip ? true : x.total !== 0
+                    );
+                  return totals.length > 0;
+                })();
+
+                if (
+                  isOverlayAllMode &&
+                  showBudgetTotalsInTooltip &&
+                  hasAnyOverlayBudgets
+                ) {
                   return <OverlayAllBudgetTotalsTooltip {...props} />;
                 }
 
@@ -1362,7 +1395,7 @@ const DailySpendingChart = ({
                   (Array.isArray(point.budgetTotals) ||
                     typeof point.budgetTotals === "object");
 
-                if (hasBudgetTotals) {
+                if (hasBudgetTotals && hasAnyBudgets) {
                   return <BudgetTotalsTooltip {...props} />;
                 }
 

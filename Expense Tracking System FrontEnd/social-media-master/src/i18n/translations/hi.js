@@ -48,6 +48,7 @@ export const hi = {
     friends: "मित्र",
     groups: "समूह",
     budgets: "बजट्स",
+    history: "इतिहास",
     paymentMethod: "भुगतान विधि",
     calendar: "कैलेंडर",
   },

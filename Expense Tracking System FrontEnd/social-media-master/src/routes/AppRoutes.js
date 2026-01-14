@@ -159,6 +159,10 @@ export const getAppRoutes = () => (
         <Route index element={<TransactionsContent />} />
         <Route path=":friendId" element={<TransactionsContent />} />
       </Route>
+      <Route path="history">
+        <Route index element={<TransactionsContent />} />
+        <Route path=":friendId" element={<TransactionsContent />} />
+      </Route>
       <Route path="insights">
         <Route index element={<CreditDueContent />} />
         <Route path=":friendId" element={<CreditDueContent />} />
