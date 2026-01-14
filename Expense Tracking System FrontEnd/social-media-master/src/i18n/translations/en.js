@@ -53,6 +53,65 @@ export const en = {
     calendar: "Calendar",
   },
 
+  // Flows
+  flows: {
+    entities: {
+      category: {
+        singular: "Category",
+        plural: "Categories",
+      },
+      paymentMethod: {
+        singular: "Payment Method",
+        plural: "Payment Methods",
+      },
+      empty: {
+        search: {
+          title: "No matches",
+          subtitle: 'Try a different search term for "{{query}}"',
+        },
+        none: {
+          title: "No data found",
+          subtitle: "Adjust filters or change the period",
+        },
+      },
+      expenseCount: "{{count}} expense{{suffix}}",
+    },
+    confirmations: {
+      deleteCategory: "Are you sure you want to delete this category?",
+      deletePaymentMethod:
+        "Are you sure you want to delete this payment method?",
+    },
+    categoryFlow: {
+      createDialogTitle: "Create Category",
+    },
+    paymentMethodFlow: {
+      createDialogTitle: "Create Payment Method",
+    },
+    messages: {
+      createSuccess: '{{entity}} "{{name}}" created successfully',
+      deleteSuccess: '{{entity}} "{{name}}" deleted successfully.',
+      deleteError: "Failed to delete {{entity}}. Please try again.",
+    },
+    expensesTable: {
+      title: "Expenses",
+      entityTitle: "{{name}} Expenses",
+      unnamedExpense: "Unnamed Expense",
+      noDate: "No date",
+      type: {
+        income: "Income",
+        expense: "Expense",
+      },
+    },
+    search: {
+      placeholder: "Search {{entityPlural}}...",
+    },
+    rangeLabels: {
+      entityWeek: "{{entityPlural}} this week",
+      entityMonth: "{{entityPlural}} this month",
+      entityYear: "{{entityPlural}} this year",
+    },
+  },
+
   // Cashflow
   cashflow: {
     searchPlaceholder: "Search expenses...",
@@ -74,6 +133,7 @@ export const en = {
         uploadFile: "Upload File",
         addBudget: "Add Budget",
         addCategory: "Add Category",
+        addPaymentMethod: "Add Payment Method",
       },
     },
     labels: {

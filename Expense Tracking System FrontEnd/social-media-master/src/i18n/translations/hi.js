@@ -53,6 +53,65 @@ export const hi = {
     calendar: "कैलेंडर",
   },
 
+  // Flows
+  flows: {
+    entities: {
+      category: {
+        singular: "श्रेणी",
+        plural: "श्रेणियां",
+      },
+      paymentMethod: {
+        singular: "भुगतान विधि",
+        plural: "भुगतान विधियाँ",
+      },
+      empty: {
+        search: {
+          title: "कोई परिणाम नहीं",
+          subtitle:
+            '"{{query}}" के लिए कोई परिणाम नहीं। कोई अन्य शब्द आज़माएँ।',
+        },
+        none: {
+          title: "कोई डेटा नहीं मिला",
+          subtitle: "फ़िल्टर समायोजित करें या अवधि बदलें",
+        },
+      },
+      expenseCount: "{{count}} खर्च",
+    },
+    confirmations: {
+      deleteCategory: "क्या आप वाकई इस श्रेणी को हटाना चाहते हैं?",
+      deletePaymentMethod: "क्या आप वाकई इस भुगतान विधि को हटाना चाहते हैं?",
+    },
+    categoryFlow: {
+      createDialogTitle: "श्रेणी बनाएँ",
+    },
+    paymentMethodFlow: {
+      createDialogTitle: "भुगतान विधि बनाएँ",
+    },
+    messages: {
+      createSuccess: '{{entity}} "{{name}}" सफलतापूर्वक बनाई गई',
+      deleteSuccess: '{{entity}} "{{name}}" सफलतापूर्वक हटाई गई।',
+      deleteError: "{{entity}} हटाने में विफल। कृपया पुनः प्रयास करें।",
+    },
+    expensesTable: {
+      title: "खर्चे",
+      entityTitle: "{{name}} खर्चे",
+      unnamedExpense: "बिना नाम का खर्च",
+      noDate: "कोई तारीख नहीं",
+      type: {
+        income: "आय",
+        expense: "खर्च",
+      },
+    },
+    search: {
+      placeholder: "{{entityPlural}} खोजें...",
+    },
+    rangeLabels: {
+      entityWeek: "{{entityPlural}} इस सप्ताह",
+      entityMonth: "{{entityPlural}} इस महीने",
+      entityYear: "{{entityPlural}} इस वर्ष",
+    },
+  },
+
   // नया खर्च
   newExpense: {
     title: "नया खर्च",
@@ -427,6 +486,7 @@ export const hi = {
         uploadFile: "फ़ाइल अपलोड करें",
         addBudget: "बजट जोड़ें",
         addCategory: "श्रेणी जोड़ें",
+        addPaymentMethod: "भुगतान विधि जोड़ें",
       },
     },
     labels: {

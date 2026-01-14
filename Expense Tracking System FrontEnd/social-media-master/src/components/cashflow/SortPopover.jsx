@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 
 // Reusable SortPopover component
 // Props:
@@ -15,6 +16,7 @@ import { useTheme } from "../../hooks/useTheme";
 // styling overrides could be added later via className or style prop
 const SortPopover = ({ open, anchorRect, sortType, onSelect, recentIcon }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   if (!open || !anchorRect) return null;
 
@@ -67,7 +69,7 @@ const SortPopover = ({ open, anchorRect, sortType, onSelect, recentIcon }) => {
           {recentIcon && (
             <img
               src={recentIcon}
-              alt="Recent"
+              alt={t("cashflow.sort.recentFirst")}
               style={{
                 width: 18,
                 height: 18,
@@ -88,7 +90,7 @@ const SortPopover = ({ open, anchorRect, sortType, onSelect, recentIcon }) => {
               }}
             />
           )}
-          <span>Recent First</span>
+          <span>{t("cashflow.sort.recentFirst")}</span>
         </button>
         <button
           style={{
@@ -112,7 +114,7 @@ const SortPopover = ({ open, anchorRect, sortType, onSelect, recentIcon }) => {
             fontSize="small"
             style={{ color: sortType === "high" ? "#fff" : "#ff4d4f" }}
           />
-          <span>High to Low</span>
+          <span>{t("cashflow.sort.highToLow")}</span>
         </button>
         <button
           style={{
@@ -136,7 +138,7 @@ const SortPopover = ({ open, anchorRect, sortType, onSelect, recentIcon }) => {
             fontSize="small"
             style={{ color: sortType === "low" ? "#23243a" : "#06d6a0" }}
           />
-          <span>Low to High</span>
+          <span>{t("cashflow.sort.lowToHigh")}</span>
         </button>
       </div>
     </div>,

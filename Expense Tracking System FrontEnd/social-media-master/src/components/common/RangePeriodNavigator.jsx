@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * RangePeriodNavigator
@@ -40,6 +41,7 @@ const RangePeriodNavigator = ({
   isMobile = false,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -81,7 +83,7 @@ const RangePeriodNavigator = ({
                 strokeLinejoin="round"
               />
             </svg>
-            Back
+            {t("common.back")}
           </Button>
         )}
         <div
@@ -132,7 +134,7 @@ const RangePeriodNavigator = ({
             cursor: offset <= disablePrevAt ? "not-allowed" : "pointer",
             opacity: offset <= disablePrevAt ? 0.5 : 1,
           }}
-          aria-label="Previous"
+          aria-label={t("common.previous")}
         >
           &#8592;
         </button>
@@ -155,7 +157,7 @@ const RangePeriodNavigator = ({
             cursor: offset >= disableNextAt ? "not-allowed" : "pointer",
             opacity: offset >= disableNextAt ? 0.5 : 1,
           }}
-          aria-label="Next"
+          aria-label={t("common.next")}
         >
           &#8594;
         </button>

@@ -14,6 +14,7 @@ import NoDataPlaceholder from "../NoDataPlaceholder";
 import { formatCurrencyCompact } from "../../utils/numberFormatters";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * FlowEntityCards
@@ -35,6 +36,7 @@ const FlowEntityCards = ({
   onDelete, // (entity) => void
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
@@ -109,11 +111,17 @@ const FlowEntityCards = ({
           fullWidth
           iconSize={isMobile ? 54 : 72}
           style={{ minHeight: isMobile ? 260 : 340 }}
-          message={search ? "No matches" : "No data found"}
+          message={
+            search
+              ? t("flows.entities.empty.search.title")
+              : t("flows.entities.empty.none.title")
+          }
           subMessage={
             search
-              ? "Try a different search term"
-              : "Adjust filters or change the period"
+              ? t("flows.entities.empty.search.subtitle", {
+                  query: search,
+                })
+              : t("flows.entities.empty.none.subtitle")
           }
         />
       </div>
@@ -229,9 +237,13 @@ const FlowEntityCards = ({
                     color: colors.secondary_text,
                   }}
                 >
-                  {`${entity.expenseCount} expense${
-                    entity.expenseCount !== 1 ? "s" : ""
-                  }`}
+                  {(() => {
+                    const count = entity.expenseCount ?? 0;
+                    return t("flows.entities.expenseCount", {
+                      count,
+                      suffix: count === 1 ? "" : "s",
+                    });
+                  })()}
                 </div>
               </div>
             </div>
@@ -268,13 +280,13 @@ const FlowEntityCards = ({
               sx={{ color: menuEntity?.color || "#14b8a6" }}
             />
           </ListItemIcon>
-          <ListItemText primary="Edit" />
+          <ListItemText primary={t("common.edit")} />
         </MenuItem>
         <MenuItem onClick={handleDelete}>
           <ListItemIcon>
             <DeleteIcon fontSize="small" sx={{ color: "#ff5252" }} />
           </ListItemIcon>
-          <ListItemText primary="Delete" />
+          <ListItemText primary={t("common.delete")} />
         </MenuItem>
       </Menu>
     </>

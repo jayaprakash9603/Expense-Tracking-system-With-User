@@ -3,6 +3,7 @@ import SearchToolbar from "../common/SearchToolbar";
 import NavigationActions from "./NavigationActions";
 import { useTheme } from "../../hooks/useTheme";
 import { IconButton, Tooltip } from "@mui/material";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * Combined search input + navigation / add-new action bar.
@@ -21,10 +22,12 @@ const SearchNavigationBar = ({
   hasWriteAccess,
   navigate,
   addNewOptions = [],
-  placeholder = "Search expenses...",
+  placeholder,
   currentFlow,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder ?? t("cashflow.searchPlaceholder");
 
   return (
     <div
@@ -43,7 +46,7 @@ const SearchNavigationBar = ({
         filterRef={filterRef}
         isMobile={isMobile}
         isTablet={isTablet}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
       />
 
       <NavigationActions

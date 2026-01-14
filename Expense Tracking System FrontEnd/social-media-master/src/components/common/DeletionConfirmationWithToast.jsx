@@ -1,6 +1,7 @@
 import React from "react";
 import ToastNotification from "../../pages/Landingpage/ToastNotification";
 import Modal from "../../pages/Landingpage/Modal";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * Unified component for showing a toast and a deletion confirmation modal.
@@ -21,10 +22,14 @@ const DeletionConfirmationWithToast = ({
   headerNames,
   onApprove,
   onDecline,
-  approveText = "Yes, Delete",
-  declineText = "No, Cancel",
+  approveText,
+  declineText,
   confirmationText,
 }) => {
+  const { t } = useTranslation();
+  const resolvedApproveText = approveText ?? t("cashflow.deletion.approve");
+  const resolvedDeclineText = declineText ?? t("cashflow.deletion.decline");
+
   return (
     <>
       <ToastNotification
@@ -37,7 +42,7 @@ const DeletionConfirmationWithToast = ({
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={!isDeleting ? onDecline : undefined}
-        title="Deletion Confirmation"
+        title={t("cashflow.deletion.header")}
         data={expenseData}
         headerNames={headerNames}
         onApprove={onApprove}
@@ -57,13 +62,13 @@ const DeletionConfirmationWithToast = ({
                   display: "inline-block",
                 }}
               ></span>
-              Deleting...
+              {t("cashflow.deletion.deleting")}
             </span>
           ) : (
-            approveText
+            resolvedApproveText
           )
         }
-        declineText={declineText}
+        declineText={resolvedDeclineText}
         confirmationText={confirmationText}
         disableActions={isDeleting}
       />

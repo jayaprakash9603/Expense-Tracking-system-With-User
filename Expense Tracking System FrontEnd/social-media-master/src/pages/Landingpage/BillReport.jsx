@@ -654,13 +654,26 @@ const BillReport = () => {
     setCustomRange(null);
   };
 
+  const isAllTimeSelected =
+    selectedTimeframe === "all_time" || selectedTimeframe === "all";
+  const allTimeFromDate = "2002-01-15";
+  const todayIsoDate = useMemo(() => formatISODate(new Date()), []);
+
   const dateRangeProps = {
     fromDate:
       customRange?.fromDate ||
-      (timeframeRange.start ? formatISODate(timeframeRange.start) : ""),
+      (isAllTimeSelected
+        ? allTimeFromDate
+        : timeframeRange.start
+        ? formatISODate(timeframeRange.start)
+        : ""),
     toDate:
       customRange?.toDate ||
-      (timeframeRange.end ? formatISODate(timeframeRange.end) : ""),
+      (isAllTimeSelected
+        ? todayIsoDate
+        : timeframeRange.end
+        ? formatISODate(timeframeRange.end)
+        : ""),
     onApply: handleCustomRangeApply,
     onReset: handleResetRange,
   };

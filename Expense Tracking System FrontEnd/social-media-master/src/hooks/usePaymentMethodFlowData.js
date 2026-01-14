@@ -6,6 +6,7 @@ import {
   buildStackedChartData,
   deterministicColor,
 } from "../utils/stackedChartUtils";
+import { useTranslation } from "./useTranslation";
 
 const createDefaultRangeOffsets = () => ({
   week: 0,
@@ -110,6 +111,7 @@ export default function usePaymentMethodFlowData({
   search,
 }) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { user } = useSelector((s) => s.auth || {});
   const ownerIdRaw =
     user?.id ?? user?._id ?? user?.userId ?? user?.user_id ?? null;
@@ -304,7 +306,10 @@ export default function usePaymentMethodFlowData({
     [effectivePaymentMethodExpenses, activeRange, offset]
   );
 
-  const rangeLabel = getRangeLabel(activeRange, offset, "paymentMethod");
+  const rangeLabel = getRangeLabel(activeRange, offset, "paymentMethod", {
+    t,
+    entityPlural: t("flows.entities.paymentMethod.plural"),
+  });
 
   return {
     activeRange,

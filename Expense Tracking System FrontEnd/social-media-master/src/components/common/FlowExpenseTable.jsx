@@ -5,6 +5,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { DataGrid } from "@mui/x-data-grid";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * FlowExpenseTable
@@ -12,13 +13,14 @@ import useUserSettings from "../../hooks/useUserSettings";
  * Handles internal sorting and basic formatting.
  */
 const FlowExpenseTable = ({
-  title = "Expenses",
+  title,
   expenses = [],
   isMobile,
   isTablet,
   onClose,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
@@ -36,14 +38,17 @@ const FlowExpenseTable = ({
                 name:
                   details.expenseName ||
                   expense.expenseName ||
-                  "Unnamed Expense",
-                date: expense.date || details.date || "No date",
+                  t("flows.expensesTable.unnamedExpense"),
+                date:
+                  expense.date ||
+                  details.date ||
+                  t("flows.expensesTable.noDate"),
                 amount: details.amount || expense.amount || 0,
                 type: details.type || expense.type || "loss",
               };
             })
         : [],
-    [expenses]
+    [expenses, t]
   );
 
   const sortedRows = useMemo(() => {
@@ -74,7 +79,7 @@ const FlowExpenseTable = ({
   const columns = [
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("cashflow.tableHeaders.name"),
       flex: 2,
       renderCell: (params) => (
         <div
@@ -92,20 +97,20 @@ const FlowExpenseTable = ({
     },
     {
       field: "date",
-      headerName: "Date",
+      headerName: t("cashflow.tableHeaders.date"),
       flex: 1,
       renderCell: (params) => (
         <div style={{ color: colors.primary_text }}>
           {typeof params.value === "string"
             ? dayjs(params.value).format(dateFormat)
-            : "No date"}
+            : t("flows.expensesTable.noDate")}
         </div>
       ),
       sortable: false,
     },
     {
       field: "amount",
-      headerName: "Amount",
+      headerName: t("cashflow.tableHeaders.amount"),
       flex: 1,
       renderCell: (params) => {
         const isIncome =
@@ -126,7 +131,7 @@ const FlowExpenseTable = ({
     },
     {
       field: "type",
-      headerName: "Type",
+      headerName: t("cashflow.tableHeaders.type"),
       flex: 1,
       renderCell: (params) => {
         const isIncome = params.value === "gain" || params.value === "income";
@@ -136,7 +141,9 @@ const FlowExpenseTable = ({
               isIncome ? "bg-[#06D6A0] text-black" : "bg-[#FF6B6B] text-white"
             }`}
           >
-            {isIncome ? "Income" : "Expense"}
+            {isIncome
+              ? t("flows.expensesTable.type.income")
+              : t("flows.expensesTable.type.expense")}
           </span>
         );
       },
@@ -161,7 +168,7 @@ const FlowExpenseTable = ({
     >
       <div className="flex justify-between items-center mb-3">
         <h3 style={{ color: colors.primary_text, fontWeight: "bold" }}>
-          {title}
+          {title ?? t("flows.expensesTable.title")}
         </h3>
         <IconButton onClick={onClose} sx={{ color: "#ff5252" }}>
           <CloseIcon />

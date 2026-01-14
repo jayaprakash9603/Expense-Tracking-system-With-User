@@ -6,6 +6,7 @@ import {
   buildStackedChartData,
   deterministicColor,
 } from "../utils/stackedChartUtils";
+import { useTranslation } from "./useTranslation";
 
 const createDefaultRangeOffsets = () => ({
   week: 0,
@@ -111,6 +112,7 @@ export default function useCategoryFlowData({
   search,
 }) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { user } = useSelector((s) => s.auth || {});
   const ownerIdRaw =
     user?.id ?? user?._id ?? user?.userId ?? user?.user_id ?? null;
@@ -305,7 +307,10 @@ export default function useCategoryFlowData({
     [effectiveCategoryExpenses, activeRange, offset]
   );
 
-  const rangeLabel = getRangeLabel(activeRange, offset, "category");
+  const rangeLabel = getRangeLabel(activeRange, offset, "category", {
+    t,
+    entityPlural: t("flows.entities.category.plural"),
+  });
 
   return {
     activeRange,

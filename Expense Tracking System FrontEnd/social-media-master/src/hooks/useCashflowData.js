@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { fetchCashflowExpenses } from "../Redux/Expenses/expense.action";
 import { getRangeLabel, weekDays, yearMonths } from "../utils/flowDateUtils";
+import { useTranslation } from "./useTranslation";
 
 const normalizeSearchField = (value) => {
   if (value === null || value === undefined) return "";
@@ -116,6 +117,7 @@ const persistViewState = (key, state) => {
 
 export default function useCashflowData({ friendId, isFriendView, search }) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { user } = useSelector((s) => s.auth || {});
   const ownerIdRaw =
     user?.id ?? user?._id ?? user?.userId ?? user?.user_id ?? null;
@@ -430,7 +432,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
 
   const rangeLabel =
     dashboardPayload?.rangeContext?.label ??
-    getRangeLabel(activeRange, offset, "cashflow");
+    getRangeLabel(activeRange, offset, "cashflow", { t });
 
   const barChartStyles = {
     barWidth: 20,

@@ -53,6 +53,64 @@ export const te = {
     calendar: "క్యాలెండర్",
   },
 
+  // Flows
+  flows: {
+    entities: {
+      category: {
+        singular: "వర్గం",
+        plural: "వర్గాలు",
+      },
+      paymentMethod: {
+        singular: "చెల్లింపు విధానం",
+        plural: "చెల్లింపు విధానాలు",
+      },
+      empty: {
+        search: {
+          title: "పోలికలు లేవు",
+          subtitle: '"{{query}}" కోసం ఫలితాలు లేవు. వేరే పదం ప్రయత్నించండి.',
+        },
+        none: {
+          title: "డేటా కనబడలేదు",
+          subtitle: "ఫిల్టర్‌లను సర్దుబాటు చేయండి లేదా కాల వ్యవధిని మార్చండి",
+        },
+      },
+      expenseCount: "{{count}} ఖర్చు",
+    },
+    confirmations: {
+      deleteCategory: "ఈ వర్గాన్ని తొలగించాలా?",
+      deletePaymentMethod: "ఈ చెల్లింపు విధానాన్ని తొలగించాలా?",
+    },
+    categoryFlow: {
+      createDialogTitle: "వర్గం సృష్టించండి",
+    },
+    paymentMethodFlow: {
+      createDialogTitle: "చెల్లింపు విధానం సృష్టించండి",
+    },
+    messages: {
+      createSuccess: '{{entity}} "{{name}}" విజయవంతంగా సృష్టించబడింది',
+      deleteSuccess: '{{entity}} "{{name}}" విజయవంతంగా తొలగించబడింది.',
+      deleteError: "{{entity}} తొలగించలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    },
+    expensesTable: {
+      title: "ఖర్చులు",
+      entityTitle: "{{name}} ఖర్చులు",
+      unnamedExpense: "పేరు లేని ఖర్చు",
+      noDate: "తేదీ లేదు",
+      type: {
+        income: "ఆదాయం",
+        expense: "ఖర్చు",
+      },
+    },
+    search: {
+      placeholder: "{{entityPlural}} శోధించండి...",
+    },
+    rangeLabels: {
+      entityWeek: "{{entityPlural}} ఈ వారం",
+      entityMonth: "{{entityPlural}} ఈ నెల",
+      entityYear: "{{entityPlural}} ఈ సంవత్సరం",
+    },
+  },
+
   // కొత్త ఖర్చు
   newExpense: {
     title: "కొత్త ఖర్చు",
@@ -430,6 +488,7 @@ export const te = {
         uploadFile: "ఫైల్ అప్‌లోడ్ చేయండి",
         addBudget: "బడ్జెట్ జోడించండి",
         addCategory: "వర్గం జోడించండి",
+        addPaymentMethod: "చెల్లింపు విధానం జోడించండి",
       },
     },
     labels: {
