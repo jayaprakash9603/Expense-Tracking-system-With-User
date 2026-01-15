@@ -809,6 +809,7 @@ const DailySpendingChart = ({
         locale={locale}
         formatMoney={formatMoney}
         dateLabel={dateLabel}
+        isAllView
         totalLabel="Total Spending"
         totalAmount={point?.spendingLoss ?? 0}
         totalAmountColor="#ff5252"

@@ -517,6 +517,7 @@ const DailySpendingBreakdownTooltip = ({
   totalAmountColor,
   lossSection,
   gainSection,
+  isAllView = false,
   net,
   locale,
   formatMoney,
@@ -529,18 +530,29 @@ const DailySpendingBreakdownTooltip = ({
 
   const lossAccent = "#ff5252";
   const gainAccent = "#00d4c0";
+  const bothAccent = "#fadb14";
 
   const baseBorder = colors?.border_color || "rgba(255,255,255,0.12)";
   const surface = colors?.primary_bg || "rgba(12,12,18,0.92)";
 
-  const frameColor = lossSection
+  const hasBothSections = Boolean(lossSection) && Boolean(gainSection);
+  const shouldUseAllAccent = Boolean(isAllView) || hasBothSections;
+  const isLossOnly =
+    Boolean(lossSection) && !gainSection && !shouldUseAllAccent;
+
+  const frameColor = shouldUseAllAccent
+    ? bothAccent
+    : lossSection
     ? lossAccent
     : gainSection
     ? gainAccent
     : "#ff5252";
 
-  const frameBorder =
-    getGlow(frameColor, mode === "dark" ? 0.55 : 0.45) || baseBorder;
+  const frameBorder = shouldUseAllAccent
+    ? bothAccent
+    : isLossOnly
+    ? lossAccent
+    : getGlow(frameColor, mode === "dark" ? 0.55 : 0.45) || baseBorder;
   const frameGlow =
     getGlow(frameColor, mode === "dark" ? 0.35 : 0.22) || "rgba(0,0,0,0.25)";
 
@@ -552,7 +564,9 @@ const DailySpendingBreakdownTooltip = ({
     labelText.includes("loss") ||
     (Boolean(lossSection) && !gainSection);
 
-  const headerGradient = headerIsLoss
+  const headerGradient = shouldUseAllAccent
+    ? "linear-gradient(135deg, #fadb14 0%, #d4b106 100%)"
+    : headerIsLoss
     ? "linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)"
     : "linear-gradient(135deg, #00dac6 0%, #00a896 100%)";
 
