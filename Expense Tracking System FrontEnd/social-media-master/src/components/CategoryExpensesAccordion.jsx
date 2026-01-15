@@ -3,6 +3,18 @@ import GenericAccordionGroup from "./GenericAccordionGroup";
 import useUserSettings from "../hooks/useUserSettings";
 import { useTheme } from "../hooks/useTheme";
 
+const getExpenseDetails = (row) => row?.expense || row?.details || row || {};
+const getNormalizedType = (row) => {
+  const details = getExpenseDetails(row);
+  return String(details?.type || row?.type || "")
+    .trim()
+    .toLowerCase();
+};
+const getNormalizedAmount = (row) => {
+  const details = getExpenseDetails(row);
+  return details?.amount ?? details?.netAmount ?? row?.amount ?? 0;
+};
+
 /**
  * CategoryExpensesAccordion
  * Standalone reusable accordion component for category expense breakdown.
@@ -33,22 +45,20 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
       key: "name",
       label: "Name",
       width: "270px",
-      value: (row) => row.details?.expenseName || "-",
+      value: (row) => getExpenseDetails(row)?.expenseName || "-",
     },
     {
       key: "amount",
       label: "Amount",
       width: "100px",
-      value: (row) => row.details?.amount ?? row.details?.netAmount ?? 0,
-      sortValue: (row) =>
-        Number(row.details?.amount ?? row.details?.netAmount ?? 0),
+      value: (row) => getNormalizedAmount(row),
+      sortValue: (row) => Number(getNormalizedAmount(row) ?? 0),
       className: (row) => {
-        const rawType = (row?.details?.type || "").toLowerCase();
+        const rawType = getNormalizedType(row);
         if (rawType === "loss") return "pm-negative";
-        if (rawType === "gain" || rawType === "profit") return "pm-positive";
-        const amt = Number(
-          row?.details?.amount ?? row?.details?.netAmount ?? 0
-        );
+        if (rawType === "gain" || rawType === "profit" || rawType === "income")
+          return "pm-positive";
+        const amt = Number(getNormalizedAmount(row) ?? 0);
         return amt < 0 ? "pm-negative" : "pm-positive";
       },
     },
@@ -56,28 +66,31 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
       key: "payment",
       label: "Payment",
       width: "200px",
-      value: (row) => row.details?.paymentMethod || "-",
+      value: (row) => getExpenseDetails(row)?.paymentMethod || "-",
     },
     {
       key: "creditDue",
       label: "Credit Due",
       width: "110px",
       value: (row) =>
-        row.details?.creditDue != null ? row.details.creditDue : "-",
-      sortValue: (row) => Number(row.details?.creditDue ?? 0),
+        getExpenseDetails(row)?.creditDue != null
+          ? getExpenseDetails(row).creditDue
+          : "-",
+      sortValue: (row) => Number(getExpenseDetails(row)?.creditDue ?? 0),
     },
     {
       key: "comments",
       label: "Comments",
-      value: (row) => row.details?.comments || "",
+      value: (row) => getExpenseDetails(row)?.comments || "",
     },
   ];
 
   const classify = (row) => {
-    const rawType = (row?.details?.type || "").toLowerCase();
+    const rawType = getNormalizedType(row);
     if (rawType === "loss") return "loss";
-    if (rawType === "gain" || rawType === "profit") return "profit";
-    const amt = Number(row?.details?.amount ?? row?.details?.netAmount ?? 0);
+    if (rawType === "gain" || rawType === "profit" || rawType === "income")
+      return "profit";
+    const amt = Number(getNormalizedAmount(row) ?? 0);
     if (amt < 0) return "loss";
     if (amt > 0) return "profit";
     return "all";

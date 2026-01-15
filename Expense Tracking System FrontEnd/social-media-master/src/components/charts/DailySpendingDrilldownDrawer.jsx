@@ -6,12 +6,7 @@ import {
   Button,
   Divider,
   Drawer,
-  FormControl,
   IconButton,
-  MenuItem,
-  Pagination,
-  PaginationItem,
-  Select,
   Typography,
   useMediaQuery,
 } from "@mui/material";
@@ -533,8 +528,6 @@ const DailySpendingDrilldownDrawer = ({
 
   const cardHeight = isMobile ? 132 : 124;
   const listGapPx = 8;
-  const listHeightPx =
-    rowsPerPage * cardHeight + Math.max(0, rowsPerPage - 1) * listGapPx;
 
   const dateLabel = useMemo(
     () => formatDateLabel(point, locale),
@@ -694,17 +687,31 @@ const DailySpendingDrilldownDrawer = ({
     };
   }, [point, isAllView, breakdownItemLabel]);
 
+  const totalCount = expenses.all.length;
+  const shouldPaginate = totalCount > rowsPerPage;
+
+  const listHeightPx = useMemo(() => {
+    const visibleRowCount = shouldPaginate
+      ? rowsPerPage
+      : Math.min(totalCount, rowsPerPage);
+
+    return (
+      visibleRowCount * cardHeight +
+      Math.max(0, visibleRowCount - 1) * listGapPx
+    );
+  }, [cardHeight, listGapPx, rowsPerPage, shouldPaginate, totalCount]);
+
   useEffect(() => {
     setPage(0);
   }, [point, rowsPerPage]);
 
   const pagedExpenses = useMemo(() => {
+    if (!shouldPaginate) return expenses.all;
     const start = page * rowsPerPage;
     const end = start + rowsPerPage;
     return expenses.all.slice(start, end);
-  }, [expenses.all, page, rowsPerPage]);
+  }, [expenses.all, page, rowsPerPage, shouldPaginate]);
 
-  const totalCount = expenses.all.length;
   const pageCount = Math.max(1, Math.ceil(totalCount / rowsPerPage));
   const rangeText = useMemo(() => {
     if (totalCount === 0) return "0–0 of 0";
@@ -835,13 +842,26 @@ const DailySpendingDrilldownDrawer = ({
           }}
         >
           <Typography sx={{ fontSize: 12, fontWeight: 900, opacity: 0.85 }}>
-            {isAllView ? "Total Spending" : breakdown.totalLabel}
+            {isAllView ? "Net" : breakdown.totalLabel}
           </Typography>
-          <Typography sx={{ fontSize: 14, fontWeight: 900, color: "#fadb14" }}>
-            {isAllView
-              ? formatMoney(totals.spendingLoss)
-              : formatMoney(breakdown.totalAmount)}
-          </Typography>
+          {isAllView ? (
+            <Typography
+              sx={{
+                fontSize: 14,
+                fontWeight: 900,
+                color: totals.net >= 0 ? "#00d4c0" : "#ff5252",
+              }}
+            >
+              {totals.net >= 0 ? "+" : "-"}
+              {formatMoney(Math.abs(totals.net))}
+            </Typography>
+          ) : (
+            <Typography
+              sx={{ fontSize: 14, fontWeight: 900, color: "#fadb14" }}
+            >
+              {formatMoney(breakdown.totalAmount)}
+            </Typography>
+          )}
         </Box>
 
         {isAllView ? (
@@ -861,12 +881,12 @@ const DailySpendingDrilldownDrawer = ({
               }}
             >
               <Typography sx={{ fontSize: 11, fontWeight: 900, opacity: 0.8 }}>
-                Total Gain
+                Total Spending
               </Typography>
               <Typography
-                sx={{ fontSize: 13, fontWeight: 900, color: "#00d4c0" }}
+                sx={{ fontSize: 13, fontWeight: 900, color: "#ff5252" }}
               >
-                {formatMoney(totals.spendingGain)}
+                {formatMoney(totals.spendingLoss)}
               </Typography>
             </Box>
             <Box
@@ -878,17 +898,12 @@ const DailySpendingDrilldownDrawer = ({
               }}
             >
               <Typography sx={{ fontSize: 11, fontWeight: 900, opacity: 0.8 }}>
-                Net
+                Total Gain
               </Typography>
               <Typography
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 900,
-                  color: totals.net >= 0 ? "#00d4c0" : "#ff5252",
-                }}
+                sx={{ fontSize: 13, fontWeight: 900, color: "#00d4c0" }}
               >
-                {totals.net >= 0 ? "+" : "-"}
-                {formatMoney(Math.abs(totals.net))}
+                {formatMoney(totals.spendingGain)}
               </Typography>
             </Box>
           </Box>
@@ -938,9 +953,11 @@ const DailySpendingDrilldownDrawer = ({
           <>
             <Box
               sx={{
-                display: "grid",
+                display: "flex",
+                flexDirection: "column",
                 gap: 1,
                 height: `${listHeightPx}px`,
+                justifyContent: "flex-start",
                 overflowY: "hidden",
                 overflowX: "hidden",
               }}
@@ -958,105 +975,74 @@ const DailySpendingDrilldownDrawer = ({
               ))}
             </Box>
 
-            <Box sx={{ mt: 1, width: "100%", overflowX: "hidden" }}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto 1fr",
-                  alignItems: "center",
-                  gap: 1,
-                  overflowX: "hidden",
-                }}
-              >
-                <Box />
-
+            {shouldPaginate ? (
+              <Box sx={{ mt: 1, width: "100%", overflowX: "hidden" }}>
                 <Box
                   sx={{
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto 1fr",
                     alignItems: "center",
                     gap: 1,
-                    flexWrap: "nowrap",
-                    justifyContent: "center",
+                    overflowX: "hidden",
                   }}
                 >
-                  <IconButton
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    disabled={page <= 0}
-                    size="small"
+                  <Box />
+
+                  <Box
                     sx={{
-                      border: `1px solid ${colors?.border_color}`,
-                      borderRadius: 2,
-                      color: colors?.primary_text,
-                      "&.Mui-disabled": { opacity: 0.35 },
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flexWrap: "nowrap",
+                      justifyContent: "center",
                     }}
                   >
-                    <NavigateBeforeIcon fontSize="small" />
-                  </IconButton>
-
-                  <Typography
-                    sx={{
-                      fontSize: 12,
-                      fontWeight: 900,
-                      color: colors?.secondary_text || colors?.primary_text,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {rangeText}
-                  </Typography>
-
-                  <IconButton
-                    onClick={() =>
-                      setPage((p) => Math.min(pageCount - 1, p + 1))
-                    }
-                    disabled={page >= pageCount - 1}
-                    size="small"
-                    sx={{
-                      border: `1px solid ${colors?.border_color}`,
-                      borderRadius: 2,
-                      color: colors?.primary_text,
-                      "&.Mui-disabled": { opacity: 0.35 },
-                    }}
-                  >
-                    <NavigateNextIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-
-                <Box
-                  sx={{
-                    justifySelf: "end",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <FormControl size="small" sx={{ minWidth: 92 }}>
-                    <Select
-                      value={rowsPerPage}
-                      renderValue={(v) => String(v)}
-                      disabled
+                    <IconButton
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      disabled={page <= 0}
+                      size="small"
                       sx={{
-                        color: colors?.primary_text,
+                        border: `1px solid ${colors?.border_color}`,
                         borderRadius: 2,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: colors?.border_color,
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: `${
-                            colors?.primary_accent || "#5b7fff"
-                          }66`,
-                        },
-                        "& .MuiSvgIcon-root": { color: colors?.primary_text },
+                        color: colors?.primary_text,
+                        "&.Mui-disabled": { opacity: 0.35 },
                       }}
                     >
-                      {[5].map((n) => (
-                        <MenuItem key={n} value={n}>
-                          {n}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                      <NavigateBeforeIcon fontSize="small" />
+                    </IconButton>
+
+                    <Typography
+                      sx={{
+                        fontSize: 12,
+                        fontWeight: 900,
+                        color: colors?.secondary_text || colors?.primary_text,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {rangeText}
+                    </Typography>
+
+                    <IconButton
+                      onClick={() =>
+                        setPage((p) => Math.min(pageCount - 1, p + 1))
+                      }
+                      disabled={page >= pageCount - 1}
+                      size="small"
+                      sx={{
+                        border: `1px solid ${colors?.border_color}`,
+                        borderRadius: 2,
+                        color: colors?.primary_text,
+                        "&.Mui-disabled": { opacity: 0.35 },
+                      }}
+                    >
+                      <NavigateNextIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+
+                  <Box />
                 </Box>
               </Box>
-            </Box>
+            ) : null}
           </>
         )}
       </Box>
