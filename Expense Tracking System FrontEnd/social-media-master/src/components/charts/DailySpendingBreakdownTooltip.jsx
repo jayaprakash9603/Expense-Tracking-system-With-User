@@ -1,5 +1,179 @@
 import React from "react";
 
+const BREAKPOINTS = {
+  mobile: 600,
+  tablet: 1024,
+};
+
+const getTooltipResponsive = () => {
+  if (typeof window === "undefined") {
+    return {
+      container: {
+        minWidth: 280,
+        maxWidth: 360,
+        borderRadius: 22,
+        borderWidth: 2,
+      },
+      header: {
+        padding: "8px 14px 7px 14px",
+        dateSize: 10,
+        labelSize: 9,
+        amountSize: 16,
+        iconDate: 12,
+        iconArrow: 15,
+        arrowWrapper: 24,
+        gap: 5,
+      },
+      body: {
+        padding: "14px 16px 14px",
+        sectionGap: 14,
+      },
+      typography: {
+        sectionTitle: 13,
+        badge: 12,
+        itemName: 12,
+        itemAmount: 13,
+        muted: 12,
+        net: 14,
+      },
+      sizes: {
+        checkbox: 18,
+        dot: 8,
+        badgeHeight: 22,
+      },
+      spacing: {
+        sectionHeaderMb: 10,
+        rowsGap: 10,
+      },
+    };
+  }
+
+  const width = window.innerWidth;
+  if (width <= BREAKPOINTS.mobile) {
+    return {
+      container: {
+        minWidth: 240,
+        maxWidth: 300,
+        borderRadius: 16,
+        borderWidth: 2,
+      },
+      header: {
+        padding: "6px 10px 5px 10px",
+        dateSize: 8,
+        labelSize: 7,
+        amountSize: 13,
+        iconDate: 10,
+        iconArrow: 13,
+        arrowWrapper: 22,
+        gap: 5,
+      },
+      body: {
+        padding: "10px 12px 10px",
+        sectionGap: 10,
+      },
+      typography: {
+        sectionTitle: 12,
+        badge: 11,
+        itemName: 11,
+        itemAmount: 12,
+        muted: 11,
+        net: 12,
+      },
+      sizes: {
+        checkbox: 16,
+        dot: 7,
+        badgeHeight: 20,
+      },
+      spacing: {
+        sectionHeaderMb: 8,
+        rowsGap: 8,
+      },
+    };
+  }
+
+  if (width <= BREAKPOINTS.tablet) {
+    return {
+      container: {
+        minWidth: 260,
+        maxWidth: 330,
+        borderRadius: 18,
+        borderWidth: 2,
+      },
+      header: {
+        padding: "7px 12px 6px 12px",
+        dateSize: 9,
+        labelSize: 8,
+        amountSize: 15,
+        iconDate: 11,
+        iconArrow: 14,
+        arrowWrapper: 23,
+        gap: 5,
+      },
+      body: {
+        padding: "12px 14px 12px",
+        sectionGap: 12,
+      },
+      typography: {
+        sectionTitle: 12,
+        badge: 11,
+        itemName: 11,
+        itemAmount: 12,
+        muted: 11,
+        net: 13,
+      },
+      sizes: {
+        checkbox: 17,
+        dot: 8,
+        badgeHeight: 21,
+      },
+      spacing: {
+        sectionHeaderMb: 9,
+        rowsGap: 9,
+      },
+    };
+  }
+
+  return {
+    container: {
+      minWidth: 280,
+      maxWidth: 360,
+      borderRadius: 22,
+      borderWidth: 2,
+    },
+    header: {
+      padding: "8px 14px 7px 14px",
+      dateSize: 10,
+      labelSize: 9,
+      amountSize: 16,
+      iconDate: 12,
+      iconArrow: 15,
+      arrowWrapper: 24,
+      gap: 5,
+    },
+    body: {
+      padding: "14px 16px 14px",
+      sectionGap: 14,
+    },
+    typography: {
+      sectionTitle: 13,
+      badge: 12,
+      itemName: 12,
+      itemAmount: 13,
+      muted: 12,
+      net: 14,
+    },
+    sizes: {
+      checkbox: 18,
+      dot: 8,
+      badgeHeight: 22,
+    },
+    spacing: {
+      sectionHeaderMb: 10,
+      rowsGap: 10,
+    },
+  };
+};
+
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 const toUpperDate = (text) => {
@@ -62,6 +236,33 @@ const CalendarIcon = ({ color = "white", size = 14 }) => (
   </svg>
 );
 
+const DecorativeCircles = () => (
+  <>
+    <div
+      style={{
+        position: "absolute",
+        width: 60,
+        height: 60,
+        borderRadius: "50%",
+        background: "rgba(255, 255, 255, 0.1)",
+        top: -15,
+        right: -15,
+      }}
+    />
+    <div
+      style={{
+        position: "absolute",
+        width: 30,
+        height: 30,
+        borderRadius: "50%",
+        background: "rgba(255, 255, 255, 0.08)",
+        bottom: -8,
+        left: -8,
+      }}
+    />
+  </>
+);
+
 const getGlow = (hex, alpha) => {
   if (typeof hex !== "string") return null;
   const value = hex.trim();
@@ -98,6 +299,7 @@ const SectionHeader = ({
   badgeBg,
   checkboxBorder,
   checkboxCheck,
+  responsive,
 }) => (
   <div
     style={{
@@ -105,14 +307,14 @@ const SectionHeader = ({
       alignItems: "center",
       justifyContent: "space-between",
       gap: 10,
-      marginBottom: 10,
+      marginBottom: responsive?.spacing?.sectionHeaderMb ?? 10,
     }}
   >
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <div
         style={{
-          width: 18,
-          height: 18,
+          width: responsive?.sizes?.checkbox ?? 18,
+          height: responsive?.sizes?.checkbox ?? 18,
           borderRadius: 4,
           border: `1px solid ${checkboxBorder}`,
           background: getGlow(color, 0.18) || "transparent",
@@ -120,14 +322,22 @@ const SectionHeader = ({
           alignItems: "center",
           justifyContent: "center",
           color: checkboxCheck,
-          fontSize: 12,
+          fontSize: (responsive?.sizes?.checkbox ?? 18) - 6,
           fontWeight: 900,
           lineHeight: 1,
         }}
       >
         ✓
       </div>
-      <div style={{ color, fontWeight: 900, fontSize: 13 }}>{title}</div>
+      <div
+        style={{
+          color,
+          fontWeight: 900,
+          fontSize: responsive?.typography?.sectionTitle ?? 13,
+        }}
+      >
+        {title}
+      </div>
     </div>
 
     <div
@@ -135,13 +345,13 @@ const SectionHeader = ({
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        minWidth: 28,
-        height: 22,
+        minWidth: 26,
+        height: responsive?.sizes?.badgeHeight ?? 22,
         padding: "0 10px",
         borderRadius: 999,
         background: badgeBg,
         color: "#fff",
-        fontSize: 12,
+        fontSize: responsive?.typography?.badge ?? 12,
         fontWeight: 900,
         fontVariantNumeric: "tabular-nums",
       }}
@@ -151,7 +361,14 @@ const SectionHeader = ({
   </div>
 );
 
-const ItemRow = ({ name, amountText, color, dotColor, textColor }) => (
+const ItemRow = ({
+  name,
+  amountText,
+  color,
+  dotColor,
+  textColor,
+  responsive,
+}) => (
   <div
     style={{
       display: "flex",
@@ -170,8 +387,8 @@ const ItemRow = ({ name, amountText, color, dotColor, textColor }) => (
     >
       <div
         style={{
-          width: 8,
-          height: 8,
+          width: responsive?.sizes?.dot ?? 8,
+          height: responsive?.sizes?.dot ?? 8,
           borderRadius: 999,
           background: dotColor || color,
           boxShadow: `0 0 0 4px ${
@@ -184,7 +401,7 @@ const ItemRow = ({ name, amountText, color, dotColor, textColor }) => (
         title={name}
         style={{
           color: textColor,
-          fontSize: 12,
+          fontSize: responsive?.typography?.itemName ?? 12,
           fontWeight: 800,
           minWidth: 0,
           overflow: "hidden",
@@ -199,7 +416,7 @@ const ItemRow = ({ name, amountText, color, dotColor, textColor }) => (
     <div
       style={{
         color,
-        fontSize: 13,
+        fontSize: responsive?.typography?.itemAmount ?? 13,
         fontWeight: 900,
         whiteSpace: "nowrap",
         fontVariantNumeric: "tabular-nums",
@@ -222,14 +439,17 @@ const SectionCard = ({
   surface,
   border,
   textColor,
+  responsive,
 }) => {
   const { visible, hiddenCount, total } = buildTopN(items, maxItems);
 
   return (
     <div
       style={{
-        padding: 14,
-        borderRadius: 14,
+        padding: responsive?.body?.padding?.includes(" ") ? 12 : 14,
+        borderRadius: responsive?.container?.borderRadius
+          ? Math.max(12, Math.round(responsive.container.borderRadius * 0.65))
+          : 14,
         background: surface,
         border: `1px solid ${border}`,
       }}
@@ -241,9 +461,10 @@ const SectionCard = ({
         badgeBg={getGlow(color, 0.45) || color}
         checkboxBorder={getGlow(color, 0.55) || border}
         checkboxCheck={color}
+        responsive={responsive}
       />
 
-      <div style={{ display: "grid", gap: 10 }}>
+      <div style={{ display: "grid", gap: responsive?.spacing?.rowsGap ?? 10 }}>
         {visible.length > 0 ? (
           visible.map((item) => (
             <ItemRow
@@ -253,10 +474,17 @@ const SectionCard = ({
               color={color}
               dotColor={color}
               textColor={textColor}
+              responsive={responsive}
             />
           ))
         ) : (
-          <div style={{ color: muted, fontSize: 12, fontWeight: 700 }}>
+          <div
+            style={{
+              color: muted,
+              fontSize: responsive?.typography?.muted ?? 12,
+              fontWeight: 700,
+            }}
+          >
             {emptyMessage}
           </div>
         )}
@@ -265,7 +493,7 @@ const SectionCard = ({
           <div
             style={{
               color: muted,
-              fontSize: 12,
+              fontSize: responsive?.typography?.muted ?? 12,
               fontWeight: 800,
               textAlign: "right",
             }}
@@ -316,13 +544,17 @@ const DailySpendingBreakdownTooltip = ({
   const frameGlow =
     getGlow(frameColor, mode === "dark" ? 0.35 : 0.22) || "rgba(0,0,0,0.25)";
 
-  const headerBg =
-    `radial-gradient(circle at 85% 0%, ${
-      getGlow(frameColor, 0.25) || "rgba(255,82,82,0.25)"
-    } 0%, transparent 55%), ` +
-    `linear-gradient(160deg, ${
-      getGlow(frameColor, 0.22) || "rgba(255,82,82,0.22)"
-    } 0%, rgba(0,0,0,0.65) 55%, rgba(0,0,0,0.85) 100%)`;
+  const responsive = getTooltipResponsive();
+
+  const labelText = String(totalLabel ?? "").toLowerCase();
+  const headerIsLoss =
+    labelText.includes("spend") ||
+    labelText.includes("loss") ||
+    (Boolean(lossSection) && !gainSection);
+
+  const headerGradient = headerIsLoss
+    ? "linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)"
+    : "linear-gradient(135deg, #00dac6 0%, #00a896 100%)";
 
   const containerBg =
     `radial-gradient(circle at 15% 15%, rgba(255,255,255,0.08) 0%, transparent 45%), ` +
@@ -344,10 +576,10 @@ const DailySpendingBreakdownTooltip = ({
     <div
       style={{
         position: "relative",
-        minWidth: 300,
-        maxWidth: 360,
-        borderRadius: 22,
-        border: `2px solid ${frameBorder}`,
+        minWidth: responsive.container.minWidth,
+        maxWidth: responsive.container.maxWidth,
+        borderRadius: responsive.container.borderRadius,
+        border: `${responsive.container.borderWidth}px solid ${frameBorder}`,
         background: containerBg,
         boxShadow: "none",
         overflow: "hidden",
@@ -356,23 +588,32 @@ const DailySpendingBreakdownTooltip = ({
     >
       <div
         style={{
-          padding: "14px 16px 12px",
-          background: headerBg,
-          borderBottom: `1px solid ${getGlow(frameColor, 0.3) || baseBorder}`,
+          background: headerGradient,
+          padding: responsive.header.padding,
+          position: "relative",
+          overflow: "hidden",
         }}
       >
+        <DecorativeCircles />
+
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 10,
+            gap: 4,
             color: "rgba(255,255,255,0.9)",
-            fontSize: 12,
-            fontWeight: 900,
-            boxShadow: "none",
+            fontSize: responsive.header.dateSize,
+            fontWeight: 500,
+            position: "relative",
+            zIndex: 1,
+            letterSpacing: "0.5px",
+            textTransform: "uppercase",
           }}
         >
-          <CalendarIcon size={14} color="rgba(255,255,255,0.9)" />
+          <CalendarIcon
+            size={responsive.header.iconDate}
+            color="rgba(255, 255, 255, 0.9)"
+          />
           <span>{dateText}</span>
         </div>
 
@@ -380,17 +621,20 @@ const DailySpendingBreakdownTooltip = ({
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            marginTop: 10,
+            gap: responsive.header.gap,
+            position: "relative",
+            zIndex: 1,
+            marginTop: 3,
           }}
         >
-          <div style={{ display: "grid", gap: 4 }}>
+          <div>
             <div
               style={{
                 color: "rgba(255,255,255,0.8)",
-                fontSize: 12,
-                fontWeight: 800,
+                fontSize: responsive.header.labelSize,
+                fontWeight: 500,
+                marginBottom: 1,
+                letterSpacing: "0.3px",
               }}
             >
               {totalLabel}
@@ -398,10 +642,9 @@ const DailySpendingBreakdownTooltip = ({
             <div
               style={{
                 color: "#fff",
-                fontSize: 26,
-                fontWeight: 950,
-                letterSpacing: 0.2,
-                lineHeight: 1,
+                fontSize: responsive.header.amountSize,
+                fontWeight: 700,
+                letterSpacing: "-0.5px",
               }}
             >
               {totalText}
@@ -410,31 +653,27 @@ const DailySpendingBreakdownTooltip = ({
 
           <div
             style={{
-              width: 44,
-              height: 44,
+              width: responsive.header.arrowWrapper,
+              height: responsive.header.arrowWrapper,
               borderRadius: 999,
-              background: getGlow(amountColor, 0.35) || "rgba(255,82,82,0.35)",
-              border: `1px solid ${getGlow(amountColor, 0.55) || baseBorder}`,
+              background: "rgba(255, 255, 255, 0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: `0 10px 24px ${
-                getGlow(amountColor, 0.25) || "rgba(0,0,0,0.25)"
-              }`,
               flex: "0 0 auto",
             }}
           >
             <ArrowIcon
-              direction={lossSection ? "down" : gainSection ? "up" : "down"}
+              direction={headerIsLoss ? "down" : "up"}
               color="#ffffff"
-              size={20}
+              size={responsive.header.iconArrow}
             />
           </div>
         </div>
       </div>
 
-      <div style={{ padding: "14px 16px 14px", background: surface }}>
-        <div style={{ display: "grid", gap: 14 }}>
+      <div style={{ padding: responsive.body.padding, background: surface }}>
+        <div style={{ display: "grid", gap: responsive.body.sectionGap }}>
           {lossSection ? (
             <SectionCard
               title={lossSection.title}
@@ -448,6 +687,7 @@ const DailySpendingBreakdownTooltip = ({
               surface={getGlow(lossAccent, 0.14) || "rgba(255,82,82,0.12)"}
               border={getGlow(lossAccent, 0.28) || baseBorder}
               textColor={titleColor}
+              responsive={responsive}
             />
           ) : null}
 
@@ -464,6 +704,7 @@ const DailySpendingBreakdownTooltip = ({
               surface={getGlow(gainAccent, 0.14) || "rgba(0,212,192,0.12)"}
               border={getGlow(gainAccent, 0.28) || baseBorder}
               textColor={titleColor}
+              responsive={responsive}
             />
           ) : null}
 
@@ -477,7 +718,7 @@ const DailySpendingBreakdownTooltip = ({
                 paddingTop: 4,
                 color: netIsPositive ? gainAccent : lossAccent,
                 fontWeight: 950,
-                fontSize: 14,
+                fontSize: responsive.typography.net,
                 letterSpacing: 0.2,
               }}
             >
@@ -486,7 +727,9 @@ const DailySpendingBreakdownTooltip = ({
                 {netIsPositive ? "+" : "-"}
                 {formatMoney(Math.abs(netAmount))}
               </span>
-              <span style={{ fontSize: 14, lineHeight: 1 }}>
+              <span
+                style={{ fontSize: responsive.typography.net, lineHeight: 1 }}
+              >
                 {netIsPositive ? "▲" : "▼"}
               </span>
             </div>
