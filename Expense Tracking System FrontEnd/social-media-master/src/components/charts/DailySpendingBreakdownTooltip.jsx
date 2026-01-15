@@ -209,6 +209,33 @@ const ArrowIcon = ({ direction = "down", color = "white", size = 18 }) => (
   </svg>
 );
 
+const AllTypesIcon = ({ color = "white", size = 18 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Up arrow (left) */}
+    <path
+      d="M9 18V6M9 6l-3 3M9 6l3 3"
+      stroke={color}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Down arrow (right) */}
+    <path
+      d="M15 6v12M15 18l-3-3M15 18l3-3"
+      stroke={color}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const CalendarIcon = ({ color = "white", size = 14 }) => (
   <svg
     width={size}
@@ -531,6 +558,8 @@ const DailySpendingBreakdownTooltip = ({
   const lossAccent = "#ff5252";
   const gainAccent = "#00d4c0";
   const bothAccent = "#fadb14";
+  const bothAccentBorder =
+    getGlow(bothAccent, mode === "dark" ? 0.75 : 0.7) || bothAccent;
 
   const baseBorder = colors?.border_color || "rgba(255,255,255,0.12)";
   const surface = colors?.primary_bg || "rgba(12,12,18,0.92)";
@@ -549,7 +578,7 @@ const DailySpendingBreakdownTooltip = ({
     : "#ff5252";
 
   const frameBorder = shouldUseAllAccent
-    ? bothAccent
+    ? bothAccentBorder
     : isLossOnly
     ? lossAccent
     : getGlow(frameColor, mode === "dark" ? 0.55 : 0.45) || baseBorder;
@@ -565,7 +594,7 @@ const DailySpendingBreakdownTooltip = ({
     (Boolean(lossSection) && !gainSection);
 
   const headerGradient = shouldUseAllAccent
-    ? "linear-gradient(135deg, #fadb14 0%, #d4b106 100%)"
+    ? "linear-gradient(135deg, rgba(250, 219, 20, 0.82) 0%, rgba(212, 177, 6, 0.82) 100%)"
     : headerIsLoss
     ? "linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)"
     : "linear-gradient(135deg, #00dac6 0%, #00a896 100%)";
@@ -635,13 +664,15 @@ const DailySpendingBreakdownTooltip = ({
           style={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "space-between",
             gap: responsive.header.gap,
             position: "relative",
             zIndex: 1,
             marginTop: 3,
+            width: "100%",
           }}
         >
-          <div>
+          <div style={{ flex: "1 1 auto", minWidth: 0 }}>
             <div
               style={{
                 color: "rgba(255,255,255,0.8)",
@@ -677,11 +708,18 @@ const DailySpendingBreakdownTooltip = ({
               flex: "0 0 auto",
             }}
           >
-            <ArrowIcon
-              direction={headerIsLoss ? "down" : "up"}
-              color="#ffffff"
-              size={responsive.header.iconArrow}
-            />
+            {shouldUseAllAccent ? (
+              <AllTypesIcon
+                color="#ffffff"
+                size={responsive.header.iconArrow}
+              />
+            ) : (
+              <ArrowIcon
+                direction={headerIsLoss ? "down" : "up"}
+                color="#ffffff"
+                size={responsive.header.iconArrow}
+              />
+            )}
           </div>
         </div>
       </div>
