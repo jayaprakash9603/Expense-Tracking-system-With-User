@@ -1,12 +1,24 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import DailySpendingChart from "../../pages/Dashboard/DailySpendingChart";
 import {
   buildDailySpendingByBucket,
   normalizeFlowTypeForChart,
 } from "../../utils/dailySpendingAggregation";
+import DailySpendingDrilldownDrawer from "../charts/DailySpendingDrilldownDrawer";
 
 const PaymentDailySpendingChart = ({ methods, timeframe, flowType }) => {
   const chartSelectedType = normalizeFlowTypeForChart(flowType);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedPoint, setSelectedPoint] = useState(null);
+
+  const handlePointClick = useCallback((point) => {
+    setSelectedPoint(point);
+    setDrawerOpen(true);
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerOpen(false);
+  }, []);
 
   const dailySpendingData = useMemo(() => {
     return buildDailySpendingByBucket(
@@ -36,6 +48,16 @@ const PaymentDailySpendingChart = ({ methods, timeframe, flowType }) => {
         breakdownItemLabel="payment method"
         breakdownEmptyMessage="No payment method breakdown available."
         title="📊 Daily Spending Pattern (Payment Methods)"
+        onPointClick={handlePointClick}
+      />
+
+      <DailySpendingDrilldownDrawer
+        open={drawerOpen}
+        onClose={handleCloseDrawer}
+        point={selectedPoint}
+        breakdownLabel="Payment methods"
+        breakdownItemLabel="payment method"
+        breakdownEmptyMessage="No payment method breakdown available."
       />
     </div>
   );

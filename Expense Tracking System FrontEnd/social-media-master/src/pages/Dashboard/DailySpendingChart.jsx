@@ -184,6 +184,7 @@ const DailySpendingChart = ({
   breakdownTotalsLabel = "Budget totals",
   breakdownItemLabel = "budget",
   breakdownEmptyMessage = "No budget breakdown available.",
+  onPointClick,
 }) => {
   const { mode, colors } = useTheme();
   const settings = useUserSettings();
@@ -221,6 +222,7 @@ const DailySpendingChart = ({
         ...point,
         type,
         budgetTotals: source.budgetTotals,
+        expenses: source.expenses,
       };
     });
   };
@@ -239,6 +241,7 @@ const DailySpendingChart = ({
         return {
           ...point,
           budgetTotals: source.budgetTotals,
+          expenses: source.expenses,
         };
       });
 
@@ -527,6 +530,8 @@ const DailySpendingChart = ({
         spendingGain: 0,
         budgetTotalsLoss: p.budgetTotals,
         budgetTotalsGain: [],
+        expensesLoss: Array.isArray(p.expenses) ? p.expenses : [],
+        expensesGain: [],
       });
     });
 
@@ -536,6 +541,7 @@ const DailySpendingChart = ({
       if (existing) {
         existing.spendingGain = p.spending ?? 0;
         existing.budgetTotalsGain = p.budgetTotals;
+        existing.expensesGain = Array.isArray(p.expenses) ? p.expenses : [];
         if (!existing.dateObj) existing.dateObj = p.dateObj;
       } else {
         map.set(p.date, {
@@ -546,6 +552,8 @@ const DailySpendingChart = ({
           spendingGain: p.spending ?? 0,
           budgetTotalsLoss: [],
           budgetTotalsGain: p.budgetTotals,
+          expensesLoss: [],
+          expensesGain: Array.isArray(p.expenses) ? p.expenses : [],
         });
       }
     });
@@ -580,13 +588,21 @@ const DailySpendingChart = ({
           spendingGain: 0,
           budgetTotalsLossAgg: {},
           budgetTotalsGainAgg: {},
+          expensesLoss: [],
+          expensesGain: [],
         };
       }
 
       if (isLoss) {
         map[key].spendingLoss += point.spending ?? 0;
+        if (Array.isArray(point.expenses)) {
+          map[key].expensesLoss.push(...point.expenses);
+        }
       } else {
         map[key].spendingGain += point.spending ?? 0;
+        if (Array.isArray(point.expenses)) {
+          map[key].expensesGain.push(...point.expenses);
+        }
       }
 
       const normalizedBudgetTotals = normalizeBudgetTotals(point.budgetTotals);
@@ -632,6 +648,13 @@ const DailySpendingChart = ({
       .sort((a, b) =>
         a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
       );
+  };
+
+  const handleChartClick = (state) => {
+    if (typeof onPointClick !== "function") return;
+    const point = state?.activePayload?.[0]?.payload;
+    if (!point) return;
+    onPointClick(point);
   };
 
   const chartData = (() => {
@@ -883,7 +906,11 @@ const DailySpendingChart = ({
         />
       ) : (
         <ResponsiveContainer width="100%" height={chartHeight}>
-          <AreaChart data={chartData} key={animationKey}>
+          <AreaChart
+            data={chartData}
+            key={animationKey}
+            onClick={handleChartClick}
+          >
             <defs>
               {!isOverlayAllMode ? (
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">

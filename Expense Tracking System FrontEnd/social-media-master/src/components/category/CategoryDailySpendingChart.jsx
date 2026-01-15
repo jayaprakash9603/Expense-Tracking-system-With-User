@@ -1,12 +1,24 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import DailySpendingChart from "../../pages/Dashboard/DailySpendingChart";
 import {
   buildDailySpendingByBucket,
   normalizeFlowTypeForChart,
 } from "../../utils/dailySpendingAggregation";
+import DailySpendingDrilldownDrawer from "../charts/DailySpendingDrilldownDrawer";
 
 const CategoryDailySpendingChart = ({ categories, timeframe, flowType }) => {
   const chartSelectedType = normalizeFlowTypeForChart(flowType);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedPoint, setSelectedPoint] = useState(null);
+
+  const handlePointClick = useCallback((point) => {
+    setSelectedPoint(point);
+    setDrawerOpen(true);
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerOpen(false);
+  }, []);
 
   const dailySpendingData = useMemo(() => {
     return buildDailySpendingByBucket(
@@ -36,6 +48,16 @@ const CategoryDailySpendingChart = ({ categories, timeframe, flowType }) => {
         breakdownItemLabel="category"
         breakdownEmptyMessage="No category breakdown available."
         title="📊 Daily Spending Pattern (Categories)"
+        onPointClick={handlePointClick}
+      />
+
+      <DailySpendingDrilldownDrawer
+        open={drawerOpen}
+        onClose={handleCloseDrawer}
+        point={selectedPoint}
+        breakdownLabel="Categories"
+        breakdownItemLabel="category"
+        breakdownEmptyMessage="No category breakdown available."
       />
     </div>
   );

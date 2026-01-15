@@ -77,11 +77,20 @@ export const buildDailySpendingByBucket = (buckets) => {
           type,
           spending: 0,
           buckets: new Map(),
+          expenses: [],
         });
       }
 
       const entry = dayTypeMap.get(key);
       entry.spending += amount;
+
+      // Preserve the full expense object for drilldown and tooltip usage.
+      // Attach the bucket label without mutating the original object.
+      if (expense && typeof expense === "object") {
+        entry.expenses.push({ ...expense, bucket: bucketKey });
+      } else {
+        entry.expenses.push(expense);
+      }
 
       const prev = entry.buckets.get(bucketKey);
       if (prev) {
@@ -110,6 +119,7 @@ export const buildDailySpendingByBucket = (buckets) => {
         type: entry.type,
         spending: Math.round(entry.spending * 100.0) / 100.0,
         budgetTotals: bucketTotals,
+        expenses: entry.expenses,
       };
     })
     .sort((a, b) => String(a.isoDate).localeCompare(String(b.isoDate)));
