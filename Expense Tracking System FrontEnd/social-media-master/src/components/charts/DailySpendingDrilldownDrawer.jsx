@@ -6,7 +6,10 @@ import {
   Button,
   Divider,
   Drawer,
+  FormControl,
   IconButton,
+  MenuItem,
+  Select,
   Typography,
   useMediaQuery,
 } from "@mui/material";
@@ -126,6 +129,33 @@ const clampText = {
   overflow: "hidden",
 };
 
+const buildScrollbarSx = ({ colors, accent } = {}) => {
+  const thumb = accent || colors?.primary_accent || "#5b7fff";
+  const border = colors?.border_color || "#2a2a2a";
+  const track = "transparent";
+
+  return {
+    scrollbarGutter: "stable",
+    scrollbarWidth: "thin",
+    scrollbarColor: `${thumb} ${track}`,
+    "&::-webkit-scrollbar": {
+      width: 10,
+      height: 10,
+    },
+    "&::-webkit-scrollbar-track": {
+      background: track,
+    },
+    "&::-webkit-scrollbar-thumb": {
+      backgroundColor: `${thumb}AA`,
+      borderRadius: 999,
+      border: `2px solid ${border}33`,
+    },
+    "&::-webkit-scrollbar-thumb:hover": {
+      backgroundColor: `${thumb}E6`,
+    },
+  };
+};
+
 const BreakdownPanel = ({
   title,
   items,
@@ -136,8 +166,19 @@ const BreakdownPanel = ({
   maxItems = 5,
 }) => {
   const safeItems = Array.isArray(items) ? items : [];
-  const visible = safeItems.slice(0, maxItems);
-  const hiddenCount = Math.max(0, safeItems.length - visible.length);
+  const nonZeroItems = safeItems.filter(
+    (item) => Math.abs(toNumber(item?.total)) > 0
+  );
+  const pageSize = Math.max(1, Number(maxItems) || 5);
+  const [visibleCount, setVisibleCount] = useState(pageSize);
+
+  useEffect(() => {
+    setVisibleCount(pageSize);
+  }, [title, pageSize]);
+
+  const clampedVisibleCount = Math.min(visibleCount, nonZeroItems.length);
+  const visible = nonZeroItems.slice(0, clampedVisibleCount);
+  const remainingCount = Math.max(0, nonZeroItems.length - clampedVisibleCount);
 
   return (
     <Box
@@ -178,7 +219,7 @@ const BreakdownPanel = ({
             fontWeight: 900,
           }}
         >
-          {safeItems.length}
+          {nonZeroItems.length}
         </Box>
       </Box>
 
@@ -238,17 +279,90 @@ const BreakdownPanel = ({
           ))
         )}
 
-        {hiddenCount > 0 ? (
-          <Typography
+        {nonZeroItems.length > pageSize ? (
+          <Box
             sx={{
-              textAlign: "right",
-              opacity: 0.85,
-              fontSize: 12,
-              fontWeight: 900,
+              mt: 0.25,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1,
             }}
           >
-            +{hiddenCount} more
-          </Typography>
+            <Box
+              sx={{
+                px: 1,
+                py: "2px",
+                borderRadius: 999,
+                border: `1px solid ${accent}33`,
+                background: `${accent}14`,
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: 0.2,
+                userSelect: "none",
+                color: colors?.secondary_text || colors?.primary_text,
+              }}
+            >
+              {clampedVisibleCount}/{nonZeroItems.length}
+            </Box>
+
+            {remainingCount > 0 ? (
+              <Button
+                size="small"
+                variant="text"
+                onClick={() =>
+                  setVisibleCount((count) =>
+                    Math.min(nonZeroItems.length, count + pageSize)
+                  )
+                }
+                sx={{
+                  minWidth: 0,
+                  px: 1,
+                  py: 0.25,
+                  borderRadius: 999,
+                  textTransform: "none",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: colors?.secondary_text || colors?.primary_text,
+                  background: `${accent}10`,
+                  border: `1px solid ${accent}33`,
+                  "&:hover": {
+                    background: `${accent}1C`,
+                    border: `1px solid ${accent}55`,
+                  },
+                }}
+              >
+                Show more
+                <Box component="span" sx={{ ml: 0.75, opacity: 0.9 }}>
+                  (+{remainingCount})
+                </Box>
+              </Button>
+            ) : (
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setVisibleCount(pageSize)}
+                sx={{
+                  minWidth: 0,
+                  px: 1,
+                  py: 0.25,
+                  borderRadius: 999,
+                  textTransform: "none",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: colors?.secondary_text || colors?.primary_text,
+                  background: `${accent}08`,
+                  border: `1px solid ${accent}22`,
+                  "&:hover": {
+                    background: `${accent}12`,
+                    border: `1px solid ${accent}44`,
+                  },
+                }}
+              >
+                Show less
+              </Button>
+            )}
+          </Box>
         ) : null}
       </Box>
     </Box>
@@ -288,6 +402,7 @@ const ExpenseCard = ({
         flexDirection: "column",
         gap: 1,
         height,
+        flexShrink: 0,
         overflow: "hidden",
       }}
     >
@@ -524,9 +639,9 @@ const DailySpendingDrilldownDrawer = ({
 
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const [page, setPage] = useState(0);
-  const [rowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const cardHeight = isMobile ? 132 : 124;
+  const cardHeight = isMobile ? 148 : 124;
   const listGapPx = 8;
 
   const dateLabel = useMemo(
@@ -688,22 +803,28 @@ const DailySpendingDrilldownDrawer = ({
   }, [point, isAllView, breakdownItemLabel]);
 
   const totalCount = expenses.all.length;
+  const BASE_VISIBLE_ROWS = 5;
   const shouldPaginate = totalCount > rowsPerPage;
+  const useScroll = rowsPerPage > BASE_VISIBLE_ROWS;
 
   const listHeightPx = useMemo(() => {
-    const visibleRowCount = shouldPaginate
-      ? rowsPerPage
-      : Math.min(totalCount, rowsPerPage);
-
+    const visibleRowCount = BASE_VISIBLE_ROWS;
     return (
       visibleRowCount * cardHeight +
       Math.max(0, visibleRowCount - 1) * listGapPx
     );
-  }, [cardHeight, listGapPx, rowsPerPage, shouldPaginate, totalCount]);
+  }, [BASE_VISIBLE_ROWS, cardHeight, listGapPx]);
 
   useEffect(() => {
     setPage(0);
   }, [point, rowsPerPage]);
+
+  useEffect(() => {
+    setPage((p) => {
+      const nextPageCount = Math.max(1, Math.ceil(totalCount / rowsPerPage));
+      return Math.min(p, nextPageCount - 1);
+    });
+  }, [totalCount, rowsPerPage]);
 
   const pagedExpenses = useMemo(() => {
     if (!shouldPaginate) return expenses.all;
@@ -782,6 +903,8 @@ const DailySpendingDrilldownDrawer = ({
           background: colors?.secondary_bg || "#0b0b10",
           color: colors?.primary_text || "#fff",
           overflowX: "hidden",
+          overflowY: "auto",
+          ...buildScrollbarSx({ colors }),
         },
       }}
     >
@@ -955,11 +1078,16 @@ const DailySpendingDrilldownDrawer = ({
               sx={{
                 display: "flex",
                 flexDirection: "column",
-                gap: 1,
+                gap: `${listGapPx}px`,
                 height: `${listHeightPx}px`,
                 justifyContent: "flex-start",
-                overflowY: "hidden",
+                overflowY: useScroll ? "scroll" : "hidden",
                 overflowX: "hidden",
+                WebkitOverflowScrolling: "touch",
+                overscrollBehavior: "contain",
+                touchAction: "pan-y",
+                pr: useScroll ? 0.5 : 0,
+                ...(useScroll ? buildScrollbarSx({ colors }) : null),
               }}
             >
               {pagedExpenses.map((exp, idx) => (
@@ -975,28 +1103,28 @@ const DailySpendingDrilldownDrawer = ({
               ))}
             </Box>
 
-            {shouldPaginate ? (
-              <Box sx={{ mt: 1, width: "100%", overflowX: "hidden" }}>
+            <Box sx={{ mt: 1, width: "100%", overflowX: "hidden" }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto 1fr",
+                  alignItems: "center",
+                  gap: 1,
+                  overflowX: "hidden",
+                }}
+              >
+                <Box />
+
                 <Box
                   sx={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto 1fr",
+                    display: "flex",
                     alignItems: "center",
                     gap: 1,
-                    overflowX: "hidden",
+                    flexWrap: "nowrap",
+                    justifyContent: "center",
                   }}
                 >
-                  <Box />
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      flexWrap: "nowrap",
-                      justifyContent: "center",
-                    }}
-                  >
+                  {shouldPaginate ? (
                     <IconButton
                       onClick={() => setPage((p) => Math.max(0, p - 1))}
                       disabled={page <= 0}
@@ -1010,18 +1138,20 @@ const DailySpendingDrilldownDrawer = ({
                     >
                       <NavigateBeforeIcon fontSize="small" />
                     </IconButton>
+                  ) : null}
 
-                    <Typography
-                      sx={{
-                        fontSize: 12,
-                        fontWeight: 900,
-                        color: colors?.secondary_text || colors?.primary_text,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {rangeText}
-                    </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      color: colors?.secondary_text || colors?.primary_text,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {rangeText}
+                  </Typography>
 
+                  {shouldPaginate ? (
                     <IconButton
                       onClick={() =>
                         setPage((p) => Math.min(pageCount - 1, p + 1))
@@ -1037,10 +1167,63 @@ const DailySpendingDrilldownDrawer = ({
                     >
                       <NavigateNextIcon fontSize="small" />
                     </IconButton>
-                  </Box>
-
-                  <Box />
+                  ) : null}
                 </Box>
+
+                <Box
+                  sx={{
+                    justifySelf: "end",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <FormControl size="small" sx={{ minWidth: 72 }}>
+                    <Select
+                      value={rowsPerPage}
+                      onChange={(e) => {
+                        const next = Number(e.target.value);
+                        setRowsPerPage(Number.isFinite(next) ? next : 5);
+                        setPage(0);
+                      }}
+                      renderValue={(v) => String(v)}
+                      sx={{
+                        color: colors?.primary_text,
+                        borderRadius: 2,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: colors?.border_color,
+                        },
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: `${
+                            colors?.primary_accent || "#5b7fff"
+                          }66`,
+                        },
+                        "& .MuiSvgIcon-root": {
+                          color: colors?.primary_text,
+                        },
+                      }}
+                    >
+                      {[5, 10, 20, 50, 100].map((n) => (
+                        <MenuItem key={n} value={n}>
+                          {n}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+            </Box>
+
+            {shouldPaginate && useScroll ? (
+              <Box sx={{ mt: 1, width: "100%", overflowX: "hidden" }}>
+                <Typography
+                  sx={{
+                    opacity: 0.7,
+                    fontSize: 12,
+                    textAlign: "center",
+                  }}
+                >
+                  Scroll inside the list to view more
+                </Typography>
               </Box>
             ) : null}
           </>
