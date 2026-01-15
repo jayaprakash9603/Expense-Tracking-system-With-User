@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import PropTypes from "prop-types";
 import dayjs from "dayjs";
 import {
@@ -16,6 +22,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DownloadIcon from "@mui/icons-material/Download";
+import CheckIcon from "@mui/icons-material/Check";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
@@ -40,6 +48,9 @@ const normalizeExpenseForList = (expense, fallbackType, bucketLabel) => {
   const rawAmount =
     details.amount ?? details.netAmount ?? expense.amount ?? expense.total ?? 0;
 
+  const rawNetAmount = details.netAmount ?? details.amount ?? rawAmount;
+  const rawCreditDue = details.creditDue ?? expense.creditDue ?? 0;
+
   const type = String(details.type || expense.type || fallbackType || "")
     .toLowerCase()
     .trim();
@@ -63,6 +74,9 @@ const normalizeExpenseForList = (expense, fallbackType, bucketLabel) => {
     expense.category ||
     "";
 
+  const categoryId =
+    expense.categoryId ?? details.categoryId ?? details.category_id ?? null;
+
   const paymentMethod =
     expense.paymentMethodName ||
     details.paymentMethodName ||
@@ -81,12 +95,22 @@ const normalizeExpenseForList = (expense, fallbackType, bucketLabel) => {
 
   return {
     id: expense.id ?? details.id ?? expense.expenseId ?? null,
+    expenseId:
+      expense.expenseId ??
+      details.expenseId ??
+      details.id ??
+      expense.id ??
+      null,
     name,
     amount: Math.abs(toNumber(rawAmount)),
+    netAmount: Math.abs(toNumber(rawNetAmount)),
+    creditDue: Math.abs(toNumber(rawCreditDue)),
     type,
     date,
     bucket,
     category,
+    categoryId,
+    categoryName: category,
     paymentMethod,
     comments,
     raw: expense,
@@ -583,7 +607,13 @@ const formatDateLabel = (point, locale) => {
   return point?.date || point?.xLabel || "";
 };
 
-const buildCsv = ({ dateLabel, rows }) => {
+const formatExportDate = (value) => {
+  if (!value) return "";
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : String(value);
+};
+
+const buildCsv = ({ rows }) => {
   const escape = (value) => {
     const str = String(value ?? "");
     if (/[\n\r\t,\"]/g.test(str)) {
@@ -592,15 +622,70 @@ const buildCsv = ({ dateLabel, rows }) => {
     return str;
   };
 
-  const header = ["date", "type", "name", "bucket", "amount"].join(",");
+  const header = [
+    "Expense ID",
+    "Expense Name",
+    "Payment Method",
+    "Amount",
+    "Net Amount",
+    "Credit Due",
+    "Type",
+    "Date",
+    "Category ID",
+    "Category Name",
+    "Comments",
+  ].join(",");
+
   const lines = rows.map((row) =>
     [
-      escape(dateLabel),
-      escape(row.type),
-      escape(row.name),
-      escape(row.bucket),
-      escape(row.amount),
+      escape(row.expenseId ?? row.id ?? ""),
+      escape(row.name ?? ""),
+      escape(row.paymentMethod ?? ""),
+      escape(toNumber(row.amount)),
+      escape(toNumber(row.netAmount ?? row.amount)),
+      escape(toNumber(row.creditDue)),
+      escape(String(row.type ?? "")),
+      escape(formatExportDate(row.date)),
+      escape(row.categoryId ?? ""),
+      escape(row.categoryName ?? row.category ?? ""),
+      escape(row.comments ?? ""),
     ].join(",")
+  );
+
+  return [header, ...lines].join("\n");
+};
+
+const buildTsvForClipboard = ({ rows }) => {
+  const header = [
+    "Expense ID",
+    "Expense Name",
+    "Payment Method",
+    "Amount",
+    "Net Amount",
+    "Credit Due",
+    "Type",
+    "Date",
+    "Category ID",
+    "Category Name",
+    "Comments",
+  ].join("\t");
+
+  const safe = (value) => String(value ?? "").replace(/[\n\r\t]/g, " ");
+
+  const lines = rows.map((row) =>
+    [
+      safe(row.expenseId ?? row.id ?? ""),
+      safe(row.name ?? ""),
+      safe(row.paymentMethod ?? ""),
+      safe(toNumber(row.amount)),
+      safe(toNumber(row.netAmount ?? row.amount)),
+      safe(toNumber(row.creditDue)),
+      safe(String(row.type ?? "")),
+      safe(formatExportDate(row.date)),
+      safe(row.categoryId ?? ""),
+      safe(row.categoryName ?? row.category ?? ""),
+      safe(row.comments ?? ""),
+    ].join("\t")
   );
 
   return [header, ...lines].join("\n");
@@ -641,6 +726,9 @@ const DailySpendingDrilldownDrawer = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const [copyStatus, setCopyStatus] = useState("idle");
+  const copyResetTimerRef = useRef(null);
+
   const cardHeight = isMobile ? 148 : 124;
   const listGapPx = 8;
 
@@ -648,6 +736,36 @@ const DailySpendingDrilldownDrawer = ({
     () => formatDateLabel(point, locale),
     [point, locale]
   );
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimerRef.current) {
+        clearTimeout(copyResetTimerRef.current);
+        copyResetTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  const copyToClipboard = useCallback(async (text) => {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.top = "-1000px";
+    textarea.style.left = "-1000px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    const ok = document.execCommand("copy");
+    textarea.remove();
+    if (!ok) {
+      throw new Error("Copy failed");
+    }
+  }, []);
 
   const formatMoney = useCallback(
     (value) => {
@@ -806,14 +924,17 @@ const DailySpendingDrilldownDrawer = ({
   const BASE_VISIBLE_ROWS = 5;
   const shouldPaginate = totalCount > rowsPerPage;
   const useScroll = rowsPerPage > BASE_VISIBLE_ROWS;
+  const showListControls = totalCount > BASE_VISIBLE_ROWS;
 
   const listHeightPx = useMemo(() => {
-    const visibleRowCount = BASE_VISIBLE_ROWS;
+    const visibleRowCount = useScroll
+      ? BASE_VISIBLE_ROWS
+      : Math.min(BASE_VISIBLE_ROWS, Math.max(1, totalCount));
     return (
       visibleRowCount * cardHeight +
       Math.max(0, visibleRowCount - 1) * listGapPx
     );
-  }, [BASE_VISIBLE_ROWS, cardHeight, listGapPx]);
+  }, [BASE_VISIBLE_ROWS, cardHeight, listGapPx, totalCount, useScroll]);
 
   useEffect(() => {
     setPage(0);
@@ -842,46 +963,30 @@ const DailySpendingDrilldownDrawer = ({
   }, [page, rowsPerPage, totalCount]);
 
   const handleCopySummary = useCallback(async () => {
-    const lines = [];
-    lines.push(`Date: ${dateLabel}`);
-
-    if (isAllView) {
-      lines.push(`Total Spending: ${formatMoney(totals.spendingLoss)}`);
-      lines.push(`Total Gain: ${formatMoney(totals.spendingGain)}`);
-      lines.push(
-        `Net: ${totals.net >= 0 ? "+" : "-"}${formatMoney(
-          Math.abs(totals.net)
-        )}`
-      );
-    } else {
-      lines.push(
-        `${breakdown.totalLabel}: ${formatMoney(breakdown.totalAmount)}`
-      );
+    if (copyResetTimerRef.current) {
+      clearTimeout(copyResetTimerRef.current);
+      copyResetTimerRef.current = null;
     }
 
-    const topRows = expenses.all.slice(0, 12);
-    if (topRows.length > 0) {
-      lines.push("");
-      lines.push("Transactions:");
-      topRows.forEach((row) => {
-        const sign = row.type === "gain" ? "+" : "-";
-        const bucket = row.bucket ? ` (${row.bucket})` : "";
-        lines.push(`${sign}${formatMoney(row.amount)} - ${row.name}${bucket}`);
-      });
-      if (expenses.all.length > topRows.length) {
-        lines.push(`... +${expenses.all.length - topRows.length} more`);
-      }
-    }
-
+    const tsv = buildTsvForClipboard({ rows: expenses.all });
     try {
-      await navigator.clipboard.writeText(lines.join("\n"));
+      await copyToClipboard(tsv);
+      setCopyStatus("copied");
+      copyResetTimerRef.current = setTimeout(() => {
+        setCopyStatus("idle");
+        copyResetTimerRef.current = null;
+      }, 1600);
     } catch (e) {
-      // ignore clipboard errors (browser permissions)
+      setCopyStatus("error");
+      copyResetTimerRef.current = setTimeout(() => {
+        setCopyStatus("idle");
+        copyResetTimerRef.current = null;
+      }, 2000);
     }
-  }, [dateLabel, isAllView, totals, breakdown, expenses, formatMoney]);
+  }, [copyToClipboard, expenses.all]);
 
   const handleExportCsv = useCallback(() => {
-    const csv = buildCsv({ dateLabel, rows: expenses.all });
+    const csv = buildCsv({ rows: expenses.all });
     const safeDate = String(dateLabel || "day").replace(/[^a-z0-9-_ ]/gi, "_");
     downloadTextFile(`daily-spending-${safeDate}.csv`, csv);
   }, [dateLabel, expenses.all]);
@@ -891,6 +996,16 @@ const DailySpendingDrilldownDrawer = ({
     if (!isAllView) return "Transactions";
     return `Transactions (${label})`;
   }, [breakdownLabel, isAllView]);
+
+  const drawerTitle = useMemo(() => {
+    if (!point) return "Details";
+
+    const hasMonthBucket =
+      point?.monthIndex !== undefined && point?.monthIndex !== null;
+
+    if (hasMonthBucket) return "Month overview";
+    return "Day details";
+  }, [point]);
 
   return (
     <Drawer
@@ -911,7 +1026,7 @@ const DailySpendingDrilldownDrawer = ({
       <Box sx={{ display: "flex", alignItems: "center", p: 2, gap: 1 }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 900, fontSize: 14 }}>
-            Day details
+            {drawerTitle}
           </Typography>
           <Typography sx={{ opacity: 0.75, fontSize: 12 }}>
             {dateLabel}
@@ -922,14 +1037,50 @@ const DailySpendingDrilldownDrawer = ({
           size="small"
           variant="outlined"
           onClick={handleCopySummary}
-          startIcon={<ContentCopyIcon />}
+          startIcon={
+            copyStatus === "copied" ? (
+              <CheckIcon />
+            ) : copyStatus === "error" ? (
+              <ErrorOutlineIcon />
+            ) : (
+              <ContentCopyIcon />
+            )
+          }
           sx={{
-            borderColor: colors?.border_color,
-            color: colors?.primary_text,
+            borderColor:
+              copyStatus === "copied"
+                ? "#00d4c0"
+                : copyStatus === "error"
+                ? "#ff5252"
+                : colors?.border_color,
+            color:
+              copyStatus === "copied"
+                ? "#00d4c0"
+                : copyStatus === "error"
+                ? "#ff5252"
+                : colors?.primary_text,
             textTransform: "none",
+            "&:hover": {
+              borderColor:
+                copyStatus === "copied"
+                  ? "#00d4c0"
+                  : copyStatus === "error"
+                  ? "#ff5252"
+                  : `${colors?.primary_accent || "#5b7fff"}66`,
+              backgroundColor:
+                copyStatus === "copied"
+                  ? "#00d4c014"
+                  : copyStatus === "error"
+                  ? "#ff525214"
+                  : undefined,
+            },
           }}
         >
-          Copy
+          {copyStatus === "copied"
+            ? "Copied"
+            : copyStatus === "error"
+            ? "Copy failed"
+            : "Copy"}
         </Button>
 
         <Button
@@ -1103,117 +1254,119 @@ const DailySpendingDrilldownDrawer = ({
               ))}
             </Box>
 
-            <Box sx={{ mt: 1, width: "100%", overflowX: "hidden" }}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto 1fr",
-                  alignItems: "center",
-                  gap: 1,
-                  overflowX: "hidden",
-                }}
-              >
-                <Box />
-
+            {showListControls ? (
+              <Box sx={{ mt: 1, width: "100%", overflowX: "hidden" }}>
                 <Box
                   sx={{
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto 1fr",
                     alignItems: "center",
                     gap: 1,
-                    flexWrap: "nowrap",
-                    justifyContent: "center",
+                    overflowX: "hidden",
                   }}
                 >
-                  {shouldPaginate ? (
-                    <IconButton
-                      onClick={() => setPage((p) => Math.max(0, p - 1))}
-                      disabled={page <= 0}
-                      size="small"
-                      sx={{
-                        border: `1px solid ${colors?.border_color}`,
-                        borderRadius: 2,
-                        color: colors?.primary_text,
-                        "&.Mui-disabled": { opacity: 0.35 },
-                      }}
-                    >
-                      <NavigateBeforeIcon fontSize="small" />
-                    </IconButton>
-                  ) : null}
+                  <Box />
 
-                  <Typography
+                  <Box
                     sx={{
-                      fontSize: 12,
-                      fontWeight: 900,
-                      color: colors?.secondary_text || colors?.primary_text,
-                      whiteSpace: "nowrap",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flexWrap: "nowrap",
+                      justifyContent: "center",
                     }}
                   >
-                    {rangeText}
-                  </Typography>
-
-                  {shouldPaginate ? (
-                    <IconButton
-                      onClick={() =>
-                        setPage((p) => Math.min(pageCount - 1, p + 1))
-                      }
-                      disabled={page >= pageCount - 1}
-                      size="small"
-                      sx={{
-                        border: `1px solid ${colors?.border_color}`,
-                        borderRadius: 2,
-                        color: colors?.primary_text,
-                        "&.Mui-disabled": { opacity: 0.35 },
-                      }}
-                    >
-                      <NavigateNextIcon fontSize="small" />
-                    </IconButton>
-                  ) : null}
-                </Box>
-
-                <Box
-                  sx={{
-                    justifySelf: "end",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <FormControl size="small" sx={{ minWidth: 72 }}>
-                    <Select
-                      value={rowsPerPage}
-                      onChange={(e) => {
-                        const next = Number(e.target.value);
-                        setRowsPerPage(Number.isFinite(next) ? next : 5);
-                        setPage(0);
-                      }}
-                      renderValue={(v) => String(v)}
-                      sx={{
-                        color: colors?.primary_text,
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: colors?.border_color,
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: `${
-                            colors?.primary_accent || "#5b7fff"
-                          }66`,
-                        },
-                        "& .MuiSvgIcon-root": {
+                    {shouldPaginate ? (
+                      <IconButton
+                        onClick={() => setPage((p) => Math.max(0, p - 1))}
+                        disabled={page <= 0}
+                        size="small"
+                        sx={{
+                          border: `1px solid ${colors?.border_color}`,
+                          borderRadius: 2,
                           color: colors?.primary_text,
-                        },
+                          "&.Mui-disabled": { opacity: 0.35 },
+                        }}
+                      >
+                        <NavigateBeforeIcon fontSize="small" />
+                      </IconButton>
+                    ) : null}
+
+                    <Typography
+                      sx={{
+                        fontSize: 12,
+                        fontWeight: 900,
+                        color: colors?.secondary_text || colors?.primary_text,
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {[5, 10, 20, 50, 100].map((n) => (
-                        <MenuItem key={n} value={n}>
-                          {n}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                      {rangeText}
+                    </Typography>
+
+                    {shouldPaginate ? (
+                      <IconButton
+                        onClick={() =>
+                          setPage((p) => Math.min(pageCount - 1, p + 1))
+                        }
+                        disabled={page >= pageCount - 1}
+                        size="small"
+                        sx={{
+                          border: `1px solid ${colors?.border_color}`,
+                          borderRadius: 2,
+                          color: colors?.primary_text,
+                          "&.Mui-disabled": { opacity: 0.35 },
+                        }}
+                      >
+                        <NavigateNextIcon fontSize="small" />
+                      </IconButton>
+                    ) : null}
+                  </Box>
+
+                  <Box
+                    sx={{
+                      justifySelf: "end",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <FormControl size="small" sx={{ minWidth: 72 }}>
+                      <Select
+                        value={rowsPerPage}
+                        onChange={(e) => {
+                          const next = Number(e.target.value);
+                          setRowsPerPage(Number.isFinite(next) ? next : 5);
+                          setPage(0);
+                        }}
+                        renderValue={(v) => String(v)}
+                        sx={{
+                          color: colors?.primary_text,
+                          borderRadius: 2,
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: colors?.border_color,
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: `${
+                              colors?.primary_accent || "#5b7fff"
+                            }66`,
+                          },
+                          "& .MuiSvgIcon-root": {
+                            color: colors?.primary_text,
+                          },
+                        }}
+                      >
+                        {[5, 10, 20, 50, 100].map((n) => (
+                          <MenuItem key={n} value={n}>
+                            {n}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
                 </Box>
               </Box>
-            </Box>
+            ) : null}
 
-            {shouldPaginate && useScroll ? (
+            {showListControls && shouldPaginate && useScroll ? (
               <Box sx={{ mt: 1, width: "100%", overflowX: "hidden" }}>
                 <Typography
                   sx={{
