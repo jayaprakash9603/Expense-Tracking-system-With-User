@@ -278,7 +278,7 @@ const ExpenseCard = ({
     return parsed.isValid() ? parsed.format(dateFormat) : "";
   })();
 
-  const primaryLeft = String(expense?.category || expense?.bucket || "").trim();
+  const primaryLeft = String(expense?.category || "").trim();
   const primaryRight = String(expense?.paymentMethod || "").trim();
   const comments = String(expense?.comments || "").trim();
 

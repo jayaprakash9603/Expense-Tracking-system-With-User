@@ -1,6 +1,8 @@
 package com.jaya.service.expenses.impl;
 
+import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.User;
+import com.jaya.mapper.ExpenseMapper;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
@@ -51,6 +53,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
     @Autowired
     private PaymentMethodServices paymentMethodService;
+
+    @Autowired
+    private ExpenseMapper expenseMapper;
 
     @Autowired
     private ServiceHelper helper;
@@ -1252,52 +1257,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             categoryTotals.put(category.getName(), categoryTotal);
 
-            Map<String, Object> categoryDetails = new HashMap<>();
-            categoryDetails.put("id", category.getId());
-            categoryDetails.put("name", category.getName());
-            categoryDetails.put("description", category.getDescription());
-            categoryDetails.put("isGlobal", category.isGlobal());
-
-            if (category.getColor() != null) {
-                categoryDetails.put("color", category.getColor());
-            }
-            if (category.getIcon() != null) {
-                categoryDetails.put("icon", category.getIcon());
-            }
-
-            categoryDetails.put("userIds", category.getUserIds());
-            categoryDetails.put("editUserIds", category.getEditUserIds());
-
-            categoryDetails.put("expenseIds", category.getExpenseIds());
-
-            List<Map<String, Object>> formattedExpenses = new ArrayList<>();
-            for (Expense expense : expenses) {
-                Map<String, Object> expenseMap = new HashMap<>();
-                expenseMap.put("id", expense.getId());
-                expenseMap.put("date", expense.getDate());
-
-                if (expense.getExpense() != null) {
-                    ExpenseDetails details = expense.getExpense();
-                    Map<String, Object> detailsMap = new HashMap<>();
-                    detailsMap.put("id", details.getId());
-                    detailsMap.put("expenseName", details.getExpenseName());
-                    detailsMap.put("amount", details.getAmount());
-                    detailsMap.put("type", details.getType());
-                    detailsMap.put("paymentMethod", details.getPaymentMethod());
-                    detailsMap.put("netAmount", details.getNetAmount());
-                    detailsMap.put("comments", details.getComments());
-                    detailsMap.put("creditDue", details.getCreditDue());
-
-                    expenseMap.put("details", detailsMap);
-                }
-
-                formattedExpenses.add(expenseMap);
-            }
-
-            categoryDetails.put("expenses", formattedExpenses);
-            categoryDetails.put("totalAmount", categoryTotal);
-            categoryDetails.put("expenseCount", expenses.size());
-
+            Map<String, Object> categoryDetails = buildCategoryDetailsMap(category, expenses, categoryTotal);
             response.put(category.getName(), categoryDetails);
         }
 
@@ -1361,29 +1321,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             totalExpenses += expenses.size();
 
             double methodTotal = 0.0;
-            List<Map<String, Object>> formattedExpenses = new ArrayList<>();
             for (Expense expense : expenses) {
                 if (expense.getExpense() != null) {
                     methodTotal += expense.getExpense().getAmount();
                     totalAmount += expense.getExpense().getAmount();
                 }
-                Map<String, Object> expenseMap = new HashMap<>();
-                expenseMap.put("id", expense.getId());
-                expenseMap.put("date", expense.getDate());
-                if (expense.getExpense() != null) {
-                    ExpenseDetails details = expense.getExpense();
-                    Map<String, Object> detailsMap = new HashMap<>();
-                    detailsMap.put("id", details.getId());
-                    detailsMap.put("expenseName", details.getExpenseName());
-                    detailsMap.put("amount", details.getAmount());
-                    detailsMap.put("type", details.getType());
-                    detailsMap.put("paymentMethod", details.getPaymentMethod());
-                    detailsMap.put("netAmount", details.getNetAmount());
-                    detailsMap.put("comments", details.getComments());
-                    detailsMap.put("creditDue", details.getCreditDue());
-                    expenseMap.put("details", detailsMap);
-                }
-                formattedExpenses.add(expenseMap);
             }
             paymentMethodTotals.put(paymentMethod, methodTotal);
 
@@ -1406,7 +1348,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
             methodDetails.put("expenseCount", expenses.size());
             methodDetails.put("totalAmount", methodTotal);
-            methodDetails.put("expenses", formattedExpenses);
+            methodDetails.put("expenses", formatExpensesForResponse(expenses));
 
             response.put(paymentMethod, methodDetails);
         }
@@ -1583,40 +1525,25 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         categoryDetails.put("expenseIds", category.getExpenseIds());
 
-        List<Map<String, Object>> formattedExpenses = formatExpensesForResponse(expenses);
-
-        categoryDetails.put("expenses", formattedExpenses);
+        categoryDetails.put("expenses", formatExpensesForResponse(expenses));
         categoryDetails.put("totalAmount", categoryTotal);
         categoryDetails.put("expenseCount", expenses.size());
 
         return categoryDetails;
     }
 
-    private List<Map<String, Object>> formatExpensesForResponse(List<Expense> expenses) {
-        List<Map<String, Object>> formattedExpenses = new ArrayList<>();
-        for (Expense expense : expenses) {
-            Map<String, Object> expenseMap = new HashMap<>();
-            expenseMap.put("id", expense.getId());
-            expenseMap.put("date", expense.getDate());
-
-            if (expense.getExpense() != null) {
-                ExpenseDetails details = expense.getExpense();
-                Map<String, Object> detailsMap = new HashMap<>();
-                detailsMap.put("id", details.getId());
-                detailsMap.put("expenseName", details.getExpenseName());
-                detailsMap.put("amount", details.getAmount());
-                detailsMap.put("type", details.getType());
-                detailsMap.put("paymentMethod", details.getPaymentMethod());
-                detailsMap.put("netAmount", details.getNetAmount());
-                detailsMap.put("comments", details.getComments());
-                detailsMap.put("creditDue", details.getCreditDue());
-
-                expenseMap.put("details", detailsMap);
-            }
-
-            formattedExpenses.add(expenseMap);
+    private List<ExpenseDTO> formatExpensesForResponse(List<Expense> expenses) {
+        if (expenses == null || expenses.isEmpty()) {
+            return Collections.emptyList();
         }
-        return formattedExpenses;
+
+        // Return full expense shape expected by frontend:
+        // { id, date, includeInBudget, budgetIds, categoryId, categoryName, expense {
+        // ... }, userId, bill }
+        return expenses.stream()
+                .map(expenseMapper::toDTO)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Override

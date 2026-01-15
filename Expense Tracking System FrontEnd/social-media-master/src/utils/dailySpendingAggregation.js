@@ -21,14 +21,28 @@ const toIsoDay = (value) => {
 
 const toLower = (value) => String(value ?? "").toLowerCase();
 
+const normalizeExpenseTypeForChart = (rawType) => {
+  const t = toLower(rawType);
+  if (t === "profit") return "gain";
+  if (t === "income") return "gain";
+  if (t === "gain") return "gain";
+  if (t === "loss") return "loss";
+  return t;
+};
+
 const getExpenseType = (expense) =>
-  toLower(expense?.details?.type ?? expense?.type ?? "");
+  normalizeExpenseTypeForChart(
+    expense?.expense?.type ?? expense?.details?.type ?? expense?.type ?? ""
+  );
 
 const getExpenseAmountAbs = (expense) => {
   const raw = Number(
-    expense?.details?.amount ??
-      expense?.amount ??
+    expense?.expense?.netAmount ??
+      expense?.expense?.amount ??
       expense?.details?.netAmount ??
+      expense?.details?.amount ??
+      expense?.netAmount ??
+      expense?.amount ??
       0
   );
   return Math.abs(Number.isFinite(raw) ? raw : 0);
