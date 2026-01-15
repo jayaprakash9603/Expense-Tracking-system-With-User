@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import useDailySpendingData from "../hooks/useDailySpendingData";
 import { DailySpendingChart, DailySpendingSkeleton } from "../pages/Dashboard";
@@ -17,6 +17,7 @@ const DailySpendingContainer = ({
   skeletonHeight = 240,
   refreshTrigger,
   showSkeleton = true, // Enable/disable skeleton loader
+  fillMissingDays = false,
 }) => {
   const { data, loading, timeframe, type, setTimeframe, setType, refetch } =
     useDailySpendingData({
@@ -24,6 +25,18 @@ const DailySpendingContainer = ({
       initialType: controlledType,
       refreshTrigger,
     });
+
+  const chartData = useMemo(() => {
+    const safe = Array.isArray(data) ? data : [];
+    if (fillMissingDays) return safe;
+
+    return safe.filter((bucket) => {
+      const spending = Number(bucket?.spending ?? 0);
+      const hasSpending = Number.isFinite(spending) && spending > 0;
+      const hasExpenses = (bucket?.expenses?.length ?? 0) > 0;
+      return hasSpending || hasExpenses;
+    });
+  }, [data, fillMissingDays]);
 
   // Sync controlled prop changes (if parent manages state) into hook state
   useEffect(() => {
@@ -52,19 +65,20 @@ const DailySpendingContainer = ({
     return (
       <DailySpendingSkeleton
         timeframe={timeframe}
-        height={height || skeletonHeight}
+        height={height + 20 || skeletonHeight + 20}
       />
     );
   }
 
   return (
     <DailySpendingChart
-      data={data}
+      data={chartData}
       timeframe={timeframe}
       onTimeframeChange={handleTimeframe}
       selectedType={type}
       onTypeToggle={handleType}
       loading={loading}
+      fillMissingDays={fillMissingDays}
     />
   );
 };
@@ -78,6 +92,7 @@ DailySpendingContainer.propTypes = {
   skeletonHeight: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   refreshTrigger: PropTypes.any,
   showSkeleton: PropTypes.bool, // Optional: Enable/disable skeleton loader
+  fillMissingDays: PropTypes.bool,
 };
 
 export default DailySpendingContainer;

@@ -174,6 +174,7 @@ const DailySpendingChart = ({
   height,
   tooltipConfig,
   loading = false,
+  fillMissingDays = false,
   hideControls = false,
   showBothTypesWhenAll = false,
   showBudgetTotalsInTooltip = false,
@@ -457,7 +458,9 @@ const DailySpendingChart = ({
       : normalizedData;
 
   const normalizedWithFill = !isOverlayAllMode
-    ? fillMissingDaysToToday(trimmedData)
+    ? fillMissingDays
+      ? fillMissingDaysToToday(trimmedData)
+      : trimmedData
     : [];
 
   const buildMonthlyBuckets = (points, labelWithYear = false) => {

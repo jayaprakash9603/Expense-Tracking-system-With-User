@@ -38,6 +38,7 @@ const SECTION_COMPONENTS = {
       height={isMobile ? 200 : isTablet ? 240 : 280}
       refreshTrigger={Math.random()}
       showSkeleton={analyticsLoading}
+      fillMissingDays={false}
     />
   ),
   "quick-access": () => <QuickAccess />,
