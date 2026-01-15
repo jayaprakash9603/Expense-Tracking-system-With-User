@@ -198,6 +198,8 @@ const resolveTimeframeConfig = (timeframe) => {
     endDate: formatDateString(end),
   });
 
+  const isFirstQuarter = now.getMonth() <= 2; // Jan(0) - Mar(2)
+
   switch (timeframe) {
     case "this_week": {
       const start = new Date(now);
@@ -244,6 +246,22 @@ const resolveTimeframeConfig = (timeframe) => {
     case "this_year": {
       const start = new Date(now.getFullYear(), 0, 1);
       const end = new Date(now.getFullYear(), 11, 31);
+
+      // When we're still in the first 3 months of the year, the backend `range=year`
+      // aggregation returns month buckets (1 point per month), which hides daily detail.
+      // Use an explicit (custom) start/end range to force daily buckets.
+      if (isFirstQuarter) {
+        const endPartial = new Date(now);
+        return {
+          query: {
+            startDate: formatDateString(start),
+            endDate: formatDateString(endPartial),
+          },
+          window: setWindow(start, endPartial),
+          label: "This Year",
+        };
+      }
+
       return {
         query: { range: "year", offset: 0 },
         window: setWindow(start, end),
@@ -253,6 +271,25 @@ const resolveTimeframeConfig = (timeframe) => {
     case "last_year": {
       const start = new Date(now.getFullYear() - 1, 0, 1);
       const end = new Date(now.getFullYear() - 1, 11, 31);
+
+      // For early-year usage, show the first ~3 months of last year daily as well.
+      // This matches the UX requirement: avoid 1-3 monthly dots when data is limited.
+      if (isFirstQuarter) {
+        const endPartial = new Date(
+          now.getFullYear() - 1,
+          now.getMonth(),
+          now.getDate()
+        );
+        return {
+          query: {
+            startDate: formatDateString(start),
+            endDate: formatDateString(endPartial),
+          },
+          window: setWindow(start, endPartial),
+          label: "Last Year",
+        };
+      }
+
       return {
         query: { range: "year", offset: -1 },
         window: setWindow(start, end),

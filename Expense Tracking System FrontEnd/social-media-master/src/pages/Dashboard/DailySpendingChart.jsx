@@ -403,6 +403,30 @@ const DailySpendingChart = ({
     });
   };
 
+  const hasNonEmptyValue = (point) => {
+    const spending = Number(point?.spending ?? 0);
+    const hasSpending = Number.isFinite(spending) && spending > 0;
+    const hasExpenses = (point?.expenses?.length ?? 0) > 0;
+    return hasSpending || hasExpenses;
+  };
+
+  const countDistinctMonthsWithValues = (points) => {
+    const set = new Set();
+    for (const point of Array.isArray(points) ? points : []) {
+      if (!hasNonEmptyValue(point)) continue;
+      const dateObj =
+        point?.dateObj || (point?.date ? new Date(point.date) : null);
+      if (!dateObj || Number.isNaN(dateObj.getTime())) continue;
+      set.add(`${dateObj.getFullYear()}-${dateObj.getMonth()}`);
+    }
+    return set.size;
+  };
+
+  const shouldUseMonthlyBuckets = (pointsForSpan) => {
+    if (!isYearView && !isAllTimeView) return false;
+    return countDistinctMonthsWithValues(pointsForSpan) > 3;
+  };
+
   const fillMissingDaysToToday = (points, typeForFill = activeType) => {
     if (timeframe !== "this_month" && timeframe !== "this_year") {
       return points;
@@ -670,28 +694,45 @@ const DailySpendingChart = ({
       const gainTrimmed =
         timeframe === "all_time" ? trimLeadingZeroSpending(gainRaw) : gainRaw;
 
-      const lossFilled = fillMissingDaysToToday(lossTrimmed, "loss");
-      const gainFilled = fillMissingDaysToToday(gainTrimmed, "gain");
+      const useMonthly = shouldUseMonthlyBuckets([
+        ...lossTrimmed,
+        ...gainTrimmed,
+      ]);
+      const lossSeries = fillMissingDays
+        ? fillMissingDaysToToday(lossTrimmed, "loss")
+        : lossTrimmed;
+      const gainSeries = fillMissingDays
+        ? fillMissingDaysToToday(gainTrimmed, "gain")
+        : gainTrimmed;
 
-      if (isYearView) {
-        return buildOverlayAllMonthlyBuckets(lossFilled, gainFilled, false);
+      if (useMonthly && isYearView) {
+        return buildOverlayAllMonthlyBuckets(lossSeries, gainSeries, false);
       }
-      if (isAllTimeView) {
+      if (useMonthly && isAllTimeView) {
         return buildOverlayAllMonthlyBuckets(lossTrimmed, gainTrimmed, true);
       }
 
-      return buildOverlayAllDaily(lossFilled, gainFilled);
+      return buildOverlayAllDaily(lossSeries, gainSeries);
     }
 
-    if (isYearView) {
+    const useMonthly = shouldUseMonthlyBuckets(
+      isAllTimeView ? trimmedData : normalizedWithFill
+    );
+
+    if (useMonthly && isYearView) {
       return buildMonthlyBuckets(normalizedWithFill, false);
     }
-    if (isAllTimeView) {
+    if (useMonthly && isAllTimeView) {
       return buildMonthlyBuckets(trimmedData, true);
     }
 
-    return normalizedWithFill.map((point) => ({
-      xLabel: point.xLabel,
+    const dailyPoints = isAllTimeView ? trimmedData : normalizedWithFill;
+
+    return dailyPoints.map((point) => ({
+      xLabel:
+        (isYearView || isAllTimeView) && point?.date
+          ? point.date
+          : point.xLabel,
       spending: point.spending,
       date: point.date,
       type: point.type,
@@ -718,6 +759,26 @@ const DailySpendingChart = ({
 
   const xTickFormatter = (value, index) => {
     if (!value || totalPoints === 0) return "";
+
+    const isIsoDayString =
+      typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value);
+    const formatIsoDay = (iso) => {
+      try {
+        const d = new Date(String(iso).slice(0, 10) + "T00:00:00");
+        return new Intl.DateTimeFormat(locale || undefined, {
+          month: "short",
+          day: "2-digit",
+        }).format(d);
+      } catch {
+        return iso;
+      }
+    };
+
+    if (isIsoDayString && (isYearView || isAllTimeView)) {
+      const maxTicks = isMobile ? 6 : 10;
+      const step = Math.max(1, Math.ceil(totalPoints / maxTicks));
+      return index % step === 0 ? formatIsoDay(value) : "";
+    }
 
     if (isAllTimeView) {
       const maxTicks = isMobile ? 4 : 8;
