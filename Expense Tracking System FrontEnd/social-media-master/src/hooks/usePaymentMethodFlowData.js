@@ -248,8 +248,9 @@ export default function usePaymentMethodFlowData({
           const expenses = Array.isArray(pm?.expenses) ? pm.expenses : [];
           expenses.forEach((e) => {
             if (!e) return;
-            const details = e.details || e;
-            const amt = Number(details.amount || e.amount || 0);
+            const details = e.expense || e.details || e;
+            const rawAmount = details.amount ?? details.netAmount ?? e.amount;
+            const amt = Math.abs(Number(rawAmount || 0));
             const type = (details.type || e.type || "").toLowerCase();
             if (["gain", "income", "inflow"].includes(type)) inflow += amt;
             else outflow += amt;

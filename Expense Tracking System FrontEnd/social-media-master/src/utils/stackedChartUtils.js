@@ -101,8 +101,10 @@ export function buildStackedChartData({
           if (d.year() === baseStart.year()) idx = d.month();
         }
         if (idx >= 0 && idx < bucketCount) {
-          const amt = (e.details && e.details.amount) || e.amount || 0;
-          addAmt(idx, key, amt);
+          const details = e?.expense || e?.details || e;
+          const rawAmount =
+            details?.amount ?? details?.netAmount ?? e?.amount ?? 0;
+          addAmt(idx, key, Math.abs(Number(rawAmount) || 0));
         }
       });
     });

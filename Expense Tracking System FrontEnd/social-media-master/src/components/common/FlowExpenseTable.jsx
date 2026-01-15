@@ -32,9 +32,9 @@ const FlowExpenseTable = ({
         ? expenses
             .filter((e) => e != null)
             .map((expense, index) => {
-              const details = expense.details || expense;
+              const details = expense.expense || expense.details || expense;
               return {
-                id: expense.id || `expense-${index}`,
+                id: expense.id || details.id || `expense-${index}`,
                 name:
                   details.expenseName ||
                   expense.expenseName ||
@@ -43,7 +43,8 @@ const FlowExpenseTable = ({
                   expense.date ||
                   details.date ||
                   t("flows.expensesTable.noDate"),
-                amount: details.amount || expense.amount || 0,
+                amount:
+                  details.amount ?? details.netAmount ?? expense.amount ?? 0,
                 type: details.type || expense.type || "loss",
               };
             })
