@@ -900,6 +900,9 @@ const DailySpendingChart = ({
         totalLabel="Total Spending"
         totalAmount={point?.spendingLoss ?? 0}
         totalAmountColor="#ff5252"
+        secondaryLabel="Total Income"
+        secondaryAmount={point?.spendingGain ?? 0}
+        secondaryAmountColor="#00d4c0"
         lossSection={
           shouldShowLossSection
             ? {

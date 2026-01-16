@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useGroupedCashflow from "../../hooks/useGroupedCashflow";
 import useCategoryDistributionData from "../../hooks/useCategoryDistributionData";
 import usePaymentMethodsData from "../../hooks/usePaymentMethodsData";
 import ReportHeader from "../../components/ReportHeader";
 import GroupedExpensesAccordion from "../../components/GroupedExpensesAccordion";
-import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
 import CategoryBreakdownChart from "../Dashboard/CategoryBreakdownChart";
 import PaymentMethodChart from "../Dashboard/PaymentMethodChart";
+import DailySpendingChart from "../Dashboard/DailySpendingChart";
+import DailySpendingDrilldownDrawer from "../../components/charts/DailySpendingDrilldownDrawer";
+import {
+  normalizeFlowTypeForChart,
+  buildDailySpendingByBucket,
+} from "../../utils/dailySpendingAggregation";
 import {
   ExpensesLoadingSkeleton,
   ChartSkeleton,
@@ -118,23 +123,55 @@ export default function CombinedExpenseReport() {
     // Could integrate download logic here or via new hook (future enhancement)
   };
 
+  const chartTimeframe = useMemo(() => {
+    switch (timeframe) {
+      case "week":
+        return "this_week";
+      case "month":
+        return "this_month";
+      case "quarter":
+        return "quarter";
+      case "year":
+        return "this_year";
+      case "last_year":
+        return "last_year";
+      case "all_time":
+        return "all_time";
+      case "all":
+        return "all_time";
+      default:
+        return "this_month";
+    }
+  }, [timeframe]);
+
+  const chartSelectedType = useMemo(() => {
+    return normalizeFlowTypeForChart(flowType);
+  }, [flowType]);
+
+  const dailySpendingData = useMemo(() => {
+    return buildDailySpendingByBucket(
+      (Array.isArray(filteredMethodsData) ? filteredMethodsData : []).map(
+        (m) => ({
+          name: m?.method,
+          expenses: m?.expenses,
+        })
+      )
+    );
+  }, [filteredMethodsData]);
+
+  const [dailyDrawerOpen, setDailyDrawerOpen] = useState(false);
+  const [dailySelectedPoint, setDailySelectedPoint] = useState(null);
+
+  const handleDailyPointClick = useCallback((point) => {
+    setDailySelectedPoint(point);
+    setDailyDrawerOpen(true);
+  }, []);
+
+  const handleCloseDailyDrawer = useCallback(() => {
+    setDailyDrawerOpen(false);
+  }, []);
+
   if (loading) return <ExpensesLoadingSkeleton />;
-
-  // Map timeframe used by grouped cashflow (week|month|year) to daily spending timeframe tokens
-  const dailyTimeframe = (() => {
-    if (timeframe === "month") return "this_month";
-    if (timeframe === "year") return "this_month"; // no year aggregation yet; fallback to current month
-    if (timeframe === "week") return "this_month"; // week not supported; could enhance hook later
-    return "this_month";
-  })();
-
-  // Map flowType (all|outflow|inflow) to daily spending type (loss|gain|undefined)
-  const dailyType =
-    flowType === "outflow"
-      ? "loss"
-      : flowType === "inflow"
-      ? "gain"
-      : undefined;
 
   return (
     <div
@@ -222,10 +259,22 @@ export default function CombinedExpenseReport() {
               gap: "24px",
             }}
           >
-            <DailySpendingContainer
+            <DailySpendingChart
+              data={dailySpendingData}
+              timeframe={chartTimeframe}
+              selectedType={chartSelectedType}
+              hideControls
+              showBothTypesWhenAll
               height={260}
-              refreshTrigger={rawData}
-              showSkeleton={false}
+              loading={loading}
+              title="📊 Daily Spending Pattern"
+              onPointClick={handleDailyPointClick}
+            />
+
+            <DailySpendingDrilldownDrawer
+              open={dailyDrawerOpen}
+              onClose={handleCloseDailyDrawer}
+              point={dailySelectedPoint}
             />
           </div>
 

@@ -542,6 +542,9 @@ const DailySpendingBreakdownTooltip = ({
   totalLabel,
   totalAmount,
   totalAmountColor,
+  secondaryLabel,
+  secondaryAmount,
+  secondaryAmountColor,
   lossSection,
   gainSection,
   isAllView = false,
@@ -610,6 +613,15 @@ const DailySpendingBreakdownTooltip = ({
 
   const totalText = formatMoney(totalAmount ?? 0);
   const amountColor = totalAmountColor || frameColor;
+
+  const hasSecondary =
+    secondaryLabel &&
+    secondaryLabel.toString().trim().length > 0 &&
+    Number.isFinite(Number(secondaryAmount));
+
+  const secondaryText = hasSecondary ? formatMoney(secondaryAmount) : "";
+  const secondaryColor =
+    (secondaryAmountColor || gainAccent || frameColor) ?? "#00d4c0";
 
   const showNet = net && Number.isFinite(net.amount);
   const netAmount = showNet ? Number(net.amount) : 0;
@@ -694,6 +706,37 @@ const DailySpendingBreakdownTooltip = ({
             >
               {totalText}
             </div>
+
+            {hasSecondary ? (
+              <div style={{ marginTop: 6 }}>
+                <div
+                  style={{
+                    color: "rgba(255,255,255,0.75)",
+                    fontSize: Math.max(
+                      8,
+                      (responsive.header.labelSize ?? 9) - 1
+                    ),
+                    fontWeight: 600,
+                    letterSpacing: "0.3px",
+                  }}
+                >
+                  {secondaryLabel}
+                </div>
+                <div
+                  style={{
+                    color: secondaryColor,
+                    fontSize: Math.max(
+                      12,
+                      (responsive.header.amountSize ?? 16) - 2
+                    ),
+                    fontWeight: 900,
+                    letterSpacing: "-0.3px",
+                  }}
+                >
+                  {secondaryText}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div

@@ -218,6 +218,16 @@ const formatNumber = (value) =>
     minimumFractionDigits: 0,
   });
 
+const toNumber = (value) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+};
+
+const toNonEmptyString = (value) => {
+  const text = String(value ?? "").trim();
+  return text.length ? text : "";
+};
+
 // ============================================================================
 // SUB-COMPONENTS
 // ============================================================================
@@ -674,6 +684,13 @@ const SpendingChartTooltip = ({
   const expenses = data.expenses || [];
   const maxToShow = config.maxExpensesToShow || 5;
 
+  const isOverlayAll =
+    selectedType === "all" &&
+    (Number.isFinite(Number(data?.spendingLoss)) ||
+      Number.isFinite(Number(data?.spendingGain)) ||
+      Array.isArray(data?.expensesLoss) ||
+      Array.isArray(data?.expensesGain));
+
   let sortedExpenses = expenses;
   if (
     timeframe === "this_year" ||
@@ -734,6 +751,290 @@ const SpendingChartTooltip = ({
       data?.xLabel ||
       "";
   }
+
+  if (isOverlayAll) {
+    const point = data || {};
+    const lossTotal = toNumber(point.spendingLoss);
+    const gainTotal = toNumber(point.spendingGain);
+    const net = gainTotal - lossTotal;
+
+    const rawLossExpenses = Array.isArray(point.expensesLoss)
+      ? point.expensesLoss
+      : [];
+    const rawGainExpenses = Array.isArray(point.expensesGain)
+      ? point.expensesGain
+      : [];
+
+    const normalizeExpense = (expense, fallbackCategory) => {
+      const safe = expense && typeof expense === "object" ? expense : {};
+      const name =
+        toNonEmptyString(safe?.name) ||
+        toNonEmptyString(safe?.expenseName) ||
+        toNonEmptyString(safe?.details?.expenseName) ||
+        "Unknown";
+      const category =
+        toNonEmptyString(safe?.category) ||
+        toNonEmptyString(safe?.categoryName) ||
+        toNonEmptyString(safe?.category?.name) ||
+        toNonEmptyString(fallbackCategory) ||
+        "";
+      const amount = Math.abs(
+        toNumber(
+          safe?.amount ??
+            safe?.netAmount ??
+            safe?.details?.amount ??
+            safe?.details?.netAmount ??
+            safe?.expense?.amount ??
+            safe?.expense?.netAmount
+        )
+      );
+      return { name, category, amount };
+    };
+
+    const lossExpenses = rawLossExpenses
+      .map((e) => normalizeExpense(e))
+      .filter((e) => e.amount > 0);
+    const gainExpenses = rawGainExpenses
+      .map((e) => normalizeExpense(e))
+      .filter((e) => e.amount > 0);
+
+    const sortByAmountDesc = (list) =>
+      [...list].sort((a, b) => (b.amount || 0) - (a.amount || 0));
+
+    const sortedLoss =
+      timeframe === "this_year" ||
+      timeframe === "last_year" ||
+      timeframe === "all_time"
+        ? sortByAmountDesc(lossExpenses)
+        : lossExpenses;
+    const sortedGain =
+      timeframe === "this_year" ||
+      timeframe === "last_year" ||
+      timeframe === "all_time"
+        ? sortByAmountDesc(gainExpenses)
+        : gainExpenses;
+
+    const hasLoss = lossTotal > 0 || sortedLoss.length > 0;
+    const hasGain = gainTotal > 0 || sortedGain.length > 0;
+
+    const lossMax = hasLoss && hasGain ? Math.ceil(maxToShow / 2) : maxToShow;
+    const gainMax = hasLoss && hasGain ? Math.floor(maxToShow / 2) : maxToShow;
+
+    const displayLoss = sortedLoss.slice(0, lossMax);
+    const displayGain = sortedGain.slice(0, gainMax);
+    const remainingLoss = Math.max(0, sortedLoss.length - displayLoss.length);
+    const remainingGain = Math.max(0, sortedGain.length - displayGain.length);
+
+    const responsiveStyles = getResponsiveStyles(config.responsive !== false);
+
+    const headerRow = (label, value, accent) => (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: 10,
+        }}
+      >
+        <div
+          style={{
+            color: "rgba(255,255,255,0.8)",
+            fontSize: responsiveStyles.typography.label,
+            fontWeight: 600,
+            letterSpacing: "0.3px",
+          }}
+        >
+          {label}
+        </div>
+        <div
+          style={{
+            color: accent,
+            fontSize: responsiveStyles.typography.amount,
+            fontWeight: 900,
+            whiteSpace: "nowrap",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {currencySymbol}
+          {formatNumber(value)}
+        </div>
+      </div>
+    );
+
+    const sectionTitle = (title, accent) => (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          marginTop: 10,
+          marginBottom: 8,
+        }}
+      >
+        <div
+          style={{
+            color: accent,
+            fontWeight: 900,
+            fontSize: 12,
+            letterSpacing: "0.4px",
+            textTransform: "uppercase",
+          }}
+        >
+          {title}
+        </div>
+        <div
+          style={{
+            color: colors.secondary_text,
+            fontWeight: 800,
+            fontSize: 11,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {title === "Loss" ? sortedLoss.length : sortedGain.length}
+        </div>
+      </div>
+    );
+
+    const containerStyles = mergeStyles(
+      {
+        border: `${responsiveStyles.container.borderWidth}px solid ${theme.border}`,
+        borderRadius: responsiveStyles.container.borderRadius,
+        color: colors.primary_text,
+        padding: 0,
+        minWidth: config.minWidth || responsiveStyles.container.minWidth,
+        maxWidth: config.maxWidth || responsiveStyles.container.maxWidth,
+        transform: "translateY(-20px)",
+        boxShadow:
+          "0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)",
+        overflow: "hidden",
+        background: "transparent",
+      },
+      config.style
+    );
+
+    const headerGradient =
+      "linear-gradient(135deg, rgba(250, 219, 20, 0.82) 0%, rgba(0, 212, 192, 0.55) 100%)";
+
+    return (
+      <div style={containerStyles}>
+        <div
+          style={{
+            padding: responsiveStyles.header.padding,
+            background: headerGradient,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <DecorativeCircles />
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: responsiveStyles.spacing.gap,
+              color: "rgba(255,255,255,0.9)",
+              fontSize: responsiveStyles.typography.date,
+              fontWeight: 700,
+              letterSpacing: "0.6px",
+              textTransform: "uppercase",
+            }}
+          >
+            <CalendarIcon
+              size={responsiveStyles.icons.date}
+              color="rgba(255, 255, 255, 0.9)"
+            />
+            <span>{dateLabel}</span>
+          </div>
+
+          <div style={{ marginTop: 6, display: "grid", gap: 6 }}>
+            {headerRow("Total Spending", lossTotal, "#ffffff")}
+            {headerRow("Total Income", gainTotal, "#ffffff")}
+            {headerRow("Net", Math.abs(net), net >= 0 ? "#ffffff" : "#ffffff")}
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: responsiveStyles.body.padding,
+            background: colors.primary_bg,
+            borderTop: `1px solid ${colors.border_color}`,
+          }}
+        >
+          {hasLoss ? (
+            <>
+              {sectionTitle("Loss", "#ff5252")}
+              <div
+                style={{
+                  display: "grid",
+                  gap: responsiveStyles.spacing.itemGap,
+                }}
+              >
+                {displayLoss.map((expense, idx) => (
+                  <TransactionItem
+                    key={`loss-${idx}`}
+                    expense={expense}
+                    theme={{ ...theme, color: "#ff5252" }}
+                    responsiveStyles={responsiveStyles}
+                    colors={colors}
+                    currencySymbol={currencySymbol}
+                  />
+                ))}
+                {remainingLoss > 0 ? (
+                  <div
+                    style={{
+                      color: colors.secondary_text,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textAlign: "right",
+                    }}
+                  >
+                    +{remainingLoss} more
+                  </div>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+
+          {hasGain ? (
+            <>
+              {sectionTitle("Gain", "#00d4c0")}
+              <div
+                style={{
+                  display: "grid",
+                  gap: responsiveStyles.spacing.itemGap,
+                }}
+              >
+                {displayGain.map((expense, idx) => (
+                  <TransactionItem
+                    key={`gain-${idx}`}
+                    expense={expense}
+                    theme={{ ...theme, color: "#00d4c0" }}
+                    responsiveStyles={responsiveStyles}
+                    colors={colors}
+                    currencySymbol={currencySymbol}
+                  />
+                ))}
+                {remainingGain > 0 ? (
+                  <div
+                    style={{
+                      color: colors.secondary_text,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textAlign: "right",
+                    }}
+                  >
+                    +{remainingGain} more
+                  </div>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   const isLoss = selectedType === "loss";
 
   return (
