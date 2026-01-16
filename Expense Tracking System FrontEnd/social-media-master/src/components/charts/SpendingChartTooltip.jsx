@@ -684,6 +684,36 @@ const SpendingChartTooltip = ({
   const expenses = data.expenses || [];
   const maxToShow = config.maxExpensesToShow || 5;
 
+  const normalizeExpense = (expense, fallbackCategory) => {
+    const safe = expense && typeof expense === "object" ? expense : {};
+    const exp = safe.details || safe.expense || {}; // Add support for backend DTO structure
+    const name =
+      toNonEmptyString(exp?.expenseName) || // Check nested DTO first
+      toNonEmptyString(safe?.name) ||
+      toNonEmptyString(safe?.expenseName) ||
+      toNonEmptyString(safe?.details?.expenseName) ||
+      "Unknown";
+    const category =
+      toNonEmptyString(safe?.category) ||
+      toNonEmptyString(safe?.categoryName) ||
+      toNonEmptyString(safe?.category?.name) ||
+      toNonEmptyString(fallbackCategory) ||
+      "";
+    const amount = Math.abs(
+      toNumber(
+        exp?.amount ??
+          exp?.netAmount ??
+          safe?.amount ??
+          safe?.netAmount ??
+          safe?.details?.amount ??
+          safe?.details?.netAmount ??
+          safe?.expense?.amount ??
+          safe?.expense?.netAmount
+      )
+    );
+    return { name, category, amount };
+  };
+
   const isOverlayAll =
     selectedType === "all" &&
     (Number.isFinite(Number(data?.spendingLoss)) ||
@@ -691,7 +721,7 @@ const SpendingChartTooltip = ({
       Array.isArray(data?.expensesLoss) ||
       Array.isArray(data?.expensesGain));
 
-  let sortedExpenses = expenses;
+  let sortedExpenses = expenses.map((e) => normalizeExpense(e));
   if (
     timeframe === "this_year" ||
     timeframe === "last_year" ||
@@ -765,32 +795,6 @@ const SpendingChartTooltip = ({
       ? point.expensesGain
       : [];
 
-    const normalizeExpense = (expense, fallbackCategory) => {
-      const safe = expense && typeof expense === "object" ? expense : {};
-      const name =
-        toNonEmptyString(safe?.name) ||
-        toNonEmptyString(safe?.expenseName) ||
-        toNonEmptyString(safe?.details?.expenseName) ||
-        "Unknown";
-      const category =
-        toNonEmptyString(safe?.category) ||
-        toNonEmptyString(safe?.categoryName) ||
-        toNonEmptyString(safe?.category?.name) ||
-        toNonEmptyString(fallbackCategory) ||
-        "";
-      const amount = Math.abs(
-        toNumber(
-          safe?.amount ??
-            safe?.netAmount ??
-            safe?.details?.amount ??
-            safe?.details?.netAmount ??
-            safe?.expense?.amount ??
-            safe?.expense?.netAmount
-        )
-      );
-      return { name, category, amount };
-    };
-
     const lossExpenses = rawLossExpenses
       .map((e) => normalizeExpense(e))
       .filter((e) => e.amount > 0);
@@ -827,7 +831,7 @@ const SpendingChartTooltip = ({
 
     const responsiveStyles = getResponsiveStyles(config.responsive !== false);
 
-    const headerRow = (label, value, accent) => (
+    const headerRow = (label, value, accent, isNet) => (
       <div
         style={{
           display: "flex",
@@ -838,9 +842,9 @@ const SpendingChartTooltip = ({
       >
         <div
           style={{
-            color: "rgba(255,255,255,0.8)",
-            fontSize: responsiveStyles.typography.label,
-            fontWeight: 600,
+            color: "rgba(255,255,255,0.95)",
+            fontSize: isNet ? 13 : 12, // Increased label size
+            fontWeight: 700,
             letterSpacing: "0.3px",
           }}
         >
@@ -849,8 +853,8 @@ const SpendingChartTooltip = ({
         <div
           style={{
             color: accent,
-            fontSize: responsiveStyles.typography.amount,
-            fontWeight: 900,
+            fontSize: isNet ? 16 : 15, // Reverted value size
+            fontWeight: 800,
             whiteSpace: "nowrap",
             fontVariantNumeric: "tabular-nums",
           }}
@@ -868,15 +872,15 @@ const SpendingChartTooltip = ({
           alignItems: "center",
           justifyContent: "space-between",
           gap: 10,
-          marginTop: 10,
-          marginBottom: 8,
+          marginTop: 4, // Reduced margin
+          marginBottom: 3, // Reduced margin
         }}
       >
         <div
           style={{
             color: accent,
             fontWeight: 900,
-            fontSize: 12,
+            fontSize: 10, // Smaller font
             letterSpacing: "0.4px",
             textTransform: "uppercase",
           }}
@@ -887,7 +891,7 @@ const SpendingChartTooltip = ({
           style={{
             color: colors.secondary_text,
             fontWeight: 800,
-            fontSize: 11,
+            fontSize: 9, // Smaller font
             fontVariantNumeric: "tabular-nums",
           }}
         >
@@ -902,8 +906,9 @@ const SpendingChartTooltip = ({
         borderRadius: responsiveStyles.container.borderRadius,
         color: colors.primary_text,
         padding: 0,
-        minWidth: config.minWidth || responsiveStyles.container.minWidth,
-        maxWidth: config.maxWidth || responsiveStyles.container.maxWidth,
+        width: 260, // Enforce constant width
+        minWidth: 260,
+        maxWidth: 260,
         transform: "translateY(-20px)",
         boxShadow:
           "0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)",
@@ -914,43 +919,86 @@ const SpendingChartTooltip = ({
     );
 
     const headerGradient =
-      "linear-gradient(135deg, rgba(250, 219, 20, 0.82) 0%, rgba(0, 212, 192, 0.55) 100%)";
+      "linear-gradient(135deg, rgba(250, 219, 20, 0.95) 0%, rgba(212, 177, 6, 0.95) 100%)";
+
+    const tooltipBorderColor = "#fadb14"; // Yellow for All view
+    const tooltipBorder = `${responsiveStyles.container.borderWidth}px solid ${tooltipBorderColor}`;
+
+    const sectionCardStyle = (accent) => ({
+      background:
+        accent === "#ff5252"
+          ? "rgba(255, 82, 82, 0.06)"
+          : "rgba(0, 212, 192, 0.06)",
+      border: `1px solid ${
+        accent === "#ff5252"
+          ? "rgba(255, 82, 82, 0.2)"
+          : "rgba(0, 212, 192, 0.2)"
+      }`,
+      borderRadius: 10, // Slightly tighter radius
+      padding: "6px 8px 8px 8px", // Compact padding
+      marginTop: 4,
+      marginBottom: 4,
+    });
+
+    const headerCompactStyle = {
+      padding: "8px 12px 6px", // Reduced padding
+      background: headerGradient,
+      position: "relative",
+      overflow: "hidden",
+    };
 
     return (
-      <div style={containerStyles}>
-        <div
-          style={{
-            padding: responsiveStyles.header.padding,
-            background: headerGradient,
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
+      <div
+        style={{
+          ...containerStyles,
+          border: tooltipBorder,
+          boxShadow:
+            "0 12px 32px -4px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)",
+        }}
+      >
+        <div style={headerCompactStyle}>
           <DecorativeCircles />
 
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: responsiveStyles.spacing.gap,
-              color: "rgba(255,255,255,0.9)",
-              fontSize: responsiveStyles.typography.date,
-              fontWeight: 700,
-              letterSpacing: "0.6px",
+              gap: 6,
+              color: "rgba(255,255,255,0.95)",
+              fontSize: 10, // hardcoded small size for date
+              fontWeight: 800,
+              letterSpacing: "0.5px",
               textTransform: "uppercase",
+              marginBottom: 2, // minimal margin
+              position: "relative",
+              zIndex: 1,
             }}
           >
-            <CalendarIcon
-              size={responsiveStyles.icons.date}
-              color="rgba(255, 255, 255, 0.9)"
-            />
+            <CalendarIcon size={12} color="rgba(255, 255, 255, 0.95)" />
             <span>{dateLabel}</span>
           </div>
 
-          <div style={{ marginTop: 6, display: "grid", gap: 6 }}>
-            {headerRow("Total Spending", lossTotal, "#ffffff")}
-            {headerRow("Total Income", gainTotal, "#ffffff")}
-            {headerRow("Net", Math.abs(net), net >= 0 ? "#ffffff" : "#ffffff")}
+          <div
+            style={{
+              display: "grid",
+              gap: 0,
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
+            {headerRow(
+              "Total Spending",
+              lossTotal,
+              "rgba(255, 255, 255, 0.95)",
+              false
+            )}
+            {headerRow(
+              "Total Income",
+              gainTotal,
+              "rgba(255, 255, 255, 0.95)",
+              false
+            )}
+            {headerRow("Net", Math.abs(net), "rgba(255, 255, 255, 1)", true)}
           </div>
         </div>
 
@@ -958,11 +1006,10 @@ const SpendingChartTooltip = ({
           style={{
             padding: responsiveStyles.body.padding,
             background: colors.primary_bg,
-            borderTop: `1px solid ${colors.border_color}`,
           }}
         >
           {hasLoss ? (
-            <>
+            <div style={sectionCardStyle("#ff5252")}>
               {sectionTitle("Loss", "#ff5252")}
               <div
                 style={{
@@ -987,17 +1034,18 @@ const SpendingChartTooltip = ({
                       fontSize: 11,
                       fontWeight: 700,
                       textAlign: "right",
+                      marginTop: 4,
                     }}
                   >
                     +{remainingLoss} more
                   </div>
                 ) : null}
               </div>
-            </>
+            </div>
           ) : null}
 
           {hasGain ? (
-            <>
+            <div style={sectionCardStyle("#00d4c0")}>
               {sectionTitle("Gain", "#00d4c0")}
               <div
                 style={{
@@ -1022,13 +1070,14 @@ const SpendingChartTooltip = ({
                       fontSize: 11,
                       fontWeight: 700,
                       textAlign: "right",
+                      marginTop: 4,
                     }}
                   >
                     +{remainingGain} more
                   </div>
                 ) : null}
               </div>
-            </>
+            </div>
           ) : null}
         </div>
       </div>

@@ -2782,31 +2782,7 @@ public class ExpenseController extends BaseExpenseController {
                         .collect(Collectors.toCollection(LinkedHashSet::new));
                 groupBlock.put("paymentMethods", paymentMethods);
 
-                List<Map<String, Object>> expenseEntries = list.stream().map(expDTO -> {
-                    Map<String, Object> entry = new LinkedHashMap<>();
-                    if (expDTO.getDate() != null) {
-                        entry.put("date", expDTO.getDate());
-                    }
-                    entry.put("id", expDTO.getId());
-
-                    Map<String, Object> details = new LinkedHashMap<>();
-                    ExpenseDetailsDTO d = expDTO.getExpense();
-                    if (d != null) {
-                        details.put("amount", d.getAmount());
-                        details.put("comments", d.getComments());
-                        details.put("netAmount", d.getNetAmount());
-                        details.put("paymentMethod", d.getPaymentMethod());
-                        details.put("id", d.getId());
-                        details.put("type", d.getType());
-                        details.put("expenseName", d.getExpenseName());
-                        details.put("creditDue", d.getCreditDue());
-                        details.put("masked", d.isMasked());
-                    }
-                    entry.put("details", details);
-                    return entry;
-                }).collect(Collectors.toList());
-
-                groupBlock.put("expenses", expenseEntries);
+                groupBlock.put("expenses", list);
                 response.put(expenseName, groupBlock);
             });
 

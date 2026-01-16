@@ -44,8 +44,10 @@ const GroupedExpensesAccordion = ({
         const rawItems = Array.isArray(m.expenses) ? m.expenses : [];
         // Sort individual expenses descending by their primary amount (amount or netAmount fallback)
         const items = [...rawItems].sort((a, b) => {
-          const aAmt = Number(a?.details?.amount ?? a?.details?.netAmount ?? 0);
-          const bAmt = Number(b?.details?.amount ?? b?.details?.netAmount ?? 0);
+          const detA = a?.details || a?.expense || {};
+          const detB = b?.details || b?.expense || {};
+          const aAmt = Number(detA?.amount ?? detA?.netAmount ?? 0);
+          const bAmt = Number(detB?.amount ?? detB?.netAmount ?? 0);
           return bAmt - aAmt; // descending
         });
         const count = Number(m.transactions || items.length);
@@ -53,10 +55,10 @@ const GroupedExpensesAccordion = ({
           grandTotal > 0 ? ((total / grandTotal) * 100).toFixed(2) : "0.00";
         const avgPerTransaction =
           count > 0 ? (total / count).toFixed(2) : "0.00";
-        const creditDueTotal = items.reduce(
-          (sum, row) => sum + Number(row?.details?.creditDue || 0),
-          0
-        );
+        const creditDueTotal = items.reduce((sum, row) => {
+          const details = row?.details || row?.expense || {};
+          return sum + Number(details?.creditDue || 0);
+        }, 0);
         return {
           label: m.method,
           totalAmount: total,
@@ -85,23 +87,28 @@ const GroupedExpensesAccordion = ({
       key: "name",
       label: "Expense Name",
       width: "230px",
-      value: (row) => row.details?.expenseName || "-",
-      sortValue: (row) => String(row.details?.expenseName || "").toLowerCase(),
+      value: (row) => (row.details || row.expense)?.expenseName || "-",
+      sortValue: (row) =>
+        String((row.details || row.expense)?.expenseName || "").toLowerCase(),
     },
     {
       key: "amount",
       label: "Amount",
       width: "100px",
-      value: (row) => row.details?.amount ?? row.details?.netAmount ?? 0,
-      sortValue: (row) =>
-        Number(row.details?.amount ?? row.details?.netAmount ?? 0),
+      value: (row) => {
+        const d = row.details || row.expense || {};
+        return d.amount ?? d.netAmount ?? 0;
+      },
+      sortValue: (row) => {
+        const d = row.details || row.expense || {};
+        return Number(d.amount ?? d.netAmount ?? 0);
+      },
       className: (row) => {
-        const rawType = (row?.details?.type || "").toLowerCase();
+        const d = row.details || row.expense || {};
+        const rawType = (d.type || "").toLowerCase();
         if (rawType === "loss") return "pm-negative";
         if (rawType === "gain" || rawType === "profit") return "pm-positive";
-        const amt = Number(
-          row?.details?.amount ?? row?.details?.netAmount ?? 0
-        );
+        const amt = Number(d.amount ?? d.netAmount ?? 0);
         return amt < 0 ? "pm-negative" : "pm-positive";
       },
     },
@@ -109,13 +116,17 @@ const GroupedExpensesAccordion = ({
       key: "netAmount",
       label: "Net",
       width: "90px",
-      value: (row) => row.details?.netAmount ?? row.details?.amount ?? 0,
-      sortValue: (row) =>
-        Number(row.details?.netAmount ?? row.details?.amount ?? 0),
+      value: (row) => {
+        const d = row.details || row.expense || {};
+        return d.netAmount ?? d.amount ?? 0;
+      },
+      sortValue: (row) => {
+        const d = row.details || row.expense || {};
+        return Number(d.netAmount ?? d.amount ?? 0);
+      },
       className: (row) => {
-        const net = Number(
-          row?.details?.netAmount ?? row?.details?.amount ?? 0
-        );
+        const d = row.details || row.expense || {};
+        const net = Number(d.netAmount ?? d.amount ?? 0);
         return net < 0 ? "pm-negative" : "pm-positive";
       },
     },
@@ -123,24 +134,31 @@ const GroupedExpensesAccordion = ({
       key: "creditDue",
       label: "Credit Due",
       width: "110px",
-      value: (row) =>
-        row.details?.creditDue != null ? row.details.creditDue : "-",
-      sortValue: (row) => Number(row.details?.creditDue ?? 0),
+      value: (row) => {
+        const d = row.details || row.expense || {};
+        return d.creditDue != null ? d.creditDue : "-";
+      },
+      sortValue: (row) => {
+        const d = row.details || row.expense || {};
+        return Number(d.creditDue ?? 0);
+      },
     },
     {
       key: "comments",
       label: "Comments",
       width: "240px",
-      value: (row) => row.details?.comments || "",
-      sortValue: (row) => String(row.details?.comments || "").toLowerCase(),
+      value: (row) => (row.details || row.expense)?.comments || "",
+      sortValue: (row) =>
+        String((row.details || row.expense)?.comments || "").toLowerCase(),
     },
   ];
 
   const classify = (row) => {
-    const rawType = (row?.details?.type || "").toLowerCase();
+    const d = row.details || row.expense || {};
+    const rawType = (d.type || "").toLowerCase();
     if (rawType === "loss") return "loss";
     if (rawType === "gain" || rawType === "profit") return "profit";
-    const amt = Number(row?.details?.amount ?? row?.details?.netAmount ?? 0);
+    const amt = Number(d.amount ?? d.netAmount ?? 0);
     if (amt < 0) return "loss";
     if (amt > 0) return "profit";
     return "all";
