@@ -1,17 +1,20 @@
 package com.jaya.service;
 
 import com.jaya.dto.BatchShareRequestItem;
+import com.jaya.dto.FriendshipReportDTO;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
 import com.jaya.models.UserDto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 public interface FriendshipService {
     // Returns all friends (UserDto) of the user whose friendship status is ACCEPTED
     List<UserDto> getFriendsOfUser(Integer userId) throws Exception;
+
     Friendship sendFriendRequest(Integer requesterId, Integer recipientId) throws Exception;
 
     Friendship respondToRequest(Integer friendshipId, Integer responderId, boolean accept);
@@ -61,27 +64,28 @@ public interface FriendshipService {
     boolean canUserModifyExpenses(Integer ownerId, Integer viewerId) throws Exception;
 
     List<Friendship> getAllUserFriendships(Integer userId) throws Exception;
+
     Friendship getFriendship(Integer userId1, Integer userId2) throws Exception;
 
     boolean areFriends(Integer userId1, Integer userId2) throws Exception;
 
     void updateFriendship(Friendship friendship);
 
-
     List<String> batchShareExpenses(Integer userId, List<BatchShareRequestItem> requests);
-
 
     List<Map<String, Object>> getRecommendedToShare(Integer userId) throws Exception;
 
     Map<String, Object> getExpenseSharingSummary(Integer userId) throws Exception;
 
-
-    Map<String, Object> quickShareExpenses(Integer currentUserId, Integer targetUserId, AccessLevel accessLevel) throws Exception;
-
+    Map<String, Object> quickShareExpenses(Integer currentUserId, Integer targetUserId, AccessLevel accessLevel)
+            throws Exception;
 
     List<Map<String, Object>> getSharedWithMe(Integer userId) throws Exception;
+
     List<Map<String, Object>> getISharedWith(Integer userId) throws Exception;
+
     Friendship getFriendshipById(Integer friendshipId, Integer userId);
+
     Map<String, Object> getExpenseAccessInfo(Integer ownerId, Integer viewerId) throws Exception;
 
     // FriendshipService.java
@@ -89,4 +93,16 @@ public interface FriendshipService {
 
     // In FriendshipService.java
     Map<String, Object> getFriendshipDetails(Integer userId1, Integer userId2) throws Exception;
+
+    // Friendship Report
+    FriendshipReportDTO generateFriendshipReport(
+            Integer userId,
+            LocalDateTime fromDate,
+            LocalDateTime toDate,
+            FriendshipStatus status,
+            AccessLevel accessLevel,
+            String sortBy,
+            String sortDirection,
+            int page,
+            int size) throws Exception;
 }

@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState, useMemo, useCallback } from "react";
+import { useSelector } from "react-redux";
 import {
   BarChart,
   Bar,
@@ -20,18 +20,17 @@ import {
 import "./FriendshipReport.css";
 import { IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import AssessmentIcon from "@mui/icons-material/Assessment";
 import { useNavigate } from "react-router-dom";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTheme } from "../../hooks/useTheme";
 import ReportHeader from "../../components/ReportHeader";
 import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
-import {
-  fetchFriends,
-  fetchFriendRequests,
-  fetchISharedWith,
-  fetchSharedWithMe,
-} from "../../Redux/Friends/friendsActions";
+import ReportFilterDrawer from "../../components/reportFilters/ReportFilterDrawer";
+import useFriendshipReportFilters, {
+  FRIENDSHIP_STATUS_OPTIONS,
+  ACCESS_LEVEL_OPTIONS,
+  FRIENDSHIP_TIMEFRAME_OPTIONS,
+} from "../../hooks/reportFilters/useFriendshipReportFilters";
 
 // Skeleton Components with theme support
 const BarChartSkeletonInner = ({ mode }) => (
@@ -240,7 +239,7 @@ const TopFriendsChart = ({ data, colors }) => (
           minAngle={15}
           background
           clockWise
-          dataKey="interactions"
+          dataKey="interactionScore"
           label={{ fill: colors.primary_text, position: "insideStart" }}
         />
         <Legend
@@ -295,35 +294,37 @@ const FriendsTable = ({ friends, colors }) => (
               <tr key={friend.id} style={{ borderColor: colors.border_color }}>
                 <td style={{ color: colors.primary_text }}>
                   <div className="friend-name">
-                    <strong>{friend.name}</strong>
+                    <strong>{friend.friendName}</strong>
                     <small style={{ color: colors.tertiary_text }}>
-                      {friend.email}
+                      {friend.friendEmail}
                     </small>
                   </div>
                 </td>
                 <td>
                   <span
-                    className={`status-badge ${friend.status.toLowerCase()}`}
+                    className={`status-badge ${friend.status?.toLowerCase()}`}
                   >
                     {friend.status}
                   </span>
                 </td>
                 <td>
                   <span
-                    className={`access-badge ${friend.myAccess.toLowerCase()}`}
+                    className={`access-badge ${friend.myAccessLevel?.toLowerCase()}`}
                   >
-                    {friend.myAccess}
+                    {friend.myAccessLevel}
                   </span>
                 </td>
                 <td>
                   <span
-                    className={`access-badge ${friend.theirAccess.toLowerCase()}`}
+                    className={`access-badge ${friend.theirAccessLevel?.toLowerCase()}`}
                   >
-                    {friend.theirAccess}
+                    {friend.theirAccessLevel}
                   </span>
                 </td>
                 <td style={{ color: colors.secondary_text }}>
-                  {friend.connectedSince}
+                  {friend.connectedSince
+                    ? new Date(friend.connectedSince).toLocaleDateString()
+                    : "N/A"}
                 </td>
               </tr>
             ))}
@@ -345,43 +346,36 @@ const NoDataMessage = ({ colors }) => (
 );
 
 const FriendshipReport = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { colors, mode } = useTheme();
   const settings = useUserSettings();
 
   const [reportActionAnchorEl, setReportActionAnchorEl] = useState(null);
 
-  // Get data from Redux store
+  // Use the filters hook
   const {
-    friends = [],
-    loadingFriends = false,
-    friendRequests = [],
-    loadingRequests = false,
-    iSharedWith = [],
-    loadingISharedWith = false,
-    sharedWithMe = [],
-    loadingSharedWithMe = false,
-  } = useSelector((state) => state.friends || {});
-
-  const user = useSelector((state) => state.auth.user);
-  const token = localStorage.getItem("jwt");
-
-  // Fetch data on mount
-  useEffect(() => {
-    if (token) {
-      dispatch(fetchFriends(token));
-      dispatch(fetchFriendRequests(token));
-      dispatch(fetchISharedWith(token));
-      dispatch(fetchSharedWithMe(token));
-    }
-  }, [dispatch, token]);
-
-  const loading =
-    loadingFriends ||
-    loadingRequests ||
-    loadingISharedWith ||
-    loadingSharedWithMe;
+    friendshipReport,
+    loading,
+    error,
+    timeframe,
+    status,
+    accessLevel,
+    setTimeframe,
+    setStatus,
+    setAccessLevel,
+    isFilterOpen,
+    openFilters,
+    closeFilters,
+    applyFilters,
+    resetFilters,
+    fetchReport,
+    filterValues,
+    filtersActive,
+    activeDateRange,
+    setCustomDateRange,
+    resetDateRange,
+    isCustomRange,
+  } = useFriendshipReportFilters();
 
   // COLORS for charts
   const COLORS = [
@@ -393,108 +387,64 @@ const FriendshipReport = () => {
     "#10b981",
   ];
 
-  // Compute analytics from real data
-  const analytics = useMemo(() => {
-    const totalFriends = friends.length;
-    const pendingRequests = friendRequests.length;
-    const sharedWithMeCount = sharedWithMe.length;
-    const iSharedWithCount = iSharedWith.length;
-
-    // Count access levels from friends
-    const accessLevelCounts = {
-      FULL: 0,
-      WRITE: 0,
-      READ: 0,
-      NONE: 0,
-    };
-
-    friends.forEach((friendship) => {
-      const myAccess = friendship.recipientAccess || "NONE";
-      if (accessLevelCounts[myAccess] !== undefined) {
-        accessLevelCounts[myAccess]++;
-      }
-    });
-
-    return {
-      totalFriends,
-      pendingRequests,
-      sharedWithMeCount,
-      iSharedWithCount,
-      accessLevelCounts,
-    };
-  }, [friends, friendRequests, sharedWithMe, iSharedWith]);
-
-  // Prepare chart data
-  const accessLevelData = useMemo(
-    () =>
-      [
-        { name: "Full Access", value: analytics.accessLevelCounts.FULL },
-        { name: "Write Access", value: analytics.accessLevelCounts.WRITE },
-        { name: "Read Access", value: analytics.accessLevelCounts.READ },
-        { name: "No Access", value: analytics.accessLevelCounts.NONE },
-      ].filter((item) => item.value > 0),
-    [analytics]
-  );
-
-  // Dummy activity data (will be replaced with real API data later)
-  const activityData = useMemo(
-    () => [
-      { month: "Aug", newFriends: 2, requestsSent: 3, requestsReceived: 1 },
-      { month: "Sep", newFriends: 1, requestsSent: 2, requestsReceived: 2 },
-      { month: "Oct", newFriends: 3, requestsSent: 4, requestsReceived: 3 },
-      { month: "Nov", newFriends: 2, requestsSent: 1, requestsReceived: 2 },
-      { month: "Dec", newFriends: 4, requestsSent: 5, requestsReceived: 4 },
+  // Prepare chart data from report
+  const accessLevelData = useMemo(() => {
+    if (!friendshipReport?.accessLevelDistribution) return [];
+    return [
       {
-        month: "Jan",
-        newFriends: analytics.totalFriends > 0 ? 1 : 0,
-        requestsSent: analytics.pendingRequests,
-        requestsReceived: 2,
+        name: "Full Access",
+        value: friendshipReport.accessLevelDistribution.FULL || 0,
       },
-    ],
-    [analytics]
-  );
+      {
+        name: "Write Access",
+        value: friendshipReport.accessLevelDistribution.WRITE || 0,
+      },
+      {
+        name: "Read Access",
+        value: friendshipReport.accessLevelDistribution.READ || 0,
+      },
+      {
+        name: "No Access",
+        value: friendshipReport.accessLevelDistribution.NONE || 0,
+      },
+    ].filter((item) => item.value > 0);
+  }, [friendshipReport]);
 
-  const sharingStatusData = useMemo(
-    () => [
-      { name: "I Shared With", count: analytics.iSharedWithCount },
-      { name: "Shared With Me", count: analytics.sharedWithMeCount },
-      { name: "Pending Requests", count: analytics.pendingRequests },
-      { name: "Total Friends", count: analytics.totalFriends },
-    ],
-    [analytics]
-  );
+  const activityData = useMemo(() => {
+    return friendshipReport?.monthlyActivity || [];
+  }, [friendshipReport]);
 
-  // Top friends data (dummy for now)
+  const sharingStatusData = useMemo(() => {
+    return friendshipReport?.sharingStatus || [];
+  }, [friendshipReport]);
+
   const topFriendsData = useMemo(() => {
-    return friends.slice(0, 5).map((friendship, index) => {
-      const friend = friendship.recipient || friendship.requester || {};
-      return {
-        name: `${friend.firstName || "Friend"} ${
-          friend.lastName || index + 1
-        }`.substring(0, 12),
-        interactions: Math.floor(Math.random() * 50) + 10,
-        fill: COLORS[index % COLORS.length],
-      };
-    });
-  }, [friends]);
+    return friendshipReport?.topFriends || [];
+  }, [friendshipReport]);
 
-  // Friends table data
   const friendsTableData = useMemo(() => {
-    return friends.map((friendship) => {
-      const friend = friendship.recipient || friendship.requester || {};
-      return {
-        id: friendship.id,
-        name: `${friend.firstName || "Unknown"} ${friend.lastName || ""}`,
-        email: friend.email || "N/A",
-        status: friendship.status || "ACCEPTED",
-        myAccess: friendship.recipientAccess || "NONE",
-        theirAccess: friendship.requesterAccess || "NONE",
-        connectedSince: friendship.createdAt
-          ? new Date(friendship.createdAt).toLocaleDateString()
-          : "N/A",
-      };
-    });
-  }, [friends]);
+    return friendshipReport?.friendships || [];
+  }, [friendshipReport]);
+
+  // Overview cards data - extract from sharingStatus array
+  const overviewCardsData = useMemo(() => {
+    const sharingStatus = friendshipReport?.sharingStatus || [];
+
+    // Helper to find value by name in sharingStatus array
+    const getCountByName = (name) => {
+      const item = sharingStatus.find((s) => s.name === name);
+      return item?.count || 0;
+    };
+
+    return [
+      {
+        totalFriends: getCountByName("Total Friends"),
+        pendingRequests: getCountByName("Pending Requests"),
+        iSharedWithCount: getCountByName("I Shared With"),
+        sharedWithMeCount: getCountByName("Shared With Me"),
+      },
+    ];
+  }, [friendshipReport]);
 
   const handleBack = () => {
     navigate("/friends");
@@ -510,12 +460,7 @@ const FriendshipReport = () => {
 
   const handleReportMenuItemClick = (action) => {
     if (action === "refresh") {
-      if (token) {
-        dispatch(fetchFriends(token));
-        dispatch(fetchFriendRequests(token));
-        dispatch(fetchISharedWith(token));
-        dispatch(fetchSharedWithMe(token));
-      }
+      fetchReport();
     } else if (action === "export") {
       console.log("Export CSV requested");
     } else if (action === "pdf") {
@@ -524,18 +469,41 @@ const FriendshipReport = () => {
     handleReportActionClose();
   };
 
-  // Prepare overview cards data for SharedOverviewCards component
-  const overviewCardsData = useMemo(
+  // Build filter sections for drawer
+  const filterSections = useMemo(
     () => [
       {
-        totalFriends: analytics.totalFriends,
-        pendingRequests: analytics.pendingRequests,
-        iSharedWithCount: analytics.iSharedWithCount,
-        sharedWithMeCount: analytics.sharedWithMeCount,
+        key: "timeframe",
+        label: "Time Period",
+        type: "select",
+        options: FRIENDSHIP_TIMEFRAME_OPTIONS,
+      },
+      {
+        key: "status",
+        label: "Friendship Status",
+        type: "select",
+        options: FRIENDSHIP_STATUS_OPTIONS,
+      },
+      {
+        key: "accessLevel",
+        label: "Access Level",
+        type: "select",
+        options: ACCESS_LEVEL_OPTIONS,
       },
     ],
-    [analytics]
+    []
   );
+
+  const handleApplyFilters = useCallback(
+    (newValues) => {
+      applyFilters(newValues);
+    },
+    [applyFilters]
+  );
+
+  const handleResetFilters = useCallback(() => {
+    resetFilters();
+  }, [resetFilters]);
 
   if (loading) {
     return <LoadingSkeleton mode={mode} />;
@@ -646,6 +614,9 @@ const FriendshipReport = () => {
     </>
   );
 
+  const totalFriends = friendshipReport?.totalFriends || 0;
+  const pendingRequests = friendshipReport?.pendingRequests || 0;
+
   return (
     <div className={`friendship-report ${mode}`}>
       <ReportHeader
@@ -653,14 +624,37 @@ const FriendshipReport = () => {
         subtitle="Analytics and insights about your connections"
         onBack={handleBack}
         rightActions={reportHeaderActions}
-        showFilterButton={false}
+        showFilterButton={true}
+        onFilter={openFilters}
+        isFilterActive={filtersActive}
         showExportButton={false}
+        timeframe={timeframe}
+        onTimeframeChange={setTimeframe}
+        timeframeOptions={FRIENDSHIP_TIMEFRAME_OPTIONS}
+        enableDateRangeBadge={true}
+        isCustomRangeActive={isCustomRange}
+        dateRangeProps={{
+          fromDate: activeDateRange.fromDate,
+          toDate: activeDateRange.toDate,
+          onApply: setCustomDateRange,
+          onReset: resetDateRange,
+        }}
+      />
+
+      {/* Filter Drawer */}
+      <ReportFilterDrawer
+        open={isFilterOpen}
+        onClose={closeFilters}
+        sections={filterSections}
+        values={filterValues}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
       />
 
       {/* Overview Cards */}
       <SharedOverviewCards data={overviewCardsData} mode="friendship" />
 
-      {analytics.totalFriends === 0 && analytics.pendingRequests === 0 ? (
+      {totalFriends === 0 && pendingRequests === 0 ? (
         <NoDataMessage colors={colors} />
       ) : (
         <>
@@ -672,8 +666,12 @@ const FriendshipReport = () => {
                 colors={colors}
               />
             )}
-            <FriendshipActivityChart data={activityData} colors={colors} />
-            <SharingStatusChart data={sharingStatusData} colors={colors} />
+            {activityData.length > 0 && (
+              <FriendshipActivityChart data={activityData} colors={colors} />
+            )}
+            {sharingStatusData.length > 0 && (
+              <SharingStatusChart data={sharingStatusData} colors={colors} />
+            )}
             {topFriendsData.length > 0 && (
               <TopFriendsChart data={topFriendsData} colors={colors} />
             )}

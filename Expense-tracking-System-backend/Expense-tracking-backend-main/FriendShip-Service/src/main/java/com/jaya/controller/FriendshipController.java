@@ -1,19 +1,23 @@
 package com.jaya.controller;
 
 import com.jaya.dto.BatchShareRequestItem;
+import com.jaya.dto.FriendshipReportDTO;
 import com.jaya.dto.FriendshipResponseDTO;
 import com.jaya.dto.UserSummaryDTO;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
+import com.jaya.models.FriendshipStatus;
 import com.jaya.models.UserDto;
 import com.jaya.service.FriendshipService;
 import com.jaya.service.UserService;
 import com.jaya.util.FriendshipMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -379,5 +383,46 @@ public class FriendshipController {
     @GetMapping("/get-access-level")
     AccessLevel getUserAccessLevel(@RequestParam Integer userId, @RequestParam Integer viewerId) throws Exception {
         return friendshipService.getUserAccessLevel(userId, viewerId);
+    }
+
+    /**
+     * Generate friendship report with filtering and sorting capabilities.
+     * 
+     * @param jwt           Authorization token
+     * @param fromDate      Filter: start date (ISO format)
+     * @param toDate        Filter: end date (ISO format)
+     * @param status        Filter: friendship status (PENDING, ACCEPTED, REJECTED)
+     * @param accessLevel   Filter: access level (NONE, READ, WRITE, FULL)
+     * @param sortBy        Sort field (createdAt, updatedAt, status)
+     * @param sortDirection Sort direction (asc, desc)
+     * @param page          Page number (0-indexed)
+     * @param size          Page size
+     * @return FriendshipReportDTO with stats, charts data, and filtered friendships
+     */
+    @GetMapping("/report")
+    public ResponseEntity<FriendshipReportDTO> getFriendshipReport(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(required = false) FriendshipStatus status,
+            @RequestParam(required = false) AccessLevel accessLevel,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) throws Exception {
+        
+        UserDto user = userService.getuserProfile(jwt);
+        FriendshipReportDTO report = friendshipService.generateFriendshipReport(
+                user.getId(),
+                fromDate,
+                toDate,
+                status,
+                accessLevel,
+                sortBy,
+                sortDirection,
+                page,
+                size
+        );
+        return ResponseEntity.ok(report);
     }
 }

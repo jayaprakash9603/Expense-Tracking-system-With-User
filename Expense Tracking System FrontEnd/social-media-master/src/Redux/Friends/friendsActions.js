@@ -70,6 +70,10 @@ import {
   FETCH_RECOMMENDED_TO_SHARE_REQUEST,
   FETCH_RECOMMENDED_TO_SHARE_SUCCESS,
   FETCH_RECOMMENDED_TO_SHARE_FAILURE,
+  FETCH_FRIENDSHIP_REPORT_REQUEST,
+  FETCH_FRIENDSHIP_REPORT_SUCCESS,
+  FETCH_FRIENDSHIP_REPORT_FAILURE,
+  CLEAR_FRIENDSHIP_REPORT,
 } from "./friendsActionTypes";
 
 // Fetch friend suggestions
@@ -784,3 +788,82 @@ export const fetchRecommendedToShare = () => async (dispatch) => {
     return { success: false, error: errorMessage };
   }
 };
+
+/**
+ * Fetch friendship report with filtering and sorting
+ * @param {Object} filters - Filter options
+ * @param {Date} filters.fromDate - Start date filter
+ * @param {Date} filters.toDate - End date filter
+ * @param {string} filters.status - Status filter (PENDING, ACCEPTED, REJECTED)
+ * @param {string} filters.accessLevel - Access level filter (NONE, READ, WRITE, FULL)
+ * @param {string} filters.sortBy - Sort field (createdAt, updatedAt, status)
+ * @param {string} filters.sortDirection - Sort direction (asc, desc)
+ * @param {number} filters.page - Page number
+ * @param {number} filters.size - Page size
+ */
+export const fetchFriendshipReport =
+  (filters = {}) =>
+  async (dispatch) => {
+    dispatch({ type: FETCH_FRIENDSHIP_REPORT_REQUEST });
+
+    try {
+      const params = new URLSearchParams();
+
+      if (filters.fromDate) {
+        params.append("fromDate", filters.fromDate.toISOString());
+      }
+      if (filters.toDate) {
+        params.append("toDate", filters.toDate.toISOString());
+      }
+      if (filters.status && filters.status !== "all") {
+        params.append("status", filters.status);
+      }
+      if (filters.accessLevel && filters.accessLevel !== "all") {
+        params.append("accessLevel", filters.accessLevel);
+      }
+      if (filters.sortBy) {
+        params.append("sortBy", filters.sortBy);
+      }
+      if (filters.sortDirection) {
+        params.append("sortDirection", filters.sortDirection);
+      }
+      if (filters.page !== undefined) {
+        params.append("page", filters.page);
+      }
+      if (filters.size !== undefined) {
+        params.append("size", filters.size);
+      }
+
+      const queryString = params.toString();
+      const url = `/api/friendships/report${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      const response = await api.get(url);
+
+      dispatch({
+        type: FETCH_FRIENDSHIP_REPORT_SUCCESS,
+        payload: response.data,
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Error fetching friendship report:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch friendship report";
+
+      dispatch({
+        type: FETCH_FRIENDSHIP_REPORT_FAILURE,
+        payload: errorMessage,
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
+// Clear friendship report
+export const clearFriendshipReport = () => ({
+  type: CLEAR_FRIENDSHIP_REPORT,
+});

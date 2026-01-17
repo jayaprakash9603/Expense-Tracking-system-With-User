@@ -68,6 +68,10 @@ import {
   FETCH_RECOMMENDED_TO_SHARE_REQUEST,
   FETCH_RECOMMENDED_TO_SHARE_SUCCESS,
   FETCH_RECOMMENDED_TO_SHARE_FAILURE,
+  FETCH_FRIENDSHIP_REPORT_REQUEST,
+  FETCH_FRIENDSHIP_REPORT_SUCCESS,
+  FETCH_FRIENDSHIP_REPORT_FAILURE,
+  CLEAR_FRIENDSHIP_REPORT,
 } from "./friendsActionTypes";
 
 const initialState = {
@@ -160,6 +164,11 @@ const initialState = {
   recommendedToShare: [],
   loadingRecommendedToShare: false,
   recommendedToShareError: null,
+
+  // Friendship Report
+  friendshipReport: null,
+  loadingFriendshipReport: false,
+  friendshipReportError: null,
 
   // Cancel/Remove operations
   cancellingRequest: false,
@@ -703,6 +712,35 @@ const friendsReducer = (state = initialState, action) => {
         ...state,
         loadingRecommendedToShare: false,
         recommendedToShareError: action.payload,
+      };
+
+    // Friendship Report cases
+    case FETCH_FRIENDSHIP_REPORT_REQUEST:
+      return {
+        ...state,
+        loadingFriendshipReport: true,
+        friendshipReportError: null,
+      };
+
+    case FETCH_FRIENDSHIP_REPORT_SUCCESS:
+      return {
+        ...state,
+        loadingFriendshipReport: false,
+        friendshipReport: action.payload,
+      };
+
+    case FETCH_FRIENDSHIP_REPORT_FAILURE:
+      return {
+        ...state,
+        loadingFriendshipReport: false,
+        friendshipReportError: action.payload,
+      };
+
+    case CLEAR_FRIENDSHIP_REPORT:
+      return {
+        ...state,
+        friendshipReport: null,
+        friendshipReportError: null,
       };
 
     default:
