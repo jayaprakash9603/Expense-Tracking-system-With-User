@@ -14,15 +14,16 @@ const StatisticsChips = ({
   activeCount,
   availableCount,
   isDark,
+  isMobile = false,
   labels = { active: "Active", available: "Available" },
 }) => {
   return (
     <Box
       sx={{
-        pt: 3,
-        pb: 2,
+        pt: isMobile ? 2 : 3,
+        pb: isMobile ? 1.5 : 2,
         display: "flex",
-        gap: 3,
+        gap: isMobile ? 1.5 : 3,
         flexWrap: "wrap",
         alignItems: "center",
         justifyContent: "center",
@@ -30,16 +31,24 @@ const StatisticsChips = ({
       }}
     >
       <Chip
-        icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
+        icon={<CheckCircleIcon sx={{ fontSize: isMobile ? 14 : 16 }} />}
         label={`${activeCount} ${labels.active}`}
         size="small"
-        sx={getChipStyles(isDark, "active")}
+        sx={{
+          ...getChipStyles(isDark, "active"),
+          fontSize: isMobile ? '0.7rem' : '0.75rem',
+          height: isMobile ? 24 : 28,
+        }}
       />
       <Chip
-        icon={<VisibilityOffIcon sx={{ fontSize: 16 }} />}
+        icon={<VisibilityOffIcon sx={{ fontSize: isMobile ? 14 : 16 }} />}
         label={`${availableCount} ${labels.available}`}
         size="small"
-        sx={getChipStyles(isDark, "available")}
+        sx={{
+          ...getChipStyles(isDark, "available"),
+          fontSize: isMobile ? '0.7rem' : '0.75rem',
+          height: isMobile ? 24 : 28,
+        }}
       />
     </Box>
   );

@@ -5,6 +5,10 @@ import {
   ChevronLeft as ChevronLeftIcon,
   KeyboardDoubleArrowRight as DoubleArrowRightIcon,
   KeyboardDoubleArrowLeft as DoubleArrowLeftIcon,
+  KeyboardArrowDown as ChevronDownIcon,
+  KeyboardArrowUp as ChevronUpIcon,
+  KeyboardDoubleArrowDown as DoubleArrowDownIcon,
+  KeyboardDoubleArrowUp as DoubleArrowUpIcon,
 } from "@mui/icons-material";
 import { getMoveButtonStyles } from "./customizationStyles";
 
@@ -23,6 +27,7 @@ const BulkMoveControls = ({
   activeCount,
   colors,
   isDark,
+  isMobile = false,
   labels = {
     moveAllToActive: "Move all to Active",
     moveSelectedToActive: "Move selected to Active",
@@ -30,25 +35,41 @@ const BulkMoveControls = ({
     moveAllToAvailable: "Move all to Available",
   },
 }) => {
+  // Mobile layout: horizontal with down arrows
+  // Desktop layout: vertical with left/right arrows
+  const LeftIcon = isMobile ? DoubleArrowUpIcon : DoubleArrowLeftIcon;
+  const RightIcon = isMobile ? DoubleArrowDownIcon : DoubleArrowRightIcon;
+  const SingleLeftIcon = isMobile ? ChevronUpIcon : ChevronLeftIcon;
+  const SingleRightIcon = isMobile ? ChevronDownIcon : ChevronRightIcon;
+
   return (
     <Box
       sx={{
         display: "flex",
-        flexDirection: "column",
+        flexDirection: isMobile ? "row" : "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 2,
-        px: 1,
+        gap: isMobile ? 1 : 2,
+        px: isMobile ? 0 : 1,
+        py: isMobile ? 1 : 0,
       }}
     >
-      <Tooltip title={labels.moveAllToActive} arrow placement="right">
+      <Tooltip
+        title={labels.moveAllToActive}
+        arrow
+        placement={isMobile ? "bottom" : "right"}
+      >
         <span>
           <IconButton
             onClick={onMoveAllToActive}
             disabled={availableCount === 0}
-            sx={getMoveButtonStyles(isDark, colors, false, "right")}
+            sx={{
+              ...getMoveButtonStyles(isDark, colors, false, "right"),
+              width: isMobile ? 36 : 40,
+              height: isMobile ? 36 : 40,
+            }}
           >
-            <DoubleArrowRightIcon fontSize="small" />
+            <RightIcon fontSize="small" />
           </IconButton>
         </span>
       </Tooltip>
@@ -56,57 +77,80 @@ const BulkMoveControls = ({
       <Tooltip
         title={`${labels.moveSelectedToActive} (${selectedAvailableCount})`}
         arrow
-        placement="right"
+        placement={isMobile ? "bottom" : "right"}
       >
         <span>
           <IconButton
             onClick={onMoveSelectedToActive}
             disabled={selectedAvailableCount === 0}
-            sx={getMoveButtonStyles(
-              isDark,
-              colors,
-              selectedAvailableCount > 0,
-              "right"
-            )}
+            sx={{
+              ...getMoveButtonStyles(
+                isDark,
+                colors,
+                selectedAvailableCount > 0,
+                "right"
+              ),
+              width: isMobile ? 36 : 40,
+              height: isMobile ? 36 : 40,
+            }}
           >
-            <ChevronRightIcon fontSize="medium" />
+            <SingleRightIcon fontSize="medium" />
           </IconButton>
         </span>
       </Tooltip>
 
       <Divider
-        sx={{ width: "100%", borderColor: colors.border_color, my: 1 }}
+        orientation={isMobile ? "vertical" : "horizontal"}
+        sx={{
+          width: isMobile ? "auto" : "100%",
+          height: isMobile ? 24 : "auto",
+          borderColor: colors.border_color,
+          mx: isMobile ? 1 : 0,
+          my: isMobile ? 0 : 1,
+        }}
       />
 
       <Tooltip
         title={`${labels.moveSelectedToAvailable} (${selectedActiveCount})`}
         arrow
-        placement="left"
+        placement={isMobile ? "top" : "left"}
       >
         <span>
           <IconButton
             onClick={onMoveSelectedToAvailable}
             disabled={selectedActiveCount === 0}
-            sx={getMoveButtonStyles(
-              isDark,
-              colors,
-              selectedActiveCount > 0,
-              "left"
-            )}
+            sx={{
+              ...getMoveButtonStyles(
+                isDark,
+                colors,
+                selectedActiveCount > 0,
+                "left"
+              ),
+              width: isMobile ? 36 : 40,
+              height: isMobile ? 36 : 40,
+            }}
           >
-            <ChevronLeftIcon fontSize="medium" />
+            <SingleLeftIcon fontSize="medium" />
           </IconButton>
         </span>
       </Tooltip>
 
-      <Tooltip title={labels.moveAllToAvailable} arrow placement="left">
+      <Tooltip
+        title={labels.moveAllToAvailable}
+        arrow
+        placement={isMobile ? "top" : "left"}
+      >
         <span>
           <IconButton
             onClick={onMoveAllToAvailable}
             disabled={activeCount === 0}
-            sx={getMoveButtonStyles(isDark, colors, false, "left")}
+            sx={{
+              ...getMoveButtonStyles(isDark, colors, false, "left"),
+              width: isMobile ? 36 : 40,
+              height: isMobile ? 36 : 40,
+            }}
           >
-            <DoubleArrowLeftIcon fontSize="small" />
+            <LeftIcon fontSize="small" />
           </IconButton>
         </span>
       </Tooltip>

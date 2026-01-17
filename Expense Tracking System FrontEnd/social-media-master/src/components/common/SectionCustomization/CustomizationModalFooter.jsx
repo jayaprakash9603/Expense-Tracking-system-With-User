@@ -22,47 +22,92 @@ const CustomizationModalFooter = ({
     cancel: "Cancel",
   },
   showReset = true,
+  isMobile = false,
 }) => {
   return (
     <>
       <Divider sx={{ borderColor: colors.border_color }} />
       <DialogActions
         sx={{
-          p: 3,
-          gap: 1.5,
+          p: isMobile ? 2 : 3,
+          gap: isMobile ? 1 : 1.5,
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "stretch" : "center",
           background: isDark
             ? "linear-gradient(180deg, transparent 0%, rgba(20, 184, 166, 0.03) 100%)"
             : "linear-gradient(180deg, transparent 0%, rgba(20, 184, 166, 0.02) 100%)",
         }}
       >
-        {showReset && (
-          <Tooltip title="Restore default layout" arrow>
+        {/* On mobile, primary actions first */}
+        {isMobile ? (
+          <>
+            <Button
+              variant="contained"
+              onClick={onSave}
+              fullWidth
+              startIcon={<CheckCircleIcon />}
+              sx={{
+                ...getButtonStyles(isDark, colors, "primary"),
+                py: 1.2,
+              }}
+            >
+              {labels.save}
+            </Button>
             <Button
               variant="outlined"
-              startIcon={<ResetIcon />}
-              onClick={onReset}
-              sx={getButtonStyles(isDark, colors, "danger")}
+              onClick={onCancel}
+              fullWidth
+              sx={getButtonStyles(isDark, colors, "secondary")}
             >
-              {labels.reset}
+              {labels.cancel}
             </Button>
-          </Tooltip>
+            {showReset && (
+              <Button
+                variant="outlined"
+                startIcon={<ResetIcon />}
+                onClick={onReset}
+                fullWidth
+                sx={{
+                  ...getButtonStyles(isDark, colors, "danger"),
+                  mt: 1,
+                }}
+              >
+                {labels.reset}
+              </Button>
+            )}
+          </>
+        ) : (
+          <>
+            {showReset && (
+              <Tooltip title="Restore default layout" arrow>
+                <Button
+                  variant="outlined"
+                  startIcon={<ResetIcon />}
+                  onClick={onReset}
+                  sx={getButtonStyles(isDark, colors, "danger")}
+                >
+                  {labels.reset}
+                </Button>
+              </Tooltip>
+            )}
+            <Box sx={{ flex: 1 }} />
+            <Button
+              variant="outlined"
+              onClick={onCancel}
+              sx={getButtonStyles(isDark, colors, "secondary")}
+            >
+              {labels.cancel}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={onSave}
+              startIcon={<CheckCircleIcon />}
+              sx={getButtonStyles(isDark, colors, "primary")}
+            >
+              {labels.save}
+            </Button>
+          </>
         )}
-        <Box sx={{ flex: 1 }} />
-        <Button
-          variant="outlined"
-          onClick={onCancel}
-          sx={getButtonStyles(isDark, colors, "secondary")}
-        >
-          {labels.cancel}
-        </Button>
-        <Button
-          variant="contained"
-          onClick={onSave}
-          startIcon={<CheckCircleIcon />}
-          sx={getButtonStyles(isDark, colors, "primary")}
-        >
-          {labels.save}
-        </Button>
       </DialogActions>
     </>
   );

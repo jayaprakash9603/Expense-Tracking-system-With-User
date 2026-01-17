@@ -74,16 +74,14 @@ const SectionItem = ({
               sx={{ color: isActive ? "#14b8a6" : colors.secondary_text }}
             />
           </Box>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ flex: 1, minWidth: 0, mr: 1 }}>
             <Typography
               variant="body2"
               fontWeight="600"
               sx={{
                 color: isActive ? colors.primary_text : colors.secondary_text,
-                fontSize: "0.85rem",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+                fontSize: "0.875rem",
+                lineHeight: 1.3,
               }}
             >
               {section.name}

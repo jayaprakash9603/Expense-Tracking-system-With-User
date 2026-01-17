@@ -1,6 +1,13 @@
 import React from "react";
 import { DragDropContext } from "react-beautiful-dnd";
-import { Dialog, DialogContent, Box, Fade } from "@mui/material";
+import {
+  Dialog,
+  DialogContent,
+  Box,
+  Fade,
+  useMediaQuery,
+  useTheme as useMuiTheme,
+} from "@mui/material";
 import { Dashboard as DashboardIcon } from "@mui/icons-material";
 import { useTheme } from "../../../hooks/useTheme";
 import useSectionCustomization from "./useSectionCustomization";
@@ -55,6 +62,12 @@ const SectionCustomizationModal = ({
   activeEmptyMessage = "Drag sections here to activate",
 }) => {
   const { colors, isDark } = useTheme();
+  const muiTheme = useMuiTheme();
+
+  // Responsive breakpoints
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm")); // < 600px
+  const isTablet = useMediaQuery(muiTheme.breakpoints.between("sm", "md")); // 600-900px
+  const isSmallScreen = isMobile || isTablet;
 
   const {
     localSections,
@@ -101,6 +114,7 @@ const SectionCustomizationModal = ({
       onClose={onClose}
       maxWidth="lg"
       fullWidth
+      fullScreen={isMobile}
       key={open ? "open" : "closed"}
       TransitionComponent={Fade}
       BackdropProps={{ sx: dialogStyles.backdrop }}
@@ -113,24 +127,26 @@ const SectionCustomizationModal = ({
         onClose={onClose}
         colors={colors}
         isDark={isDark}
+        isMobile={isMobile}
       />
 
       <DialogContent
         sx={{
           py: 0,
-          px: 3,
+          px: { xs: 1.5, sm: 2, md: 3 },
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          height: "calc(70vh - 120px)",
-          minHeight: 450,
-          maxHeight: 600,
+          height: isMobile ? "calc(100vh - 180px)" : "calc(70vh - 120px)",
+          minHeight: { xs: 300, sm: 400, md: 450 },
+          maxHeight: { xs: "none", sm: 550, md: 600 },
         }}
       >
         <StatisticsChips
           activeCount={activeSections.length}
           availableCount={availableSections.length}
           isDark={isDark}
+          isMobile={isMobile}
           labels={{
             active: mergedLabels.active,
             available: mergedLabels.available,
@@ -139,7 +155,18 @@ const SectionCustomizationModal = ({
 
         {open && localSections.length > 0 && (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Box sx={{ display: "flex", gap: 3, flex: 1, minHeight: 0, pb: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                gap: { xs: 2, sm: 2, md: 3 },
+                flex: 1,
+                minHeight: 0,
+                pb: { xs: 1, sm: 2, md: 3 },
+                overflow: "hidden",
+                width: "100%",
+              }}
+            >
               <DroppableColumn
                 droppableId="available-sections"
                 sections={availableSections}
@@ -153,6 +180,8 @@ const SectionCustomizationModal = ({
                 subtitle={availableSubtitle}
                 emptyMessage={availableEmptyMessage}
                 typeLabels={typeLabels}
+                isMobile={isMobile}
+                isTablet={isTablet}
               />
 
               <BulkMoveControls
@@ -167,6 +196,7 @@ const SectionCustomizationModal = ({
                 colors={colors}
                 isDark={isDark}
                 labels={mergedLabels}
+                isMobile={isMobile}
               />
 
               <DroppableColumn
@@ -182,6 +212,8 @@ const SectionCustomizationModal = ({
                 subtitle={activeSubtitle}
                 emptyMessage={activeEmptyMessage}
                 typeLabels={typeLabels}
+                isMobile={isMobile}
+                isTablet={isTablet}
               />
             </Box>
           </DragDropContext>
@@ -196,6 +228,7 @@ const SectionCustomizationModal = ({
         isDark={isDark}
         showReset={showReset}
         labels={mergedLabels}
+        isMobile={isMobile}
       />
     </Dialog>
   );

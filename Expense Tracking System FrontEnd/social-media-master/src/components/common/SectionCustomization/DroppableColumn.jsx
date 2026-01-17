@@ -26,6 +26,8 @@ const DroppableColumn = ({
   emptyIcon: EmptyIcon,
   emptyMessage,
   typeLabels,
+  isMobile = false,
+  isTablet = false,
 }) => {
   const variant = isActive ? "active" : "available";
   const borderColor = isActive
@@ -38,17 +40,20 @@ const DroppableColumn = ({
     <Box
       sx={{
         flex: 1,
-        minWidth: 420,
-        maxWidth: 500,
+        minWidth: isMobile ? "100%" : isTablet ? 300 : 380,
+        maxWidth: isMobile ? "100%" : "none",
         display: "flex",
         flexDirection: "column",
-        height: "100%",
+        height: isMobile ? "auto" : "100%",
+        minHeight: isMobile ? 180 : "auto",
+        maxHeight: isMobile ? 280 : "none",
+        overflow: "hidden",
       }}
     >
       <Box
         sx={{
-          mb: 2,
-          pb: 1.5,
+          mb: isMobile ? 1 : 2,
+          pb: isMobile ? 1 : 1.5,
           borderBottom: `2px solid ${borderColor}`,
           flexShrink: 0,
         }}
@@ -62,19 +67,21 @@ const DroppableColumn = ({
                 ? "#14b8a6"
                 : "#0d9488"
               : colors.primary_text,
-            fontSize: "0.9rem",
+            fontSize: isMobile ? "0.8rem" : "0.9rem",
             letterSpacing: 0.5,
             textTransform: "uppercase",
           }}
         >
           {title}
         </Typography>
-        <Typography
-          variant="caption"
-          sx={{ color: colors.secondary_text, fontSize: "0.7rem" }}
-        >
-          {subtitle}
-        </Typography>
+        {!isMobile && (
+          <Typography
+            variant="caption"
+            sx={{ color: colors.secondary_text, fontSize: "0.7rem" }}
+          >
+            {subtitle}
+          </Typography>
+        )}
       </Box>
 
       <Droppable droppableId={droppableId}>

@@ -1,21 +1,33 @@
 /**
  * Centralized styling functions for Section Customization components.
  * Follows DRY: All theme-aware styles defined once and reused.
+ * Responsive breakpoints: xs (<600px), sm (600-900px), md (900px+)
  */
+
+// Breakpoint values for responsive design
+export const breakpoints = {
+  xs: 600, // Mobile
+  sm: 900, // Tablet
+  md: 1200, // Desktop
+};
 
 export const getDialogStyles = (colors, isDark) => ({
   paper: {
     backgroundColor: colors.cardBackground || colors.secondary_bg,
     color: colors.primary_text,
-    borderRadius: 4,
-    border: `1px solid ${colors.border_color}`,
+    borderRadius: { xs: 0, sm: 3, md: 4 },
+    border: { xs: "none", sm: `1px solid ${colors.border_color}` },
     boxShadow: isDark
       ? "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
       : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
     backgroundImage: isDark
       ? "linear-gradient(135deg, rgba(20, 184, 166, 0.03) 0%, rgba(6, 182, 212, 0.03) 100%)"
       : "linear-gradient(135deg, rgba(20, 184, 166, 0.02) 0%, rgba(6, 182, 212, 0.02) 100%)",
-    maxWidth: "1000px",
+    maxWidth: { xs: "100%", sm: "90%", md: "1200px", lg: "1400px" },
+    width: { xs: "100%", sm: "auto", md: "95%" },
+    height: { xs: "100%", sm: "auto" },
+    maxHeight: { xs: "100%", sm: "90vh" },
+    margin: { xs: 0, sm: 2 },
     userSelect: "none",
     WebkitUserSelect: "none",
     MozUserSelect: "none",
