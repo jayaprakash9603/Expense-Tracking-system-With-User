@@ -15,7 +15,9 @@ import { computeDateRange } from "../../../utils/reportParams";
 import { api } from "../../../config/api";
 
 const BudgetReport = () => {
-  const { budgetId, friendId } = useParams();
+  // Support both route patterns: /budget/report/:id and /budget-report/:budgetId
+  const { budgetId: budgetIdParam, id, friendId } = useParams();
+  const budgetId = budgetIdParam || id; // Use budgetId if available, otherwise use id
   const navigate = useNavigate();
   const location = useLocation();
   const { colors, mode } = useTheme();
@@ -233,13 +235,17 @@ const BudgetReport = () => {
         timeframe={timeFrame}
         flowType={flowType}
         timeframeOptions={timeframeOptions}
-        onBack={() =>
-          location?.state?.fromSidebar === true || location?.state?.fromFlow
-            ? navigate(-1)
-            : navigate(friendId ? `/budget/${friendId}` : "/budget", {
-                state: location?.state,
-              })
-        }
+        onBack={() => {
+          if (
+            location?.state?.fromSidebar === true ||
+            location?.state?.fromFlow
+          ) {
+            navigate(-1);
+          } else {
+            const targetPath = friendId ? `/budget/${friendId}` : "/budget";
+            navigate(targetPath, { replace: false });
+          }
+        }}
         onFilter={openFilters}
         onExport={() => {}}
         showFilterButton={sections.length > 0}

@@ -37,6 +37,8 @@ import useBillReportFilters, {
   BILL_TIMEFRAME_OPTIONS,
   BILL_FLOW_TYPE_OPTIONS,
 } from "../../hooks/reportFilters/useBillReportFilters";
+import useBillReportLayout from "../../hooks/useBillReportLayout";
+import SectionCustomizationModal from "../../components/common/SectionCustomization/SectionCustomizationModal";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -620,6 +622,18 @@ const BillReport = () => {
   // Theme hook must be called unconditionally at top-level (before any early returns)
   const { colors, mode } = useTheme();
 
+  // Section customization hook for layout preferences
+  const {
+    sections: layoutSections,
+    visibleSections,
+    saveLayout,
+    resetLayout,
+    isSaving: isLayoutSaving,
+  } = useBillReportLayout();
+
+  // Customize modal state
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+
   const billQueryParams = useMemo(() => {
     const params = {};
     if (selectedType !== "all") {
@@ -701,7 +715,9 @@ const BillReport = () => {
 
   const handleReportMenuItemClick = (action) => {
     setSelectedReportAction(action);
-    if (action === "refresh") {
+    if (action === "customize") {
+      setIsCustomizeOpen(true);
+    } else if (action === "refresh") {
       dispatch(fetchAllBills(friendId ? friendId : null, billQueryParams));
     } else if (action === "export") {
       console.log("Export CSV requested");
@@ -988,6 +1004,165 @@ const BillReport = () => {
 
   const renderRadialLabel = (entry) => `${currencySymbol}${entry.amount}`;
 
+  // Helper to check if a section is visible
+  const isSectionVisible = (sectionId) =>
+    visibleSections.some((s) => s.id === sectionId && s.visible);
+
+  // Helper to render a section by its ID
+  const renderSection = (sectionId) => {
+    switch (sectionId) {
+      case "overview-cards":
+        return (
+          <SharedOverviewCards
+            key="overview-cards"
+            data={overviewCardsData}
+            mode="category"
+            currencySymbol={currencySymbol}
+          />
+        );
+      case "category-chart":
+        return categoryChartData.length > 0 ? (
+          <CategoryBarChart
+            key="category-chart"
+            categoryChartData={categoryChartData}
+            currencySymbol={currencySymbol}
+          />
+        ) : null;
+      case "payment-method-chart":
+        return paymentMethodChartData.length > 0 ? (
+          <PaymentMethodPieChart
+            key="payment-method-chart"
+            paymentMethodChartData={paymentMethodChartData}
+            COLORS={COLORS}
+            currencySymbol={currencySymbol}
+          />
+        ) : null;
+      case "expense-trend":
+        return dailyTrendData.length > 0 ? (
+          <DailyTrendChart
+            key="expense-trend"
+            dailyTrendData={dailyTrendData}
+            timeframe={selectedTimeframe}
+            dateBounds={activeDateBounds}
+            selectedType={selectedType}
+            currencySymbol={currencySymbol}
+            isCustomRangeActive={isCustomRangeActive}
+          />
+        ) : null;
+      case "top-items-radial":
+        return topItemsRadialData.length > 0 ? (
+          <TopItemsRadialChart
+            key="top-items-radial"
+            topItemsRadialData={topItemsRadialData}
+            renderRadialLabel={renderRadialLabel}
+            CustomRadialTooltip={CustomRadialTooltip}
+          />
+        ) : null;
+      case "top-items-bar":
+        return topItemsBarData.length > 0 ? (
+          <TopItemsBarChart
+            key="top-items-bar"
+            topItemsBarData={topItemsBarData}
+            COLORS={COLORS}
+            currencySymbol={currencySymbol}
+          />
+        ) : null;
+      case "bills-table":
+        return (
+          <React.Fragment key="bills-table">
+            <BillsTable
+              filteredBills={pagedBills}
+              currencySymbol={currencySymbol}
+              dateFormat={settings.dateFormat}
+            />
+            {filteredBills.length > itemsPerPage && (
+              <div className="pagination-controls">
+                <button
+                  className="page-btn"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  Prev
+                </button>
+                <div className="pages-list">
+                  {(() => {
+                    const maxWindow = 2;
+                    const elems = [];
+                    const push = (n) =>
+                      elems.push(
+                        <button
+                          key={n}
+                          className={`page-number ${
+                            currentPage === n ? "active" : ""
+                          }`}
+                          onClick={() => setCurrentPage(n)}
+                        >
+                          {n}
+                        </button>
+                      );
+                    push(1);
+                    const left = Math.max(2, currentPage - maxWindow);
+                    const right = Math.min(
+                      totalPages - 1,
+                      currentPage + maxWindow
+                    );
+                    if (left > 2)
+                      elems.push(
+                        <span key="l-ell" className="page-ellipsis">
+                          ...
+                        </span>
+                      );
+                    for (let p = left; p <= right; p++) push(p);
+                    if (right < totalPages - 1)
+                      elems.push(
+                        <span key="r-ell" className="page-ellipsis">
+                          ...
+                        </span>
+                      );
+                    if (totalPages > 1) push(totalPages);
+                    return elems;
+                  })()}
+                </div>
+                <button
+                  className="page-btn"
+                  disabled={currentPage === totalPages}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </React.Fragment>
+        );
+      case "category-breakdown":
+        return (
+          <CategoryDetails
+            key="category-breakdown"
+            analytics={analytics}
+            currencySymbol={currencySymbol}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Get sections for rendering in order - separate grid and non-grid sections
+  const gridSectionIds = [
+    "category-chart",
+    "payment-method-chart",
+    "expense-trend",
+    "top-items-radial",
+    "top-items-bar",
+  ];
+  const nonGridSectionIds = [
+    "overview-cards",
+    "bills-table",
+    "category-breakdown",
+  ];
+
   const CustomRadialTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -1053,6 +1228,26 @@ const BillReport = () => {
             }}
           >
             <div style={{ padding: "8px 0" }}>
+              <div
+                onClick={() => handleReportMenuItemClick("customize")}
+                style={{
+                  color: colors.primary_text,
+                  padding: "10px 18px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <span style={{ marginRight: 10 }}>⚙️</span>
+                <span style={{ fontSize: 14 }}>Customize Layout</span>
+              </div>
+
               <div
                 onClick={() => handleReportMenuItemClick("refresh")}
                 style={{
@@ -1158,140 +1353,50 @@ const BillReport = () => {
         showExportButton={false}
       />
 
-      <SharedOverviewCards
-        data={overviewCardsData}
-        mode="category"
-        currencySymbol={currencySymbol}
-      />
-
+      {/* Render sections in user-defined order */}
       {filteredBills.length === 0 ? (
-        <NoDataMessage />
+        <>
+          {isSectionVisible("overview-cards") &&
+            renderSection("overview-cards")}
+          <NoDataMessage />
+        </>
       ) : (
         <>
-          <div className="chart-report-grid">
-            {categoryChartData.length > 0 && (
-              <CategoryBarChart
-                categoryChartData={categoryChartData}
-                currencySymbol={currencySymbol}
-              />
-            )}
+          {/* Render sections in the exact order defined by visibleSections */}
+          {(() => {
+            const elements = [];
+            let gridSectionsBuffer = [];
 
-            {paymentMethodChartData.length > 0 && (
-              <PaymentMethodPieChart
-                paymentMethodChartData={paymentMethodChartData}
-                COLORS={COLORS}
-                currencySymbol={currencySymbol}
-              />
-            )}
-
-            {dailyTrendData.length > 0 && (
-              <DailyTrendChart
-                dailyTrendData={dailyTrendData}
-                timeframe={selectedTimeframe}
-                dateBounds={activeDateBounds}
-                selectedType={selectedType}
-                currencySymbol={currencySymbol}
-                isCustomRangeActive={isCustomRangeActive}
-              />
-            )}
-
-            {topItemsRadialData.length > 0 && (
-              <TopItemsRadialChart
-                topItemsRadialData={topItemsRadialData}
-                renderRadialLabel={renderRadialLabel}
-                CustomRadialTooltip={CustomRadialTooltip}
-              />
-            )}
-
-            {topItemsBarData.length > 0 && (
-              <TopItemsBarChart
-                topItemsBarData={topItemsBarData}
-                COLORS={COLORS}
-                currencySymbol={currencySymbol}
-              />
-            )}
-          </div>
-
-          <BillsTable
-            filteredBills={pagedBills}
-            currencySymbol={currencySymbol}
-            dateFormat={settings.dateFormat}
-          />
-
-          {filteredBills.length > itemsPerPage && (
-            <div className="pagination-controls">
-              <button
-                className="page-btn"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              >
-                Prev
-              </button>
-
-              <div className="pages-list">
-                {(() => {
-                  const maxWindow = 2; // pages each side
-                  const elems = [];
-
-                  const push = (n) =>
-                    elems.push(
-                      <button
-                        key={n}
-                        className={`page-number ${
-                          currentPage === n ? "active" : ""
-                        }`}
-                        onClick={() => setCurrentPage(n)}
-                      >
-                        {n}
-                      </button>
-                    );
-
-                  push(1);
-
-                  const left = Math.max(2, currentPage - maxWindow);
-                  const right = Math.min(
-                    totalPages - 1,
-                    currentPage + maxWindow
+            visibleSections.forEach((section, index) => {
+              if (gridSectionIds.includes(section.id)) {
+                // Collect consecutive grid sections
+                gridSectionsBuffer.push(section);
+              } else {
+                // If we have grid sections buffered, render them first as a grid
+                if (gridSectionsBuffer.length > 0) {
+                  elements.push(
+                    <div key={`grid-${index}`} className="chart-report-grid">
+                      {gridSectionsBuffer.map((s) => renderSection(s.id))}
+                    </div>
                   );
-
-                  if (left > 2)
-                    elems.push(
-                      <span key="l-ell" className="page-ellipsis">
-                        ...
-                      </span>
-                    );
-
-                  for (let p = left; p <= right; p++) push(p);
-
-                  if (right < totalPages - 1)
-                    elems.push(
-                      <span key="r-ell" className="page-ellipsis">
-                        ...
-                      </span>
-                    );
-
-                  if (totalPages > 1) push(totalPages);
-
-                  return elems;
-                })()}
-              </div>
-
-              <button
-                className="page-btn"
-                disabled={currentPage === totalPages}
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  gridSectionsBuffer = [];
                 }
-              >
-                Next
-              </button>
-            </div>
-          )}
+                // Render the non-grid section
+                elements.push(renderSection(section.id));
+              }
+            });
 
-          <CategoryDetails
-            analytics={analytics}
-            currencySymbol={currencySymbol}
-          />
+            // Render any remaining grid sections
+            if (gridSectionsBuffer.length > 0) {
+              elements.push(
+                <div key="grid-final" className="chart-report-grid">
+                  {gridSectionsBuffer.map((s) => renderSection(s.id))}
+                </div>
+              );
+            }
+
+            return elements;
+          })()}
         </>
       )}
       <ReportFilterDrawer
@@ -1302,6 +1407,17 @@ const BillReport = () => {
         initialValues={filterDefaults}
         onApply={handleApplyFilters}
         onReset={handleResetFilters}
+      />
+
+      {/* Section Customization Modal */}
+      <SectionCustomizationModal
+        open={isCustomizeOpen}
+        onClose={() => setIsCustomizeOpen(false)}
+        sections={layoutSections}
+        onSaveLayout={saveLayout}
+        onResetLayout={resetLayout}
+        title="Customize Bill Report Layout"
+        subtitle="Drag sections between columns or toggle visibility. Changes are saved automatically."
       />
     </div>
   );

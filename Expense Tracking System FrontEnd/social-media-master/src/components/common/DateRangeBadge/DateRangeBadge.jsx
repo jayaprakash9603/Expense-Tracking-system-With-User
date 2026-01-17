@@ -312,8 +312,11 @@ const DateRangeBadge = ({
                 </Button>
               )}
               <Box sx={{ display: "flex", gap: 1.5 }}>
-                <Button onClick={handleClose}>Cancel</Button>
+                <Button type="button" onClick={handleClose}>
+                  Cancel
+                </Button>
                 <Button
+                  type="button"
                   variant="contained"
                   onClick={handleApply}
                   disabled={isRangeInvalid}
