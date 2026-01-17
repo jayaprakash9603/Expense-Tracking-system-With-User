@@ -2,6 +2,7 @@ import React from "react";
 import ListSkeleton from "../../components/ListSkeleton";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useMediaQuery } from "@mui/material";
 import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Reusable Recent Transactions list
@@ -25,6 +26,9 @@ const RecentTransactions = ({
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
+
   const showEmpty =
     !loading && (!Array.isArray(transactions) || transactions.length === 0);
   const listStyle = showEmpty
@@ -35,15 +39,19 @@ const RecentTransactions = ({
       }
     : undefined;
 
-  // Adjust maxItems based on layout type - only reduce for truly compact (half) layouts
-  const effectiveMaxItems =
-    sectionType === "half" ? Math.min(maxItems, 6) : maxItems;
+  // Adjust maxItems based on layout type and screen size
+  const getEffectiveMaxItems = () => {
+    if (isMobile) return Math.min(maxItems, 6);
+    if (sectionType === "half") return Math.min(maxItems, 6);
+    return maxItems;
+  };
+  const effectiveMaxItems = getEffectiveMaxItems();
 
   return (
     <div
       className={`recent-transactions section-layout-${sectionType} ${
         isCompact ? "compact" : ""
-      }`}
+      } ${isMobile ? "mobile" : ""} ${isTablet && !isMobile ? "tablet" : ""}`}
       style={{
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,

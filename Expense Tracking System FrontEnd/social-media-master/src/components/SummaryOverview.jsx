@@ -31,6 +31,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
   const { t } = useTranslation();
   const currencySymbol = settings.getCurrency().symbol;
   const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
 
   const containerStyle = {
     backgroundColor: colors.secondary_bg,
@@ -225,12 +226,16 @@ const SummaryOverview = ({ summary, loading = false }) => {
       </div>
 
       {/* Quick Metrics Grid */}
-      <div style={{ padding: "20px 24px 16px" }}>
+      <div style={{ padding: isMobile ? "16px" : "20px 24px 16px" }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(5, 1fr)",
-            gap: "12px",
+            gridTemplateColumns: isMobile
+              ? "repeat(2, 1fr)"
+              : isTablet
+              ? "repeat(3, 1fr)"
+              : "repeat(5, 1fr)",
+            gap: isMobile ? "8px" : "12px",
           }}
         >
           {metricsData.map((metric, i) => (
@@ -238,8 +243,8 @@ const SummaryOverview = ({ summary, loading = false }) => {
               key={i}
               style={{
                 background: colors.tertiary_bg,
-                borderRadius: "12px",
-                padding: "16px 12px",
+                borderRadius: isMobile ? "10px" : "12px",
+                padding: isMobile ? "12px 10px" : "16px 12px",
                 border: `1px solid ${colors.border_color}`,
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 cursor: "pointer",
@@ -247,9 +252,11 @@ const SummaryOverview = ({ summary, loading = false }) => {
                 overflow: "hidden",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-4px)";
-                e.currentTarget.style.boxShadow =
-                  "0 8px 24px rgba(0, 0, 0, 0.12)";
+                if (!isMobile) {
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 24px rgba(0, 0, 0, 0.12)";
+                }
                 e.currentTarget.style.borderColor = colors.primary_accent;
               }}
               onMouseLeave={(e) => {
@@ -263,8 +270,8 @@ const SummaryOverview = ({ summary, loading = false }) => {
                   position: "absolute",
                   top: 0,
                   right: 0,
-                  width: "60px",
-                  height: "60px",
+                  width: isMobile ? "40px" : "60px",
+                  height: isMobile ? "40px" : "60px",
                   background: metric.gradient,
                   opacity: 0.08,
                   borderRadius: "50%",
@@ -273,8 +280,8 @@ const SummaryOverview = ({ summary, loading = false }) => {
               />
               <div
                 style={{
-                  fontSize: "24px",
-                  marginBottom: "8px",
+                  fontSize: isMobile ? "20px" : "24px",
+                  marginBottom: isMobile ? "6px" : "8px",
                   filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
                 }}
               >
@@ -282,19 +289,20 @@ const SummaryOverview = ({ summary, loading = false }) => {
               </div>
               <div
                 style={{
-                  fontSize: "11px",
+                  fontSize: isMobile ? "10px" : "11px",
                   color: colors.secondary_text,
-                  marginBottom: "4px",
+                  marginBottom: isMobile ? "2px" : "4px",
                   fontWeight: "500",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
+                  lineHeight: 1.2,
                 }}
               >
                 {metric.title}
               </div>
               <div
                 style={{
-                  fontSize: "18px",
+                  fontSize: isMobile ? "14px" : "18px",
                   color: colors.primary_text,
                   fontWeight: "700",
                   letterSpacing: "-0.5px",
@@ -308,12 +316,16 @@ const SummaryOverview = ({ summary, loading = false }) => {
       </div>
 
       {/* KPI Cards */}
-      <div style={{ padding: "0 24px 20px" }}>
+      <div style={{ padding: isMobile ? "0 16px 16px" : "0 24px 20px" }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
-            gap: "12px",
+            gridTemplateColumns: isMobile
+              ? "1fr"
+              : isTablet
+              ? "repeat(2, 1fr)"
+              : "repeat(3, 1fr)",
+            gap: isMobile ? "8px" : "12px",
           }}
         >
           {kpiData.map((kpi, i) => (

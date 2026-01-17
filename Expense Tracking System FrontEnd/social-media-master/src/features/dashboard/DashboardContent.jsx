@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMediaQuery } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import DashboardHeader from "../../components/DashboardHeader";
@@ -182,8 +183,10 @@ export default function DashboardContent() {
     [navigate]
   );
 
-  const isMobile = window.matchMedia("(max-width:600px)").matches;
-  const isTablet = window.matchMedia("(max-width:1024px)").matches;
+  // Use MUI's useMediaQuery for responsive detection (reacts to window resize)
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
+  const isSmallDesktop = useMediaQuery("(max-width:1200px)");
 
   const hasTransactions =
     Array.isArray(analyticsSummary?.lastTenExpenses) &&
@@ -218,6 +221,7 @@ export default function DashboardContent() {
     currencySymbol,
     isMobile,
     isTablet,
+    isSmallDesktop,
     categoryDistribution,
     categoryTimeframe,
     setCategoryTimeframe,
@@ -302,7 +306,8 @@ export default function DashboardContent() {
 
   // Determine grid columns based on section IDs and types in a row
   const getRowGridColumns = (sections) => {
-    if (isMobile) return "1fr";
+    // Mobile and tablet: always stack vertically
+    if (isMobile || isTablet) return "1fr";
     if (sections.length === 1) return "1fr";
 
     const sectionIds = sections.map((s) => s.id);
@@ -323,18 +328,24 @@ export default function DashboardContent() {
 
   // Render a row of sections (half/bottom types)
   const renderRowGroup = (group, groupIndex) => {
-    // Only mark as compact if it's a half-width section (not bottom sections in a row)
+    // Only mark as compact if it's a half-width section and not on mobile/tablet
     const hasOnlyHalfSections = group.sections.every((s) => s.type === "half");
-    const isCompact = group.sections.length > 1 && hasOnlyHalfSections;
+    const isCompact =
+      group.sections.length > 1 &&
+      hasOnlyHalfSections &&
+      !isMobile &&
+      !isTablet;
 
     return (
       <div
         key={`row-${groupIndex}`}
-        className="section-row"
+        className={`section-row ${isMobile ? "mobile" : ""} ${
+          isTablet ? "tablet" : ""
+        }`}
         style={{
           display: "grid",
           gridTemplateColumns: getRowGridColumns(group.sections),
-          gap: isMobile ? 16 : 24,
+          gap: isMobile ? 12 : isTablet ? 16 : 24,
           width: "100%",
         }}
       >

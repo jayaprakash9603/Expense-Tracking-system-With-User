@@ -195,7 +195,7 @@ const DailySpendingChart = ({
 
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width:600px)");
-  const isTablet = useMediaQuery("(max-width:1024px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
 
   const isYearView = timeframe === "this_year" || timeframe === "last_year";
   const isAllTimeView = timeframe === "all_time";

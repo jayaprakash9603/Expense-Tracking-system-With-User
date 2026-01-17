@@ -2,6 +2,7 @@ import React from "react";
 import BudgetOverviewSkeleton from "./BudgetOverviewSkeleton";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useMediaQuery } from "@mui/material";
 import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Flexible BudgetOverview component
@@ -30,6 +31,8 @@ const BudgetOverview = ({
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
 
   // Adjust maxItems based on layout type - only reduce for truly compact (half) layouts
   const effectiveMaxItems =
@@ -71,7 +74,7 @@ const BudgetOverview = ({
       <div
         className={`budget-overview summary section-layout-${sectionType} ${
           useCompactStyle ? "compact" : ""
-        }`}
+        } ${isMobile ? "mobile" : ""} ${isTablet && !isMobile ? "tablet" : ""}`}
         style={{
           backgroundColor: colors.secondary_bg,
           border: `1px solid ${colors.border_color}`,

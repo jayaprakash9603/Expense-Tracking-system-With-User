@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useMediaQuery } from "@mui/material";
 import {
   ResponsiveContainer,
   PieChart,
@@ -132,11 +133,11 @@ const ReusablePieChart = ({
   const showEmpty =
     !loading && (!pieDataWithPercentage.length || totalAmount === 0);
 
-  // Responsive radii fallback
-  const isMobile = window.matchMedia("(max-width:600px)").matches;
-  const isTablet = window.matchMedia("(max-width:1024px)").matches;
-  const defaultInner = donut ? (isMobile ? 60 : isTablet ? 80 : 100) : 0;
-  const defaultOuter = isMobile ? 110 : isTablet ? 150 : 180;
+  // Responsive radii fallback - use MUI useMediaQuery for reactive updates
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
+  const defaultInner = donut ? (isMobile ? 50 : isTablet ? 70 : 100) : 0;
+  const defaultOuter = isMobile ? 90 : isTablet ? 120 : 180;
   const iRadius = innerRadius ?? defaultInner;
   const oRadius = outerRadius ?? defaultOuter;
 
