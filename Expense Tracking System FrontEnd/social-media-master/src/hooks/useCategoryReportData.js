@@ -13,12 +13,14 @@ import useReportData from "./useReportData";
  * @param {string} [config.friendId] - Optional friend/target ID
  * @param {string} [config.initialTimeframe="month"] - Initial timeframe
  * @param {string} [config.initialFlowType="all"] - Initial flow type
+ * @param {boolean} [config.skip=false] - Skip data fetching (useful when all sections hidden)
  * @returns {Object} Category report data and controls
  */
 export default function useCategoryReportData({
   friendId,
   initialTimeframe = "month",
   initialFlowType = "all",
+  skip = false,
 }) {
   // Use shared base hook with category-specific fetch and transform
   const {
@@ -40,6 +42,7 @@ export default function useCategoryReportData({
     friendId,
     initialTimeframe,
     initialFlowType,
+    skip,
   });
 
   // Extract structured data from transformed response
