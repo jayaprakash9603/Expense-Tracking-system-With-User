@@ -25,6 +25,7 @@ export default function useDailySpendingDrilldownDrawer({
   breakdownLabel,
   breakdownEmptyMessage,
   breakdownItemLabel,
+  activeListType = "all",
   locale,
   currencySymbol,
   cardHeight,
@@ -197,7 +198,16 @@ export default function useDailySpendingDrilldownDrawer({
     };
   }, [point, isAllView, breakdownItemLabel]);
 
-  const totalCount = expenses.all.length;
+  const activeExpenses = useMemo(() => {
+    if (!isAllView) return expenses.all;
+
+    const key = String(activeListType || "all").toLowerCase();
+    if (key === "loss") return expenses.loss;
+    if (key === "gain") return expenses.gain;
+    return expenses.all;
+  }, [activeListType, expenses.all, expenses.gain, expenses.loss, isAllView]);
+
+  const totalCount = activeExpenses.length;
   const shouldPaginate = totalCount > rowsPerPage;
   const useScroll = rowsPerPage > BASE_VISIBLE_ROWS;
   const showListControls = totalCount > BASE_VISIBLE_ROWS;
@@ -225,11 +235,11 @@ export default function useDailySpendingDrilldownDrawer({
   }, [totalCount, rowsPerPage]);
 
   const pagedExpenses = useMemo(() => {
-    if (!shouldPaginate) return expenses.all;
+    if (!shouldPaginate) return activeExpenses;
     const start = page * rowsPerPage;
     const end = start + rowsPerPage;
-    return expenses.all.slice(start, end);
-  }, [expenses.all, page, rowsPerPage, shouldPaginate]);
+    return activeExpenses.slice(start, end);
+  }, [activeExpenses, page, rowsPerPage, shouldPaginate]);
 
   const pageCount = Math.max(1, Math.ceil(totalCount / rowsPerPage));
 
@@ -243,23 +253,28 @@ export default function useDailySpendingDrilldownDrawer({
   const listHeader = useMemo(() => {
     const label = String(breakdownLabel || "").trim() || "Breakdown";
     if (!isAllView) return "Transactions";
+    const key = String(activeListType || "all").toLowerCase();
+    if (key === "loss") return "Transactions";
+    if (key === "gain") return "Transactions";
     return `Transactions (${label})`;
-  }, [breakdownLabel, isAllView]);
+  }, [activeListType, breakdownLabel, isAllView]);
 
   const getCopyText = useCallback(
-    () => buildTsvForClipboard({ rows: expenses.all }),
-    [expenses.all]
+    () => buildTsvForClipboard({ rows: activeExpenses }),
+    [activeExpenses]
   );
 
   const getExportText = useCallback(
-    () => buildCsv({ rows: expenses.all }),
-    [expenses.all]
+    () => buildCsv({ rows: activeExpenses }),
+    [activeExpenses]
   );
 
   const getExportFilename = useCallback(() => {
     const safeDate = String(dateLabel || "day").replace(/[^a-z0-9-_ ]/gi, "_");
-    return `daily-spending-${safeDate}.csv`;
-  }, [dateLabel]);
+    const key = String(activeListType || "all").toLowerCase();
+    const suffix = key === "loss" || key === "gain" ? `-${key}` : "";
+    return `daily-spending-${safeDate}${suffix}.csv`;
+  }, [activeListType, dateLabel]);
 
   const canPrev = page > 0;
   const canNext = page < pageCount - 1;

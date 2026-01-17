@@ -275,6 +275,9 @@ export default function CombinedExpenseReport() {
               open={dailyDrawerOpen}
               onClose={handleCloseDailyDrawer}
               point={dailySelectedPoint}
+              hideBudgetBreakdown
+              showTypeTabs
+              defaultTypeTab={flowType === "gain" ? "gain" : "loss"}
             />
           </div>
 

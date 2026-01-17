@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import { Divider, Drawer, useMediaQuery } from "@mui/material";
+import { Box, Divider, Drawer, Tab, Tabs, useMediaQuery } from "@mui/material";
 
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
@@ -20,10 +20,28 @@ const DailySpendingDrilldownDrawer = ({
   breakdownLabel,
   breakdownEmptyMessage,
   breakdownItemLabel,
+  hideBudgetBreakdown = false,
+  showTypeTabs = false,
+  defaultTypeTab = "loss",
 }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
   const isMobile = useMediaQuery("(max-width:600px)");
+
+  const canShowTypeTabs = Boolean(showTypeTabs);
+
+  const [activeTab, setActiveTab] = useState(
+    String(defaultTypeTab || "loss").toLowerCase() === "gain" ? "gain" : "loss"
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    setActiveTab(
+      String(defaultTypeTab || "loss").toLowerCase() === "gain"
+        ? "gain"
+        : "loss"
+    );
+  }, [defaultTypeTab, open]);
 
   const currencySymbol = settings.getCurrency().symbol;
   const locale = settings.language || "en";
@@ -37,11 +55,40 @@ const DailySpendingDrilldownDrawer = ({
     breakdownLabel,
     breakdownEmptyMessage,
     breakdownItemLabel,
+    activeListType: canShowTypeTabs ? activeTab : "all",
     locale,
     currencySymbol,
     cardHeight,
     listGapPx,
   });
+
+  const shouldRenderTabs = useMemo(() => {
+    if (!canShowTypeTabs) return false;
+    if (!drilldown.isAllView) return false;
+    return (
+      drilldown.expenses.loss.length > 0 || drilldown.expenses.gain.length > 0
+    );
+  }, [
+    canShowTypeTabs,
+    drilldown.expenses.gain.length,
+    drilldown.expenses.loss.length,
+    drilldown.isAllView,
+  ]);
+
+  useEffect(() => {
+    if (!shouldRenderTabs) return;
+    if (activeTab === "loss" && drilldown.expenses.loss.length === 0) {
+      setActiveTab("gain");
+    }
+    if (activeTab === "gain" && drilldown.expenses.gain.length === 0) {
+      setActiveTab("loss");
+    }
+  }, [
+    activeTab,
+    drilldown.expenses.gain.length,
+    drilldown.expenses.loss.length,
+    shouldRenderTabs,
+  ]);
 
   return (
     <Drawer
@@ -77,13 +124,102 @@ const DailySpendingDrilldownDrawer = ({
         formatMoney={drilldown.formatMoney}
       />
 
-      <BreakdownSection
-        breakdown={drilldown.breakdown}
-        colors={colors}
-        formatMoney={drilldown.formatMoney}
-      />
+      {!hideBudgetBreakdown ? (
+        <BreakdownSection
+          breakdown={drilldown.breakdown}
+          colors={colors}
+          formatMoney={drilldown.formatMoney}
+        />
+      ) : null}
 
       <Divider sx={{ borderColor: colors?.border_color }} />
+
+      {shouldRenderTabs ? (
+        <Box sx={{ px: 2, pt: 1.5 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 1,
+            }}
+          >
+            <Box
+              component="span"
+              sx={{
+                fontWeight: 900,
+                fontSize: 13,
+                color: colors?.primary_text,
+              }}
+            >
+              Transactions
+            </Box>
+            <Box
+              component="span"
+              sx={{
+                fontWeight: 900,
+                fontSize: 12,
+                opacity: 0.7,
+                color: colors?.secondary_text || colors?.primary_text,
+              }}
+            >
+              {activeTab === "loss" ? "Loss" : "Gain"}
+            </Box>
+          </Box>
+          <Tabs
+            value={activeTab}
+            onChange={(_, value) => setActiveTab(value)}
+            variant="fullWidth"
+            textColor="inherit"
+            TabIndicatorProps={{ style: { display: "none" } }}
+            sx={{
+              background: colors?.primary_bg,
+              border: `1px solid ${colors?.border_color}`,
+              borderRadius: 2,
+              minHeight: 40,
+              overflow: "hidden",
+              "& .MuiTab-root": {
+                minHeight: 40,
+                fontWeight: 900,
+                textTransform: "none",
+              },
+            }}
+          >
+            <Tab
+              value="loss"
+              label={`Loss (${drilldown.expenses.loss.length})`}
+              disabled={drilldown.expenses.loss.length === 0}
+              sx={{
+                color:
+                  activeTab === "loss"
+                    ? "#ff5252"
+                    : colors?.secondary_text || colors?.primary_text,
+                backgroundColor:
+                  activeTab === "loss"
+                    ? "rgba(255, 82, 82, 0.12)"
+                    : "transparent",
+                "&.Mui-disabled": { opacity: 0.35 },
+              }}
+            />
+            <Tab
+              value="gain"
+              label={`Gain (${drilldown.expenses.gain.length})`}
+              disabled={drilldown.expenses.gain.length === 0}
+              sx={{
+                color:
+                  activeTab === "gain"
+                    ? "#00d4c0"
+                    : colors?.secondary_text || colors?.primary_text,
+                backgroundColor:
+                  activeTab === "gain"
+                    ? "rgba(0, 212, 192, 0.12)"
+                    : "transparent",
+                "&.Mui-disabled": { opacity: 0.35 },
+              }}
+            />
+          </Tabs>
+        </Box>
+      ) : null}
 
       <TransactionList
         title={drilldown.listHeader}
@@ -120,6 +256,9 @@ DailySpendingDrilldownDrawer.propTypes = {
   breakdownLabel: PropTypes.string,
   breakdownEmptyMessage: PropTypes.string,
   breakdownItemLabel: PropTypes.string,
+  hideBudgetBreakdown: PropTypes.bool,
+  showTypeTabs: PropTypes.bool,
+  defaultTypeTab: PropTypes.oneOf(["loss", "gain"]),
 };
 
 export default DailySpendingDrilldownDrawer;
