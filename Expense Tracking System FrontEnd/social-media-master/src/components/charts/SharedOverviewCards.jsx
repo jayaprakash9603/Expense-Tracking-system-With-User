@@ -4,9 +4,10 @@ import { useTheme } from "../../hooks/useTheme";
 
 /**
  * SharedOverviewCards
- * Modes: payment | category | expenses | budget
+ * Modes: payment | category | expenses | budget | friendship
  * For expenses mode we show: Total Spending, Top Expense Name, Avg Transaction, Total Transactions
  * For budget mode we show: Total Budgets, Active Budgets, Total Spent, Total Remaining
+ * For friendship mode we show: Total Friends, Pending Requests, I Shared With, Shared With Me
  */
 const SharedOverviewCards = ({
   data = [],
@@ -21,6 +22,7 @@ const SharedOverviewCards = ({
   const isCategory = mode === "category";
   const isExpenses = mode === "expenses";
   const isBudget = mode === "budget";
+  const isFriendship = mode === "friendship";
 
   const amountKey = isPayment || isExpenses ? "totalAmount" : "amount";
   const nameKey = isPayment ? "method" : isCategory ? "name" : "method"; // expenses receives payment-method style objects
@@ -266,6 +268,139 @@ const SharedOverviewCards = ({
               style={{ ...cardChangeStyle, color: "#10b981" }}
             >
               Available budget
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Friendship mode renders friendship-specific cards
+  if (isFriendship) {
+    const friendshipData = safe[0] || {};
+    const totalFriends = friendshipData.totalFriends || 0;
+    const pendingRequests = friendshipData.pendingRequests || 0;
+    const iSharedWithCount = friendshipData.iSharedWithCount || 0;
+    const sharedWithMeCount = friendshipData.sharedWithMeCount || 0;
+
+    return (
+      <div
+        className="shared-overview-cards friendship-overview-cards"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: "20px",
+          marginBottom: "32px",
+        }}
+      >
+        {/* Total Friends */}
+        <div
+          className="overview-card primary"
+          style={getCardStyleWithBorder(borderColors.primary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            👥
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Friends</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {totalFriends}
+            </div>
+            <div
+              className="card-change positive"
+              style={{ ...cardChangeStyle, color: "#10b981" }}
+            >
+              Active connections
+            </div>
+          </div>
+        </div>
+
+        {/* Pending Requests */}
+        <div
+          className="overview-card secondary"
+          style={getCardStyleWithBorder(borderColors.secondary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            ⏳
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Pending Requests</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {pendingRequests}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color:
+                  pendingRequests > 0
+                    ? "#f59e0b"
+                    : themeMode === "dark"
+                    ? "#888"
+                    : "#666",
+              }}
+            >
+              {pendingRequests > 0
+                ? "Awaiting response"
+                : "No pending requests"}
+            </div>
+          </div>
+        </div>
+
+        {/* I Shared With */}
+        <div
+          className="overview-card tertiary"
+          style={getCardStyleWithBorder(borderColors.tertiary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📤
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>I Shared With</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {iSharedWithCount}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: themeMode === "dark" ? "#888" : "#666",
+              }}
+            >
+              Friends I share data with
+            </div>
+          </div>
+        </div>
+
+        {/* Shared With Me */}
+        <div
+          className="overview-card quaternary"
+          style={getCardStyleWithBorder(borderColors.quaternary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📥
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Shared With Me</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {sharedWithMeCount}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: themeMode === "dark" ? "#888" : "#666",
+              }}
+            >
+              Friends sharing with me
             </div>
           </div>
         </div>

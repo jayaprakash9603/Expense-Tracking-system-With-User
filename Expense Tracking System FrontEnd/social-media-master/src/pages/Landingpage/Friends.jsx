@@ -34,6 +34,7 @@ import SortIcon from "@mui/icons-material/Sort";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import {
   fetchFriendSuggestions,
   sendFriendRequest,
@@ -813,21 +814,38 @@ const Friends = () => {
               >
                 Friends
               </h1>
-              <Button
-                size="small"
-                onClick={handleManualRefresh}
-                title="Refresh sharing data"
-                sx={{
-                  minWidth: "auto",
-                  color: colors.primary_accent,
-                  padding: "4px",
-                  "&:hover": {
-                    backgroundColor: `${colors.primary_accent}1A`,
-                  },
-                }}
-              >
-                <RefreshIcon fontSize="small" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="small"
+                  onClick={() => navigate("/friends/report")}
+                  title="View Friendship Report"
+                  sx={{
+                    minWidth: "auto",
+                    color: colors.primary_accent,
+                    padding: "4px",
+                    "&:hover": {
+                      backgroundColor: `${colors.primary_accent}1A`,
+                    },
+                  }}
+                >
+                  <AssessmentIcon fontSize="small" />
+                </Button>
+                <Button
+                  size="small"
+                  onClick={handleManualRefresh}
+                  title="Refresh sharing data"
+                  sx={{
+                    minWidth: "auto",
+                    color: colors.primary_accent,
+                    padding: "4px",
+                    "&:hover": {
+                      backgroundColor: `${colors.primary_accent}1A`,
+                    },
+                  }}
+                >
+                  <RefreshIcon fontSize="small" />
+                </Button>
+              </div>
             </div>
             {/* Tabs for Suggestions, Requests, Friends, and Shared Expenses */}
             <div className="mb-4">
