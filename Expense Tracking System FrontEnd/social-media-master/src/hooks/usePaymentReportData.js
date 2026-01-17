@@ -22,6 +22,7 @@ export default function usePaymentReportData({
   friendId,
   initialTimeframe = "month",
   initialFlowType = "all",
+  skip = false, // Skip API calls when all sections are hidden
 }) {
   const [timeframe, setTimeframe] = useState(initialTimeframe);
   const [flowType, setFlowType] = useState(initialFlowType);
@@ -29,7 +30,7 @@ export default function usePaymentReportData({
     computeDateRange(initialTimeframe)
   );
   const [isCustomRange, setIsCustomRange] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!skip);
   const [error, setError] = useState("");
   const [methodsData, setMethodsData] = useState([]);
   const [txSizeData, setTxSizeData] = useState([]);
@@ -38,6 +39,12 @@ export default function usePaymentReportData({
 
   const fetchData = useCallback(
     async ({ nextTimeframe, nextFlowType, nextRange } = {}) => {
+      // Skip API calls when all sections are hidden
+      if (skip) {
+        setLoading(false);
+        return;
+      }
+
       const resolvedTimeframe = nextTimeframe ?? timeframe;
       const resolvedFlowType = nextFlowType ?? flowType;
       const resolvedRange = nextRange ?? dateRange;
@@ -78,12 +85,14 @@ export default function usePaymentReportData({
         setLoading(false);
       }
     },
-    [friendId, timeframe, flowType, dateRange]
+    [friendId, timeframe, flowType, dateRange, skip]
   );
 
   useEffect(() => {
-    fetchData();
-  }, [friendId, fetchData]);
+    if (!skip) {
+      fetchData();
+    }
+  }, [friendId, fetchData, skip]);
 
   const handleTimeframeChange = useCallback((tf) => {
     setTimeframe(tf);

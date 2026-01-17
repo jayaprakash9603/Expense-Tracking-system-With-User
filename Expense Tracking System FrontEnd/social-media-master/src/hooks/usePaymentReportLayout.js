@@ -1,6 +1,6 @@
 import { createReportLayoutHook } from "./useReportLayoutFactory";
 
-// Default section configuration for Expense Report
+// Default section configuration for Payment Report
 const DEFAULT_SECTIONS = [
   {
     id: "overview-cards",
@@ -15,27 +15,39 @@ const DEFAULT_SECTIONS = [
     type: "full",
   },
   {
+    id: "payment-distribution",
+    name: "Payment Distribution",
+    visible: true,
+    type: "full",
+  },
+  {
+    id: "usage-analysis",
+    name: "Usage Analysis",
+    visible: true,
+    type: "full",
+  },
+  {
+    id: "transaction-sizes",
+    name: "Transaction Sizes",
+    visible: true,
+    type: "half",
+  },
+  {
     id: "category-breakdown",
     name: "Category Breakdown",
     visible: true,
     type: "half",
   },
   {
-    id: "payment-methods",
-    name: "Payment Methods",
-    visible: true,
-    type: "half",
-  },
-  {
-    id: "expenses-accordion",
-    name: "Grouped Expenses",
+    id: "payment-accordion",
+    name: "Payment Method Expenses",
     visible: true,
     type: "full",
   },
 ];
 
 /**
- * useExpenseReportLayout - Manages expense report section layout configuration
+ * usePaymentReportLayout - Manages payment report section layout configuration
  *
  * Uses the report layout factory for consistent implementation across all reports.
  * Saves layout preferences to both localStorage and backend for persistence.
@@ -50,12 +62,12 @@ const DEFAULT_SECTIONS = [
  * @returns {Function} returns.saveLayout - Save current layout
  * @returns {Function} returns.resetLayout - Reset to default layout
  */
-const useExpenseReportLayout = createReportLayoutHook({
-  storageKey: "expense_report_layout_config",
-  apiEndpoint: "/api/user/expense-report-preferences",
+const usePaymentReportLayout = createReportLayoutHook({
+  storageKey: "payment_report_layout_config",
+  apiEndpoint: "/api/user/payment-report-preferences",
   defaultSections: DEFAULT_SECTIONS,
-  reportName: "Expense Report",
+  reportName: "Payment Report",
 });
 
-export default useExpenseReportLayout;
-export { DEFAULT_SECTIONS as EXPENSE_REPORT_DEFAULT_SECTIONS };
+export default usePaymentReportLayout;
+export { DEFAULT_SECTIONS as PAYMENT_REPORT_DEFAULT_SECTIONS };

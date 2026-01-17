@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { IconButton } from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import useGroupedCashflow from "../../hooks/useGroupedCashflow";
 import useCategoryDistributionData from "../../hooks/useCategoryDistributionData";
 import usePaymentMethodsData from "../../hooks/usePaymentMethodsData";
@@ -31,6 +29,9 @@ import { useTheme } from "../../hooks/useTheme";
 import ReportFilterDrawer from "../../components/reportFilters/ReportFilterDrawer";
 import useExpenseReportFilters from "../../hooks/reportFilters/useExpenseReportFilters";
 import AllSectionsHiddenCard from "../../components/common/AllSectionsHiddenCard";
+import ReportActionsMenu, {
+  createDefaultReportMenuItems,
+} from "../../components/common/ReportActionsMenu";
 import "../Landingpage/Payment Report/PaymentReport.css"; // Reuse existing payment report styles
 
 // Combined Expenses Report: Overview, payment method distribution, usage, category distribution, expenses accordion.
@@ -47,8 +48,7 @@ export default function CombinedExpenseReport() {
   // Check if all sections are hidden early
   const allSectionsHidden = layoutConfig.visibleSections.length === 0;
 
-  // State for three-dot menu and customization modal
-  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  // State for customization modal
   const [customizationOpen, setCustomizationOpen] = useState(false);
 
   // Independent state for each chart
@@ -151,24 +151,6 @@ export default function CombinedExpenseReport() {
     // Could integrate download logic here or via new hook (future enhancement)
   };
 
-  // Three-dot menu handlers
-  const handleMenuClick = (event) => {
-    setMenuAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setMenuAnchorEl(null);
-  };
-
-  const handleMenuItemClick = (action) => {
-    if (action === "export") {
-      handleExport();
-    } else if (action === "customize") {
-      setCustomizationOpen(true);
-    }
-    handleMenuClose();
-  };
-
   const chartTimeframe = useMemo(() => {
     switch (timeframe) {
       case "week":
@@ -225,91 +207,15 @@ export default function CombinedExpenseReport() {
     return Boolean(section);
   };
 
-  // Three-dot menu component
+  // Three-dot menu component using reusable ReportActionsMenu
   const reportHeaderActions = (
-    <>
-      <IconButton
-        onClick={handleMenuClick}
-        sx={{ color: colors.secondary_accent }}
-        size="small"
-        aria-label="More actions"
-      >
-        <MoreVertIcon />
-      </IconButton>
-      {Boolean(menuAnchorEl) && !allSectionsHidden && (
-        <>
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 999,
-            }}
-            onClick={handleMenuClose}
-          />
-
-          <div
-            style={{
-              position: "fixed",
-              top: menuAnchorEl?.getBoundingClientRect().bottom + 6 || 0,
-              left: menuAnchorEl?.getBoundingClientRect().left - 100 || 0,
-              backgroundColor: colors.primary_bg,
-              border: `1px solid ${colors.primary_accent}`,
-              borderRadius: "8px",
-              boxShadow: `0 4px 20px rgba(0,0,0,${
-                mode === "dark" ? 0.3 : 0.15
-              })`,
-              zIndex: 1000,
-              minWidth: "180px",
-            }}
-          >
-            <div style={{ padding: "8px 0" }}>
-              <div
-                onClick={() => handleMenuItemClick("export")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>📤</span>
-                <span style={{ fontSize: 14 }}>Export</span>
-              </div>
-
-              <div
-                onClick={() => handleMenuItemClick("customize")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>⚙️</span>
-                <span style={{ fontSize: 14 }}>Customize Report</span>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </>
+    <ReportActionsMenu
+      menuItems={createDefaultReportMenuItems({
+        onExport: handleExport,
+        onCustomize: () => setCustomizationOpen(true),
+        customizeLabel: "Customize Report",
+      })}
+    />
   );
 
   // If all sections are hidden, show AllSectionsHiddenCard immediately (no loading/skeleton)
