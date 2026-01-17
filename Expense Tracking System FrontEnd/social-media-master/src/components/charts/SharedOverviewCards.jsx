@@ -24,6 +24,8 @@ const SharedOverviewCards = ({
 
   const amountKey = isPayment || isExpenses ? "totalAmount" : "amount";
   const nameKey = isPayment ? "method" : isCategory ? "name" : "method"; // expenses receives payment-method style objects
+  const getExpenseDetails = (expense) =>
+    expense?.details || expense?.expense || {};
 
   // Total amount
   const totalAmount = safe.reduce(
@@ -44,10 +46,9 @@ const SharedOverviewCards = ({
     const expenseMap = new Map();
     safe.forEach((method) => {
       (method.expenses || []).forEach((exp) => {
-        const name = exp?.details?.expenseName || "Unknown";
-        const amt = Number(
-          exp?.details?.amount ?? exp?.details?.netAmount ?? 0
-        );
+        const details = getExpenseDetails(exp);
+        const name = details.expenseName || details.name || "Unknown";
+        const amt = Number(details.amount ?? details.netAmount ?? 0);
         const prev = expenseMap.get(name) || 0;
         expenseMap.set(name, prev + amt);
       });
