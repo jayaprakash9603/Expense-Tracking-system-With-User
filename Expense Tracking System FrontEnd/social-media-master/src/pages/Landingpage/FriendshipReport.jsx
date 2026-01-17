@@ -18,8 +18,6 @@ import {
   Line,
 } from "recharts";
 import "./FriendshipReport.css";
-import { IconButton } from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useNavigate } from "react-router-dom";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTheme } from "../../hooks/useTheme";
@@ -31,6 +29,18 @@ import useFriendshipReportFilters, {
   ACCESS_LEVEL_OPTIONS,
   FRIENDSHIP_TIMEFRAME_OPTIONS,
 } from "../../hooks/reportFilters/useFriendshipReportFilters";
+import useFriendshipReportLayout from "../../hooks/useFriendshipReportLayout";
+import FriendshipReportCustomizationModal from "../../components/FriendshipReportCustomizationModal";
+import AllSectionsHiddenCard from "../../components/common/AllSectionsHiddenCard";
+import ReportActionsMenu, {
+  createDefaultReportMenuItems,
+} from "../../components/common/ReportActionsMenu";
+import {
+  ReportHeaderSkeleton,
+  OverviewCardSkeleton,
+  ChartSkeleton,
+  PieChartSkeleton,
+} from "../../components/skeletons/CommonSkeletons";
 
 // Skeleton Components with theme support
 const BarChartSkeletonInner = ({ mode }) => (
@@ -67,49 +77,175 @@ const RadialChartSkeletonInner = ({ mode }) => (
   </div>
 );
 
-const LoadingSkeleton = ({ mode }) => (
-  <div className={`friendship-report skeleton-mode ${mode}`}>
-    <div className="friendship-report-header">
-      <div className="header-left">
-        <div className="skeleton-back-btn" />
-        <div className="skeleton-title large" />
-        <div className="skeleton-subtitle" />
-      </div>
-    </div>
-
-    <div className="overview-cards-skeleton">
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className="overview-card-skeleton">
-          <div className="skeleton-icon" />
-          <div className="skeleton-content">
-            <div className="skeleton-text" />
-            <div className="skeleton-number" />
-            <div className="skeleton-subtext" />
-          </div>
+const TableSkeleton = ({ mode }) => (
+  <div className={`chart-container full-width ${mode}`}>
+    <div className="skeleton-title large" style={{ marginBottom: "16px" }} />
+    <div className="skeleton-table">
+      {[...Array(5)].map((_, i) => (
+        <div
+          key={i}
+          className="skeleton-table-row"
+          style={{ display: "flex", gap: "16px", marginBottom: "12px" }}
+        >
+          <div className="skeleton-text" style={{ flex: 2 }} />
+          <div className="skeleton-text" style={{ flex: 1 }} />
+          <div className="skeleton-text" style={{ flex: 1 }} />
+          <div className="skeleton-text" style={{ flex: 1 }} />
+          <div className="skeleton-text" style={{ flex: 1 }} />
         </div>
       ))}
     </div>
-
-    <div className="chart-report-grid">
-      <div className="chart-container chart-half-width">
-        <div className="skeleton-title" />
-        <BarChartSkeletonInner mode={mode} />
-      </div>
-      <div className="chart-container chart-half-width">
-        <div className="skeleton-title" />
-        <PieChartSkeletonInner mode={mode} />
-      </div>
-      <div className="chart-container chart-half-width">
-        <div className="skeleton-title" />
-        <RadialChartSkeletonInner mode={mode} />
-      </div>
-      <div className="chart-container chart-half-width">
-        <div className="skeleton-title" />
-        <BarChartSkeletonInner mode={mode} />
-      </div>
-    </div>
   </div>
 );
+
+// Layout-aware Loading Skeleton - All sections customizable
+const LoadingSkeleton = ({ mode, visibleSections = [] }) => {
+  // Render skeleton for any section type
+  const renderSectionSkeleton = (section) => {
+    switch (section.id) {
+      case "overview-cards":
+        return (
+          <div
+            key={section.id}
+            className="overview-cards-skeleton"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: "16px",
+            }}
+          >
+            {[1, 2, 3, 4].map((i) => (
+              <OverviewCardSkeleton key={i} />
+            ))}
+          </div>
+        );
+      case "access-level-chart":
+        return (
+          <div key={section.id} className="chart-container chart-half-width">
+            <div className="skeleton-title" />
+            <PieChartSkeletonInner mode={mode} />
+          </div>
+        );
+      case "activity-chart":
+        return (
+          <div key={section.id} className="chart-container chart-half-width">
+            <div className="skeleton-title" />
+            <BarChartSkeletonInner mode={mode} />
+          </div>
+        );
+      case "sharing-status-chart":
+        return (
+          <div key={section.id} className="chart-container chart-half-width">
+            <div className="skeleton-title" />
+            <BarChartSkeletonInner mode={mode} />
+          </div>
+        );
+      case "top-friends-chart":
+        return (
+          <div key={section.id} className="chart-container chart-half-width">
+            <div className="skeleton-title" />
+            <RadialChartSkeletonInner mode={mode} />
+          </div>
+        );
+      case "friends-table":
+        return <TableSkeleton key={section.id} mode={mode} />;
+      default:
+        return null;
+    }
+  };
+
+  // Group consecutive chart sections for grid layout
+  const renderSectionsWithLayout = () => {
+    const result = [];
+    let chartBuffer = [];
+    const chartIds = [
+      "access-level-chart",
+      "activity-chart",
+      "sharing-status-chart",
+      "top-friends-chart",
+    ];
+
+    const flushChartBuffer = () => {
+      if (chartBuffer.length > 0) {
+        result.push(
+          <div
+            key={`chart-grid-${result.length}`}
+            className="chart-report-grid"
+          >
+            {chartBuffer.map((section) => renderSectionSkeleton(section))}
+          </div>
+        );
+        chartBuffer = [];
+      }
+    };
+
+    visibleSections.forEach((section) => {
+      if (chartIds.includes(section.id)) {
+        chartBuffer.push(section);
+      } else {
+        flushChartBuffer();
+        result.push(renderSectionSkeleton(section));
+      }
+    });
+
+    flushChartBuffer();
+    return result;
+  };
+
+  return (
+    <div className={`friendship-report skeleton-mode ${mode}`}>
+      <ReportHeaderSkeleton />
+      <div style={{ padding: "0 24px 24px 24px" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "24px",
+          }}
+        >
+          {visibleSections.length > 0 ? (
+            renderSectionsWithLayout()
+          ) : (
+            // Default skeleton if no sections defined yet
+            <>
+              <div
+                className="overview-cards-skeleton"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                  gap: "16px",
+                }}
+              >
+                {[...Array(4)].map((_, i) => (
+                  <OverviewCardSkeleton key={i} />
+                ))}
+              </div>
+              <div className="chart-report-grid">
+                <div className="chart-container chart-half-width">
+                  <div className="skeleton-title" />
+                  <PieChartSkeletonInner mode={mode} />
+                </div>
+                <div className="chart-container chart-half-width">
+                  <div className="skeleton-title" />
+                  <BarChartSkeletonInner mode={mode} />
+                </div>
+                <div className="chart-container chart-half-width">
+                  <div className="skeleton-title" />
+                  <BarChartSkeletonInner mode={mode} />
+                </div>
+                <div className="chart-container chart-half-width">
+                  <div className="skeleton-title" />
+                  <RadialChartSkeletonInner mode={mode} />
+                </div>
+              </div>
+              <TableSkeleton mode={mode} />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Access Level Distribution Chart
 const AccessLevelChart = ({ data, COLORS, colors }) => (
@@ -350,7 +486,14 @@ const FriendshipReport = () => {
   const { colors, mode } = useTheme();
   const settings = useUserSettings();
 
-  const [reportActionAnchorEl, setReportActionAnchorEl] = useState(null);
+  // Layout configuration for section customization
+  const layoutConfig = useFriendshipReportLayout();
+
+  // Check if all sections are hidden early
+  const allSectionsHidden = layoutConfig.visibleSections.length === 0;
+
+  // State for customization modal
+  const [customizationOpen, setCustomizationOpen] = useState(false);
 
   // Use the filters hook
   const {
@@ -450,23 +593,14 @@ const FriendshipReport = () => {
     navigate("/friends");
   };
 
-  const handleReportActionClick = (event) => {
-    setReportActionAnchorEl(event.currentTarget);
+  const handleExport = () => {
+    console.log("Export CSV requested");
+    // TODO: Implement CSV export
   };
 
-  const handleReportActionClose = () => {
-    setReportActionAnchorEl(null);
-  };
-
-  const handleReportMenuItemClick = (action) => {
-    if (action === "refresh") {
-      fetchReport();
-    } else if (action === "export") {
-      console.log("Export CSV requested");
-    } else if (action === "pdf") {
-      console.log("Download PDF requested");
-    }
-    handleReportActionClose();
+  const handlePdfDownload = () => {
+    console.log("Download PDF requested");
+    // TODO: Implement PDF download
   };
 
   // Build filter sections for drawer
@@ -505,117 +639,62 @@ const FriendshipReport = () => {
     resetFilters();
   }, [resetFilters]);
 
-  if (loading) {
-    return <LoadingSkeleton mode={mode} />;
+  // Report actions menu configuration
+  const reportHeaderActions = (
+    <ReportActionsMenu
+      menuItems={createDefaultReportMenuItems({
+        onRefresh: fetchReport,
+        onExport: handleExport,
+        onPdf: handlePdfDownload,
+        onCustomize: () => setCustomizationOpen(true),
+        customizeLabel: "Customize Report",
+      })}
+    />
+  );
+
+  // If all sections hidden, show card immediately
+  if (allSectionsHidden) {
+    return (
+      <div className={`friendship-report ${mode}`}>
+        <ReportHeader
+          title="👥 Friendship Report"
+          subtitle="Analytics and insights about your connections"
+          onBack={handleBack}
+          rightActions={reportHeaderActions}
+          showFilterButton={false}
+        />
+        <AllSectionsHiddenCard
+          onCustomize={() => setCustomizationOpen(true)}
+          reportName="Friendship Report"
+        />
+        <FriendshipReportCustomizationModal
+          open={customizationOpen}
+          onClose={() => setCustomizationOpen(false)}
+          sections={layoutConfig.sections}
+          onToggleSection={layoutConfig.toggleSection}
+          onReorderSections={layoutConfig.reorderSections}
+          onResetLayout={layoutConfig.resetLayout}
+          onSaveLayout={layoutConfig.saveLayout}
+        />
+      </div>
+    );
   }
 
-  const reportHeaderActions = (
-    <>
-      <IconButton
-        onClick={handleReportActionClick}
-        sx={{ color: colors.secondary_accent }}
-        size="small"
-        aria-label="More actions"
-      >
-        <MoreVertIcon />
-      </IconButton>
-      {Boolean(reportActionAnchorEl) && (
-        <>
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 999,
-            }}
-            onClick={handleReportActionClose}
-          />
-          <div
-            style={{
-              position: "fixed",
-              top:
-                reportActionAnchorEl?.getBoundingClientRect().bottom + 6 || 0,
-              left:
-                reportActionAnchorEl?.getBoundingClientRect().left - 100 || 0,
-              backgroundColor: colors.primary_bg,
-              border: `1px solid ${colors.primary_accent}`,
-              borderRadius: "8px",
-              boxShadow: `0 4px 20px rgba(0,0,0,${
-                mode === "dark" ? 0.3 : 0.15
-              })`,
-              zIndex: 1000,
-              minWidth: "160px",
-            }}
-          >
-            <div style={{ padding: "8px 0" }}>
-              <div
-                onClick={() => handleReportMenuItemClick("refresh")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>🔄</span>
-                <span style={{ fontSize: 14 }}>Refresh</span>
-              </div>
-              <div
-                onClick={() => handleReportMenuItemClick("export")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>📤</span>
-                <span style={{ fontSize: 14 }}>Export CSV</span>
-              </div>
-              <div
-                onClick={() => handleReportMenuItemClick("pdf")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>📥</span>
-                <span style={{ fontSize: 14 }}>Download PDF</span>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </>
-  );
+  if (loading) {
+    return (
+      <LoadingSkeleton
+        mode={mode}
+        visibleSections={layoutConfig.visibleSections}
+      />
+    );
+  }
 
   const totalFriends = friendshipReport?.totalFriends || 0;
   const pendingRequests = friendshipReport?.pendingRequests || 0;
+
+  // Helper function to check if a section is visible
+  const isSectionVisible = (sectionId) =>
+    layoutConfig.visibleSections.some((s) => s.id === sectionId);
 
   return (
     <div className={`friendship-report ${mode}`}>
@@ -651,35 +730,126 @@ const FriendshipReport = () => {
         onReset={handleResetFilters}
       />
 
-      {/* Overview Cards */}
-      <SharedOverviewCards data={overviewCardsData} mode="friendship" />
-
       {totalFriends === 0 && pendingRequests === 0 ? (
         <NoDataMessage colors={colors} />
       ) : (
         <>
-          <div className="chart-report-grid">
-            {accessLevelData.length > 0 && (
-              <AccessLevelChart
-                data={accessLevelData}
-                COLORS={COLORS}
-                colors={colors}
-              />
-            )}
-            {activityData.length > 0 && (
-              <FriendshipActivityChart data={activityData} colors={colors} />
-            )}
-            {sharingStatusData.length > 0 && (
-              <SharingStatusChart data={sharingStatusData} colors={colors} />
-            )}
-            {topFriendsData.length > 0 && (
-              <TopFriendsChart data={topFriendsData} colors={colors} />
-            )}
-          </div>
+          {/* Render ALL sections dynamically based on layoutConfig order */}
+          {(() => {
+            const result = [];
+            let chartBuffer = [];
+            const chartIds = [
+              "access-level-chart",
+              "activity-chart",
+              "sharing-status-chart",
+              "top-friends-chart",
+            ];
 
-          <FriendsTable friends={friendsTableData} colors={colors} />
+            const flushChartBuffer = () => {
+              if (chartBuffer.length > 0) {
+                result.push(
+                  <div
+                    key={`chart-grid-${result.length}`}
+                    className="chart-report-grid"
+                  >
+                    {chartBuffer}
+                  </div>
+                );
+                chartBuffer = [];
+              }
+            };
+
+            layoutConfig.visibleSections.forEach((section) => {
+              if (section.id === "overview-cards") {
+                flushChartBuffer();
+                result.push(
+                  <SharedOverviewCards
+                    key={section.id}
+                    data={overviewCardsData}
+                    mode="friendship"
+                  />
+                );
+              } else if (section.id === "friends-table") {
+                flushChartBuffer();
+                result.push(
+                  <FriendsTable
+                    key={section.id}
+                    friends={friendsTableData}
+                    colors={colors}
+                  />
+                );
+              } else if (chartIds.includes(section.id)) {
+                // Buffer chart sections to group them in a grid
+                let chartComponent = null;
+                switch (section.id) {
+                  case "access-level-chart":
+                    chartComponent =
+                      accessLevelData.length > 0 ? (
+                        <AccessLevelChart
+                          key={section.id}
+                          data={accessLevelData}
+                          COLORS={COLORS}
+                          colors={colors}
+                        />
+                      ) : null;
+                    break;
+                  case "activity-chart":
+                    chartComponent =
+                      activityData.length > 0 ? (
+                        <FriendshipActivityChart
+                          key={section.id}
+                          data={activityData}
+                          colors={colors}
+                        />
+                      ) : null;
+                    break;
+                  case "sharing-status-chart":
+                    chartComponent =
+                      sharingStatusData.length > 0 ? (
+                        <SharingStatusChart
+                          key={section.id}
+                          data={sharingStatusData}
+                          colors={colors}
+                        />
+                      ) : null;
+                    break;
+                  case "top-friends-chart":
+                    chartComponent =
+                      topFriendsData.length > 0 ? (
+                        <TopFriendsChart
+                          key={section.id}
+                          data={topFriendsData}
+                          colors={colors}
+                        />
+                      ) : null;
+                    break;
+                  default:
+                    break;
+                }
+                if (chartComponent) {
+                  chartBuffer.push(chartComponent);
+                }
+              }
+            });
+
+            // Flush any remaining charts
+            flushChartBuffer();
+
+            return result;
+          })()}
         </>
       )}
+
+      {/* Customization Modal */}
+      <FriendshipReportCustomizationModal
+        open={customizationOpen}
+        onClose={() => setCustomizationOpen(false)}
+        sections={layoutConfig.sections}
+        onToggleSection={layoutConfig.toggleSection}
+        onReorderSections={layoutConfig.reorderSections}
+        onResetLayout={layoutConfig.resetLayout}
+        onSaveLayout={layoutConfig.saveLayout}
+      />
     </div>
   );
 };
