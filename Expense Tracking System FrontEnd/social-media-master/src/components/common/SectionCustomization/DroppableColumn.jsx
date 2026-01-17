@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Droppable } from "react-beautiful-dnd";
 import { Box, Typography } from "@mui/material";
 import {
@@ -7,6 +7,28 @@ import {
 } from "@mui/icons-material";
 import SectionItem from "./SectionItem";
 import { getDroppableStyles } from "./customizationStyles";
+
+/**
+ * StrictModeDroppable - Wrapper to fix react-beautiful-dnd with React 18 StrictMode
+ * Delays rendering until after first animation frame to ensure proper mounting
+ */
+const StrictModeDroppable = ({ children, ...props }) => {
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    const animation = requestAnimationFrame(() => setEnabled(true));
+    return () => {
+      cancelAnimationFrame(animation);
+      setEnabled(false);
+    };
+  }, []);
+
+  if (!enabled) {
+    return null;
+  }
+
+  return <Droppable {...props}>{children}</Droppable>;
+};
 
 /**
  * DroppableColumn - Reusable droppable area for sections
@@ -40,14 +62,14 @@ const DroppableColumn = ({
     <Box
       sx={{
         flex: 1,
-        minWidth: isMobile ? "100%" : isTablet ? 300 : 380,
+        minWidth: isMobile ? "100%" : isTablet ? 320 : 450,
         maxWidth: isMobile ? "100%" : "none",
         display: "flex",
         flexDirection: "column",
         height: isMobile ? "auto" : "100%",
         minHeight: isMobile ? 180 : "auto",
         maxHeight: isMobile ? 280 : "none",
-        overflow: "hidden",
+        overflow: "visible",
       }}
     >
       <Box
@@ -84,7 +106,7 @@ const DroppableColumn = ({
         )}
       </Box>
 
-      <Droppable droppableId={droppableId}>
+      <StrictModeDroppable droppableId={droppableId}>
         {(provided, snapshot) => (
           <Box
             {...provided.droppableProps}
@@ -134,7 +156,7 @@ const DroppableColumn = ({
             {provided.placeholder}
           </Box>
         )}
-      </Droppable>
+      </StrictModeDroppable>
     </Box>
   );
 };

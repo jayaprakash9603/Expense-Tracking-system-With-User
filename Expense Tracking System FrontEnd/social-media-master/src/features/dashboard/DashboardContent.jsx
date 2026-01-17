@@ -119,16 +119,25 @@ const SECTION_COMPONENTS = {
       }
     />
   ),
-  "recent-transactions": ({ analyticsSummary, viewAllTransactions }) => (
+  "recent-transactions": ({
+    analyticsSummary,
+    viewAllTransactions,
+    sectionType,
+    isCompact,
+  }) => (
     <RecentTransactions
       transactions={analyticsSummary?.lastTenExpenses ?? []}
       onViewAll={viewAllTransactions}
+      sectionType={sectionType}
+      isCompact={isCompact}
     />
   ),
-  "budget-overview": ({ analyticsSummary }) => (
+  "budget-overview": ({ analyticsSummary, sectionType, isCompact }) => (
     <BudgetOverview
       remainingBudget={analyticsSummary?.remainingBudget ?? 0}
       totalLosses={analyticsSummary?.totalLosses ?? 0}
+      sectionType={sectionType}
+      isCompact={isCompact}
     />
   ),
 };
@@ -227,37 +236,154 @@ export default function DashboardContent() {
   };
 
   // Render a section based on its configuration
-  const renderSection = (section) => {
+  const renderSection = (section, layoutType = null) => {
     const Component = SECTION_COMPONENTS[section.id];
     if (!Component) return null;
+
+    // Pass layout info to components that need it
+    const extendedProps = {
+      ...sectionProps,
+      sectionType: layoutType || section.type,
+      isCompact: layoutType === "half" || section.type === "half",
+    };
 
     return (
       <div
         key={section.id}
-        className={`dashboard-section dashboard-section-${section.id}`}
+        className={`dashboard-section dashboard-section-${
+          section.id
+        } section-type-${layoutType || section.type}`}
         data-section-id={section.id}
+        data-section-type={layoutType || section.type}
       >
-        {Component(sectionProps)}
+        {Component(extendedProps)}
       </div>
     );
   };
 
-  // Group sections by type for rendering
-  const fullWidthSections = layoutConfig.visibleSections.filter(
-    (s) => s.type === "full"
-  );
-  const halfWidthSections = layoutConfig.visibleSections.filter(
-    (s) => s.type === "half"
-  );
-  const bottomSections = layoutConfig.visibleSections.filter(
-    (s) => s.type === "bottom"
-  );
+  // Build layout groups from visible sections in their actual order
+  // Groups consecutive non-full sections together for side-by-side rendering
+  const buildLayoutGroups = () => {
+    const groups = [];
+    let currentGroup = null;
 
-  // Group half-width sections into pairs
-  const halfWidthPairs = [];
-  for (let i = 0; i < halfWidthSections.length; i += 2) {
-    halfWidthPairs.push(halfWidthSections.slice(i, i + 2));
-  }
+    layoutConfig.visibleSections.forEach((section) => {
+      if (section.type === "full") {
+        // Full sections always get their own row
+        if (currentGroup) {
+          groups.push(currentGroup);
+          currentGroup = null;
+        }
+        groups.push({ type: "full", sections: [section] });
+      } else {
+        // Half or bottom sections can be grouped together
+        if (!currentGroup) {
+          currentGroup = { type: "row", sections: [] };
+        }
+        currentGroup.sections.push(section);
+
+        // If we have 2 sections in a row, close the group
+        if (currentGroup.sections.length >= 2) {
+          groups.push(currentGroup);
+          currentGroup = null;
+        }
+      }
+    });
+
+    // Don't forget any remaining sections
+    if (currentGroup) {
+      groups.push(currentGroup);
+    }
+
+    return groups;
+  };
+
+  const layoutGroups = buildLayoutGroups();
+
+  // Determine grid columns based on section IDs and types in a row
+  const getRowGridColumns = (sections) => {
+    if (isMobile) return "1fr";
+    if (sections.length === 1) return "1fr";
+
+    const sectionIds = sections.map((s) => s.id);
+
+    // Special case: Recent Transactions + Budget Overview = 2:1 ratio
+    // Recent Transactions should be wider
+    if (
+      sectionIds.includes("recent-transactions") &&
+      sectionIds.includes("budget-overview")
+    ) {
+      const recentIndex = sectionIds.indexOf("recent-transactions");
+      return recentIndex === 0 ? "2fr 1fr" : "1fr 2fr";
+    }
+
+    // All other combinations get equal width
+    return "1fr 1fr";
+  };
+
+  // Render a row of sections (half/bottom types)
+  const renderRowGroup = (group, groupIndex) => {
+    // Only mark as compact if it's a half-width section (not bottom sections in a row)
+    const hasOnlyHalfSections = group.sections.every((s) => s.type === "half");
+    const isCompact = group.sections.length > 1 && hasOnlyHalfSections;
+
+    return (
+      <div
+        key={`row-${groupIndex}`}
+        className="section-row"
+        style={{
+          display: "grid",
+          gridTemplateColumns: getRowGridColumns(group.sections),
+          gap: isMobile ? 16 : 24,
+          width: "100%",
+        }}
+      >
+        {analyticsLoading
+          ? group.sections.map((section) => {
+              if (section.id === "recent-transactions") {
+                return (
+                  <RecentTransactionsSkeleton
+                    key={section.id}
+                    count={10}
+                    isCompact={isCompact}
+                  />
+                );
+              }
+              if (section.id === "budget-overview") {
+                return (
+                  <BudgetOverviewSkeleton
+                    key={section.id}
+                    count={4}
+                    isCompact={isCompact}
+                  />
+                );
+              }
+              if (section.id === "summary-overview") {
+                return <SummaryOverviewSkeleton key={section.id} />;
+              }
+              // For chart sections during loading, render the section with loading state
+              return renderSection(section, section.type);
+            })
+          : group.sections.map((section) => {
+              const extendedProps = {
+                ...sectionProps,
+                sectionType: section.type,
+                isCompact: isCompact,
+              };
+              return (
+                <div
+                  key={section.id}
+                  className={`dashboard-section dashboard-section-${section.id} section-type-${section.type}`}
+                  data-section-id={section.id}
+                  data-section-type={section.type}
+                >
+                  {SECTION_COMPONENTS[section.id]?.(extendedProps)}
+                </div>
+              );
+            })}
+      </div>
+    );
+  };
 
   return (
     <div
@@ -285,53 +411,13 @@ export default function DashboardContent() {
         onSaveLayout={layoutConfig.saveLayout}
       />
 
-      {/* Full-width sections */}
-      {fullWidthSections.map(renderSection)}
-
-      {/* Charts grid with half-width sections */}
-      {halfWidthPairs.length > 0 && (
-        <div
-          className="charts-grid"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: isMobile ? 16 : 24,
-          }}
-        >
-          {halfWidthPairs.map((pair, pairIndex) => (
-            <div
-              key={`pair-${pairIndex}`}
-              className="chart-row"
-              style={{
-                display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                gap: isMobile ? 16 : 24,
-                width: "100%",
-              }}
-            >
-              {pair.map(renderSection)}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Bottom section */}
-      {bottomSections.length > 0 && (
-        <div className="bottom-section">
-          {analyticsLoading ? (
-            <>
-              {bottomSections.some((s) => s.id === "recent-transactions") && (
-                <RecentTransactionsSkeleton count={10} />
-              )}
-              {bottomSections.some((s) => s.id === "budget-overview") && (
-                <BudgetOverviewSkeleton count={4} />
-              )}
-            </>
-          ) : (
-            bottomSections.map(renderSection)
-          )}
-        </div>
-      )}
+      {/* Render sections in their actual order, grouping non-full sections */}
+      {layoutGroups.map((group, index) => {
+        if (group.type === "full") {
+          return renderSection(group.sections[0]);
+        }
+        return renderRowGroup(group, index);
+      })}
 
       {!analyticsLoading && !hasAnySectionData && (
         <div style={{ marginTop: isMobile ? 16 : 24 }}>

@@ -23,8 +23,8 @@ export const getDialogStyles = (colors, isDark) => ({
     backgroundImage: isDark
       ? "linear-gradient(135deg, rgba(20, 184, 166, 0.03) 0%, rgba(6, 182, 212, 0.03) 100%)"
       : "linear-gradient(135deg, rgba(20, 184, 166, 0.02) 0%, rgba(6, 182, 212, 0.02) 100%)",
-    maxWidth: { xs: "100%", sm: "90%", md: "1200px", lg: "1400px" },
-    width: { xs: "100%", sm: "auto", md: "95%" },
+    maxWidth: { xs: "100%", sm: "95%", md: "1400px", lg: "1600px" },
+    width: { xs: "100%", sm: "auto", md: "98%" },
     height: { xs: "100%", sm: "auto" },
     maxHeight: { xs: "100%", sm: "90vh" },
     margin: { xs: 0, sm: 2 },
@@ -98,7 +98,6 @@ export const getDroppableStyles = (
     minHeight: 200,
     overflowY: "auto",
     overflowX: "hidden",
-    pr: 1,
     backgroundColor: isDraggingOver
       ? isDark
         ? `rgba(${baseColor}, 0.15)`
@@ -173,7 +172,7 @@ export const getDraggableItemStyles = (
         : `rgba(${baseColor}, ${isActive ? "0.25" : "0.15"})`
     }`,
     borderRadius: 2,
-    transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+    transition: isDragging ? "none" : "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
     opacity: isActive ? 1 : 0.8,
     boxShadow: isDragging
       ? isDark
@@ -184,7 +183,9 @@ export const getDraggableItemStyles = (
             isActive ? ", 0 0 0 1px rgba(20, 184, 166, 0.2)" : ""
           }`
       : "none",
-    transform: isDragging ? "scale(1.02)" : "scale(1)",
+    transform: "scale(1)",
+    width: isDragging ? "auto" : "100%",
+    maxWidth: isDragging ? "350px" : "100%",
     userSelect: "none",
     WebkitUserSelect: "none",
     MozUserSelect: "none",

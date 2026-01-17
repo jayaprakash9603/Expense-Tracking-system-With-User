@@ -4,14 +4,24 @@ import { useTheme } from "../../hooks/useTheme";
 // Skeleton for Recent Transactions
 // Renders a grid with 'rows' rows and 'perRow' cards each (default 5 x 2 = 10 cards)
 // If a 'count' prop is provided it is ignored in favor of rows*perRow to keep layout consistent.
-const RecentTransactionsSkeleton = ({ rows = 5, perRow = 2 }) => {
+// isCompact: boolean - if true, renders fewer items for compact layouts
+const RecentTransactionsSkeleton = ({
+  rows = 5,
+  perRow = 2,
+  count,
+  isCompact = false,
+}) => {
   const { colors } = useTheme();
-  const total = rows * perRow;
+  // Use count if provided, otherwise calculate from rows*perRow
+  const effectiveRows = isCompact ? Math.min(rows, 3) : rows;
+  const total = count
+    ? Math.min(count, isCompact ? 6 : 10)
+    : effectiveRows * perRow;
   const items = Array.from({ length: total });
 
   return (
     <div
-      className="recent-transactions skeleton"
+      className={`recent-transactions skeleton ${isCompact ? "compact" : ""}`}
       style={{
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,

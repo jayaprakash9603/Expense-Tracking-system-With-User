@@ -11,12 +11,16 @@ import EmptyStateCard from "../../components/EmptyStateCard";
 //  maxItems: number limit (default 10)
 //  onViewAll: callback for View All button
 //  skeletonCount: number of skeleton rows
+//  sectionType: 'full' | 'half' | 'bottom' - layout type for responsive sizing
+//  isCompact: boolean - if true, uses compact layout
 const RecentTransactions = ({
   transactions = [],
   loading = false,
   maxItems = 10,
   onViewAll,
   skeletonCount = 5,
+  sectionType = "bottom",
+  isCompact = false,
 }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
@@ -31,9 +35,15 @@ const RecentTransactions = ({
       }
     : undefined;
 
+  // Adjust maxItems based on layout type - only reduce for truly compact (half) layouts
+  const effectiveMaxItems =
+    sectionType === "half" ? Math.min(maxItems, 6) : maxItems;
+
   return (
     <div
-      className="recent-transactions"
+      className={`recent-transactions section-layout-${sectionType} ${
+        isCompact ? "compact" : ""
+      }`}
       style={{
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
@@ -65,7 +75,7 @@ const RecentTransactions = ({
           />
         ) : (
           (Array.isArray(transactions)
-            ? transactions.slice(0, maxItems)
+            ? transactions.slice(0, effectiveMaxItems)
             : []
           ).map((transaction) => (
             <div

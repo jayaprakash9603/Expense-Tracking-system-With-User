@@ -4,13 +4,21 @@ import { useTheme } from "../../hooks/useTheme";
 // BudgetOverviewSkeleton supports two modes:
 //  summary: circle progress + two metric lines (Remaining / Total Spent)
 //  list: multiple budget rows with bar + metrics (count controls rows)
-const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
+// isCompact: boolean - if true, uses compact sizing for smaller layouts
+const BudgetOverviewSkeleton = ({
+  mode = "summary",
+  count = 4,
+  isCompact = false,
+}) => {
   const { colors } = useTheme();
+  const effectiveCount = isCompact ? Math.min(count, 3) : count;
 
   if (mode === "summary") {
     return (
       <div
-        className="budget-overview skeleton summary"
+        className={`budget-overview skeleton summary ${
+          isCompact ? "compact" : ""
+        }`}
         style={{
           backgroundColor: colors.secondary_bg,
           border: `1px solid ${colors.border_color}`,
@@ -109,7 +117,7 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
   // list mode skeleton
   return (
     <div
-      className="budget-overview skeleton list"
+      className={`budget-overview skeleton list ${isCompact ? "compact" : ""}`}
       style={{
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
@@ -138,7 +146,7 @@ const BudgetOverviewSkeleton = ({ mode = "summary", count = 4 }) => {
         />
       </div>
       <div className="budget-list">
-        {Array.from({ length: count }).map((_, i) => (
+        {Array.from({ length: effectiveCount }).map((_, i) => (
           <div
             key={i}
             className="budget-item"

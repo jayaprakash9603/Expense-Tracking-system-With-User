@@ -38,12 +38,17 @@ const SectionItem = ({
         <Box
           ref={provided.innerRef}
           {...provided.draggableProps}
-          sx={getDraggableItemStyles(
-            colors,
-            isDark,
-            snapshot.isDragging,
-            isActive
-          )}
+          {...provided.dragHandleProps}
+          sx={{
+            ...getDraggableItemStyles(
+              colors,
+              isDark,
+              snapshot.isDragging,
+              isActive
+            ),
+            cursor: "grab",
+            "&:active": { cursor: "grabbing" },
+          }}
         >
           <Checkbox
             checked={isSelected}
@@ -61,12 +66,9 @@ const SectionItem = ({
             }}
           />
           <Box
-            {...provided.dragHandleProps}
             sx={{
               display: "flex",
               alignItems: "center",
-              cursor: "grab",
-              "&:active": { cursor: "grabbing" },
             }}
           >
             <DragIcon

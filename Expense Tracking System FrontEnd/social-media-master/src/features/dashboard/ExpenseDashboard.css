@@ -368,6 +368,13 @@
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.expense-dashboard .chart-container .recharts-responsive-container {
+  flex: 1;
 }
 
 /* Fade-in utility for dynamic chart remount */
@@ -394,6 +401,8 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  height: 100%;
+  flex: 1;
 }
 
 .expense-dashboard .summary-overview ul li span:first-child {
@@ -931,10 +940,20 @@
 .reusable-pie-chart {
   position: relative;
   overflow: visible !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .reusable-pie-chart.chart-container {
   overflow: visible !important;
+  flex: 1;
+}
+
+/* Ensure pie chart wrapper fills available space */
+.reusable-pie-chart .recharts-responsive-container {
+  flex: 1;
+  min-height: 300px;
 }
 
 /* Ensure pie chart labels are visible */
@@ -1428,7 +1447,79 @@
   grid-column: 1 / -1;
 }
 
-/* Bottom Section */
+/* Section Row - groups consecutive non-full sections */
+.section-row {
+  display: grid;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+
+.section-row:last-child {
+  margin-bottom: 0;
+}
+
+.section-row > * {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dashboard sections should fill their container height */
+.section-row > .dashboard-section {
+  height: 100%;
+}
+
+.section-row > .dashboard-section > * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chart containers in rows should match heights */
+.section-row .chart-container,
+.section-row .summary-overview,
+.section-row .recent-transactions,
+.section-row .budget-overview {
+  height: 100%;
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .section-row {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .section-row {
+    margin-bottom: 12px;
+  }
+}
+
+/* Full-width dashboard sections */
+.dashboard-section.section-type-full {
+  margin-bottom: 24px;
+}
+
+.dashboard-section.section-type-full:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .dashboard-section.section-type-full {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-section.section-type-full {
+    margin-bottom: 12px;
+  }
+}
+
+/* Bottom Section (legacy - kept for compatibility) */
 .bottom-section {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -1498,11 +1589,18 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: 1fr;
-  gap: 10px 12px; /* row gap, column gap */
+  gap: 10px 12px;
   /* show all cards without scroll */
   max-height: none;
   overflow: visible;
   padding-right: 0;
+}
+
+/* Single column layout only for half-width sections */
+.recent-transactions.section-layout-half .transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .transactions-list::-webkit-scrollbar {
@@ -2637,5 +2735,133 @@
 
   .expense-dashboard.customization-active .dashboard-section {
     padding: 6px;
+  }
+}
+
+/* ========================================
+   Section Layout Type Styles
+   ======================================== */
+
+/* Full-width sections take entire width */
+.section-layout-full,
+.section-type-full {
+  width: 100%;
+}
+
+/* Half-width sections flex to fill container equally */
+.section-layout-half,
+.section-type-half {
+  width: 100%;
+  flex: 1 1 0%;
+}
+
+/* Bottom sections flexible layout */
+.section-layout-bottom,
+.section-type-bottom {
+  width: 100%;
+  height: 100%;
+}
+
+/* Compact mode styles for components */
+.recent-transactions.compact,
+.budget-overview.compact {
+  padding: 16px;
+}
+
+.recent-transactions.compact .section-header h3,
+.budget-overview.compact .section-header h3 {
+  font-size: 1rem;
+}
+
+.recent-transactions.compact .transaction-item {
+  padding: 10px;
+}
+
+.recent-transactions.compact .transaction-info h4 {
+  font-size: 0.85rem;
+}
+
+.recent-transactions.compact .transaction-amount {
+  font-size: 0.9rem;
+}
+
+.budget-overview.compact .budget-circle {
+  width: 120px;
+  height: 120px;
+}
+
+.budget-overview.compact .budget-percentage {
+  font-size: 1.5rem;
+}
+
+.budget-overview.compact .budget-item {
+  padding: 10px;
+}
+
+.budget-overview.compact .budget-card-value {
+  font-size: 1rem;
+}
+
+/* Skeleton compact styles */
+.recent-transactions.skeleton.compact,
+.budget-overview.skeleton.compact {
+  padding: 16px;
+}
+
+/* ========================================
+   Section-specific layout adjustments
+   ======================================== */
+
+/* When Recent Transactions is in half layout */
+.recent-transactions.section-layout-half {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* When Budget Overview is in half layout */
+.budget-overview.section-layout-half {
+  max-height: 500px;
+}
+
+.budget-overview.section-layout-half .budget-circle {
+  width: 100px;
+  height: 100px;
+}
+
+.budget-overview.section-layout-half .budget-percentage {
+  font-size: 1.3rem;
+}
+
+/* ========================================
+   Responsive layout adjustments
+   ======================================== */
+
+@media (max-width: 900px) {
+  .section-layout-half,
+  .section-type-half {
+    width: 100%;
+    flex: none;
+  }
+
+  .recent-transactions.compact,
+  .budget-overview.compact {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .recent-transactions.compact .section-header h3,
+  .budget-overview.compact .section-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .budget-overview.compact .budget-circle {
+    width: 100px;
+    height: 100px;
+  }
+
+  .recent-transactions.section-layout-half,
+  .budget-overview.section-layout-half {
+    max-height: none;
   }
 }
