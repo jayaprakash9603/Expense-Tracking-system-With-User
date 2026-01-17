@@ -1,8 +1,11 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { IconButton } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import useGroupedCashflow from "../../hooks/useGroupedCashflow";
 import useCategoryDistributionData from "../../hooks/useCategoryDistributionData";
 import usePaymentMethodsData from "../../hooks/usePaymentMethodsData";
+import useExpenseReportLayout from "../../hooks/useExpenseReportLayout";
 import ReportHeader from "../../components/ReportHeader";
 import GroupedExpensesAccordion from "../../components/GroupedExpensesAccordion";
 import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
@@ -10,19 +13,24 @@ import CategoryBreakdownChart from "../Dashboard/CategoryBreakdownChart";
 import PaymentMethodChart from "../Dashboard/PaymentMethodChart";
 import DailySpendingChart from "../Dashboard/DailySpendingChart";
 import DailySpendingDrilldownDrawer from "../../components/charts/DailySpendingDrilldownDrawer";
+import ExpenseReportCustomizationModal from "../../components/ExpenseReportCustomizationModal";
 import {
   normalizeFlowTypeForChart,
   buildDailySpendingByBucket,
 } from "../../utils/dailySpendingAggregation";
 import {
-  ExpensesLoadingSkeleton,
-  ChartSkeleton,
   ReportHeaderSkeleton,
+  OverviewCardSkeleton,
+  PieChartSkeleton,
+  AccordionSkeleton,
+  ChartSkeleton,
 } from "../../components/skeletons/CommonSkeletons";
+import { DailySpendingSkeleton } from "../Dashboard";
 import { getChartColors } from "../../utils/chartColors";
 import { useTheme } from "../../hooks/useTheme";
 import ReportFilterDrawer from "../../components/reportFilters/ReportFilterDrawer";
 import useExpenseReportFilters from "../../hooks/reportFilters/useExpenseReportFilters";
+import AllSectionsHiddenCard from "../../components/common/AllSectionsHiddenCard";
 import "../Landingpage/Payment Report/PaymentReport.css"; // Reuse existing payment report styles
 
 // Combined Expenses Report: Overview, payment method distribution, usage, category distribution, expenses accordion.
@@ -33,12 +41,24 @@ export default function CombinedExpenseReport() {
   const navigate = useNavigate();
   const { colors, mode } = useTheme();
 
+  // Layout configuration for section customization
+  const layoutConfig = useExpenseReportLayout();
+
+  // Check if all sections are hidden early
+  const allSectionsHidden = layoutConfig.visibleSections.length === 0;
+
+  // State for three-dot menu and customization modal
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [customizationOpen, setCustomizationOpen] = useState(false);
+
   // Independent state for each chart
   const [categoryTimeframe, setCategoryTimeframe] = useState("this_month");
   const [categoryFlowType, setCategoryFlowType] = useState("loss");
   const [paymentMethodTimeframe, setPaymentMethodTimeframe] =
     useState("this_month");
   const [paymentMethodFlowType, setPaymentMethodFlowType] = useState("loss");
+
+  // Skip API calls when all sections are hidden
   const {
     timeframe,
     setTimeframe,
@@ -54,7 +74,7 @@ export default function CombinedExpenseReport() {
     setCustomDateRange,
     resetDateRange,
     isCustomRange,
-  } = useGroupedCashflow({ friendId });
+  } = useGroupedCashflow({ friendId, skip: allSectionsHidden });
 
   const {
     filterDefaults: baseExpenseFilterDefaults,
@@ -81,15 +101,22 @@ export default function CombinedExpenseReport() {
     summary,
   });
 
-  // Fetch category data with independent state
+  // Fetch category data with independent state (skip if all sections hidden or category not visible)
+  const categoryVisible = layoutConfig.visibleSections.some(
+    (s) => s.id === "category-breakdown"
+  );
   const { distribution: categoryDistribution, loading: categoryLoading } =
     useCategoryDistributionData({
       timeframe: categoryTimeframe,
       flowType: categoryFlowType,
       refreshTrigger: rawData,
+      skip: allSectionsHidden || !categoryVisible,
     });
 
-  // Fetch payment methods data using independent state
+  // Fetch payment methods data using independent state (skip if all sections hidden or payment not visible)
+  const paymentVisible = layoutConfig.visibleSections.some(
+    (s) => s.id === "payment-methods"
+  );
   const {
     data: paymentMethodsData,
     rawData: paymentMethodsRawData,
@@ -98,6 +125,7 @@ export default function CombinedExpenseReport() {
     timeframe: paymentMethodTimeframe,
     flowType: paymentMethodFlowType,
     refreshTrigger: rawData,
+    skip: allSectionsHidden || !paymentVisible,
   });
 
   // Removed category and fallback category spending logic
@@ -121,6 +149,24 @@ export default function CombinedExpenseReport() {
       flowType
     );
     // Could integrate download logic here or via new hook (future enhancement)
+  };
+
+  // Three-dot menu handlers
+  const handleMenuClick = (event) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
+  const handleMenuItemClick = (action) => {
+    if (action === "export") {
+      handleExport();
+    } else if (action === "customize") {
+      setCustomizationOpen(true);
+    }
+    handleMenuClose();
   };
 
   const chartTimeframe = useMemo(() => {
@@ -171,7 +217,304 @@ export default function CombinedExpenseReport() {
     setDailyDrawerOpen(false);
   }, []);
 
-  if (loading) return <ExpensesLoadingSkeleton />;
+  // Helper to check if a section is visible
+  const isSectionVisible = (sectionId) => {
+    const section = layoutConfig.visibleSections.find(
+      (s) => s.id === sectionId
+    );
+    return Boolean(section);
+  };
+
+  // Three-dot menu component
+  const reportHeaderActions = (
+    <>
+      <IconButton
+        onClick={handleMenuClick}
+        sx={{ color: colors.secondary_accent }}
+        size="small"
+        aria-label="More actions"
+      >
+        <MoreVertIcon />
+      </IconButton>
+      {Boolean(menuAnchorEl) && !allSectionsHidden && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999,
+            }}
+            onClick={handleMenuClose}
+          />
+
+          <div
+            style={{
+              position: "fixed",
+              top: menuAnchorEl?.getBoundingClientRect().bottom + 6 || 0,
+              left: menuAnchorEl?.getBoundingClientRect().left - 100 || 0,
+              backgroundColor: colors.primary_bg,
+              border: `1px solid ${colors.primary_accent}`,
+              borderRadius: "8px",
+              boxShadow: `0 4px 20px rgba(0,0,0,${
+                mode === "dark" ? 0.3 : 0.15
+              })`,
+              zIndex: 1000,
+              minWidth: "180px",
+            }}
+          >
+            <div style={{ padding: "8px 0" }}>
+              <div
+                onClick={() => handleMenuItemClick("export")}
+                style={{
+                  color: colors.primary_text,
+                  padding: "10px 18px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <span style={{ marginRight: 10 }}>📤</span>
+                <span style={{ fontSize: 14 }}>Export</span>
+              </div>
+
+              <div
+                onClick={() => handleMenuItemClick("customize")}
+                style={{
+                  color: colors.primary_text,
+                  padding: "10px 18px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <span style={{ marginRight: 10 }}>⚙️</span>
+                <span style={{ fontSize: 14 }}>Customize Report</span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+
+  // If all sections are hidden, show AllSectionsHiddenCard immediately (no loading/skeleton)
+  if (allSectionsHidden) {
+    return (
+      <div
+        className="payment-methods-report"
+        style={{
+          background: colors.secondary_bg,
+          minHeight: "100vh-100px",
+          padding: "0",
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 20,
+            background: colors.secondary_bg,
+            paddingLeft: "24px",
+            paddingRight: "24px",
+          }}
+        >
+          <ReportHeader
+            className="payment-methods-header"
+            title="🧾 Expenses Report"
+            subtitle="Expenses grouped together"
+            timeframe={timeframe}
+            onTimeframeChange={setTimeframe}
+            onBack={handleBack}
+            flowType={flowType}
+            onFlowTypeChange={setFlowType}
+            rightActions={reportHeaderActions}
+            showExportButton={false}
+            showFilterButton={false}
+          />
+        </div>
+        <div style={{ padding: "24px" }}>
+          <AllSectionsHiddenCard
+            title="All Report Sections Hidden"
+            message="You've hidden all sections from this expense report. Click the button below or use the menu to customize and restore sections."
+            onCustomize={() => setCustomizationOpen(true)}
+            customizeButtonLabel="Customize Report"
+            height={280}
+          />
+        </div>
+        {/* Customization Modal */}
+        <ExpenseReportCustomizationModal
+          open={customizationOpen}
+          onClose={() => setCustomizationOpen(false)}
+          sections={layoutConfig.sections}
+          onToggleSection={layoutConfig.toggleSection}
+          onReorderSections={layoutConfig.reorderSections}
+          onResetLayout={layoutConfig.resetLayout}
+          onSaveLayout={layoutConfig.saveLayout}
+        />
+      </div>
+    );
+  }
+
+  // Render aligned skeleton based on visible sections order
+  if (loading) {
+    return (
+      <div
+        className="payment-methods-report"
+        style={{
+          background: colors.secondary_bg,
+          minHeight: "100vh-100px",
+          padding: "0",
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 20,
+            background: colors.secondary_bg,
+            paddingLeft: "24px",
+            paddingRight: "24px",
+          }}
+        >
+          <ReportHeaderSkeleton />
+        </div>
+        <div style={{ padding: "0 24px 24px 24px" }}>
+          <div
+            className="charts-grid"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "24px",
+            }}
+          >
+            {layoutConfig.visibleSections.map((section) => {
+              switch (section.id) {
+                case "overview-cards":
+                  return (
+                    <div
+                      key={section.id}
+                      className="payment-overview-cards"
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(240px, 1fr))",
+                        gap: "16px",
+                      }}
+                    >
+                      {[1, 2, 3, 4].map((i) => (
+                        <OverviewCardSkeleton key={i} />
+                      ))}
+                    </div>
+                  );
+                case "daily-spending":
+                  return (
+                    <div key={section.id} className="chart-row full-width">
+                      <DailySpendingSkeleton height={260} />
+                    </div>
+                  );
+                case "category-breakdown": {
+                  const catIdx = layoutConfig.visibleSections.findIndex(
+                    (s) => s.id === "category-breakdown"
+                  );
+                  const pmIdx = layoutConfig.visibleSections.findIndex(
+                    (s) => s.id === "payment-methods"
+                  );
+                  const pmVisible = pmIdx !== -1;
+                  const adjacent = pmVisible && Math.abs(catIdx - pmIdx) === 1;
+                  // Skip if payment-methods comes before and they are adjacent (payment will render both)
+                  if (adjacent && pmIdx < catIdx) return null;
+                  // If payment-methods comes right after, render them side-by-side
+                  if (adjacent && pmIdx > catIdx) {
+                    return (
+                      <div
+                        key="skeleton-cat-pay"
+                        className="chart-row"
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: "24px",
+                        }}
+                      >
+                        <PieChartSkeleton height={360} chipCount={7} />
+                        <PieChartSkeleton height={360} chipCount={7} />
+                      </div>
+                    );
+                  }
+                  // Render category alone (full width)
+                  return (
+                    <div key={section.id} className="chart-row full-width">
+                      <PieChartSkeleton height={360} chipCount={7} />
+                    </div>
+                  );
+                }
+                case "payment-methods": {
+                  const pmIdx2 = layoutConfig.visibleSections.findIndex(
+                    (s) => s.id === "payment-methods"
+                  );
+                  const catIdx2 = layoutConfig.visibleSections.findIndex(
+                    (s) => s.id === "category-breakdown"
+                  );
+                  const catVisible2 = catIdx2 !== -1;
+                  const adjacent2 =
+                    catVisible2 && Math.abs(catIdx2 - pmIdx2) === 1;
+                  // Skip if category-breakdown comes before and they are adjacent (category will render both)
+                  if (adjacent2 && catIdx2 < pmIdx2) return null;
+                  // If category-breakdown comes right after, render them side-by-side
+                  if (adjacent2 && pmIdx2 < catIdx2) {
+                    return (
+                      <div
+                        key="skeleton-pay-cat"
+                        className="chart-row"
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: "24px",
+                        }}
+                      >
+                        <PieChartSkeleton height={360} chipCount={7} />
+                        <PieChartSkeleton height={360} chipCount={7} />
+                      </div>
+                    );
+                  }
+                  // Render payment alone (full width)
+                  return (
+                    <div key={section.id} className="chart-row full-width">
+                      <PieChartSkeleton height={360} chipCount={7} />
+                    </div>
+                  );
+                }
+                case "expenses-accordion":
+                  return (
+                    <div key={section.id} className="chart-row full-width">
+                      <AccordionSkeleton items={8} />
+                    </div>
+                  );
+                default:
+                  return null;
+              }
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -200,7 +543,6 @@ export default function CombinedExpenseReport() {
           timeframe={timeframe}
           onTimeframeChange={setTimeframe}
           onFilter={openFilters}
-          onExport={handleExport}
           onBack={handleBack}
           flowType={flowType}
           onFlowTypeChange={setFlowType}
@@ -214,6 +556,8 @@ export default function CombinedExpenseReport() {
           showFilterButton={expenseFilterSections.length > 0}
           filterButtonLabel="Filter"
           isFilterActive={filtersActive}
+          rightActions={reportHeaderActions}
+          showExportButton={false}
         />
       </div>
 
@@ -240,9 +584,7 @@ export default function CombinedExpenseReport() {
           </div>
         )}
 
-        {/* Overview cards: expenses mode with grouped payment method data */}
-        <SharedOverviewCards data={filteredMethodsData} mode="expenses" />
-
+        {/* Render sections in the order defined by layout config */}
         <div
           className="charts-grid"
           style={{
@@ -251,89 +593,287 @@ export default function CombinedExpenseReport() {
             gap: "24px",
           }}
         >
-          <div
-            className="chart-row"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr",
-              gap: "24px",
-            }}
-          >
-            <DailySpendingChart
-              data={dailySpendingData}
-              timeframe={chartTimeframe}
-              selectedType={chartSelectedType}
-              hideControls
-              showBothTypesWhenAll
-              height={260}
-              loading={loading}
-              title="📊 Daily Spending Pattern"
-              onPointClick={handleDailyPointClick}
-            />
+          {layoutConfig.visibleSections.map((section) => {
+            // Render each section based on its id
+            switch (section.id) {
+              case "overview-cards":
+                return (
+                  <SharedOverviewCards
+                    key={section.id}
+                    data={filteredMethodsData}
+                    mode="expenses"
+                  />
+                );
 
-            <DailySpendingDrilldownDrawer
-              open={dailyDrawerOpen}
-              onClose={handleCloseDailyDrawer}
-              point={dailySelectedPoint}
-              hideBudgetBreakdown
-              showTypeTabs
-              defaultTypeTab={flowType === "gain" ? "gain" : "loss"}
-            />
-          </div>
+              case "daily-spending":
+                return (
+                  <div
+                    key={section.id}
+                    className="chart-row"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr",
+                      gap: "24px",
+                    }}
+                  >
+                    <DailySpendingChart
+                      data={dailySpendingData}
+                      timeframe={chartTimeframe}
+                      selectedType={chartSelectedType}
+                      hideControls
+                      showBothTypesWhenAll
+                      height={260}
+                      loading={loading}
+                      title="📊 Daily Spending Pattern"
+                      onPointClick={handleDailyPointClick}
+                    />
 
-          {/* Category Breakdown and Payment Method Charts in same row */}
-          <div
-            className="chart-row"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "24px",
-            }}
-          >
-            <CategoryBreakdownChart
-              data={categoryDistribution}
-              timeframe={categoryTimeframe}
-              onTimeframeChange={setCategoryTimeframe}
-              flowType={categoryFlowType}
-              onFlowTypeChange={setCategoryFlowType}
-              loading={categoryLoading}
-              skeleton={
-                loading ? (
-                  <ChartSkeleton height={480} variant="pie" noHeader />
-                ) : null
-              }
-            />
-            <PaymentMethodChart
-              data={paymentMethodsData}
-              rawData={paymentMethodsRawData}
-              timeframe={paymentMethodTimeframe}
-              onTimeframeChange={setPaymentMethodTimeframe}
-              flowType={paymentMethodFlowType}
-              onFlowTypeChange={setPaymentMethodFlowType}
-              loading={paymentMethodsLoading}
-              skeleton={
-                loading ? (
-                  <ChartSkeleton height={480} variant="pie" noHeader />
-                ) : null
-              }
-            />
-          </div>
+                    <DailySpendingDrilldownDrawer
+                      open={dailyDrawerOpen}
+                      onClose={handleCloseDailyDrawer}
+                      point={dailySelectedPoint}
+                      hideBudgetBreakdown
+                      showTypeTabs
+                      defaultTypeTab={flowType === "gain" ? "gain" : "loss"}
+                    />
+                  </div>
+                );
 
-          <div
-            className="chart-row full-width"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr",
-              gap: "24px",
-            }}
-          >
-            <GroupedExpensesAccordion
-              methods={filteredMethodsData}
-              summary={filteredExpenseSummary}
-            />
-          </div>
+              case "category-breakdown":
+                // Check if payment-methods is also visible and adjacent
+                const categoryIndex = layoutConfig.visibleSections.findIndex(
+                  (s) => s.id === "category-breakdown"
+                );
+                const paymentIndex = layoutConfig.visibleSections.findIndex(
+                  (s) => s.id === "payment-methods"
+                );
+                const isPaymentVisible = paymentIndex !== -1;
+                const areAdjacent =
+                  isPaymentVisible &&
+                  Math.abs(categoryIndex - paymentIndex) === 1;
+
+                // Skip if already rendered with payment-methods (payment came first)
+                if (areAdjacent && paymentIndex < categoryIndex) {
+                  return null;
+                }
+
+                // If payment-methods comes right after, render them together
+                if (areAdjacent && paymentIndex > categoryIndex) {
+                  return (
+                    <div
+                      key="category-payment-row"
+                      className="chart-row"
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "24px",
+                      }}
+                    >
+                      <CategoryBreakdownChart
+                        data={categoryDistribution}
+                        timeframe={categoryTimeframe}
+                        onTimeframeChange={setCategoryTimeframe}
+                        flowType={categoryFlowType}
+                        onFlowTypeChange={setCategoryFlowType}
+                        loading={categoryLoading}
+                        skeleton={
+                          loading ? (
+                            <ChartSkeleton
+                              height={480}
+                              variant="pie"
+                              noHeader
+                            />
+                          ) : null
+                        }
+                      />
+                      <PaymentMethodChart
+                        data={paymentMethodsData}
+                        rawData={paymentMethodsRawData}
+                        timeframe={paymentMethodTimeframe}
+                        onTimeframeChange={setPaymentMethodTimeframe}
+                        flowType={paymentMethodFlowType}
+                        onFlowTypeChange={setPaymentMethodFlowType}
+                        loading={paymentMethodsLoading}
+                        skeleton={
+                          loading ? (
+                            <ChartSkeleton
+                              height={480}
+                              variant="pie"
+                              noHeader
+                            />
+                          ) : null
+                        }
+                      />
+                    </div>
+                  );
+                }
+
+                // Render category-breakdown alone
+                return (
+                  <div
+                    key={section.id}
+                    className="chart-row"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr",
+                      gap: "24px",
+                    }}
+                  >
+                    <CategoryBreakdownChart
+                      data={categoryDistribution}
+                      timeframe={categoryTimeframe}
+                      onTimeframeChange={setCategoryTimeframe}
+                      flowType={categoryFlowType}
+                      onFlowTypeChange={setCategoryFlowType}
+                      loading={categoryLoading}
+                      skeleton={
+                        loading ? (
+                          <ChartSkeleton height={480} variant="pie" noHeader />
+                        ) : null
+                      }
+                    />
+                  </div>
+                );
+
+              case "payment-methods":
+                // Check if already rendered with category-breakdown
+                const pmIndex = layoutConfig.visibleSections.findIndex(
+                  (s) => s.id === "payment-methods"
+                );
+                const catIndex = layoutConfig.visibleSections.findIndex(
+                  (s) => s.id === "category-breakdown"
+                );
+                const isCatVisible = catIndex !== -1;
+                const alreadyRenderedWithCategory =
+                  isCatVisible &&
+                  Math.abs(catIndex - pmIndex) === 1 &&
+                  catIndex < pmIndex;
+
+                // Skip if already rendered with category-breakdown
+                if (alreadyRenderedWithCategory) {
+                  return null;
+                }
+
+                // Check if category comes right after payment
+                const shouldRenderTogether =
+                  isCatVisible &&
+                  Math.abs(catIndex - pmIndex) === 1 &&
+                  pmIndex < catIndex;
+
+                if (shouldRenderTogether) {
+                  return (
+                    <div
+                      key="payment-category-row"
+                      className="chart-row"
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "24px",
+                      }}
+                    >
+                      <PaymentMethodChart
+                        data={paymentMethodsData}
+                        rawData={paymentMethodsRawData}
+                        timeframe={paymentMethodTimeframe}
+                        onTimeframeChange={setPaymentMethodTimeframe}
+                        flowType={paymentMethodFlowType}
+                        onFlowTypeChange={setPaymentMethodFlowType}
+                        loading={paymentMethodsLoading}
+                        skeleton={
+                          loading ? (
+                            <ChartSkeleton
+                              height={480}
+                              variant="pie"
+                              noHeader
+                            />
+                          ) : null
+                        }
+                      />
+                      <CategoryBreakdownChart
+                        data={categoryDistribution}
+                        timeframe={categoryTimeframe}
+                        onTimeframeChange={setCategoryTimeframe}
+                        flowType={categoryFlowType}
+                        onFlowTypeChange={setCategoryFlowType}
+                        loading={categoryLoading}
+                        skeleton={
+                          loading ? (
+                            <ChartSkeleton
+                              height={480}
+                              variant="pie"
+                              noHeader
+                            />
+                          ) : null
+                        }
+                      />
+                    </div>
+                  );
+                }
+
+                // Render payment-methods alone
+                return (
+                  <div
+                    key={section.id}
+                    className="chart-row"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr",
+                      gap: "24px",
+                    }}
+                  >
+                    <PaymentMethodChart
+                      data={paymentMethodsData}
+                      rawData={paymentMethodsRawData}
+                      timeframe={paymentMethodTimeframe}
+                      onTimeframeChange={setPaymentMethodTimeframe}
+                      flowType={paymentMethodFlowType}
+                      onFlowTypeChange={setPaymentMethodFlowType}
+                      loading={paymentMethodsLoading}
+                      skeleton={
+                        loading ? (
+                          <ChartSkeleton height={480} variant="pie" noHeader />
+                        ) : null
+                      }
+                    />
+                  </div>
+                );
+
+              case "expenses-accordion":
+                return (
+                  <div
+                    key={section.id}
+                    className="chart-row full-width"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr",
+                      gap: "24px",
+                    }}
+                  >
+                    <GroupedExpensesAccordion
+                      methods={filteredMethodsData}
+                      summary={filteredExpenseSummary}
+                    />
+                  </div>
+                );
+
+              default:
+                return null;
+            }
+          })}
         </div>
       </div>
+
+      {/* Customization Modal */}
+      <ExpenseReportCustomizationModal
+        open={customizationOpen}
+        onClose={() => setCustomizationOpen(false)}
+        sections={layoutConfig.sections}
+        onToggleSection={layoutConfig.toggleSection}
+        onReorderSections={layoutConfig.reorderSections}
+        onResetLayout={layoutConfig.resetLayout}
+        onSaveLayout={layoutConfig.saveLayout}
+      />
+
       <ReportFilterDrawer
         open={isFilterOpen}
         onClose={closeFilters}

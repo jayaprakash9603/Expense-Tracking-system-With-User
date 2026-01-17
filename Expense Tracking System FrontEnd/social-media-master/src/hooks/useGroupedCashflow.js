@@ -25,6 +25,7 @@ export function useGroupedCashflow({
   friendId,
   initialTimeframe = "month",
   initialFlowType = "all",
+  skip = false,
 } = {}) {
   const dispatch = useDispatch();
 
@@ -81,8 +82,10 @@ export function useGroupedCashflow({
   }, [computedDates.start, computedDates.end, flowType, friendId, dispatch]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!skip) {
+      fetchData();
+    }
+  }, [fetchData, skip]);
 
   const summary = rawData?.summary;
 

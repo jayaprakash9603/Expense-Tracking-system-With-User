@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import useAnalyticsSummary from "../../hooks/useAnalyticsSummary";
 import useCategoryDistributionData from "../../hooks/useCategoryDistributionData";
 import usePaymentMethodsData from "../../hooks/usePaymentMethodsData";
@@ -24,12 +30,48 @@ export function DashboardProvider({ children }) {
 
   const forceRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
-  // Data hooks wired to shared refreshKey
+  // Dashboard layout configuration - get this first to determine which APIs to skip
+  const layoutConfig = useDashboardLayout();
+
+  // Check which sections are visible to optimize API calls
+  const allSectionsHidden = layoutConfig.visibleSections.length === 0;
+  const sectionVisibility = useMemo(
+    () => ({
+      category: layoutConfig.visibleSections.some(
+        (s) => s.id === "category-breakdown"
+      ),
+      payment: layoutConfig.visibleSections.some(
+        (s) => s.id === "payment-methods"
+      ),
+      daily: layoutConfig.visibleSections.some(
+        (s) => s.id === "daily-spending"
+      ),
+      monthlyTrend: layoutConfig.visibleSections.some(
+        (s) => s.id === "monthly-trend"
+      ),
+      // These sections use analyticsSummary
+      needsAnalytics: layoutConfig.visibleSections.some((s) =>
+        [
+          "metrics",
+          "recent-transactions",
+          "budget-overview",
+          "summary-overview",
+        ].includes(s.id)
+      ),
+    }),
+    [layoutConfig.visibleSections]
+  );
+
+  // Data hooks wired to shared refreshKey - skip when section not visible
   const {
     summary: analyticsSummary,
     loading: analyticsLoading,
     error: analyticsError,
-  } = useAnalyticsSummary({ timeframe, refreshTrigger: refreshKey });
+  } = useAnalyticsSummary({
+    timeframe,
+    refreshTrigger: refreshKey,
+    skip: allSectionsHidden || !sectionVisibility.needsAnalytics,
+  });
   const {
     distribution: categoryDistribution,
     loading: categoryLoading,
@@ -38,6 +80,7 @@ export function DashboardProvider({ children }) {
     timeframe: categoryTimeframe,
     flowType: categoryFlowType,
     refreshTrigger: refreshKey,
+    skip: allSectionsHidden || !sectionVisibility.category,
   });
   const {
     data: paymentMethodsData,
@@ -48,6 +91,7 @@ export function DashboardProvider({ children }) {
     timeframe: paymentMethodsTimeframe,
     flowType: paymentMethodsFlowType,
     refreshTrigger: refreshKey,
+    skip: allSectionsHidden || !sectionVisibility.payment,
   });
   const {
     data: dailySpendingData,
@@ -57,15 +101,17 @@ export function DashboardProvider({ children }) {
     initialTimeframe: timeframe,
     initialType: dailyType,
     refreshTrigger: refreshKey,
+    skip: allSectionsHidden || !sectionVisibility.daily,
   });
   const {
     data: monthlyTrendData,
     loading: monthlyTrendLoading,
     error: monthlyTrendError,
-  } = useMonthlyTrendData({ year: trendYear, refreshTrigger: refreshKey });
-
-  // Dashboard layout configuration
-  const layoutConfig = useDashboardLayout();
+  } = useMonthlyTrendData({
+    year: trendYear,
+    refreshTrigger: refreshKey,
+    skip: allSectionsHidden || !sectionVisibility.monthlyTrend,
+  });
 
   const value = {
     // selections

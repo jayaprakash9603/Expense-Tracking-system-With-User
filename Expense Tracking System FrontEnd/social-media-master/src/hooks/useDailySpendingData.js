@@ -352,6 +352,7 @@ export default function useDailySpendingData({
   targetId = null,
   includeTypeInRequest = true,
   refreshTrigger,
+  skip = false,
 } = {}) {
   const [timeframe, setTimeframe] = useState(initialTimeframe);
   const [type, setType] = useState(initialType);
@@ -442,10 +443,17 @@ export default function useDailySpendingData({
   }, [performFetch]);
 
   useEffect(() => {
+    // Skip API call if skip flag is true
+    if (skip) {
+      setDataset(createInitialDataset());
+      setLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
     performFetch(controller.signal);
     return () => controller.abort();
-  }, [performFetch, refreshTrigger]);
+  }, [performFetch, refreshTrigger, skip]);
 
   return {
     data: dataset.chartData,

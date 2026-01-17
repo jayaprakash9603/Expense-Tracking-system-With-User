@@ -24,6 +24,7 @@ import QuickAccess from "../../pages/Landingpage/QuickAccess";
 import { useDashboardContext } from "./DashboardProvider";
 import { createDashboardActions } from "./dashboardActions";
 import EmptyStateCard from "../../components/EmptyStateCard";
+import AllSectionsHiddenCard from "../../components/common/AllSectionsHiddenCard";
 
 // Section component mapping
 const SECTION_COMPONENTS = {
@@ -429,6 +430,24 @@ export default function DashboardContent() {
         }
         return renderRowGroup(group, index);
       })}
+
+      {/* Show message when all sections are hidden */}
+      {layoutConfig.visibleSections.length === 0 && (
+        <div
+          style={{
+            marginTop: isMobile ? 16 : 24,
+            padding: isMobile ? "0 12px" : "0 24px",
+          }}
+        >
+          <AllSectionsHiddenCard
+            title="All Dashboard Sections Hidden"
+            message="You've hidden all sections from the dashboard. Click the button below or use the customize option in the header to restore sections."
+            onCustomize={() => setCustomizationOpen(true)}
+            customizeButtonLabel="Customize Dashboard"
+            height={280}
+          />
+        </div>
+      )}
 
       {!analyticsLoading && !hasAnySectionData && (
         <div style={{ marginTop: isMobile ? 16 : 24 }}>
