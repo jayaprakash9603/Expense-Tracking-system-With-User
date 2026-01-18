@@ -9,6 +9,7 @@ import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,14 +35,21 @@ public class FriendActivityService {
      * @param targetUserId The user whose account was affected (owner)
      * @param actorUser    The friend who created the expense
      */
+    @Async("friendActivityExecutor")
     public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, User actorUser) {
-        sendExpenseCreatedByFriend(expense, targetUserId, actorUser, null);
+        sendExpenseCreatedByFriendInternal(expense, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend creates an expense with target user details.
      */
+    @Async("friendActivityExecutor")
     public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, User actorUser, User targetUser) {
+        sendExpenseCreatedByFriendInternal(expense, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendExpenseCreatedByFriendInternal(ExpenseDTO expense, Integer targetUserId, User actorUser,
+            User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 // User is creating their own expense, not a friend activity
@@ -83,15 +91,22 @@ public class FriendActivityService {
     /**
      * Send notification when a friend updates an expense.
      */
+    @Async("friendActivityExecutor")
     public void sendExpenseUpdatedByFriend(Expense expense, Integer targetUserId, User actorUser) {
-        sendExpenseUpdatedByFriend(expense, null, targetUserId, actorUser, null);
+        sendExpenseUpdatedByFriendInternal(expense, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend updates an expense with previous state and
      * target user details.
      */
+    @Async("friendActivityExecutor")
     public void sendExpenseUpdatedByFriend(Expense expense, Expense previousExpense, Integer targetUserId,
+            User actorUser, User targetUser) {
+        sendExpenseUpdatedByFriendInternal(expense, previousExpense, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendExpenseUpdatedByFriendInternal(Expense expense, Expense previousExpense, Integer targetUserId,
             User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -131,16 +146,25 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes an expense.
      */
+    @Async("friendActivityExecutor")
     public void sendExpenseDeletedByFriend(Integer expenseId, String expenseName, Double amount,
             Integer targetUserId, User actorUser) {
-        sendExpenseDeletedByFriend(expenseId, expenseName, amount, null, targetUserId, actorUser, null);
+        sendExpenseDeletedByFriendInternal(expenseId, expenseName, amount, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend deletes an expense with deleted entity
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendExpenseDeletedByFriend(Integer expenseId, String expenseName, Double amount, Expense deletedExpense,
+            Integer targetUserId, User actorUser, User targetUser) {
+        sendExpenseDeletedByFriendInternal(expenseId, expenseName, amount, deletedExpense, targetUserId, actorUser,
+                targetUser);
+    }
+
+    private void sendExpenseDeletedByFriendInternal(Integer expenseId, String expenseName, Double amount,
+            Expense deletedExpense,
             Integer targetUserId, User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -177,14 +201,21 @@ public class FriendActivityService {
     /**
      * Send notification when a friend copies an expense.
      */
+    @Async("friendActivityExecutor")
     public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, User actorUser) {
-        sendExpenseCopiedByFriend(expense, targetUserId, actorUser, null);
+        sendExpenseCopiedByFriendInternal(expense, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend copies an expense with target user details.
      */
+    @Async("friendActivityExecutor")
     public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, User actorUser, User targetUser) {
+        sendExpenseCopiedByFriendInternal(expense, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendExpenseCopiedByFriendInternal(Expense expense, Integer targetUserId, User actorUser,
+            User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -345,15 +376,22 @@ public class FriendActivityService {
     /**
      * Send notification when a friend adds multiple expenses.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser) {
-        sendBulkExpensesCreatedByFriend(expenses, targetUserId, actorUser, null);
+        sendBulkExpensesCreatedByFriendInternal(expenses, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend adds multiple expenses with target user
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser,
+            User targetUser) {
+        sendBulkExpensesCreatedByFriendInternal(expenses, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendBulkExpensesCreatedByFriendInternal(List<Expense> expenses, Integer targetUserId, User actorUser,
             User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -405,15 +443,22 @@ public class FriendActivityService {
     /**
      * Send notification when a friend updates multiple expenses.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser) {
-        sendBulkExpensesUpdatedByFriend(expenses, targetUserId, actorUser, null);
+        sendBulkExpensesUpdatedByFriendInternal(expenses, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend updates multiple expenses with target user
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser,
+            User targetUser) {
+        sendBulkExpensesUpdatedByFriendInternal(expenses, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendBulkExpensesUpdatedByFriendInternal(List<Expense> expenses, Integer targetUserId, User actorUser,
             User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -460,15 +505,22 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes multiple expenses.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
-        sendBulkExpensesDeletedByFriend(count, null, targetUserId, actorUser, null);
+        sendBulkExpensesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend deletes multiple expenses with deleted
      * entities details.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkExpensesDeletedByFriend(int count, List<Expense> deletedExpenses, Integer targetUserId,
+            User actorUser, User targetUser) {
+        sendBulkExpensesDeletedByFriendInternal(count, deletedExpenses, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendBulkExpensesDeletedByFriendInternal(int count, List<Expense> deletedExpenses, Integer targetUserId,
             User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -518,15 +570,22 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes all expenses.
      */
+    @Async("friendActivityExecutor")
     public void sendAllExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
-        sendAllExpensesDeletedByFriend(count, null, targetUserId, actorUser, null);
+        sendAllExpensesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend deletes all expenses with deleted entities
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendAllExpensesDeletedByFriend(int count, List<Expense> deletedExpenses, Integer targetUserId,
+            User actorUser, User targetUser) {
+        sendAllExpensesDeletedByFriendInternal(count, deletedExpenses, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendAllExpensesDeletedByFriendInternal(int count, List<Expense> deletedExpenses, Integer targetUserId,
             User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {

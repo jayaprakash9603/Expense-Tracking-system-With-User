@@ -6,6 +6,7 @@ import com.jaya.models.Category;
 import com.jaya.models.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,14 +27,24 @@ public class FriendActivityService {
     /**
      * Send notification when a friend creates a category on behalf of another user.
      */
+    @Async("friendActivityExecutor")
     public void sendCategoryCreatedByFriend(Category category, Integer targetUserId, User actorUser) {
-        sendCategoryCreatedByFriend(category, targetUserId, actorUser, null);
+        sendCategoryCreatedByFriendInternal(category, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend creates a category with target user details.
      */
+    @Async("friendActivityExecutor")
     public void sendCategoryCreatedByFriend(Category category, Integer targetUserId, User actorUser, User targetUser) {
+        sendCategoryCreatedByFriendInternal(category, targetUserId, actorUser, targetUser);
+    }
+
+    /**
+     * Internal method to handle category creation notification.
+     */
+    private void sendCategoryCreatedByFriendInternal(Category category, Integer targetUserId, User actorUser,
+            User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 log.debug("Skipping friend activity notification - user creating own category");
@@ -72,15 +83,26 @@ public class FriendActivityService {
     /**
      * Send notification when a friend creates multiple categories.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkCategoriesCreatedByFriend(List<Category> categories, Integer targetUserId, User actorUser) {
-        sendBulkCategoriesCreatedByFriend(categories, targetUserId, actorUser, null);
+        sendBulkCategoriesCreatedByFriendInternal(categories, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend creates multiple categories with target user
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkCategoriesCreatedByFriend(List<Category> categories, Integer targetUserId, User actorUser,
+            User targetUser) {
+        sendBulkCategoriesCreatedByFriendInternal(categories, targetUserId, actorUser, targetUser);
+    }
+
+    /**
+     * Internal method to handle bulk category creation notification.
+     */
+    private void sendBulkCategoriesCreatedByFriendInternal(List<Category> categories, Integer targetUserId,
+            User actorUser,
             User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -121,15 +143,25 @@ public class FriendActivityService {
     /**
      * Send notification when a friend updates a category.
      */
+    @Async("friendActivityExecutor")
     public void sendCategoryUpdatedByFriend(Category category, Integer targetUserId, User actorUser) {
-        sendCategoryUpdatedByFriend(category, null, targetUserId, actorUser, null);
+        sendCategoryUpdatedByFriendInternal(category, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend updates a category with previous state and
      * target user details.
      */
+    @Async("friendActivityExecutor")
     public void sendCategoryUpdatedByFriend(Category category, Category previousCategory, Integer targetUserId,
+            User actorUser, User targetUser) {
+        sendCategoryUpdatedByFriendInternal(category, previousCategory, targetUserId, actorUser, targetUser);
+    }
+
+    /**
+     * Internal method to handle category update notification.
+     */
+    private void sendCategoryUpdatedByFriendInternal(Category category, Category previousCategory, Integer targetUserId,
             User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -166,15 +198,26 @@ public class FriendActivityService {
     /**
      * Send notification when a friend updates multiple categories.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkCategoriesUpdatedByFriend(List<Category> categories, Integer targetUserId, User actorUser) {
-        sendBulkCategoriesUpdatedByFriend(categories, targetUserId, actorUser, null);
+        sendBulkCategoriesUpdatedByFriendInternal(categories, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend updates multiple categories with target user
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkCategoriesUpdatedByFriend(List<Category> categories, Integer targetUserId, User actorUser,
+            User targetUser) {
+        sendBulkCategoriesUpdatedByFriendInternal(categories, targetUserId, actorUser, targetUser);
+    }
+
+    /**
+     * Internal method to handle bulk category update notification.
+     */
+    private void sendBulkCategoriesUpdatedByFriendInternal(List<Category> categories, Integer targetUserId,
+            User actorUser,
             User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -215,16 +258,27 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes a category.
      */
+    @Async("friendActivityExecutor")
     public void sendCategoryDeletedByFriend(Integer categoryId, String categoryName,
             Integer targetUserId, User actorUser) {
-        sendCategoryDeletedByFriend(categoryId, categoryName, null, targetUserId, actorUser, null);
+        sendCategoryDeletedByFriendInternal(categoryId, categoryName, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend deletes a category with deleted entity
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendCategoryDeletedByFriend(Integer categoryId, String categoryName, Category deletedCategory,
+            Integer targetUserId, User actorUser, User targetUser) {
+        sendCategoryDeletedByFriendInternal(categoryId, categoryName, deletedCategory, targetUserId, actorUser,
+                targetUser);
+    }
+
+    /**
+     * Internal method to handle category deletion notification.
+     */
+    private void sendCategoryDeletedByFriendInternal(Integer categoryId, String categoryName, Category deletedCategory,
             Integer targetUserId, User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -241,35 +295,25 @@ public class FriendActivityService {
                     .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.CATEGORY)
                     .entityType(FriendActivityEvent.EntityType.CATEGORY)
-                    .entityId(categoryId)
-                    .action(FriendActivityEvent.Action.DELETE)
-                    .description(String.format("%s deleted category '%s'",
-                            actorName, categoryName != null ? categoryName : "a category"))
-                    .amount(null)
-                    .previousEntityState(deletedCategory != null ? buildCategoryPayload(deletedCategory) : null)
-                    .timestamp(LocalDateTime.now())
-                    .isRead(false)
-                    .build();
-
-            friendActivityProducer.sendEvent(event);
-
-        } catch (Exception e) {
-            log.error("Failed to send friend activity notification for category deletion: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Send notification when a friend deletes multiple categories.
-     */
+    @Async("friendActivityExecutor")
     public void sendBulkCategoriesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
-        sendBulkCategoriesDeletedByFriend(count, null, targetUserId, actorUser, null);
+        sendBulkCategoriesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend deletes multiple categories with deleted
      * entities details.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkCategoriesDeletedByFriend(int count, List<Category> deletedCategories, Integer targetUserId,
+            User actorUser, User targetUser) {
+        sendBulkCategoriesDeletedByFriendInternal(count, deletedCategories, targetUserId, actorUser, targetUser);
+    }
+
+    /**
+     * Internal method to handle bulk category deletion notification.
+     */
+    private void sendBulkCategoriesDeletedByFriendInternal(int count, List<Category> deletedCategories, Integer targetUserId,
             User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -301,6 +345,36 @@ public class FriendActivityService {
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
+
+            friendActivityProducer.sendEvent(event);
+
+        } catch (Exception e) {
+            log.error("Failed to send friend activity notification for bulk category deletion: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Send notification when a friend deletes all categories.
+     */
+    @Async("friendActivityExecutor")
+    public void sendAllCategoriesDeletedByFriend(Integer targetUserId, User actorUser, int count) {
+        sendAllCategoriesDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
+    }
+
+    /**
+     * Send notification when a friend deletes all categories with deleted entities
+     * details.
+     */
+    @Async("friendActivityExecutor")
+    public void sendAllCategoriesDeletedByFriend(Integer targetUserId, User actorUser, User targetUser, int count,
+            List<Category> deletedCategories) {
+        sendAllCategoriesDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedCategories);
+    }
+
+    /**
+     * Internal method to handle all categories deletion notification.
+     */
+    private void sendAllCategoriesDeletedByFriendInternal
 
             friendActivityProducer.sendEvent(event);
 

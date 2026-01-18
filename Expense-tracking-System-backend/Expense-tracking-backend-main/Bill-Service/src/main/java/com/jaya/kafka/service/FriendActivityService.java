@@ -6,6 +6,7 @@ import com.jaya.models.Bill;
 import com.jaya.models.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,8 @@ import java.util.Map;
 
 /**
  * Service for sending friend activity notifications for bill operations.
+ * All methods are async to ensure event production doesn't block main request
+ * threads.
  */
 @Service
 @RequiredArgsConstructor
@@ -26,15 +29,22 @@ public class FriendActivityService {
     /**
      * Send notification when a friend creates a bill on behalf of another user.
      */
+    @Async("friendActivityExecutor")
     public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser) {
-        sendBillCreatedByFriend(bill, targetUserId, actorUser, null);
+        sendBillCreatedByFriendInternal(bill, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend creates a bill on behalf of another user with
      * target user details.
      */
+    @Async("friendActivityExecutor")
     public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+        sendBillCreatedByFriendInternal(bill, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendBillCreatedByFriendInternal(Bill bill, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 log.debug("Skipping friend activity notification - user creating own bill");
@@ -74,15 +84,22 @@ public class FriendActivityService {
     /**
      * Send notification when a friend creates multiple bills.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDto actorUser) {
-        sendBulkBillsCreatedByFriend(bills, targetUserId, actorUser, null);
+        sendBulkBillsCreatedByFriendInternal(bills, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend creates multiple bills with target user
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
+        sendBulkBillsCreatedByFriendInternal(bills, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendBulkBillsCreatedByFriendInternal(List<Bill> bills, Integer targetUserId, UserDto actorUser,
             UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -126,15 +143,22 @@ public class FriendActivityService {
     /**
      * Send notification when a friend updates a bill.
      */
+    @Async("friendActivityExecutor")
     public void sendBillUpdatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser) {
-        sendBillUpdatedByFriend(bill, null, targetUserId, actorUser, null);
+        sendBillUpdatedByFriendInternal(bill, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend updates a bill with previous state and target
      * user details.
      */
+    @Async("friendActivityExecutor")
     public void sendBillUpdatedByFriend(Bill bill, Bill previousBill, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
+        sendBillUpdatedByFriendInternal(bill, previousBill, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendBillUpdatedByFriendInternal(Bill bill, Bill previousBill, Integer targetUserId, UserDto actorUser,
             UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -171,15 +195,22 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes a bill.
      */
+    @Async("friendActivityExecutor")
     public void sendBillDeletedByFriend(Integer billId, String billName, Double amount,
             Integer targetUserId, UserDto actorUser) {
-        sendBillDeletedByFriend(billId, billName, amount, null, targetUserId, actorUser, null);
+        sendBillDeletedByFriendInternal(billId, billName, amount, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend deletes a bill with deleted entity details.
      */
+    @Async("friendActivityExecutor")
     public void sendBillDeletedByFriend(Integer billId, String billName, Double amount, Bill deletedBill,
+            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+        sendBillDeletedByFriendInternal(billId, billName, amount, deletedBill, targetUserId, actorUser, targetUser);
+    }
+
+    private void sendBillDeletedByFriendInternal(Integer billId, String billName, Double amount, Bill deletedBill,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -216,16 +247,23 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes all bills.
      */
+    @Async("friendActivityExecutor")
     public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
-        sendAllBillsDeletedByFriend(targetUserId, actorUser, null, count, null);
+        sendAllBillsDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
     /**
      * Send notification when a friend deletes all bills with deleted entities
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser, int count,
             List<Bill> deletedBills) {
+        sendAllBillsDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedBills);
+    }
+
+    private void sendAllBillsDeletedByFriendInternal(Integer targetUserId, UserDto actorUser, UserDto targetUser,
+            int count, List<Bill> deletedBills) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;

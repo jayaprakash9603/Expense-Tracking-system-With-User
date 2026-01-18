@@ -21,4 +21,21 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    /**
+     * Dedicated executor for friend activity event production.
+     * Ensures async event publishing doesn't block main request threads.
+     */
+    @Bean(name = "friendActivityExecutor")
+    public Executor friendActivityExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(500);
+        executor.setThreadNamePrefix("friend-activity-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        return executor;
+    }
 }

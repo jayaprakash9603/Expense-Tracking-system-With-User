@@ -6,6 +6,7 @@ import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,14 +27,24 @@ public class FriendActivityService {
     /**
      * Send notification when a friend creates a budget on behalf of another user.
      */
+    @Async("friendActivityExecutor")
     public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser) {
-        sendBudgetCreatedByFriend(budget, targetUserId, actorUser, null);
+        sendBudgetCreatedByFriendInternal(budget, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend creates a budget with target user details.
      */
+    @Async("friendActivityExecutor")
     public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+        sendBudgetCreatedByFriendInternal(budget, targetUserId, actorUser, targetUser);
+    }
+
+    /**
+     * Internal method to handle budget creation notification.
+     */
+    private void sendBudgetCreatedByFriendInternal(Budget budget, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 log.debug("Skipping friend activity notification - user creating own budget");
@@ -73,15 +84,26 @@ public class FriendActivityService {
     /**
      * Send notification when a friend updates a budget.
      */
+    @Async("friendActivityExecutor")
     public void sendBudgetUpdatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser) {
-        sendBudgetUpdatedByFriend(budget, null, targetUserId, actorUser, null);
+        sendBudgetUpdatedByFriendInternal(budget, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend updates a budget with previous state and
      * target user details.
      */
+    @Async("friendActivityExecutor")
     public void sendBudgetUpdatedByFriend(Budget budget, Budget previousBudget, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
+        sendBudgetUpdatedByFriendInternal(budget, previousBudget, targetUserId, actorUser, targetUser);
+    }
+
+    /**
+     * Internal method to handle budget update notification.
+     */
+    private void sendBudgetUpdatedByFriendInternal(Budget budget, Budget previousBudget, Integer targetUserId,
+            UserDto actorUser,
             UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -118,15 +140,27 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes a budget.
      */
+    @Async("friendActivityExecutor")
     public void sendBudgetDeletedByFriend(Integer budgetId, String budgetName, Double amount,
             Integer targetUserId, UserDto actorUser) {
-        sendBudgetDeletedByFriend(budgetId, budgetName, amount, null, targetUserId, actorUser, null);
+        sendBudgetDeletedByFriendInternal(budgetId, budgetName, amount, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend deletes a budget with deleted entity details.
      */
+    @Async("friendActivityExecutor")
     public void sendBudgetDeletedByFriend(Integer budgetId, String budgetName, Double amount, Budget deletedBudget,
+            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+        sendBudgetDeletedByFriendInternal(budgetId, budgetName, amount, deletedBudget, targetUserId, actorUser,
+                targetUser);
+    }
+
+    /**
+     * Internal method to handle budget deletion notification.
+     */
+    private void sendBudgetDeletedByFriendInternal(Integer budgetId, String budgetName, Double amount,
+            Budget deletedBudget,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -163,15 +197,26 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes all budgets.
      */
+    @Async("friendActivityExecutor")
     public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
-        sendAllBudgetsDeletedByFriend(targetUserId, actorUser, null, count, null);
+        sendAllBudgetsDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
     /**
      * Send notification when a friend deletes all budgets with deleted entities
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser, int count,
+            List<Budget> deletedBudgets) {
+        sendAllBudgetsDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedBudgets);
+    }
+
+    /**
+     * Internal method to handle all budgets deletion notification.
+     */
+    private void sendAllBudgetsDeletedByFriendInternal(Integer targetUserId, UserDto actorUser, UserDto targetUser,
+            int count,
             List<Budget> deletedBudgets) {
         try {
             if (targetUserId.equals(actorUser.getId())) {

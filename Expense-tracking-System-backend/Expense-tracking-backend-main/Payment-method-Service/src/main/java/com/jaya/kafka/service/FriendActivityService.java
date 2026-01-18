@@ -6,6 +6,7 @@ import com.jaya.models.PaymentMethod;
 import com.jaya.models.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -28,15 +29,26 @@ public class FriendActivityService {
      * Send notification when a friend creates a payment method on behalf of another
      * user.
      */
+    @Async("friendActivityExecutor")
     public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser) {
-        sendPaymentMethodCreatedByFriend(paymentMethod, targetUserId, actorUser, null);
+        sendPaymentMethodCreatedByFriendInternal(paymentMethod, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend creates a payment method with target user
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
+        sendPaymentMethodCreatedByFriendInternal(paymentMethod, targetUserId, actorUser, targetUser);
+    }
+
+    /**
+     * Internal method to handle payment method creation notification.
+     */
+    private void sendPaymentMethodCreatedByFriendInternal(PaymentMethod paymentMethod, Integer targetUserId,
+            UserDto actorUser,
             UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -76,15 +88,27 @@ public class FriendActivityService {
     /**
      * Send notification when a friend updates a payment method.
      */
+    @Async("friendActivityExecutor")
     public void sendPaymentMethodUpdatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser) {
-        sendPaymentMethodUpdatedByFriend(paymentMethod, null, targetUserId, actorUser, null);
+        sendPaymentMethodUpdatedByFriendInternal(paymentMethod, null, targetUserId, actorUser, null);
     }
 
     /**
      * Send notification when a friend updates a payment method with previous state
      * and target user details.
      */
+    @Async("friendActivityExecutor")
     public void sendPaymentMethodUpdatedByFriend(PaymentMethod paymentMethod, PaymentMethod previousPaymentMethod,
+            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+        sendPaymentMethodUpdatedByFriendInternal(paymentMethod, previousPaymentMethod, targetUserId, actorUser,
+                targetUser);
+    }
+
+    /**
+     * Internal method to handle payment method update notification.
+     */
+    private void sendPaymentMethodUpdatedByFriendInternal(PaymentMethod paymentMethod,
+            PaymentMethod previousPaymentMethod,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -122,16 +146,29 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes a payment method.
      */
+    @Async("friendActivityExecutor")
     public void sendPaymentMethodDeletedByFriend(Integer paymentMethodId, String paymentMethodName,
             Integer targetUserId, UserDto actorUser) {
-        sendPaymentMethodDeletedByFriend(paymentMethodId, paymentMethodName, null, targetUserId, actorUser, null);
+        sendPaymentMethodDeletedByFriendInternal(paymentMethodId, paymentMethodName, null, targetUserId, actorUser,
+                null);
     }
 
     /**
      * Send notification when a friend deletes a payment method with deleted entity
      * details.
      */
+    @Async("friendActivityExecutor")
     public void sendPaymentMethodDeletedByFriend(Integer paymentMethodId, String paymentMethodName,
+            PaymentMethod deletedPaymentMethod,
+            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+        sendPaymentMethodDeletedByFriendInternal(paymentMethodId, paymentMethodName, deletedPaymentMethod, targetUserId,
+                actorUser, targetUser);
+    }
+
+    /**
+     * Internal method to handle payment method deletion notification.
+     */
+    private void sendPaymentMethodDeletedByFriendInternal(Integer paymentMethodId, String paymentMethodName,
             PaymentMethod deletedPaymentMethod,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
@@ -170,15 +207,26 @@ public class FriendActivityService {
     /**
      * Send notification when a friend deletes all payment methods.
      */
+    @Async("friendActivityExecutor")
     public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
-        sendAllPaymentMethodsDeletedByFriend(targetUserId, actorUser, null, count, null);
+        sendAllPaymentMethodsDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
     /**
      * Send notification when a friend deletes all payment methods with deleted
      * entities details.
      */
+    @Async("friendActivityExecutor")
     public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser,
+            int count, List<PaymentMethod> deletedPaymentMethods) {
+        sendAllPaymentMethodsDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedPaymentMethods);
+    }
+
+    /**
+     * Internal method to handle all payment methods deletion notification.
+     */
+    private void sendAllPaymentMethodsDeletedByFriendInternal(Integer targetUserId, UserDto actorUser,
+            UserDto targetUser,
             int count, List<PaymentMethod> deletedPaymentMethods) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
