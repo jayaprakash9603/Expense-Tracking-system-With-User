@@ -3,8 +3,9 @@
  * Main export file for Friend Activity feature.
  */
 
-// Main component
+// Main components
 export { default as FriendActivityPanel } from "./FriendActivityPanel";
+export { default as FriendActivityPage } from "./FriendActivityPage";
 
 // Sub-components
 export {

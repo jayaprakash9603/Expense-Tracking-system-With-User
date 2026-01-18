@@ -95,6 +95,7 @@ export const getEntityColor = (entityType) => {
     BUDGET: "#8b5cf6",
     CATEGORY: "#3b82f6",
     PAYMENT: "#ec4899",
+    PAYMENT_METHOD: "#ec4899",
   };
   return colors[entityType] || "#6b7280";
 };
@@ -125,6 +126,7 @@ export const getActivityIcon = (entityType) => {
     BUDGET: "account_balance_wallet",
     CATEGORY: "category",
     PAYMENT: "payment",
+    PAYMENT_METHOD: "payment",
   };
   return icons[entityType] || "info";
 };

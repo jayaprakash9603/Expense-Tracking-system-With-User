@@ -22,12 +22,12 @@ const ActivityEmptyState = ({
   const { colors } = useTheme();
 
   const defaultMessage = hasFilters
-    ? "No activities match your filters"
+    ? "No matching activities found"
     : "No friend activities yet";
 
   const defaultSubMessage = hasFilters
-    ? "Try adjusting your filters or clear them to see all activities"
-    : "When your friends make changes to their expenses, bills, budgets, and more, you'll see them here";
+    ? "We couldn't find any activities matching your search criteria. Try adjusting your filters, changing the search term, or reset to see all activities."
+    : "When your friends make changes to their expenses, bills, budgets, and more, you'll see their activity updates here.";
 
   return (
     <Box

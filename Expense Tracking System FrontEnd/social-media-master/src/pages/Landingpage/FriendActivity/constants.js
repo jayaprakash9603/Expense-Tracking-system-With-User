@@ -3,7 +3,7 @@
  * Defines constants used across friend activity components.
  */
 
-// Service types
+// Service types (based on sourceService field)
 export const SERVICES = {
   ALL: "all",
   EXPENSE: "EXPENSE",
@@ -11,6 +11,16 @@ export const SERVICES = {
   BUDGET: "BUDGET",
   CATEGORY: "CATEGORY",
   PAYMENT: "PAYMENT",
+};
+
+// Entity types (based on entityType field - can differ from sourceService)
+export const ENTITY_TYPES = {
+  EXPENSE: "EXPENSE",
+  BILL: "BILL",
+  BUDGET: "BUDGET",
+  CATEGORY: "CATEGORY",
+  PAYMENT: "PAYMENT",
+  PAYMENT_METHOD: "PAYMENT_METHOD",
 };
 
 // Service display names
@@ -21,6 +31,16 @@ export const SERVICE_LABELS = {
   [SERVICES.BUDGET]: "Budgets",
   [SERVICES.CATEGORY]: "Categories",
   [SERVICES.PAYMENT]: "Payments",
+};
+
+// Entity type display names
+export const ENTITY_TYPE_LABELS = {
+  [ENTITY_TYPES.EXPENSE]: "Expense",
+  [ENTITY_TYPES.BILL]: "Bill",
+  [ENTITY_TYPES.BUDGET]: "Budget",
+  [ENTITY_TYPES.CATEGORY]: "Category",
+  [ENTITY_TYPES.PAYMENT]: "Payment",
+  [ENTITY_TYPES.PAYMENT_METHOD]: "Payment Method",
 };
 
 // Action types
@@ -97,8 +117,8 @@ export const TIME_RANGE_LABELS = {
 
 // Pagination defaults
 export const PAGINATION = {
-  DEFAULT_PAGE_SIZE: 10,
-  PAGE_SIZE_OPTIONS: [5, 10, 20, 50],
+  DEFAULT_PAGE_SIZE: 5,
+  PAGE_SIZE_OPTIONS: [5, 10, 15, 20, 50],
 };
 
 // Icon mapping for entity types

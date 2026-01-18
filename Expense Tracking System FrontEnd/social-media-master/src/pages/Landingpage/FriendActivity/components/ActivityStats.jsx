@@ -1,18 +1,17 @@
 /**
  * ActivityStats Component
- * Displays summary statistics for friend activities.
+ * Compact summary statistics for friend activities.
+ * Displays service breakdown with progress bars in a single row.
  */
 
 import React, { useMemo } from "react";
-import { Box, Typography, Chip, LinearProgress, Tooltip } from "@mui/material";
+import { Box, Typography, LinearProgress, Tooltip } from "@mui/material";
 import {
   Receipt as ExpenseIcon,
   Description as BillIcon,
   AccountBalanceWallet as BudgetIcon,
   Category as CategoryIcon,
   Payment as PaymentIcon,
-  TrendingUp as TrendingIcon,
-  Notifications as NotificationIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../../../hooks/useTheme";
 import { calculateActivityStats, getEntityColor } from "../utils";
@@ -26,174 +25,155 @@ const serviceIcons = {
   PAYMENT: PaymentIcon,
 };
 
-const ActivityStats = ({ activities = [], compact = false }) => {
+const ActivityStats = ({ activities = [] }) => {
   const { colors } = useTheme();
 
   const stats = useMemo(() => calculateActivityStats(activities), [activities]);
 
-  // Calculate percentages for service breakdown
-  const serviceBreakdown = useMemo(() => {
-    if (stats.total === 0) return [];
+  // All available services for consistent display
+  const ALL_SERVICES = ["BILL", "EXPENSE", "BUDGET", "PAYMENT", "CATEGORY"];
 
-    return Object.entries(stats.byService)
-      .map(([service, count]) => ({
+  // Calculate percentages for service breakdown - always show all services
+  const serviceBreakdown = useMemo(() => {
+    return ALL_SERVICES.map((service) => {
+      const count = stats.byService[service] || 0;
+      const percentage =
+        stats.total > 0 ? ((count / stats.total) * 100).toFixed(1) : "0.0";
+      return {
         service,
         count,
-        percentage: ((count / stats.total) * 100).toFixed(1),
+        percentage,
         color: getEntityColor(service),
         label: SERVICE_LABELS[service] || service,
         Icon: serviceIcons[service] || ExpenseIcon,
-      }))
-      .sort((a, b) => b.count - a.count);
+      };
+    }).sort((a, b) => b.count - a.count);
   }, [stats]);
-
-  if (compact) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 2,
-          p: 1.5,
-          backgroundColor: colors.secondary_bg,
-          borderRadius: "8px",
-          border: `1px solid ${colors.border_color}`,
-        }}
-      >
-        <Chip
-          icon={<NotificationIcon />}
-          label={`${stats.total} activities`}
-          size="small"
-          sx={{
-            backgroundColor: `${colors.primary_accent}20`,
-            color: colors.primary_accent,
-          }}
-        />
-        {stats.unread > 0 && (
-          <Chip
-            label={`${stats.unread} unread`}
-            size="small"
-            sx={{
-              backgroundColor: "#ef444420",
-              color: "#ef4444",
-            }}
-          />
-        )}
-        {stats.totalAmount > 0 && (
-          <Chip
-            icon={<TrendingIcon />}
-            label={`$${stats.totalAmount.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`}
-            size="small"
-            sx={{
-              backgroundColor: "#22c55e20",
-              color: "#22c55e",
-            }}
-          />
-        )}
-      </Box>
-    );
-  }
 
   return (
     <Box
       sx={{
-        p: 2,
-        backgroundColor: colors.secondary_bg,
-        borderRadius: "8px",
+        p: 1.5,
+        backgroundColor: colors.primary_bg,
+        borderRadius: "10px",
         border: `1px solid ${colors.border_color}`,
+        width: "100%",
       }}
     >
-      {/* Header Stats */}
+      {/* Header Row - Title and Total Amount */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 2,
+          mb: 1,
         }}
       >
-        <Box>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 600, color: colors.primary_text }}
-          >
-            Activity Summary
-          </Typography>
-          <Typography variant="caption" sx={{ color: colors.tertiary_text }}>
-            Overview of your friends' recent activities
-          </Typography>
-        </Box>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: 600,
+            color: colors.primary_text,
+            fontSize: "0.95rem",
+          }}
+        >
+          Activity Summary
+        </Typography>
 
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Tooltip title="Total activities">
-            <Chip
-              icon={<NotificationIcon />}
-              label={stats.total}
-              sx={{
-                backgroundColor: `${colors.primary_accent}20`,
-                color: colors.primary_accent,
-                fontWeight: 600,
-              }}
-            />
-          </Tooltip>
-          {stats.unread > 0 && (
-            <Tooltip title="Unread activities">
-              <Chip
-                label={`${stats.unread} unread`}
-                sx={{
-                  backgroundColor: "#ef444420",
-                  color: "#ef4444",
-                  fontWeight: 600,
-                }}
-              />
-            </Tooltip>
-          )}
-        </Box>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 700,
+            color: colors.primary_text,
+            fontSize: "1.1rem",
+          }}
+        >
+          $
+          {stats.totalAmount.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </Typography>
       </Box>
 
-      {/* Service Breakdown */}
-      {serviceBreakdown.length > 0 && (
-        <Box>
-          <Typography
-            variant="body2"
-            sx={{
-              fontWeight: 500,
-              color: colors.secondary_text,
-              mb: 1.5,
-            }}
-          >
-            By Service Type
-          </Typography>
+      {/* Service Breakdown - Horizontal Layout, Full Width */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          flexWrap: "nowrap",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          overflowX: "auto",
+        }}
+      >
+        {serviceBreakdown.map(
+          ({ service, count, percentage, color, label, Icon }) => (
+            <Tooltip
+              key={service}
+              title={`${label}: ${count} activities (${percentage}%)`}
+              arrow
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  minWidth: "160px",
+                  flex: "1 1 auto",
+                }}
+              >
+                {/* Icon and Label */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    minWidth: "fit-content",
+                  }}
+                >
+                  <Icon sx={{ fontSize: 16, color }} />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: colors.secondary_text,
+                      fontSize: "0.75rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {label}
+                  </Typography>
+                </Box>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            {serviceBreakdown.map(
-              ({ service, count, percentage, color, label, Icon }) => (
-                <Box key={service}>
+                {/* Count and Progress */}
+                <Box sx={{ flex: 1, minWidth: "60px" }}>
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "space-between",
-                      mb: 0.5,
+                      justifyContent: "flex-end",
+                      gap: 0.5,
+                      mb: 0.25,
                     }}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Icon sx={{ fontSize: 18, color }} />
-                      <Typography
-                        variant="body2"
-                        sx={{ color: colors.primary_text }}
-                      >
-                        {label}
-                      </Typography>
-                    </Box>
                     <Typography
                       variant="caption"
-                      sx={{ color: colors.tertiary_text }}
+                      sx={{
+                        fontWeight: 600,
+                        color: colors.primary_text,
+                        fontSize: "0.8rem",
+                      }}
                     >
-                      {count} ({percentage}%)
+                      {count}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color,
+                        fontSize: "0.7rem",
+                      }}
+                    >
+                      ({percentage}%)
                     </Typography>
                   </Box>
                   <LinearProgress
@@ -202,7 +182,7 @@ const ActivityStats = ({ activities = [], compact = false }) => {
                     sx={{
                       height: 6,
                       borderRadius: "3px",
-                      backgroundColor: `${color}20`,
+                      backgroundColor: `${color}30`,
                       "& .MuiLinearProgress-bar": {
                         backgroundColor: color,
                         borderRadius: "3px",
@@ -210,84 +190,11 @@ const ActivityStats = ({ activities = [], compact = false }) => {
                     }}
                   />
                 </Box>
-              ),
-            )}
-          </Box>
-        </Box>
-      )}
-
-      {/* Action Breakdown */}
-      {Object.keys(stats.byAction).length > 0 && (
-        <Box sx={{ mt: 2 }}>
-          <Typography
-            variant="body2"
-            sx={{
-              fontWeight: 500,
-              color: colors.secondary_text,
-              mb: 1,
-            }}
-          >
-            By Action
-          </Typography>
-
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            {Object.entries(stats.byAction).map(([action, count]) => {
-              const actionColors = {
-                CREATE: "#22c55e",
-                UPDATE: "#3b82f6",
-                DELETE: "#ef4444",
-              };
-              const color = actionColors[action] || colors.tertiary_text;
-
-              return (
-                <Chip
-                  key={action}
-                  size="small"
-                  label={`${action}: ${count}`}
-                  sx={{
-                    backgroundColor: `${color}20`,
-                    color: color,
-                    fontWeight: 500,
-                    fontSize: "0.75rem",
-                  }}
-                />
-              );
-            })}
-          </Box>
-        </Box>
-      )}
-
-      {/* Total Amount */}
-      {stats.totalAmount > 0 && (
-        <Box
-          sx={{
-            mt: 2,
-            p: 1.5,
-            backgroundColor: colors.primary_bg,
-            borderRadius: "6px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <TrendingIcon sx={{ fontSize: 20, color: "#22c55e" }} />
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-              Total Activity Amount
-            </Typography>
-          </Box>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 600, color: colors.primary_text }}
-          >
-            $
-            {stats.totalAmount.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </Typography>
-        </Box>
-      )}
+              </Box>
+            </Tooltip>
+          ),
+        )}
+      </Box>
     </Box>
   );
 };

@@ -59,7 +59,6 @@ import FilterPopover from "../../components/FilterPopover";
 import ListSkeleton from "../../components/ListSkeleton";
 import ToastNotification from "./ToastNotification";
 import { useTheme } from "../../hooks/useTheme";
-import { FriendActivityPanel } from "./FriendActivity";
 import {
   filterSuggestions,
   filterRequests,
@@ -178,8 +177,7 @@ const Friends = () => {
   const [friendFilters, setFriendFilters] = useState([]);
   const [sharedFilters, setSharedFilters] = useState([]);
 
-  // Friend Activity Panel state
-  const [activityPanelOpen, setActivityPanelOpen] = useState(false);
+  // Friend Activity unread count for badge display
   const unreadActivityCount = useSelector(
     (state) => state.friendActivity?.unreadCount || 0,
   );
@@ -827,7 +825,7 @@ const Friends = () => {
               <div className="flex items-center gap-1">
                 <Button
                   size="small"
-                  onClick={() => setActivityPanelOpen(true)}
+                  onClick={() => navigate("/friends/activity")}
                   title="View Friend Activity History"
                   sx={{
                     minWidth: "auto",
@@ -2419,12 +2417,6 @@ const Friends = () => {
           }
           selected={getSelectedFilters()}
           onApply={applySelectedFilters}
-        />
-
-        {/* Friend Activity History Panel */}
-        <FriendActivityPanel
-          isOpen={activityPanelOpen}
-          onClose={() => setActivityPanelOpen(false)}
         />
       </div>
     </>

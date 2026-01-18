@@ -9,3 +9,4 @@ export { default as ActivityAccordion } from "./ActivityAccordion";
 export { default as ActivityStats } from "./ActivityStats";
 export { default as ActivityEmptyState } from "./ActivityEmptyState";
 export { default as ActivitySkeleton } from "./ActivitySkeleton";
+export { default as ActivityDetailModal } from "./ActivityDetailModal";

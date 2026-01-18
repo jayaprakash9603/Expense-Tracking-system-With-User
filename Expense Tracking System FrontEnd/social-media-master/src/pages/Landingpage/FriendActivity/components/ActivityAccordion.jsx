@@ -58,6 +58,7 @@ const ActivityAccordion = ({
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      {/* Accordion Groups - Render all passed groups (pagination handled by parent) */}
       {groups.map((group) => (
         <AccordionItem
           key={group.key}
@@ -237,83 +238,112 @@ const AccordionItem = React.memo(
         <Collapse in={isExpanded}>
           <Box
             sx={{
-              p: 2,
-              pt: 1,
               borderTop: `1px solid ${colors.border_color}`,
             }}
           >
-            {/* Activity Cards */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              {paginatedData.map((activity) => (
-                <ActivityCard
-                  key={activity.id}
-                  activity={activity}
-                  onMarkAsRead={onMarkAsRead}
-                  onViewDetails={onViewDetails}
-                  compact
-                  showAvatar={groupType !== "friend"}
-                />
-              ))}
+            {/* Activity Cards Container - No fixed height, parent handles scroll */}
+            <Box
+              sx={{
+                p: 2,
+                pt: 1,
+              }}
+            >
+              {/* Activity Cards */}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                {paginatedData.map((activity) => (
+                  <ActivityCard
+                    key={activity.id}
+                    activity={activity}
+                    onMarkAsRead={onMarkAsRead}
+                    onViewDetails={onViewDetails}
+                    compact={false}
+                    showAvatar={groupType !== "friend"}
+                  />
+                ))}
+              </Box>
             </Box>
 
-            {/* Pagination */}
-            {showPagination && totalPages > 1 && (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  mt: 2,
-                  pt: 2,
-                  borderTop: `1px solid ${colors.border_color}`,
-                }}
-              >
-                <FormControl size="small" sx={{ minWidth: 80 }}>
-                  <Select
-                    value={pageSize}
-                    onChange={(e) => changePageSize(e.target.value)}
-                    sx={{
-                      height: 30,
-                      fontSize: "0.75rem",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: colors.border_color,
-                      },
-                    }}
-                  >
-                    {PAGINATION.PAGE_SIZE_OPTIONS.map((size) => (
-                      <MenuItem key={size} value={size}>
-                        {size} / page
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <Pagination
-                  count={totalPages}
-                  page={currentPage}
-                  onChange={(e, page) => setCurrentPage(page)}
-                  size="small"
+            {/* Pagination - Fixed at bottom, outside scroll area */}
+            {showPagination &&
+              items.length > PAGINATION.PAGE_SIZE_OPTIONS[0] && (
+                <Box
                   sx={{
-                    "& .MuiPaginationItem-root": {
-                      color: colors.secondary_text,
-                      "&.Mui-selected": {
-                        backgroundColor: accentColor,
-                        color: colors.button_text,
-                      },
-                    },
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 1.5,
+                    px: 2,
+                    py: 1.5,
+                    borderTop: `1px solid ${colors.border_color}`,
+                    backgroundColor: colors.secondary_bg,
                   }}
-                />
-
-                <Typography
-                  variant="caption"
-                  sx={{ color: colors.tertiary_text }}
                 >
-                  {(currentPage - 1) * pageSize + 1}-
-                  {Math.min(currentPage * pageSize, items.length)} of{" "}
-                  {items.length}
-                </Typography>
-              </Box>
-            )}
+                  {/* Per Page Selector */}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: colors.tertiary_text, fontSize: "0.7rem" }}
+                    >
+                      Show:
+                    </Typography>
+                    <FormControl size="small" sx={{ minWidth: 70 }}>
+                      <Select
+                        value={pageSize}
+                        onChange={(e) => changePageSize(e.target.value)}
+                        sx={{
+                          height: 28,
+                          fontSize: "0.75rem",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: colors.border_color,
+                          },
+                          color: colors.primary_text,
+                          "& .MuiSelect-select": {
+                            py: 0.5,
+                          },
+                        }}
+                      >
+                        {PAGINATION.PAGE_SIZE_OPTIONS.map((size) => (
+                          <MenuItem key={size} value={size}>
+                            {size}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  {/* Pagination Controls - Only if more than 1 page */}
+                  {totalPages > 1 && (
+                    <Pagination
+                      count={totalPages}
+                      page={currentPage}
+                      onChange={(e, page) => setCurrentPage(page)}
+                      size="small"
+                      sx={{
+                        "& .MuiPaginationItem-root": {
+                          color: colors.secondary_text,
+                          minWidth: 28,
+                          height: 28,
+                          "&.Mui-selected": {
+                            backgroundColor: accentColor,
+                            color: colors.button_text,
+                          },
+                        },
+                      }}
+                    />
+                  )}
+
+                  {/* Items Count */}
+                  <Typography
+                    variant="caption"
+                    sx={{ color: colors.tertiary_text, fontSize: "0.7rem" }}
+                  >
+                    {(currentPage - 1) * pageSize + 1}-
+                    {Math.min(currentPage * pageSize, items.length)} of{" "}
+                    {items.length} items
+                  </Typography>
+                </Box>
+              )}
           </Box>
         </Collapse>
       </Box>

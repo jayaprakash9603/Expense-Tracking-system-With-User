@@ -1,9 +1,10 @@
 /**
  * ActivityFilters Component
- * Filter bar with search, service filter, action filter, and more.
+ * Single-row filter bar with search and filters, matching Budget component style.
+ * Includes view selector menu for grouping options.
  */
 
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Box,
   TextField,
@@ -15,17 +16,22 @@ import {
   Tooltip,
   InputAdornment,
   Chip,
-  Button,
+  Menu,
+  ListItemIcon,
+  ListItemText,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Search as SearchIcon,
-  FilterAlt as FilterIcon,
   Clear as ClearIcon,
   Refresh as RefreshIcon,
-  Sort as SortIcon,
   ArrowUpward as AscIcon,
   ArrowDownward as DescIcon,
-  MarkEmailRead as MarkAllReadIcon,
+  ViewList as ListView,
+  DateRange as DateIcon,
+  Category as ServiceIcon,
+  People as FriendIcon,
+  FilterList as FilterListIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../../../hooks/useTheme";
 import {
@@ -42,6 +48,14 @@ import {
   TIME_RANGE_LABELS,
 } from "../constants";
 
+// View options for the menu
+const VIEW_OPTIONS = [
+  { value: "date", label: "By Date", icon: DateIcon },
+  { value: "service", label: "By Service", icon: ServiceIcon },
+  { value: "friend", label: "By Friend", icon: FriendIcon },
+  { value: "list", label: "List View", icon: ListView },
+];
+
 const ActivityFilters = ({
   filters,
   onFilterChange,
@@ -52,8 +66,36 @@ const ActivityFilters = ({
   hasActiveFilters = false,
   unreadCount = 0,
   loading = false,
+  // View selector props
+  groupView = "date",
+  onViewChange,
 }) => {
   const { colors } = useTheme();
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+
+  // View menu state
+  const [viewMenuAnchor, setViewMenuAnchor] = useState(null);
+  const viewMenuOpen = Boolean(viewMenuAnchor);
+
+  const handleViewMenuOpen = (event) => {
+    setViewMenuAnchor(event.currentTarget);
+  };
+
+  const handleViewMenuClose = () => {
+    setViewMenuAnchor(null);
+  };
+
+  const handleViewSelect = (view) => {
+    if (onViewChange) {
+      onViewChange(view);
+    }
+    handleViewMenuClose();
+  };
+
+  // Get current view label and icon
+  const currentView =
+    VIEW_OPTIONS.find((v) => v.value === groupView) || VIEW_OPTIONS[0];
+  const CurrentViewIcon = currentView.icon;
 
   // Handle individual filter changes
   const handleSearchChange = useCallback(
@@ -102,377 +144,453 @@ const ActivityFilters = ({
     onFilterChange("searchTerm", "");
   }, [onFilterChange]);
 
-  // Common select styles
-  const selectStyles = {
-    minWidth: 120,
-    "& .MuiOutlinedInput-root": {
-      height: 36,
-      backgroundColor: colors.secondary_bg,
-      "& fieldset": {
-        borderColor: colors.border_color,
-      },
-      "&:hover fieldset": {
-        borderColor: colors.primary_accent,
-      },
-    },
-    "& .MuiSelect-select": {
-      py: 0.75,
-      fontSize: "0.875rem",
-    },
-    "& .MuiInputLabel-root": {
-      color: colors.secondary_text,
-      fontSize: "0.875rem",
-      top: -8,
-    },
-  };
-
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 1.5,
-        p: 2,
-        backgroundColor: colors.secondary_bg,
-        borderRadius: "8px",
+        background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
         border: `1px solid ${colors.border_color}`,
+        borderRadius: "12px",
+        p: 1.5,
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* Top Row: Search and Actions */}
+      {/* Single Row: Search and Filters */}
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
-          gap: 1.5,
-          flexWrap: "wrap",
+          flexDirection: isSmallScreen ? "column" : "row",
+          gap: 2,
+          alignItems: "stretch",
         }}
       >
-        {/* Search Field */}
-        <TextField
-          size="small"
-          placeholder="Search activities..."
-          value={filters.searchTerm}
-          onChange={handleSearchChange}
-          sx={{
-            flex: "1 1 200px",
-            minWidth: 200,
-            "& .MuiOutlinedInput-root": {
-              height: 36,
-              backgroundColor: colors.primary_bg,
-              "& fieldset": {
-                borderColor: colors.border_color,
-              },
-              "&:hover fieldset": {
-                borderColor: colors.primary_accent,
-              },
-            },
-            "& input": {
-              fontSize: "0.875rem",
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon
-                  sx={{ fontSize: 20, color: colors.tertiary_text }}
-                />
-              </InputAdornment>
-            ),
-            endAdornment: filters.searchTerm && (
-              <InputAdornment position="end">
-                <IconButton size="small" onClick={handleClearSearch}>
-                  <ClearIcon sx={{ fontSize: 16 }} />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        {/* Action Buttons */}
-        <Box sx={{ display: "flex", gap: 0.5, ml: "auto" }}>
-          {unreadCount > 0 && (
-            <Tooltip title={`Mark all ${unreadCount} as read`}>
-              <Button
-                size="small"
-                startIcon={<MarkAllReadIcon />}
-                onClick={onMarkAllRead}
-                sx={{
-                  textTransform: "none",
-                  fontSize: "0.75rem",
-                  color: colors.primary_accent,
+        {/* Search Input - Takes Half Width */}
+        <Box sx={{ flex: isSmallScreen ? 1 : 0.5 }}>
+          <TextField
+            placeholder="Search activities..."
+            value={filters.searchTerm}
+            onChange={handleSearchChange}
+            size="small"
+            fullWidth
+            variant="outlined"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon
+                    sx={{
+                      color: colors.primary_accent,
+                      fontSize: "1.2rem",
+                    }}
+                  />
+                </InputAdornment>
+              ),
+              endAdornment: filters.searchTerm && (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={handleClearSearch}>
+                    <ClearIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                bgcolor: colors.secondary_bg,
+                color: colors.primary_text,
+                borderRadius: "8px",
+                height: "42px",
+                "& fieldset": {
+                  borderColor: colors.border_color,
+                  borderWidth: "1.5px",
+                },
+                "&:hover fieldset": {
                   borderColor: colors.primary_accent,
-                }}
-                variant="outlined"
-              >
-                Mark All Read
-              </Button>
-            </Tooltip>
-          )}
+                  borderWidth: "1.5px",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: colors.primary_accent,
+                  borderWidth: "2px",
+                },
+              },
+              "& .MuiInputBase-input": {
+                fontSize: "0.875rem",
+                "&::placeholder": {
+                  color: colors.icon_muted,
+                  opacity: 0.8,
+                },
+              },
+            }}
+          />
+        </Box>
 
-          <Tooltip title="Refresh">
-            <IconButton
-              size="small"
-              onClick={onRefresh}
-              disabled={loading}
-              sx={{
-                color: colors.secondary_text,
-                "&:hover": {
+        {/* Filter and Sort Controls - Takes Half Width */}
+        <Box
+          sx={{
+            flex: isSmallScreen ? 1 : 0.5,
+            display: "flex",
+            flexDirection: isSmallScreen ? "column" : "row",
+            gap: 1.5,
+            alignItems: "center",
+          }}
+        >
+          {/* Filter Dropdowns Row */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flex: 1,
+              flexWrap: "wrap",
+            }}
+          >
+            {/* Service Filter */}
+            <FormControl size="small" sx={{ minWidth: 100, flex: 1 }}>
+              <InputLabel
+                sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}
+              >
+                Service
+              </InputLabel>
+              <Select
+                value={filters.serviceFilter}
+                onChange={handleServiceChange}
+                label="Service"
+                sx={{
+                  height: "42px",
+                  bgcolor: colors.secondary_bg,
+                  color: colors.primary_text,
+                  borderRadius: "8px",
+                  fontSize: "0.8rem",
+                  "& fieldset": { borderColor: colors.border_color },
+                  "&:hover fieldset": { borderColor: colors.primary_accent },
+                }}
+              >
+                {Object.entries(SERVICE_LABELS).map(([key, label]) => (
+                  <MenuItem key={key} value={key} sx={{ fontSize: "0.85rem" }}>
+                    {label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Time Range Filter */}
+            <FormControl size="small" sx={{ minWidth: 90, flex: 1 }}>
+              <InputLabel
+                sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}
+              >
+                Time
+              </InputLabel>
+              <Select
+                value={filters.timeRange}
+                onChange={handleTimeRangeChange}
+                label="Time"
+                sx={{
+                  height: "42px",
+                  bgcolor: colors.secondary_bg,
+                  color: colors.primary_text,
+                  borderRadius: "8px",
+                  fontSize: "0.8rem",
+                  "& fieldset": { borderColor: colors.border_color },
+                  "&:hover fieldset": { borderColor: colors.primary_accent },
+                }}
+              >
+                {Object.entries(TIME_RANGE_LABELS).map(([key, label]) => (
+                  <MenuItem
+                    key={key}
+                    value={key}
+                    disabled={key === TIME_RANGES.CUSTOM}
+                    sx={{ fontSize: "0.85rem" }}
+                  >
+                    {label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Sort By */}
+            <FormControl size="small" sx={{ minWidth: 90, flex: 1 }}>
+              <InputLabel
+                sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}
+              >
+                Sort
+              </InputLabel>
+              <Select
+                value={filters.sortBy}
+                onChange={handleSortByChange}
+                label="Sort"
+                sx={{
+                  height: "42px",
+                  bgcolor: colors.secondary_bg,
+                  color: colors.primary_text,
+                  borderRadius: "8px",
+                  fontSize: "0.8rem",
+                  "& fieldset": { borderColor: colors.border_color },
+                  "&:hover fieldset": { borderColor: colors.primary_accent },
+                }}
+              >
+                {Object.entries(SORT_LABELS).map(([key, label]) => (
+                  <MenuItem key={key} value={key} sx={{ fontSize: "0.85rem" }}>
+                    {label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Action Buttons */}
+          <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
+            {/* Sort Order Toggle */}
+            <Tooltip
+              title={`Sort ${filters.sortOrder === SORT_ORDER.DESC ? "Ascending" : "Descending"}`}
+            >
+              <IconButton
+                size="small"
+                onClick={handleSortOrderToggle}
+                sx={{
                   color: colors.primary_accent,
-                  backgroundColor: `${colors.primary_accent}20`,
+                  bgcolor: colors.secondary_bg,
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "6px",
+                  width: 36,
+                  height: 36,
+                  "&:hover": {
+                    bgcolor: colors.hover_bg,
+                    borderColor: colors.primary_accent,
+                  },
+                }}
+              >
+                {filters.sortOrder === SORT_ORDER.DESC ? (
+                  <DescIcon sx={{ fontSize: 18 }} />
+                ) : (
+                  <AscIcon sx={{ fontSize: 18 }} />
+                )}
+              </IconButton>
+            </Tooltip>
+
+            {/* Refresh */}
+            <Tooltip title="Refresh">
+              <IconButton
+                size="small"
+                onClick={onRefresh}
+                disabled={loading}
+                sx={{
+                  color: colors.primary_accent,
+                  bgcolor: colors.secondary_bg,
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "6px",
+                  width: 36,
+                  height: 36,
+                  "&:hover": {
+                    bgcolor: colors.hover_bg,
+                    borderColor: colors.primary_accent,
+                  },
+                }}
+              >
+                <RefreshIcon
+                  sx={{
+                    fontSize: 18,
+                    animation: loading ? "spin 1s linear infinite" : "none",
+                    "@keyframes spin": {
+                      "0%": { transform: "rotate(0deg)" },
+                      "100%": { transform: "rotate(360deg)" },
+                    },
+                  }}
+                />
+              </IconButton>
+            </Tooltip>
+
+            {/* Clear Filters */}
+            {hasActiveFilters && (
+              <Tooltip title="Clear all filters">
+                <IconButton
+                  size="small"
+                  onClick={onResetFilters}
+                  sx={{
+                    color: "#ef4444",
+                    bgcolor: colors.secondary_bg,
+                    border: `1px solid ${colors.border_color}`,
+                    borderRadius: "6px",
+                    width: 36,
+                    height: 36,
+                    "&:hover": {
+                      bgcolor: "#ef444420",
+                      borderColor: "#ef4444",
+                    },
+                  }}
+                >
+                  <ClearIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Tooltip>
+            )}
+
+            {/* View Selector */}
+            <Tooltip title={`View: ${currentView.label}`}>
+              <IconButton
+                size="small"
+                onClick={handleViewMenuOpen}
+                sx={{
+                  color: colors.button_text,
+                  bgcolor: colors.primary_accent,
+                  borderRadius: "6px",
+                  width: 36,
+                  height: 36,
+                  "&:hover": {
+                    bgcolor: colors.tertiary_accent,
+                  },
+                }}
+              >
+                <CurrentViewIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+
+            {/* View Menu */}
+            <Menu
+              anchorEl={viewMenuAnchor}
+              open={viewMenuOpen}
+              onClose={handleViewMenuClose}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              PaperProps={{
+                sx: {
+                  bgcolor: colors.secondary_bg,
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "8px",
+                  mt: 1,
+                  minWidth: 160,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                 },
               }}
             >
-              <RefreshIcon
-                sx={{
-                  fontSize: 20,
-                  animation: loading ? "spin 1s linear infinite" : "none",
-                  "@keyframes spin": {
-                    "0%": { transform: "rotate(0deg)" },
-                    "100%": { transform: "rotate(360deg)" },
-                  },
-                }}
-              />
-            </IconButton>
-          </Tooltip>
-
-          {hasActiveFilters && (
-            <Tooltip title="Clear all filters">
-              <Button
-                size="small"
-                startIcon={<ClearIcon />}
-                onClick={onResetFilters}
-                sx={{
-                  textTransform: "none",
-                  fontSize: "0.75rem",
-                  color: "#ef4444",
-                }}
-              >
-                Clear Filters
-              </Button>
-            </Tooltip>
-          )}
+              {VIEW_OPTIONS.map((option) => {
+                const OptionIcon = option.icon;
+                const isSelected = groupView === option.value;
+                return (
+                  <MenuItem
+                    key={option.value}
+                    onClick={() => handleViewSelect(option.value)}
+                    selected={isSelected}
+                    sx={{
+                      py: 1,
+                      px: 2,
+                      color: isSelected
+                        ? colors.primary_accent
+                        : colors.primary_text,
+                      bgcolor: isSelected
+                        ? `${colors.primary_accent}15`
+                        : "transparent",
+                      "&:hover": {
+                        bgcolor: `${colors.primary_accent}20`,
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 32 }}>
+                      <OptionIcon
+                        sx={{
+                          fontSize: 18,
+                          color: isSelected
+                            ? colors.primary_accent
+                            : colors.secondary_text,
+                        }}
+                      />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={option.label}
+                      primaryTypographyProps={{
+                        fontSize: "0.875rem",
+                        fontWeight: isSelected ? 600 : 400,
+                      }}
+                    />
+                  </MenuItem>
+                );
+              })}
+            </Menu>
+          </Box>
         </Box>
       </Box>
 
-      {/* Filter Row */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5,
-          flexWrap: "wrap",
-        }}
-      >
-        {/* Service Filter */}
-        <FormControl size="small" sx={selectStyles}>
-          <InputLabel>Service</InputLabel>
-          <Select
-            value={filters.serviceFilter}
-            onChange={handleServiceChange}
-            label="Service"
-          >
-            {Object.entries(SERVICE_LABELS).map(([key, label]) => (
-              <MenuItem key={key} value={key}>
-                {label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Action Filter */}
-        <FormControl size="small" sx={selectStyles}>
-          <InputLabel>Action</InputLabel>
-          <Select
-            value={filters.actionFilter}
-            onChange={handleActionChange}
-            label="Action"
-          >
-            {Object.entries(ACTION_LABELS).map(([key, label]) => (
-              <MenuItem key={key} value={key}>
-                {label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Friend Filter */}
-        {uniqueFriends.length > 0 && (
-          <FormControl size="small" sx={{ ...selectStyles, minWidth: 140 }}>
-            <InputLabel>Friend</InputLabel>
-            <Select
-              value={filters.friendFilter || ""}
-              onChange={handleFriendChange}
-              label="Friend"
-            >
-              <MenuItem value="">All Friends</MenuItem>
-              {uniqueFriends.map((friend) => (
-                <MenuItem key={friend.id} value={friend.id}>
-                  {friend.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-
-        {/* Time Range Filter */}
-        <FormControl size="small" sx={selectStyles}>
-          <InputLabel>Time</InputLabel>
-          <Select
-            value={filters.timeRange}
-            onChange={handleTimeRangeChange}
-            label="Time"
-          >
-            {Object.entries(TIME_RANGE_LABELS).map(([key, label]) => (
-              <MenuItem
-                key={key}
-                value={key}
-                disabled={key === TIME_RANGES.CUSTOM}
-              >
-                {label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Read Status Filter */}
-        <FormControl size="small" sx={selectStyles}>
-          <InputLabel>Status</InputLabel>
-          <Select
-            value={filters.readStatus}
-            onChange={handleReadStatusChange}
-            label="Status"
-          >
-            {Object.entries(READ_STATUS_LABELS).map(([key, label]) => (
-              <MenuItem key={key} value={key}>
-                {label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Divider */}
-        <Box
-          sx={{
-            width: "1px",
-            height: 24,
-            backgroundColor: colors.border_color,
-            mx: 0.5,
-          }}
-        />
-
-        {/* Sort By */}
-        <FormControl size="small" sx={selectStyles}>
-          <InputLabel>Sort By</InputLabel>
-          <Select
-            value={filters.sortBy}
-            onChange={handleSortByChange}
-            label="Sort By"
-          >
-            {Object.entries(SORT_LABELS).map(([key, label]) => (
-              <MenuItem key={key} value={key}>
-                {label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Sort Order Toggle */}
-        <Tooltip
-          title={`Sort ${
-            filters.sortOrder === SORT_ORDER.DESC ? "Ascending" : "Descending"
-          }`}
-        >
-          <IconButton
-            size="small"
-            onClick={handleSortOrderToggle}
-            sx={{
-              color: colors.secondary_text,
-              backgroundColor: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
-              "&:hover": {
-                backgroundColor: `${colors.primary_accent}20`,
-                color: colors.primary_accent,
-              },
-            }}
-          >
-            {filters.sortOrder === SORT_ORDER.DESC ? (
-              <DescIcon sx={{ fontSize: 18 }} />
-            ) : (
-              <AscIcon sx={{ fontSize: 18 }} />
-            )}
-          </IconButton>
-        </Tooltip>
-      </Box>
-
-      {/* Active Filters Display */}
+      {/* Active Filters Display - Below */}
       {hasActiveFilters && (
-        <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+        <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", mt: 1.5 }}>
           {filters.searchTerm && (
             <Chip
               size="small"
-              label={`Search: "${filters.searchTerm}"`}
+              label={`"${filters.searchTerm}"`}
               onDelete={() => onFilterChange("searchTerm", "")}
               sx={{
-                backgroundColor: colors.primary_bg,
-                fontSize: "0.75rem",
+                backgroundColor: `${colors.primary_accent}20`,
+                color: colors.primary_accent,
+                fontSize: "0.7rem",
+                height: 24,
               }}
             />
           )}
           {filters.serviceFilter !== SERVICES.ALL && (
             <Chip
               size="small"
-              label={`Service: ${SERVICE_LABELS[filters.serviceFilter]}`}
+              label={SERVICE_LABELS[filters.serviceFilter]}
               onDelete={() => onFilterChange("serviceFilter", SERVICES.ALL)}
               sx={{
-                backgroundColor: colors.primary_bg,
-                fontSize: "0.75rem",
+                backgroundColor: `${colors.primary_accent}20`,
+                color: colors.primary_accent,
+                fontSize: "0.7rem",
+                height: 24,
               }}
             />
           )}
           {filters.actionFilter !== ACTIONS.ALL && (
             <Chip
               size="small"
-              label={`Action: ${ACTION_LABELS[filters.actionFilter]}`}
+              label={ACTION_LABELS[filters.actionFilter]}
               onDelete={() => onFilterChange("actionFilter", ACTIONS.ALL)}
               sx={{
-                backgroundColor: colors.primary_bg,
-                fontSize: "0.75rem",
+                backgroundColor: `${colors.primary_accent}20`,
+                color: colors.primary_accent,
+                fontSize: "0.7rem",
+                height: 24,
               }}
             />
           )}
           {filters.friendFilter && (
             <Chip
               size="small"
-              label={`Friend: ${
+              label={
                 uniqueFriends.find((f) => f.id === filters.friendFilter)
-                  ?.name || filters.friendFilter
-              }`}
+                  ?.name || "Friend"
+              }
               onDelete={() => onFilterChange("friendFilter", null)}
               sx={{
-                backgroundColor: colors.primary_bg,
-                fontSize: "0.75rem",
+                backgroundColor: `${colors.primary_accent}20`,
+                color: colors.primary_accent,
+                fontSize: "0.7rem",
+                height: 24,
               }}
             />
           )}
           {filters.timeRange !== TIME_RANGES.ALL && (
             <Chip
               size="small"
-              label={`Time: ${TIME_RANGE_LABELS[filters.timeRange]}`}
+              label={TIME_RANGE_LABELS[filters.timeRange]}
               onDelete={() => onFilterChange("timeRange", TIME_RANGES.ALL)}
               sx={{
-                backgroundColor: colors.primary_bg,
-                fontSize: "0.75rem",
+                backgroundColor: `${colors.primary_accent}20`,
+                color: colors.primary_accent,
+                fontSize: "0.7rem",
+                height: 24,
               }}
             />
           )}
           {filters.readStatus !== READ_STATUS.ALL && (
             <Chip
               size="small"
-              label={`Status: ${READ_STATUS_LABELS[filters.readStatus]}`}
+              label={READ_STATUS_LABELS[filters.readStatus]}
               onDelete={() => onFilterChange("readStatus", READ_STATUS.ALL)}
               sx={{
-                backgroundColor: colors.primary_bg,
-                fontSize: "0.75rem",
+                backgroundColor: `${colors.primary_accent}20`,
+                color: colors.primary_accent,
+                fontSize: "0.7rem",
+                height: 24,
               }}
             />
           )}

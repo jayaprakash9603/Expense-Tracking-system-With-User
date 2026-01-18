@@ -13,6 +13,7 @@ import Settings from "../pages/Landingpage/Settings";
 import NotificationSettings from "../pages/Landingpage/NotificationSettings";
 import Friends from "../pages/Landingpage/Friends";
 import FriendshipReport from "../pages/Landingpage/FriendshipReport";
+import { FriendActivityPage } from "../pages/Landingpage/FriendActivity";
 import PaymentMethodFlow from "../pages/Landingpage/PaymentMethodFlow";
 import CreatePaymentMethod from "../pages/Landingpage/CreatePaymentMethod";
 import EditPaymentMethod from "../pages/Landingpage/EditPaymentMethod";
@@ -88,6 +89,7 @@ export const getAppRoutes = () => (
       <Route path="friends">
         <Route index element={<Friends />} />
         <Route path="report" element={<FriendshipReport />} />
+        <Route path="activity" element={<FriendActivityPage />} />
         <Route path="expenses/:friendId" element={<Cashflow />} />
       </Route>
 
