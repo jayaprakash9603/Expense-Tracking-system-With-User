@@ -35,7 +35,7 @@ spring:
         - id: FRIENDSHIP-SERVICE
           uri: ${FRIENDSHIP_SERVICE_URL:http://localhost:6009}
           predicates:
-            - Path= /api/friendships/**,/api/groups/**
+            - Path= /api/friendships/**,/api/groups/**, /api/activities/**
         - id: PAYMENT-SERVICE
           uri: ${PAYMENT_SERVICE_URL:http://localhost:6006}
           predicates:

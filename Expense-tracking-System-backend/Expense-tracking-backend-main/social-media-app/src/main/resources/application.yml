@@ -145,6 +145,7 @@ kafka:
     budget-events: budget-events
     bill-events: bill-events
     payment-method-events: payment-method-events
+    friend-activity-events: friend-activity-events
 
 eureka:
   instance:

@@ -4,6 +4,7 @@ import com.jaya.dto.User;
 import com.jaya.dto.ProgressStatus;
 import com.jaya.exceptions.UserException;
 import com.jaya.kafka.service.ExpenseNotificationService;
+import com.jaya.kafka.service.FriendActivityService;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.*;
@@ -62,6 +63,7 @@ public class ExpenseController extends BaseExpenseController {
     private final BulkProgressTracker progressTracker;
     private final TaskExecutor taskExecutor;
     private final ExpenseNotificationService expenseNotificationService;
+    private final FriendActivityService friendActivityService;
     private final ReportHistoryService reportHistoryService;
     private final com.jaya.service.BillExportClient billExportClient;
     private final CashflowAggregationService cashflowAggregationService;
@@ -79,6 +81,7 @@ public class ExpenseController extends BaseExpenseController {
             BulkProgressTracker progressTracker,
             TaskExecutor taskExecutor,
             ExpenseNotificationService expenseNotificationService,
+            FriendActivityService friendActivityService,
             ReportHistoryService reportHistoryService,
             com.jaya.service.BillExportClient billExportClient,
             CashflowAggregationService cashflowAggregationService) {
@@ -90,6 +93,7 @@ public class ExpenseController extends BaseExpenseController {
         this.progressTracker = progressTracker;
         this.taskExecutor = taskExecutor;
         this.expenseNotificationService = expenseNotificationService;
+        this.friendActivityService = friendActivityService;
         this.reportHistoryService = reportHistoryService;
         this.billExportClient = billExportClient;
         this.cashflowAggregationService = cashflowAggregationService;
@@ -100,12 +104,14 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         ExpenseDTO createdExpenseDTO = expenseService.addExpense(expenseDTO, targetUser.getId());
 
-        // Send notification asynchronously - convert DTO back to entity for
-        // notification
-        // expenseNotificationService.sendExpenseCreatedNotification(expenseMapper.toEntity(createdExpenseDTO));
+        // Send friend activity notification if a friend created the expense
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendExpenseCreatedByFriend(createdExpenseDTO, targetUser.getId(), reqUser);
+        }
 
         return new ResponseEntity<>(createdExpenseDTO, HttpStatus.CREATED);
 
@@ -117,8 +123,15 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         Expense createdExpense = expenseService.copyExpense(targetUser.getId(), expenseId);
+
+        // Send friend activity notification if a friend copied the expense
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendExpenseCopiedByFriend(createdExpense, targetUser.getId(), reqUser);
+        }
+
         return ResponseEntity.ok(createdExpense);
 
     }

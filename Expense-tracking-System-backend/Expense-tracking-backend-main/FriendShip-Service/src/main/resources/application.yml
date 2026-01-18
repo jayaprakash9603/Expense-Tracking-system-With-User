@@ -41,6 +41,9 @@ spring:
 kafka:
   topics:
     friendship-events: friendship-events
+    friend-activity-events: friend-activity-events
+  consumer:
+    group-id: friendship-activity-group
 
 eureka:
   instance:

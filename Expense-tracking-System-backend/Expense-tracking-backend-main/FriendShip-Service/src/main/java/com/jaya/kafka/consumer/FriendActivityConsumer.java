@@ -1,0 +1,118 @@
+package com.jaya.kafka.consumer;
+
+import com.jaya.kafka.events.FriendActivityEvent;
+import com.jaya.models.FriendActivity;
+import com.jaya.repository.FriendActivityRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Kafka consumer for friend activity events.
+ * Consumes events from various services (Expense, Budget, Bill, etc.)
+ * and stores them for later retrieval.
+ */
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class FriendActivityConsumer {
+
+    private final FriendActivityRepository friendActivityRepository;
+
+    /**
+     * Consumes friend activity events from the friend-activity-events topic.
+     * Stores the activity in the database for the target user to view.
+     */
+    @KafkaListener(topics = "${kafka.topics.friend-activity-events:friend-activity-events}", groupId = "${kafka.consumer.group-id:friendship-activity-group}", containerFactory = "kafkaListenerContainerFactory")
+    @Transactional
+    public void consumeFriendActivity(FriendActivityEvent event) {
+        try {
+            log.info("Received friend activity event: actorUserId={}, targetUserId={}, action={}, entityType={}",
+                    event.getActorUserId(), event.getTargetUserId(), event.getAction(), event.getEntityType());
+
+            // Validate event
+            if (!isValidEvent(event)) {
+                log.warn("Invalid friend activity event received, skipping: {}", event);
+                return;
+            }
+
+            // Convert event to entity and save
+            FriendActivity activity = mapEventToEntity(event);
+            FriendActivity savedActivity = friendActivityRepository.save(activity);
+
+            log.info("Friend activity saved: id={}, targetUserId={}, action={}",
+                    savedActivity.getId(), savedActivity.getTargetUserId(), savedActivity.getAction());
+
+        } catch (Exception e) {
+            log.error("Error processing friend activity event: {}", e.getMessage(), e);
+            // Don't rethrow - we don't want to block the consumer for failed events
+            // Consider implementing dead letter queue for failed events
+        }
+    }
+
+    /**
+     * Validates the incoming event has required fields.
+     */
+    private boolean isValidEvent(FriendActivityEvent event) {
+        if (event == null) {
+            return false;
+        }
+        if (event.getTargetUserId() == null) {
+            log.warn("Friend activity event missing targetUserId");
+            return false;
+        }
+        if (event.getActorUserId() == null) {
+            log.warn("Friend activity event missing actorUserId");
+            return false;
+        }
+        if (event.getAction() == null) {
+            log.warn("Friend activity event missing action");
+            return false;
+        }
+        if (event.getSourceService() == null) {
+            log.warn("Friend activity event missing sourceService");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Maps a FriendActivityEvent to a FriendActivity entity.
+     */
+    private FriendActivity mapEventToEntity(FriendActivityEvent event) {
+        return FriendActivity.builder()
+                .targetUserId(event.getTargetUserId())
+                .actorUserId(event.getActorUserId())
+                .actorUserName(event.getActorUserName())
+                .sourceService(mapSourceService(event.getSourceService()))
+                .entityType(mapEntityType(event.getEntityType()))
+                .entityId(event.getEntityId())
+                .action(mapAction(event.getAction()))
+                .description(event.getDescription())
+                .amount(event.getAmount())
+                .metadata(event.getMetadata())
+                .timestamp(event.getTimestamp() != null ? event.getTimestamp() : java.time.LocalDateTime.now())
+                .isRead(event.getIsRead() != null ? event.getIsRead() : false)
+                .build();
+    }
+
+    private FriendActivity.SourceService mapSourceService(FriendActivityEvent.SourceService source) {
+        if (source == null)
+            return FriendActivity.SourceService.EXPENSE;
+        return FriendActivity.SourceService.valueOf(source.name());
+    }
+
+    private FriendActivity.EntityType mapEntityType(FriendActivityEvent.EntityType type) {
+        if (type == null)
+            return FriendActivity.EntityType.EXPENSE;
+        return FriendActivity.EntityType.valueOf(type.name());
+    }
+
+    private FriendActivity.Action mapAction(FriendActivityEvent.Action action) {
+        if (action == null)
+            return FriendActivity.Action.CREATE;
+        return FriendActivity.Action.valueOf(action.name());
+    }
+}
