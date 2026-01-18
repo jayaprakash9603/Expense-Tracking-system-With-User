@@ -134,6 +134,7 @@ public class FriendActivityEvent implements Serializable {
         private String firstName;
         private String lastName;
         private String fullName;
+        private String displayName;
         private String image;
         private String coverImage;
         private String phoneNumber;

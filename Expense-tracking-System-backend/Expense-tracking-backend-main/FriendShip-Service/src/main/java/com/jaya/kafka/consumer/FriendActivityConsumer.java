@@ -1,5 +1,7 @@
 package com.jaya.kafka.consumer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.kafka.events.FriendActivityEvent;
 import com.jaya.models.FriendActivity;
 import com.jaya.repository.FriendActivityRepository;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FriendActivityConsumer {
 
     private final FriendActivityRepository friendActivityRepository;
+    private final ObjectMapper objectMapper;
 
     /**
      * Consumes friend activity events from the friend-activity-events topic.
@@ -42,8 +45,9 @@ public class FriendActivityConsumer {
             FriendActivity activity = mapEventToEntity(event);
             FriendActivity savedActivity = friendActivityRepository.save(activity);
 
-            log.info("Friend activity saved: id={}, targetUserId={}, action={}",
-                    savedActivity.getId(), savedActivity.getTargetUserId(), savedActivity.getAction());
+            log.info("Friend activity saved: id={}, targetUserId={}, action={}, hasActorUser={}, hasEntityPayload={}",
+                    savedActivity.getId(), savedActivity.getTargetUserId(), savedActivity.getAction(),
+                    savedActivity.getActorUserJson() != null, savedActivity.getEntityPayloadJson() != null);
 
         } catch (Exception e) {
             log.error("Error processing friend activity event: {}", e.getMessage(), e);
@@ -95,7 +99,29 @@ public class FriendActivityConsumer {
                 .metadata(event.getMetadata())
                 .timestamp(event.getTimestamp() != null ? event.getTimestamp() : java.time.LocalDateTime.now())
                 .isRead(event.getIsRead() != null ? event.getIsRead() : false)
+                // New fields
+                .actorUserJson(toJson(event.getActorUser()))
+                .targetUserJson(toJson(event.getTargetUser()))
+                .entityPayloadJson(toJson(event.getEntityPayload()))
+                .previousEntityStateJson(toJson(event.getPreviousEntityState()))
+                .actorIpAddress(event.getActorIpAddress())
+                .actorUserAgent(event.getActorUserAgent())
                 .build();
+    }
+
+    /**
+     * Converts an object to JSON string.
+     */
+    private String toJson(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize object to JSON: {}", e.getMessage());
+            return null;
+        }
     }
 
     private FriendActivity.SourceService mapSourceService(String source) {

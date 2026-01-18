@@ -1,5 +1,8 @@
 package com.jaya.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.dto.FriendActivityDTO;
 import com.jaya.models.FriendActivity;
 import com.jaya.repository.FriendActivityRepository;
@@ -13,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -25,6 +29,7 @@ import java.util.stream.Collectors;
 public class FriendActivityService {
 
     private final FriendActivityRepository friendActivityRepository;
+    private final ObjectMapper objectMapper;
 
     /**
      * Get all activities for a user.
@@ -160,7 +165,45 @@ public class FriendActivityService {
                 .createdAt(activity.getCreatedAt())
                 .actionText(buildActionText(activity))
                 .icon(getIconForAction(activity))
+                // New fields
+                .actorUser(parseUserInfo(activity.getActorUserJson()))
+                .targetUser(parseUserInfo(activity.getTargetUserJson()))
+                .entityPayload(parseJsonMap(activity.getEntityPayloadJson()))
+                .previousEntityState(parseJsonMap(activity.getPreviousEntityStateJson()))
+                .actorIpAddress(activity.getActorIpAddress())
+                .actorUserAgent(activity.getActorUserAgent())
                 .build();
+    }
+
+    /**
+     * Parse JSON string to UserInfoDTO.
+     */
+    private FriendActivityDTO.UserInfoDTO parseUserInfo(String json) {
+        if (json == null || json.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(json, FriendActivityDTO.UserInfoDTO.class);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to parse user info JSON: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Parse JSON string to Map.
+     */
+    private Map<String, Object> parseJsonMap(String json) {
+        if (json == null || json.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            });
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to parse JSON map: {}", e.getMessage());
+            return null;
+        }
     }
 
     /**

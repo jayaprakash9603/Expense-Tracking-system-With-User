@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * DTO for friend activity responses.
@@ -40,4 +41,58 @@ public class FriendActivityDTO {
      * Icon suggestion based on action type.
      */
     private String icon;
+
+    // ==================== NEW FIELDS ====================
+
+    /**
+     * Complete actor user information.
+     */
+    private UserInfoDTO actorUser;
+
+    /**
+     * Complete target user information.
+     */
+    private UserInfoDTO targetUser;
+
+    /**
+     * Complete entity payload data.
+     */
+    private Map<String, Object> entityPayload;
+
+    /**
+     * Previous entity state (for updates/deletes).
+     */
+    private Map<String, Object> previousEntityState;
+
+    /**
+     * IP address of the actor for audit purposes.
+     */
+    private String actorIpAddress;
+
+    /**
+     * User agent of the actor for audit purposes.
+     */
+    private String actorUserAgent;
+
+    /**
+     * Inner class for user information.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserInfoDTO {
+        private Integer id;
+        private String username;
+        private String email;
+        private String firstName;
+        private String lastName;
+        private String fullName;
+        private String displayName;
+        private String image;
+        private String coverImage;
+        private String phoneNumber;
+        private String location;
+        private String bio;
+    }
 }

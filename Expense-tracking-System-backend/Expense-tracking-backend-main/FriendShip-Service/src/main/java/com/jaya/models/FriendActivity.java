@@ -107,6 +107,44 @@ public class FriendActivity {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    // ==================== NEW FIELDS ====================
+
+    /**
+     * Complete actor user info as JSON string.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String actorUserJson;
+
+    /**
+     * Complete target user info as JSON string.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String targetUserJson;
+
+    /**
+     * Complete entity payload as JSON string.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String entityPayloadJson;
+
+    /**
+     * Previous entity state as JSON string (for updates/deletes).
+     */
+    @Column(columnDefinition = "TEXT")
+    private String previousEntityStateJson;
+
+    /**
+     * IP address of the actor for audit purposes.
+     */
+    @Column(length = 50)
+    private String actorIpAddress;
+
+    /**
+     * User agent of the actor for audit purposes.
+     */
+    @Column(length = 500)
+    private String actorUserAgent;
+
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
