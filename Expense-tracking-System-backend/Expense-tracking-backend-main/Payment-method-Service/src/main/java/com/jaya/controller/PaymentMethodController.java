@@ -6,6 +6,7 @@ import com.jaya.models.UserDto;
 import com.jaya.service.FriendShipService;
 import com.jaya.service.PaymentMethodService;
 import com.jaya.service.UserService;
+import com.jaya.kafka.service.FriendActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,8 @@ public class PaymentMethodController {
     private UserService userService;
     @Autowired
     private FriendShipService friendshipService;
+    @Autowired
+    private FriendActivityService friendActivityService;
 
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess)
             throws Exception {
@@ -168,6 +171,10 @@ public class PaymentMethodController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod created = paymentMethodService.createPaymentMethod(targetUser.getId(), paymentMethod);
+            // Send friend activity notification if acting on friend's behalf
+            if (targetId != null && !targetId.equals(reqUser.getId())) {
+                friendActivityService.sendPaymentMethodCreatedByFriend(created, targetId, reqUser);
+            }
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -190,6 +197,10 @@ public class PaymentMethodController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod updated = paymentMethodService.updatePaymentMethod(targetUser.getId(), id, paymentMethod);
+            // Send friend activity notification if acting on friend's behalf
+            if (targetId != null && !targetId.equals(reqUser.getId())) {
+                friendActivityService.sendPaymentMethodUpdatedByFriend(updated, targetId, reqUser);
+            }
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -209,7 +220,14 @@ public class PaymentMethodController {
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            // Get payment method details before deletion for notification
+            PaymentMethod pm = paymentMethodService.getById(targetUser.getId(), id);
+            String pmName = pm != null ? pm.getName() : null;
             paymentMethodService.deletePaymentMethod(targetUser.getId(), id);
+            // Send friend activity notification if acting on friend's behalf
+            if (targetId != null && !targetId.equals(reqUser.getId())) {
+                friendActivityService.sendPaymentMethodDeletedByFriend(id, pmName, targetId, reqUser);
+            }
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -228,7 +246,13 @@ public class PaymentMethodController {
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            // Get count before deletion for notification
+            int count = paymentMethodService.getAllPaymentMethods(targetUser.getId()).size();
             paymentMethodService.deleteAllUserPaymentMethods(targetUser.getId());
+            // Send friend activity notification if acting on friend's behalf
+            if (targetId != null && !targetId.equals(reqUser.getId())) {
+                friendActivityService.sendAllPaymentMethodsDeletedByFriend(count, targetId, reqUser);
+            }
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return handleTargetUserException(e);

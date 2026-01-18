@@ -206,4 +206,152 @@ public class FriendActivityService {
         return String.format("{\"category\":\"%s\",\"paymentMethod\":\"%s\",\"type\":\"%s\"}",
                 category, paymentMethod, type);
     }
+
+    /**
+     * Send notification when a friend adds multiple expenses.
+     */
+    public void sendBulkExpensesCreatedByFriend(java.util.List<Expense> expenses, Integer targetUserId,
+            User actorUser) {
+        try {
+            if (targetUserId.equals(actorUser.getId())) {
+                return;
+            }
+
+            String actorName = getActorDisplayName(actorUser);
+            int count = expenses != null ? expenses.size() : 0;
+            double totalAmount = expenses != null ? expenses.stream()
+                    .filter(e -> e.getExpense() != null)
+                    .mapToDouble(e -> e.getExpense().getAmount())
+                    .sum() : 0.0;
+
+            FriendActivityEvent event = FriendActivityEvent.builder()
+                    .targetUserId(targetUserId)
+                    .actorUserId(actorUser.getId())
+                    .actorUserName(actorName)
+                    .sourceService(FriendActivityEvent.SourceService.EXPENSE)
+                    .entityType(FriendActivityEvent.EntityType.EXPENSE)
+                    .entityId(null)
+                    .action(FriendActivityEvent.Action.CREATE)
+                    .description(String.format("%s added %d expenses totaling $%.2f", actorName, count, totalAmount))
+                    .amount(totalAmount)
+                    .metadata(String.format("{\"count\":%d}", count))
+                    .timestamp(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+
+            friendActivityProducer.sendEvent(event);
+            log.info("Friend activity event sent: {} created {} expenses for user {}", actorUser.getId(), count,
+                    targetUserId);
+
+        } catch (Exception e) {
+            log.error("Failed to send friend activity notification for bulk expense creation: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Send notification when a friend updates multiple expenses.
+     */
+    public void sendBulkExpensesUpdatedByFriend(java.util.List<Expense> expenses, Integer targetUserId,
+            User actorUser) {
+        try {
+            if (targetUserId.equals(actorUser.getId())) {
+                return;
+            }
+
+            String actorName = getActorDisplayName(actorUser);
+            int count = expenses != null ? expenses.size() : 0;
+
+            FriendActivityEvent event = FriendActivityEvent.builder()
+                    .targetUserId(targetUserId)
+                    .actorUserId(actorUser.getId())
+                    .actorUserName(actorName)
+                    .sourceService(FriendActivityEvent.SourceService.EXPENSE)
+                    .entityType(FriendActivityEvent.EntityType.EXPENSE)
+                    .entityId(null)
+                    .action(FriendActivityEvent.Action.UPDATE)
+                    .description(String.format("%s updated %d expenses", actorName, count))
+                    .amount(null)
+                    .metadata(String.format("{\"count\":%d}", count))
+                    .timestamp(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+
+            friendActivityProducer.sendEvent(event);
+            log.info("Friend activity event sent: {} updated {} expenses for user {}", actorUser.getId(), count,
+                    targetUserId);
+
+        } catch (Exception e) {
+            log.error("Failed to send friend activity notification for bulk expense update: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Send notification when a friend deletes multiple expenses.
+     */
+    public void sendBulkExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
+        try {
+            if (targetUserId.equals(actorUser.getId())) {
+                return;
+            }
+
+            String actorName = getActorDisplayName(actorUser);
+
+            FriendActivityEvent event = FriendActivityEvent.builder()
+                    .targetUserId(targetUserId)
+                    .actorUserId(actorUser.getId())
+                    .actorUserName(actorName)
+                    .sourceService(FriendActivityEvent.SourceService.EXPENSE)
+                    .entityType(FriendActivityEvent.EntityType.EXPENSE)
+                    .entityId(null)
+                    .action(FriendActivityEvent.Action.DELETE)
+                    .description(String.format("%s deleted %d expenses", actorName, count))
+                    .amount(null)
+                    .metadata(String.format("{\"count\":%d}", count))
+                    .timestamp(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+
+            friendActivityProducer.sendEvent(event);
+            log.info("Friend activity event sent: {} deleted {} expenses for user {}", actorUser.getId(), count,
+                    targetUserId);
+
+        } catch (Exception e) {
+            log.error("Failed to send friend activity notification for bulk expense deletion: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Send notification when a friend deletes all expenses.
+     */
+    public void sendAllExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
+        try {
+            if (targetUserId.equals(actorUser.getId())) {
+                return;
+            }
+
+            String actorName = getActorDisplayName(actorUser);
+
+            FriendActivityEvent event = FriendActivityEvent.builder()
+                    .targetUserId(targetUserId)
+                    .actorUserId(actorUser.getId())
+                    .actorUserName(actorName)
+                    .sourceService(FriendActivityEvent.SourceService.EXPENSE)
+                    .entityType(FriendActivityEvent.EntityType.EXPENSE)
+                    .entityId(null)
+                    .action(FriendActivityEvent.Action.DELETE)
+                    .description(String.format("%s deleted all expenses (%d total)", actorName, count))
+                    .amount(null)
+                    .metadata(String.format("{\"count\":%d,\"deleteAll\":true}", count))
+                    .timestamp(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+
+            friendActivityProducer.sendEvent(event);
+            log.info("Friend activity event sent: {} deleted all {} expenses for user {}", actorUser.getId(), count,
+                    targetUserId);
+
+        } catch (Exception e) {
+            log.error("Failed to send friend activity notification for delete all expenses: {}", e.getMessage(), e);
+        }
+    }
 }

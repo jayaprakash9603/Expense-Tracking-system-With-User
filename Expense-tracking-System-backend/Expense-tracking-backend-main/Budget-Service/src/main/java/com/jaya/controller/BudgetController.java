@@ -7,6 +7,7 @@ import com.jaya.models.UserDto;
 import com.jaya.service.BudgetService;
 import com.jaya.service.FriendshipService;
 import com.jaya.service.UserService;
+import com.jaya.kafka.service.FriendActivityService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -33,6 +34,9 @@ public class BudgetController {
 
     @Autowired
     private FriendshipService friendshipService;
+
+    @Autowired
+    private FriendActivityService friendActivityService;
 
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess)
             throws Exception {
@@ -70,6 +74,8 @@ public class BudgetController {
         Budget createdBudget;
         if (targetId != null && !targetId.equals(reqUser.getId())) {
             createdBudget = budgetService.createBudgetForFriend(budget, reqUser.getId(), targetId);
+            // Send friend activity notification
+            friendActivityService.sendBudgetCreatedByFriend(createdBudget, targetId, reqUser);
         } else {
             createdBudget = budgetService.createBudget(budget, reqUser.getId());
         }
@@ -87,6 +93,10 @@ public class BudgetController {
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
         Budget updatedBudget = budgetService.editBudget(budgetId, budget, targetUser.getId());
         budgetNotificationService.sendBudgetUpdatedNotification(updatedBudget);
+        // Send friend activity notification if acting on friend's behalf
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendBudgetUpdatedByFriend(updatedBudget, targetId, reqUser);
+        }
         return ResponseEntity.ok(updatedBudget);
     }
 
@@ -99,8 +109,13 @@ public class BudgetController {
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
         Budget budget = budgetService.getBudgetById(budgetId, targetUser.getId());
         String budgetName = budget.getName();
+        Double budgetAmount = budget.getAmount();
         budgetService.deleteBudget(budgetId, targetUser.getId());
         budgetNotificationService.sendBudgetDeletedNotification(budgetId, budgetName, targetUser.getId());
+        // Send friend activity notification if acting on friend's behalf
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendBudgetDeletedByFriend(budgetId, budgetName, budgetAmount, targetId, reqUser);
+        }
         return ResponseEntity.noContent().build();
     }
 
@@ -110,7 +125,14 @@ public class BudgetController {
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDto reqUser = authenticate(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        // Get count before deletion for notification
+        List<Budget> budgets = budgetService.getAllBudgetForUser(targetUser.getId());
+        int count = budgets != null ? budgets.size() : 0;
         budgetService.deleteAllBudget(targetUser.getId());
+        // Send friend activity notification if acting on friend's behalf
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendAllBudgetsDeletedByFriend(targetId, reqUser, count);
+        }
         return ResponseEntity.noContent().build();
     }
 

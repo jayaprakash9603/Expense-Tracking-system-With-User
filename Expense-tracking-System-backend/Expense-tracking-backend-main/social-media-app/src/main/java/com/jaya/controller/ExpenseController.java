@@ -106,7 +106,7 @@ public class ExpenseController extends BaseExpenseController {
 
         User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
-        System.out.println("target user id"+targetUser.getId());
+        System.out.println("target user id" + targetUser.getId());
         ExpenseDTO createdExpenseDTO = expenseService.addExpense(expenseDTO, targetUser.getId());
 
         // Send friend activity notification if a friend created the expense
@@ -154,8 +154,15 @@ public class ExpenseController extends BaseExpenseController {
             @RequestBody List<Expense> expenses,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> savedExpenses = expenseService.addMultipleExpenses(expenses, targetUser.getId());
+
+        // Send friend activity notification if a friend added multiple expenses
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendBulkExpensesCreatedByFriend(savedExpenses, targetUser.getId(), reqUser);
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(savedExpenses);
 
     }
@@ -208,9 +215,17 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> allExpenses = expenseService.getAllExpenses(targetUser.getId());
+        int count = allExpenses != null ? allExpenses.size() : 0;
         expenseService.deleteAllExpenses(targetUser.getId(), allExpenses);
+
+        // Send friend activity notification if a friend deleted all expenses
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendAllExpensesDeletedByFriend(count, targetUser.getId(), reqUser);
+        }
+
         return new ResponseEntity<>("all expense are deleted", HttpStatus.NO_CONTENT);
 
     }
@@ -267,11 +282,14 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         Expense updatedExpense = expenseService.updateExpense(id, expense, targetUser.getId());
 
-        // Send notification asynchronously
-        // expenseNotificationService.sendExpenseUpdatedNotification(updatedExpense);
+        // Send friend activity notification if a friend updated the expense
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendExpenseUpdatedByFriend(updatedExpense, targetUser.getId(), reqUser);
+        }
 
         return ResponseEntity.ok(updatedExpense);
 
@@ -283,8 +301,15 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> updatedExpenses = expenseService.updateMultipleExpenses(targetUser.getId(), expenses);
+
+        // Send friend activity notification if a friend updated multiple expenses
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendBulkExpensesUpdatedByFriend(updatedExpenses, targetUser.getId(), reqUser);
+        }
+
         return ResponseEntity.ok(updatedExpenses);
 
     }
@@ -295,17 +320,25 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
 
         // Get expense details before deletion for notification
         Expense expense = expenseService.getExpenseById(id, targetUser.getId());
         String description = "Expense";
+        Double amount = null;
         if (expense != null && expense.getExpense() != null) {
             description = expense.getExpense().getExpenseName();
+            amount = expense.getExpense().getAmount();
         }
 
         expenseService.deleteExpense(id, targetUser.getId());
         expenseNotificationService.sendExpenseDeletedNotification(id, targetUser.getId(), description);
+
+        // Send friend activity notification if a friend deleted the expense
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendExpenseDeletedByFriend(id, description, amount, targetUser.getId(), reqUser);
+        }
 
         return ResponseEntity.ok("Expense deleted successfully");
 
@@ -316,8 +349,16 @@ public class ExpenseController extends BaseExpenseController {
             @RequestBody List<Integer> ids,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
+        int count = ids != null ? ids.size() : 0;
         expenseService.deleteExpensesByIds(ids, targetUser.getId());
+
+        // Send friend activity notification if a friend deleted multiple expenses
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendBulkExpensesDeletedByFriend(count, targetUser.getId(), reqUser);
+        }
+
         return ResponseEntity.ok("Expenses deleted successfully");
 
     }

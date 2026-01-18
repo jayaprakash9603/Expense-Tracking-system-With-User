@@ -12,6 +12,7 @@ import com.jaya.service.FriendShipService;
 import com.jaya.service.UserService;
 import com.jaya.util.ServiceHelper;
 import com.jaya.kafka.service.BillNotificationService;
+import com.jaya.kafka.service.FriendActivityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,7 @@ public class BillController {
     private final TaskExecutor taskExecutor;
     private final ExcelExportService excelExportService;
     private final BillNotificationService billNotificationService;
+    private final FriendActivityService friendActivityService;
 
     // Helper requiring MODIFY (write) permission
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser) throws Exception {
@@ -80,6 +82,11 @@ public class BillController {
         // Send notification asynchronously
         billNotificationService.sendBillCreatedNotification(createdBill);
 
+        // Send friend activity notification if acting on friend's behalf
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendBillCreatedByFriend(createdBill, targetId, reqUser);
+        }
+
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(createdBill);
         return ResponseEntity.ok(resp);
     }
@@ -94,6 +101,12 @@ public class BillController {
         List<Bill> toCreate = bills.stream().map(dto -> com.jaya.mapper.BillMapper.toEntity(dto, targetUser.getId()))
                 .toList();
         List<Bill> saved = billService.addMultipleBills(toCreate, targetUser.getId());
+
+        // Send friend activity notification if acting on friend's behalf
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendBulkBillsCreatedByFriend(saved, targetId, reqUser);
+        }
+
         List<BillResponseDTO> resp = saved.stream().map(com.jaya.mapper.BillMapper::toDto).toList();
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
@@ -165,6 +178,11 @@ public class BillController {
         // Send notification asynchronously
         billNotificationService.sendBillUpdatedNotification(updatedBill);
 
+        // Send friend activity notification if acting on friend's behalf
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendBillUpdatedByFriend(updatedBill, targetId, reqUser);
+        }
+
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(updatedBill);
         return ResponseEntity.ok(resp);
     }
@@ -179,14 +197,21 @@ public class BillController {
             // Get bill details before deletion for notification
             Bill bill = billService.getByBillId(id, targetUser.getId());
             String billName = "Bill";
+            Double billAmount = null;
             if (bill != null) {
                 billName = bill.getName();
+                billAmount = bill.getAmount();
             }
 
             billService.deleteBill(id, targetUser.getId());
 
             // Send notification asynchronously
             billNotificationService.sendBillDeletedNotification(id, targetUser.getId(), billName);
+
+            // Send friend activity notification if acting on friend's behalf
+            if (targetId != null && !targetId.equals(reqUser.getId())) {
+                friendActivityService.sendBillDeletedByFriend(id, billName, billAmount, targetId, reqUser);
+            }
 
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
@@ -200,7 +225,18 @@ public class BillController {
 
         UserDto reqUser = userService.getuserProfile(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+
+        // Get count before deletion for notification
+        List<Bill> bills = billService.getAllBillsForUser(targetUser.getId());
+        int count = bills != null ? bills.size() : 0;
+
         String message = billService.deleteAllBillsForUser(targetUser.getId());
+
+        // Send friend activity notification if acting on friend's behalf
+        if (targetId != null && !targetId.equals(reqUser.getId())) {
+            friendActivityService.sendAllBillsDeletedByFriend(targetId, reqUser, count);
+        }
+
         return new ResponseEntity<>(message, HttpStatus.NO_CONTENT);
 
     }
