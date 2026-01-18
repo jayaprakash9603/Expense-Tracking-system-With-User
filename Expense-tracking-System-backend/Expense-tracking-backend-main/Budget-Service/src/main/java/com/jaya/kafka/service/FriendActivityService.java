@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for sending friend activity notifications for budget operations.
@@ -25,6 +27,13 @@ public class FriendActivityService {
      * Send notification when a friend creates a budget on behalf of another user.
      */
     public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser) {
+        sendBudgetCreatedByFriend(budget, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend creates a budget with target user details.
+     */
+    public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 log.debug("Skipping friend activity notification - user creating own budget");
@@ -37,6 +46,8 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.BUDGET)
                     .entityType(FriendActivityEvent.EntityType.BUDGET)
                     .entityId(budget.getId())
@@ -45,6 +56,7 @@ public class FriendActivityService {
                             actorName, budget.getName(), budget.getAmount()))
                     .amount(budget.getAmount())
                     .metadata(buildBudgetMetadata(budget))
+                    .entityPayload(buildBudgetPayload(budget))
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -62,6 +74,15 @@ public class FriendActivityService {
      * Send notification when a friend updates a budget.
      */
     public void sendBudgetUpdatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser) {
+        sendBudgetUpdatedByFriend(budget, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend updates a budget with previous state and
+     * target user details.
+     */
+    public void sendBudgetUpdatedByFriend(Budget budget, Budget previousBudget, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -73,12 +94,16 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.BUDGET)
                     .entityType(FriendActivityEvent.EntityType.BUDGET)
                     .entityId(budget.getId())
                     .action(FriendActivityEvent.Action.UPDATE)
                     .description(String.format("%s updated budget '%s'", actorName, budget.getName()))
                     .amount(budget.getAmount())
+                    .entityPayload(buildBudgetPayload(budget))
+                    .previousEntityState(previousBudget != null ? buildBudgetPayload(previousBudget) : null)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -95,6 +120,14 @@ public class FriendActivityService {
      */
     public void sendBudgetDeletedByFriend(Integer budgetId, String budgetName, Double amount,
             Integer targetUserId, UserDto actorUser) {
+        sendBudgetDeletedByFriend(budgetId, budgetName, amount, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend deletes a budget with deleted entity details.
+     */
+    public void sendBudgetDeletedByFriend(Integer budgetId, String budgetName, Double amount, Budget deletedBudget,
+            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -106,6 +139,8 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.BUDGET)
                     .entityType(FriendActivityEvent.EntityType.BUDGET)
                     .entityId(budgetId)
@@ -113,6 +148,7 @@ public class FriendActivityService {
                     .description(String.format("%s deleted budget '%s'",
                             actorName, budgetName != null ? budgetName : "a budget"))
                     .amount(amount)
+                    .previousEntityState(deletedBudget != null ? buildBudgetPayload(deletedBudget) : null)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -128,6 +164,15 @@ public class FriendActivityService {
      * Send notification when a friend deletes all budgets.
      */
     public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
+        sendAllBudgetsDeletedByFriend(targetUserId, actorUser, null, count, null);
+    }
+
+    /**
+     * Send notification when a friend deletes all budgets with deleted entities
+     * details.
+     */
+    public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser, int count,
+            List<Budget> deletedBudgets) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -135,16 +180,27 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
+            // Build payload with deleted budgets info
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("deletedCount", count);
+            if (deletedBudgets != null && !deletedBudgets.isEmpty()) {
+                payload.put("deletedBudgets", deletedBudgets.stream().map(this::buildBudgetPayload).toList());
+                payload.put("totalAmount", deletedBudgets.stream().mapToDouble(Budget::getAmount).sum());
+            }
+
             FriendActivityEvent event = FriendActivityEvent.builder()
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.BUDGET)
                     .entityType(FriendActivityEvent.EntityType.BUDGET)
                     .entityId(null)
                     .action(FriendActivityEvent.Action.DELETE)
                     .description(String.format("%s deleted all budgets (%d items)", actorName, count))
                     .amount(null)
+                    .entityPayload(payload)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -164,6 +220,51 @@ public class FriendActivityService {
             return user.getFirstName();
         }
         return user.getUsername() != null ? user.getUsername() : "A friend";
+    }
+
+    /**
+     * Build UserInfo from UserDto for enhanced event data.
+     */
+    private FriendActivityEvent.UserInfo buildUserInfo(UserDto user) {
+        if (user == null)
+            return null;
+
+        String fullName = getActorDisplayName(user);
+
+        return FriendActivityEvent.UserInfo.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .fullName(fullName)
+                .image(user.getImage())
+                .phoneNumber(user.getPhoneNumber())
+                .location(user.getLocation())
+                .bio(user.getBio())
+                .build();
+    }
+
+    /**
+     * Build complete budget payload as a Map for entity data.
+     */
+    private Map<String, Object> buildBudgetPayload(Budget budget) {
+        if (budget == null)
+            return null;
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("id", budget.getId());
+        payload.put("userId", budget.getUserId());
+        payload.put("name", budget.getName());
+        payload.put("description", budget.getDescription());
+        payload.put("amount", budget.getAmount());
+        payload.put("remainingAmount", budget.getRemainingAmount());
+        payload.put("startDate", budget.getStartDate() != null ? budget.getStartDate().toString() : null);
+        payload.put("endDate", budget.getEndDate() != null ? budget.getEndDate().toString() : null);
+        payload.put("includeInBudget", budget.isIncludeInBudget());
+        payload.put("isBudgetHasExpenses", budget.isBudgetHasExpenses());
+
+        return payload;
     }
 
     private String buildBudgetMetadata(Budget budget) {

@@ -251,7 +251,7 @@ public class PaymentMethodController {
             paymentMethodService.deleteAllUserPaymentMethods(targetUser.getId());
             // Send friend activity notification if acting on friend's behalf
             if (targetId != null && !targetId.equals(reqUser.getId())) {
-                friendActivityService.sendAllPaymentMethodsDeletedByFriend(count, targetId, reqUser);
+                friendActivityService.sendAllPaymentMethodsDeletedByFriend(targetId, reqUser, count);
             }
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {

@@ -12,6 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Service for sending friend activity notifications.
@@ -32,6 +35,13 @@ public class FriendActivityService {
      * @param actorUser    The friend who created the expense
      */
     public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, User actorUser) {
+        sendExpenseCreatedByFriend(expense, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend creates an expense with target user details.
+     */
+    public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 // User is creating their own expense, not a friend activity
@@ -46,6 +56,8 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.EXPENSE)
                     .entityType(FriendActivityEvent.EntityType.EXPENSE)
                     .entityId(expense.getId())
@@ -53,6 +65,7 @@ public class FriendActivityService {
                     .description(buildExpenseDescription(expense, actorUser))
                     .amount(details != null ? details.getAmountAsDouble() : 0.0)
                     .metadata(buildExpenseMetadata(expense))
+                    .entityPayload(buildExpenseDTOPayload(expense))
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -71,6 +84,15 @@ public class FriendActivityService {
      * Send notification when a friend updates an expense.
      */
     public void sendExpenseUpdatedByFriend(Expense expense, Integer targetUserId, User actorUser) {
+        sendExpenseUpdatedByFriend(expense, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend updates an expense with previous state and
+     * target user details.
+     */
+    public void sendExpenseUpdatedByFriend(Expense expense, Expense previousExpense, Integer targetUserId,
+            User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -85,12 +107,16 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.EXPENSE)
                     .entityType(FriendActivityEvent.EntityType.EXPENSE)
                     .entityId(expense.getId())
                     .action(FriendActivityEvent.Action.UPDATE)
                     .description(String.format("%s updated expense '%s'", actorName, expenseName))
                     .amount(amount)
+                    .entityPayload(buildExpensePayload(expense))
+                    .previousEntityState(previousExpense != null ? buildExpensePayload(previousExpense) : null)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -107,6 +133,15 @@ public class FriendActivityService {
      */
     public void sendExpenseDeletedByFriend(Integer expenseId, String expenseName, Double amount,
             Integer targetUserId, User actorUser) {
+        sendExpenseDeletedByFriend(expenseId, expenseName, amount, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend deletes an expense with deleted entity
+     * details.
+     */
+    public void sendExpenseDeletedByFriend(Integer expenseId, String expenseName, Double amount, Expense deletedExpense,
+            Integer targetUserId, User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -118,6 +153,8 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.EXPENSE)
                     .entityType(FriendActivityEvent.EntityType.EXPENSE)
                     .entityId(expenseId)
@@ -125,6 +162,7 @@ public class FriendActivityService {
                     .description(String.format("%s deleted expense '%s'",
                             actorName, expenseName != null ? expenseName : "an expense"))
                     .amount(amount)
+                    .previousEntityState(deletedExpense != null ? buildExpensePayload(deletedExpense) : null)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -140,6 +178,13 @@ public class FriendActivityService {
      * Send notification when a friend copies an expense.
      */
     public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, User actorUser) {
+        sendExpenseCopiedByFriend(expense, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend copies an expense with target user details.
+     */
+    public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -154,12 +199,15 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.EXPENSE)
                     .entityType(FriendActivityEvent.EntityType.EXPENSE)
                     .entityId(expense.getId())
                     .action(FriendActivityEvent.Action.COPY)
                     .description(String.format("%s copied expense '%s'", actorName, expenseName))
                     .amount(amount)
+                    .entityPayload(buildExpensePayload(expense))
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -181,6 +229,93 @@ public class FriendActivityService {
         }
         String displayName = actor.getDisplayName();
         return (displayName != null && !displayName.trim().isEmpty()) ? displayName : "A friend";
+    }
+
+    /**
+     * Build UserInfo from User for enhanced event data.
+     */
+    private FriendActivityEvent.UserInfo buildUserInfo(User user) {
+        if (user == null)
+            return null;
+
+        String fullName = getActorDisplayName(user);
+
+        return FriendActivityEvent.UserInfo.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .fullName(fullName)
+                .image(user.getImage())
+                .coverImage(user.getCoverImage())
+                .phoneNumber(user.getPhoneNumber())
+                .location(user.getLocation())
+                .bio(user.getBio())
+                .build();
+    }
+
+    /**
+     * Build complete expense payload as a Map for entity data (from Expense
+     * entity).
+     */
+    private Map<String, Object> buildExpensePayload(Expense expense) {
+        if (expense == null)
+            return null;
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("id", expense.getId());
+        payload.put("userId", expense.getUserId());
+        payload.put("date", expense.getDate() != null ? expense.getDate().toString() : null);
+        payload.put("categoryName", expense.getCategoryName());
+        payload.put("categoryId", expense.getCategoryId());
+        payload.put("includeInBudget", expense.isIncludeInBudget());
+        payload.put("isBill", expense.isBill());
+        payload.put("budgetIds", expense.getBudgetIds());
+
+        ExpenseDetails details = expense.getExpense();
+        if (details != null) {
+            payload.put("expenseName", details.getExpenseName());
+            payload.put("amount", details.getAmount());
+            payload.put("paymentMethod", details.getPaymentMethod());
+            payload.put("type", details.getType());
+            payload.put("comments", details.getComments());
+            payload.put("netAmount", details.getNetAmount());
+            payload.put("creditDue", details.getCreditDue());
+        }
+
+        return payload;
+    }
+
+    /**
+     * Build complete expense payload as a Map for entity data (from ExpenseDTO).
+     */
+    private Map<String, Object> buildExpenseDTOPayload(ExpenseDTO expense) {
+        if (expense == null)
+            return null;
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("id", expense.getId());
+        payload.put("userId", expense.getUserId());
+        payload.put("date", expense.getDate());
+        payload.put("categoryName", expense.getCategoryName());
+        payload.put("categoryId", expense.getCategoryId());
+        payload.put("includeInBudget", expense.isIncludeInBudget());
+        payload.put("isBill", expense.isBill());
+        payload.put("budgetIds", expense.getBudgetIds());
+
+        ExpenseDetailsDTO details = expense.getExpense();
+        if (details != null) {
+            payload.put("expenseName", details.getExpenseName());
+            payload.put("amount", details.getAmountAsDouble());
+            payload.put("paymentMethod", details.getPaymentMethod());
+            payload.put("type", details.getType());
+            payload.put("comments", details.getComments());
+            payload.put("netAmount", details.getNetAmountAsDouble());
+            payload.put("creditDue", details.getCreditDueAsDouble());
+        }
+
+        return payload;
     }
 
     private String buildExpenseDescription(ExpenseDTO expense, User actor) {
@@ -210,8 +345,16 @@ public class FriendActivityService {
     /**
      * Send notification when a friend adds multiple expenses.
      */
-    public void sendBulkExpensesCreatedByFriend(java.util.List<Expense> expenses, Integer targetUserId,
-            User actorUser) {
+    public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser) {
+        sendBulkExpensesCreatedByFriend(expenses, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend adds multiple expenses with target user
+     * details.
+     */
+    public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser,
+            User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -224,10 +367,20 @@ public class FriendActivityService {
                     .mapToDouble(e -> e.getExpense().getAmount())
                     .sum() : 0.0;
 
+            // Build bulk payload
+            Map<String, Object> bulkPayload = new HashMap<>();
+            bulkPayload.put("expenseCount", count);
+            bulkPayload.put("totalAmount", totalAmount);
+            if (expenses != null) {
+                bulkPayload.put("expenses", expenses.stream().map(this::buildExpensePayload).toList());
+            }
+
             FriendActivityEvent event = FriendActivityEvent.builder()
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.EXPENSE)
                     .entityType(FriendActivityEvent.EntityType.EXPENSE)
                     .entityId(null)
@@ -235,6 +388,7 @@ public class FriendActivityService {
                     .description(String.format("%s added %d expenses totaling $%.2f", actorName, count, totalAmount))
                     .amount(totalAmount)
                     .metadata(String.format("{\"count\":%d}", count))
+                    .entityPayload(bulkPayload)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -251,8 +405,16 @@ public class FriendActivityService {
     /**
      * Send notification when a friend updates multiple expenses.
      */
-    public void sendBulkExpensesUpdatedByFriend(java.util.List<Expense> expenses, Integer targetUserId,
-            User actorUser) {
+    public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser) {
+        sendBulkExpensesUpdatedByFriend(expenses, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend updates multiple expenses with target user
+     * details.
+     */
+    public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser,
+            User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -261,10 +423,19 @@ public class FriendActivityService {
             String actorName = getActorDisplayName(actorUser);
             int count = expenses != null ? expenses.size() : 0;
 
+            // Build bulk payload
+            Map<String, Object> bulkPayload = new HashMap<>();
+            bulkPayload.put("expenseCount", count);
+            if (expenses != null) {
+                bulkPayload.put("expenses", expenses.stream().map(this::buildExpensePayload).toList());
+            }
+
             FriendActivityEvent event = FriendActivityEvent.builder()
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.EXPENSE)
                     .entityType(FriendActivityEvent.EntityType.EXPENSE)
                     .entityId(null)
@@ -272,6 +443,7 @@ public class FriendActivityService {
                     .description(String.format("%s updated %d expenses", actorName, count))
                     .amount(null)
                     .metadata(String.format("{\"count\":%d}", count))
+                    .entityPayload(bulkPayload)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -289,6 +461,15 @@ public class FriendActivityService {
      * Send notification when a friend deletes multiple expenses.
      */
     public void sendBulkExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
+        sendBulkExpensesDeletedByFriend(count, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend deletes multiple expenses with deleted
+     * entities details.
+     */
+    public void sendBulkExpensesDeletedByFriend(int count, List<Expense> deletedExpenses, Integer targetUserId,
+            User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -296,10 +477,23 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
+            // Build payload with deleted expenses info
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("deletedCount", count);
+            if (deletedExpenses != null && !deletedExpenses.isEmpty()) {
+                payload.put("deletedExpenses", deletedExpenses.stream().map(this::buildExpensePayload).toList());
+                payload.put("totalAmount", deletedExpenses.stream()
+                        .filter(e -> e.getExpense() != null)
+                        .mapToDouble(e -> e.getExpense().getAmount())
+                        .sum());
+            }
+
             FriendActivityEvent event = FriendActivityEvent.builder()
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.EXPENSE)
                     .entityType(FriendActivityEvent.EntityType.EXPENSE)
                     .entityId(null)
@@ -307,6 +501,7 @@ public class FriendActivityService {
                     .description(String.format("%s deleted %d expenses", actorName, count))
                     .amount(null)
                     .metadata(String.format("{\"count\":%d}", count))
+                    .entityPayload(payload)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -324,6 +519,15 @@ public class FriendActivityService {
      * Send notification when a friend deletes all expenses.
      */
     public void sendAllExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
+        sendAllExpensesDeletedByFriend(count, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend deletes all expenses with deleted entities
+     * details.
+     */
+    public void sendAllExpensesDeletedByFriend(int count, List<Expense> deletedExpenses, Integer targetUserId,
+            User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -331,10 +535,24 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
+            // Build payload with deleted expenses info
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("deletedCount", count);
+            payload.put("deleteAll", true);
+            if (deletedExpenses != null && !deletedExpenses.isEmpty()) {
+                payload.put("deletedExpenses", deletedExpenses.stream().map(this::buildExpensePayload).toList());
+                payload.put("totalAmount", deletedExpenses.stream()
+                        .filter(e -> e.getExpense() != null)
+                        .mapToDouble(e -> e.getExpense().getAmount())
+                        .sum());
+            }
+
             FriendActivityEvent event = FriendActivityEvent.builder()
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.EXPENSE)
                     .entityType(FriendActivityEvent.EntityType.EXPENSE)
                     .entityId(null)
@@ -342,6 +560,7 @@ public class FriendActivityService {
                     .description(String.format("%s deleted all expenses (%d total)", actorName, count))
                     .amount(null)
                     .metadata(String.format("{\"count\":%d,\"deleteAll\":true}", count))
+                    .entityPayload(payload)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();

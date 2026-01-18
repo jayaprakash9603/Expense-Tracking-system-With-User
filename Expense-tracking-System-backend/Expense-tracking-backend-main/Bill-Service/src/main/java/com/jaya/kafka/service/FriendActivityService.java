@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for sending friend activity notifications for bill operations.
@@ -25,6 +27,14 @@ public class FriendActivityService {
      * Send notification when a friend creates a bill on behalf of another user.
      */
     public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser) {
+        sendBillCreatedByFriend(bill, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend creates a bill on behalf of another user with
+     * target user details.
+     */
+    public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 log.debug("Skipping friend activity notification - user creating own bill");
@@ -37,6 +47,8 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.BILL)
                     .entityType(FriendActivityEvent.EntityType.BILL)
                     .entityId(bill.getId())
@@ -45,6 +57,7 @@ public class FriendActivityService {
                             actorName, bill.getName(), bill.getAmount()))
                     .amount(bill.getAmount())
                     .metadata(buildBillMetadata(bill))
+                    .entityPayload(buildBillPayload(bill))
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -62,6 +75,15 @@ public class FriendActivityService {
      * Send notification when a friend creates multiple bills.
      */
     public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDto actorUser) {
+        sendBulkBillsCreatedByFriend(bills, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend creates multiple bills with target user
+     * details.
+     */
+    public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -70,10 +92,18 @@ public class FriendActivityService {
             String actorName = getActorDisplayName(actorUser);
             double totalAmount = bills.stream().mapToDouble(Bill::getAmount).sum();
 
+            // Build bulk payload with all bills
+            Map<String, Object> bulkPayload = new HashMap<>();
+            bulkPayload.put("billCount", bills.size());
+            bulkPayload.put("totalAmount", totalAmount);
+            bulkPayload.put("bills", bills.stream().map(this::buildBillPayload).toList());
+
             FriendActivityEvent event = FriendActivityEvent.builder()
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.BILL)
                     .entityType(FriendActivityEvent.EntityType.BILL)
                     .entityId(null)
@@ -81,6 +111,7 @@ public class FriendActivityService {
                     .description(String.format("%s created %d bills totaling $%.2f",
                             actorName, bills.size(), totalAmount))
                     .amount(totalAmount)
+                    .entityPayload(bulkPayload)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -96,6 +127,15 @@ public class FriendActivityService {
      * Send notification when a friend updates a bill.
      */
     public void sendBillUpdatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser) {
+        sendBillUpdatedByFriend(bill, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend updates a bill with previous state and target
+     * user details.
+     */
+    public void sendBillUpdatedByFriend(Bill bill, Bill previousBill, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -107,12 +147,16 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.BILL)
                     .entityType(FriendActivityEvent.EntityType.BILL)
                     .entityId(bill.getId())
                     .action(FriendActivityEvent.Action.UPDATE)
                     .description(String.format("%s updated bill '%s'", actorName, bill.getName()))
                     .amount(bill.getAmount())
+                    .entityPayload(buildBillPayload(bill))
+                    .previousEntityState(previousBill != null ? buildBillPayload(previousBill) : null)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -129,6 +173,14 @@ public class FriendActivityService {
      */
     public void sendBillDeletedByFriend(Integer billId, String billName, Double amount,
             Integer targetUserId, UserDto actorUser) {
+        sendBillDeletedByFriend(billId, billName, amount, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend deletes a bill with deleted entity details.
+     */
+    public void sendBillDeletedByFriend(Integer billId, String billName, Double amount, Bill deletedBill,
+            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -140,6 +192,8 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.BILL)
                     .entityType(FriendActivityEvent.EntityType.BILL)
                     .entityId(billId)
@@ -147,6 +201,7 @@ public class FriendActivityService {
                     .description(String.format("%s deleted bill '%s'",
                             actorName, billName != null ? billName : "a bill"))
                     .amount(amount)
+                    .previousEntityState(deletedBill != null ? buildBillPayload(deletedBill) : null)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -162,6 +217,15 @@ public class FriendActivityService {
      * Send notification when a friend deletes all bills.
      */
     public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
+        sendAllBillsDeletedByFriend(targetUserId, actorUser, null, count, null);
+    }
+
+    /**
+     * Send notification when a friend deletes all bills with deleted entities
+     * details.
+     */
+    public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser, int count,
+            List<Bill> deletedBills) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -169,16 +233,27 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
+            // Build payload with deleted bills info
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("deletedCount", count);
+            if (deletedBills != null && !deletedBills.isEmpty()) {
+                payload.put("deletedBills", deletedBills.stream().map(this::buildBillPayload).toList());
+                payload.put("totalAmount", deletedBills.stream().mapToDouble(Bill::getAmount).sum());
+            }
+
             FriendActivityEvent event = FriendActivityEvent.builder()
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.BILL)
                     .entityType(FriendActivityEvent.EntityType.BILL)
                     .entityId(null)
                     .action(FriendActivityEvent.Action.DELETE)
                     .description(String.format("%s deleted all bills (%d items)", actorName, count))
                     .amount(null)
+                    .entityPayload(payload)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -198,6 +273,54 @@ public class FriendActivityService {
             return user.getFirstName();
         }
         return user.getUsername() != null ? user.getUsername() : "A friend";
+    }
+
+    /**
+     * Build UserInfo from UserDto for enhanced event data.
+     */
+    private FriendActivityEvent.UserInfo buildUserInfo(UserDto user) {
+        if (user == null)
+            return null;
+
+        String fullName = getActorDisplayName(user);
+
+        return FriendActivityEvent.UserInfo.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .fullName(fullName)
+                .image(user.getImage())
+                .phoneNumber(user.getMobile())
+                .build();
+    }
+
+    /**
+     * Build complete bill payload as a Map for entity data.
+     */
+    private Map<String, Object> buildBillPayload(Bill bill) {
+        if (bill == null)
+            return null;
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("id", bill.getId());
+        payload.put("userId", bill.getUserId());
+        payload.put("name", bill.getName());
+        payload.put("amount", bill.getAmount());
+        payload.put("date", bill.getDate() != null ? bill.getDate().toString() : null);
+        payload.put("category", bill.getCategory());
+        payload.put("categoryId", bill.getCategoryId());
+        payload.put("type", bill.getType());
+        payload.put("description", bill.getDescription());
+        payload.put("paymentMethod", bill.getPaymentMethod());
+        payload.put("netAmount", bill.getNetAmount());
+        payload.put("creditDue", bill.getCreditDue());
+        payload.put("includeInBudget", bill.isIncludeInBudget());
+        payload.put("budgetIds", bill.getBudgetIds());
+        payload.put("expenseId", bill.getExpenseId());
+
+        return payload;
     }
 
     private String buildBillMetadata(Bill bill) {

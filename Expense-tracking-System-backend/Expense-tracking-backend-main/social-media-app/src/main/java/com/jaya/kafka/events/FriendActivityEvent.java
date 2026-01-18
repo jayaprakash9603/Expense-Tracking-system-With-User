@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * Event DTO for tracking friend activities across services.
@@ -53,6 +54,16 @@ public class FriendActivityEvent implements Serializable {
     private String actorUserName;
 
     /**
+     * Complete actor user details
+     */
+    private UserInfo actorUser;
+
+    /**
+     * Complete target user details
+     */
+    private UserInfo targetUser;
+
+    /**
      * The service where the action was performed
      */
     private String sourceService;
@@ -83,9 +94,20 @@ public class FriendActivityEvent implements Serializable {
     private Double amount;
 
     /**
-     * Additional metadata as JSON string
+     * Additional metadata as JSON string (category, type, payment method, etc.)
      */
     private String metadata;
+
+    /**
+     * The complete entity payload that was created/updated/deleted
+     * Stored as a Map to accommodate different entity types
+     */
+    private Map<String, Object> entityPayload;
+
+    /**
+     * Previous entity state (for updates) - allows showing what changed
+     */
+    private Map<String, Object> previousEntityState;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -96,6 +118,58 @@ public class FriendActivityEvent implements Serializable {
      * Whether this activity has been read by the target user
      */
     private Boolean isRead;
+
+    /**
+     * IP address of the actor (for security/audit purposes)
+     */
+    private String actorIpAddress;
+
+    /**
+     * User agent/device info of the actor
+     */
+    private String actorUserAgent;
+
+    /**
+     * Inner class to hold complete user information
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class UserInfo implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private Integer id;
+        private String username;
+        private String email;
+        private String firstName;
+        private String lastName;
+        private String fullName;
+        private String image;
+        private String coverImage;
+        private String phoneNumber;
+        private String location;
+        private String bio;
+
+        /**
+         * Get display name with fallback logic
+         */
+        public String getDisplayName() {
+            if (fullName != null && !fullName.trim().isEmpty()) {
+                return fullName;
+            }
+            if (firstName != null && lastName != null) {
+                return firstName + " " + lastName;
+            }
+            if (firstName != null) {
+                return firstName;
+            }
+            if (username != null && !username.trim().isEmpty()) {
+                return username;
+            }
+            return email;
+        }
+    }
 
     /**
      * Source service constants - must match consumer's enum values

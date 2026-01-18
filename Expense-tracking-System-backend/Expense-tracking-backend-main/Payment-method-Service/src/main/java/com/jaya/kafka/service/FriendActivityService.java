@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service for sending friend activity notifications for payment method
@@ -27,6 +29,15 @@ public class FriendActivityService {
      * user.
      */
     public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser) {
+        sendPaymentMethodCreatedByFriend(paymentMethod, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend creates a payment method with target user
+     * details.
+     */
+    public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser,
+            UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 log.debug("Skipping friend activity notification - user creating own payment method");
@@ -39,6 +50,8 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.PAYMENT)
                     .entityType(FriendActivityEvent.EntityType.PAYMENT_METHOD)
                     .entityId(paymentMethod.getId())
@@ -46,6 +59,7 @@ public class FriendActivityService {
                     .description(String.format("%s created payment method '%s'", actorName, paymentMethod.getName()))
                     .amount(paymentMethod.getAmount() != null ? paymentMethod.getAmount().doubleValue() : null)
                     .metadata(buildPaymentMethodMetadata(paymentMethod))
+                    .entityPayload(buildPaymentMethodPayload(paymentMethod))
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -63,6 +77,15 @@ public class FriendActivityService {
      * Send notification when a friend updates a payment method.
      */
     public void sendPaymentMethodUpdatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser) {
+        sendPaymentMethodUpdatedByFriend(paymentMethod, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend updates a payment method with previous state
+     * and target user details.
+     */
+    public void sendPaymentMethodUpdatedByFriend(PaymentMethod paymentMethod, PaymentMethod previousPaymentMethod,
+            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -74,12 +97,17 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.PAYMENT)
                     .entityType(FriendActivityEvent.EntityType.PAYMENT_METHOD)
                     .entityId(paymentMethod.getId())
                     .action(FriendActivityEvent.Action.UPDATE)
                     .description(String.format("%s updated payment method '%s'", actorName, paymentMethod.getName()))
                     .amount(paymentMethod.getAmount() != null ? paymentMethod.getAmount().doubleValue() : null)
+                    .entityPayload(buildPaymentMethodPayload(paymentMethod))
+                    .previousEntityState(
+                            previousPaymentMethod != null ? buildPaymentMethodPayload(previousPaymentMethod) : null)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -96,6 +124,16 @@ public class FriendActivityService {
      */
     public void sendPaymentMethodDeletedByFriend(Integer paymentMethodId, String paymentMethodName,
             Integer targetUserId, UserDto actorUser) {
+        sendPaymentMethodDeletedByFriend(paymentMethodId, paymentMethodName, null, targetUserId, actorUser, null);
+    }
+
+    /**
+     * Send notification when a friend deletes a payment method with deleted entity
+     * details.
+     */
+    public void sendPaymentMethodDeletedByFriend(Integer paymentMethodId, String paymentMethodName,
+            PaymentMethod deletedPaymentMethod,
+            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -107,6 +145,8 @@ public class FriendActivityService {
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.PAYMENT)
                     .entityType(FriendActivityEvent.EntityType.PAYMENT_METHOD)
                     .entityId(paymentMethodId)
@@ -114,6 +154,8 @@ public class FriendActivityService {
                     .description(String.format("%s deleted payment method '%s'",
                             actorName, paymentMethodName != null ? paymentMethodName : "a payment method"))
                     .amount(null)
+                    .previousEntityState(
+                            deletedPaymentMethod != null ? buildPaymentMethodPayload(deletedPaymentMethod) : null)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -129,6 +171,15 @@ public class FriendActivityService {
      * Send notification when a friend deletes all payment methods.
      */
     public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
+        sendAllPaymentMethodsDeletedByFriend(targetUserId, actorUser, null, count, null);
+    }
+
+    /**
+     * Send notification when a friend deletes all payment methods with deleted
+     * entities details.
+     */
+    public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser,
+            int count, List<PaymentMethod> deletedPaymentMethods) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -136,16 +187,27 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
+            // Build payload with deleted payment methods info
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("deletedCount", count);
+            if (deletedPaymentMethods != null && !deletedPaymentMethods.isEmpty()) {
+                payload.put("deletedPaymentMethods",
+                        deletedPaymentMethods.stream().map(this::buildPaymentMethodPayload).toList());
+            }
+
             FriendActivityEvent event = FriendActivityEvent.builder()
                     .targetUserId(targetUserId)
                     .actorUserId(actorUser.getId())
                     .actorUserName(actorName)
+                    .actorUser(buildUserInfo(actorUser))
+                    .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.PAYMENT)
                     .entityType(FriendActivityEvent.EntityType.PAYMENT_METHOD)
                     .entityId(null)
                     .action(FriendActivityEvent.Action.DELETE)
                     .description(String.format("%s deleted all payment methods (%d items)", actorName, count))
                     .amount(null)
+                    .entityPayload(payload)
                     .timestamp(LocalDateTime.now())
                     .isRead(false)
                     .build();
@@ -166,6 +228,48 @@ public class FriendActivityService {
             return user.getFirstName();
         }
         return user.getUsername() != null ? user.getUsername() : "A friend";
+    }
+
+    /**
+     * Build UserInfo from UserDto for enhanced event data.
+     */
+    private FriendActivityEvent.UserInfo buildUserInfo(UserDto user) {
+        if (user == null)
+            return null;
+
+        String fullName = getActorDisplayName(user);
+
+        return FriendActivityEvent.UserInfo.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .fullName(fullName)
+                .image(user.getImage())
+                .phoneNumber(user.getMobile())
+                .build();
+    }
+
+    /**
+     * Build complete payment method payload as a Map for entity data.
+     */
+    private Map<String, Object> buildPaymentMethodPayload(PaymentMethod paymentMethod) {
+        if (paymentMethod == null)
+            return null;
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("id", paymentMethod.getId());
+        payload.put("userId", paymentMethod.getUserId());
+        payload.put("name", paymentMethod.getName());
+        payload.put("description", paymentMethod.getDescription());
+        payload.put("amount", paymentMethod.getAmount());
+        payload.put("type", paymentMethod.getType());
+        payload.put("icon", paymentMethod.getIcon());
+        payload.put("color", paymentMethod.getColor());
+        payload.put("isGlobal", paymentMethod.isGlobal());
+
+        return payload;
     }
 
     private String buildPaymentMethodMetadata(PaymentMethod paymentMethod) {

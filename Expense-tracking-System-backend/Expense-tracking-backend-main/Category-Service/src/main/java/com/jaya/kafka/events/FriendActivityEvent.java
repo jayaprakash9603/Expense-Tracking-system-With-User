@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * Event DTO for tracking friend activities in Category Service.
@@ -24,69 +25,61 @@ import java.time.LocalDateTime;
 public class FriendActivityEvent implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * The user whose data was affected (the owner)
-     */
     private Integer targetUserId;
-
-    /**
-     * The friend who performed the action
-     */
     private Integer actorUserId;
-
-    /**
-     * Name of the actor (friend) for display purposes
-     */
     private String actorUserName;
-
-    /**
-     * The service where the action was performed
-     */
+    private UserInfo actorUser;
+    private UserInfo targetUser;
     private String sourceService;
-
-    /**
-     * The type of entity affected
-     */
     private String entityType;
-
-    /**
-     * The ID of the affected entity
-     */
     private Integer entityId;
-
-    /**
-     * The action performed (CREATE, UPDATE, DELETE)
-     */
     private String action;
-
-    /**
-     * Description of the activity for display
-     */
     private String description;
-
-    /**
-     * Amount involved (if applicable)
-     */
     private Double amount;
-
-    /**
-     * Additional metadata as JSON string
-     */
     private String metadata;
+    private Map<String, Object> entityPayload;
+    private Map<String, Object> previousEntityState;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime timestamp;
 
-    /**
-     * Whether this activity has been read by the target user
-     */
     private Boolean isRead;
+    private String actorIpAddress;
+    private String actorUserAgent;
 
-    /**
-     * Source service constants - must match consumer's values
-     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class UserInfo implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private Integer id;
+        private String username;
+        private String email;
+        private String firstName;
+        private String lastName;
+        private String fullName;
+        private String image;
+        private String coverImage;
+        private String phoneNumber;
+        private String location;
+        private String bio;
+
+        public String getDisplayName() {
+            if (fullName != null && !fullName.trim().isEmpty())
+                return fullName;
+            if (firstName != null && lastName != null)
+                return firstName + " " + lastName;
+            if (firstName != null)
+                return firstName;
+            if (username != null && !username.trim().isEmpty())
+                return username;
+            return email;
+        }
+    }
+
     public static class SourceService {
         public static final String EXPENSE = "EXPENSE";
         public static final String BUDGET = "BUDGET";
@@ -98,9 +91,6 @@ public class FriendActivityEvent implements Serializable {
         }
     }
 
-    /**
-     * Entity type constants
-     */
     public static class EntityType {
         public static final String EXPENSE = "EXPENSE";
         public static final String BUDGET = "BUDGET";
@@ -112,9 +102,6 @@ public class FriendActivityEvent implements Serializable {
         }
     }
 
-    /**
-     * Action constants
-     */
     public static class Action {
         public static final String CREATE = "CREATE";
         public static final String UPDATE = "UPDATE";

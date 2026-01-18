@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * Event representing an activity performed by a friend on behalf of another
@@ -85,4 +86,58 @@ public class FriendActivityEvent implements Serializable {
      * Whether the activity has been read by the target user.
      */
     private Boolean isRead;
+
+    /**
+     * Complete user information of the actor (the friend who performed the action).
+     */
+    private UserInfo actorUser;
+
+    /**
+     * Complete user information of the target (the account owner).
+     */
+    private UserInfo targetUser;
+
+    /**
+     * Complete entity payload data (the full entity that was
+     * created/updated/viewed).
+     */
+    private Map<String, Object> entityPayload;
+
+    /**
+     * Previous state of the entity (for update/delete operations).
+     */
+    private Map<String, Object> previousEntityState;
+
+    /**
+     * IP address of the actor for audit purposes.
+     */
+    private String actorIpAddress;
+
+    /**
+     * User agent of the actor for audit purposes.
+     */
+    private String actorUserAgent;
+
+    /**
+     * Inner class representing complete user information.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserInfo implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private Integer id;
+        private String username;
+        private String email;
+        private String firstName;
+        private String lastName;
+        private String fullName;
+        private String image;
+        private String coverImage;
+        private String phoneNumber;
+        private String location;
+        private String bio;
+    }
 }
