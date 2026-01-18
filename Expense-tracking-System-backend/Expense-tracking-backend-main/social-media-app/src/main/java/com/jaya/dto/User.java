@@ -46,7 +46,10 @@ public class User {
     private String lastName;
 
     private String gender;
+
+    @JsonProperty("profileImage")
     private String image; // Added for profile image
+
     private String coverImage; // Added for cover background image
 
     private Set<String> roles = new HashSet<>();

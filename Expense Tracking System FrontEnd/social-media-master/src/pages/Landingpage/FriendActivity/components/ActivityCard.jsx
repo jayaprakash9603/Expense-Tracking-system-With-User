@@ -382,6 +382,11 @@ const ActivityCard = ({
     return "??";
   }, [actorUser, actorUserName]);
 
+  // Get avatar image URL
+  const avatarImage = useMemo(() => {
+    return actorUser?.image || actorUser?.profileImage || null;
+  }, [actorUser]);
+
   // Handle mark as read
   const handleMarkAsRead = useCallback(
     (e) => {
@@ -454,6 +459,8 @@ const ActivityCard = ({
         {/* Avatar / Icon */}
         {showAvatar ? (
           <Avatar
+            src={avatarImage}
+            alt={actorUserName || "User"}
             sx={{
               width: 36,
               height: 36,

@@ -10,8 +10,6 @@ import {
   Typography,
   Tooltip,
   Badge,
-  Snackbar,
-  Alert,
   IconButton,
   Pagination,
   Select,
@@ -43,6 +41,7 @@ import {
   groupActivitiesByFriend,
 } from "./utils";
 import { PAGINATION } from "./constants";
+import ToastNotification from "../ToastNotification";
 import "./FriendActivityPage.css";
 
 const GROUP_VIEWS = {
@@ -275,12 +274,14 @@ const FriendActivityPage = () => {
 
       {/* Main Content */}
       <div className="activity-page-content">
-        {/* Stats Section - Always Visible */}
-        {!loading && (
-          <div className="stats-section">
+        {/* Stats Section - Show skeleton during loading, actual stats when loaded */}
+        <div className="stats-section">
+          {loading ? (
+            <ActivitySkeleton variant="stats" />
+          ) : (
             <ActivityStats activities={filteredActivities} />
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Filters Section - Single Row with View Selector */}
         <div className="filters-section">
@@ -300,8 +301,23 @@ const FriendActivityPage = () => {
           />
         </div>
 
-        {/* Loading State */}
-        {loading && <ActivitySkeleton variant="list" count={5} />}
+        {/* Loading State - Show appropriate skeleton based on view */}
+        {loading && (
+          <>
+            <ActivitySkeleton
+              variant={
+                groupView === GROUP_VIEWS.LIST
+                  ? "list"
+                  : groupView === GROUP_VIEWS.FRIEND
+                    ? "accordion-friend"
+                    : "accordion"
+              }
+              count={5}
+            />
+            {/* Pagination skeleton */}
+            <ActivitySkeleton variant="pagination" />
+          </>
+        )}
 
         {/* Empty State */}
         {!loading && filteredActivities.length === 0 && (
@@ -464,21 +480,14 @@ const FriendActivityPage = () => {
         )}
       </div>
 
-      {/* Snackbar */}
-      <Snackbar
+      {/* Toast Notification */}
+      <ToastNotification
         open={snackbar.open}
-        autoHideDuration={3000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      />
 
       {/* Activity Detail Modal */}
       <ActivityDetailModal

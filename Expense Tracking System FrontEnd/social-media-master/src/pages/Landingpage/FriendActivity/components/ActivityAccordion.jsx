@@ -15,10 +15,16 @@ import {
   Select,
   MenuItem,
   FormControl,
+  Avatar,
+  Tooltip,
 } from "@mui/material";
 import {
   ExpandMore as ExpandIcon,
   ExpandLess as CollapseIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  LocationOn as LocationIcon,
+  Person as PersonIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../../../hooks/useTheme";
 import ActivityCard from "./ActivityCard";
@@ -90,7 +96,7 @@ const AccordionItem = React.memo(
     groupType,
     colors,
   }) => {
-    const { label, items = [], key, service, actorUser } = group;
+    const { label, items = [], key, service, actorUser, friendId } = group;
 
     // Pagination for items
     const {
@@ -125,6 +131,60 @@ const AccordionItem = React.memo(
       return colors.primary_accent;
     }, [groupType, service, colors]);
 
+    // Get friend avatar and details for friend group type
+    const friendInfo = useMemo(() => {
+      if (groupType !== "friend" || !actorUser) return null;
+
+      return {
+        image: actorUser.image || actorUser.profileImage || null,
+        email: actorUser.email || null,
+        phone: actorUser.phoneNumber || actorUser.mobile || null,
+        location: actorUser.location || null,
+        fullName:
+          actorUser.fullName ||
+          `${actorUser.firstName || ""} ${actorUser.lastName || ""}`.trim() ||
+          label,
+        username: actorUser.username || null,
+      };
+    }, [groupType, actorUser, label]);
+
+    // Generate avatar initials from name
+    const avatarInitials = useMemo(() => {
+      if (!label) return "?";
+      const words = label.split(" ").filter(Boolean);
+      if (words.length >= 2) {
+        return `${words[0][0]}${words[1][0]}`.toUpperCase();
+      }
+      return label.substring(0, 2).toUpperCase();
+    }, [label]);
+
+    // Generate consistent avatar color based on friendId or label
+    const avatarBgColor = useMemo(() => {
+      const seed = friendId || label || "default";
+      const colors = [
+        "#F44336",
+        "#E91E63",
+        "#9C27B0",
+        "#673AB7",
+        "#3F51B5",
+        "#2196F3",
+        "#03A9F4",
+        "#00BCD4",
+        "#009688",
+        "#4CAF50",
+        "#8BC34A",
+        "#FF9800",
+        "#FF5722",
+        "#795548",
+        "#607D8B",
+      ];
+      let hash = 0;
+      for (let i = 0; i < seed.toString().length; i++) {
+        hash = seed.toString().charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return colors[Math.abs(hash) % colors.length];
+    }, [friendId, label]);
+
     return (
       <Box
         sx={{
@@ -156,50 +216,174 @@ const AccordionItem = React.memo(
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            {/* Group Label */}
-            <Typography
-              variant="subtitle1"
-              sx={{
-                fontWeight: 600,
-                color: colors.primary_text,
-              }}
-            >
-              {label}
-            </Typography>
-
-            {/* Item Count */}
-            <Chip
-              size="small"
-              label={`${items.length} ${items.length === 1 ? "item" : "items"}`}
-              sx={{
-                height: 22,
-                fontSize: "0.75rem",
-                backgroundColor: `${accentColor}20`,
-                color: accentColor,
-              }}
-            />
-
-            {/* Unread Badge */}
-            {unreadCount > 0 && (
-              <Badge
-                badgeContent={unreadCount}
-                color="error"
+            {/* Friend Avatar - Only for friend group type */}
+            {groupType === "friend" && (
+              <Avatar
+                src={friendInfo?.image}
                 sx={{
-                  "& .MuiBadge-badge": {
-                    fontSize: "0.65rem",
-                    height: 16,
-                    minWidth: 16,
-                  },
+                  width: 40,
+                  height: 40,
+                  backgroundColor: friendInfo?.image
+                    ? "transparent"
+                    : avatarBgColor,
+                  fontSize: "0.9rem",
+                  fontWeight: 600,
+                  border: `2px solid ${accentColor}30`,
                 }}
               >
-                <Typography
-                  variant="caption"
-                  sx={{ color: colors.secondary_text }}
-                >
-                  unread
-                </Typography>
-              </Badge>
+                {!friendInfo?.image && avatarInitials}
+              </Avatar>
             )}
+
+            {/* Friend Info Container */}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
+              {/* Group Label / Friend Name */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 600,
+                    color: colors.primary_text,
+                  }}
+                >
+                  {label}
+                </Typography>
+
+                {/* Item Count */}
+                <Chip
+                  size="small"
+                  label={`${items.length} ${items.length === 1 ? "item" : "items"}`}
+                  sx={{
+                    height: 22,
+                    fontSize: "0.75rem",
+                    backgroundColor: `${accentColor}20`,
+                    color: accentColor,
+                  }}
+                />
+
+                {/* Unread Badge */}
+                {unreadCount > 0 && (
+                  <Badge
+                    badgeContent={unreadCount}
+                    color="error"
+                    sx={{
+                      "& .MuiBadge-badge": {
+                        fontSize: "0.65rem",
+                        height: 16,
+                        minWidth: 16,
+                      },
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{ color: colors.secondary_text }}
+                    >
+                      unread
+                    </Typography>
+                  </Badge>
+                )}
+              </Box>
+
+              {/* Friend Details - Only for friend group type when expanded or always show email */}
+              {groupType === "friend" && friendInfo && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {/* Email */}
+                  {friendInfo.email && (
+                    <Tooltip title="Email" arrow placement="top">
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <EmailIcon
+                          sx={{ fontSize: 14, color: colors.tertiary_text }}
+                        />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: colors.secondary_text,
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          {friendInfo.email}
+                        </Typography>
+                      </Box>
+                    </Tooltip>
+                  )}
+
+                  {/* Phone - Show if available */}
+                  {friendInfo.phone && (
+                    <Tooltip title="Phone" arrow placement="top">
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <PhoneIcon
+                          sx={{ fontSize: 14, color: colors.tertiary_text }}
+                        />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: colors.secondary_text,
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          {friendInfo.phone}
+                        </Typography>
+                      </Box>
+                    </Tooltip>
+                  )}
+
+                  {/* Location - Show if available */}
+                  {friendInfo.location && (
+                    <Tooltip title="Location" arrow placement="top">
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <LocationIcon
+                          sx={{ fontSize: 14, color: colors.tertiary_text }}
+                        />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: colors.secondary_text,
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          {friendInfo.location}
+                        </Typography>
+                      </Box>
+                    </Tooltip>
+                  )}
+
+                  {/* Username - Show if different from name */}
+                  {friendInfo.username && friendInfo.username !== label && (
+                    <Tooltip title="Username" arrow placement="top">
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <PersonIcon
+                          sx={{ fontSize: 14, color: colors.tertiary_text }}
+                        />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: colors.secondary_text,
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          @{friendInfo.username}
+                        </Typography>
+                      </Box>
+                    </Tooltip>
+                  )}
+                </Box>
+              )}
+            </Box>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
