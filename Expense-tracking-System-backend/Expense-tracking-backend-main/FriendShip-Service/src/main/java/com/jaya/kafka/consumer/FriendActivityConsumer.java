@@ -98,21 +98,39 @@ public class FriendActivityConsumer {
                 .build();
     }
 
-    private FriendActivity.SourceService mapSourceService(FriendActivityEvent.SourceService source) {
-        if (source == null)
+    private FriendActivity.SourceService mapSourceService(String source) {
+        if (source == null || source.isEmpty()) {
             return FriendActivity.SourceService.EXPENSE;
-        return FriendActivity.SourceService.valueOf(source.name());
+        }
+        try {
+            return FriendActivity.SourceService.valueOf(source.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Unknown source service: {}, defaulting to EXPENSE", source);
+            return FriendActivity.SourceService.EXPENSE;
+        }
     }
 
-    private FriendActivity.EntityType mapEntityType(FriendActivityEvent.EntityType type) {
-        if (type == null)
+    private FriendActivity.EntityType mapEntityType(String type) {
+        if (type == null || type.isEmpty()) {
             return FriendActivity.EntityType.EXPENSE;
-        return FriendActivity.EntityType.valueOf(type.name());
+        }
+        try {
+            return FriendActivity.EntityType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Unknown entity type: {}, defaulting to EXPENSE", type);
+            return FriendActivity.EntityType.EXPENSE;
+        }
     }
 
-    private FriendActivity.Action mapAction(FriendActivityEvent.Action action) {
-        if (action == null)
+    private FriendActivity.Action mapAction(String action) {
+        if (action == null || action.isEmpty()) {
             return FriendActivity.Action.CREATE;
-        return FriendActivity.Action.valueOf(action.name());
+        }
+        try {
+            return FriendActivity.Action.valueOf(action.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Unknown action: {}, defaulting to CREATE", action);
+            return FriendActivity.Action.CREATE;
+        }
     }
 }

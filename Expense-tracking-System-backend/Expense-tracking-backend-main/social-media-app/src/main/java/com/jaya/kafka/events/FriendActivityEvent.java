@@ -98,14 +98,14 @@ public class FriendActivityEvent implements Serializable {
     private Boolean isRead;
 
     /**
-     * Source service constants
+     * Source service constants - must match consumer's enum values
      */
     public static class SourceService {
-        public static final String EXPENSE = "EXPENSE_SERVICE";
-        public static final String BUDGET = "BUDGET_SERVICE";
-        public static final String CATEGORY = "CATEGORY_SERVICE";
-        public static final String PAYMENT = "PAYMENT_SERVICE";
-        public static final String BILL = "BILL_SERVICE";
+        public static final String EXPENSE = "EXPENSE";
+        public static final String BUDGET = "BUDGET";
+        public static final String CATEGORY = "CATEGORY";
+        public static final String PAYMENT = "PAYMENT";
+        public static final String BILL = "BILL";
 
         private SourceService() {
         }

@@ -40,13 +40,15 @@ public class FriendActivityEvent implements Serializable {
 
     /**
      * The service from which this activity originated.
+     * Values: EXPENSE, BUDGET, BILL, CATEGORY, PAYMENT
      */
-    private SourceService sourceService;
+    private String sourceService;
 
     /**
      * The type of entity that was affected.
+     * Values: EXPENSE, BUDGET, BILL, CATEGORY, PAYMENT_METHOD
      */
-    private EntityType entityType;
+    private String entityType;
 
     /**
      * The ID of the entity that was affected.
@@ -55,8 +57,9 @@ public class FriendActivityEvent implements Serializable {
 
     /**
      * The action that was performed.
+     * Values: CREATE, UPDATE, DELETE, COPY
      */
-    private Action action;
+    private String action;
 
     /**
      * Human-readable description of the activity.
@@ -82,36 +85,4 @@ public class FriendActivityEvent implements Serializable {
      * Whether the activity has been read by the target user.
      */
     private Boolean isRead;
-
-    /**
-     * Source service enumeration.
-     */
-    public enum SourceService {
-        EXPENSE,
-        BUDGET,
-        BILL,
-        CATEGORY,
-        PAYMENT
-    }
-
-    /**
-     * Entity type enumeration.
-     */
-    public enum EntityType {
-        EXPENSE,
-        BUDGET,
-        BILL,
-        CATEGORY,
-        PAYMENT_METHOD
-    }
-
-    /**
-     * Action type enumeration.
-     */
-    public enum Action {
-        CREATE,
-        UPDATE,
-        DELETE,
-        COPY
-    }
 }

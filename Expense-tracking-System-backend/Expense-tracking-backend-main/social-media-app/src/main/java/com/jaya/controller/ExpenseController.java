@@ -106,6 +106,7 @@ public class ExpenseController extends BaseExpenseController {
 
         User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
+        System.out.println("target user id"+targetUser.getId());
         ExpenseDTO createdExpenseDTO = expenseService.addExpense(expenseDTO, targetUser.getId());
 
         // Send friend activity notification if a friend created the expense
