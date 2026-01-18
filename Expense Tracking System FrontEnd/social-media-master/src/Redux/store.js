@@ -24,6 +24,7 @@ import userSettingsReducer from "./UserSettings/userSettings.reducer";
 import { notificationReducer } from "./Notifications/notification.reducer";
 import notificationPreferencesReducer from "./NotificationPreferences/notificationPreferences.reducer";
 import { reportHistoryReducer } from "./ReportHistory/reportHistory.reducer";
+import friendActivityReducer from "./FriendActivity/friendActivity.reducer";
 
 // Combine reducers
 const appReducer = combineReducers({
@@ -43,6 +44,7 @@ const appReducer = combineReducers({
   notifications: notificationReducer,
   notificationPreferences: notificationPreferencesReducer,
   reportHistory: reportHistoryReducer,
+  friendActivity: friendActivityReducer,
 });
 
 const rootReducer = (state, action) => {
@@ -58,5 +60,5 @@ const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 // Create store with DevTools and middleware
 export const store = legacy_createStore(
   rootReducer,
-  composeEnhancers(applyMiddleware(thunk))
+  composeEnhancers(applyMiddleware(thunk)),
 );
