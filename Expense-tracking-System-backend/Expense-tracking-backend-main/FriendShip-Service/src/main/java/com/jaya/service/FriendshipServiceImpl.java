@@ -10,6 +10,8 @@ import com.jaya.models.UserDto;
 import com.jaya.repository.FriendshipRepository;
 import com.jaya.util.ServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -75,6 +77,8 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
+    @Override
+    @CacheEvict(value = { "friendships", "friendshipStatus", "accessLevels" }, allEntries = true)
     public Friendship respondToRequest(Integer friendshipId, Integer responderId, boolean accept) {
         Friendship friendship = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new RuntimeException("Friendship request not found with ID: " + friendshipId));
@@ -120,6 +124,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
+    @CacheEvict(value = { "friendships", "friendshipStatus", "accessLevels" }, allEntries = true)
     public Friendship setAccessLevel(Integer friendshipId, Integer userId, AccessLevel accessLevel) {
         Friendship friendship = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new RuntimeException("Friendship not found with ID: " + friendshipId));
@@ -197,6 +202,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     @Transactional
+    @CacheEvict(value = { "friendships", "friendshipStatus", "accessLevels" }, allEntries = true)
     public void cancelFriendRequest(Integer friendshipId, Integer userId) {
         Friendship friendship = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new RuntimeException("Friendship request not found with ID: " + friendshipId));
@@ -224,6 +230,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     @Transactional
+    @CacheEvict(value = { "friendships", "friendshipStatus", "accessLevels" }, allEntries = true)
     public void removeFriendship(Integer friendshipId, Integer userId) {
         Friendship friendship = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new RuntimeException("Friendship not found with ID: " + friendshipId));
@@ -395,20 +402,9 @@ public class FriendshipServiceImpl implements FriendshipService {
         UserDto user1 = helper.validateUser(userId1);
         UserDto user2 = helper.validateUser(userId2);
 
-        // Check for friendship in both directions
-        Optional<Friendship> friendship1 = friendshipRepository.findByRequesterIdAndRecipientId(user1.getId(),
-                user2.getId());
-        if (friendship1.isPresent()) {
-            return friendship1.get().getStatus();
-        }
-
-        Optional<Friendship> friendship2 = friendshipRepository.findByRequesterIdAndRecipientId(user2.getId(),
-                user1.getId());
-        if (friendship2.isPresent()) {
-            return friendship2.get().getStatus();
-        }
-
-        return FriendshipStatus.NONE;
+        // OPTIMIZED: Single bidirectional query instead of two separate queries
+        Optional<Friendship> friendship = friendshipRepository.findBidirectional(user1.getId(), user2.getId());
+        return friendship.map(Friendship::getStatus).orElse(FriendshipStatus.NONE);
     }
 
     @Override
@@ -438,6 +434,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
+    @Cacheable(value = "friendships", key = "#userId1 + '-' + #userId2", unless = "#result == null")
     public Friendship getFriendship(Integer userId1, Integer userId2) throws Exception {
         // No friendship with self
         if (userId1.equals(userId2)) {
@@ -447,20 +444,8 @@ public class FriendshipServiceImpl implements FriendshipService {
         UserDto user1 = helper.validateUser(userId1);
         UserDto user2 = helper.validateUser(userId2);
 
-        // Check for friendship in both directions
-        Optional<Friendship> friendship1 = friendshipRepository.findByRequesterIdAndRecipientId(user1.getId(),
-                user2.getId());
-        if (friendship1.isPresent()) {
-            return friendship1.get();
-        }
-
-        Optional<Friendship> friendship2 = friendshipRepository.findByRequesterIdAndRecipientId(user2.getId(),
-                user1.getId());
-        if (friendship2.isPresent()) {
-            return friendship2.get();
-        }
-
-        return null;
+        // OPTIMIZED: Single bidirectional query instead of two separate queries
+        return friendshipRepository.findBidirectional(user1.getId(), user2.getId()).orElse(null);
     }
 
     @Override
@@ -681,14 +666,24 @@ public class FriendshipServiceImpl implements FriendshipService {
             return true;
         }
 
-        // Check if there's a friendship between the users
-        Friendship friendship = getFriendship(ownerId, viewerId);
-        if (friendship == null || friendship.getStatus() != FriendshipStatus.ACCEPTED) {
+        // OPTIMIZED: Use bidirectional query with status filter to get accepted
+        // friendship in one query
+        Optional<Friendship> friendshipOpt = friendshipRepository.findBidirectionalByStatus(
+                ownerId, viewerId, FriendshipStatus.ACCEPTED);
+
+        if (friendshipOpt.isEmpty()) {
             return false;
         }
 
-        // Check the access level
-        AccessLevel accessLevel = getUserAccessLevel(ownerId, viewerId);
+        Friendship friendship = friendshipOpt.get();
+
+        // Determine the access level based on the friendship direction
+        AccessLevel accessLevel;
+        if (friendship.getRequesterId().equals(ownerId)) {
+            accessLevel = friendship.getRecipientAccess();
+        } else {
+            accessLevel = friendship.getRequesterAccess();
+        }
 
         // READ, WRITE, FULL, LIMITED, or SUMMARY access allows viewing expenses
         return accessLevel == AccessLevel.READ ||
@@ -705,14 +700,24 @@ public class FriendshipServiceImpl implements FriendshipService {
             return true;
         }
 
-        // Check if there's a friendship between the users
-        Friendship friendship = getFriendship(ownerId, viewerId);
-        if (friendship == null || friendship.getStatus() != FriendshipStatus.ACCEPTED) {
+        // OPTIMIZED: Use bidirectional query with status filter to get accepted
+        // friendship in one query
+        Optional<Friendship> friendshipOpt = friendshipRepository.findBidirectionalByStatus(
+                ownerId, viewerId, FriendshipStatus.ACCEPTED);
+
+        if (friendshipOpt.isEmpty()) {
             return false;
         }
 
-        // Check the access level
-        AccessLevel accessLevel = getUserAccessLevel(ownerId, viewerId);
+        Friendship friendship = friendshipOpt.get();
+
+        // Determine the access level based on the friendship direction
+        AccessLevel accessLevel;
+        if (friendship.getRequesterId().equals(ownerId)) {
+            accessLevel = friendship.getRecipientAccess();
+        } else {
+            accessLevel = friendship.getRequesterAccess();
+        }
 
         // Only WRITE or FULL access allows modifying expenses
         return accessLevel == AccessLevel.WRITE || accessLevel == AccessLevel.FULL;
@@ -725,11 +730,16 @@ public class FriendshipServiceImpl implements FriendshipService {
             return AccessLevel.FULL;
         }
 
-        // Get the friendship between the users
-        Friendship friendship = getFriendship(ownerId, viewerId);
-        if (friendship == null || friendship.getStatus() != FriendshipStatus.ACCEPTED) {
+        // OPTIMIZED: Use bidirectional query with status filter to get accepted
+        // friendship in one query
+        Optional<Friendship> friendshipOpt = friendshipRepository.findBidirectionalByStatus(
+                ownerId, viewerId, FriendshipStatus.ACCEPTED);
+
+        if (friendshipOpt.isEmpty()) {
             return AccessLevel.NONE;
         }
+
+        Friendship friendship = friendshipOpt.get();
 
         // Determine the access level based on the friendship direction
         if (friendship.getRequesterId().equals(ownerId)) {
@@ -1118,7 +1128,8 @@ public class FriendshipServiceImpl implements FriendshipService {
         return friends;
     }
 
-    // Note: Old helper methods removed - now using UnifiedActivityService for all events
+    // Note: Old helper methods removed - now using UnifiedActivityService for all
+    // events
 
     @Override
     public FriendshipReportDTO generateFriendshipReport(

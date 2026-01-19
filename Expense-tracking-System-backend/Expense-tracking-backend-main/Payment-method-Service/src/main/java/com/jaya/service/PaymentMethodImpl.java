@@ -64,8 +64,9 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
     @Override
     public List<PaymentMethod> getAllPaymentMethods(Integer userId) {
-        List<PaymentMethod> userPaymentMethods = paymentMethodRepository.findByUserId(userId);
-        List<PaymentMethod> globalPaymentMethods = paymentMethodRepository.findByIsGlobalTrue();
+        // OPTIMIZED: Use EntityGraph queries to fetch all collections in single queries
+        List<PaymentMethod> userPaymentMethods = paymentMethodRepository.findByUserIdWithDetails(userId);
+        List<PaymentMethod> globalPaymentMethods = paymentMethodRepository.findByIsGlobalTrueWithDetails();
 
         // Filter global payment methods: user not in userIds and not in editUserIds
         List<PaymentMethod> filteredGlobalMethods = globalPaymentMethods.stream()
@@ -113,7 +114,9 @@ public class PaymentMethodImpl implements PaymentMethodService {
         // Check if a payment method with the same name (case insensitive) already
         // exists
         String trimmedName = paymentMethodName.trim();
-        List<PaymentMethod> existingMethods = paymentMethodRepository.findByUserId(userId);
+
+        // OPTIMIZED: Use EntityGraph query to fetch all collections in single query
+        List<PaymentMethod> existingMethods = paymentMethodRepository.findByUserIdWithDetails(userId);
 
         // First try to find an existing payment method with the same name (case
         // insensitive)
@@ -123,8 +126,8 @@ public class PaymentMethodImpl implements PaymentMethodService {
             }
         }
 
-        // If not found, check global payment methods
-        List<PaymentMethod> globalMethods = paymentMethodRepository.findByIsGlobalTrue();
+        // If not found, check global payment methods - OPTIMIZED with EntityGraph
+        List<PaymentMethod> globalMethods = paymentMethodRepository.findByIsGlobalTrueWithDetails();
         for (PaymentMethod method : globalMethods) {
             if (method.getName().equalsIgnoreCase(trimmedName)) {
                 return method;

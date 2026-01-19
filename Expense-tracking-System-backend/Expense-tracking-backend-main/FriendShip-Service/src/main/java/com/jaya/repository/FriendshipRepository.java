@@ -20,6 +20,47 @@ import java.util.Set;
 @Repository
 public interface FriendshipRepository extends JpaRepository<Friendship, Integer> {
 
+        // ==================== OPTIMIZED: Single bidirectional lookup
+        // ====================
+        // This replaces calling findByRequesterIdAndRecipientId twice for both
+        // directions
+        @Query("SELECT f FROM Friendship f WHERE " +
+                        "(f.requesterId = :user1 AND f.recipientId = :user2) OR " +
+                        "(f.requesterId = :user2 AND f.recipientId = :user1)")
+        @QueryHints({
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_CACHEABLE, value = "true"),
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
+        })
+        Optional<Friendship> findBidirectional(@Param("user1") Integer user1, @Param("user2") Integer user2);
+
+        // ==================== OPTIMIZED: Bidirectional with status
+        // ====================
+        @Query("SELECT f FROM Friendship f WHERE " +
+                        "((f.requesterId = :user1 AND f.recipientId = :user2) OR " +
+                        "(f.requesterId = :user2 AND f.recipientId = :user1)) " +
+                        "AND f.status = :status")
+        @QueryHints({
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_CACHEABLE, value = "true"),
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
+        })
+        Optional<Friendship> findBidirectionalByStatus(
+                        @Param("user1") Integer user1,
+                        @Param("user2") Integer user2,
+                        @Param("status") FriendshipStatus status);
+
+        // ==================== OPTIMIZED: Batch check for multiple user pairs
+        // ====================
+        @Query("SELECT f FROM Friendship f WHERE " +
+                        "(f.requesterId = :userId AND f.recipientId IN :otherUserIds) OR " +
+                        "(f.recipientId = :userId AND f.requesterId IN :otherUserIds)")
+        @QueryHints({
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "100"),
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
+        })
+        List<Friendship> findAllByUserIdAndOtherUserIds(
+                        @Param("userId") Integer userId,
+                        @Param("otherUserIds") Set<Integer> otherUserIds);
+
         // Single friendship lookup (bi-directional handled in service)
         @Query("SELECT f FROM Friendship f WHERE f.requesterId = :requester AND f.recipientId = :recipient")
         @QueryHints({
