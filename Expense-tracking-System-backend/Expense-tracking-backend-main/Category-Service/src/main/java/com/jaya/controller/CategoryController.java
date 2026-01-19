@@ -76,12 +76,13 @@ public class CategoryController {
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             Category created = categoryService.create(category, targetUser.getId());
 
-            // Send notification for category creation
-            categoryNotificationService.sendCategoryCreatedNotification(created);
-
-            // Send friend activity notification if acting on friend's behalf
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendCategoryCreatedByFriend(created, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                categoryNotificationService.sendCategoryCreatedNotification(created);
             }
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (RuntimeException e) {
@@ -170,12 +171,13 @@ public class CategoryController {
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             Category updated = categoryService.update(id, category, targetUser.getId());
 
-            // Send notification for category update
-            categoryNotificationService.sendCategoryUpdatedNotification(updated);
-
-            // Send friend activity notification if acting on friend's behalf
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendCategoryUpdatedByFriend(updated, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                categoryNotificationService.sendCategoryUpdatedNotification(updated);
             }
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
@@ -201,12 +203,13 @@ public class CategoryController {
             String categoryName = category != null ? category.getName() : null;
             categoryService.delete(id, targetUser.getId());
 
-            // Send notification for category deletion
-            categoryNotificationService.sendCategoryDeletedNotification(id, targetUser.getId(), categoryName);
-
-            // Send friend activity notification if acting on friend's behalf
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendCategoryDeletedByFriend(id, categoryName, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                categoryNotificationService.sendCategoryDeletedNotification(id, targetUser.getId(), categoryName);
             }
             return new ResponseEntity<>("Category is deleted", HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) {
@@ -228,9 +231,15 @@ public class CategoryController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             List<Category> createdCategories = categoryService.createMultiple(categories, targetUser.getId());
-            // Send friend activity notification if acting on friend's behalf
+
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendBulkCategoriesCreatedByFriend(createdCategories, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                categoryNotificationService.sendBulkCategoriesCreatedNotification(createdCategories,
+                        targetUser.getId());
             }
             return new ResponseEntity<>(createdCategories, HttpStatus.CREATED);
         } catch (RuntimeException e) {
@@ -252,9 +261,15 @@ public class CategoryController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             List<Category> updatedCategories = categoryService.updateMultiple(categories, targetUser.getId());
-            // Send friend activity notification if acting on friend's behalf
+
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendBulkCategoriesUpdatedByFriend(updatedCategories, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                categoryNotificationService.sendBulkCategoriesUpdatedNotification(updatedCategories,
+                        targetUser.getId());
             }
             return ResponseEntity.ok(updatedCategories);
         } catch (RuntimeException e) {
@@ -277,9 +292,15 @@ public class CategoryController {
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             int count = categoryIds != null ? categoryIds.size() : 0;
             categoryService.deleteMultiple(categoryIds, targetUser.getId());
-            // Send friend activity notification if acting on friend's behalf
+
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendBulkCategoriesDeletedByFriend(count, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                categoryNotificationService.sendBulkCategoriesDeletedNotification(categoryIds, targetUser.getId(),
+                        null);
             }
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
@@ -323,9 +344,14 @@ public class CategoryController {
             List<Category> categories = categoryService.getAll(targetUser.getId());
             int count = categories != null ? categories.size() : 0;
             categoryService.deleteAllUserCategories(targetUser.getId());
-            // Send friend activity notification if acting on friend's behalf
+
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendAllCategoriesDeletedByFriend(targetId, reqUser, count);
+            } else {
+                // User's own action - send regular notification
+                categoryNotificationService.sendAllCategoriesDeletedNotification(targetUser.getId(), count);
             }
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {

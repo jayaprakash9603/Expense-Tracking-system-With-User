@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -86,6 +87,83 @@ public class CategoryNotificationService {
         } catch (Exception e) {
             log.error("Failed to send category deleted notification for categoryId: {}",
                     categoryId, e);
+        }
+    }
+
+    /**
+     * Send notification when multiple categories are created in bulk
+     */
+    public void sendBulkCategoriesCreatedNotification(List<Category> categories, Integer userId) {
+        if (categories == null || categories.isEmpty()) {
+            return;
+        }
+        try {
+            // Send individual notifications for each category (respecting user preferences)
+            for (Category category : categories) {
+                sendCategoryCreatedNotification(category);
+            }
+            log.info("Sent bulk category created notifications for {} categories, userId: {}",
+                    categories.size(), userId);
+        } catch (Exception e) {
+            log.error("Failed to send bulk category created notifications for userId: {}", userId, e);
+        }
+    }
+
+    /**
+     * Send notification when multiple categories are updated in bulk
+     */
+    public void sendBulkCategoriesUpdatedNotification(List<Category> categories, Integer userId) {
+        if (categories == null || categories.isEmpty()) {
+            return;
+        }
+        try {
+            for (Category category : categories) {
+                sendCategoryUpdatedNotification(category);
+            }
+            log.info("Sent bulk category updated notifications for {} categories, userId: {}",
+                    categories.size(), userId);
+        } catch (Exception e) {
+            log.error("Failed to send bulk category updated notifications for userId: {}", userId, e);
+        }
+    }
+
+    /**
+     * Send notification when multiple categories are deleted in bulk
+     */
+    public void sendBulkCategoriesDeletedNotification(List<Integer> categoryIds, Integer userId,
+            List<String> categoryNames) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return;
+        }
+        try {
+            for (int i = 0; i < categoryIds.size(); i++) {
+                String name = (categoryNames != null && i < categoryNames.size()) ? categoryNames.get(i) : null;
+                sendCategoryDeletedNotification(categoryIds.get(i), userId, name);
+            }
+            log.info("Sent bulk category deleted notifications for {} categories, userId: {}",
+                    categoryIds.size(), userId);
+        } catch (Exception e) {
+            log.error("Failed to send bulk category deleted notifications for userId: {}", userId, e);
+        }
+    }
+
+    /**
+     * Send notification when all categories are deleted
+     */
+    public void sendAllCategoriesDeletedNotification(Integer userId, int count) {
+        try {
+            CategoryNotificationEvent event = CategoryNotificationEvent.builder()
+                    .categoryId(null)
+                    .userId(userId)
+                    .action(CategoryNotificationEvent.Action.DELETE)
+                    .categoryName(String.format("All categories (%d items)", count))
+                    .timestamp(LocalDateTime.now())
+                    .build();
+
+            categoryNotificationProducer.sendEvent(event);
+            log.info("Sent all categories deleted notification for userId: {}, count: {}", userId, count);
+        } catch (Exception e) {
+            log.error("Failed to send all categories deleted notification for userId: {}", userId, e);
         }
     }
 

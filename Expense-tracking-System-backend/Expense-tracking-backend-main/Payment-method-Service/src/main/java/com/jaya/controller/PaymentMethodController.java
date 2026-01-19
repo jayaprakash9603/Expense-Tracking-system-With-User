@@ -175,18 +175,19 @@ public class PaymentMethodController {
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod created = paymentMethodService.createPaymentMethod(targetUser.getId(), paymentMethod);
 
-            // Send user notification for payment method creation
-            paymentMethodNotificationProducer.sendPaymentMethodCreatedNotification(
-                    targetUser.getId(),
-                    created.getName(),
-                    created.getType(),
-                    created.getDescription(),
-                    created.getIcon(),
-                    created.getColor());
-
-            // Send friend activity notification if acting on friend's behalf
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendPaymentMethodCreatedByFriend(created, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                paymentMethodNotificationProducer.sendPaymentMethodCreatedNotification(
+                        targetUser.getId(),
+                        created.getName(),
+                        created.getType(),
+                        created.getDescription(),
+                        created.getIcon(),
+                        created.getColor());
             }
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (RuntimeException e) {
@@ -211,18 +212,19 @@ public class PaymentMethodController {
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod updated = paymentMethodService.updatePaymentMethod(targetUser.getId(), id, paymentMethod);
 
-            // Send user notification for payment method update
-            paymentMethodNotificationProducer.sendPaymentMethodUpdatedNotification(
-                    targetUser.getId(),
-                    updated.getName(),
-                    updated.getType(),
-                    updated.getDescription(),
-                    updated.getIcon(),
-                    updated.getColor());
-
-            // Send friend activity notification if acting on friend's behalf
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendPaymentMethodUpdatedByFriend(updated, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                paymentMethodNotificationProducer.sendPaymentMethodUpdatedNotification(
+                        targetUser.getId(),
+                        updated.getName(),
+                        updated.getType(),
+                        updated.getDescription(),
+                        updated.getIcon(),
+                        updated.getColor());
             }
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
@@ -249,17 +251,18 @@ public class PaymentMethodController {
             String pmType = pm != null ? pm.getType() : null;
             paymentMethodService.deletePaymentMethod(targetUser.getId(), id);
 
-            // Send user notification for payment method deletion
-            if (pmName != null) {
-                paymentMethodNotificationProducer.sendPaymentMethodDeletedNotification(
-                        targetUser.getId(),
-                        pmName,
-                        pmType);
-            }
-
-            // Send friend activity notification if acting on friend's behalf
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendPaymentMethodDeletedByFriend(id, pmName, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                if (pmName != null) {
+                    paymentMethodNotificationProducer.sendPaymentMethodDeletedNotification(
+                            targetUser.getId(),
+                            pmName,
+                            pmType);
+                }
             }
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {

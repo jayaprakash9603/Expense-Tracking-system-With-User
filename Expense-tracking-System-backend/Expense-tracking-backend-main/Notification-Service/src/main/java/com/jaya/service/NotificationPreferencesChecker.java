@@ -158,6 +158,38 @@ public class NotificationPreferencesChecker {
             case "maintenanceNotice":
                 return prefs.getSystemNotificationsEnabled() && prefs.getMaintenanceNoticeEnabled();
 
+            // Friend Activity Service Notifications
+            case "friendExpenseCreated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendExpenseCreatedEnabled();
+            case "friendExpenseUpdated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendExpenseUpdatedEnabled();
+            case "friendExpenseDeleted":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendExpenseDeletedEnabled();
+            case "friendCategoryCreated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendCategoryCreatedEnabled();
+            case "friendCategoryUpdated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendCategoryUpdatedEnabled();
+            case "friendCategoryDeleted":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendCategoryDeletedEnabled();
+            case "friendBillCreated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendBillCreatedEnabled();
+            case "friendBillUpdated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendBillUpdatedEnabled();
+            case "friendBillDeleted":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendBillDeletedEnabled();
+            case "friendBudgetCreated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendBudgetCreatedEnabled();
+            case "friendBudgetUpdated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendBudgetUpdatedEnabled();
+            case "friendBudgetDeleted":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendBudgetDeletedEnabled();
+            case "friendPaymentMethodCreated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendPaymentMethodCreatedEnabled();
+            case "friendPaymentMethodUpdated":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendPaymentMethodUpdatedEnabled();
+            case "friendPaymentMethodDeleted":
+                return prefs.getFriendActivityServiceEnabled() && prefs.getFriendPaymentMethodDeletedEnabled();
+
             default:
                 log.warn("Unknown notification type: {}. Sending by default.", notificationType);
                 return true;

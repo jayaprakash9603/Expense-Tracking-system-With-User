@@ -124,8 +124,10 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .expenseServiceEnabled(true)
                 .budgetServiceEnabled(true)
                 .billServiceEnabled(true)
+                .categoryServiceEnabled(true)
                 .paymentMethodServiceEnabled(true)
                 .friendServiceEnabled(true)
+                .friendActivityServiceEnabled(true)
                 .analyticsServiceEnabled(true)
                 .systemNotificationsEnabled(true)
                 // Expense Service Notifications
@@ -151,10 +153,31 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .paymentMethodAddedEnabled(false)
                 .paymentMethodUpdatedEnabled(false)
                 .paymentMethodRemovedEnabled(true)
+                // Category Service Notifications
+                .categoryCreatedEnabled(true)
+                .categoryUpdatedEnabled(false)
+                .categoryDeletedEnabled(false)
+                .categoryBudgetExceededEnabled(true)
                 // Friend Service Notifications
                 .friendRequestReceivedEnabled(true)
                 .friendRequestAcceptedEnabled(true)
                 .friendRequestRejectedEnabled(false)
+                // Friend Activity Service Notifications
+                .friendExpenseCreatedEnabled(true)
+                .friendExpenseUpdatedEnabled(true)
+                .friendExpenseDeletedEnabled(true)
+                .friendCategoryCreatedEnabled(true)
+                .friendCategoryUpdatedEnabled(true)
+                .friendCategoryDeletedEnabled(true)
+                .friendBillCreatedEnabled(true)
+                .friendBillUpdatedEnabled(true)
+                .friendBillDeletedEnabled(true)
+                .friendBudgetCreatedEnabled(true)
+                .friendBudgetUpdatedEnabled(true)
+                .friendBudgetDeletedEnabled(true)
+                .friendPaymentMethodCreatedEnabled(true)
+                .friendPaymentMethodUpdatedEnabled(true)
+                .friendPaymentMethodDeletedEnabled(true)
                 // Analytics Service Notifications
                 .weeklySummaryEnabled(true)
                 .monthlyReportEnabled(true)
@@ -195,8 +218,10 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         preferences.setExpenseServiceEnabled(true);
         preferences.setBudgetServiceEnabled(true);
         preferences.setBillServiceEnabled(true);
+        preferences.setCategoryServiceEnabled(true);
         preferences.setPaymentMethodServiceEnabled(true);
         preferences.setFriendServiceEnabled(true);
+        preferences.setFriendActivityServiceEnabled(true);
         preferences.setAnalyticsServiceEnabled(true);
         preferences.setSystemNotificationsEnabled(true);
 
@@ -227,10 +252,33 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         preferences.setPaymentMethodUpdatedEnabled(false);
         preferences.setPaymentMethodRemovedEnabled(true);
 
+        // Category Service Notifications
+        preferences.setCategoryCreatedEnabled(true);
+        preferences.setCategoryUpdatedEnabled(false);
+        preferences.setCategoryDeletedEnabled(false);
+        preferences.setCategoryBudgetExceededEnabled(true);
+
         // Friend Service Notifications
         preferences.setFriendRequestReceivedEnabled(true);
         preferences.setFriendRequestAcceptedEnabled(true);
         preferences.setFriendRequestRejectedEnabled(false);
+
+        // Friend Activity Service Notifications
+        preferences.setFriendExpenseCreatedEnabled(true);
+        preferences.setFriendExpenseUpdatedEnabled(true);
+        preferences.setFriendExpenseDeletedEnabled(true);
+        preferences.setFriendCategoryCreatedEnabled(true);
+        preferences.setFriendCategoryUpdatedEnabled(true);
+        preferences.setFriendCategoryDeletedEnabled(true);
+        preferences.setFriendBillCreatedEnabled(true);
+        preferences.setFriendBillUpdatedEnabled(true);
+        preferences.setFriendBillDeletedEnabled(true);
+        preferences.setFriendBudgetCreatedEnabled(true);
+        preferences.setFriendBudgetUpdatedEnabled(true);
+        preferences.setFriendBudgetDeletedEnabled(true);
+        preferences.setFriendPaymentMethodCreatedEnabled(true);
+        preferences.setFriendPaymentMethodUpdatedEnabled(true);
+        preferences.setFriendPaymentMethodDeletedEnabled(true);
 
         // Analytics Service Notifications
         preferences.setWeeklySummaryEnabled(true);
@@ -283,10 +331,14 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
             preferences.setBudgetServiceEnabled(request.getBudgetServiceEnabled());
         if (request.getBillServiceEnabled() != null)
             preferences.setBillServiceEnabled(request.getBillServiceEnabled());
+        if (request.getCategoryServiceEnabled() != null)
+            preferences.setCategoryServiceEnabled(request.getCategoryServiceEnabled());
         if (request.getPaymentMethodServiceEnabled() != null)
             preferences.setPaymentMethodServiceEnabled(request.getPaymentMethodServiceEnabled());
         if (request.getFriendServiceEnabled() != null)
             preferences.setFriendServiceEnabled(request.getFriendServiceEnabled());
+        if (request.getFriendActivityServiceEnabled() != null)
+            preferences.setFriendActivityServiceEnabled(request.getFriendActivityServiceEnabled());
         if (request.getAnalyticsServiceEnabled() != null)
             preferences.setAnalyticsServiceEnabled(request.getAnalyticsServiceEnabled());
         if (request.getSystemNotificationsEnabled() != null)
@@ -338,6 +390,16 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         if (request.getPaymentMethodRemovedEnabled() != null)
             preferences.setPaymentMethodRemovedEnabled(request.getPaymentMethodRemovedEnabled());
 
+        // Category Service Notifications
+        if (request.getCategoryCreatedEnabled() != null)
+            preferences.setCategoryCreatedEnabled(request.getCategoryCreatedEnabled());
+        if (request.getCategoryUpdatedEnabled() != null)
+            preferences.setCategoryUpdatedEnabled(request.getCategoryUpdatedEnabled());
+        if (request.getCategoryDeletedEnabled() != null)
+            preferences.setCategoryDeletedEnabled(request.getCategoryDeletedEnabled());
+        if (request.getCategoryBudgetExceededEnabled() != null)
+            preferences.setCategoryBudgetExceededEnabled(request.getCategoryBudgetExceededEnabled());
+
         // Friend Service Notifications
         if (request.getFriendRequestReceivedEnabled() != null)
             preferences.setFriendRequestReceivedEnabled(request.getFriendRequestReceivedEnabled());
@@ -345,6 +407,38 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
             preferences.setFriendRequestAcceptedEnabled(request.getFriendRequestAcceptedEnabled());
         if (request.getFriendRequestRejectedEnabled() != null)
             preferences.setFriendRequestRejectedEnabled(request.getFriendRequestRejectedEnabled());
+
+        // Friend Activity Service Notifications
+        if (request.getFriendExpenseCreatedEnabled() != null)
+            preferences.setFriendExpenseCreatedEnabled(request.getFriendExpenseCreatedEnabled());
+        if (request.getFriendExpenseUpdatedEnabled() != null)
+            preferences.setFriendExpenseUpdatedEnabled(request.getFriendExpenseUpdatedEnabled());
+        if (request.getFriendExpenseDeletedEnabled() != null)
+            preferences.setFriendExpenseDeletedEnabled(request.getFriendExpenseDeletedEnabled());
+        if (request.getFriendCategoryCreatedEnabled() != null)
+            preferences.setFriendCategoryCreatedEnabled(request.getFriendCategoryCreatedEnabled());
+        if (request.getFriendCategoryUpdatedEnabled() != null)
+            preferences.setFriendCategoryUpdatedEnabled(request.getFriendCategoryUpdatedEnabled());
+        if (request.getFriendCategoryDeletedEnabled() != null)
+            preferences.setFriendCategoryDeletedEnabled(request.getFriendCategoryDeletedEnabled());
+        if (request.getFriendBillCreatedEnabled() != null)
+            preferences.setFriendBillCreatedEnabled(request.getFriendBillCreatedEnabled());
+        if (request.getFriendBillUpdatedEnabled() != null)
+            preferences.setFriendBillUpdatedEnabled(request.getFriendBillUpdatedEnabled());
+        if (request.getFriendBillDeletedEnabled() != null)
+            preferences.setFriendBillDeletedEnabled(request.getFriendBillDeletedEnabled());
+        if (request.getFriendBudgetCreatedEnabled() != null)
+            preferences.setFriendBudgetCreatedEnabled(request.getFriendBudgetCreatedEnabled());
+        if (request.getFriendBudgetUpdatedEnabled() != null)
+            preferences.setFriendBudgetUpdatedEnabled(request.getFriendBudgetUpdatedEnabled());
+        if (request.getFriendBudgetDeletedEnabled() != null)
+            preferences.setFriendBudgetDeletedEnabled(request.getFriendBudgetDeletedEnabled());
+        if (request.getFriendPaymentMethodCreatedEnabled() != null)
+            preferences.setFriendPaymentMethodCreatedEnabled(request.getFriendPaymentMethodCreatedEnabled());
+        if (request.getFriendPaymentMethodUpdatedEnabled() != null)
+            preferences.setFriendPaymentMethodUpdatedEnabled(request.getFriendPaymentMethodUpdatedEnabled());
+        if (request.getFriendPaymentMethodDeletedEnabled() != null)
+            preferences.setFriendPaymentMethodDeletedEnabled(request.getFriendPaymentMethodDeletedEnabled());
 
         // Analytics Service Notifications
         if (request.getWeeklySummaryEnabled() != null)
@@ -407,8 +501,10 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .expenseServiceEnabled(preferences.getExpenseServiceEnabled())
                 .budgetServiceEnabled(preferences.getBudgetServiceEnabled())
                 .billServiceEnabled(preferences.getBillServiceEnabled())
+                .categoryServiceEnabled(preferences.getCategoryServiceEnabled())
                 .paymentMethodServiceEnabled(preferences.getPaymentMethodServiceEnabled())
                 .friendServiceEnabled(preferences.getFriendServiceEnabled())
+                .friendActivityServiceEnabled(preferences.getFriendActivityServiceEnabled())
                 .analyticsServiceEnabled(preferences.getAnalyticsServiceEnabled())
                 .systemNotificationsEnabled(preferences.getSystemNotificationsEnabled())
                 // Expense Service Notifications
@@ -434,10 +530,31 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
                 .paymentMethodAddedEnabled(preferences.getPaymentMethodAddedEnabled())
                 .paymentMethodUpdatedEnabled(preferences.getPaymentMethodUpdatedEnabled())
                 .paymentMethodRemovedEnabled(preferences.getPaymentMethodRemovedEnabled())
+                // Category Service Notifications
+                .categoryCreatedEnabled(preferences.getCategoryCreatedEnabled())
+                .categoryUpdatedEnabled(preferences.getCategoryUpdatedEnabled())
+                .categoryDeletedEnabled(preferences.getCategoryDeletedEnabled())
+                .categoryBudgetExceededEnabled(preferences.getCategoryBudgetExceededEnabled())
                 // Friend Service Notifications
                 .friendRequestReceivedEnabled(preferences.getFriendRequestReceivedEnabled())
                 .friendRequestAcceptedEnabled(preferences.getFriendRequestAcceptedEnabled())
                 .friendRequestRejectedEnabled(preferences.getFriendRequestRejectedEnabled())
+                // Friend Activity Service Notifications
+                .friendExpenseCreatedEnabled(preferences.getFriendExpenseCreatedEnabled())
+                .friendExpenseUpdatedEnabled(preferences.getFriendExpenseUpdatedEnabled())
+                .friendExpenseDeletedEnabled(preferences.getFriendExpenseDeletedEnabled())
+                .friendCategoryCreatedEnabled(preferences.getFriendCategoryCreatedEnabled())
+                .friendCategoryUpdatedEnabled(preferences.getFriendCategoryUpdatedEnabled())
+                .friendCategoryDeletedEnabled(preferences.getFriendCategoryDeletedEnabled())
+                .friendBillCreatedEnabled(preferences.getFriendBillCreatedEnabled())
+                .friendBillUpdatedEnabled(preferences.getFriendBillUpdatedEnabled())
+                .friendBillDeletedEnabled(preferences.getFriendBillDeletedEnabled())
+                .friendBudgetCreatedEnabled(preferences.getFriendBudgetCreatedEnabled())
+                .friendBudgetUpdatedEnabled(preferences.getFriendBudgetUpdatedEnabled())
+                .friendBudgetDeletedEnabled(preferences.getFriendBudgetDeletedEnabled())
+                .friendPaymentMethodCreatedEnabled(preferences.getFriendPaymentMethodCreatedEnabled())
+                .friendPaymentMethodUpdatedEnabled(preferences.getFriendPaymentMethodUpdatedEnabled())
+                .friendPaymentMethodDeletedEnabled(preferences.getFriendPaymentMethodDeletedEnabled())
                 // Analytics Service Notifications
                 .weeklySummaryEnabled(preferences.getWeeklySummaryEnabled())
                 .monthlyReportEnabled(preferences.getMonthlyReportEnabled())

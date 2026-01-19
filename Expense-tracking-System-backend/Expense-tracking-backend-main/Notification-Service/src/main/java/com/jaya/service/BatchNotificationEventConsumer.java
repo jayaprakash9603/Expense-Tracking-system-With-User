@@ -37,6 +37,7 @@ public class BatchNotificationEventConsumer {
     private final PaymentMethodEventProcessor paymentMethodEventProcessor;
     private final FriendEventProcessor friendEventProcessor;
     private final CategoryEventProcessor categoryEventProcessor;
+    private final FriendActivityEventProcessor friendActivityEventProcessor;
     private final ObjectMapper objectMapper;
 
     /**
@@ -418,5 +419,52 @@ public class BatchNotificationEventConsumer {
                 .timestamp(requestEvent.getTimestamp())
                 .metadata(requestEvent.getMessage())
                 .build();
+    }
+
+    /**
+     * BATCH: Consumes friend activity events from Kafka
+     * Handles notifications when friends manage expenses, categories, etc. on
+     * behalf of users
+     */
+    @KafkaListener(topics = "${kafka.topics.friend-activity-events:friend-activity-events}", groupId = "notification-friend-activity-batch-group", containerFactory = "notificationBatchFactory")
+    @Transactional
+    public void consumeFriendActivityEventsBatch(List<Object> payloads) {
+        if (payloads == null || payloads.isEmpty())
+            return;
+
+        long startTime = System.currentTimeMillis();
+        log.info("📦 Received BATCH of {} friend activity events - processing...", payloads.size());
+
+        // Parse all events first, preserving poll order
+        List<FriendActivityEventDTO> parsed = new ArrayList<>(payloads.size());
+        for (Object payload : payloads) {
+            try {
+                FriendActivityEventDTO event = convertToDto(payload, FriendActivityEventDTO.class);
+                if (event != null) {
+                    parsed.add(event);
+                }
+            } catch (Exception e) {
+                log.error("Error parsing friend activity event in batch", e);
+            }
+        }
+
+        if (parsed.isEmpty())
+            return;
+
+        // Process all events in order
+        int successCount = 0;
+        for (FriendActivityEventDTO event : parsed) {
+            try {
+                friendActivityEventProcessor.process(event);
+                successCount++;
+            } catch (Exception e) {
+                log.error("Error processing friend activity event for user {}: {}",
+                        event.getTargetUserId(), e.getMessage(), e);
+            }
+        }
+
+        long duration = System.currentTimeMillis() - startTime;
+        log.info("✅ Processed BATCH: {} friend activity events in {} ms (success: {})",
+                parsed.size(), duration, successCount);
     }
 }

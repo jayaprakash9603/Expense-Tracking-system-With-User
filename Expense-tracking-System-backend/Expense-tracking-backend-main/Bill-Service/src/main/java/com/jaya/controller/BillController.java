@@ -79,12 +79,13 @@ public class BillController {
         Bill bill = com.jaya.mapper.BillMapper.toEntity(billDto, targetUser.getId());
         Bill createdBill = billService.createBill(bill, targetUser.getId());
 
-        // Send notification asynchronously
-        billNotificationService.sendBillCreatedNotification(createdBill);
-
-        // Send friend activity notification if acting on friend's behalf
+        // Send appropriate notification based on who performed the action
         if (targetId != null && !targetId.equals(reqUser.getId())) {
+            // Friend action - send friend activity notification only
             friendActivityService.sendBillCreatedByFriend(createdBill, targetId, reqUser);
+        } else {
+            // User's own action - send regular notification
+            billNotificationService.sendBillCreatedNotification(createdBill);
         }
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(createdBill);
@@ -175,12 +176,13 @@ public class BillController {
         bill.setId(id);
         Bill updatedBill = billService.updateBill(bill, targetUser.getId());
 
-        // Send notification asynchronously
-        billNotificationService.sendBillUpdatedNotification(updatedBill);
-
-        // Send friend activity notification if acting on friend's behalf
+        // Send appropriate notification based on who performed the action
         if (targetId != null && !targetId.equals(reqUser.getId())) {
+            // Friend action - send friend activity notification only
             friendActivityService.sendBillUpdatedByFriend(updatedBill, targetId, reqUser);
+        } else {
+            // User's own action - send regular notification
+            billNotificationService.sendBillUpdatedNotification(updatedBill);
         }
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(updatedBill);
@@ -205,12 +207,13 @@ public class BillController {
 
             billService.deleteBill(id, targetUser.getId());
 
-            // Send notification asynchronously
-            billNotificationService.sendBillDeletedNotification(id, targetUser.getId(), billName);
-
-            // Send friend activity notification if acting on friend's behalf
+            // Send appropriate notification based on who performed the action
             if (targetId != null && !targetId.equals(reqUser.getId())) {
+                // Friend action - send friend activity notification only
                 friendActivityService.sendBillDeletedByFriend(id, billName, billAmount, targetId, reqUser);
+            } else {
+                // User's own action - send regular notification
+                billNotificationService.sendBillDeletedNotification(id, targetUser.getId(), billName);
             }
 
             return ResponseEntity.noContent().build();

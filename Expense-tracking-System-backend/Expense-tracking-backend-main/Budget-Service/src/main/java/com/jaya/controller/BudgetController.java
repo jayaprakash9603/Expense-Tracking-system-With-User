@@ -92,10 +92,14 @@ public class BudgetController {
         UserDto reqUser = authenticate(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
         Budget updatedBudget = budgetService.editBudget(budgetId, budget, targetUser.getId());
-        budgetNotificationService.sendBudgetUpdatedNotification(updatedBudget);
-        // Send friend activity notification if acting on friend's behalf
+
+        // Send appropriate notification based on who performed the action
         if (targetId != null && !targetId.equals(reqUser.getId())) {
+            // Friend action - send friend activity notification only
             friendActivityService.sendBudgetUpdatedByFriend(updatedBudget, targetId, reqUser);
+        } else {
+            // User's own action - send regular notification
+            budgetNotificationService.sendBudgetUpdatedNotification(updatedBudget);
         }
         return ResponseEntity.ok(updatedBudget);
     }
@@ -111,10 +115,14 @@ public class BudgetController {
         String budgetName = budget.getName();
         Double budgetAmount = budget.getAmount();
         budgetService.deleteBudget(budgetId, targetUser.getId());
-        budgetNotificationService.sendBudgetDeletedNotification(budgetId, budgetName, targetUser.getId());
-        // Send friend activity notification if acting on friend's behalf
+
+        // Send appropriate notification based on who performed the action
         if (targetId != null && !targetId.equals(reqUser.getId())) {
+            // Friend action - send friend activity notification only
             friendActivityService.sendBudgetDeletedByFriend(budgetId, budgetName, budgetAmount, targetId, reqUser);
+        } else {
+            // User's own action - send regular notification
+            budgetNotificationService.sendBudgetDeletedNotification(budgetId, budgetName, targetUser.getId());
         }
         return ResponseEntity.noContent().build();
     }

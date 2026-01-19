@@ -333,11 +333,14 @@ public class ExpenseController extends BaseExpenseController {
         }
 
         expenseService.deleteExpense(id, targetUser.getId());
-        expenseNotificationService.sendExpenseDeletedNotification(id, targetUser.getId(), description);
 
-        // Send friend activity notification if a friend deleted the expense
+        // Send appropriate notification based on who performed the action
         if (targetId != null && !targetId.equals(reqUser.getId())) {
+            // Friend action - send friend activity notification only
             friendActivityService.sendExpenseDeletedByFriend(id, description, amount, targetUser.getId(), reqUser);
+        } else {
+            // User's own action - send regular notification
+            expenseNotificationService.sendExpenseDeletedNotification(id, targetUser.getId(), description);
         }
 
         return ResponseEntity.ok("Expense deleted successfully");
