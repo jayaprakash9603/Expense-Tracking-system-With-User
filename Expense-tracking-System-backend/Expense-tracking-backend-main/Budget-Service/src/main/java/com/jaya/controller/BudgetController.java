@@ -7,14 +7,14 @@ import com.jaya.models.UserDto;
 import com.jaya.service.BudgetService;
 import com.jaya.service.FriendshipService;
 import com.jaya.service.UserService;
-import com.jaya.kafka.service.FriendActivityService;
+import com.jaya.kafka.service.UnifiedActivityService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.jaya.service.BudgetNotificationService;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -30,13 +30,10 @@ public class BudgetController {
     private UserService userService;
 
     @Autowired
-    private BudgetNotificationService budgetNotificationService;
+    private UnifiedActivityService unifiedActivityService;
 
     @Autowired
     private FriendshipService friendshipService;
-
-    @Autowired
-    private FriendActivityService friendActivityService;
 
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess)
             throws Exception {
@@ -71,14 +68,16 @@ public class BudgetController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDto reqUser = authenticate(jwt);
+        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
         Budget createdBudget;
         if (targetId != null && !targetId.equals(reqUser.getId())) {
             createdBudget = budgetService.createBudgetForFriend(budget, reqUser.getId(), targetId);
-            // Send friend activity notification
-            friendActivityService.sendBudgetCreatedByFriend(createdBudget, targetId, reqUser);
         } else {
             createdBudget = budgetService.createBudget(budget, reqUser.getId());
         }
+
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBudgetCreatedEvent(createdBudget, reqUser, targetUser);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget);
     }
@@ -91,16 +90,15 @@ public class BudgetController {
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDto reqUser = authenticate(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        
+        // Get old budget for audit tracking
+        Budget oldBudget = budgetService.getBudgetById(budgetId, targetUser.getId());
+        
         Budget updatedBudget = budgetService.editBudget(budgetId, budget, targetUser.getId());
 
-        // Send appropriate notification based on who performed the action
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            // Friend action - send friend activity notification only
-            friendActivityService.sendBudgetUpdatedByFriend(updatedBudget, targetId, reqUser);
-        } else {
-            // User's own action - send regular notification
-            budgetNotificationService.sendBudgetUpdatedNotification(updatedBudget);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBudgetUpdatedEvent(updatedBudget, oldBudget, reqUser, targetUser);
+        
         return ResponseEntity.ok(updatedBudget);
     }
 
@@ -116,14 +114,9 @@ public class BudgetController {
         Double budgetAmount = budget.getAmount();
         budgetService.deleteBudget(budgetId, targetUser.getId());
 
-        // Send appropriate notification based on who performed the action
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            // Friend action - send friend activity notification only
-            friendActivityService.sendBudgetDeletedByFriend(budgetId, budgetName, budgetAmount, targetId, reqUser);
-        } else {
-            // User's own action - send regular notification
-            budgetNotificationService.sendBudgetDeletedNotification(budgetId, budgetName, targetUser.getId());
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBudgetDeletedEvent(budgetId, budgetName, budgetAmount, reqUser, targetUser);
+        
         return ResponseEntity.noContent().build();
     }
 
@@ -137,10 +130,10 @@ public class BudgetController {
         List<Budget> budgets = budgetService.getAllBudgetForUser(targetUser.getId());
         int count = budgets != null ? budgets.size() : 0;
         budgetService.deleteAllBudget(targetUser.getId());
-        // Send friend activity notification if acting on friend's behalf
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendAllBudgetsDeletedByFriend(targetId, reqUser, count);
-        }
+        
+        // Send unified event for bulk deletion
+        unifiedActivityService.sendAllBudgetsDeletedEvent(count, reqUser, targetUser);
+        
         return ResponseEntity.noContent().build();
     }
 

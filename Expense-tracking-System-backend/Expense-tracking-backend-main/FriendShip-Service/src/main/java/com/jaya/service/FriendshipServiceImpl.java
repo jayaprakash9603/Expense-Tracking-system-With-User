@@ -2,7 +2,7 @@ package com.jaya.service;
 
 import com.jaya.dto.BatchShareRequestItem;
 import com.jaya.dto.FriendshipReportDTO;
-import com.jaya.events.FriendRequestEvent;
+import com.jaya.kafka.service.UnifiedActivityService;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
@@ -35,10 +35,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     private UserService userService;
 
     @Autowired
-    private FriendRequestEventPublisher friendRequestEventPublisher;
-
-    @Autowired
-    private FriendshipNotificationService friendshipNotificationService;
+    private UnifiedActivityService unifiedActivityService;
     // @Autowired
     // private SocketService socketService;
 
@@ -68,11 +65,8 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .build();
         friendship = friendshipRepository.save(friendship);
 
-        // Publish friend request event to Kafka
-        publishFriendRequestSentEvent(friendship, requester, recipient);
-
-        // Send notification to recipient
-        friendshipNotificationService.sendFriendRequestSentNotification(friendship, requester);
+        // Send unified event for friend request sent (handles audit + notification)
+        unifiedActivityService.sendFriendRequestSentEvent(friendship, requester, recipient);
 
         // Notify recipient about the new friend request
         // socketService.notifyNewFriendRequest(friendship);
@@ -104,23 +98,19 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         friendship = friendshipRepository.save(friendship);
 
-        // Publish friend request response event to Kafka and send notifications
+        // Send unified event for friend request response (handles audit + notification)
         try {
             UserDto requester = helper.validateUser(friendship.getRequesterId());
             UserDto recipient = helper.validateUser(friendship.getRecipientId());
 
             if (accept) {
-                publishFriendRequestAcceptedEvent(friendship, requester, recipient);
-                // Send notification to requester that their request was accepted
-                friendshipNotificationService.sendFriendRequestAcceptedNotification(friendship, recipient);
+                unifiedActivityService.sendFriendRequestAcceptedEvent(friendship, requester, recipient);
             } else {
-                publishFriendRequestRejectedEvent(friendship, requester, recipient);
-                // Send notification to requester that their request was rejected
-                friendshipNotificationService.sendFriendRequestRejectedNotification(friendship, recipient);
+                unifiedActivityService.sendFriendRequestRejectedEvent(friendship, requester, recipient);
             }
         } catch (Exception e) {
             // Log error but don't fail the operation
-            System.err.println("Failed to publish friend request response event: " + e.getMessage());
+            System.err.println("Failed to send friend request response event: " + e.getMessage());
         }
 
         // Notify requester about the response
@@ -158,13 +148,14 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship savedFriendship = friendshipRepository.save(friendship);
 
-        // Send notification to the other user about access level change
+        // Send unified event for access level change (handles audit + notification)
         try {
             UserDto changer = helper.validateUser(userId);
-            friendshipNotificationService.sendAccessLevelChangedNotification(
-                    savedFriendship, changer, otherUserId, oldAccess, accessLevel);
+            UserDto targetUser = helper.validateUser(otherUserId);
+            unifiedActivityService.sendAccessLevelChangedEvent(
+                    savedFriendship, changer, targetUser, oldAccess, accessLevel);
         } catch (Exception e) {
-            System.err.println("Failed to send access level changed notification: " + e.getMessage());
+            System.err.println("Failed to send access level changed event: " + e.getMessage());
         }
 
         return savedFriendship;
@@ -219,12 +210,13 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Only pending requests can be cancelled");
         }
 
-        // Send notification to recipient before deleting
+        // Send unified event for friend request cancelled before deleting
         try {
             UserDto canceller = helper.validateUser(userId);
-            friendshipNotificationService.sendFriendRequestCancelledNotification(friendship, canceller);
+            UserDto recipient = helper.validateUser(friendship.getRecipientId());
+            unifiedActivityService.sendFriendRequestCancelledEvent(friendship, canceller, recipient);
         } catch (Exception e) {
-            System.err.println("Failed to send friend request cancelled notification: " + e.getMessage());
+            System.err.println("Failed to send friend request cancelled event: " + e.getMessage());
         }
 
         friendshipRepository.delete(friendship);
@@ -250,12 +242,13 @@ public class FriendshipServiceImpl implements FriendshipService {
                 ? friendship.getRecipientId()
                 : friendship.getRequesterId();
 
-        // Send notification to the other user before deleting
+        // Send unified event for friendship removed before deleting
         try {
             UserDto remover = helper.validateUser(userId);
-            friendshipNotificationService.sendFriendshipRemovedNotification(friendship, remover, otherUserId);
+            UserDto removedUser = helper.validateUser(otherUserId);
+            unifiedActivityService.sendFriendRemovedEvent(friendship, remover, removedUser);
         } catch (Exception e) {
-            System.err.println("Failed to send friendship removed notification: " + e.getMessage());
+            System.err.println("Failed to send friendship removed event: " + e.getMessage());
         }
 
         friendshipRepository.delete(friendship);
@@ -336,8 +329,8 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship friendship = blockedFriendship.get();
 
-        // Send notification to unblocked user
-        friendshipNotificationService.sendUserUnblockedNotification(friendship.getId(), unblocker, unblockedId);
+        // Send unified event for user unblocked (for audit purposes)
+        unifiedActivityService.sendUserUnblockedEvent(unblocker, unblocked);
 
         // Delete the blocked relationship
         friendshipRepository.delete(friendship);
@@ -1125,89 +1118,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         return friends;
     }
 
-    /**
-     * Helper method to publish friend request sent event
-     */
-    private void publishFriendRequestSentEvent(Friendship friendship, UserDto requester, UserDto recipient) {
-        FriendRequestEvent event = FriendRequestEvent.builder()
-                .eventId(System.currentTimeMillis())
-                .eventType("FRIEND_REQUEST_SENT")
-                .friendshipId(friendship.getId())
-                .requesterId(requester.getId())
-                .requesterName(requester.getFirstName() + " " + requester.getLastName())
-                .requesterEmail(requester.getEmail())
-                .requesterImage(
-                        requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
-                .recipientId(recipient.getId())
-                .recipientName(recipient.getFirstName() + " " + recipient.getLastName())
-                .recipientEmail(recipient.getEmail())
-                .recipientImage(
-                        recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
-                .friendshipStatus(friendship.getStatus().name())
-                .timestamp(LocalDateTime.now())
-                .message(requester.getFirstName() + " sent you a friend request")
-                .source("FRIENDSHIP_SERVICE")
-                .notificationPriority(2) // MEDIUM priority
-                .build();
-
-        friendRequestEventPublisher.publishFriendRequestEvent(event);
-    }
-
-    /**
-     * Helper method to publish friend request accepted event
-     */
-    private void publishFriendRequestAcceptedEvent(Friendship friendship, UserDto requester, UserDto recipient) {
-        FriendRequestEvent event = FriendRequestEvent.builder()
-                .eventId(System.currentTimeMillis())
-                .eventType("FRIEND_REQUEST_ACCEPTED")
-                .friendshipId(friendship.getId())
-                .requesterId(requester.getId())
-                .requesterName(requester.getFirstName() + " " + requester.getLastName())
-                .requesterEmail(requester.getEmail())
-                .requesterImage(
-                        requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
-                .recipientId(recipient.getId())
-                .recipientName(recipient.getFirstName() + " " + recipient.getLastName())
-                .recipientEmail(recipient.getEmail())
-                .recipientImage(
-                        recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
-                .friendshipStatus(friendship.getStatus().name())
-                .timestamp(LocalDateTime.now())
-                .message(recipient.getFirstName() + " accepted your friend request")
-                .source("FRIENDSHIP_SERVICE")
-                .notificationPriority(2) // MEDIUM priority
-                .build();
-
-        friendRequestEventPublisher.publishFriendRequestEvent(event);
-    }
-
-    /**
-     * Helper method to publish friend request rejected event
-     */
-    private void publishFriendRequestRejectedEvent(Friendship friendship, UserDto requester, UserDto recipient) {
-        FriendRequestEvent event = FriendRequestEvent.builder()
-                .eventId(System.currentTimeMillis())
-                .eventType("FRIEND_REQUEST_REJECTED")
-                .friendshipId(friendship.getId())
-                .requesterId(requester.getId())
-                .requesterName(requester.getFirstName() + " " + requester.getLastName())
-                .requesterEmail(requester.getEmail())
-                .requesterImage(
-                        requester.getProfileImage() != null ? requester.getProfileImage() : requester.getImage())
-                .recipientId(recipient.getId())
-                .recipientName(recipient.getFirstName() + " " + recipient.getLastName())
-                .recipientEmail(recipient.getEmail())
-                .recipientImage(
-                        recipient.getProfileImage() != null ? recipient.getProfileImage() : recipient.getImage())
-                .friendshipStatus(friendship.getStatus().name())
-                .timestamp(LocalDateTime.now())
-                .message(recipient.getFirstName() + " declined your friend request")
-                .source("FRIENDSHIP_SERVICE")
-                .notificationPriority(3) // LOW priority
-                .build();
-
-        friendRequestEventPublisher.publishFriendRequestEvent(event);
-    }
+    // Note: Old helper methods removed - now using UnifiedActivityService for all events
 
     @Override
     public FriendshipReportDTO generateFriendshipReport(

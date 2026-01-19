@@ -104,4 +104,15 @@ public class KafkaConfig {
         factory.setCommonErrorHandler(new org.springframework.kafka.listener.DefaultErrorHandler());
         return factory;
     }
+
+    // Batch Kafka Listener Container Factory for Audit Service
+    @Bean("auditBatchKafkaListenerContainerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, Object> auditBatchKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setBatchListener(true); // Enable batch processing
+        factory.setCommonErrorHandler(new org.springframework.kafka.listener.DefaultErrorHandler());
+        return factory;
+    }
 }

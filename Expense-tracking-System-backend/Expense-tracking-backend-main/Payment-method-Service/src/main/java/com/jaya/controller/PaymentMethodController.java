@@ -6,8 +6,7 @@ import com.jaya.models.UserDto;
 import com.jaya.service.FriendShipService;
 import com.jaya.service.PaymentMethodService;
 import com.jaya.service.UserService;
-import com.jaya.kafka.service.FriendActivityService;
-import com.jaya.kafka.producer.PaymentMethodNotificationProducer;
+import com.jaya.kafka.service.UnifiedActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +25,7 @@ public class PaymentMethodController {
     @Autowired
     private FriendShipService friendshipService;
     @Autowired
-    private FriendActivityService friendActivityService;
-    @Autowired
-    private PaymentMethodNotificationProducer paymentMethodNotificationProducer;
+    private UnifiedActivityService unifiedActivityService;
 
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess)
             throws Exception {
@@ -175,20 +172,9 @@ public class PaymentMethodController {
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod created = paymentMethodService.createPaymentMethod(targetUser.getId(), paymentMethod);
 
-            // Send appropriate notification based on who performed the action
-            if (targetId != null && !targetId.equals(reqUser.getId())) {
-                // Friend action - send friend activity notification only
-                friendActivityService.sendPaymentMethodCreatedByFriend(created, targetId, reqUser);
-            } else {
-                // User's own action - send regular notification
-                paymentMethodNotificationProducer.sendPaymentMethodCreatedNotification(
-                        targetUser.getId(),
-                        created.getName(),
-                        created.getType(),
-                        created.getDescription(),
-                        created.getIcon(),
-                        created.getColor());
-            }
+            // Send unified event (handles both own action and friend activity)
+            unifiedActivityService.sendPaymentMethodCreatedEvent(created, reqUser, targetUser);
+
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -210,22 +196,15 @@ public class PaymentMethodController {
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+
+            // Get old payment method for audit tracking
+            PaymentMethod oldPaymentMethod = paymentMethodService.getById(targetUser.getId(), id);
+
             PaymentMethod updated = paymentMethodService.updatePaymentMethod(targetUser.getId(), id, paymentMethod);
 
-            // Send appropriate notification based on who performed the action
-            if (targetId != null && !targetId.equals(reqUser.getId())) {
-                // Friend action - send friend activity notification only
-                friendActivityService.sendPaymentMethodUpdatedByFriend(updated, targetId, reqUser);
-            } else {
-                // User's own action - send regular notification
-                paymentMethodNotificationProducer.sendPaymentMethodUpdatedNotification(
-                        targetUser.getId(),
-                        updated.getName(),
-                        updated.getType(),
-                        updated.getDescription(),
-                        updated.getIcon(),
-                        updated.getColor());
-            }
+            // Send unified event (handles both own action and friend activity)
+            unifiedActivityService.sendPaymentMethodUpdatedEvent(updated, oldPaymentMethod, reqUser, targetUser);
+
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -251,19 +230,11 @@ public class PaymentMethodController {
             String pmType = pm != null ? pm.getType() : null;
             paymentMethodService.deletePaymentMethod(targetUser.getId(), id);
 
-            // Send appropriate notification based on who performed the action
-            if (targetId != null && !targetId.equals(reqUser.getId())) {
-                // Friend action - send friend activity notification only
-                friendActivityService.sendPaymentMethodDeletedByFriend(id, pmName, targetId, reqUser);
-            } else {
-                // User's own action - send regular notification
-                if (pmName != null) {
-                    paymentMethodNotificationProducer.sendPaymentMethodDeletedNotification(
-                            targetUser.getId(),
-                            pmName,
-                            pmType);
-                }
+            // Send unified event (handles both own action and friend activity)
+            if (pmName != null) {
+                unifiedActivityService.sendPaymentMethodDeletedEvent(id, pmName, pmType, reqUser, targetUser);
             }
+
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
@@ -285,10 +256,10 @@ public class PaymentMethodController {
             // Get count before deletion for notification
             int count = paymentMethodService.getAllPaymentMethods(targetUser.getId()).size();
             paymentMethodService.deleteAllUserPaymentMethods(targetUser.getId());
-            // Send friend activity notification if acting on friend's behalf
-            if (targetId != null && !targetId.equals(reqUser.getId())) {
-                friendActivityService.sendAllPaymentMethodsDeletedByFriend(targetId, reqUser, count);
-            }
+
+            // Send unified event for bulk deletion
+            unifiedActivityService.sendAllPaymentMethodsDeletedEvent(count, reqUser, targetUser);
+
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return handleTargetUserException(e);

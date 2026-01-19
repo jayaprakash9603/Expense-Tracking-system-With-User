@@ -3,8 +3,7 @@ package com.jaya.controller;
 import com.jaya.dto.User;
 import com.jaya.dto.ProgressStatus;
 import com.jaya.exceptions.UserException;
-import com.jaya.kafka.service.ExpenseNotificationService;
-import com.jaya.kafka.service.FriendActivityService;
+import com.jaya.kafka.service.UnifiedActivityService;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.*;
@@ -62,8 +61,7 @@ public class ExpenseController extends BaseExpenseController {
     private final UserPermissionHelper permissionHelper;
     private final BulkProgressTracker progressTracker;
     private final TaskExecutor taskExecutor;
-    private final ExpenseNotificationService expenseNotificationService;
-    private final FriendActivityService friendActivityService;
+    private final UnifiedActivityService unifiedActivityService;
     private final ReportHistoryService reportHistoryService;
     private final com.jaya.service.BillExportClient billExportClient;
     private final CashflowAggregationService cashflowAggregationService;
@@ -80,8 +78,7 @@ public class ExpenseController extends BaseExpenseController {
             UserPermissionHelper permissionHelper,
             BulkProgressTracker progressTracker,
             TaskExecutor taskExecutor,
-            ExpenseNotificationService expenseNotificationService,
-            FriendActivityService friendActivityService,
+            UnifiedActivityService unifiedActivityService,
             ReportHistoryService reportHistoryService,
             com.jaya.service.BillExportClient billExportClient,
             CashflowAggregationService cashflowAggregationService) {
@@ -92,8 +89,7 @@ public class ExpenseController extends BaseExpenseController {
         this.permissionHelper = permissionHelper;
         this.progressTracker = progressTracker;
         this.taskExecutor = taskExecutor;
-        this.expenseNotificationService = expenseNotificationService;
-        this.friendActivityService = friendActivityService;
+        this.unifiedActivityService = unifiedActivityService;
         this.reportHistoryService = reportHistoryService;
         this.billExportClient = billExportClient;
         this.cashflowAggregationService = cashflowAggregationService;
@@ -109,10 +105,8 @@ public class ExpenseController extends BaseExpenseController {
         System.out.println("target user id" + targetUser.getId());
         ExpenseDTO createdExpenseDTO = expenseService.addExpense(expenseDTO, targetUser.getId());
 
-        // Send friend activity notification if a friend created the expense
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendExpenseCreatedByFriend(createdExpenseDTO, targetUser.getId(), reqUser);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendExpenseCreatedEvent(createdExpenseDTO, reqUser, targetUser);
 
         return new ResponseEntity<>(createdExpenseDTO, HttpStatus.CREATED);
 
@@ -128,10 +122,8 @@ public class ExpenseController extends BaseExpenseController {
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         Expense createdExpense = expenseService.copyExpense(targetUser.getId(), expenseId);
 
-        // Send friend activity notification if a friend copied the expense
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendExpenseCopiedByFriend(createdExpense, targetUser.getId(), reqUser);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendExpenseCopiedEvent(createdExpense, reqUser, targetUser);
 
         return ResponseEntity.ok(createdExpense);
 
@@ -158,10 +150,8 @@ public class ExpenseController extends BaseExpenseController {
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> savedExpenses = expenseService.addMultipleExpenses(expenses, targetUser.getId());
 
-        // Send friend activity notification if a friend added multiple expenses
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendBulkExpensesCreatedByFriend(savedExpenses, targetUser.getId(), reqUser);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBulkExpensesCreatedEvent(savedExpenses, reqUser, targetUser);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(savedExpenses);
 
@@ -221,10 +211,8 @@ public class ExpenseController extends BaseExpenseController {
         int count = allExpenses != null ? allExpenses.size() : 0;
         expenseService.deleteAllExpenses(targetUser.getId(), allExpenses);
 
-        // Send friend activity notification if a friend deleted all expenses
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendAllExpensesDeletedByFriend(count, targetUser.getId(), reqUser);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendAllExpensesDeletedEvent(count, reqUser, targetUser);
 
         return new ResponseEntity<>("all expense are deleted", HttpStatus.NO_CONTENT);
 
@@ -284,12 +272,14 @@ public class ExpenseController extends BaseExpenseController {
 
         User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
+        
+        // Get the old expense before updating for audit purposes
+        Expense oldExpense = expenseService.getExpenseById(id, targetUser.getId());
+        
         Expense updatedExpense = expenseService.updateExpense(id, expense, targetUser.getId());
 
-        // Send friend activity notification if a friend updated the expense
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendExpenseUpdatedByFriend(updatedExpense, targetUser.getId(), reqUser);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendExpenseUpdatedEvent(updatedExpense, oldExpense, reqUser, targetUser);
 
         return ResponseEntity.ok(updatedExpense);
 
@@ -305,10 +295,8 @@ public class ExpenseController extends BaseExpenseController {
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> updatedExpenses = expenseService.updateMultipleExpenses(targetUser.getId(), expenses);
 
-        // Send friend activity notification if a friend updated multiple expenses
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendBulkExpensesUpdatedByFriend(updatedExpenses, targetUser.getId(), reqUser);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBulkExpensesUpdatedEvent(updatedExpenses, reqUser, targetUser);
 
         return ResponseEntity.ok(updatedExpenses);
 
@@ -334,14 +322,8 @@ public class ExpenseController extends BaseExpenseController {
 
         expenseService.deleteExpense(id, targetUser.getId());
 
-        // Send appropriate notification based on who performed the action
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            // Friend action - send friend activity notification only
-            friendActivityService.sendExpenseDeletedByFriend(id, description, amount, targetUser.getId(), reqUser);
-        } else {
-            // User's own action - send regular notification
-            expenseNotificationService.sendExpenseDeletedNotification(id, targetUser.getId(), description);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendExpenseDeletedEvent(id, description, amount, reqUser, targetUser);
 
         return ResponseEntity.ok("Expense deleted successfully");
 
@@ -357,10 +339,8 @@ public class ExpenseController extends BaseExpenseController {
         int count = ids != null ? ids.size() : 0;
         expenseService.deleteExpensesByIds(ids, targetUser.getId());
 
-        // Send friend activity notification if a friend deleted multiple expenses
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendBulkExpensesDeletedByFriend(count, targetUser.getId(), reqUser);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBulkExpensesDeletedEvent(count, reqUser, targetUser);
 
         return ResponseEntity.ok("Expenses deleted successfully");
 

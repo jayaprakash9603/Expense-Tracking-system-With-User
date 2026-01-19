@@ -11,8 +11,7 @@ import com.jaya.service.ExcelExportService;
 import com.jaya.service.FriendShipService;
 import com.jaya.service.UserService;
 import com.jaya.util.ServiceHelper;
-import com.jaya.kafka.service.BillNotificationService;
-import com.jaya.kafka.service.FriendActivityService;
+import com.jaya.kafka.service.UnifiedActivityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,8 +40,7 @@ public class BillController {
     private final BulkProgressTracker progressTracker;
     private final TaskExecutor taskExecutor;
     private final ExcelExportService excelExportService;
-    private final BillNotificationService billNotificationService;
-    private final FriendActivityService friendActivityService;
+    private final UnifiedActivityService unifiedActivityService;
 
     // Helper requiring MODIFY (write) permission
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser) throws Exception {
@@ -79,14 +77,8 @@ public class BillController {
         Bill bill = com.jaya.mapper.BillMapper.toEntity(billDto, targetUser.getId());
         Bill createdBill = billService.createBill(bill, targetUser.getId());
 
-        // Send appropriate notification based on who performed the action
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            // Friend action - send friend activity notification only
-            friendActivityService.sendBillCreatedByFriend(createdBill, targetId, reqUser);
-        } else {
-            // User's own action - send regular notification
-            billNotificationService.sendBillCreatedNotification(createdBill);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBillCreatedEvent(createdBill, reqUser, targetUser);
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(createdBill);
         return ResponseEntity.ok(resp);
@@ -103,10 +95,8 @@ public class BillController {
                 .toList();
         List<Bill> saved = billService.addMultipleBills(toCreate, targetUser.getId());
 
-        // Send friend activity notification if acting on friend's behalf
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendBulkBillsCreatedByFriend(saved, targetId, reqUser);
-        }
+        // Send unified event for bulk bills creation
+        unifiedActivityService.sendBulkBillsCreatedEvent(saved, reqUser, targetUser);
 
         List<BillResponseDTO> resp = saved.stream().map(com.jaya.mapper.BillMapper::toDto).toList();
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
@@ -172,18 +162,16 @@ public class BillController {
 
         UserDto reqUser = userService.getuserProfile(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+
+        // Get old bill for audit tracking
+        Bill oldBill = billService.getByBillId(id, targetUser.getId());
+
         Bill bill = com.jaya.mapper.BillMapper.toEntity(billDto, targetUser.getId());
         bill.setId(id);
         Bill updatedBill = billService.updateBill(bill, targetUser.getId());
 
-        // Send appropriate notification based on who performed the action
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            // Friend action - send friend activity notification only
-            friendActivityService.sendBillUpdatedByFriend(updatedBill, targetId, reqUser);
-        } else {
-            // User's own action - send regular notification
-            billNotificationService.sendBillUpdatedNotification(updatedBill);
-        }
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBillUpdatedEvent(updatedBill, oldBill, reqUser, targetUser);
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(updatedBill);
         return ResponseEntity.ok(resp);
@@ -207,14 +195,8 @@ public class BillController {
 
             billService.deleteBill(id, targetUser.getId());
 
-            // Send appropriate notification based on who performed the action
-            if (targetId != null && !targetId.equals(reqUser.getId())) {
-                // Friend action - send friend activity notification only
-                friendActivityService.sendBillDeletedByFriend(id, billName, billAmount, targetId, reqUser);
-            } else {
-                // User's own action - send regular notification
-                billNotificationService.sendBillDeletedNotification(id, targetUser.getId(), billName);
-            }
+            // Send unified event (handles both own action and friend activity)
+            unifiedActivityService.sendBillDeletedEvent(id, billName, billAmount, reqUser, targetUser);
 
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
@@ -235,10 +217,8 @@ public class BillController {
 
         String message = billService.deleteAllBillsForUser(targetUser.getId());
 
-        // Send friend activity notification if acting on friend's behalf
-        if (targetId != null && !targetId.equals(reqUser.getId())) {
-            friendActivityService.sendAllBillsDeletedByFriend(targetId, reqUser, count);
-        }
+        // Send unified event for bulk deletion
+        unifiedActivityService.sendAllBillsDeletedEvent(count, reqUser, targetUser);
 
         return new ResponseEntity<>(message, HttpStatus.NO_CONTENT);
 
