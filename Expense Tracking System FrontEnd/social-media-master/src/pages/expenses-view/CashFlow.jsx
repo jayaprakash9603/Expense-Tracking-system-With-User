@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -6,6 +12,7 @@ import useCashflowData from "../../hooks/useCashflowData";
 import useSelectionManager from "../../hooks/useSelectionManager";
 import useExpenseSorting from "../../hooks/useExpenseSorting";
 import useExpenseDeletion from "../../hooks/useExpenseDeletion";
+import { useDebouncedSearch } from "../../hooks/useDebounce";
 import {
   formatCompactNumber,
   formatCurrencyCompact,
@@ -26,9 +33,38 @@ import {
 } from "../../Redux/Friends/friendsActions";
 import { useTranslation } from "../../hooks/useTranslation";
 
+// Memoized CashFlowChart to prevent re-renders when only cards change
+const MemoizedCashFlowChart = React.memo(CashFlowChart);
+
+// Memoized CashFlowExpenseCards to prevent re-renders when only chart hover changes
+const MemoizedCashFlowExpenseCards = React.memo(
+  CashFlowExpenseCards,
+  (prevProps, nextProps) => {
+    // Custom comparison - only re-render when these props actually change
+    return (
+      prevProps.data === nextProps.data &&
+      prevProps.loading === nextProps.loading &&
+      prevProps.search === nextProps.search &&
+      prevProps.selectedCardIdx === nextProps.selectedCardIdx &&
+      prevProps.flowTab === nextProps.flowTab &&
+      prevProps.activeRange === nextProps.activeRange &&
+      prevProps.isMobile === nextProps.isMobile &&
+      prevProps.isTablet === nextProps.isTablet &&
+      prevProps.hasWriteAccess === nextProps.hasWriteAccess &&
+      prevProps.friendId === nextProps.friendId &&
+      prevProps.isFriendView === nextProps.isFriendView
+    );
+  },
+);
+
 // Relocated Cashflow component (was in pages/Landingpage). Functionality unchanged.
 const Cashflow = () => {
-  const [search, setSearch] = useState("");
+  // Use debounced search - inputValue for immediate UI, debouncedValue for expensive operations
+  const {
+    inputValue: searchInput,
+    debouncedValue: search,
+    setInputValue: setSearch,
+  } = useDebouncedSearch("", 300);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(true);
   const dispatch = useDispatch();
@@ -132,7 +168,7 @@ const Cashflow = () => {
     if (location.state && location.state.selectedCategory) {
       console.log(
         "Category selected from navigation:",
-        location.state.selectedCategory
+        location.state.selectedCategory,
       );
       console.log("Current search term:", search);
     }
@@ -140,6 +176,7 @@ const Cashflow = () => {
 
   useEffect(() => {
     clearSelection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeRange, offset, flowTab]);
 
   useEffect(() => {
@@ -196,7 +233,7 @@ const Cashflow = () => {
       if (activeRange === "month" && rangeLabel.startsWith("This Month")) {
         return rangeLabel.replace(
           "This Month",
-          t("cashflow.rangeLabels.thisMonth")
+          t("cashflow.rangeLabels.thisMonth"),
         );
       }
     }
@@ -209,7 +246,7 @@ const Cashflow = () => {
         ...card,
         __sourceIndex: idx,
       })),
-    [sortedCardData]
+    [sortedCardData],
   );
 
   const filteredCardsByBar = useMemo(() => {
@@ -218,9 +255,9 @@ const Cashflow = () => {
     const barExpenseIds = new Set(
       selectedBars.flatMap((b) =>
         (b.data.expenses || []).map(
-          (e) => e.id || e.expenseId || e.expense?.id || e.expense?.expenseId
-        )
-      )
+          (e) => e.id || e.expenseId || e.expense?.id || e.expense?.expenseId,
+        ),
+      ),
     );
 
     return cardsWithSourceIndex.filter((c) => {
@@ -274,7 +311,7 @@ const Cashflow = () => {
         hasWriteAccess,
         shrinkFlowBtn,
         setShrinkFlowBtn,
-        search,
+        search: searchInput, // Use immediate value for input display
         setSearch,
         sortType,
         setSortType,
@@ -336,46 +373,39 @@ const Cashflow = () => {
         onPageBack: handlePageBack,
       }}
       components={{
-        ChartComponent: CashFlowChart,
-        CardsComponent: (props) => (
-          <CashFlowExpenseCards
-            {...props}
-            dispatch={dispatch}
-            navigate={navigate}
-            friendId={friendId}
-            isFriendView={isFriendView}
-            handleDeleteClick={(row) => openSingleDelete(row)}
-            getListOfBudgetsByExpenseId={getListOfBudgetsByExpenseId}
-            getExpenseAction={getExpenseAction}
-            getBillByExpenseId={getBillByExpenseId}
-          />
-        ),
-        SummaryBar: (props) => (
-          <SelectionSummaryBar
-            selectionStats={props.selectionStats}
-            selectedBarsLength={props.selectedBarsLength}
-            isMobile={props.isMobile}
-            summaryExpanded={summaryExpanded}
-            setSummaryExpanded={setSummaryExpanded}
-            clearSelection={props.clearSelection}
-          />
-        ),
-        DeleteSelectedButton: (props) => (
-          <DeleteSelectedButton
-            count={selectedCardIdx.length}
-            isMobile={isMobile}
-            hasWriteAccess={hasWriteAccess}
-            onDelete={() =>
-              openMultiDelete(
-                selectedCardIdx.map(
-                  (idx) =>
-                    sortedCardData[idx].id || sortedCardData[idx].expenseId
-                ),
-                selectedCardIdx.length
-              )
-            }
-          />
-        ),
+        ChartComponent: MemoizedCashFlowChart,
+        CardsComponent: MemoizedCashFlowExpenseCards,
+        SummaryBar: SelectionSummaryBar,
+        DeleteSelectedButton: DeleteSelectedButton,
+      }}
+      // Extra props for CardsComponent (passed through GenericFlowLayout)
+      cardsExtraProps={{
+        dispatch,
+        navigate,
+        friendId,
+        isFriendView,
+        handleDeleteClick: openSingleDelete,
+        getListOfBudgetsByExpenseId,
+        getExpenseAction,
+        getBillByExpenseId,
+      }}
+      // Extra props for SummaryBar
+      summaryExtraProps={{
+        summaryExpanded,
+        setSummaryExpanded,
+      }}
+      // Extra props for DeleteSelectedButton
+      deleteButtonExtraProps={{
+        count: selectedCardIdx.length,
+        hasWriteAccess,
+        onDelete: () =>
+          openMultiDelete(
+            selectedCardIdx.map(
+              (idx) =>
+                sortedCardData[idx]?.id || sortedCardData[idx]?.expenseId,
+            ),
+            selectedCardIdx.length,
+          ),
       }}
       formatters={{
         formatCompactNumber,

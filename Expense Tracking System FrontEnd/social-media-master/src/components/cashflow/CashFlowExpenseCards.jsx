@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import { Skeleton, IconButton } from "@mui/material";
@@ -22,6 +22,11 @@ import { useMasking } from "../../hooks/useMasking";
 import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
 import SelectionNavigator from "./SelectionNavigator";
+import {
+  useBatchedRendering,
+  useInfiniteScroll,
+} from "../../hooks/useVirtualization";
+import ExpenseCard from "./ExpenseCard";
 
 import CashFlowExpenseCardsSkeleton from "../skeletons/CashFlowExpenseCardsSkeleton";
 
@@ -100,7 +105,7 @@ function CashFlowExpenseCards({
 
   const selectedIndicesSet = React.useMemo(
     () => new Set(normalizedSelectedCardIdx),
-    [normalizedSelectedCardIdx]
+    [normalizedSelectedCardIdx],
   );
 
   const hasSelections = normalizedSelectedCardIdx.length > 0;
@@ -114,7 +119,7 @@ function CashFlowExpenseCards({
       if (!container) return;
 
       const targetCard = container.querySelector(
-        `[data-card-index="${cardIndex}"]`
+        `[data-card-index="${cardIndex}"]`,
       );
 
       if (!targetCard) return;
@@ -134,7 +139,7 @@ function CashFlowExpenseCards({
         targetCard.classList.remove("selected-card-focus");
       }, 400);
     },
-    []
+    [],
   );
 
   const suppressAutoScrollTemporarily = React.useCallback(() => {
@@ -200,7 +205,7 @@ function CashFlowExpenseCards({
       requestAnimationFrame(() => {
         scrollToCardByIndex(
           targetCardIndex,
-          prevLength === 0 ? "auto" : "smooth"
+          prevLength === 0 ? "auto" : "smooth",
         );
       });
     }
@@ -269,7 +274,7 @@ function CashFlowExpenseCards({
       normalizedSelectedCardIdx,
       scrollToCardByIndex,
       suppressAutoScrollTemporarily,
-    ]
+    ],
   );
 
   const toggleSortOrder = () => {
@@ -307,7 +312,7 @@ function CashFlowExpenseCards({
     // Find first date section of the selected month
     if (scrollContainerRef.current) {
       const monthSection = document.querySelector(
-        `[data-year="${year}"][data-month="${month}"]`
+        `[data-year="${year}"][data-month="${month}"]`,
       );
 
       if (monthSection) {
@@ -348,7 +353,7 @@ function CashFlowExpenseCards({
     // Find and scroll to the selected date
     const formattedDate = newDate.format(dateFormat);
     const dateSection = document.querySelector(
-      `[data-date-section="true"][data-date="${formattedDate}"]`
+      `[data-date-section="true"][data-date="${formattedDate}"]`,
     );
 
     if (dateSection && scrollContainerRef.current) {
@@ -371,7 +376,7 @@ function CashFlowExpenseCards({
 
     // Sort dates chronologically (ascending order by actual date)
     const chronologicalDates = [...groupedExpenses.availableDates].sort(
-      (a, b) => a.localeCompare(b)
+      (a, b) => a.localeCompare(b),
     );
 
     // Parse current date properly - currentHeader.date is in dateFormat (e.g., "DD/MM/YYYY")
@@ -445,7 +450,7 @@ function CashFlowExpenseCards({
     if (scrollContainerRef.current) {
       const formattedDate = targetDate.format(dateFormat);
       const dateSection = document.querySelector(
-        `[data-date-section="true"][data-date="${formattedDate}"]`
+        `[data-date-section="true"][data-date="${formattedDate}"]`,
       );
 
       if (dateSection) {
@@ -469,7 +474,7 @@ function CashFlowExpenseCards({
     if (!currentHeader.date) return true; // Changed from false to true
 
     const chronologicalDates = [...groupedExpenses.availableDates].sort(
-      (a, b) => a.localeCompare(b)
+      (a, b) => a.localeCompare(b),
     );
 
     const parsedDate = dayjs(currentHeader.date, dateFormat);
@@ -521,7 +526,7 @@ function CashFlowExpenseCards({
     // Find current month index
     const currentMonthKey = `${currentHeader.year}-${currentHeader.month}`;
     const currentIndex = availableMonths.findIndex(
-      (m) => `${m.year}-${m.month}` === currentMonthKey
+      (m) => `${m.year}-${m.month}` === currentMonthKey,
     );
 
     let targetIndex;
@@ -556,7 +561,7 @@ function CashFlowExpenseCards({
     // Scroll to first date section of the target month
     if (scrollContainerRef.current && targetMonth) {
       const monthSection = document.querySelector(
-        `[data-year="${targetMonth.year}"][data-month="${targetMonth.month}"]`
+        `[data-year="${targetMonth.year}"][data-month="${targetMonth.month}"]`,
       );
 
       if (monthSection) {
@@ -592,7 +597,7 @@ function CashFlowExpenseCards({
 
     const currentMonthKey = `${currentHeader.year}-${currentHeader.month}`;
     const currentIndex = availableMonths.findIndex(
-      (m) => `${m.year}-${m.month}` === currentMonthKey
+      (m) => `${m.year}-${m.month}` === currentMonthKey,
     );
 
     if (currentIndex === -1) return true; // Changed from false to true
@@ -627,8 +632,8 @@ function CashFlowExpenseCards({
         typeof expense.__sourceIndex === "number"
           ? expense.__sourceIndex
           : typeof expense.originalIndex === "number"
-          ? expense.originalIndex
-          : idx;
+            ? expense.originalIndex
+            : idx;
       const dt = expense.date || expense.expense?.date;
       if (!dt || !dayjs(dt).isValid()) return;
 
@@ -794,6 +799,163 @@ function CashFlowExpenseCards({
     };
   }, []);
 
+  // Memoized edit handler to prevent re-renders - MUST be before early returns
+  const handleEdit = useCallback(
+    async (row) => {
+      dispatch(
+        getListOfBudgetsByExpenseId({
+          id: row.id || row.expenseId,
+          date: dayjs().format("YYYY-MM-DD"),
+          friendId: friendId || null,
+        }),
+      );
+      const expensedata = await dispatch(
+        getExpenseAction(row.id, friendId || ""),
+      );
+      const bill = expensedata.bill
+        ? await dispatch(getBillByExpenseId(row.id, friendId || ""))
+        : false;
+      if (expensedata.bill) {
+        navigate(
+          isFriendView
+            ? `/bill/edit/${bill.id}/friend/${friendId}`
+            : `/bill/edit/${bill.id}`,
+        );
+      } else {
+        navigate(
+          isFriendView
+            ? `/expenses/edit/${row.id}/friend/${friendId}`
+            : `/expenses/edit/${row.id}`,
+        );
+      }
+    },
+    [
+      dispatch,
+      friendId,
+      isFriendView,
+      navigate,
+      getListOfBudgetsByExpenseId,
+      getExpenseAction,
+      getBillByExpenseId,
+    ],
+  );
+
+  // Memoized card click handler wrapper - MUST be before early returns
+  const handleCardClickWrapper = useCallback(
+    (sourceIndex, row, event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const isCurrentlySelected = selectedIndicesSet.has(sourceIndex);
+      const willClearAll =
+        isCurrentlySelected && normalizedSelectedCardIdx.length === 1;
+      const shouldPreserveScroll = isCurrentlySelected;
+
+      manualSelectionChangeRef.current = {
+        active: true,
+        preserveScroll: shouldPreserveScroll,
+        focusCardIndex: sourceIndex,
+      };
+
+      if (shouldPreserveScroll) {
+        suppressAutoScrollTemporarily();
+      } else {
+        if (autoScrollResetTimeoutRef.current) {
+          clearTimeout(autoScrollResetTimeoutRef.current);
+          autoScrollResetTimeoutRef.current = null;
+        }
+        autoScrollSuppressedRef.current = false;
+      }
+
+      const container = scrollContainerRef.current;
+
+      if (container) {
+        const scrollBeforeClick = container.scrollTop;
+        savedScrollPositionRef.current = scrollBeforeClick;
+
+        handleCardClick(sourceIndex, event);
+
+        if (shouldPreserveScroll) {
+          requestAnimationFrame(() => {
+            if (container) {
+              container.scrollTop = scrollBeforeClick;
+            }
+          });
+
+          setTimeout(() => {
+            if (container) {
+              container.scrollTop = scrollBeforeClick;
+            }
+          }, 0);
+
+          setTimeout(() => {
+            if (container) {
+              container.scrollTop = scrollBeforeClick;
+            }
+          }, 10);
+
+          setTimeout(() => {
+            if (container) {
+              container.scrollTop = scrollBeforeClick;
+            }
+          }, 50);
+        }
+      } else {
+        handleCardClick(sourceIndex, event);
+      }
+    },
+    [
+      selectedIndicesSet,
+      normalizedSelectedCardIdx.length,
+      suppressAutoScrollTemporarily,
+      handleCardClick,
+    ],
+  );
+
+  /**
+   * Render expense card using the memoized ExpenseCard component
+   * This reduces re-renders by isolating each card's state
+   * MUST be before early returns
+   */
+  const renderExpenseCard = useCallback(
+    (row, idx) => {
+      const sourceIndex =
+        typeof row.originalIndex === "number" ? row.originalIndex : idx;
+      const isSelected = selectedIndicesSet.has(sourceIndex);
+
+      return (
+        <ExpenseCard
+          key={row.id || row.expenseId || `expense-${idx}`}
+          row={row}
+          idx={idx}
+          sourceIndex={sourceIndex}
+          isSelected={isSelected}
+          flowTab={flowTab}
+          isMobile={isMobile}
+          isTablet={isTablet}
+          hasWriteAccess={hasWriteAccess}
+          formatNumberFull={formatNumberFull}
+          normalizedSelectedCardIdx={normalizedSelectedCardIdx}
+          selectedIndicesSet={selectedIndicesSet}
+          handleCardClick={handleCardClickWrapper}
+          handleDeleteClick={handleDeleteClick}
+          onEdit={handleEdit}
+        />
+      );
+    },
+    [
+      selectedIndicesSet,
+      flowTab,
+      isMobile,
+      isTablet,
+      hasWriteAccess,
+      formatNumberFull,
+      normalizedSelectedCardIdx,
+      handleCardClickWrapper,
+      handleDeleteClick,
+      handleEdit,
+    ],
+  );
+
   const wrapperClass = "custom-scrollbar";
 
   const wrapperStyle = {
@@ -864,417 +1026,6 @@ function CashFlowExpenseCards({
       const timestamp = parsedDate.valueOf();
       return timestamp > latest ? timestamp : latest;
     }, Number.NEGATIVE_INFINITY);
-  };
-
-  const renderExpenseCard = (row, idx) => {
-    const sourceIndex =
-      typeof row.originalIndex === "number" ? row.originalIndex : idx;
-    const isSelected = selectedIndicesSet.has(sourceIndex);
-    const type =
-      flowTab === "all" ? row.type || row.expense?.type || "outflow" : flowTab;
-    const isGain = !(type === "outflow" || type === "loss");
-    const amountColor = isGain ? "#06d6a0" : "#ff4d4f";
-    const icon = isGain ? (
-      <span style={{ color: "#06d6a0", display: "flex", alignItems: "center" }}>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{
-            display: "inline",
-            verticalAlign: "middle",
-            marginBottom: "-2px",
-          }}
-        >
-          <path
-            d="M8 14V2M8 2L3 7M8 2L13 7"
-            stroke="#06d6a0"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-    ) : (
-      <span style={{ color: "#ff4d4f", display: "flex", alignItems: "center" }}>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{
-            display: "inline",
-            verticalAlign: "middle",
-            marginBottom: "-2px",
-          }}
-        >
-          <path
-            d="M8 2V14M8 14L3 9M8 14L13 9"
-            stroke="#ff4d4f"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-    );
-
-    const dateValue = (() => {
-      const dt = row.date || row.expense?.date;
-      const dtStr =
-        dt && dayjs(dt).isValid() ? dayjs(dt).format(dateFormat) : "";
-      return dtStr;
-    })();
-
-    const categoryName =
-      row.categoryName ||
-      row.category?.name ||
-      row.category ||
-      row.expense?.category ||
-      t("cashflow.labels.uncategorized");
-    const rawPaymentMethod =
-      row.paymentMethodName ||
-      row.paymentMethod?.name ||
-      row.paymentMethod ||
-      row.expense?.paymentMethod ||
-      t("cashflow.labels.unknownPayment");
-    const paymentMethodName = formatPaymentMethodName(rawPaymentMethod);
-    const isBill = row.bill === true;
-
-    return (
-      <div
-        key={row.id || row.expenseId || `expense-${idx}`}
-        className="rounded-lg shadow-md flex flex-col justify-between relative group"
-        data-card-index={sourceIndex}
-        style={{
-          minHeight: "155px",
-          maxHeight: "155px",
-          height: "155px",
-          width: "100%",
-          flex: isMobile
-            ? "1 1 100%"
-            : isTablet
-            ? "0 1 calc(33.333% - 12px)"
-            : "0 1 calc(19% - 12.8px)",
-          minWidth: isMobile
-            ? "100%"
-            : isTablet
-            ? "180px"
-            : "calc(19% - 12.8px)",
-          maxWidth: isMobile
-            ? "100%"
-            : isTablet
-            ? "240px"
-            : "calc(19% - 12.8px)",
-          padding: "10px",
-          boxSizing: "border-box",
-          overflow: "hidden",
-          cursor: "pointer",
-          background: isSelected
-            ? isGain
-              ? "rgba(6, 214, 160, 0.13)"
-              : "rgba(255, 77, 79, 0.13)"
-            : colors.primary_bg,
-          // Changed from "all" to specific properties to prevent layout shifts
-          transition:
-            "background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease",
-          margin: "6px",
-          border: isSelected
-            ? `2px solid ${isGain ? "#06d6a0" : "#ff4d4f"}`
-            : `1px solid ${colors.border_color || "transparent"}`,
-          userSelect: "none",
-          outline: "none", // Prevent focus outline that triggers scroll
-          willChange: "background, border, box-shadow", // Optimize rendering
-          contain: "layout style paint", // Isolate layout calculations
-          // Removed scale transform to prevent browser auto-scroll
-          boxShadow: isSelected ? "0 4px 12px rgba(0,0,0,0.1)" : "none",
-          "--selection-outline-color": isGain ? "#06d6a0" : "#ff4d4f",
-        }}
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          const isCurrentlySelected = selectedIndicesSet.has(sourceIndex);
-          const willClearAll =
-            isCurrentlySelected && normalizedSelectedCardIdx.length === 1;
-          const shouldPreserveScroll = isCurrentlySelected;
-
-          manualSelectionChangeRef.current = {
-            active: true,
-            preserveScroll: shouldPreserveScroll,
-            focusCardIndex: sourceIndex,
-          };
-
-          if (shouldPreserveScroll) {
-            suppressAutoScrollTemporarily();
-          } else {
-            if (autoScrollResetTimeoutRef.current) {
-              clearTimeout(autoScrollResetTimeoutRef.current);
-              autoScrollResetTimeoutRef.current = null;
-            }
-            autoScrollSuppressedRef.current = false;
-          }
-
-          const container = scrollContainerRef.current;
-
-          if (container) {
-            const scrollBeforeClick = container.scrollTop;
-            savedScrollPositionRef.current = scrollBeforeClick;
-
-            handleCardClick(sourceIndex, event);
-
-            if (shouldPreserveScroll) {
-              requestAnimationFrame(() => {
-                if (container) {
-                  container.scrollTop = scrollBeforeClick;
-                }
-              });
-
-              setTimeout(() => {
-                if (container) {
-                  container.scrollTop = scrollBeforeClick;
-                }
-              }, 0);
-
-              setTimeout(() => {
-                if (container) {
-                  container.scrollTop = scrollBeforeClick;
-                }
-              }, 10);
-
-              setTimeout(() => {
-                if (container) {
-                  container.scrollTop = scrollBeforeClick;
-                }
-              }, 50);
-            }
-          } else {
-            handleCardClick(sourceIndex, event);
-          }
-        }}
-        onFocus={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        tabIndex={-1}
-      >
-        <div className="flex flex-col gap-1" style={{ height: "100%" }}>
-          {/* Header: Expense Name (wrapped) */}
-          <div
-            className="flex items-center min-w-0 border-b pb-1"
-            style={{
-              borderColor: colors.border_color,
-              marginBottom: "4px",
-            }}
-          >
-            <span
-              className="font-bold text-base min-w-0"
-              title={row.name}
-              style={{
-                fontSize: "14px",
-                color: colors.primary_text,
-                wordBreak: "break-word",
-                overflowWrap: "break-word",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                lineHeight: "1.3",
-              }}
-            >
-              {row.name}
-            </span>
-          </div>
-
-          {/* Amount with Bill Badge */}
-          <div
-            className="text-xl font-bold flex items-center justify-between gap-1.5"
-            style={{ margin: "2px 0" }}
-          >
-            <div className="flex items-center gap-1.5">
-              {icon}
-              <span
-                style={{
-                  color: amountColor,
-                  fontSize: "16px",
-                  fontWeight: 700,
-                }}
-                title={
-                  row.expense?.masked || (isMasking() && row.amount)
-                    ? t("cashflow.labels.amountMasked")
-                    : t("cashflow.labels.amountWithValue", {
-                        amount: formatNumberFull(row.amount),
-                      })
-                }
-              >
-                {row.expense?.masked || (isMasking() && row.amount)
-                  ? maskAmount(row.amount)
-                  : formatNumberFull(row.amount)}
-              </span>
-            </div>
-            {isBill && (
-              <span
-                className="flex items-center gap-0.5 flex-shrink-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #ff9800 0%, #ff6f00 100%)",
-                  color: "#fff",
-                  padding: "2px 5px",
-                  borderRadius: "3px",
-                  fontSize: "9px",
-                  fontWeight: "700",
-                  letterSpacing: "0.2px",
-                  boxShadow: "0 1px 3px rgba(255, 152, 0, 0.3)",
-                  textTransform: "uppercase",
-                  lineHeight: "1.1",
-                }}
-                title={t("cashflow.tooltips.billExpense")}
-              >
-                <ReceiptIcon sx={{ fontSize: 10, color: "#fff" }} />
-                {t("cashflow.labels.billBadge")}
-              </span>
-            )}
-          </div>
-
-          {/* Details: Category & Payment Method */}
-          <div
-            className="flex items-center gap-2 text-xs"
-            style={{ color: colors.secondary_text, margin: "2px 0" }}
-          >
-            <div
-              className="flex items-center gap-1 min-w-0 flex-1"
-              title={t("cashflow.tooltips.category", {
-                category: categoryName,
-              })}
-            >
-              <LocalOfferIcon
-                sx={{ fontSize: 13, color: colors.primary_accent }}
-              />
-              <span
-                className="truncate font-medium"
-                style={{ fontSize: "10.5px" }}
-              >
-                {categoryName}
-              </span>
-            </div>
-            <div
-              className="flex items-center gap-1 min-w-0 flex-1"
-              title={t("cashflow.tooltips.paymentMethod", {
-                method: paymentMethodName,
-              })}
-            >
-              <AccountBalanceWalletIcon
-                sx={{ fontSize: 13, color: colors.secondary_accent }}
-              />
-              <span
-                className="truncate font-medium"
-                style={{ fontSize: "10.5px" }}
-              >
-                {paymentMethodName}
-              </span>
-            </div>
-          </div>
-
-          {/* Comments */}
-          <div
-            className="text-xs break-words card-comments-clamp mt-auto pt-1 border-t"
-            style={{
-              wordBreak: "break-word",
-              overflow: "hidden",
-              color: colors.secondary_text,
-              borderColor: colors.border_color,
-              fontStyle: "normal",
-              lineHeight: "1.4",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              fontSize: "11px",
-              minHeight: "3.1em",
-              maxHeight: "3.1em",
-            }}
-            title={row.comments}
-          >
-            {row.comments || t("cashflow.labels.noComments")}
-          </div>
-        </div>
-        {isSelected &&
-          normalizedSelectedCardIdx.length === 1 &&
-          hasWriteAccess && (
-            <div
-              className="absolute bottom-2 right-2 flex gap-2 opacity-90"
-              style={{
-                zIndex: 2,
-                background: colors.active_bg,
-                borderRadius: 8,
-                boxShadow: "0 2px 8px #0002",
-                padding: 4,
-                display: "flex",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <IconButton
-                size="small"
-                sx={{
-                  color: "#5b7fff",
-                  p: "4px",
-                  background: colors.active_bg,
-                  borderRadius: 1,
-                  boxShadow: 1,
-                  "&:hover": { background: colors.hover_bg, color: "#fff" },
-                }}
-                onClick={async () => {
-                  dispatch(
-                    getListOfBudgetsByExpenseId({
-                      id: row.id || row.expenseId,
-                      date: dayjs().format("YYYY-MM-DD"),
-                      friendId: friendId || null,
-                    })
-                  );
-                  const expensedata = await dispatch(
-                    getExpenseAction(row.id, friendId || "")
-                  );
-                  const bill = expensedata.bill
-                    ? await dispatch(getBillByExpenseId(row.id, friendId || ""))
-                    : false;
-                  if (expensedata.bill) {
-                    navigate(
-                      isFriendView
-                        ? `/bill/edit/${bill.id}/friend/${friendId}`
-                        : `/bill/edit/${bill.id}`
-                    );
-                  } else {
-                    navigate(
-                      isFriendView
-                        ? `/expenses/edit/${row.id}/friend/${friendId}`
-                        : `/expenses/edit/${row.id}`
-                    );
-                  }
-                }}
-                aria-label={t("cashflow.actions.editExpense")}
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                sx={{
-                  color: "#ff4d4f",
-                  p: "4px",
-                  background: colors.active_bg,
-                  borderRadius: 1,
-                  boxShadow: 1,
-                  "&:hover": { background: colors.hover_bg, color: "#fff" },
-                }}
-                onClick={() => handleDeleteClick(row, idx)}
-                aria-label={t("cashflow.actions.deleteExpense")}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </div>
-          )}
-      </div>
-    );
   };
 
   return (
@@ -1707,7 +1458,7 @@ function CashFlowExpenseCards({
                     ? dayjs(b, "MMMM YYYY").valueOf() -
                       dayjs(a, "MMMM YYYY").valueOf()
                     : dayjs(a, "MMMM YYYY").valueOf() -
-                      dayjs(b, "MMMM YYYY").valueOf()
+                      dayjs(b, "MMMM YYYY").valueOf(),
                 )
                 .map((month, monthIndex) => (
                   <div key={month} style={{ marginBottom: "24px" }}>
@@ -1722,12 +1473,12 @@ function CashFlowExpenseCards({
                         <div key={week} style={{ marginBottom: "18px" }}>
                           {/* Dates in Week */}
                           {Object.keys(
-                            groupedExpenses.groups[year][month][week]
+                            groupedExpenses.groups[year][month][week],
                           )
                             .sort((a, b) =>
                               sortOrder === "desc"
                                 ? b.localeCompare(a)
-                                : a.localeCompare(b)
+                                : a.localeCompare(b),
                             )
                             .map((dateKey, dateIndex) => {
                               const dateGroup =
@@ -1813,8 +1564,8 @@ function CashFlowExpenseCards({
                                     {dateGroup.expenses.map((expense) =>
                                       renderExpenseCard(
                                         expense,
-                                        expense.originalIndex
-                                      )
+                                        expense.originalIndex,
+                                      ),
                                     )}
                                   </div>
                                 </div>
