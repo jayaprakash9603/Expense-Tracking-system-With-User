@@ -5,6 +5,7 @@ import com.jaya.models.Category;
 import com.jaya.models.User;
 import com.jaya.service.*;
 import com.jaya.kafka.service.FriendActivityService;
+import com.jaya.kafka.service.CategoryNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,9 @@ public class CategoryController {
 
     @Autowired
     private FriendActivityService friendActivityService;
+
+    @Autowired
+    private CategoryNotificationService categoryNotificationService;
 
     private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess)
             throws Exception {
@@ -71,6 +75,10 @@ public class CategoryController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             Category created = categoryService.create(category, targetUser.getId());
+
+            // Send notification for category creation
+            categoryNotificationService.sendCategoryCreatedNotification(created);
+
             // Send friend activity notification if acting on friend's behalf
             if (targetId != null && !targetId.equals(reqUser.getId())) {
                 friendActivityService.sendCategoryCreatedByFriend(created, targetId, reqUser);
@@ -161,6 +169,10 @@ public class CategoryController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             Category updated = categoryService.update(id, category, targetUser.getId());
+
+            // Send notification for category update
+            categoryNotificationService.sendCategoryUpdatedNotification(updated);
+
             // Send friend activity notification if acting on friend's behalf
             if (targetId != null && !targetId.equals(reqUser.getId())) {
                 friendActivityService.sendCategoryUpdatedByFriend(updated, targetId, reqUser);
@@ -188,6 +200,10 @@ public class CategoryController {
             Category category = categoryService.getById(id, targetUser.getId());
             String categoryName = category != null ? category.getName() : null;
             categoryService.delete(id, targetUser.getId());
+
+            // Send notification for category deletion
+            categoryNotificationService.sendCategoryDeletedNotification(id, targetUser.getId(), categoryName);
+
             // Send friend activity notification if acting on friend's behalf
             if (targetId != null && !targetId.equals(reqUser.getId())) {
                 friendActivityService.sendCategoryDeletedByFriend(id, categoryName, targetId, reqUser);

@@ -36,6 +36,7 @@ public class BatchNotificationEventConsumer {
     private final BillEventProcessor billEventProcessor;
     private final PaymentMethodEventProcessor paymentMethodEventProcessor;
     private final FriendEventProcessor friendEventProcessor;
+    private final CategoryEventProcessor categoryEventProcessor;
     private final ObjectMapper objectMapper;
 
     /**
@@ -228,6 +229,49 @@ public class BatchNotificationEventConsumer {
 
         long duration = System.currentTimeMillis() - startTime;
         log.info("✅ Successfully processed {}/{} payment method events in {}ms (avg: {}ms per event)",
+                successCount, payloads.size(), duration, duration / Math.max(1, successCount));
+    }
+
+    /**
+     * BATCH: Consumes category events from Kafka
+     */
+    @KafkaListener(topics = "${kafka.topics.category-events:category-events}", groupId = "notification-category-batch-group", containerFactory = "notificationBatchFactory")
+    @Transactional
+    public void consumeCategoryEventsBatch(List<Object> payloads) {
+        if (payloads == null || payloads.isEmpty())
+            return;
+
+        long startTime = System.currentTimeMillis();
+        log.info("📦 Received BATCH of {} category events - processing...", payloads.size());
+
+        List<CategoryEventDTO> parsed = new ArrayList<>(payloads.size());
+        for (Object payload : payloads) {
+            try {
+                CategoryEventDTO event = convertToDto(payload, CategoryEventDTO.class);
+                if (event != null) {
+                    parsed.add(event);
+                }
+            } catch (Exception e) {
+                log.error("Error parsing category event in batch", e);
+            }
+        }
+
+        if (parsed.isEmpty())
+            return;
+
+        int successCount = 0;
+        for (CategoryEventDTO event : parsed) {
+            try {
+                categoryEventProcessor.process(event);
+                successCount++;
+            } catch (Exception e) {
+                log.error("Error processing category event for user {}: {}",
+                        event.getUserId(), e.getMessage(), e);
+            }
+        }
+
+        long duration = System.currentTimeMillis() - startTime;
+        log.info("✅ Successfully processed {}/{} category events in {}ms (avg: {}ms per event)",
                 successCount, payloads.size(), duration, duration / Math.max(1, successCount));
     }
 

@@ -7,6 +7,7 @@ import com.jaya.service.FriendShipService;
 import com.jaya.service.PaymentMethodService;
 import com.jaya.service.UserService;
 import com.jaya.kafka.service.FriendActivityService;
+import com.jaya.kafka.producer.PaymentMethodNotificationProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,8 @@ public class PaymentMethodController {
     private FriendShipService friendshipService;
     @Autowired
     private FriendActivityService friendActivityService;
+    @Autowired
+    private PaymentMethodNotificationProducer paymentMethodNotificationProducer;
 
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess)
             throws Exception {
@@ -171,6 +174,16 @@ public class PaymentMethodController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod created = paymentMethodService.createPaymentMethod(targetUser.getId(), paymentMethod);
+
+            // Send user notification for payment method creation
+            paymentMethodNotificationProducer.sendPaymentMethodCreatedNotification(
+                    targetUser.getId(),
+                    created.getName(),
+                    created.getType(),
+                    created.getDescription(),
+                    created.getIcon(),
+                    created.getColor());
+
             // Send friend activity notification if acting on friend's behalf
             if (targetId != null && !targetId.equals(reqUser.getId())) {
                 friendActivityService.sendPaymentMethodCreatedByFriend(created, targetId, reqUser);
@@ -197,6 +210,16 @@ public class PaymentMethodController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod updated = paymentMethodService.updatePaymentMethod(targetUser.getId(), id, paymentMethod);
+
+            // Send user notification for payment method update
+            paymentMethodNotificationProducer.sendPaymentMethodUpdatedNotification(
+                    targetUser.getId(),
+                    updated.getName(),
+                    updated.getType(),
+                    updated.getDescription(),
+                    updated.getIcon(),
+                    updated.getColor());
+
             // Send friend activity notification if acting on friend's behalf
             if (targetId != null && !targetId.equals(reqUser.getId())) {
                 friendActivityService.sendPaymentMethodUpdatedByFriend(updated, targetId, reqUser);
@@ -223,7 +246,17 @@ public class PaymentMethodController {
             // Get payment method details before deletion for notification
             PaymentMethod pm = paymentMethodService.getById(targetUser.getId(), id);
             String pmName = pm != null ? pm.getName() : null;
+            String pmType = pm != null ? pm.getType() : null;
             paymentMethodService.deletePaymentMethod(targetUser.getId(), id);
+
+            // Send user notification for payment method deletion
+            if (pmName != null) {
+                paymentMethodNotificationProducer.sendPaymentMethodDeletedNotification(
+                        targetUser.getId(),
+                        pmName,
+                        pmType);
+            }
+
             // Send friend activity notification if acting on friend's behalf
             if (targetId != null && !targetId.equals(reqUser.getId())) {
                 friendActivityService.sendPaymentMethodDeletedByFriend(id, pmName, targetId, reqUser);

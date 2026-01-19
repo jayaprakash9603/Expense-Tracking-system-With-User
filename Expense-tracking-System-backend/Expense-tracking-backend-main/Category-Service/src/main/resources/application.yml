@@ -1,4 +1,3 @@
-
 server:
   port: 6008
   shutdown: graceful
@@ -59,6 +58,12 @@ spring:
       auto-commit-interval: 1000ms
       properties:
         spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+
+# Kafka topics configuration
+kafka:
+  topics:
+    category-events: ${KAFKA_TOPICS_CATEGORY_EVENTS:category-events}
+    friend-activity: ${KAFKA_TOPICS_FRIEND_ACTIVITY:friend-activity}
 
 eureka:
   instance:

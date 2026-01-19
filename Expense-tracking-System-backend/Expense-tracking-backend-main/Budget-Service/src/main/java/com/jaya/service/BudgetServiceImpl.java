@@ -543,23 +543,44 @@ public class BudgetServiceImpl implements BudgetService {
             }
 
             double percentage = (spent.doubleValue() / budget.getAmount()) * 100.0;
+            boolean budgetUpdated = false;
 
-            // Check thresholds and send notifications
-            if (percentage >= 100.0) {
-                // Budget exceeded - Critical
+            // Reset notification flags if percentage has decreased below thresholds
+            // This handles cases where expenses are removed or budget amount is increased
+            budget.resetNotificationFlags(percentage);
+
+            // Check thresholds and send notifications only if not already sent
+            if (percentage >= 100.0 && !budget.isNotification100PercentSent()) {
+                // Budget exceeded - Critical (send only once)
                 budgetNotificationService.sendBudgetExceededNotification(budget, spent);
-            } else if (percentage >= 80.0) {
-                // Budget warning at 80% - High priority
+                budget.setNotification100PercentSent(true);
+                budgetUpdated = true;
+                log.info("Budget exceeded notification sent for budgetId={}, userId={}, percentage={}%",
+                        budget.getId(), userId, String.format("%.2f", percentage));
+            } else if (percentage >= 80.0 && percentage < 100.0 && !budget.isNotification80PercentSent()) {
+                // Budget warning at 80% - High priority (send only once)
                 budgetNotificationService.sendBudgetWarningNotification(budget, spent);
-            } else if (percentage >= 50.0) {
-                // Approaching budget limit at 50% - Medium priority
+                budget.setNotification80PercentSent(true);
+                budgetUpdated = true;
+                log.info("Budget 80% warning notification sent for budgetId={}, userId={}, percentage={}%",
+                        budget.getId(), userId, String.format("%.2f", percentage));
+            } else if (percentage >= 50.0 && percentage < 80.0 && !budget.isNotification50PercentSent()) {
+                // Approaching budget limit at 50% - Medium priority (send only once)
                 budgetNotificationService.sendBudgetLimitApproachingNotification(budget, spent);
+                budget.setNotification50PercentSent(true);
+                budgetUpdated = true;
+                log.info("Budget 50% approaching notification sent for budgetId={}, userId={}, percentage={}%",
+                        budget.getId(), userId, String.format("%.2f", percentage));
             }
-            // Below 50% - No notification needed
+
+            // Save budget if notification flags were updated
+            if (budgetUpdated) {
+                budgetRepository.save(budget);
+            }
 
         } catch (Exception e) {
             // Log error but don't fail the operation
-            System.err.println("Error checking budget thresholds for budget " + budget.getId() + ": " + e.getMessage());
+            log.error("Error checking budget thresholds for budget {}: {}", budget.getId(), e.getMessage());
         }
     }
 

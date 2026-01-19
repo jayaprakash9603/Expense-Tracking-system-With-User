@@ -295,6 +295,26 @@ public class FriendActivityService {
                     .targetUser(targetUser != null ? buildUserInfo(targetUser) : null)
                     .sourceService(FriendActivityEvent.SourceService.CATEGORY)
                     .entityType(FriendActivityEvent.EntityType.CATEGORY)
+                    .entityId(categoryId)
+                    .action(FriendActivityEvent.Action.DELETE)
+                    .description(String.format("%s deleted category '%s'", actorName,
+                            categoryName != null ? categoryName : "Unknown"))
+                    .amount(null)
+                    .entityPayload(deletedCategory != null ? buildCategoryPayload(deletedCategory) : null)
+                    .timestamp(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+
+            friendActivityProducer.sendEvent(event);
+
+        } catch (Exception e) {
+            log.error("Failed to send friend activity notification for category deletion: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Send notification when a friend deletes multiple categories.
+     */
     @Async("friendActivityExecutor")
     public void sendBulkCategoriesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
         sendBulkCategoriesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
@@ -313,7 +333,8 @@ public class FriendActivityService {
     /**
      * Internal method to handle bulk category deletion notification.
      */
-    private void sendBulkCategoriesDeletedByFriendInternal(int count, List<Category> deletedCategories, Integer targetUserId,
+    private void sendBulkCategoriesDeletedByFriendInternal(int count, List<Category> deletedCategories,
+            Integer targetUserId,
             User actorUser, User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -374,28 +395,8 @@ public class FriendActivityService {
     /**
      * Internal method to handle all categories deletion notification.
      */
-    private void sendAllCategoriesDeletedByFriendInternal
-
-            friendActivityProducer.sendEvent(event);
-
-        } catch (Exception e) {
-            log.error("Failed to send friend activity notification for bulk category deletion: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Send notification when a friend deletes all categories.
-     */
-    public void sendAllCategoriesDeletedByFriend(Integer targetUserId, User actorUser, int count) {
-        sendAllCategoriesDeletedByFriend(targetUserId, actorUser, null, count, null);
-    }
-
-    /**
-     * Send notification when a friend deletes all categories with deleted entities
-     * details.
-     */
-    public void sendAllCategoriesDeletedByFriend(Integer targetUserId, User actorUser, User targetUser, int count,
-            List<Category> deletedCategories) {
+    private void sendAllCategoriesDeletedByFriendInternal(Integer targetUserId, User actorUser, User targetUser,
+            int count, List<Category> deletedCategories) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;

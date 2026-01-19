@@ -28,4 +28,7 @@ public class PaymentMethodEventDTO implements Serializable {
     private String icon;
     private String color;
     private String eventType; // CREATE, UPDATE, DELETE
+
+    @Builder.Default
+    private Boolean notifyUser = false; // Flag to indicate if notification should be sent to user
 }
