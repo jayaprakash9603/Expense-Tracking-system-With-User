@@ -95,6 +95,7 @@ public class UnifiedActivityEvent implements Serializable {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static class UserInfo implements Serializable {
         private static final long serialVersionUID = 1L;
         private Integer id;
@@ -108,8 +109,11 @@ public class UnifiedActivityEvent implements Serializable {
         private String phoneNumber;
         private String location;
         private String bio;
+        private String displayName;
 
         public String getDisplayName() {
+            if (displayName != null && !displayName.trim().isEmpty())
+                return displayName;
             if (fullName != null && !fullName.trim().isEmpty())
                 return fullName;
             if (firstName != null && lastName != null)

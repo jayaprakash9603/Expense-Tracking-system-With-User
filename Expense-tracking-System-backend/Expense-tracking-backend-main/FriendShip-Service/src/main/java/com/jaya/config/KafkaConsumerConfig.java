@@ -26,6 +26,9 @@ import java.util.Map;
  * SOLID Principles:
  * - Single Responsibility: Only handles Kafka consumer configuration
  * - Dependency Inversion: Provides ConsumerFactory abstraction
+ * 
+ * NOTE: Main kafkaListenerContainerFactory is defined in KafkaConfig.java
+ * This config only defines the FriendActivity-specific consumer factory.
  */
 @Configuration
 @EnableKafka
@@ -74,11 +77,12 @@ public class KafkaConsumerConfig {
     }
 
     /**
-     * Configure Kafka Listener Container Factory.
-     * This is used by @KafkaListener annotations.
+     * Configure Kafka Listener Container Factory specifically for
+     * FriendActivityEvent.
+     * This is used for legacy friend-activity-events topic consumers.
      */
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, FriendActivityEvent> kafkaListenerContainerFactory() {
+    @Bean("friendActivityKafkaListenerContainerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, FriendActivityEvent> friendActivityKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, FriendActivityEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(friendActivityConsumerFactory());
 
@@ -88,8 +92,8 @@ public class KafkaConsumerConfig {
         // Batch processing settings
         factory.setBatchListener(false);
 
-        // Container properties
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
+        // Container properties - use MANUAL for explicit acknowledgment
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         factory.getContainerProperties().setPollTimeout(3000);
 
         return factory;

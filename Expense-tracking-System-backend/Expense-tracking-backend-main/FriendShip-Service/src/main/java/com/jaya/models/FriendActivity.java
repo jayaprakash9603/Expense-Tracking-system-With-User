@@ -166,7 +166,9 @@ public class FriendActivity {
         BUDGET,
         BILL,
         CATEGORY,
-        PAYMENT
+        PAYMENT,
+        FRIENDSHIP,
+        SOCIAL_MEDIA
     }
 
     /**
@@ -177,7 +179,9 @@ public class FriendActivity {
         BUDGET,
         BILL,
         CATEGORY,
-        PAYMENT_METHOD
+        PAYMENT_METHOD,
+        FRIEND,
+        FRIEND_REQUEST
     }
 
     /**
@@ -187,6 +191,10 @@ public class FriendActivity {
         CREATE,
         UPDATE,
         DELETE,
-        COPY
+        COPY,
+        APPROVE,
+        REJECT,
+        ACCEPT,
+        DECLINE
     }
 }

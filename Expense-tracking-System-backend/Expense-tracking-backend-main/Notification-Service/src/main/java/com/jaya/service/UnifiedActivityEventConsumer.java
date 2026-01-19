@@ -251,7 +251,7 @@ public class UnifiedActivityEventConsumer {
                 .budgetName(event.getEntityName())
                 .amount(event.getAmount())
                 .timestamp(event.getTimestamp())
-                .metadata(event.getEntityPayload())
+                .metadata(event.getNewValues()) // Use newValues map for metadata
                 .build();
     }
 
@@ -272,15 +272,14 @@ public class UnifiedActivityEventConsumer {
                 .categoryId(event.getEntityId() != null ? event.getEntityId().intValue() : null)
                 .userId(event.getTargetUserId())
                 .action(event.getAction())
-                .name(event.getEntityName())
+                .categoryName(event.getEntityName())
                 .timestamp(event.getTimestamp())
-                .metadata(event.getMetadata())
+                .metadata(event.getMetadata() != null ? event.getMetadata().toString() : null)
                 .build();
     }
 
     private PaymentMethodEventDTO convertToPaymentMethodEvent(UnifiedActivityEventDTO event) {
         return PaymentMethodEventDTO.builder()
-                .paymentMethodId(event.getEntityId() != null ? event.getEntityId().intValue() : null)
                 .userId(event.getTargetUserId())
                 .eventType(event.getAction())
                 .paymentMethodName(event.getEntityName())

@@ -7,13 +7,16 @@ import com.jaya.models.FriendActivity;
 import com.jaya.repository.FriendActivityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -98,25 +101,40 @@ public class UnifiedActivityEventConsumer {
 
     /**
      * Batch consumer for high throughput scenarios
+     * 
+     * DISABLED: This batch consumer has been disabled to prevent duplicate event
+     * processing.
+     * The single-message consumer above handles all events. Both consumers were
+     * processing
+     * the same events because they use different consumer groups.
+     * 
+     * To re-enable batch processing, either:
+     * 1. Use the same consumer group ID for both consumers (they'll share messages)
+     * 2. Remove the single-message consumer and use only batch processing
      */
-    @KafkaListener(topics = "${kafka.topics.unified-activity-events:unified-activity-events}", groupId = "${kafka.consumer.batch-group-id:friendship-unified-activity-batch-group}", containerFactory = "batchKafkaListenerContainerFactory")
-    @Transactional
+    // @KafkaListener(topics =
+    // "${kafka.topics.unified-activity-events:unified-activity-events}", groupId =
+    // "${kafka.consumer.batch-group-id:friendship-unified-activity-batch-group}",
+    // containerFactory = "batchKafkaListenerContainerFactory")
+    // @Transactional
     public void consumeUnifiedActivityEventsBatch(
-            List<Object> payloads,
+            @Payload List<ConsumerRecord<String, Object>> records,
             Acknowledgment acknowledgment) {
 
-        if (payloads == null || payloads.isEmpty()) {
+        if (records == null || records.isEmpty()) {
             acknowledgment.acknowledge();
             return;
         }
 
-        log.info("Received batch of {} unified activity events", payloads.size());
+        log.info("Received batch of {} unified activity events", records.size());
 
         int processedCount = 0;
         int skippedCount = 0;
 
-        for (Object payload : payloads) {
+        for (ConsumerRecord<String, Object> record : records) {
             try {
+                // Extract the value from the ConsumerRecord
+                Object payload = record.value();
                 UnifiedActivityEventDTO event = convertToDto(payload);
 
                 if (event == null) {
@@ -154,13 +172,29 @@ public class UnifiedActivityEventConsumer {
      */
     private UnifiedActivityEventDTO convertToDto(Object payload) {
         try {
+            // Handle ConsumerRecord - extract the value
+            if (payload instanceof ConsumerRecord) {
+                ConsumerRecord<?, ?> record = (ConsumerRecord<?, ?>) payload;
+                payload = record.value();
+                log.debug("Extracted value from ConsumerRecord: {}",
+                        payload != null ? payload.getClass().getName() : "null");
+            }
+
+            if (payload == null) {
+                log.warn("Payload is null after extraction");
+                return null;
+            }
+
             if (payload instanceof UnifiedActivityEventDTO) {
                 return (UnifiedActivityEventDTO) payload;
             } else if (payload instanceof String) {
                 return objectMapper.readValue((String) payload, UnifiedActivityEventDTO.class);
             } else if (payload instanceof Map) {
                 return objectMapper.convertValue(payload, UnifiedActivityEventDTO.class);
+            } else if (payload instanceof java.util.LinkedHashMap) {
+                return objectMapper.convertValue(payload, UnifiedActivityEventDTO.class);
             } else {
+                // Try to convert via JSON serialization
                 String json = objectMapper.writeValueAsString(payload);
                 return objectMapper.readValue(json, UnifiedActivityEventDTO.class);
             }
@@ -197,16 +231,16 @@ public class UnifiedActivityEventConsumer {
      */
     private FriendActivity mapEventToEntity(UnifiedActivityEventDTO event) {
         return FriendActivity.builder()
-                .targetUserId(event.getTargetUserId())
-                .actorUserId(event.getActorUserId())
+                .targetUserId(toInteger(event.getTargetUserId()))
+                .actorUserId(toInteger(event.getActorUserId()))
                 .actorUserName(event.getActorUserName())
                 .sourceService(mapSourceService(event.getSourceService()))
                 .entityType(mapEntityType(event.getEntityType()))
-                .entityId(event.getEntityId())
+                .entityId(toInteger(event.getEntityId()))
                 .action(mapAction(event.getAction()))
                 .description(event.getDescription())
-                .amount(event.getAmount())
-                .metadata(event.getMetadata())
+                .amount(toDouble(event.getAmount()))
+                .metadata(toJson(event.getMetadata()))
                 .timestamp(event.getTimestamp() != null ? event.getTimestamp() : LocalDateTime.now())
                 .isRead(false)
                 // JSON fields
@@ -217,6 +251,20 @@ public class UnifiedActivityEventConsumer {
                 .actorIpAddress(event.getIpAddress())
                 .actorUserAgent(event.getUserAgent())
                 .build();
+    }
+
+    /**
+     * Safely converts Long to Integer
+     */
+    private Integer toInteger(Long value) {
+        return value != null ? value.intValue() : null;
+    }
+
+    /**
+     * Safely converts BigDecimal to Double
+     */
+    private Double toDouble(BigDecimal value) {
+        return value != null ? value.doubleValue() : null;
     }
 
     /**

@@ -122,6 +122,14 @@ public class NotificationPreferencesChecker {
             case "paymentMethodRemoved":
                 return prefs.getPaymentMethodServiceEnabled() && prefs.getPaymentMethodRemovedEnabled();
 
+            // Category Service Notifications
+            case "categoryCreated":
+                return prefs.getCategoryServiceEnabled() && prefs.getCategoryCreatedEnabled();
+            case "categoryUpdated":
+                return prefs.getCategoryServiceEnabled() && prefs.getCategoryUpdatedEnabled();
+            case "categoryDeleted":
+                return prefs.getCategoryServiceEnabled() && prefs.getCategoryDeletedEnabled();
+
             // Friend Service Notifications
             case "friendRequestReceived":
                 return prefs.getFriendServiceEnabled() && prefs.getFriendRequestReceivedEnabled();
