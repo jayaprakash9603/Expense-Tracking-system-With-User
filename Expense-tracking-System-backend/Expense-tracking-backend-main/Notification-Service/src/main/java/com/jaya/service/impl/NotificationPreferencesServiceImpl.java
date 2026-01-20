@@ -23,7 +23,7 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
     private final NotificationPreferencesRepository repository;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public NotificationPreferencesResponseDTO getPreferences(Integer userId) {
         log.info("Fetching notification preferences for user: {}", userId);
 

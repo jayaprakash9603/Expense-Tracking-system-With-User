@@ -5,15 +5,11 @@ import * as actionTypes from "./notificationPreferences.actionType";
  * Fetch notification preferences
  * Auto-creates defaults if none exist
  */
-export const fetchNotificationPreferences = (targetId) => async (dispatch) => {
+export const fetchNotificationPreferences = () => async (dispatch) => {
   dispatch({ type: actionTypes.FETCH_NOTIFICATION_PREFERENCES_REQUEST });
 
   try {
-    const { data } = await api.get("/api/notification-preferences", {
-      params: {
-        targetId: targetId || "",
-      },
-    });
+    const { data } = await api.get("/api/notification-preferences");
 
     dispatch({
       type: actionTypes.FETCH_NOTIFICATION_PREFERENCES_SUCCESS,
@@ -34,49 +30,36 @@ export const fetchNotificationPreferences = (targetId) => async (dispatch) => {
  * Update notification preferences (partial update)
  * Only sends fields that need to be updated
  */
-export const updateNotificationPreference =
-  (updates, targetId) => async (dispatch) => {
-    dispatch({ type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_REQUEST });
+export const updateNotificationPreference = (updates) => async (dispatch) => {
+  dispatch({ type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_REQUEST });
 
-    try {
-      const { data } = await api.put("/api/notification-preferences", updates, {
-        params: {
-          targetId: targetId || "",
-        },
-      });
+  try {
+    const { data } = await api.put("/api/notification-preferences", updates);
 
-      dispatch({
-        type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_SUCCESS,
-        payload: data,
-      });
-      console.log("Updated notification preferences:", data);
-      return data;
-    } catch (error) {
-      console.error("Error updating notification preferences:", error);
-      dispatch({
-        type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_FAILURE,
-        payload: error.response?.data?.message || error.message,
-      });
-      return error;
-    }
-  };
+    dispatch({
+      type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_SUCCESS,
+      payload: data,
+    });
+    console.log("Updated notification preferences:", data);
+    return data;
+  } catch (error) {
+    console.error("Error updating notification preferences:", error);
+    dispatch({
+      type: actionTypes.UPDATE_NOTIFICATION_PREFERENCE_FAILURE,
+      payload: error.response?.data?.message || error.message,
+    });
+    return error;
+  }
+};
 
 /**
  * Reset notification preferences to defaults
  */
-export const resetNotificationPreferences = (targetId) => async (dispatch) => {
+export const resetNotificationPreferences = () => async (dispatch) => {
   dispatch({ type: actionTypes.RESET_NOTIFICATION_PREFERENCES_REQUEST });
 
   try {
-    const { data } = await api.post(
-      "/api/notification-preferences/reset",
-      null,
-      {
-        params: {
-          targetId: targetId || "",
-        },
-      }
-    );
+    const { data } = await api.post("/api/notification-preferences/reset");
 
     dispatch({
       type: actionTypes.RESET_NOTIFICATION_PREFERENCES_SUCCESS,
@@ -97,15 +80,11 @@ export const resetNotificationPreferences = (targetId) => async (dispatch) => {
 /**
  * Delete notification preferences
  */
-export const deleteNotificationPreferences = (targetId) => async (dispatch) => {
+export const deleteNotificationPreferences = () => async (dispatch) => {
   dispatch({ type: actionTypes.DELETE_NOTIFICATION_PREFERENCES_REQUEST });
 
   try {
-    await api.delete("/api/notification-preferences", {
-      params: {
-        targetId: targetId || "",
-      },
-    });
+    await api.delete("/api/notification-preferences");
 
     dispatch({
       type: actionTypes.DELETE_NOTIFICATION_PREFERENCES_SUCCESS,
@@ -124,70 +103,53 @@ export const deleteNotificationPreferences = (targetId) => async (dispatch) => {
 /**
  * Check if notification preferences exist
  */
-export const checkNotificationPreferencesExist =
-  (targetId) => async (dispatch) => {
+export const checkNotificationPreferencesExist = () => async (dispatch) => {
+  dispatch({
+    type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_REQUEST,
+  });
+
+  try {
+    const { data } = await api.get("/api/notification-preferences/exists");
+
     dispatch({
-      type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_REQUEST,
+      type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_SUCCESS,
+      payload: data,
     });
-
-    try {
-      const { data } = await api.get("/api/notification-preferences/exists", {
-        params: {
-          targetId: targetId || "",
-        },
-      });
-
-      dispatch({
-        type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_SUCCESS,
-        payload: data,
-      });
-      console.log("Notification preferences exist check:", data);
-      return data;
-    } catch (error) {
-      console.error(
-        "Error checking notification preferences existence:",
-        error
-      );
-      dispatch({
-        type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_FAILURE,
-        payload: error.response?.data?.message || error.message,
-      });
-      return error;
-    }
-  };
+    console.log("Notification preferences exist check:", data);
+    return data;
+  } catch (error) {
+    console.error("Error checking notification preferences existence:", error);
+    dispatch({
+      type: actionTypes.CHECK_NOTIFICATION_PREFERENCES_EXIST_FAILURE,
+      payload: error.response?.data?.message || error.message,
+    });
+    return error;
+  }
+};
 
 /**
  * Create default notification preferences
  */
-export const createDefaultNotificationPreferences =
-  (targetId) => async (dispatch) => {
+export const createDefaultNotificationPreferences = () => async (dispatch) => {
+  dispatch({
+    type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_REQUEST,
+  });
+
+  try {
+    const { data } = await api.post("/api/notification-preferences/default");
+
     dispatch({
-      type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_REQUEST,
+      type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_SUCCESS,
+      payload: data,
     });
-
-    try {
-      const { data } = await api.post(
-        "/api/notification-preferences/default",
-        null,
-        {
-          params: {
-            targetId: targetId || "",
-          },
-        }
-      );
-
-      dispatch({
-        type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_SUCCESS,
-        payload: data,
-      });
-      console.log("Created default notification preferences:", data);
-      return data;
-    } catch (error) {
-      console.error("Error creating default notification preferences:", error);
-      dispatch({
-        type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_FAILURE,
-        payload: error.response?.data?.message || error.message,
-      });
-      return error;
-    }
-  };
+    console.log("Created default notification preferences:", data);
+    return data;
+  } catch (error) {
+    console.error("Error creating default notification preferences:", error);
+    dispatch({
+      type: actionTypes.CREATE_DEFAULT_NOTIFICATION_PREFERENCES_FAILURE,
+      payload: error.response?.data?.message || error.message,
+    });
+    return error;
+  }
+};

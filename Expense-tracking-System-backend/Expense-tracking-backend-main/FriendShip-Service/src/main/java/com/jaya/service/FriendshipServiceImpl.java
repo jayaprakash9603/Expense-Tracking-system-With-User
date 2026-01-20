@@ -77,7 +77,6 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    @Override
     @CacheEvict(value = { "friendships", "friendshipStatus", "accessLevels" }, allEntries = true)
     public Friendship respondToRequest(Integer friendshipId, Integer responderId, boolean accept) {
         Friendship friendship = friendshipRepository.findById(friendshipId)

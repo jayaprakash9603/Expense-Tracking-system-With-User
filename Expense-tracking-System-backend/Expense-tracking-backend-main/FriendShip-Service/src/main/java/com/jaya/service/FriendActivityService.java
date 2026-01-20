@@ -215,6 +215,9 @@ public class FriendActivityService {
                 : "performed an action on";
         String entityType = activity.getEntityType() != null ? activity.getEntityType().name().toLowerCase() : "item";
 
+        if (activity.getAction() == null) {
+            return actorName + " " + action + " a " + entityType;
+        }
         switch (activity.getAction()) {
             case CREATE:
                 return actorName + " added a new " + entityType;
@@ -248,6 +251,9 @@ public class FriendActivityService {
                 return "category";
             case PAYMENT_METHOD:
                 return "payment";
+            case FRIEND:
+            case FRIEND_REQUEST:
+                return "friend";
             default:
                 return "activity";
         }
