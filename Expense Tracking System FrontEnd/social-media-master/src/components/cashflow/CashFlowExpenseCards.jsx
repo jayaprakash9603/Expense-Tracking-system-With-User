@@ -1,14 +1,7 @@
 import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
-import { Skeleton, IconButton } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CategoryIcon from "@mui/icons-material/Category";
-import CreditCardIcon from "@mui/icons-material/CreditCard";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import ReceiptIcon from "@mui/icons-material/Receipt";
+import { IconButton } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import HistoryIcon from "@mui/icons-material/History";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -19,13 +12,8 @@ import MonthPickerDropdown from "./MonthPickerDropdown";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useMasking } from "../../hooks/useMasking";
-import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
 import SelectionNavigator from "./SelectionNavigator";
-import {
-  useBatchedRendering,
-  useInfiniteScroll,
-} from "../../hooks/useVirtualization";
 import ExpenseCard from "./ExpenseCard";
 
 import CashFlowExpenseCardsSkeleton from "../skeletons/CashFlowExpenseCardsSkeleton";
@@ -60,7 +48,7 @@ function CashFlowExpenseCards({
   const { colors } = useTheme();
   const settings = useUserSettings();
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
-  const { maskAmount, isMasking } = useMasking();
+  useMasking(); // Keep hook call but don't destructure unused variables
   const { t } = useTranslation();
   const scrollContainerRef = useRef(null);
   const savedScrollPositionRef = useRef(0);
@@ -375,7 +363,7 @@ function CashFlowExpenseCards({
 
           container.scrollTo({
             top: Math.min(targetScroll, maxScroll),
-            behavior: "smooth",
+            behavior: "instant",
           });
         }
       });
@@ -387,7 +375,7 @@ function CashFlowExpenseCards({
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({
         top: 0,
-        behavior: "smooth",
+        behavior: "instant",
       });
     }
   };
@@ -396,7 +384,7 @@ function CashFlowExpenseCards({
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({
         top: scrollContainerRef.current.scrollHeight,
-        behavior: "smooth",
+        behavior: "instant",
       });
     }
   };
@@ -443,7 +431,7 @@ function CashFlowExpenseCards({
 
           container.scrollTo({
             top: Math.min(targetScroll, maxScroll),
-            behavior: "smooth",
+            behavior: "instant",
           });
         }
       });
@@ -565,9 +553,10 @@ function CashFlowExpenseCards({
           const maxScroll = container.scrollHeight - container.clientHeight;
           const targetScroll = Math.max(0, scrollOffset - 80); // Offset for sticky header
 
+          // Use instant scroll instead of smooth to avoid blank page effect
           container.scrollTo({
             top: Math.min(targetScroll, maxScroll),
-            behavior: "smooth",
+            behavior: "instant",
           });
         }
       });
@@ -731,7 +720,7 @@ function CashFlowExpenseCards({
 
           container.scrollTo({
             top: Math.min(targetScroll, maxScroll),
-            behavior: "smooth",
+            behavior: "instant",
           });
         }
       });
@@ -1009,8 +998,6 @@ function CashFlowExpenseCards({
       event.preventDefault();
       event.stopPropagation();
       const isCurrentlySelected = selectedIndicesSet.has(sourceIndex);
-      const willClearAll =
-        isCurrentlySelected && normalizedSelectedCardIdx.length === 1;
       const shouldPreserveScroll = isCurrentlySelected;
 
       manualSelectionChangeRef.current = {
@@ -1066,12 +1053,7 @@ function CashFlowExpenseCards({
         handleCardClick(sourceIndex, event);
       }
     },
-    [
-      selectedIndicesSet,
-      normalizedSelectedCardIdx.length,
-      suppressAutoScrollTemporarily,
-      handleCardClick,
-    ],
+    [selectedIndicesSet, suppressAutoScrollTemporarily, handleCardClick],
   );
 
   /**
