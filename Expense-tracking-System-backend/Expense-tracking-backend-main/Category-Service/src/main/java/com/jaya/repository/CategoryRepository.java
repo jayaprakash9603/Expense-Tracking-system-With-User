@@ -16,24 +16,27 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
     @Query("SELECT c FROM Category c WHERE :userId MEMBER OF c.userIds")
     List<Category> findAllByUserId(@Param("userId") Integer userId);
 
-    // Check for duplicate category by name and type for a specific user
+    // Check for duplicate category by name and type for a specific user (returns
+    // List to handle existing duplicates)
     @Query("SELECT c FROM Category c WHERE LOWER(c.name) = LOWER(:name) AND LOWER(c.type) = LOWER(:type) AND c.userId = :userId")
-    Optional<Category> findByNameAndTypeAndUserId(@Param("name") String name, @Param("type") String type,
+    List<Category> findByNameAndTypeAndUserId(@Param("name") String name, @Param("type") String type,
             @Param("userId") Integer userId);
 
-    // Check for duplicate global category by name and type
+    // Check for duplicate global category by name and type (returns List to handle
+    // existing duplicates)
     @Query("SELECT c FROM Category c WHERE LOWER(c.name) = LOWER(:name) AND LOWER(c.type) = LOWER(:type) AND c.isGlobal = true")
-    Optional<Category> findGlobalByNameAndType(@Param("name") String name, @Param("type") String type);
+    List<Category> findGlobalByNameAndType(@Param("name") String name, @Param("type") String type);
 
-    // Check for duplicate excluding a specific category (for updates)
+    // Check for duplicate excluding a specific category (for updates) - returns
+    // List to handle existing duplicates
     @Query("SELECT c FROM Category c WHERE LOWER(c.name) = LOWER(:name) AND LOWER(c.type) = LOWER(:type) AND c.userId = :userId AND c.id != :excludeId")
-    Optional<Category> findByNameAndTypeAndUserIdExcluding(@Param("name") String name, @Param("type") String type,
+    List<Category> findByNameAndTypeAndUserIdExcluding(@Param("name") String name, @Param("type") String type,
             @Param("userId") Integer userId, @Param("excludeId") Integer excludeId);
 
     // Check for duplicate global category excluding a specific category (for
-    // updates)
+    // updates) - returns List to handle existing duplicates
     @Query("SELECT c FROM Category c WHERE LOWER(c.name) = LOWER(:name) AND LOWER(c.type) = LOWER(:type) AND c.isGlobal = true AND c.id != :excludeId")
-    Optional<Category> findGlobalByNameAndTypeExcluding(@Param("name") String name, @Param("type") String type,
+    List<Category> findGlobalByNameAndTypeExcluding(@Param("name") String name, @Param("type") String type,
             @Param("excludeId") Integer excludeId);
 
     // Optimized: Fetch category with all collections in single query

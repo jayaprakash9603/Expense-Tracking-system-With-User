@@ -48,16 +48,16 @@ public class CategoryService {
             return; // Will be caught by other validation
         }
 
-        Optional<Category> duplicate;
+        List<Category> duplicates;
 
         if (isGlobal) {
             // Check for duplicate global category
             if (excludeId != null) {
-                duplicate = categoryRepository.findGlobalByNameAndTypeExcluding(name.trim(), type, excludeId);
+                duplicates = categoryRepository.findGlobalByNameAndTypeExcluding(name.trim(), type, excludeId);
             } else {
-                duplicate = categoryRepository.findGlobalByNameAndType(name.trim(), type);
+                duplicates = categoryRepository.findGlobalByNameAndType(name.trim(), type);
             }
-            if (duplicate.isPresent()) {
+            if (!duplicates.isEmpty()) {
                 throw new Exception(
                         "A global category with the name '" + name + "' and type '" + type + "' already exists.");
             }
@@ -65,12 +65,12 @@ public class CategoryService {
             // Check for duplicate user-specific category
             Integer categoryUserId = (userId != null) ? userId : 0;
             if (excludeId != null) {
-                duplicate = categoryRepository.findByNameAndTypeAndUserIdExcluding(name.trim(), type, categoryUserId,
+                duplicates = categoryRepository.findByNameAndTypeAndUserIdExcluding(name.trim(), type, categoryUserId,
                         excludeId);
             } else {
-                duplicate = categoryRepository.findByNameAndTypeAndUserId(name.trim(), type, categoryUserId);
+                duplicates = categoryRepository.findByNameAndTypeAndUserId(name.trim(), type, categoryUserId);
             }
-            if (duplicate.isPresent()) {
+            if (!duplicates.isEmpty()) {
                 throw new Exception("A category with the name '" + name + "' and type '" + type + "' already exists.");
             }
         }

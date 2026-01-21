@@ -171,8 +171,8 @@ const FlowEntityCards = ({
                       flowTab === "outflow"
                         ? "ring-[#ff4d4f]"
                         : flowTab === "inflow"
-                        ? "ring-[#06d6a0]"
-                        : "ring-[#5b7fff]"
+                          ? "ring-[#06d6a0]"
+                          : "ring-[#5b7fff]"
                     }`
                   : ""
               }`}
@@ -204,18 +204,34 @@ const FlowEntityCards = ({
               )}
               <div className="flex flex-col gap-2" style={{ height: "100%" }}>
                 <div className="flex items-center justify-between min-w-0">
-                  <span
-                    className="font-semibold text-base truncate min-w-0"
-                    title={entity.categoryName}
-                    style={{
-                      maxWidth: "70%",
-                      fontSize: "15px",
-                      fontWeight: 700,
-                      color: colors.primary_text,
-                    }}
+                  <div
+                    className="flex items-center gap-2 min-w-0"
+                    style={{ maxWidth: "85%" }}
                   >
-                    {entity.categoryName}
-                  </span>
+                    {entity.icon && (
+                      <span
+                        style={{
+                          fontSize: "20px",
+                          flexShrink: 0,
+                        }}
+                        role="img"
+                        aria-label={entity.categoryName}
+                      >
+                        {entity.icon}
+                      </span>
+                    )}
+                    <span
+                      className="font-semibold text-base truncate min-w-0"
+                      title={entity.categoryName}
+                      style={{
+                        fontSize: "15px",
+                        fontWeight: 700,
+                        color: colors.primary_text,
+                      }}
+                    >
+                      {entity.categoryName}
+                    </span>
+                  </div>
                 </div>
                 <div className="text-base font-bold flex items-center gap-1">
                   <span

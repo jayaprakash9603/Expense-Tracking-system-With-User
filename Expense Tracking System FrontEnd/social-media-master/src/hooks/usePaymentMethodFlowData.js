@@ -31,7 +31,7 @@ const VALID_FLOW_TABS = new Set(["all", "inflow", "outflow"]);
 const getPaymentMethodFlowViewStorageKey = (
   friendId,
   isFriendView,
-  ownerId
+  ownerId,
 ) => {
   const ownerSegment = ownerId ? `owner-${ownerId}` : "owner-unknown";
   const scope = isFriendView ? `friend-${friendId || "unknown"}` : "self";
@@ -61,7 +61,7 @@ const sanitizeViewState = (incomingState = buildDefaultViewState()) => {
     offset:
       typeof state.offset === "number" && Number.isFinite(state.offset)
         ? state.offset
-        : sanitizedOffsets[activeRange] ?? 0,
+        : (sanitizedOffsets[activeRange] ?? 0),
     flowTab: VALID_FLOW_TABS.has(state.flowTab)
       ? state.flowTab
       : VIEW_STATE_DEFAULTS.flowTab,
@@ -118,15 +118,15 @@ export default function usePaymentMethodFlowData({
   const ownerId = ownerIdRaw == null ? null : String(ownerIdRaw);
   const storageKey = useMemo(
     () => getPaymentMethodFlowViewStorageKey(friendId, isFriendView, ownerId),
-    [friendId, isFriendView, ownerId]
+    [friendId, isFriendView, ownerId],
   );
   const initialViewState = useMemo(
     () => readPersistedViewState(storageKey),
-    [storageKey]
+    [storageKey],
   );
   const [activeRange, setActiveRange] = useState(initialViewState.activeRange);
   const [rangeOffsets, setRangeOffsets] = useState(
-    initialViewState.rangeOffsets || createDefaultRangeOffsets()
+    initialViewState.rangeOffsets || createDefaultRangeOffsets(),
   );
   const [flowTab, setFlowTab] = useState(initialViewState.flowTab);
   const { paymentMethodExpenses, paymentMethodFlowOwnerId, loading } =
@@ -189,11 +189,11 @@ export default function usePaymentMethodFlowData({
     previousStorageKeyRef.current = storageKey;
     const persisted = readPersistedViewState(storageKey);
     setActiveRange((prev) =>
-      prev === persisted.activeRange ? prev : persisted.activeRange
+      prev === persisted.activeRange ? prev : persisted.activeRange,
     );
     setRangeOffsets(persisted.rangeOffsets || createDefaultRangeOffsets());
     setFlowTab((prev) =>
-      prev === persisted.flowTab ? prev : persisted.flowTab
+      prev === persisted.flowTab ? prev : persisted.flowTab,
     );
     hydratedStorageKeyRef.current = storageKey;
   }, [storageKey]);
@@ -206,14 +206,14 @@ export default function usePaymentMethodFlowData({
       targetId: isFriendView ? friendId : undefined,
       ownerId,
     }),
-    [activeRange, offset, flowTab, isFriendView, friendId, ownerId]
+    [activeRange, offset, flowTab, isFriendView, friendId, ownerId],
   );
 
   useEffect(() => {
     dispatch(
       fetchPaymentMethodsWithExpenses({
         ...requestDescriptor,
-      })
+      }),
     );
   }, [dispatch, requestDescriptor]);
 
@@ -222,7 +222,7 @@ export default function usePaymentMethodFlowData({
       fetchPaymentMethodsWithExpenses({
         ...requestDescriptor,
         forceRefetch: true,
-      })
+      }),
     );
   }, [dispatch, requestDescriptor]);
 
@@ -281,6 +281,7 @@ export default function usePaymentMethodFlowData({
       totalAmount: m.totalAmount,
       expenseCount: m.expenseCount || 0,
       color: m.color || deterministicColor(m.name),
+      icon: m.icon || "",
       expenses: m.expenses || [],
     }));
     return {
@@ -304,7 +305,7 @@ export default function usePaymentMethodFlowData({
         colorAccessor: (name, entity) =>
           entity?.color || deterministicColor(name),
       }),
-    [effectivePaymentMethodExpenses, activeRange, offset]
+    [effectivePaymentMethodExpenses, activeRange, offset],
   );
 
   const rangeLabel = getRangeLabel(activeRange, offset, "paymentMethod", {
