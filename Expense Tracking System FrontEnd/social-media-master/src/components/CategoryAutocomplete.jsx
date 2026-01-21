@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
+import { Box } from "@mui/material";
 import ReusableAutocomplete from "./ReusableAutocomplete";
 import useCategories from "../hooks/useCategories";
 import { useTheme } from "../hooks/useTheme";
@@ -10,6 +11,7 @@ import {
   getCategoryDisplayName,
   filterCategoriesWithDeduplication,
 } from "../utils/categoryUtils";
+import { getCategoryIcon } from "../utils/iconMapping";
 import HighlightedText from "./common/HighlightedText";
 
 /**
@@ -98,34 +100,56 @@ const CategoryAutocomplete = ({
     return filterCategoriesWithDeduplication(options, inputValue);
   };
 
-  // Custom render option with highlighting
-  const renderOption = (props, option, { inputValue }) => (
-    <li
-      {...props}
-      style={{
-        fontSize: size === "small" ? "0.875rem" : "0.92rem",
-        paddingTop: 4,
-        paddingBottom: 12,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        maxWidth: 300,
-      }}
-      title={option.name}
-    >
-      <HighlightedText
-        text={option.name}
-        query={inputValue}
+  // Custom render option with highlighting and icon
+  const renderOption = (props, option, { inputValue }) => {
+    const iconKey = option?.icon || option?.name || "";
+    const iconColor = option?.color || colors.secondary_accent;
+
+    return (
+      <li
+        {...props}
+        style={{
+          fontSize: size === "small" ? "0.875rem" : "0.92rem",
+          paddingTop: 4,
+          paddingBottom: 12,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          maxWidth: 300,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
         title={option.name}
-      />
-    </li>
-  );
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 24,
+            height: 24,
+            flexShrink: 0,
+          }}
+        >
+          {getCategoryIcon(iconKey, {
+            sx: { color: iconColor, fontSize: 20 },
+          })}
+        </Box>
+        <HighlightedText
+          text={option.name}
+          query={inputValue}
+          title={option.name}
+        />
+      </li>
+    );
+  };
 
   const noOptionsText = categoriesLoading
     ? "Loading categories..."
     : categoriesError
-    ? "Error loading categories"
-    : "No categories found";
+      ? "Error loading categories"
+      : "No categories found";
 
   return (
     <div style={{ width: "100%", maxWidth: "300px" }}>
@@ -161,6 +185,29 @@ const CategoryAutocomplete = ({
         size={size}
         autoFocus={autoFocus}
         sx={sx}
+        startAdornment={
+          selectedCategory ? (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mr: 0.5,
+                ml: -0.5,
+              }}
+            >
+              {getCategoryIcon(
+                selectedCategory.icon || selectedCategory.name || "",
+                {
+                  sx: {
+                    color: selectedCategory.color || colors.secondary_accent,
+                    fontSize: 20,
+                  },
+                },
+              )}
+            </Box>
+          ) : null
+        }
       />
       {categoriesError && !helperText && (
         <div

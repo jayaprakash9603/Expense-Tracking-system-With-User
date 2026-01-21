@@ -87,18 +87,8 @@ const MuiPieTooltip = ({
       }}
     >
       <Stack spacing={0.5}>
-        {/* Category name with color indicator */}
+        {/* Category name with icon */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Box
-            sx={{
-              width: 14,
-              height: 14,
-              borderRadius: "50%",
-              backgroundColor: item.payload?.fill || item.color,
-              boxShadow: `0 0 8px ${item.payload?.fill || item.color}80`,
-              border: "2px solid rgba(255,255,255,0.3)",
-            }}
-          />
           <Typography
             variant="subtitle2"
             sx={{
