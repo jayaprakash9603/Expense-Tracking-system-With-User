@@ -83,7 +83,7 @@ const CashFlowChart = ({
     activeRange,
     offset,
     localizedYearMonths,
-    localizedWeekDays
+    localizedWeekDays,
   );
   const { getFlowBaseRGBA, getSelectedFill } = useSelectionHelpers(flowTab);
   const flowBaseRGB = getFlowBaseRGBA();
@@ -91,28 +91,27 @@ const CashFlowChart = ({
   // Precompute hover map for quick lookup
   const selectedIndexSet = useMemo(
     () => new Set(selectedBars.map((b) => b.idx)),
-    [selectedBars]
+    [selectedBars],
   );
-  const tooltipContent = useMemo(
-    () =>
-      function renderTooltip(tooltipProps) {
-        const computedLabel =
-          typeof tooltipFormatter === "function"
-            ? tooltipFormatter(tooltipProps.label, tooltipProps.payload)
-            : tooltipProps.label;
-        return (
-          <CashFlowCompactTooltip
-            {...tooltipProps}
-            label={computedLabel}
-            colors={colors}
-            currencySymbol={currencySymbol}
-            formatCurrencyCompact={formatCurrencyCompact}
-            formatNumberFull={formatNumberFull}
-            t={t}
-            isHovering={hoverBarIndex !== null}
-          />
-        );
-      },
+  const tooltipContent = useCallback(
+    (tooltipProps) => {
+      const computedLabel =
+        typeof tooltipFormatter === "function"
+          ? tooltipFormatter(tooltipProps.label, tooltipProps.payload)
+          : tooltipProps.label;
+      return (
+        <CashFlowCompactTooltip
+          {...tooltipProps}
+          label={computedLabel}
+          colors={colors}
+          currencySymbol={currencySymbol}
+          formatCurrencyCompact={formatCurrencyCompact}
+          formatNumberFull={formatNumberFull}
+          t={t}
+          hoverBarIndex={hoverBarIndex}
+        />
+      );
+    },
     [
       colors,
       currencySymbol,
@@ -121,7 +120,7 @@ const CashFlowChart = ({
       tooltipFormatter,
       t,
       hoverBarIndex,
-    ]
+    ],
   );
 
   // Theme-aware colors
@@ -165,7 +164,7 @@ const CashFlowChart = ({
                 chartData[hoverBarIndex],
                 hoverBarIndex,
                 multi,
-                rangeSel
+                rangeSel,
               );
             }
           }}
@@ -223,8 +222,8 @@ const CashFlowChart = ({
                       activeRange === "month"
                         ? t("cashflow.chart.xAxisDay")
                         : activeRange === "week"
-                        ? t("cashflow.chart.xAxisWeekday")
-                        : t("cashflow.chart.xAxisMonth"),
+                          ? t("cashflow.chart.xAxisWeekday")
+                          : t("cashflow.chart.xAxisMonth"),
                     position: "insideBottomRight",
                     offset: -5,
                     fill: axisTextColor,
@@ -302,7 +301,7 @@ const CashFlowChart = ({
                       textAnchor="end"
                     >
                       {formatNumberFull(
-                        Number.isFinite(avg) ? Math.trunc(avg) : 0
+                        Number.isFinite(avg) ? Math.trunc(avg) : 0,
                       )}
                     </text>
                   </g>
@@ -326,8 +325,8 @@ const CashFlowChart = ({
                     isSelected
                       ? getSelectedFill()
                       : isHover
-                      ? "#7895ff"
-                      : "#5b7fff"
+                        ? "#7895ff"
+                        : "#5b7fff"
                   }
                   cursor={chartData.length > 0 ? "pointer" : "default"}
                   onClick={(e) => {
