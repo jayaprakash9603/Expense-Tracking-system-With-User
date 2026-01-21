@@ -227,9 +227,12 @@ const EditCategory = () => {
         }, 2000);
       })
       .catch((error) => {
+        // Display the actual error message from the server
+        const errorMessage =
+          error.message || "Failed to update category. Please try again.";
         setErrors({
           ...errors,
-          submit: "Failed to update category. Please try again.",
+          submit: errorMessage,
         });
       })
       .finally(() => {

@@ -32,8 +32,56 @@ public class CategoryService {
     @Autowired
     private CategoryAsyncService categoryAsyncService;
 
+    /**
+     * Check for duplicate category by name and type.
+     * 
+     * @param name      Category name
+     * @param type      Category type
+     * @param userId    User ID
+     * @param isGlobal  Whether the category is global
+     * @param excludeId Category ID to exclude (for updates)
+     * @throws Exception if duplicate found
+     */
+    private void checkForDuplicateCategory(String name, String type, Integer userId, boolean isGlobal,
+            Integer excludeId) throws Exception {
+        if (name == null || name.trim().isEmpty()) {
+            return; // Will be caught by other validation
+        }
+
+        Optional<Category> duplicate;
+
+        if (isGlobal) {
+            // Check for duplicate global category
+            if (excludeId != null) {
+                duplicate = categoryRepository.findGlobalByNameAndTypeExcluding(name.trim(), type, excludeId);
+            } else {
+                duplicate = categoryRepository.findGlobalByNameAndType(name.trim(), type);
+            }
+            if (duplicate.isPresent()) {
+                throw new Exception(
+                        "A global category with the name '" + name + "' and type '" + type + "' already exists.");
+            }
+        } else {
+            // Check for duplicate user-specific category
+            Integer categoryUserId = (userId != null) ? userId : 0;
+            if (excludeId != null) {
+                duplicate = categoryRepository.findByNameAndTypeAndUserIdExcluding(name.trim(), type, categoryUserId,
+                        excludeId);
+            } else {
+                duplicate = categoryRepository.findByNameAndTypeAndUserId(name.trim(), type, categoryUserId);
+            }
+            if (duplicate.isPresent()) {
+                throw new Exception("A category with the name '" + name + "' and type '" + type + "' already exists.");
+            }
+        }
+    }
+
     public Category create(Category category, Integer userId) throws Exception {
         User user = helper.validateUser(userId);
+
+        // Check for duplicate category (same name and type)
+        checkForDuplicateCategory(category.getName(), category.getType(), userId, category.isGlobal(), null);
+
         // Create the initial category
         Category createCategory = new Category();
         if (category.isGlobal()) {
@@ -143,6 +191,19 @@ public class CategoryService {
         // Guard: Global categories can only be edited once per user
         if (existing.isGlobal() && isUserEdited(userId, id)) {
             throw new Exception("You can only edit this global category once.");
+        }
+
+        // Check for duplicate category (same name and type) - exclude current category
+        String newName = category.getName() != null ? category.getName() : existing.getName();
+        String newType = category.getType() != null ? category.getType() : existing.getType();
+
+        // For global category edits that create user-specific copies, check user's
+        // categories
+        if (existing.isGlobal() && !isUserEdited(userId, id)) {
+            checkForDuplicateCategory(newName, newType, userId, false, null);
+        } else if (!existing.isGlobal()) {
+            // For user-specific category updates, exclude the current category
+            checkForDuplicateCategory(newName, newType, existing.getUserId(), false, id);
         }
 
         // CASE A: First-time edit of a global category by this user -> clone to
@@ -268,6 +329,12 @@ public class CategoryService {
         if (!existing.isGlobal()) {
             throw new Exception("This endpoint is only for global categories. Category ID " + id + " is not global.");
         }
+
+        // Check for duplicate global category (same name and type) - exclude current
+        // category
+        String newName = category.getName() != null ? category.getName() : existing.getName();
+        String newType = category.getType() != null ? category.getType() : existing.getType();
+        checkForDuplicateCategory(newName, newType, 0, true, id);
 
         logger.info("Admin user {} updating global category: {} (ID: {})", user.getId(), existing.getName(),
                 existing.getId());

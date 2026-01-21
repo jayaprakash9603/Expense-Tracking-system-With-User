@@ -70,11 +70,18 @@ export const createCategory =
         type: "CREATE_CATEGORY_SUCCESS",
         payload: response.data,
       });
+      return response.data;
     } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Failed to create category";
       dispatch({
         type: "CREATE_CATEGORY_FAILURE",
-        payload: error.message,
+        payload: errorMessage,
       });
+      throw new Error(errorMessage);
     }
   };
 
@@ -117,7 +124,7 @@ export const updateCategory =
           params: {
             targetId: targetId || "",
           },
-        }
+        },
       );
 
       dispatch({
@@ -133,11 +140,16 @@ export const updateCategory =
 
       return response.data;
     } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Failed to update category";
       dispatch({
         type: UPDATE_CATEGORY_FAILURE,
-        payload: error.response?.data?.message || "Failed to update category",
+        payload: errorMessage,
       });
-      return error;
+      throw new Error(errorMessage);
     }
   };
 
@@ -156,7 +168,7 @@ export const fetchCategoryExpenses =
             page,
             size,
           },
-        }
+        },
       );
 
       dispatch({
