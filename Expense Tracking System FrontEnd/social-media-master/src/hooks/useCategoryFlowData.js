@@ -284,6 +284,7 @@ export default function useCategoryFlowData({
       color: c.color || deterministicColor(c.name),
       icon: c.icon || "",
       expenses: c.expenses || [],
+      entityType: "category",
     }));
     return {
       pieData: categories.map((cat) => ({

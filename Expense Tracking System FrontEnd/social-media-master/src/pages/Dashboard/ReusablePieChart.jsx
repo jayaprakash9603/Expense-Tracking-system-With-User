@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 import EmptyStateCard from "../../components/EmptyStateCard";
+import { getEntityIcon } from "../../utils/iconMapping";
 
 // Generic reusable Pie/Donut chart component with MUI tooltips
 // Props:
@@ -64,11 +65,14 @@ const MuiPieTooltip = ({
   currencySymbol,
   total,
   themeColors,
+  entityType = "category",
 }) => {
   if (!active || !payload || !payload.length) return null;
 
   const item = payload[0];
   const percentage = total > 0 ? (item.value / total) * 100 : 0;
+  const iconKey = item.payload?.icon || item.name || "";
+  const iconColor = item.payload?.fill || item.color || "#14b8a6";
 
   return (
     <Paper
@@ -101,8 +105,22 @@ const MuiPieTooltip = ({
               color: themeColors.primary_text,
               fontWeight: 600,
               fontSize: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
             }}
           >
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                fontSize: "1.1rem",
+              }}
+            >
+              {getEntityIcon(entityType, iconKey, {
+                sx: { color: iconColor, fontSize: "1.1rem" },
+              })}
+            </span>
             {item.name}
           </Typography>
         </Box>
@@ -218,6 +236,7 @@ const ReusablePieChart = ({
   footerPrefix = "Total:",
   valuePrefix,
   skeleton = null,
+  entityType = "category",
 }) => {
   const { colors: themeColors, mode: themeMode } = useTheme();
   const settings = useUserSettings();
@@ -238,16 +257,32 @@ const ReusablePieChart = ({
     if (Array.isArray(data)) {
       const total = data.reduce((s, it) => s + (Number(it.value) || 0), 0);
       normalized = {
-        items: data.map((d) => ({ name: d.name, value: Number(d.value) || 0 })),
+        items: data.map((d) => ({
+          name: d.name,
+          value: Number(d.value) || 0,
+          icon: d.icon || "",
+          color: d.color || "",
+        })),
         total,
       };
     } else if (data && typeof data === "object") {
-      const totals = data.summary?.categoryTotals || {};
-      const items = Object.keys(totals).map((k) => ({
-        name: k,
-        value: Number(totals[k]) || 0,
-      }));
-      const total = Number(data.summary?.totalAmount || 0);
+      // API returns each category/payment method as a key with its details
+      // and a "summary" key with aggregated totals
+      const entityKeys = Object.keys(data).filter(
+        (k) => k !== "summary" && k !== "metadata",
+      );
+      const items = entityKeys.map((k) => {
+        const entityData = data[k] || {};
+        return {
+          name: k,
+          value: Number(entityData.totalAmount || 0),
+          icon: entityData.icon || "",
+          color: entityData.color || "",
+        };
+      });
+      const total = Number(
+        data.summary?.totalAmount || items.reduce((s, it) => s + it.value, 0),
+      );
       normalized = { items, total };
     }
   }
@@ -462,6 +497,7 @@ const ReusablePieChart = ({
                       currencySymbol={currencySymbol}
                       total={totalAmount}
                       themeColors={themeColors}
+                      entityType={entityType}
                     />
                   )}
                   cursor={{ fill: "transparent" }}
@@ -478,6 +514,34 @@ const ReusablePieChart = ({
                     }}
                     onMouseEnter={handleLegendMouseEnter}
                     onMouseLeave={handleLegendMouseLeave}
+                    iconSize={0}
+                    formatter={(value, entry) => {
+                      const iconKey = entry.payload?.icon || value || "";
+                      const iconColor =
+                        entry.payload?.fill || entry.color || "#14b8a6";
+                      return (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              fontSize: "1em",
+                            }}
+                          >
+                            {getEntityIcon(entityType, iconKey, {
+                              sx: { color: iconColor, fontSize: "1em" },
+                            })}
+                          </span>
+                          <span>{value}</span>
+                        </span>
+                      );
+                    }}
                   />
                 )}
               </PieChart>

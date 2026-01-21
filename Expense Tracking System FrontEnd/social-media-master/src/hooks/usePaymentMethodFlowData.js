@@ -283,6 +283,7 @@ export default function usePaymentMethodFlowData({
       color: m.color || deterministicColor(m.name),
       icon: m.icon || "",
       expenses: m.expenses || [],
+      entityType: "paymentMethod",
     }));
     return {
       pieData: methods.map((pm) => ({

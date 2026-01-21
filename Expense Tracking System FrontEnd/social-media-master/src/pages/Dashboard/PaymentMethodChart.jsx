@@ -12,7 +12,6 @@ const PaymentMethodChart = ({
   loading = false,
   skeleton = null,
 }) => {
-  
   const normalize = (raw) => {
     if (
       raw &&
@@ -22,9 +21,13 @@ const PaymentMethodChart = ({
     ) {
       const labels = raw.labels;
       const values = raw.datasets[0].data;
+      const icons = raw.datasets[0].icons || [];
+      const colors = raw.datasets[0].colors || [];
       const items = labels.map((label, idx) => ({
         name: label,
         value: Number(values[idx]) || 0,
+        icon: icons[idx] || "",
+        color: colors[idx] || "",
       }));
       const total = items.reduce((s, it) => s + it.value, 0);
       return { items, total };
@@ -33,15 +36,22 @@ const PaymentMethodChart = ({
       const items = raw.map((r, i) => ({
         name: (r.label || r.name || r.method || `Item ${i + 1}`).toString(),
         value: Number(r.amount || r.total || r.value || r.count || 0) || 0,
+        icon: r.icon || "",
+        color: r.color || "",
       }));
       const total = items.reduce((s, it) => s + it.value, 0);
       return { items, total };
     }
     if (raw && typeof raw === "object") {
-      const items = Object.keys(raw).map((k) => ({
-        name: k,
-        value: Number(raw[k]) || 0,
-      }));
+      const paymentMethodDetails = raw.summary?.paymentMethodDetails || {};
+      const items = Object.keys(raw)
+        .filter((k) => k !== "summary")
+        .map((k) => ({
+          name: k,
+          value: Number(raw[k]?.totalAmount || raw[k]) || 0,
+          icon: paymentMethodDetails[k]?.icon || raw[k]?.icon || "",
+          color: paymentMethodDetails[k]?.color || raw[k]?.color || "",
+        }));
       const total = items.reduce((s, it) => s + it.value, 0);
       return { items, total };
     }
@@ -51,7 +61,7 @@ const PaymentMethodChart = ({
   return (
     <ReusablePieChart
       title="💳 Payment Methods"
-      data={data}
+      data={rawData || data}
       rawData={rawData}
       timeframe={timeframe}
       onTimeframeChange={onTimeframeChange}
@@ -64,6 +74,7 @@ const PaymentMethodChart = ({
       height={480}
       renderFooterTotal={true}
       footerPrefix="Total:"
+      entityType="paymentMethod"
     />
   );
 };

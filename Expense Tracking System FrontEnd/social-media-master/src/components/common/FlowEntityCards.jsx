@@ -15,6 +15,7 @@ import { formatCurrencyCompact } from "../../utils/numberFormatters";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
+import { getEntityIcon } from "../../utils/iconMapping";
 
 /**
  * FlowEntityCards
@@ -208,18 +209,25 @@ const FlowEntityCards = ({
                     className="flex items-center gap-2 min-w-0"
                     style={{ maxWidth: "85%" }}
                   >
-                    {entity.icon && (
-                      <span
-                        style={{
-                          fontSize: "20px",
-                          flexShrink: 0,
-                        }}
-                        role="img"
-                        aria-label={entity.categoryName}
-                      >
-                        {entity.icon}
-                      </span>
-                    )}
+                    <span
+                      style={{
+                        fontSize: "20px",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      {getEntityIcon(
+                        entity.entityType || "category",
+                        entity.icon || entity.categoryName,
+                        {
+                          sx: {
+                            color: entity.color || "#14b8a6",
+                            fontSize: "20px",
+                          },
+                        },
+                      )}
+                    </span>
                     <span
                       className="font-semibold text-base truncate min-w-0"
                       title={entity.categoryName}
