@@ -1,11 +1,9 @@
 import React, { useCallback } from "react";
-import dayjs from "dayjs";
 import { IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import { useTheme } from "../../hooks/useTheme";
-import useUserSettings from "../../hooks/useUserSettings";
 import { useMasking } from "../../hooks/useMasking";
 import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -34,8 +32,6 @@ const ExpenseCard = React.memo(
     onEdit,
   }) {
     const { colors } = useTheme();
-    const settings = useUserSettings();
-    const dateFormat = settings.dateFormat || "DD/MM/YYYY";
     const { maskAmount, isMasking } = useMasking();
     const { t } = useTranslation();
 
@@ -98,6 +94,14 @@ const ExpenseCard = React.memo(
       row.category ||
       row.expense?.category ||
       t("cashflow.labels.uncategorized");
+
+    // Get the actual icon key from the expense data, fallback to category name for mapping
+    const categoryIconKey =
+      row.categoryIcon ||
+      row.category?.icon ||
+      row.expense?.categoryIcon ||
+      categoryName;
+
     const rawPaymentMethod =
       row.paymentMethodName ||
       row.paymentMethod?.name ||
@@ -105,6 +109,14 @@ const ExpenseCard = React.memo(
       row.expense?.paymentMethod ||
       t("cashflow.labels.unknownPayment");
     const paymentMethodName = formatPaymentMethodName(rawPaymentMethod);
+
+    // Get the actual payment method icon key from the expense data, fallback to name for mapping
+    const paymentMethodIconKey =
+      row.paymentMethodIcon ||
+      row.paymentMethod?.icon ||
+      row.expense?.paymentMethodIcon ||
+      paymentMethodName;
+
     const isBill = row.bill === true;
 
     // Simplified click handler - scroll handling moved to parent wrapper
@@ -258,7 +270,7 @@ const ExpenseCard = React.memo(
                 category: categoryName,
               })}
             >
-              {getCategoryIcon(categoryName, {
+              {getCategoryIcon(categoryIconKey, {
                 sx: { fontSize: 13, color: colors.primary_accent },
               })}
               <span
@@ -274,7 +286,7 @@ const ExpenseCard = React.memo(
                 method: paymentMethodName,
               })}
             >
-              {getPaymentMethodIcon(paymentMethodName, {
+              {getPaymentMethodIcon(paymentMethodIconKey, {
                 sx: { fontSize: 13, color: colors.secondary_accent },
               })}
               <span
