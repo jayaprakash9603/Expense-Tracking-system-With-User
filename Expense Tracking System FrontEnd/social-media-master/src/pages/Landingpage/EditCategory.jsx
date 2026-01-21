@@ -19,7 +19,6 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
-import CategoryIcon from "@mui/icons-material/Category";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
@@ -35,245 +34,18 @@ import {
   CATEGORY_COLORS,
 } from "../../components/constants/categoryColors";
 import {
-  CATEGORY_ICONS,
+  CATEGORY_EMOJIS,
+  DEFAULT_CATEGORY_EMOJI,
   CATEGORY_TYPES,
-} from "../../components/constants/categoryIcons";
+} from "../../components/constants/CategoryEmojis";
 import {
   fetchCategoryById,
   fetchCategoryExpenses,
   updateCategory,
 } from "../../Redux/Category/categoryActions";
 
-// Import the same icon categories from CreateCategory
-const ICON_CATEGORIES = {
-  "Financial & Money": [
-    "cash",
-    "creditCard",
-    "income",
-    "expense",
-    "wallet",
-    "savings",
-    "exchange",
-    "invoice",
-    "bills",
-    "investment",
-    "payment",
-    "salary",
-    "bitcoin",
-    "ruble",
-    "yen",
-    "pound",
-    "lira",
-    "franc",
-    "euro",
-    "calculator",
-    "barChart",
-    "analytics",
-    "bubbleChart",
-    "atm",
-  ],
-  "Food & Dining": [
-    "food",
-    "restaurant",
-    "grocery",
-    "drinks",
-    "coffee",
-    "dessert",
-    "icecream",
-    "asianFood",
-    "bakery",
-    "dinner",
-    "groceryItem",
-    "foodBank",
-    "brunch",
-    "bento",
-  ],
-  "Transportation & Travel": [
-    "transport",
-    "travel",
-    "boat",
-    "bus",
-    "train",
-    "taxi",
-    "motorcycle",
-    "airplane",
-    "electricCar",
-    "shipping",
-    "shuttle",
-    "scooter",
-    "busAlert",
-    "parking",
-  ],
-  "Home & Utilities": [
-    "home",
-    "water",
-    "electricity",
-    "gas",
-    "furniture",
-    "chair",
-    "kitchen",
-    "apartment",
-    "bathroom",
-    "bedroom",
-    "blender",
-    "cables",
-    "balcony",
-    "doorway",
-    "fireplace",
-    "garage",
-    "microwave",
-    "nursery",
-    "bedtime",
-    "bungalow",
-    "cabin",
-    "deck",
-    "lightbulb",
-  ],
-  "Entertainment & Leisure": [
-    "entertainment",
-    "television",
-    "movies",
-    "gaming",
-    "sports",
-    "music",
-    "books",
-    "party",
-    "birthday",
-    "tickets",
-    "nightlife",
-    "piano",
-    "swimming",
-    "gambling",
-    "activities",
-    "golf",
-    "album",
-    "audio",
-    "stories",
-    "bookmark",
-    "bookOnline",
-  ],
-  "Shopping & Gifts": [
-    "shopping",
-    "clothing",
-    "jewelry",
-    "watch",
-    "gift",
-    "offers",
-    "addToCart",
-    "backpack",
-    "luggage",
-  ],
-  "Health & Wellness": [
-    "health",
-    "medicalServices",
-    "medication",
-    "spa",
-    "beauty",
-    "haircut",
-    "wellness",
-    "fitness",
-    "gym",
-    "hiking",
-    "bloodtype",
-    "walker",
-  ],
-  "Technology & Electronics": [
-    "phone",
-    "internet",
-    "devices",
-    "computer",
-    "smartphone",
-    "headphones",
-    "camera",
-    "laptop",
-    "earbuds",
-    "bluetooth",
-    "charging",
-    "onlineEducation",
-  ],
-  "Education & Career": [
-    "education",
-    "recipe",
-    "library",
-    "badge",
-    "business",
-    "corporate",
-    "briefcase",
-    "architecture",
-    "api",
-    "biotech",
-    "factory",
-  ],
-  "Home Maintenance & Services": [
-    "gardening",
-    "cleaning",
-    "repairs",
-    "construction",
-    "tools",
-    "hardware",
-    "lawn",
-    "carpentry",
-    "laundry",
-    "printing",
-    "buildCircle",
-    "forest",
-    "farming",
-  ],
-  "People & Family": [
-    "children",
-    "pets",
-    "friends",
-    "family",
-    "group",
-    "personal",
-    "elderly",
-    "babyStation",
-    "donation",
-  ],
-  "Travel & Places": [
-    "beach",
-    "hotel",
-    "park",
-    "internet2",
-    "global",
-    "nature",
-    "anchor",
-    "air",
-  ],
-  "Time & Planning": [
-    "calendar",
-    "alarm",
-    "time",
-    "alarmClock",
-    "alarmSet",
-    "timer",
-    "today",
-    "renew",
-  ],
-  "Communication & Social": [
-    "announcement",
-    "email",
-    "mail",
-    "registration",
-    "archive",
-    "attachment",
-    "backup",
-    "ballot",
-    "prediction",
-  ],
-  "Religious & Spiritual": ["mosque", "church", "temple", "synagogue"],
-  "Security & Safety": ["fireDept", "police", "legal", "balance", "bugReport"],
-  Miscellaneous: [
-    "other",
-    "idea",
-    "favorite",
-    "rating",
-    "awards",
-    "unlimited",
-    "awesome",
-    "autoFix",
-  ],
-};
+// Use emoji categories from constants
+const ICON_CATEGORIES = CATEGORY_EMOJIS;
 
 const EditCategory = () => {
   const { colors } = useTheme();
@@ -308,7 +80,7 @@ const EditCategory = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [localExpenses, setLocalExpenses] = useState([]);
   const { currentCategory, categoryExpenses } = useSelector(
-    (state) => state.categories || {}
+    (state) => state.categories || {},
   );
   const userId = useSelector((state) => state.auth?.user?.id);
 
@@ -471,7 +243,7 @@ const EditCategory = () => {
       dispatch(fetchCategoryExpenses(id, 1, 1000, friendId || "")).finally(
         () => {
           setLoadingExpenses(false);
-        }
+        },
       );
     }
     setShowExpenses(!showExpenses);
@@ -486,8 +258,8 @@ const EditCategory = () => {
   const handleIncludeInBudgetChange = (id, checked) => {
     setLocalExpenses((prevExpenses) =>
       prevExpenses.map((expense) =>
-        expense.id === id ? { ...expense, includeInBudget: checked } : expense
-      )
+        expense.id === id ? { ...expense, includeInBudget: checked } : expense,
+      ),
     );
   };
   // Prepare data for the DataGrid
@@ -588,22 +360,9 @@ const EditCategory = () => {
                 helperText={errors.name}
                 InputProps={{
                   startAdornment: (
-                    <>
-                      {(() => {
-                        const el =
-                          categoryData.selectedIconKey &&
-                          CATEGORY_ICONS[categoryData.selectedIconKey];
-                        return React.isValidElement(el) ? (
-                          React.cloneElement(el, {
-                            sx: { mr: 1, color: categoryData.color },
-                          })
-                        ) : (
-                          <CategoryIcon
-                            sx={{ mr: 1, color: categoryData.color }}
-                          />
-                        );
-                      })()}
-                    </>
+                    <span style={{ marginRight: 8, fontSize: "1.5rem" }}>
+                      {categoryData.selectedIconKey || DEFAULT_CATEGORY_EMOJI}
+                    </span>
                   ),
                   style: { color: colors.primary_text },
                 }}
@@ -913,10 +672,10 @@ const EditCategory = () => {
                         },
                       }}
                     >
-                      {currentTabIcons.map((iconKey) => (
+                      {currentTabIcons.map((emoji, idx) => (
                         <Box
-                          key={iconKey}
-                          onClick={() => handleIconSelect(iconKey)}
+                          key={idx}
+                          onClick={() => handleIconSelect(emoji)}
                           sx={{
                             width: "45px",
                             height: "45px",
@@ -925,7 +684,7 @@ const EditCategory = () => {
                             justifyContent: "center",
                             borderRadius: "8px",
                             border:
-                              categoryData.selectedIconKey === iconKey
+                              categoryData.selectedIconKey === emoji
                                 ? `2px solid ${categoryData.color}`
                                 : `1px solid ${colors.border_color}`,
                             cursor: "pointer",
@@ -934,13 +693,13 @@ const EditCategory = () => {
                               backgroundColor: colors.hover_bg,
                             },
                             backgroundColor:
-                              categoryData.selectedIconKey === iconKey
+                              categoryData.selectedIconKey === emoji
                                 ? `${categoryData.color}33`
                                 : "transparent",
                             position: "relative",
                             transition: "all 0.2s ease",
                             "&::after":
-                              categoryData.selectedIconKey === iconKey
+                              categoryData.selectedIconKey === emoji
                                 ? {
                                     content: '""',
                                     position: "absolute",
@@ -955,15 +714,7 @@ const EditCategory = () => {
                                 : {},
                           }}
                         >
-                          {React.cloneElement(CATEGORY_ICONS[iconKey], {
-                            style: {
-                              color:
-                                categoryData.selectedIconKey === iconKey
-                                  ? categoryData.color
-                                  : colors.icon_muted,
-                              fontSize: "26px",
-                            },
-                          })}
+                          <span style={{ fontSize: "24px" }}>{emoji}</span>
                         </Box>
                       ))}
                     </Box>

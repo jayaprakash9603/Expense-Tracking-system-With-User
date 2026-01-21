@@ -164,7 +164,11 @@ public class CategoryController {
             // Get old category for audit tracking
             Category oldCategory = categoryService.getById(id, targetUser.getId());
 
-            Category updated = categoryService.update(id, category, targetUser.getId());
+            // Pass the requesting user to check for admin mode
+            // If reqUser is in admin mode and editing their own categories (no targetId),
+            // they can directly edit global categories
+            User userForUpdate = (targetId == null) ? reqUser : targetUser;
+            Category updated = categoryService.update(id, category, userForUpdate);
 
             // Send unified event (handles both own action and friend activity)
             unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, targetUser);
@@ -175,6 +179,45 @@ public class CategoryController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error updating category: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Admin-only PATCH endpoint for partial update of global categories.
+     * User must have ADMIN role AND be in ADMIN mode.
+     * Updates are reflected for all users.
+     * 
+     * Allowed fields: name, description, type, icon, color
+     */
+    @PatchMapping("/admin/global/{id}")
+    public ResponseEntity<?> adminUpdateGlobalCategory(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Integer id,
+            @RequestBody Category category) {
+        try {
+            User reqUser = userService.getuserProfile(jwt);
+            if (reqUser == null)
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+
+            // Get old category for audit tracking
+            Category oldCategory = categoryService.getById(id, reqUser.getId());
+
+            Category updated = categoryService.adminUpdateGlobalCategory(id, category, reqUser);
+
+            // Send unified event for admin action
+            unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, reqUser);
+
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage != null && errorMessage.contains("Access denied")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessage);
+            }
+            if (errorMessage != null && errorMessage.contains("not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error updating global category: " + errorMessage);
         }
     }
 
@@ -239,7 +282,11 @@ public class CategoryController {
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            List<Category> updatedCategories = categoryService.updateMultiple(categories, targetUser.getId());
+            // Pass the requesting user to check for admin role
+            // If reqUser has admin role and editing their own categories (no targetId),
+            // they can directly edit global categories
+            User userForUpdate = (targetId == null) ? reqUser : targetUser;
+            List<Category> updatedCategories = categoryService.updateMultiple(categories, userForUpdate);
 
             // Send appropriate notification based on who performed the action
             unifiedActivityService.sendMultipleCategoriesUpdatedEvent(updatedCategories, reqUser, targetUser);

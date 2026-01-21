@@ -130,7 +130,13 @@ public class CategoryService {
         return false;
     }
 
-    public Category update(Integer id, Category category, Integer userId) throws Exception {
+    /**
+     * Update a category.
+     * For regular users, global categories are cloned to user-specific.
+     * For admin updates to global categories, use adminUpdateGlobalCategory method.
+     */
+    public Category update(Integer id, Category category, User user) throws Exception {
+        Integer userId = user.getId();
         Category existing = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
@@ -233,6 +239,63 @@ public class CategoryService {
         }
 
         return categoryRepository.save(existing);
+    }
+
+    /**
+     * Admin-only partial update for global categories.
+     * User must have ADMIN role AND be in ADMIN mode.
+     * Directly modifies the global category - changes are reflected for all users.
+     * 
+     * @param id       The category ID to update
+     * @param category The partial category data (name, description, type, icon,
+     *                 color)
+     * @param user     The user performing the update
+     * @return Updated category
+     * @throws Exception if user is not admin or category is not global
+     */
+    public Category adminUpdateGlobalCategory(Integer id, Category category, User user) throws Exception {
+        // Validate admin access
+        if (!user.hasAdminRole()) {
+            throw new Exception("Access denied: User does not have ADMIN role");
+        }
+        if (!user.isInAdminMode()) {
+            throw new Exception("Access denied: User must be in ADMIN mode to edit global categories");
+        }
+
+        Category existing = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + id));
+
+        if (!existing.isGlobal()) {
+            throw new Exception("This endpoint is only for global categories. Category ID " + id + " is not global.");
+        }
+
+        logger.info("Admin user {} updating global category: {} (ID: {})", user.getId(), existing.getName(),
+                existing.getId());
+
+        // Update basic fields
+        if (category.getName() != null) {
+            existing.setName(category.getName());
+        }
+        if (category.getDescription() != null) {
+            existing.setDescription(category.getDescription());
+        }
+        if (category.getColor() != null) {
+            existing.setColor(category.getColor());
+        }
+        if (category.getIcon() != null) {
+            existing.setIcon(category.getIcon());
+        }
+        if (category.getType() != null) {
+            existing.setType(category.getType());
+        }
+
+        // Admin can update global flag but keep it global by default
+        // Note: expenseIds are user-specific, so we don't modify them for admin global
+        // edits
+
+        Category updated = categoryRepository.save(existing);
+        logger.info("Global category {} updated successfully by admin", updated.getId());
+        return updated;
     }
 
     // Helper method to handle assigning expenses to Others category
@@ -524,7 +587,12 @@ public class CategoryService {
 
     // Update multiple categories
 
-    public List<Category> updateMultiple(List<Category> categories, Integer userId) throws Exception {
+    /**
+     * Update multiple categories.
+     * For admin updates to global categories, use adminUpdateGlobalCategory method.
+     */
+    public List<Category> updateMultiple(List<Category> categories, User user) throws Exception {
+        Integer userId = user.getId();
         List<Category> updatedCategories = new ArrayList<>();
         Map<Integer, List<Category>> expenseToCategories = new HashMap<>();
 

@@ -4,6 +4,9 @@ package com.jaya.models;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class User {
 
@@ -27,6 +30,12 @@ public class User {
 
     @JsonProperty("mobile")
     private String mobile;
+
+    @JsonProperty("roles")
+    private Set<String> roles = new HashSet<>();
+
+    @JsonProperty("currentMode")
+    private String currentMode = "USER";
 
     // Default constructor (required for JSON deserialization)
     public User() {
@@ -98,6 +107,39 @@ public class User {
         this.mobile = mobile;
     }
 
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
+    }
+
+    public String getCurrentMode() {
+        return currentMode;
+    }
+
+    public void setCurrentMode(String currentMode) {
+        this.currentMode = currentMode;
+    }
+
+    /**
+     * Check if user has ADMIN role
+     */
+    public boolean hasAdminRole() {
+        if (roles == null)
+            return false;
+        return roles.stream().anyMatch(role -> role.equalsIgnoreCase("ADMIN") ||
+                role.equalsIgnoreCase("ROLE_ADMIN"));
+    }
+
+    /**
+     * Check if user is currently in ADMIN mode and has ADMIN role
+     */
+    public boolean isInAdminMode() {
+        return hasAdminRole() && "ADMIN".equalsIgnoreCase(currentMode);
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -108,6 +150,8 @@ public class User {
                 ", lastName='" + lastName + '\'' +
                 ", image='" + image + '\'' +
                 ", mobile='" + mobile + '\'' +
+                ", roles=" + roles +
+                ", currentMode='" + currentMode + '\'' +
                 '}';
     }
 }

@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
-import PaymentIcon from "@mui/icons-material/Payment";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
@@ -28,9 +27,10 @@ import {
   CATEGORY_COLORS,
 } from "../../components/constants/categoryColors";
 import {
-  CATEGORY_ICONS,
+  CATEGORY_EMOJIS,
+  DEFAULT_CATEGORY_EMOJI,
   CATEGORY_TYPES,
-} from "../../components/constants/categoryIcons";
+} from "../../components/constants/CategoryEmojis";
 import {
   createPaymentMethod,
   fetchPaymentMethodByTargetId,
@@ -38,213 +38,8 @@ import {
 } from "../../Redux/Payment Method/paymentMethod.action";
 import ToastNotification from "./ToastNotification";
 
-// Define icon categories for better organization
-const ICON_CATEGORIES = {
-  "Financial & Money": [
-    "cash",
-    "creditCard",
-    "income",
-    "expense",
-    "wallet",
-    "savings",
-    "exchange",
-    "invoice",
-    "bills",
-    "investment",
-    "payment",
-    "salary",
-    "bitcoin",
-    "ruble",
-    "yen",
-    "pound",
-    "lira",
-    "franc",
-    "euro",
-    "calculator",
-    "barChart",
-    "analytics",
-    "bubbleChart",
-    "atm",
-  ],
-  "Food & Dining": [
-    "food",
-    "restaurant",
-    "grocery",
-    "drinks",
-    "coffee",
-    "dessert",
-    "icecream",
-    "asianFood",
-    "bakery",
-    "dinner",
-    "groceryItem",
-    "foodBank",
-    "brunch",
-    "bento",
-  ],
-  "Transportation & Travel": [
-    "transport",
-    "travel",
-    "boat",
-    "bus",
-    "train",
-    "taxi",
-    "motorcycle",
-    "airplane",
-    "electricCar",
-    "shipping",
-    "shuttle",
-    "scooter",
-    "busAlert",
-    "parking",
-  ],
-  "Home & Utilities": [
-    "home",
-    "water",
-    "electricity",
-    "gas",
-    "furniture",
-    "chair",
-    "kitchen",
-    "apartment",
-    "bathroom",
-    "bedroom",
-    "blender",
-    "cables",
-    "balcony",
-    "doorway",
-    "fireplace",
-    "garage",
-    "microwave",
-    "nursery",
-    "bedtime",
-    "bungalow",
-    "cabin",
-    "deck",
-    "lightbulb",
-  ],
-  "Shopping & Gifts": [
-    "shopping",
-    "clothing",
-    "jewelry",
-    "watch",
-    "gift",
-    "offers",
-    "addToCart",
-    "backpack",
-    "luggage",
-  ],
-  "Health & Wellness": [
-    "health",
-    "medicalServices",
-    "medication",
-    "spa",
-    "beauty",
-    "haircut",
-    "wellness",
-    "fitness",
-    "gym",
-    "hiking",
-    "bloodtype",
-    "walker",
-  ],
-  "Technology & Electronics": [
-    "phone",
-    "internet",
-    "devices",
-    "computer",
-    "smartphone",
-    "headphones",
-    "camera",
-    "laptop",
-    "earbuds",
-    "bluetooth",
-    "charging",
-    "onlineEducation",
-  ],
-  "Education & Career": [
-    "education",
-    "recipe",
-    "library",
-    "badge",
-    "business",
-    "corporate",
-    "briefcase",
-    "architecture",
-    "api",
-    "biotech",
-    "factory",
-  ],
-  "Home Maintenance & Services": [
-    "gardening",
-    "cleaning",
-    "repairs",
-    "construction",
-    "tools",
-    "hardware",
-    "lawn",
-    "carpentry",
-    "laundry",
-    "printing",
-    "buildCircle",
-    "forest",
-    "farming",
-  ],
-  "People & Family": [
-    "children",
-    "pets",
-    "friends",
-    "family",
-    "group",
-    "personal",
-    "elderly",
-    "babyStation",
-    "donation",
-  ],
-  "Travel & Places": [
-    "beach",
-    "hotel",
-    "park",
-    "internet2",
-    "global",
-    "nature",
-    "anchor",
-    "air",
-  ],
-  "Time & Planning": [
-    "calendar",
-    "alarm",
-    "time",
-    "alarmClock",
-    "alarmSet",
-    "timer",
-    "today",
-    "renew",
-  ],
-  "Communication & Social": [
-    "announcement",
-    "email",
-    "mail",
-    "registration",
-    "archive",
-    "attachment",
-    "backup",
-    "ballot",
-    "prediction",
-  ],
-  "Religious & Spiritual": ["mosque", "church", "temple", "synagogue"],
-  "Security & Safety": ["fireDept", "police", "legal", "balance", "bugReport"],
-  Miscellaneous: [
-    "other",
-    "idea",
-    "favorite",
-    "rating",
-    "awards",
-    "unlimited",
-    "awesome",
-    "autoFix",
-  ],
-};
+// Use emoji categories from shared constants
+const ICON_CATEGORIES = CATEGORY_EMOJIS;
 
 const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
   const { colors } = useTheme();
@@ -269,7 +64,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
   const [loading, setLoading] = useState(false);
 
   const { uncategorizedExpenses } = useSelector(
-    (state) => state.categories || {}
+    (state) => state.categories || {},
   );
   const userId = useSelector((state) => state.auth?.user?.id);
   const [currentIconTab, setCurrentIconTab] = useState(0);
@@ -302,7 +97,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
 
       try {
         const paymentMethodResponse = await dispatch(
-          fetchPaymentMethodByTargetId(id, friendId || "")
+          fetchPaymentMethodByTargetId(id, friendId || ""),
         );
 
         console.log("Raw Payment Method Response:", paymentMethodResponse);
@@ -616,20 +411,10 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                 helperText={errors.name}
                 InputProps={{
                   startAdornment: (
-                    <>
-                      {paymentMethodData.selectedIconKey ? (
-                        React.cloneElement(
-                          CATEGORY_ICONS[paymentMethodData.selectedIconKey],
-                          {
-                            sx: { mr: 1, color: paymentMethodData.color },
-                          }
-                        )
-                      ) : (
-                        <PaymentIcon
-                          sx={{ mr: 1, color: paymentMethodData.color }}
-                        />
-                      )}
-                    </>
+                    <span style={{ marginRight: 8, fontSize: "1.5rem" }}>
+                      {paymentMethodData.selectedIconKey ||
+                        DEFAULT_CATEGORY_EMOJI}
+                    </span>
                   ),
                   style: { color: colors.primary_text },
                 }}
@@ -1008,10 +793,10 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                         },
                       }}
                     >
-                      {currentTabIcons.map((iconKey) => (
+                      {currentTabIcons.map((emoji, idx) => (
                         <Box
-                          key={iconKey}
-                          onClick={() => handleIconSelect(iconKey)}
+                          key={idx}
+                          onClick={() => handleIconSelect(emoji)}
                           sx={{
                             width: "45px",
                             height: "45px",
@@ -1020,7 +805,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                             justifyContent: "center",
                             borderRadius: "8px",
                             border:
-                              paymentMethodData.selectedIconKey === iconKey
+                              paymentMethodData.selectedIconKey === emoji
                                 ? `2px solid ${paymentMethodData.color}`
                                 : `1px solid ${colors.border_color}`,
                             cursor: "pointer",
@@ -1029,13 +814,13 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                               backgroundColor: colors.hover_bg,
                             },
                             backgroundColor:
-                              paymentMethodData.selectedIconKey === iconKey
+                              paymentMethodData.selectedIconKey === emoji
                                 ? `${paymentMethodData.color}33`
                                 : "transparent",
                             position: "relative",
                             transition: "all 0.2s ease",
                             "&::after":
-                              paymentMethodData.selectedIconKey === iconKey
+                              paymentMethodData.selectedIconKey === emoji
                                 ? {
                                     content: '""',
                                     position: "absolute",
@@ -1050,15 +835,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                                 : {},
                           }}
                         >
-                          {React.cloneElement(CATEGORY_ICONS[iconKey], {
-                            style: {
-                              color:
-                                paymentMethodData.selectedIconKey === iconKey
-                                  ? paymentMethodData.color
-                                  : colors.icon_muted,
-                              fontSize: "26px",
-                            },
-                          })}
+                          <span style={{ fontSize: "24px" }}>{emoji}</span>
                         </Box>
                       ))}
                     </Box>
@@ -1133,8 +910,8 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
                       ? "Updating..."
                       : "Creating..."
                     : isEditMode
-                    ? "Update Payment Method"
-                    : "Create Payment Method"}
+                      ? "Update Payment Method"
+                      : "Create Payment Method"}
                 </Button>
               )}
             </Box>

@@ -21,7 +21,6 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
-import CategoryIcon from "@mui/icons-material/Category";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
@@ -35,240 +34,13 @@ import {
   CATEGORY_COLORS,
 } from "../../components/constants/categoryColors";
 import {
-  CATEGORY_ICONS,
+  CATEGORY_EMOJIS,
+  DEFAULT_CATEGORY_EMOJI,
   CATEGORY_TYPES,
-} from "../../components/constants/categoryIcons";
+} from "../../components/constants/CategoryEmojis";
 
-// Define icon categories for better organization
-const ICON_CATEGORIES = {
-  "Financial & Money": [
-    "cash",
-    "creditCard",
-    "income",
-    "expense",
-    "wallet",
-    "savings",
-    "exchange",
-    "invoice",
-    "bills",
-    "investment",
-    "payment",
-    "salary",
-    "bitcoin",
-    "ruble",
-    "yen",
-    "pound",
-    "lira",
-    "franc",
-    "euro",
-    "calculator",
-    "barChart",
-    "analytics",
-    "bubbleChart",
-    "atm",
-  ],
-  "Food & Dining": [
-    "food",
-    "restaurant",
-    "grocery",
-    "drinks",
-    "coffee",
-    "dessert",
-    "icecream",
-    "asianFood",
-    "bakery",
-    "dinner",
-    "groceryItem",
-    "foodBank",
-    "brunch",
-    "bento",
-  ],
-  "Transportation & Travel": [
-    "transport",
-    "travel",
-    "boat",
-    "bus",
-    "train",
-    "taxi",
-    "motorcycle",
-    "airplane",
-    "electricCar",
-    "shipping",
-    "shuttle",
-    "scooter",
-    "busAlert",
-    "parking",
-  ],
-  "Home & Utilities": [
-    "home",
-    "water",
-    "electricity",
-    "gas",
-    "furniture",
-    "chair",
-    "kitchen",
-    "apartment",
-    "bathroom",
-    "bedroom",
-    "blender",
-    "cables",
-    "balcony",
-    "doorway",
-    "fireplace",
-    "garage",
-    "microwave",
-    "nursery",
-    "bedtime",
-    "bungalow",
-    "cabin",
-    "deck",
-    "lightbulb",
-  ],
-  "Entertainment & Leisure": [
-    "entertainment",
-    "television",
-    "movies",
-    "gaming",
-    "sports",
-    "music",
-    "books",
-    "party",
-    "birthday",
-    "tickets",
-    "nightlife",
-    "piano",
-    "swimming",
-    "gambling",
-    "activities",
-    "golf",
-    "album",
-    "audio",
-    "stories",
-    "bookmark",
-    "bookOnline",
-  ],
-  "Shopping & Gifts": [
-    "shopping",
-    "clothing",
-    "jewelry",
-    "watch",
-    "gift",
-    "offers",
-    "addToCart",
-    "backpack",
-    "luggage",
-  ],
-  "Health & Wellness": [
-    "health",
-    "medicalServices",
-    "medication",
-    "spa",
-    "beauty",
-    "haircut",
-    "wellness",
-    "fitness",
-    "gym",
-    "hiking",
-    "bloodtype",
-    "walker",
-  ],
-  "Technology & Electronics": [
-    "phone",
-    "internet",
-    "devices",
-    "computer",
-    "smartphone",
-    "headphones",
-    "camera",
-    "laptop",
-    "earbuds",
-    "bluetooth",
-    "charging",
-    "onlineEducation",
-  ],
-  "Education & Career": [
-    "education",
-    "recipe",
-    "library",
-    "badge",
-    "business",
-    "corporate",
-    "briefcase",
-    "architecture",
-    "api",
-    "biotech",
-    "factory",
-  ],
-  "Home Maintenance & Services": [
-    "gardening",
-    "cleaning",
-    "repairs",
-    "construction",
-    "tools",
-    "hardware",
-    "lawn",
-    "carpentry",
-    "laundry",
-    "printing",
-    "buildCircle",
-    "forest",
-    "farming",
-  ],
-  "People & Family": [
-    "children",
-    "pets",
-    "friends",
-    "family",
-    "group",
-    "personal",
-    "elderly",
-    "babyStation",
-    "donation",
-  ],
-  "Travel & Places": [
-    "beach",
-    "hotel",
-    "park",
-    "internet2",
-    "global",
-    "nature",
-    "anchor",
-    "air",
-  ],
-  "Time & Planning": [
-    "calendar",
-    "alarm",
-    "time",
-    "alarmClock",
-    "alarmSet",
-    "timer",
-    "today",
-    "renew",
-  ],
-  "Communication & Social": [
-    "announcement",
-    "email",
-    "mail",
-    "registration",
-    "archive",
-    "attachment",
-    "backup",
-    "ballot",
-    "prediction",
-  ],
-  "Religious & Spiritual": ["mosque", "church", "temple", "synagogue"],
-  "Security & Safety": ["fireDept", "police", "legal", "balance", "bugReport"],
-  Miscellaneous: [
-    "other",
-    "idea",
-    "favorite",
-    "rating",
-    "awards",
-    "unlimited",
-    "awesome",
-    "autoFix",
-  ],
-};
+// Use emoji categories from constants
+const ICON_CATEGORIES = CATEGORY_EMOJIS;
 
 const CreateCategory = ({ onClose, onCategoryCreated }) => {
   const { colors } = useTheme();
@@ -300,7 +72,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
   const [errors, setErrors] = useState({});
   const [showExpenses, setShowExpenses] = useState(false);
   const { uncategorizedExpenses } = useSelector(
-    (state) => state.categories || {}
+    (state) => state.categories || {},
   );
   const userId = useSelector((state) => state.auth?.user?.id);
   const [currentIconTab, setCurrentIconTab] = useState(0);
@@ -378,8 +150,8 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
       return;
     }
 
-    // If no icon is selected, default to "other" icon
-    const iconToUse = categoryData.selectedIconKey || "other";
+    // If no icon is selected, default to folder emoji
+    const iconToUse = categoryData.selectedIconKey || DEFAULT_CATEGORY_EMOJI;
 
     const formattedData = {
       id: null, // Assuming ID is generated server-side
@@ -512,20 +284,9 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                 helperText={errors.name}
                 InputProps={{
                   startAdornment: (
-                    <>
-                      {categoryData.selectedIconKey ? (
-                        React.cloneElement(
-                          CATEGORY_ICONS[categoryData.selectedIconKey],
-                          {
-                            sx: { mr: 1, color: categoryData.color },
-                          }
-                        )
-                      ) : (
-                        <CategoryIcon
-                          sx={{ mr: 1, color: categoryData.color }}
-                        />
-                      )}
-                    </>
+                    <span style={{ marginRight: 8, fontSize: "1.5rem" }}>
+                      {categoryData.selectedIconKey || DEFAULT_CATEGORY_EMOJI}
+                    </span>
                   ),
                   style: { color: colors.primary_text },
                 }}
@@ -835,19 +596,19 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                         },
                       }}
                     >
-                      {currentTabIcons.map((iconKey) => (
+                      {currentTabIcons.map((emoji, idx) => (
                         <Box
-                          key={iconKey}
-                          onClick={() => handleIconSelect(iconKey)}
+                          key={idx}
+                          onClick={() => handleIconSelect(emoji)}
                           sx={{
-                            width: "45px", // Reduced from 50px
-                            height: "45px", // Reduced from 50px
+                            width: "45px",
+                            height: "45px",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             borderRadius: "8px",
                             border:
-                              categoryData.selectedIconKey === iconKey
+                              categoryData.selectedIconKey === emoji
                                 ? `2px solid ${categoryData.color}`
                                 : `1px solid ${colors.border_color}`,
                             cursor: "pointer",
@@ -856,36 +617,28 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                               backgroundColor: colors.hover_bg,
                             },
                             backgroundColor:
-                              categoryData.selectedIconKey === iconKey
+                              categoryData.selectedIconKey === emoji
                                 ? `${categoryData.color}33`
                                 : "transparent",
                             position: "relative",
                             transition: "all 0.2s ease",
                             "&::after":
-                              categoryData.selectedIconKey === iconKey
+                              categoryData.selectedIconKey === emoji
                                 ? {
                                     content: '""',
                                     position: "absolute",
-                                    bottom: "-3px", // Adjusted from -4px
+                                    bottom: "-3px",
                                     left: "50%",
                                     transform: "translateX(-50%)",
-                                    width: "5px", // Slightly smaller dot
-                                    height: "5px", // Slightly smaller dot
+                                    width: "5px",
+                                    height: "5px",
                                     borderRadius: "50%",
                                     backgroundColor: categoryData.color,
                                   }
                                 : {},
                           }}
                         >
-                          {React.cloneElement(CATEGORY_ICONS[iconKey], {
-                            style: {
-                              color:
-                                categoryData.selectedIconKey === iconKey
-                                  ? categoryData.color
-                                  : colors.icon_muted,
-                              fontSize: "26px", // Reduced from 30px
-                            },
-                          })}
+                          <span style={{ fontSize: "24px" }}>{emoji}</span>
                         </Box>
                       ))}
                     </Box>
