@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
+import { Box } from "@mui/material";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import { useTheme } from "../hooks/useTheme";
+import { getPaymentMethodIcon } from "../utils/iconMapping";
 
 /**
  * GroupedExpensesAccordion
@@ -27,7 +29,8 @@ const GroupedExpensesAccordion = ({
           method: methodName,
           totalAmount: Number(block?.totalAmount || 0),
           transactions: Number(
-            block?.expenseCount || (block?.expenses ? block.expenses.length : 0)
+            block?.expenseCount ||
+              (block?.expenses ? block.expenses.length : 0),
           ),
           expenses: block?.expenses || [],
         }));
@@ -228,7 +231,19 @@ const GroupedExpensesAccordion = ({
             >
               <div className="pm-header-left boxed-metrics inline-metrics">
                 <span className="metric-box name" title={group.label}>
-                  {group.label}
+                  <Box
+                    component="span"
+                    sx={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 0.75,
+                    }}
+                  >
+                    {getPaymentMethodIcon(group.label, {
+                      sx: { fontSize: 18, color: colors.primary_accent },
+                    })}
+                    {group.label}
+                  </Box>
                 </span>
                 <span className="metric-box tx" title="Transactions">
                   Count {group.count}

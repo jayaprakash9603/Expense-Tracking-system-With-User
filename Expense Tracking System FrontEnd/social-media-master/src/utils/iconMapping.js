@@ -1222,6 +1222,10 @@ export const categoryIconMap = {
   general: Category,
   test: Science,
   testing: Science,
+
+  // Default fallback
+  default: Category,
+  "": Category,
 };
 
 /**

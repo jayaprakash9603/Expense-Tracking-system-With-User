@@ -325,7 +325,7 @@ const DailySpendingChart = ({
     const visibleBudgetTotals = budgetTotals.slice(0, breakdownMaxItems);
     const hiddenBudgetTotalsCount = Math.max(
       0,
-      budgetTotals.length - visibleBudgetTotals.length
+      budgetTotals.length - visibleBudgetTotals.length,
     );
 
     const tooltipBg = colors.primary_bg;
@@ -388,6 +388,13 @@ const DailySpendingChart = ({
             : null
         }
         maxItems={5}
+        entityType={
+          String(breakdownLabel || "")
+            .toLowerCase()
+            .includes("categor")
+            ? "category"
+            : undefined
+        }
       />
     );
   };
@@ -536,11 +543,11 @@ const DailySpendingChart = ({
           ([budgetName, total]) => ({
             budgetName: String(budgetName).trim(),
             total: Number(total) || 0,
-          })
+          }),
         ),
       }))
       .sort((a, b) =>
-        a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
+        a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year,
       );
   };
 
@@ -594,7 +601,7 @@ const DailySpendingChart = ({
   const buildOverlayAllMonthlyBuckets = (
     lossPoints,
     gainPoints,
-    labelWithYear
+    labelWithYear,
   ) => {
     const monthFormatter = new Intl.DateTimeFormat(locale || undefined, {
       month: "short",
@@ -663,17 +670,17 @@ const DailySpendingChart = ({
           ([budgetName, total]) => ({
             budgetName: String(budgetName).trim(),
             total: Number(total) || 0,
-          })
+          }),
         ),
         budgetTotalsGain: Object.entries(bucket.budgetTotalsGainAgg || {}).map(
           ([budgetName, total]) => ({
             budgetName: String(budgetName).trim(),
             total: Number(total) || 0,
-          })
+          }),
         ),
       }))
       .sort((a, b) =>
-        a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
+        a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year,
       );
   };
 
@@ -716,7 +723,7 @@ const DailySpendingChart = ({
     }
 
     const useMonthly = shouldUseMonthlyBuckets(
-      isAllTimeView ? trimmedData : normalizedWithFill
+      isAllTimeView ? trimmedData : normalizedWithFill,
     );
 
     if (useMonthly && isYearView) {
@@ -753,7 +760,7 @@ const DailySpendingChart = ({
   const averageLabelText =
     averageSpending > 0
       ? `${t("cashflow.chart.averageLabel")} ${currencySymbol}${Math.round(
-          averageSpending
+          averageSpending,
         ).toLocaleString()}`
       : "";
 
@@ -798,7 +805,7 @@ const DailySpendingChart = ({
   // Theme and styling
   const theme = getThemeColors(
     isOverlayAllMode ? "loss" : activeType,
-    CHART_THEME
+    CHART_THEME,
   );
   const gradientId = `spendingGradient-${activeType}`;
   const animationKey = `${timeframe}-${activeType}-${chartData.length}`;
@@ -856,12 +863,12 @@ const DailySpendingChart = ({
     const visibleLossTotals = lossTotals.slice(0, breakdownMaxItems);
     const hiddenLossTotalsCount = Math.max(
       0,
-      lossTotals.length - visibleLossTotals.length
+      lossTotals.length - visibleLossTotals.length,
     );
     const visibleGainTotals = gainTotals.slice(0, breakdownMaxItems);
     const hiddenGainTotalsCount = Math.max(
       0,
-      gainTotals.length - visibleGainTotals.length
+      gainTotals.length - visibleGainTotals.length,
     );
 
     const shouldShowLossBudgets = lossTotals.length > 0;
@@ -925,6 +932,13 @@ const DailySpendingChart = ({
         }
         net={{ amount: netAmount }}
         maxItems={5}
+        entityType={
+          String(breakdownLabel || "")
+            .toLowerCase()
+            .includes("categor")
+            ? "category"
+            : undefined
+        }
       />
     );
   };
@@ -1071,18 +1085,18 @@ const DailySpendingChart = ({
                 const hasAnyOverlayBudgets = (() => {
                   if (!point) return false;
                   const lossTotals = normalizeBudgetTotals(
-                    point?.budgetTotalsLoss
+                    point?.budgetTotalsLoss,
                   )
                     .filter((x) => Number.isFinite(x.total))
                     .filter((x) =>
-                      showAllBudgetsInTooltip ? true : x.total !== 0
+                      showAllBudgetsInTooltip ? true : x.total !== 0,
                     );
                   const gainTotals = normalizeBudgetTotals(
-                    point?.budgetTotalsGain
+                    point?.budgetTotalsGain,
                   )
                     .filter((x) => Number.isFinite(x.total))
                     .filter((x) =>
-                      showAllBudgetsInTooltip ? true : x.total !== 0
+                      showAllBudgetsInTooltip ? true : x.total !== 0,
                     );
                   return lossTotals.length > 0 || gainTotals.length > 0;
                 })();
@@ -1092,7 +1106,7 @@ const DailySpendingChart = ({
                   const totals = normalizeBudgetTotals(point?.budgetTotals)
                     .filter((x) => Number.isFinite(x.total))
                     .filter((x) =>
-                      showAllBudgetsInTooltip ? true : x.total !== 0
+                      showAllBudgetsInTooltip ? true : x.total !== 0,
                     );
                   return totals.length > 0;
                 })();

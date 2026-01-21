@@ -2,15 +2,24 @@ package com.jaya.mapper;
 
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
+import com.jaya.models.Category;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
+import com.jaya.models.PaymentMethod;
+import com.jaya.service.CategoryServices;
+import com.jaya.service.PaymentMethodServices;
 import com.jaya.util.DataMaskingUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * ExpenseMapper - Maps between Expense entity and ExpenseDTO
@@ -25,12 +34,19 @@ import java.util.HashSet;
  * - Supports data masking for privacy
  */
 @Component
+@Slf4j
 public class ExpenseMapper {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Autowired
     private DataMaskingUtil dataMaskingUtil;
+
+    @Autowired
+    private CategoryServices categoryServices;
+
+    @Autowired
+    private PaymentMethodServices paymentMethodServices;
 
     /**
      * Maps Expense entity to ExpenseDTO
@@ -64,13 +80,182 @@ public class ExpenseMapper {
         dto.setUserId(entity.getUserId());
         dto.setBudgetIds(entity.getBudgetIds() != null ? new HashSet<>(entity.getBudgetIds()) : new HashSet<>());
 
+        // Fetch and set category icon and color
+        enrichWithCategoryDetails(dto, entity.getCategoryId(), entity.getUserId());
+
         // Map ExpenseDetails to ExpenseDetailsDTO with masking support
         if (entity.getExpense() != null) {
             dto.setExpense(toDetailsDTO(entity.getExpense(), maskSensitiveData));
+            // Fetch and set payment method icon and color
+            enrichWithPaymentMethodDetails(dto, entity.getExpense().getPaymentMethod(), entity.getUserId());
         }
 
         return dto;
     }
+
+    /**
+     * Enriches ExpenseDTO with category icon and color
+     * 
+     * @param dto        The ExpenseDTO to enrich
+     * @param categoryId The category ID
+     * @param userId     The user ID
+     */
+    private void enrichWithCategoryDetails(ExpenseDTO dto, Integer categoryId, Integer userId) {
+        if (categoryId == null || userId == null) {
+            return;
+        }
+        try {
+            Category category = categoryServices.getById(categoryId, userId);
+            if (category != null) {
+                dto.setCategoryIcon(category.getIcon());
+                dto.setCategoryColor(category.getColor());
+            }
+        } catch (Exception e) {
+            log.debug("Could not fetch category details for categoryId={}, userId={}: {}",
+                    categoryId, userId, e.getMessage());
+        }
+    }
+
+    /**
+     * Enriches ExpenseDTO with payment method icon and color
+     * 
+     * @param dto               The ExpenseDTO to enrich
+     * @param paymentMethodName The payment method name
+     * @param userId            The user ID
+     */
+    private void enrichWithPaymentMethodDetails(ExpenseDTO dto, String paymentMethodName, Integer userId) {
+        if (paymentMethodName == null || paymentMethodName.isEmpty() || userId == null) {
+            return;
+        }
+        try {
+            PaymentMethod paymentMethod = paymentMethodServices.getByNameWithService(userId, paymentMethodName);
+            if (paymentMethod != null) {
+                dto.setPaymentMethodIcon(paymentMethod.getIcon());
+                dto.setPaymentMethodColor(paymentMethod.getColor());
+            }
+        } catch (Exception e) {
+            log.debug("Could not fetch payment method details for name={}, userId={}: {}",
+                    paymentMethodName, userId, e.getMessage());
+        }
+    }
+
+    // ==================== BATCH MAPPING METHODS (Performance Optimized)
+    // ====================
+
+    /**
+     * Maps Expense entity to ExpenseDTO using pre-fetched category and payment
+     * method maps.
+     * This avoids individual API calls for each expense, improving performance for
+     * batch operations.
+     * 
+     * @param entity           The Expense entity
+     * @param categoryMap      Map of categoryId to Category (pre-fetched)
+     * @param paymentMethodMap Map of paymentMethodName to PaymentMethod
+     *                         (pre-fetched)
+     * @return ExpenseDTO for API response
+     */
+    public ExpenseDTO toDTO(Expense entity, Map<Integer, Category> categoryMap,
+            Map<String, PaymentMethod> paymentMethodMap) {
+        return toDTO(entity, false, categoryMap, paymentMethodMap);
+    }
+
+    /**
+     * Maps Expense entity to ExpenseDTO with optional data masking using
+     * pre-fetched maps.
+     * 
+     * @param entity            The Expense entity
+     * @param maskSensitiveData Whether to mask sensitive data
+     * @param categoryMap       Map of categoryId to Category (pre-fetched)
+     * @param paymentMethodMap  Map of paymentMethodName to PaymentMethod
+     *                          (pre-fetched)
+     * @return ExpenseDTO for API response
+     */
+    public ExpenseDTO toDTO(Expense entity, Boolean maskSensitiveData,
+            Map<Integer, Category> categoryMap,
+            Map<String, PaymentMethod> paymentMethodMap) {
+        if (entity == null) {
+            return null;
+        }
+
+        ExpenseDTO dto = new ExpenseDTO();
+        dto.setId(entity.getId());
+        dto.setDate(entity.getDate() != null ? entity.getDate().format(DATE_FORMATTER) : null);
+        dto.setCategoryId(entity.getCategoryId());
+        dto.setCategoryName(entity.getCategoryName());
+        dto.setIncludeInBudget(entity.isIncludeInBudget());
+        dto.setBill(entity.isBill());
+        dto.setUserId(entity.getUserId());
+        dto.setBudgetIds(entity.getBudgetIds() != null ? new HashSet<>(entity.getBudgetIds()) : new HashSet<>());
+
+        // Set category icon and color from pre-fetched map
+        if (categoryMap != null && entity.getCategoryId() != null) {
+            Category category = categoryMap.get(entity.getCategoryId());
+            if (category != null) {
+                dto.setCategoryIcon(category.getIcon());
+                dto.setCategoryColor(category.getColor());
+            }
+        }
+
+        // Map ExpenseDetails to ExpenseDetailsDTO with masking support
+        if (entity.getExpense() != null) {
+            dto.setExpense(toDetailsDTO(entity.getExpense(), maskSensitiveData));
+
+            // Set payment method icon and color from pre-fetched map
+            String paymentMethodName = entity.getExpense().getPaymentMethod();
+            if (paymentMethodMap != null && paymentMethodName != null && !paymentMethodName.isEmpty()) {
+                PaymentMethod paymentMethod = paymentMethodMap.get(paymentMethodName);
+                if (paymentMethod != null) {
+                    dto.setPaymentMethodIcon(paymentMethod.getIcon());
+                    dto.setPaymentMethodColor(paymentMethod.getColor());
+                }
+            }
+        }
+
+        return dto;
+    }
+
+    /**
+     * Fetches all categories for a user and returns them as a map by ID.
+     * Use this to pre-fetch categories before batch mapping.
+     * 
+     * @param userId The user ID
+     * @return Map of categoryId to Category
+     */
+    public Map<Integer, Category> fetchCategoryMapForUser(Integer userId) {
+        try {
+            List<Category> categories = categoryServices.getAllForUser(userId);
+            if (categories != null) {
+                return categories.stream()
+                        .collect(Collectors.toMap(Category::getId, Function.identity(), (a, b) -> a));
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch categories for userId={}: {}", userId, e.getMessage());
+        }
+        return Map.of();
+    }
+
+    /**
+     * Fetches all payment methods for a user and returns them as a map by name.
+     * Use this to pre-fetch payment methods before batch mapping.
+     * 
+     * @param userId The user ID
+     * @return Map of paymentMethodName to PaymentMethod
+     */
+    public Map<String, PaymentMethod> fetchPaymentMethodMapForUser(Integer userId) {
+        try {
+            List<PaymentMethod> paymentMethods = paymentMethodServices.getAllPaymentMethods(userId);
+            if (paymentMethods != null) {
+                return paymentMethods.stream()
+                        .filter(pm -> pm.getName() != null)
+                        .collect(Collectors.toMap(PaymentMethod::getName, Function.identity(), (a, b) -> a));
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch payment methods for userId={}: {}", userId, e.getMessage());
+        }
+        return Map.of();
+    }
+
+    // ==================== END BATCH MAPPING METHODS ====================
 
     /**
      * Maps ExpenseDetails entity to ExpenseDetailsDTO
@@ -97,12 +282,13 @@ public class ExpenseMapper {
         ExpenseDetailsDTO dto = new ExpenseDetailsDTO();
         dto.setId(details.getId());
         dto.setExpenseName(details.getExpenseName());
-        
+
         // Set masked flag
         boolean shouldMask = dataMaskingUtil.shouldMaskData(maskSensitiveData);
         dto.setMasked(shouldMask);
-        
-        // If masking is enabled, send masked string values; otherwise use actual numeric values
+
+        // If masking is enabled, send masked string values; otherwise use actual
+        // numeric values
         if (shouldMask) {
             dto.setAmount(dataMaskingUtil.maskAmount(details.getAmount())); // Send "*****"
             dto.setNetAmount(dataMaskingUtil.maskAmount(details.getNetAmount())); // Send "*****"
@@ -112,7 +298,7 @@ public class ExpenseMapper {
             dto.setNetAmount(details.getNetAmount());
             dto.setCreditDue(details.getCreditDue());
         }
-        
+
         dto.setType(details.getType());
         dto.setPaymentMethod(details.getPaymentMethod());
         dto.setComments(details.getComments());

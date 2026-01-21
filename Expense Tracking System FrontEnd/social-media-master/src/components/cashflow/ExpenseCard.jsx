@@ -3,14 +3,13 @@ import dayjs from "dayjs";
 import { IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useMasking } from "../../hooks/useMasking";
 import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
+import { getCategoryIcon, getPaymentMethodIcon } from "../../utils/iconMapping";
 
 /**
  * Memoized individual expense card component for performance.
@@ -259,9 +258,9 @@ const ExpenseCard = React.memo(
                 category: categoryName,
               })}
             >
-              <LocalOfferIcon
-                sx={{ fontSize: 13, color: colors.primary_accent }}
-              />
+              {getCategoryIcon(categoryName, {
+                sx: { fontSize: 13, color: colors.primary_accent },
+              })}
               <span
                 className="truncate font-medium"
                 style={{ fontSize: "10.5px" }}
@@ -275,9 +274,9 @@ const ExpenseCard = React.memo(
                 method: paymentMethodName,
               })}
             >
-              <AccountBalanceWalletIcon
-                sx={{ fontSize: 13, color: colors.secondary_accent }}
-              />
+              {getPaymentMethodIcon(paymentMethodName, {
+                sx: { fontSize: 13, color: colors.secondary_accent },
+              })}
               <span
                 className="truncate font-medium"
                 style={{ fontSize: "10.5px" }}

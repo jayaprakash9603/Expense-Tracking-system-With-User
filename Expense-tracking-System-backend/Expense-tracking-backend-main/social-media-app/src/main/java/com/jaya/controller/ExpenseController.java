@@ -272,10 +272,10 @@ public class ExpenseController extends BaseExpenseController {
 
         User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
-        
+
         // Get the old expense before updating for audit purposes
         Expense oldExpense = expenseService.getExpenseById(id, targetUser.getId());
-        
+
         Expense updatedExpense = expenseService.updateExpense(id, expense, targetUser.getId());
 
         // Send unified event (handles both own action and friend activity)
@@ -2761,9 +2761,14 @@ public class ExpenseController extends BaseExpenseController {
         com.jaya.dto.UserSettingsDTO userSettings = userSettingsService.getUserSettings(targetUser.getId());
         Boolean maskSensitiveData = userSettings != null ? userSettings.getMaskSensitiveData() : false;
 
-        // Convert entities to DTOs with masking applied
+        // Pre-fetch all categories and payment methods once for batch mapping
+        // (performance optimization)
+        Map<Integer, Category> categoryMap = expenseMapper.fetchCategoryMapForUser(targetUser.getId());
+        Map<String, PaymentMethod> paymentMethodMap = expenseMapper.fetchPaymentMethodMapForUser(targetUser.getId());
+
+        // Convert entities to DTOs with masking applied using batch mapping
         List<ExpenseDTO> expenseDTOs = expenses.stream()
-                .map(expense -> expenseMapper.toDTO(expense, maskSensitiveData))
+                .map(expense -> expenseMapper.toDTO(expense, maskSensitiveData, categoryMap, paymentMethodMap))
                 .collect(Collectors.toList());
 
         List<ExpenseDTO> filteredExpenseDTOs = cashflowAggregationService.filterExpensesBySearchTerm(expenseDTOs,

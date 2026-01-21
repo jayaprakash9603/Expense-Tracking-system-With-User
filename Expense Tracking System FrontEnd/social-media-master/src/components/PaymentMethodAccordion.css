@@ -142,10 +142,10 @@
   min-height: calc(58px * 8 + 10px * 8);
 }
 .pm-groups-viewport.paged-mode {
-  /* Maintain fixed height for 8 items to prevent layout shift between pages */
-  height: calc(58px * 8 + 10px * 9);
-  overflow-y: auto;
-  scrollbar-color: var(--pm-scrollbar-thumb) var(--pm-scrollbar-track);
+  /* Allow natural height in paged mode - pagination handles overflow */
+  height: auto;
+  min-height: calc(58px * 8 + 10px * 7);
+  overflow: visible;
 }
 .pm-groups-viewport.scroll-mode {
   height: calc(58px * 8 + 10px * 7);
@@ -387,7 +387,8 @@
   width: var(--pm-highlight-width, 33.333%);
   transform: translateX(var(--pm-highlight-x, 0%));
   background: var(--pm-highlight-bg, rgba(37, 99, 235, 0.18));
-  transition: transform 420ms cubic-bezier(0.65, 0.05, 0.36, 1),
+  transition:
+    transform 420ms cubic-bezier(0.65, 0.05, 0.36, 1),
     background-color 300ms ease;
   pointer-events: none;
   border-radius: 0; /* sits under tabs */
@@ -403,8 +404,10 @@
   box-shadow: 0 0 8px var(--pm-indicator-color);
   border-radius: 3px 3px 0 0;
   transform: translateX(var(--pm-indicator-x, 0%));
-  transition: transform 420ms cubic-bezier(0.65, 0.05, 0.36, 1),
-    background-color 300ms ease, width 300ms ease;
+  transition:
+    transform 420ms cubic-bezier(0.65, 0.05, 0.36, 1),
+    background-color 300ms ease,
+    width 300ms ease;
 }
 /* Provide subtle morph/scale effect on tab change */
 .pm-tabs.pm-morphing:after {

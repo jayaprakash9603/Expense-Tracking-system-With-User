@@ -1,7 +1,9 @@
 import React from "react";
+import { Box } from "@mui/material";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import useUserSettings from "../hooks/useUserSettings";
 import { useTheme } from "../hooks/useTheme";
+import { getCategoryIcon } from "../utils/iconMapping";
 
 const getExpenseDetails = (row) => row?.expense || row?.details || row || {};
 const getNormalizedType = (row) => {
@@ -161,7 +163,19 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
               >
                 <div className="pm-header-left category-perf-left boxed-metrics inline-metrics">
                   <span className="metric-box name" title={group.label}>
-                    {group.label}
+                    <Box
+                      component="span"
+                      sx={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 0.75,
+                      }}
+                    >
+                      {getCategoryIcon(group.label, {
+                        sx: { fontSize: 18, color: colors.primary_accent },
+                      })}
+                      {group.label}
+                    </Box>
                   </span>
                   <span className="metric-box tx" title="Count">
                     Count - {group.count}

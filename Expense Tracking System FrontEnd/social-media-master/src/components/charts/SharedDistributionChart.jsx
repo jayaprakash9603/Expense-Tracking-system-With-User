@@ -1,7 +1,9 @@
 import React from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
+import { Box } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
+import { getEntityIcon } from "../../utils/iconMapping";
 
 // Generic Distribution Chart (Pie + right side chips)
 // Props:
@@ -189,14 +191,21 @@ const SharedDistributionChart = ({
                     flexShrink: 0,
                   }}
                 >
-                  <span
-                    className="chip-icon-text"
-                    style={{
-                      fontSize: "14px",
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    {item.icon}
-                  </span>
+                    {getEntityIcon(
+                      mode === "payment" ? "paymentMethod" : "category",
+                      item.icon || item[nameKey] || "",
+                      {
+                        sx: { color: "#fff", fontSize: 16 },
+                      },
+                    )}
+                  </Box>
                 </span>
                 <span
                   className="chip-name"

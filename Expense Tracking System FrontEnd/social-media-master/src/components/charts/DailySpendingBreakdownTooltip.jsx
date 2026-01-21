@@ -1,4 +1,5 @@
 import React from "react";
+import { getCategoryIcon } from "../../utils/iconMapping";
 
 const BREAKPOINTS = {
   mobile: 600,
@@ -395,6 +396,7 @@ const ItemRow = ({
   dotColor,
   textColor,
   responsive,
+  entityType,
 }) => (
   <div
     style={{
@@ -412,18 +414,28 @@ const ItemRow = ({
         minWidth: 0,
       }}
     >
-      <div
-        style={{
-          width: responsive?.sizes?.dot ?? 8,
-          height: responsive?.sizes?.dot ?? 8,
-          borderRadius: 999,
-          background: dotColor || color,
-          boxShadow: `0 0 0 4px ${
-            getGlow(dotColor || color, 0.15) || "transparent"
-          }`,
-          flex: "0 0 auto",
-        }}
-      />
+      {entityType === "category" ? (
+        getCategoryIcon(name, {
+          sx: {
+            fontSize: (responsive?.sizes?.dot ?? 8) + 6,
+            color: dotColor || color,
+            flex: "0 0 auto",
+          },
+        })
+      ) : (
+        <div
+          style={{
+            width: responsive?.sizes?.dot ?? 8,
+            height: responsive?.sizes?.dot ?? 8,
+            borderRadius: 999,
+            background: dotColor || color,
+            boxShadow: `0 0 0 4px ${
+              getGlow(dotColor || color, 0.15) || "transparent"
+            }`,
+            flex: "0 0 auto",
+          }}
+        />
+      )}
       <div
         title={name}
         style={{
@@ -467,6 +479,7 @@ const SectionCard = ({
   border,
   textColor,
   responsive,
+  entityType,
 }) => {
   const { visible, hiddenCount, total } = buildTopN(items, maxItems);
 
@@ -502,6 +515,7 @@ const SectionCard = ({
               dotColor={color}
               textColor={textColor}
               responsive={responsive}
+              entityType={entityType}
             />
           ))
         ) : (
@@ -552,6 +566,7 @@ const DailySpendingBreakdownTooltip = ({
   locale,
   formatMoney,
   maxItems = 5,
+  entityType,
 }) => {
   if (!active || !Array.isArray(payload) || payload.length === 0) return null;
 
@@ -783,6 +798,7 @@ const DailySpendingBreakdownTooltip = ({
               border={getGlow(lossAccent, 0.28) || baseBorder}
               textColor={titleColor}
               responsive={responsive}
+              entityType={entityType}
             />
           ) : null}
 
@@ -800,6 +816,7 @@ const DailySpendingBreakdownTooltip = ({
               border={getGlow(gainAccent, 0.28) || baseBorder}
               textColor={titleColor}
               responsive={responsive}
+              entityType={entityType}
             />
           ) : null}
 
