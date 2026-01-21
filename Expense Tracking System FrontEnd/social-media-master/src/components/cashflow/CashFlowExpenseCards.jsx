@@ -253,25 +253,31 @@ function CashFlowExpenseCards({
       if (!hasSelections) return;
       suppressAutoScrollTemporarily();
 
-      setSelectedNavigatorIndex((prev) => {
-        const isPrev = direction === "prev";
-        const isAtBoundary = isPrev
-          ? prev === 0
-          : prev === normalizedSelectedCardIdx.length - 1;
+      const isPrev = direction === "prev";
+      const currentIndex = selectedNavigatorIndex;
+      const isAtBoundary = isPrev
+        ? currentIndex === 0
+        : currentIndex === normalizedSelectedCardIdx.length - 1;
 
-        if (isAtBoundary) {
-          return prev;
-        }
+      if (isAtBoundary) {
+        return;
+      }
 
-        const nextIndex = isPrev ? prev - 1 : prev + 1;
-        const targetCardIndex = normalizedSelectedCardIdx[nextIndex];
+      const nextIndex = isPrev ? currentIndex - 1 : currentIndex + 1;
+      const targetCardIndex = normalizedSelectedCardIdx[nextIndex];
+
+      // Update state first
+      setSelectedNavigatorIndex(nextIndex);
+
+      // Then scroll to the card
+      requestAnimationFrame(() => {
         scrollToCardByIndex(targetCardIndex);
-        return nextIndex;
       });
     },
     [
       hasSelections,
       normalizedSelectedCardIdx,
+      selectedNavigatorIndex,
       scrollToCardByIndex,
       suppressAutoScrollTemporarily,
     ],
