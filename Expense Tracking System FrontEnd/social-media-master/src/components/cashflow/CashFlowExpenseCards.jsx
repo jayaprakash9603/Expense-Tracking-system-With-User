@@ -309,20 +309,70 @@ function CashFlowExpenseCards({
   };
 
   const handleMonthSelect = (year, month) => {
-    // Find first date section of the selected month
-    if (scrollContainerRef.current) {
-      const monthSection = document.querySelector(
-        `[data-year="${year}"][data-month="${month}"]`,
+    // Get the first date in this month to update the header
+    const monthData = groupedExpenses.groups?.[year]?.[month];
+    let firstDateInMonth = null;
+
+    if (monthData) {
+      // Get all dates in this month sorted by the current sort order
+      const allDatesInMonth = [];
+      Object.keys(monthData).forEach((week) => {
+        Object.keys(monthData[week]).forEach((dateKey) => {
+          allDatesInMonth.push({
+            dateKey,
+            week,
+            displayDate: monthData[week][dateKey].displayDate,
+          });
+        });
+      });
+
+      // Sort dates: for desc (recent first), get the most recent date; for asc (old first), get the oldest date
+      allDatesInMonth.sort((a, b) =>
+        sortOrder === "desc"
+          ? b.dateKey.localeCompare(a.dateKey)
+          : a.dateKey.localeCompare(b.dateKey),
       );
 
-      if (monthSection) {
-        const container = scrollContainerRef.current;
-        const sectionTop = monthSection.offsetTop;
-        container.scrollTo({
-          top: sectionTop - 80,
-          behavior: "smooth",
-        });
+      if (allDatesInMonth.length > 0) {
+        firstDateInMonth = allDatesInMonth[0];
       }
+    }
+
+    // Update header state immediately before scrolling
+    setCurrentHeader({
+      year: year,
+      month: month,
+      week: firstDateInMonth?.week || "",
+      date: firstDateInMonth?.displayDate || "",
+    });
+
+    // Find first date section of the selected month
+    if (scrollContainerRef.current) {
+      // Small delay to ensure DOM is updated after state change
+      requestAnimationFrame(() => {
+        const monthSection = document.querySelector(
+          `[data-year="${year}"][data-month="${month}"]`,
+        );
+
+        if (monthSection && scrollContainerRef.current) {
+          const container = scrollContainerRef.current;
+          const containerRect = container.getBoundingClientRect();
+          const sectionRect = monthSection.getBoundingClientRect();
+
+          // Calculate the scroll position relative to the container
+          const scrollOffset =
+            sectionRect.top - containerRect.top + container.scrollTop;
+
+          // For the last item, we may need to scroll to maximum possible
+          const maxScroll = container.scrollHeight - container.clientHeight;
+          const targetScroll = Math.max(0, scrollOffset - 80);
+
+          container.scrollTo({
+            top: Math.min(targetScroll, maxScroll),
+            behavior: "smooth",
+          });
+        }
+      });
     }
     handleMonthPickerClose();
   };
@@ -352,19 +402,47 @@ function CashFlowExpenseCards({
 
     // Find and scroll to the selected date
     const formattedDate = newDate.format(dateFormat);
-    const dateSection = document.querySelector(
-      `[data-date-section="true"][data-date="${formattedDate}"]`,
-    );
 
-    if (dateSection && scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const sectionTop = dateSection.offsetTop;
-      container.scrollTo({
-        top: sectionTop - 80, // Offset for sticky header
-        behavior: "smooth",
+    // Update header state immediately
+    const targetYear = newDate.year().toString();
+    const targetMonth = newDate.format("MMMM YYYY");
+    const targetWeek = `Week ${newDate.week()}`;
+
+    setCurrentHeader({
+      year: targetYear,
+      month: targetMonth,
+      week: targetWeek,
+      date: formattedDate,
+    });
+
+    if (scrollContainerRef.current) {
+      // Small delay to ensure DOM is updated after state change
+      requestAnimationFrame(() => {
+        const dateSection = document.querySelector(
+          `[data-date-section="true"][data-date="${formattedDate}"]`,
+        );
+
+        if (dateSection && scrollContainerRef.current) {
+          const container = scrollContainerRef.current;
+          const containerRect = container.getBoundingClientRect();
+          const sectionRect = dateSection.getBoundingClientRect();
+
+          // Calculate the scroll position relative to the container
+          const scrollOffset =
+            sectionRect.top - containerRect.top + container.scrollTop;
+
+          // For the last item, we may need to scroll to maximum possible
+          const maxScroll = container.scrollHeight - container.clientHeight;
+          const targetScroll = Math.max(0, scrollOffset - 80);
+
+          container.scrollTo({
+            top: Math.min(targetScroll, maxScroll),
+            behavior: "smooth",
+          });
+        }
       });
-      handleDatePickerClose();
     }
+    handleDatePickerClose();
   };
 
   const navigateToDate = (direction) => {
@@ -446,21 +524,47 @@ function CashFlowExpenseCards({
 
     const targetDate = dayjs(chronologicalDates[targetIndex]);
 
+    // Get target date info and update header immediately
+    const formattedDate = targetDate.format(dateFormat);
+    const targetYear = targetDate.year().toString();
+    const targetMonth = targetDate.format("MMMM YYYY");
+    const targetWeek = `Week ${targetDate.week()}`;
+
+    // Update header state immediately before scrolling
+    setCurrentHeader({
+      year: targetYear,
+      month: targetMonth,
+      week: targetWeek,
+      date: formattedDate,
+    });
+
     // Scroll to the date section directly
     if (scrollContainerRef.current) {
-      const formattedDate = targetDate.format(dateFormat);
-      const dateSection = document.querySelector(
-        `[data-date-section="true"][data-date="${formattedDate}"]`,
-      );
+      // Small delay to ensure DOM is updated after state change
+      requestAnimationFrame(() => {
+        const dateSection = document.querySelector(
+          `[data-date-section="true"][data-date="${formattedDate}"]`,
+        );
 
-      if (dateSection) {
-        const container = scrollContainerRef.current;
-        const sectionTop = dateSection.offsetTop;
-        container.scrollTo({
-          top: sectionTop - 80, // Offset for sticky header
-          behavior: "smooth",
-        });
-      }
+        if (dateSection && scrollContainerRef.current) {
+          const container = scrollContainerRef.current;
+          const containerRect = container.getBoundingClientRect();
+          const sectionRect = dateSection.getBoundingClientRect();
+
+          // Calculate the scroll position relative to the container
+          const scrollOffset =
+            sectionRect.top - containerRect.top + container.scrollTop;
+
+          // For the last item, we may need to scroll to maximum possible
+          const maxScroll = container.scrollHeight - container.clientHeight;
+          const targetScroll = Math.max(0, scrollOffset - 80); // Offset for sticky header
+
+          container.scrollTo({
+            top: Math.min(targetScroll, maxScroll),
+            behavior: "smooth",
+          });
+        }
+      });
     }
   };
 
@@ -558,20 +662,73 @@ function CashFlowExpenseCards({
 
     const targetMonth = availableMonths[targetIndex];
 
-    // Scroll to first date section of the target month
-    if (scrollContainerRef.current && targetMonth) {
-      const monthSection = document.querySelector(
-        `[data-year="${targetMonth.year}"][data-month="${targetMonth.month}"]`,
+    if (!targetMonth) return;
+
+    // Get the first date in this month to update the header
+    const monthData =
+      groupedExpenses.groups[targetMonth.year]?.[targetMonth.month];
+    let firstDateInMonth = null;
+
+    if (monthData) {
+      // Get all dates in this month sorted by the current sort order
+      const allDatesInMonth = [];
+      Object.keys(monthData).forEach((week) => {
+        Object.keys(monthData[week]).forEach((dateKey) => {
+          allDatesInMonth.push({
+            dateKey,
+            week,
+            displayDate: monthData[week][dateKey].displayDate,
+          });
+        });
+      });
+
+      // Sort dates: for desc (recent first), get the most recent date; for asc (old first), get the oldest date
+      allDatesInMonth.sort((a, b) =>
+        sortOrder === "desc"
+          ? b.dateKey.localeCompare(a.dateKey)
+          : a.dateKey.localeCompare(b.dateKey),
       );
 
-      if (monthSection) {
-        const container = scrollContainerRef.current;
-        const sectionTop = monthSection.offsetTop;
-        container.scrollTo({
-          top: sectionTop - 80,
-          behavior: "smooth",
-        });
+      if (allDatesInMonth.length > 0) {
+        firstDateInMonth = allDatesInMonth[0];
       }
+    }
+
+    // Update header state immediately before scrolling
+    setCurrentHeader({
+      year: targetMonth.year,
+      month: targetMonth.month,
+      week: firstDateInMonth?.week || "",
+      date: firstDateInMonth?.displayDate || "",
+    });
+
+    // Scroll to first date section of the target month
+    if (scrollContainerRef.current) {
+      // Small delay to ensure DOM is updated after state change
+      requestAnimationFrame(() => {
+        const monthSection = document.querySelector(
+          `[data-year="${targetMonth.year}"][data-month="${targetMonth.month}"]`,
+        );
+
+        if (monthSection && scrollContainerRef.current) {
+          const container = scrollContainerRef.current;
+          const containerRect = container.getBoundingClientRect();
+          const sectionRect = monthSection.getBoundingClientRect();
+
+          // Calculate the scroll position relative to the container
+          const scrollOffset =
+            sectionRect.top - containerRect.top + container.scrollTop;
+
+          // For the last item, we may need to scroll to maximum possible
+          const maxScroll = container.scrollHeight - container.clientHeight;
+          const targetScroll = Math.max(0, scrollOffset - 80);
+
+          container.scrollTo({
+            top: Math.min(targetScroll, maxScroll),
+            behavior: "smooth",
+          });
+        }
+      });
     }
   };
 
