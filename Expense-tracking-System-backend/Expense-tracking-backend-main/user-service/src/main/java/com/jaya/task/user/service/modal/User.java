@@ -39,10 +39,22 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    @NotBlank(message = "Password is mandatory")
+    // Password is nullable for OAuth users
     @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
+    // OAuth2 Provider: LOCAL, GOOGLE
+    @Column(name = "auth_provider")
+    private String authProvider = "LOCAL";
+
+    // OAuth2 Provider's user ID (e.g., Google's sub claim)
+    @Column(name = "provider_id")
+    private String providerId;
+
+    // Profile image URL from OAuth provider
+    @Column(name = "oauth_profile_image")
+    private String oauthProfileImage;
 
     @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Phone number should be valid")
     private String phoneNumber;

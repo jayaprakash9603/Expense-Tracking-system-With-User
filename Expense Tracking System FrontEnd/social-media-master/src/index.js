@@ -10,6 +10,16 @@ import { ThemeProvider } from "@emotion/react";
 import createAppTheme from "./pages/Landingpage/theme";
 import { getStore, setStore } from "./utils/store";
 import "./config/globalErrorHandlers";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { GOOGLE_CLIENT_ID } from "./config/googleOAuth";
+
+// Log the Google Client ID for debugging (remove in production)
+console.log(
+  "Google OAuth Client ID loaded:",
+  GOOGLE_CLIENT_ID
+    ? "Yes (ends with: ..." + GOOGLE_CLIENT_ID.slice(-20) + ")"
+    : "NOT CONFIGURED",
+);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -40,12 +50,14 @@ const ThemedApp = () => {
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Provider store={store}>
-        <ThemedApp />
-      </Provider>
-    </BrowserRouter>
-  </React.StrictMode>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <BrowserRouter>
+        <Provider store={store}>
+          <ThemedApp />
+        </Provider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
+  </React.StrictMode>,
 );
 
 // If you want to start measuring performance in your app, pass a function

@@ -7,6 +7,7 @@ import {
   InputAdornment,
   CircularProgress,
   Alert,
+  Divider,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
@@ -14,11 +15,13 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUserAction } from "../../Redux/Auth/auth.action";
 import ForgotPassword from "./ForgotPassword";
+import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
 
 const initialValues = { email: "", password: "" };
 
 // Updated: restrict final TLD to 2-9 letters
-const STRICT_EMAIL_REGEX = /^(?!.*\.\.)[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@(?!(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)(?!-)(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,9}$/;
+const STRICT_EMAIL_REGEX =
+  /^(?!.*\.\.)[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@(?!(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)(?!-)(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,9}$/;
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -45,16 +48,20 @@ const Login = () => {
     } else {
       // Navigate based on user role/currentMode
       const { currentMode, role, user } = result;
-      
-      console.log("Login Navigation Debug:", { 
-        currentMode, 
-        role, 
+
+      console.log("Login Navigation Debug:", {
+        currentMode,
+        role,
         userRole: user?.role,
-        fullUser: user 
+        fullUser: user,
       });
-      
+
       // Check if user is ADMIN (either by currentMode or role)
-      if (currentMode === "ADMIN" || role === "ADMIN" || user?.role === "ADMIN") {
+      if (
+        currentMode === "ADMIN" ||
+        role === "ADMIN" ||
+        user?.role === "ADMIN"
+      ) {
         console.log("Navigating to ADMIN dashboard");
         navigate("/admin/dashboard");
       } else {
@@ -80,10 +87,7 @@ const Login = () => {
   // Function to get the first error message in priority order
   const getFirstError = (errors, touched) => {
     // If both fields are touched (formik does this on submit) & both have errors -> show unified message
-    if (
-      touched.email && touched.password &&
-      errors.email && errors.password
-    ) {
+    if (touched.email && touched.password && errors.email && errors.password) {
       return "Enter all the mandatory fields";
     }
     // Priority order: email, password, then login/server error
@@ -195,7 +199,11 @@ const Login = () => {
                                 edge="end"
                                 style={{ color: "#14b8a6" }}
                               >
-                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                                {showPassword ? (
+                                  <VisibilityOff />
+                                ) : (
+                                  <Visibility />
+                                )}
                               </IconButton>
                             </InputAdornment>
                           ),
@@ -234,6 +242,24 @@ const Login = () => {
                     "Login"
                   )}
                 </Button>
+
+                {/* Divider */}
+                <div className="flex items-center gap-2 py-2">
+                  <Divider
+                    sx={{ flex: 1, borderColor: "rgba(255,255,255,0.2)" }}
+                  />
+                  <span className="text-gray-400 text-sm">or</span>
+                  <Divider
+                    sx={{ flex: 1, borderColor: "rgba(255,255,255,0.2)" }}
+                  />
+                </div>
+
+                {/* Google Sign-In Button */}
+                <GoogleLoginButton
+                  mode="signin"
+                  onError={(message) => setError(message)}
+                  disabled={isSubmitting}
+                />
 
                 {/* Links */}
                 <div className="flex flex-col items-center gap-2 pt-1">

@@ -2,9 +2,17 @@ import React from "react";
 import { Card } from "@mui/material";
 import Login from "./Login";
 import Register from "./Register";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, useLocation } from "react-router-dom";
+import OAuthCallback from "../OAuthCallback";
 
 const Authentication = () => {
+  const location = useLocation();
+
+  // OAuth callback page should render without the card wrapper
+  if (location.pathname === "/oauth/callback") {
+    return <OAuthCallback />;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#29282b] p-4">
       <Card
@@ -39,6 +47,7 @@ const Authentication = () => {
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Card>

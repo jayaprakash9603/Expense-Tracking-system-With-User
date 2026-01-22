@@ -27,7 +27,7 @@ const redirectToHome = (navigate) => {
 // Load user dashboard preferences after login
 const loadUserDashboardPreferences = async () => {
   const { data, error } = await safeApiCall(() =>
-    api.get("/api/user/dashboard-preferences")
+    api.get("/api/user/dashboard-preferences"),
   );
 
   if (error || !data?.layoutConfig) {
@@ -40,7 +40,7 @@ const loadUserDashboardPreferences = async () => {
   localStorage.setItem("dashboard_layout_config", data.layoutConfig);
   console.log(
     "Dashboard preferences loaded:",
-    data.id ? "custom layout" : "default layout"
+    data.id ? "custom layout" : "default layout",
   );
   return true;
 };
@@ -50,7 +50,7 @@ export const loginUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
 
   const { data, error } = await safeApiCall(() =>
-    api.post("/auth/signin", loginData.data, { skipAuth: true })
+    api.post("/auth/signin", loginData.data, { skipAuth: true }),
   );
 
   if (error || !data?.jwt) {
@@ -72,12 +72,65 @@ export const loginUserAction = (loginData) => async (dispatch) => {
 
   // Load user dashboard preferences (non-blocking)
   loadUserDashboardPreferences().catch((err) =>
-    console.log("Failed to load dashboard preferences:", err)
+    console.log("Failed to load dashboard preferences:", err),
   );
 
   if (!profileResult?.success) {
     const message =
       profileResult?.error?.message || "Failed to load profile after login.";
+    console.log("Profile load error:", message);
+    return { success: false, message };
+  }
+
+  const userProfile = profileResult.data;
+
+  return {
+    success: true,
+    user: userProfile,
+    currentMode: userProfile?.currentMode,
+    role: userProfile?.role,
+  };
+};
+
+// Google OAuth Login Action
+export const googleLoginAction = (googleData) => async (dispatch) => {
+  dispatch({ type: LOGIN_REQUEST });
+
+  const { data, error } = await safeApiCall(() =>
+    api.post(
+      "/auth/oauth2/google",
+      { credential: googleData.credential },
+      { skipAuth: true },
+    ),
+  );
+
+  if (error || !data?.jwt) {
+    const errorMessage =
+      error?.message || "Google authentication failed. Please try again.";
+    console.log("Google login error:", errorMessage);
+    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+
+  dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
+  localStorage.setItem("jwt", data.jwt);
+
+  // Fetch the user profile after Google authentication
+  const profileResult = await dispatch(getProfileAction(data.jwt));
+  updateAuthHeader();
+
+  // Load user dashboard preferences (non-blocking)
+  loadUserDashboardPreferences().catch((err) =>
+    console.log("Failed to load dashboard preferences:", err),
+  );
+
+  if (!profileResult?.success) {
+    const message =
+      profileResult?.error?.message ||
+      "Failed to load profile after Google login.";
     console.log("Profile load error:", message);
     return { success: false, message };
   }
@@ -143,12 +196,12 @@ export const uploadToCloudinary = (file) => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        })
+        }),
       );
 
       if (error) {
         throw new Error(
-          error.message || "Image upload failed. Please try again."
+          error.message || "Image upload failed. Please try again.",
         );
       }
 
@@ -174,7 +227,7 @@ export const resetCloudinaryState = () => ({
 export const registerUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
   const { data, error } = await safeApiCall(() =>
-    api.post("/auth/signup", loginData.data, { skipAuth: true })
+    api.post("/auth/signup", loginData.data, { skipAuth: true }),
   );
 
   if (error) {
@@ -203,7 +256,7 @@ export const getProfileAction = (jwt) => async (dispatch) => {
     : undefined;
 
   const { data, error } = await safeApiCall(() =>
-    api.get(`/api/user/profile`, requestConfig)
+    api.get(`/api/user/profile`, requestConfig),
   );
 
   if (error) {
@@ -278,7 +331,7 @@ export const switchUserModeAction = (mode) => async (dispatch) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     dispatch({
