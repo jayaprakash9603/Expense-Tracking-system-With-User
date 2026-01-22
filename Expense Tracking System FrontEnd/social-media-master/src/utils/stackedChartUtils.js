@@ -41,6 +41,8 @@ export function buildStackedChartData({
   offset,
   keyPrefix,
   colorAccessor = (name, entity) => entity?.color || deterministicColor(name),
+  iconAccessor = (name, entity) => entity?.icon || name,
+  entityType,
 }) {
   const segments = [];
   if (!entityExpenses) {
@@ -52,7 +54,14 @@ export function buildStackedChartData({
     .forEach((name) => {
       const key = `${keyPrefix}_${name.replace(/[^a-zA-Z0-9_]/g, "_")}`;
       const entity = entityExpenses[name];
-      segments.push({ label: name, key, color: colorAccessor(name, entity) });
+      segments.push({
+        label: name,
+        key,
+        color: colorAccessor(name, entity),
+        iconKey: iconAccessor(name, entity),
+        entityType:
+          entityType || (keyPrefix === "pm" ? "paymentMethod" : "category"),
+      });
     });
 
   const baseNow = dayjs();

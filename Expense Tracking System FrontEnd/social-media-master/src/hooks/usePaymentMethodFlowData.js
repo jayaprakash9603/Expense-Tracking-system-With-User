@@ -305,6 +305,8 @@ export default function usePaymentMethodFlowData({
         keyPrefix: "pm",
         colorAccessor: (name, entity) =>
           entity?.color || deterministicColor(name),
+        iconAccessor: (name, entity) => entity?.icon || name,
+        entityType: "paymentMethod",
       }),
     [effectivePaymentMethodExpenses, activeRange, offset],
   );

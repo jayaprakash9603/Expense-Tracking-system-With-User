@@ -306,6 +306,8 @@ export default function useCategoryFlowData({
         keyPrefix: "cat",
         colorAccessor: (name, entity) =>
           entity?.color || deterministicColor(name),
+        iconAccessor: (name, entity) => entity?.icon || name,
+        entityType: "category",
       }),
     [effectiveCategoryExpenses, activeRange, offset],
   );
