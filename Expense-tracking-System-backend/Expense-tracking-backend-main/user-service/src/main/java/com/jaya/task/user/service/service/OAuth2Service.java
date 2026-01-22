@@ -69,6 +69,10 @@ public class OAuth2Service {
                     .givenName(request.getGivenName())
                     .familyName(request.getFamilyName())
                     .picture(request.getPicture())
+                    .gender(request.getGender())
+                    .birthday(request.getBirthday())
+                    .phoneNumber(request.getPhoneNumber())
+                    .locale(request.getLocale())
                     .build();
 
             log.info("Google authentication for email: {}", googleUser.getEmail());
@@ -146,6 +150,24 @@ public class OAuth2Service {
         newUser.setProviderId(googleUser.getSub());
         newUser.setOauthProfileImage(googleUser.getPicture());
         newUser.setProfileImage(googleUser.getPicture());
+
+        // Set additional fields from Google People API
+        if (googleUser.getGender() != null) {
+            // Convert Google's gender format to our format (MALE, FEMALE, OTHER)
+            String gender = googleUser.getGender().toUpperCase();
+            if (gender.equals("MALE") || gender.equals("FEMALE") || gender.equals("OTHER")) {
+                newUser.setGender(gender);
+            }
+        }
+
+        if (googleUser.getBirthday() != null) {
+            newUser.setDateOfBirth(googleUser.getBirthday());
+        }
+
+        if (googleUser.getPhoneNumber() != null) {
+            newUser.setMobile(googleUser.getPhoneNumber());
+            newUser.setPhoneNumber(googleUser.getPhoneNumber());
+        }
 
         // No password for OAuth users
         newUser.setPassword(null);

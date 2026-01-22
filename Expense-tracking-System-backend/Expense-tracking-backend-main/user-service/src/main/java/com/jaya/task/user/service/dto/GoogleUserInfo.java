@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO containing user information extracted from Google ID token.
+ * DTO containing user information extracted from Google OAuth.
+ * Includes data from both userinfo endpoint and People API.
  */
 @Data
 @NoArgsConstructor
@@ -21,5 +22,10 @@ public class GoogleUserInfo {
     private String givenName; // First name
     private String familyName; // Last name
     private String picture; // Profile picture URL
-    private String locale;
+    private String locale; // User's locale preference
+
+    // Additional fields from Google People API
+    private String gender; // Gender (MALE, FEMALE, OTHER)
+    private String birthday; // Birthday in YYYY-MM-DD format
+    private String phoneNumber; // Phone number if available
 }

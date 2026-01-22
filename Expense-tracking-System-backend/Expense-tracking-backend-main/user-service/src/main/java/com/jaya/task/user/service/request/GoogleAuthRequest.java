@@ -26,4 +26,10 @@ public class GoogleAuthRequest {
     private String familyName; // Last name
     private String picture; // Profile picture URL
     private String sub; // Google's unique user ID
+
+    // Additional fields from Google People API
+    private String gender; // Gender (male, female, other)
+    private String birthday; // Birthday in format YYYY-MM-DD or MM-DD
+    private String phoneNumber; // Phone number if available
+    private String locale; // User's locale (e.g., "en", "en-US")
 }

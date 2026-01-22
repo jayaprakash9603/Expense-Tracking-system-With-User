@@ -60,7 +60,7 @@ const GoogleLoginButton = ({
       console.log("Processing Google OAuth callback...");
 
       try {
-        // Get user info from Google using access token
+        // Get basic user info from Google userinfo endpoint
         const userInfoResponse = await fetch(
           "https://www.googleapis.com/oauth2/v3/userinfo",
           {
@@ -75,6 +75,60 @@ const GoogleLoginButton = ({
         const userInfo = await userInfoResponse.json();
         console.log("Google user info received:", userInfo.email);
 
+        // Try to get additional data from Google People API
+        let additionalData = {
+          gender: null,
+          birthday: null,
+          phoneNumber: null,
+        };
+
+        try {
+          const peopleResponse = await fetch(
+            "https://people.googleapis.com/v1/people/me?personFields=genders,birthdays,phoneNumbers",
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            },
+          );
+
+          if (peopleResponse.ok) {
+            const peopleData = await peopleResponse.json();
+            console.log("Google People API data:", peopleData);
+
+            // Extract gender
+            if (peopleData.genders && peopleData.genders.length > 0) {
+              const genderValue = peopleData.genders[0].value;
+              // Convert to uppercase format: male -> MALE
+              additionalData.gender = genderValue
+                ? genderValue.toUpperCase()
+                : null;
+            }
+
+            // Extract birthday
+            if (peopleData.birthdays && peopleData.birthdays.length > 0) {
+              const bday = peopleData.birthdays[0].date;
+              if (bday) {
+                // Format: YYYY-MM-DD or MM-DD if year not available
+                if (bday.year) {
+                  additionalData.birthday = `${bday.year}-${String(bday.month).padStart(2, "0")}-${String(bday.day).padStart(2, "0")}`;
+                } else {
+                  additionalData.birthday = `${String(bday.month).padStart(2, "0")}-${String(bday.day).padStart(2, "0")}`;
+                }
+              }
+            }
+
+            // Extract phone number
+            if (peopleData.phoneNumbers && peopleData.phoneNumbers.length > 0) {
+              additionalData.phoneNumber = peopleData.phoneNumbers[0].value;
+            }
+          }
+        } catch (peopleApiError) {
+          // People API might fail if scopes not granted - continue with basic info
+          console.log(
+            "People API not available, continuing with basic info:",
+            peopleApiError.message,
+          );
+        }
+
         // Send to our backend for authentication
         const response = await api.post(
           "/auth/oauth2/google",
@@ -86,6 +140,11 @@ const GoogleLoginButton = ({
             familyName: userInfo.family_name,
             picture: userInfo.picture,
             sub: userInfo.sub,
+            locale: userInfo.locale,
+            // Additional data from People API
+            gender: additionalData.gender,
+            birthday: additionalData.birthday,
+            phoneNumber: additionalData.phoneNumber,
           },
           { skipAuth: true },
         );
@@ -184,7 +243,16 @@ const GoogleLoginButton = ({
 
     // Build Google OAuth URL manually
     const redirectUri = `${window.location.origin}/oauth/callback`;
-    const scope = "openid email profile";
+    // Request additional scopes for gender, birthday, and phone number
+    const scopes = [
+      "openid",
+      "email",
+      "profile",
+      "https://www.googleapis.com/auth/user.birthday.read",
+      "https://www.googleapis.com/auth/user.gender.read",
+      "https://www.googleapis.com/auth/user.phonenumbers.read",
+    ];
+    const scope = scopes.join(" ");
     const responseType = "token"; // Implicit flow returns token directly
 
     const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
