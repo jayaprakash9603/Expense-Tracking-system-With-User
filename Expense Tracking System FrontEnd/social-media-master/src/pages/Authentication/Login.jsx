@@ -14,7 +14,6 @@ import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUserAction } from "../../Redux/Auth/auth.action";
-import ForgotPassword from "./ForgotPassword";
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
 
 const initialValues = { email: "", password: "" };
@@ -36,7 +35,6 @@ const validationSchema = Yup.object({
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,7 +42,14 @@ const Login = () => {
     setError("");
     const result = await dispatch(loginUserAction({ data: values }));
     if (!result.success) {
-      setError(result.message);
+      // Check if this is an OAuth user without password
+      if (result.message === "OAUTH_NO_PASSWORD") {
+        // Navigate to create password page with email
+        navigate(`/create-password?email=${encodeURIComponent(values.email)}`);
+        return;
+      } else {
+        setError(result.message);
+      }
     } else {
       // Navigate based on user role/currentMode
       const { currentMode, role, user } = result;
@@ -74,14 +79,7 @@ const Login = () => {
 
   // Function to handle forgot password click
   const handleForgotPasswordClick = () => {
-    setError(""); // Clear any existing errors
-    setShowForgotPassword(true);
-  };
-
-  // Function to handle back from forgot password
-  const handleBackFromForgotPassword = () => {
-    setError(""); // Clear any existing errors
-    setShowForgotPassword(false);
+    navigate("/forgot-password");
   };
 
   // Function to get the first error message in priority order
@@ -99,199 +97,195 @@ const Login = () => {
 
   return (
     <div className="p-3">
-      {!showForgotPassword ? (
-        <Formik
-          onSubmit={handleSubmit}
-          validationSchema={validationSchema}
-          initialValues={initialValues}
-        >
-          {({ isSubmitting, values, errors, touched }) => {
-            const currentError = getFirstError(errors, touched);
+      <Formik
+        onSubmit={handleSubmit}
+        validationSchema={validationSchema}
+        initialValues={initialValues}
+      >
+        {({ isSubmitting, values, errors, touched }) => {
+          const currentError = getFirstError(errors, touched);
 
-            return (
-              <Form className="space-y-4" noValidate>
-                {/* Further Reduced Height Error Message Container */}
-                <div className="min-h-[10px] mb-1">
-                  {currentError && (
-                    <Alert
-                      severity="error"
-                      sx={{
-                        backgroundColor: "rgba(244, 67, 54, 0.1)",
+          return (
+            <Form className="space-y-4" noValidate>
+              {/* Further Reduced Height Error Message Container */}
+              <div className="min-h-[10px] mb-1">
+                {currentError && (
+                  <Alert
+                    severity="error"
+                    sx={{
+                      backgroundColor: "rgba(244, 67, 54, 0.1)",
+                      color: "#f44336",
+                      "& .MuiAlert-icon": {
                         color: "#f44336",
-                        "& .MuiAlert-icon": {
-                          color: "#f44336",
-                        },
-                      }}
-                    >
-                      {currentError}
-                    </Alert>
-                  )}
-                </div>
-
-                {/* Email Field (clears server error on edit) */}
-                <div>
-                  <Field name="email">
-                    {({ field, form }) => (
-                      <TextField
-                        {...field}
-                        placeholder="Email"
-                        type="text" /* use text to suppress native email tooltip */
-                        variant="outlined"
-                        fullWidth
-                        error={touched.email && !!errors.email}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          if (error) setError("");
-                        }}
-                        onFocus={() => {
-                          if (error) setError("");
-                        }}
-                        inputMode="email"
-                        autoComplete="email"
-                        InputProps={{
-                          style: {
-                            backgroundColor: "rgb(56, 56, 56)",
-                            color: "#d8fffb",
-                            borderRadius: "8px",
-                          },
-                        }}
-                        InputLabelProps={{ style: { color: "#d8fffb" } }}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&.Mui-error .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#f44336",
-                            },
-                          },
-                        }}
-                      />
-                    )}
-                  </Field>
-                </div>
-
-                {/* Password Field (clears server error on edit) */}
-                <div>
-                  <Field name="password">
-                    {({ field }) => (
-                      <TextField
-                        {...field}
-                        placeholder="Password"
-                        type={showPassword ? "text" : "password"}
-                        variant="outlined"
-                        fullWidth
-                        error={touched.password && !!errors.password}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          if (error) setError("");
-                        }}
-                        onFocus={() => {
-                          if (error) setError("");
-                        }}
-                        InputProps={{
-                          style: {
-                            backgroundColor: "rgb(56, 56, 56)",
-                            color: "#d8fffb",
-                            borderRadius: "8px",
-                          },
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() => setShowPassword(!showPassword)}
-                                edge="end"
-                                style={{ color: "#14b8a6" }}
-                              >
-                                {showPassword ? (
-                                  <VisibilityOff />
-                                ) : (
-                                  <Visibility />
-                                )}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                        InputLabelProps={{ style: { color: "#d8fffb" } }}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&.Mui-error .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "#f44336",
-                            },
-                          },
-                        }}
-                      />
-                    )}
-                  </Field>
-                </div>
-
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  disabled={isSubmitting}
-                  style={{
-                    backgroundColor: "#14b8a6",
-                    color: "#d8fffb",
-                    padding: "12px 0",
-                    borderRadius: "8px",
-                    textTransform: "none",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {isSubmitting ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    "Login"
-                  )}
-                </Button>
-
-                {/* Divider */}
-                <div className="flex items-center gap-2 py-2">
-                  <Divider
-                    sx={{ flex: 1, borderColor: "rgba(255,255,255,0.2)" }}
-                  />
-                  <span className="text-gray-400 text-sm">or</span>
-                  <Divider
-                    sx={{ flex: 1, borderColor: "rgba(255,255,255,0.2)" }}
-                  />
-                </div>
-
-                {/* Google Sign-In Button */}
-                <GoogleLoginButton
-                  mode="signin"
-                  onError={(message) => setError(message)}
-                  disabled={isSubmitting}
-                />
-
-                {/* Links */}
-                <div className="flex flex-col items-center gap-2 pt-1">
-                  <p
-                    className="cursor-pointer"
-                    onClick={handleForgotPasswordClick}
-                    style={{ color: "#14b8a6", textTransform: "none" }}
-                  >
-                    Forgot Password?
-                  </p>
-                  <Button
-                    onClick={() => navigate("/register")}
-                    style={{
-                      backgroundColor: "#14b8a6",
-                      color: "#ffffff",
-                      padding: "10px 50px",
-                      border: "none",
-                      borderRadius: "4px",
-                      textTransform: "none",
-                      cursor: "pointer",
+                      },
                     }}
                   >
-                    Register
-                  </Button>
-                </div>
-              </Form>
-            );
-          }}
-        </Formik>
-      ) : (
-        <ForgotPassword onBack={handleBackFromForgotPassword} />
-      )}
+                    {currentError}
+                  </Alert>
+                )}
+              </div>
+
+              {/* Email Field (clears server error on edit) */}
+              <div>
+                <Field name="email">
+                  {({ field, form }) => (
+                    <TextField
+                      {...field}
+                      placeholder="Email"
+                      type="text" /* use text to suppress native email tooltip */
+                      variant="outlined"
+                      fullWidth
+                      error={touched.email && !!errors.email}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (error) setError("");
+                      }}
+                      onFocus={() => {
+                        if (error) setError("");
+                      }}
+                      inputMode="email"
+                      autoComplete="email"
+                      InputProps={{
+                        style: {
+                          backgroundColor: "rgb(56, 56, 56)",
+                          color: "#d8fffb",
+                          borderRadius: "8px",
+                        },
+                      }}
+                      InputLabelProps={{ style: { color: "#d8fffb" } }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#f44336",
+                          },
+                        },
+                      }}
+                    />
+                  )}
+                </Field>
+              </div>
+
+              {/* Password Field (clears server error on edit) */}
+              <div>
+                <Field name="password">
+                  {({ field }) => (
+                    <TextField
+                      {...field}
+                      placeholder="Password"
+                      type={showPassword ? "text" : "password"}
+                      variant="outlined"
+                      fullWidth
+                      error={touched.password && !!errors.password}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (error) setError("");
+                      }}
+                      onFocus={() => {
+                        if (error) setError("");
+                      }}
+                      InputProps={{
+                        style: {
+                          backgroundColor: "rgb(56, 56, 56)",
+                          color: "#d8fffb",
+                          borderRadius: "8px",
+                        },
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => setShowPassword(!showPassword)}
+                              edge="end"
+                              style={{ color: "#14b8a6" }}
+                            >
+                              {showPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                      InputLabelProps={{ style: { color: "#d8fffb" } }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#f44336",
+                          },
+                        },
+                      }}
+                    />
+                  )}
+                </Field>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={isSubmitting}
+                style={{
+                  backgroundColor: "#14b8a6",
+                  color: "#d8fffb",
+                  padding: "12px 0",
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                {isSubmitting ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Login"
+                )}
+              </Button>
+
+              {/* Divider */}
+              <div className="flex items-center gap-2 py-2">
+                <Divider
+                  sx={{ flex: 1, borderColor: "rgba(255,255,255,0.2)" }}
+                />
+                <span className="text-gray-400 text-sm">or</span>
+                <Divider
+                  sx={{ flex: 1, borderColor: "rgba(255,255,255,0.2)" }}
+                />
+              </div>
+
+              {/* Google Sign-In Button */}
+              <GoogleLoginButton
+                mode="signin"
+                onError={(message) => setError(message)}
+                disabled={isSubmitting}
+              />
+
+              {/* Links */}
+              <div className="flex flex-col items-center gap-2 pt-1">
+                <p
+                  className="cursor-pointer"
+                  onClick={handleForgotPasswordClick}
+                  style={{ color: "#14b8a6", textTransform: "none" }}
+                >
+                  Forgot Password?
+                </p>
+                <Button
+                  onClick={() => navigate("/register")}
+                  style={{
+                    backgroundColor: "#14b8a6",
+                    color: "#ffffff",
+                    padding: "10px 50px",
+                    border: "none",
+                    borderRadius: "4px",
+                    textTransform: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Register
+                </Button>
+              </div>
+            </Form>
+          );
+        }}
+      </Formik>
     </div>
   );
 };

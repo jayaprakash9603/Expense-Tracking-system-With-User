@@ -52,32 +52,42 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest) {
-       
-            User savedUser = userService.signup(signupRequest);
 
-            UserDetails userDetails = customUserService.loadUserByUsername(savedUser.getEmail());
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails.getUsername(),
-                    null,
-                    userDetails.getAuthorities()
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        User savedUser = userService.signup(signupRequest);
 
-            String token = JwtProvider.generateToken(authentication);
+        UserDetails userDetails = customUserService.loadUserByUsername(savedUser.getEmail());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails.getUsername(),
+                null,
+                userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            AuthResponse authResponse = new AuthResponse();
-            authResponse.setStatus(true);
-            authResponse.setMessage("Registration Success");
-            authResponse.setJwt(token);
+        String token = JwtProvider.generateToken(authentication);
 
-            return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setStatus(true);
+        authResponse.setMessage("Registration Success");
+        authResponse.setJwt(token);
 
-        
+        return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
+
     }
+
     @PostMapping("/signin")
     public ResponseEntity<AuthResponse> signin(@RequestBody LoginRequest loginRequest) {
         String username = loginRequest.getEmail();
         String password = loginRequest.getPassword();
+
+        // Check if user exists and is a Google OAuth user without password
+        User user = userRepository.findByEmail(username);
+        if (user != null && "GOOGLE".equals(user.getAuthProvider()) &&
+                (user.getPassword() == null || user.getPassword().isEmpty())) {
+            AuthResponse authResponse = new AuthResponse();
+            authResponse.setStatus(false);
+            authResponse.setMessage("OAUTH_NO_PASSWORD");
+            return new ResponseEntity<>(authResponse, HttpStatus.UNAUTHORIZED);
+        }
+
         try {
             Authentication authentication = authenticate(username, password);
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -107,8 +117,7 @@ public class AuthController {
             return new UsernamePasswordAuthenticationToken(
                     userDetails.getUsername(),
                     null,
-                    userDetails.getAuthorities()
-            );
+                    userDetails.getAuthorities());
         } catch (UsernameNotFoundException e) {
             throw new BadCredentialsException("Invalid Username or Password");
         }
@@ -116,41 +125,36 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestHeader("Authorization") String jwt) {
-       
-            if(jwt==null)
-            {
-                throw new MissingRequestHeaderException("Jwt is missing");
-            }
-            // Extract email from current JWT
-            String email = JwtProvider.getEmailFromJwt(jwt);
 
-            // Load fresh user details from database
-            UserDetails userDetails = customUserService.loadUserByUsername(email);
+        if (jwt == null) {
+            throw new MissingRequestHeaderException("Jwt is missing");
+        }
+        // Extract email from current JWT
+        String email = JwtProvider.getEmailFromJwt(jwt);
 
-            // Create new authentication with updated authorities
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails.getUsername(),
-                    null,
-                    userDetails.getAuthorities()
-            );
+        // Load fresh user details from database
+        UserDetails userDetails = customUserService.loadUserByUsername(email);
 
-            // Generate new token with updated roles
-            String newToken = JwtProvider.generateToken(authentication);
+        // Create new authentication with updated authorities
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails.getUsername(),
+                null,
+                userDetails.getAuthorities());
 
-            AuthResponse authResponse = new AuthResponse();
-            authResponse.setStatus(true);
-            authResponse.setMessage("Token refreshed successfully");
-            authResponse.setJwt(newToken);
+        // Generate new token with updated roles
+        String newToken = JwtProvider.generateToken(authentication);
 
-            return ResponseEntity.ok(authResponse);
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setStatus(true);
+        authResponse.setMessage("Token refreshed successfully");
+        authResponse.setJwt(newToken);
 
-        
+        return ResponseEntity.ok(authResponse);
+
     }
 
-
     @GetMapping("user/{userId}")
-    public User findUserById(@PathVariable("userId") Integer id) throws Exception
-    {
+    public User findUserById(@PathVariable("userId") Integer id) throws Exception {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             return userOptional.get();
@@ -160,8 +164,7 @@ public class AuthController {
     }
 
     @GetMapping("/{userId}")
-    public User findUserByIds(@PathVariable("userId") Integer id) throws Exception
-    {
+    public User findUserByIds(@PathVariable("userId") Integer id) throws Exception {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             return userOptional.get();
@@ -194,12 +197,32 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Check user's authentication method.
+     * Returns whether user exists, their auth provider, and if they have a
+     * password.
+     * Used by frontend to show appropriate login options.
+     */
+    @GetMapping("/check-auth-method")
+    public ResponseEntity<Map<String, Object>> checkAuthMethod(@RequestParam String email) {
+        Map<String, Object> response = new HashMap<>();
+        User user = userRepository.findByEmail(email);
 
+        if (user == null) {
+            response.put("exists", false);
+            return ResponseEntity.ok(response);
+        }
+
+        response.put("exists", true);
+        response.put("authProvider", user.getAuthProvider());
+        response.put("hasPassword", user.getPassword() != null && !user.getPassword().isEmpty());
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/send-otp")
     public ResponseEntity<Map<String, String>> sendOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-        if (userService.findByEmail(email)==null) {
+        if (userService.findByEmail(email) == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "Email not found"));
         }
@@ -233,13 +256,24 @@ public class AuthController {
         String email = request.get("email");
         String newPassword = request.get("password");
         User userOptional = userService.findByEmail(email);
-        if (userOptional==null) {
+        if (userOptional == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "Email not found"));
         }
         try {
+            // Check if this is a Google OAuth user creating their first password
+            boolean isOAuthUserCreatingPassword = "GOOGLE".equals(userOptional.getAuthProvider()) &&
+                    (userOptional.getPassword() == null || userOptional.getPassword().isEmpty());
+
             userService.updatePassword(userOptional, newPassword);
-            return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
+
+            // Return appropriate message based on user type
+            String message = isOAuthUserCreatingPassword
+                    ? "Password created successfully. You can now login with email and password."
+                    : "Password reset successfully";
+
+            return ResponseEntity
+                    .ok(Map.of("message", message, "wasPasswordCreation", String.valueOf(isOAuthUserCreatingPassword)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to reset password"));
