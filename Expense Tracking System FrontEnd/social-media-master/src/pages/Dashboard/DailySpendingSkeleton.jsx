@@ -70,6 +70,7 @@ const DailySpendingSkeleton = ({
       className="chart-container daily-spending-chart skeleton"
       style={{
         backgroundColor: colors.secondary_bg,
+        border: `1px solid ${colors.border_color}`,
         borderRadius: "12px",
         padding: isMobile ? "16px" : "20px",
       }}

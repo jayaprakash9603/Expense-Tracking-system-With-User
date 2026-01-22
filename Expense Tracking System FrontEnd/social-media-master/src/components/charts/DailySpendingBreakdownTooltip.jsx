@@ -1,5 +1,5 @@
 import React from "react";
-import { getCategoryIcon } from "../../utils/iconMapping";
+import { getEntityIcon } from "../../utils/iconMapping";
 
 const BREAKPOINTS = {
   mobile: 600,
@@ -414,8 +414,8 @@ const ItemRow = ({
         minWidth: 0,
       }}
     >
-      {entityType === "category" ? (
-        getCategoryIcon(name, {
+      {entityType === "category" || entityType === "paymentMethod" ? (
+        getEntityIcon(entityType, name, {
           sx: {
             fontSize: (responsive?.sizes?.dot ?? 8) + 6,
             color: dotColor || color,
@@ -590,16 +590,16 @@ const DailySpendingBreakdownTooltip = ({
   const frameColor = shouldUseAllAccent
     ? bothAccent
     : lossSection
-    ? lossAccent
-    : gainSection
-    ? gainAccent
-    : "#ff5252";
+      ? lossAccent
+      : gainSection
+        ? gainAccent
+        : "#ff5252";
 
   const frameBorder = shouldUseAllAccent
     ? bothAccentBorder
     : isLossOnly
-    ? lossAccent
-    : getGlow(frameColor, mode === "dark" ? 0.55 : 0.45) || baseBorder;
+      ? lossAccent
+      : getGlow(frameColor, mode === "dark" ? 0.55 : 0.45) || baseBorder;
   const frameGlow =
     getGlow(frameColor, mode === "dark" ? 0.35 : 0.22) || "rgba(0,0,0,0.25)";
 
@@ -614,8 +614,8 @@ const DailySpendingBreakdownTooltip = ({
   const headerGradient = shouldUseAllAccent
     ? "linear-gradient(135deg, rgba(250, 219, 20, 0.82) 0%, rgba(212, 177, 6, 0.82) 100%)"
     : headerIsLoss
-    ? "linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)"
-    : "linear-gradient(135deg, #00dac6 0%, #00a896 100%)";
+      ? "linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%)"
+      : "linear-gradient(135deg, #00dac6 0%, #00a896 100%)";
 
   const containerBg =
     `radial-gradient(circle at 15% 15%, rgba(255,255,255,0.08) 0%, transparent 45%), ` +
@@ -729,7 +729,7 @@ const DailySpendingBreakdownTooltip = ({
                     color: "rgba(255,255,255,0.75)",
                     fontSize: Math.max(
                       8,
-                      (responsive.header.labelSize ?? 9) - 1
+                      (responsive.header.labelSize ?? 9) - 1,
                     ),
                     fontWeight: 600,
                     letterSpacing: "0.3px",
@@ -742,7 +742,7 @@ const DailySpendingBreakdownTooltip = ({
                     color: secondaryColor,
                     fontSize: Math.max(
                       12,
-                      (responsive.header.amountSize ?? 16) - 2
+                      (responsive.header.amountSize ?? 16) - 2,
                     ),
                     fontWeight: 900,
                     letterSpacing: "-0.3px",

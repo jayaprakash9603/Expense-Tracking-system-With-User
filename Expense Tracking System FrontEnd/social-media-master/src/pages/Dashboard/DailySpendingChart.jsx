@@ -393,7 +393,11 @@ const DailySpendingChart = ({
             .toLowerCase()
             .includes("categor")
             ? "category"
-            : undefined
+            : String(breakdownLabel || "")
+                  .toLowerCase()
+                  .includes("payment")
+              ? "paymentMethod"
+              : undefined
         }
       />
     );
@@ -937,7 +941,11 @@ const DailySpendingChart = ({
             .toLowerCase()
             .includes("categor")
             ? "category"
-            : undefined
+            : String(breakdownLabel || "")
+                  .toLowerCase()
+                  .includes("payment")
+              ? "paymentMethod"
+              : undefined
         }
       />
     );

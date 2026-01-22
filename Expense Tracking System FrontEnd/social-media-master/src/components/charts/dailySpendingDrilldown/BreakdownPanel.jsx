@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Box, Button, Typography } from "@mui/material";
 
 import { toNumber } from "../../../utils/dailySpendingDrilldownUtils";
+import { getEntityIcon } from "../../../utils/iconMapping";
 
 const BreakdownPanel = ({
   title,
@@ -12,11 +13,12 @@ const BreakdownPanel = ({
   formatMoney,
   emptyMessage,
   maxItems = 5,
+  entityType,
 }) => {
   const safeItems = Array.isArray(items) ? items : [];
   const nonZeroItems = useMemo(
     () => safeItems.filter((item) => Math.abs(toNumber(item?.total)) > 0),
-    [safeItems]
+    [safeItems],
   );
 
   const pageSize = Math.max(1, Number(maxItems) || 5);
@@ -87,20 +89,39 @@ const BreakdownPanel = ({
                 background: `${accent}08`,
               }}
             >
-              <Typography
+              <Box
                 sx={{
-                  fontSize: 12,
-                  fontWeight: 800,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
                   minWidth: 0,
                   overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  color: colors?.secondary_text || colors?.primary_text,
                 }}
-                title={String(item?.name ?? "")}
               >
-                {item?.name}
-              </Typography>
+                {(entityType === "category" ||
+                  entityType === "paymentMethod") &&
+                  getEntityIcon(entityType, item?.name, {
+                    sx: {
+                      fontSize: 16,
+                      color: accent,
+                      flexShrink: 0,
+                    },
+                  })}
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    color: colors?.secondary_text || colors?.primary_text,
+                  }}
+                  title={String(item?.name ?? "")}
+                >
+                  {item?.name}
+                </Typography>
+              </Box>
 
               <Typography sx={{ fontSize: 12, fontWeight: 900, color: accent }}>
                 {formatMoney?.(toNumber(item?.total))}
@@ -124,7 +145,7 @@ const BreakdownPanel = ({
                 variant="text"
                 onClick={() =>
                   setVisibleCount((count) =>
-                    Math.min(nonZeroItems.length, count + pageSize)
+                    Math.min(nonZeroItems.length, count + pageSize),
                   )
                 }
                 sx={{
@@ -189,6 +210,7 @@ BreakdownPanel.propTypes = {
   formatMoney: PropTypes.func,
   emptyMessage: PropTypes.string,
   maxItems: PropTypes.number,
+  entityType: PropTypes.oneOf(["category", "paymentMethod"]),
 };
 
 export default BreakdownPanel;

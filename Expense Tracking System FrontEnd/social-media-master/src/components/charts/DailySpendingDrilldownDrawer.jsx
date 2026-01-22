@@ -31,7 +31,7 @@ const DailySpendingDrilldownDrawer = ({
   const canShowTypeTabs = Boolean(showTypeTabs);
 
   const [activeTab, setActiveTab] = useState(
-    String(defaultTypeTab || "loss").toLowerCase() === "gain" ? "gain" : "loss"
+    String(defaultTypeTab || "loss").toLowerCase() === "gain" ? "gain" : "loss",
   );
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const DailySpendingDrilldownDrawer = ({
     setActiveTab(
       String(defaultTypeTab || "loss").toLowerCase() === "gain"
         ? "gain"
-        : "loss"
+        : "loss",
     );
   }, [defaultTypeTab, open]);
 
@@ -61,6 +61,14 @@ const DailySpendingDrilldownDrawer = ({
     cardHeight,
     listGapPx,
   });
+
+  // Determine entityType from breakdownLabel
+  const entityType = useMemo(() => {
+    const labelLower = String(breakdownLabel || "").toLowerCase();
+    if (labelLower.includes("categor")) return "category";
+    if (labelLower.includes("payment")) return "paymentMethod";
+    return undefined;
+  }, [breakdownLabel]);
 
   const shouldRenderTabs = useMemo(() => {
     if (!canShowTypeTabs) return false;
@@ -129,6 +137,7 @@ const DailySpendingDrilldownDrawer = ({
           breakdown={drilldown.breakdown}
           colors={colors}
           formatMoney={drilldown.formatMoney}
+          entityType={entityType}
         />
       ) : null}
 

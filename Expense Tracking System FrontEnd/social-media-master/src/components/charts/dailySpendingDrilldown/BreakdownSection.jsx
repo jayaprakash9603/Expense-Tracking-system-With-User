@@ -4,7 +4,7 @@ import { Box } from "@mui/material";
 
 import BreakdownPanel from "./BreakdownPanel";
 
-const BreakdownSection = ({ breakdown, colors, formatMoney }) => {
+const BreakdownSection = ({ breakdown, colors, formatMoney, entityType }) => {
   if (!breakdown?.lossSection && !breakdown?.gainSection) return null;
 
   return (
@@ -18,6 +18,7 @@ const BreakdownSection = ({ breakdown, colors, formatMoney }) => {
           formatMoney={formatMoney}
           emptyMessage={breakdown.lossSection.emptyMessage}
           maxItems={5}
+          entityType={entityType}
         />
       ) : null}
 
@@ -30,6 +31,7 @@ const BreakdownSection = ({ breakdown, colors, formatMoney }) => {
           formatMoney={formatMoney}
           emptyMessage={breakdown.gainSection.emptyMessage}
           maxItems={5}
+          entityType={entityType}
         />
       ) : null}
     </Box>
@@ -40,6 +42,7 @@ BreakdownSection.propTypes = {
   breakdown: PropTypes.object.isRequired,
   colors: PropTypes.object,
   formatMoney: PropTypes.func.isRequired,
+  entityType: PropTypes.oneOf(["category", "paymentMethod"]),
 };
 
 export default BreakdownSection;

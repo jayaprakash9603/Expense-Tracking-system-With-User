@@ -735,12 +735,12 @@
 }
 
 .chart-container:hover {
-  border-color: rgba(
+  /* border-color: rgba(
     20,
     184,
     166,
     0.2
-  ); /* keep same as default, no hover border highlight */
+  );  */
   box-shadow: 0 12px 30px rgba(20, 184, 166, 0.15);
   transform: translateY(-2px);
 }
