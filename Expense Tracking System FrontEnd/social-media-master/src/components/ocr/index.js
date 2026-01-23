@@ -1,1 +1,1 @@
-export { default as ReceiptScanModal } from "./ReceiptScanModal";
+﻿export { default as ReceiptScanModal } from "./ReceiptScanModal";
