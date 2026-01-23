@@ -314,11 +314,6 @@ public class BillController {
             // Get all bills for the user
             List<Bill> userBills = billService.getAllBillsForUser(user.getId());
 
-            if (userBills.isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body("No bills found for user ID: " + user.getId());
-            }
-
             // Generate filename with timestamp
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String fileName = "User_" + user.getEmail() + "_Bills_" + timestamp + ".xlsx";

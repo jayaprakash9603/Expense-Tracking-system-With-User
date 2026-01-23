@@ -47,6 +47,16 @@ public class Budget {
     @Column(nullable = false)
     private boolean includeInBudget = false;
 
+    // Notification tracking flags - to prevent duplicate notifications
+    @Column(nullable = false)
+    private boolean notification50PercentSent = false;
+
+    @Column(nullable = false)
+    private boolean notification80PercentSent = false;
+
+    @Column(nullable = false)
+    private boolean notification100PercentSent = false;
+
     public void deductAmount(double expenseAmount) {
         this.amount -= expenseAmount;
     }
