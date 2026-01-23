@@ -28,6 +28,14 @@ import {
   GET_BILL_BY_EXPENSE_ID_REQUEST,
   GET_BILL_BY_EXPENSE_ID_SUCCESS,
   GET_BILL_BY_EXPENSE_ID_FAILURE,
+  SCAN_RECEIPT_REQUEST,
+  SCAN_RECEIPT_SUCCESS,
+  SCAN_RECEIPT_FAILURE,
+  CLEAR_SCAN_RESULT,
+  UPDATE_SCAN_FIELD,
+  CHECK_OCR_STATUS_REQUEST,
+  CHECK_OCR_STATUS_SUCCESS,
+  CHECK_OCR_STATUS_FAILURE,
 } from "./bill.actionType";
 import { api } from "../../config/api";
 
@@ -304,4 +312,138 @@ export const startTrackedSaveBills = (bills, targetId) => async () => {
 export const pollBillsSaveProgress = async (jobId) => {
   const { data } = await api.get(`/api/bills/add-multiple/progress/${jobId}`);
   return data; // { jobId, total, processed, percent, status, message }
+};
+
+// ==================== OCR RECEIPT SCANNING ====================
+
+/**
+ * Scans a receipt image using OCR and extracts expense data.
+ * @param {File} file - The receipt image file
+ * @returns {Promise} - Resolves with extracted receipt data
+ */
+export const scanReceipt = (file) => async (dispatch) => {
+  dispatch({ type: SCAN_RECEIPT_REQUEST });
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await api.post(`api/bills/scan-receipt`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    dispatch({
+      type: SCAN_RECEIPT_SUCCESS,
+      payload: response.data,
+    });
+
+    return response.data;
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Failed to scan receipt";
+
+    dispatch({
+      type: SCAN_RECEIPT_FAILURE,
+      payload: errorMessage,
+    });
+
+    throw error;
+  }
+};
+
+/**
+ * Scans multiple receipt images (pages) using OCR and merges results.
+ * Useful for multi-page receipts like Star Bazaar/Trent Hypermarket bills.
+ * @param {File[]} files - Array of receipt image files
+ * @returns {Promise} - Resolves with merged extracted receipt data
+ */
+export const scanMultipleReceipts = (files) => async (dispatch) => {
+  dispatch({ type: SCAN_RECEIPT_REQUEST });
+
+  try {
+    const formData = new FormData();
+
+    // Append all files to FormData
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    const response = await api.post(
+      `api/bills/scan-receipt/multiple`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    dispatch({
+      type: SCAN_RECEIPT_SUCCESS,
+      payload: response.data,
+    });
+
+    return response.data;
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Failed to scan receipts";
+
+    dispatch({
+      type: SCAN_RECEIPT_FAILURE,
+      payload: errorMessage,
+    });
+
+    throw error;
+  }
+};
+
+/**
+ * Clears the current scan result from state.
+ */
+export const clearScanResult = () => ({
+  type: CLEAR_SCAN_RESULT,
+});
+
+/**
+ * Updates a field in the scanned receipt data (for manual overrides).
+ * @param {string} field - The field name to update
+ * @param {any} value - The new value
+ */
+export const updateScanField = (field, value) => ({
+  type: UPDATE_SCAN_FIELD,
+  payload: { field, value },
+});
+
+/**
+ * Checks if the OCR service is available.
+ * @returns {Promise} - Resolves with OCR status
+ */
+export const checkOcrStatus = () => async (dispatch) => {
+  dispatch({ type: CHECK_OCR_STATUS_REQUEST });
+
+  try {
+    const response = await api.get(`api/bills/ocr/status`);
+
+    dispatch({
+      type: CHECK_OCR_STATUS_SUCCESS,
+      payload: response.data,
+    });
+
+    return response.data;
+  } catch (error) {
+    dispatch({
+      type: CHECK_OCR_STATUS_FAILURE,
+      payload: error.response?.data?.message || error.message,
+    });
+
+    return { available: false };
+  }
 };

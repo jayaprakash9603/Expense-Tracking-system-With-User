@@ -9,6 +9,7 @@ import {
   Box,
   IconButton,
   Button,
+  Tooltip,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
@@ -19,6 +20,7 @@ import {
   Delete as DeleteIcon,
   Link as LinkIcon,
   Close as CloseIcon,
+  CameraAlt as CameraIcon,
 } from "@mui/icons-material";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
@@ -36,6 +38,7 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
+import { ReceiptScanModal } from "../../components/ocr";
 
 const CreateBill = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
@@ -102,6 +105,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const [checkboxStates, setCheckboxStates] = useState([]);
   const [selectedBudgets, setSelectedBudgets] = useState([]);
 
+  // OCR Receipt Scan Modal state
+  const [showReceiptScanModal, setShowReceiptScanModal] = useState(false);
+
   // Auto-fill tracking states
   const [autoFilledFields, setAutoFilledFields] = useState({
     category: false,
@@ -121,7 +127,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
     billData.name,
     billData.date,
-    friendId
+    friendId,
   );
 
   // Type options
@@ -289,7 +295,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
   useEffect(() => {
     const totalAmount = expenses.reduce(
       (sum, expense) => sum + (expense.totalPrice || 0),
-      0
+      0,
     );
     setBillData((prev) => ({ ...prev, amount: totalAmount.toString() }));
   }, [expenses]);
@@ -443,13 +449,13 @@ const CreateBill = ({ onClose, onSuccess }) => {
           parseFloat(expense.unitPrice) > 0) ||
         (expense.quantity !== "" &&
           !isNaN(parseFloat(expense.quantity)) &&
-          parseFloat(expense.quantity) > 0)
+          parseFloat(expense.quantity) > 0),
     );
   };
 
   const handleSaveExpenses = () => {
     const validExpenses = tempExpenses.filter((expense) =>
-      isCurrentRowComplete(expense)
+      isCurrentRowComplete(expense),
     );
 
     if (validExpenses.length === 0) {
@@ -505,7 +511,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
     // Check if there are unsaved changes and valid entries
     if (hasUnsavedExpenseChanges && hasValidExpenseEntries()) {
       const confirmClose = window.confirm(
-        t("billCommon.messages.unsavedChanges")
+        t("billCommon.messages.unsavedChanges"),
       );
 
       if (confirmClose) {
@@ -539,6 +545,26 @@ const CreateBill = ({ onClose, onSuccess }) => {
     setShowBudgetTable(false);
   };
 
+  // Handle OCR scanned data
+  const handleOcrDataExtracted = (extractedData) => {
+    if (!extractedData) return;
+
+    // Update bill data with extracted values
+    setBillData((prev) => ({
+      ...prev,
+      name: extractedData.name || prev.name,
+      description: extractedData.description || prev.description,
+      amount: extractedData.amount?.toString() || prev.amount,
+      paymentMethod: extractedData.paymentMethod || prev.paymentMethod,
+      date: extractedData.date || prev.date,
+    }));
+
+    // Show success message
+    alert(
+      `Receipt scanned successfully!\n\nExtracted:\n- Name: ${extractedData.name || "N/A"}\n- Amount: ${currencySymbol}${extractedData.amount || "0"}\n- Date: ${extractedData.date || "N/A"}\n\nPlease review and edit if needed.`,
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -559,7 +585,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
         expense.quantity !== "" &&
         !isNaN(parseFloat(expense.quantity)) &&
         parseFloat(expense.quantity) > 0 &&
-        !expense.quantity.toString().includes("-")
+        !expense.quantity.toString().includes("-"),
     );
 
     if (validExpenses.length === 0) {
@@ -574,7 +600,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
       // Calculate total amount from valid expenses
       const totalAmount = validExpenses.reduce(
         (sum, expense) => sum + expense.totalPrice,
-        0
+        0,
       );
 
       // Validate total amount
@@ -617,7 +643,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
       // Dispatch the create bill action
       const resultAction = await dispatch(
-        createBill(billPayload, friendId || "")
+        createBill(billPayload, friendId || ""),
       );
 
       console.log("Bill creation result:", resultAction);
@@ -680,7 +706,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
         console.error("Bill creation failed:", errorMessage);
         alert(
-          t("createBill.messages.errorWithReason", { message: errorMessage })
+          t("createBill.messages.errorWithReason", { message: errorMessage }),
         );
       }
     } catch (error) {
@@ -688,14 +714,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
       alert(
         t("createBill.messages.errorWithReason", {
           message: error.message || t("createBill.messages.failure"),
-        })
+        }),
       );
     }
   };
 
   const handleCheckboxChange = (index) => {
     setCheckboxStates((prev) =>
-      prev.map((state, i) => (i === index ? !state : state))
+      prev.map((state, i) => (i === index ? !state : state)),
     );
   };
 
@@ -1191,7 +1217,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const handleDataGridSelection = (newSelection) => {
     // Map DataGrid selection to checkboxStates
     const newCheckboxStates = dataGridRows.map((row, idx) =>
-      newSelection.includes(row.id)
+      newSelection.includes(row.id),
     );
     setCheckboxStates(newCheckboxStates);
   };
@@ -1272,23 +1298,41 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
         {/* Action Buttons - Same Line */}
         <div className="mt-6 flex justify-between items-center">
-          <Button
-            onClick={handleToggleBudgetTable}
-            startIcon={<LinkIcon />}
-            sx={{
-              backgroundColor: showBudgetTable
-                ? colors.button_hover
-                : colors.button_bg,
-              color: colors.button_text,
-              "&:hover": {
-                backgroundColor: colors.button_hover,
-              },
-            }}
-          >
-            {showBudgetTable
-              ? t("billCommon.actions.hideBudgets")
-              : t("billCommon.actions.linkBudgets")}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleToggleBudgetTable}
+              startIcon={<LinkIcon />}
+              sx={{
+                backgroundColor: showBudgetTable
+                  ? colors.button_hover
+                  : colors.button_bg,
+                color: colors.button_text,
+                "&:hover": {
+                  backgroundColor: colors.button_hover,
+                },
+              }}
+            >
+              {showBudgetTable
+                ? t("billCommon.actions.hideBudgets")
+                : t("billCommon.actions.linkBudgets")}
+            </Button>
+
+            <Tooltip title="Scan receipt using OCR to auto-fill expense details">
+              <Button
+                onClick={() => setShowReceiptScanModal(true)}
+                startIcon={<CameraIcon />}
+                sx={{
+                  backgroundColor: colors.primary_accent || "#00dac6",
+                  color: "#fff",
+                  "&:hover": {
+                    backgroundColor: colors.primary_accent_hover || "#00b8a0",
+                  },
+                }}
+              >
+                Scan Receipt
+              </Button>
+            </Tooltip>
+          </div>
 
           <Button
             onClick={handleOpenExpenseTable}
@@ -1581,7 +1625,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                               handleTempExpenseChange(
                                 index,
                                 "unitPrice",
-                                value
+                                value,
                               );
                             }
                           }}
@@ -1640,7 +1684,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                             handleTempExpenseChange(
                               index,
                               "comments",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className="w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm"
@@ -1690,23 +1734,23 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       startIcon={<AddIcon />}
                       disabled={
                         !isCurrentRowComplete(
-                          tempExpenses[tempExpenses.length - 1]
+                          tempExpenses[tempExpenses.length - 1],
                         )
                       }
                       sx={{
                         backgroundColor: isCurrentRowComplete(
-                          tempExpenses[tempExpenses.length - 1]
+                          tempExpenses[tempExpenses.length - 1],
                         )
                           ? "#00DAC6"
                           : colors.border_color,
                         color: isCurrentRowComplete(
-                          tempExpenses[tempExpenses.length - 1]
+                          tempExpenses[tempExpenses.length - 1],
                         )
                           ? "black"
                           : colors.icon_muted,
                         "&:hover": {
                           backgroundColor: isCurrentRowComplete(
-                            tempExpenses[tempExpenses.length - 1]
+                            tempExpenses[tempExpenses.length - 1],
                           )
                             ? "#00b8a0"
                             : colors.border_color,
@@ -1725,7 +1769,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                     </Button>
 
                     {!isCurrentRowComplete(
-                      tempExpenses[tempExpenses.length - 1]
+                      tempExpenses[tempExpenses.length - 1],
                     ) && (
                       <div className="text-red-400 text-xs mt-1">
                         {t("billCommon.expenseTable.validationHintDetailed")}
@@ -1744,7 +1788,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       {tempExpenses
                         .reduce(
                           (sum, expense) => sum + (expense.totalPrice || 0),
-                          0
+                          0,
                         )
                         .toFixed(2)}
                     </div>
@@ -1888,7 +1932,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                             <div className="flex justify-between">
                               <span style={{ color: colors.icon_muted }}>
                                 {t(
-                                  "billCommon.expenseTable.summaryLabels.unit"
+                                  "billCommon.expenseTable.summaryLabels.unit",
                                 )}
                               </span>
                               <span
@@ -1902,7 +1946,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                             <div className="flex justify-between">
                               <span style={{ color: colors.icon_muted }}>
                                 {t(
-                                  "billCommon.expenseTable.summaryLabels.calc"
+                                  "billCommon.expenseTable.summaryLabels.calc",
                                 )}
                               </span>
                               <span style={{ color: colors.secondary_text }}>
@@ -1922,7 +1966,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                                   style={{ color: colors.icon_muted }}
                                 >
                                   {t(
-                                    "billCommon.expenseTable.summaryLabels.comments"
+                                    "billCommon.expenseTable.summaryLabels.comments",
                                   )}
                                 </div>
                                 <div
@@ -2108,6 +2152,13 @@ const CreateBill = ({ onClose, onSuccess }) => {
           `}
         </style>
       </div>
+
+      {/* Receipt OCR Scan Modal */}
+      <ReceiptScanModal
+        isOpen={showReceiptScanModal}
+        onClose={() => setShowReceiptScanModal(false)}
+        onDataExtracted={handleOcrDataExtracted}
+      />
     </>
   );
 };
