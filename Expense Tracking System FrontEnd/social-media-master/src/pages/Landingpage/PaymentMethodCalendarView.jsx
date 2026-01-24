@@ -146,7 +146,7 @@ const PaymentMethodCalendarView = () => {
       showSummaryCards={false}
       rightPanelOpen={Boolean(selectedDateStr)}
       rightPanelWidth={350}
-      rightPanelGap={20}
+      rightPanelGap={10}
       rightPanel={
         <CalendarDayDetailsSidebar
           dateStr={selectedDateStr}

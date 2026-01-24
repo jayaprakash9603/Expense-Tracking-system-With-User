@@ -12,12 +12,16 @@ export default function CalendarSplitView({
   sidebar,
   calendar,
   sidebarWidth = 420,
-  desktopGap = "20px",
+  // Use CSS pixels (not theme spacing) to avoid unexpected huge gaps.
+  // Example: desktopGap={20} means 20px (NOT 20 * theme.spacing).
+  desktopGap = 10,
   mobileGap = 2,
   height,
   calendarWidthWhenSidebarOpen,
 }) {
-  const gap = isSmallScreen ? mobileGap : sidebarOpen ? desktopGap : 0;
+  const resolvedDesktopGap =
+    typeof desktopGap === "number" ? `${desktopGap}px` : desktopGap;
+  const gap = isSmallScreen ? mobileGap : sidebarOpen ? resolvedDesktopGap : 0;
   const calendarWidth =
     !isSmallScreen && sidebarOpen && calendarWidthWhenSidebarOpen
       ? calendarWidthWhenSidebarOpen

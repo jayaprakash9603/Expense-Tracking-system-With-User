@@ -563,7 +563,8 @@ const MonthlyCalendarView = ({
           minHeight: isSmallScreen ? "auto" : 0,
           height: isSmallScreen ? "auto" : "100%",
           display: showRightPanelDesktop ? "flex" : "block",
-          gap: computedRightPanelGap,
+          // Use px gap to avoid MUI theme spacing multiplying the number.
+          gap: computedRightPanelGap ? `${computedRightPanelGap}px` : 0,
           alignItems: "stretch",
           overflow: "hidden",
         }}
