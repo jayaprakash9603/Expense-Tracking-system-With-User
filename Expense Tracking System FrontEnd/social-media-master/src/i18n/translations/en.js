@@ -591,6 +591,83 @@ export const en = {
       invalidQuantityOrPrice:
         "Please enter valid positive values for both quantity and unit price.",
     },
+    receiptScanner: {
+      title: "Scan Receipt",
+      buttonLabel: "Scan Receipt",
+      tooltip: "Scan receipt using OCR to auto-fill expense details",
+      tip: "💡 Tip: Upload all pages of your receipt for best results",
+      dropTitle: "Drop your receipt pages here",
+      dropSubtitle: "or click to browse files",
+      supportedFormats: "Supports: JPG, PNG, GIF, BMP, TIFF (max 10MB each)",
+      multiPageChip: "Upload multiple pages for multi-page receipts",
+      fileCountSingular: "{{count}} page selected",
+      fileCountPlural: "{{count}} pages selected",
+      scanButtonProcessingSingular: "Scanning {{count}} page...",
+      scanButtonProcessingPlural: "Scanning {{count}} pages...",
+      scanButtonReadySingular: "Scan {{count}} Page",
+      scanButtonReadyPlural: "Scan {{count}} Pages",
+      pageLabel: "Page {{number}}",
+      imageAlt: "Receipt page {{number}}",
+      addMore: "Add More",
+      clearAll: "Clear All",
+      confidenceTitle: "OCR Confidence: {{confidence}}%",
+      confidenceHint:
+        "Review and edit fields as needed. Yellow/Red badges indicate lower confidence.",
+      errors: {
+        fileLimit: "Maximum {{max}} files allowed",
+        invalidFormat:
+          "{{fileName}}: Invalid format (use JPG, PNG, GIF, BMP, or TIFF)",
+        fileSize: "{{fileName}}: File exceeds 10MB limit",
+      },
+      fields: {
+        merchant: {
+          label: "Merchant Name",
+          placeholder: "Enter merchant name",
+        },
+        amount: {
+          label: "Total Amount",
+          placeholder: "0.00",
+        },
+        date: {
+          label: "Date",
+        },
+        tax: {
+          label: "Tax (GST/CGST/SGST)",
+          placeholder: "0.00",
+        },
+        category: {
+          label: "Suggested Category",
+        },
+        paymentMethod: {
+          label: "Payment Method",
+        },
+        detectedItems: "Detected Items ({{count}})",
+      },
+      badges: {
+        labels: {
+          high: "High",
+          medium: "Medium",
+          low: "Low",
+        },
+        tooltipFallback: "{{level}} confidence",
+      },
+      actions: {
+        scanAnother: "Scan Another",
+        useData: "Use This Data",
+      },
+      defaults: {
+        expenseName: "Receipt Expense",
+        descriptionPrefix: "Scanned from receipt",
+        taxSuffix: " (Tax: {{currency}}{{amount}})",
+      },
+      meta: {
+        processedIn: "Processed in {{ms}}ms using OCR",
+      },
+      successMessage: {
+        title: "Receipt scanned successfully!",
+        body: "Extracted:\n- Name: {{name}}\n- Amount: {{amount}}\n- Date: {{date}}\n\nPlease review and edit if needed.",
+      },
+    },
   },
 
   // Create Bill

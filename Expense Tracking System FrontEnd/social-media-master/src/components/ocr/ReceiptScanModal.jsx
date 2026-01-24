@@ -26,6 +26,7 @@ import {
   FaPlus,
 } from "react-icons/fa";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 import {
   scanReceipt,
   scanMultipleReceipts,
@@ -48,6 +49,7 @@ import {
  */
 const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
 
@@ -73,6 +75,12 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
   const maxFileSize = 10 * 1024 * 1024; // 10MB per file
   const maxFiles = 10;
 
+  const getPluralizedLabel = useCallback(
+    (count, singularKey, pluralKey, params = {}) =>
+      t(count === 1 ? singularKey : pluralKey, { count, ...params }),
+    [t],
+  );
+
   // Handle file selection (supports multiple files)
   const handleFileSelect = useCallback(
     (files) => {
@@ -85,21 +93,31 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
       Array.from(files).forEach((file) => {
         // Check total file limit
         if (selectedFiles.length + newFiles.length >= maxFiles) {
-          errors.push(`Maximum ${maxFiles} files allowed`);
+          errors.push(
+            t("billCommon.receiptScanner.errors.fileLimit", {
+              max: maxFiles,
+            }),
+          );
           return;
         }
 
         // Validate file type
         if (!allowedFormats.includes(file.type)) {
           errors.push(
-            `${file.name}: Invalid format (use JPG, PNG, GIF, BMP, or TIFF)`,
+            t("billCommon.receiptScanner.errors.invalidFormat", {
+              fileName: file.name,
+            }),
           );
           return;
         }
 
         // Validate file size
         if (file.size > maxFileSize) {
-          errors.push(`${file.name}: File exceeds 10MB limit`);
+          errors.push(
+            t("billCommon.receiptScanner.errors.fileSize", {
+              fileName: file.name,
+            }),
+          );
           return;
         }
 
@@ -108,7 +126,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
       });
 
       if (errors.length > 0) {
-        alert(errors.join("\n"));
+        window.alert(errors.join("\n"));
       }
 
       if (newFiles.length > 0) {
@@ -118,7 +136,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
         dispatch(clearScanResult());
       }
     },
-    [dispatch, selectedFiles.length],
+    [dispatch, selectedFiles.length, t],
   );
 
   // Remove a single file
@@ -231,13 +249,23 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
   const handleUseData = () => {
     if (editedData && onDataExtracted) {
       const currencySymbol = getCurrencySymbol(editedData.currency);
+      const defaultName = t("billCommon.receiptScanner.defaults.expenseName");
+      const descriptionPrefix = t(
+        "billCommon.receiptScanner.defaults.descriptionPrefix",
+      );
+      const descriptionTaxSuffix = editedData.tax
+        ? t("billCommon.receiptScanner.defaults.taxSuffix", {
+            currency: currencySymbol,
+            amount: editedData.tax,
+          })
+        : "";
       onDataExtracted({
-        name: editedData.merchant || "Receipt Expense",
+        name: editedData.merchant || defaultName,
         amount: parseFloat(editedData.amount) || 0,
         date: editedData.date || new Date().toISOString().split("T")[0],
         category: editedData.suggestedCategory || "",
         paymentMethod: editedData.paymentMethod || "",
-        description: `Scanned from receipt${editedData.tax ? ` (Tax: ${currencySymbol}${editedData.tax})` : ""}`,
+        description: `${descriptionPrefix}${descriptionTaxSuffix}`,
         rawOcrText: scanResult?.rawText || "",
         currency: editedData.currency || "INR",
       });
@@ -271,12 +299,20 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
     };
 
     const badgeColors = colorMap[level] || colorMap.low;
+    const labelKey = `billCommon.receiptScanner.badges.labels.${level}`;
+    const translatedLabel = t(labelKey);
+    const labelText = translatedLabel === labelKey ? level : translatedLabel;
+    const tooltipText =
+      fieldConfidence.reason ||
+      t("billCommon.receiptScanner.badges.tooltipFallback", {
+        level: labelText,
+      });
 
     return (
-      <Tooltip title={fieldConfidence.reason || `${level} confidence`}>
+      <Tooltip title={tooltipText}>
         <Chip
           size="small"
-          label={level.toUpperCase()}
+          label={labelText}
           sx={{
             backgroundColor: badgeColors.bg,
             color: badgeColors.text,
@@ -322,7 +358,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <FaReceipt size={24} style={{ color: colors.primary_accent }} />
             <Typography variant="h6" fontWeight="600">
-              Scan Receipt
+              {t("billCommon.receiptScanner.title")}
             </Typography>
           </Box>
           <IconButton onClick={handleClose} size="small">
@@ -375,7 +411,11 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     }}
                   >
                     <Chip
-                      label={`${selectedFiles.length} ${selectedFiles.length === 1 ? "page" : "pages"} selected`}
+                      label={getPluralizedLabel(
+                        selectedFiles.length,
+                        "billCommon.receiptScanner.fileCountSingular",
+                        "billCommon.receiptScanner.fileCountPlural",
+                      )}
                       color="primary"
                       size="small"
                     />
@@ -390,7 +430,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                           color: colors.primary_accent,
                         }}
                       >
-                        Add More
+                        {t("billCommon.receiptScanner.addMore")}
                       </Button>
                     )}
                     <Button
@@ -400,7 +440,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                       startIcon={<FaTrash />}
                       onClick={handleClearAll}
                     >
-                      Clear All
+                      {t("billCommon.receiptScanner.clearAll")}
                     </Button>
                   </Box>
 
@@ -419,7 +459,9 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                         >
                           <img
                             src={url}
-                            alt={`Receipt page ${index + 1}`}
+                            alt={t("billCommon.receiptScanner.imageAlt", {
+                              number: index + 1,
+                            })}
                             style={{
                               width: "100%",
                               height: "120px",
@@ -439,7 +481,9 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                               borderBottomRightRadius: 4,
                             }}
                           >
-                            Page {index + 1}
+                            {t("billCommon.receiptScanner.pageLabel", {
+                              number: index + 1,
+                            })}
                           </Box>
                           <IconButton
                             size="small"
@@ -477,7 +521,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     color="textSecondary"
                     sx={{ display: "block", mt: 2 }}
                   >
-                    💡 Tip: Upload all pages of your receipt for best results
+                    {t("billCommon.receiptScanner.tip")}
                   </Typography>
                 </Box>
               ) : (
@@ -490,24 +534,24 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     }}
                   />
                   <Typography variant="h6" gutterBottom>
-                    Drop your receipt pages here
+                    {t("billCommon.receiptScanner.dropTitle")}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="textSecondary"
                     gutterBottom
                   >
-                    or click to browse files
+                    {t("billCommon.receiptScanner.dropSubtitle")}
                   </Typography>
                   <Typography
                     variant="caption"
                     color="textSecondary"
                     sx={{ display: "block" }}
                   >
-                    Supports: JPG, PNG, GIF, BMP, TIFF (max 10MB each)
+                    {t("billCommon.receiptScanner.supportedFormats")}
                   </Typography>
                   <Chip
-                    label="Upload multiple pages for multi-page receipts"
+                    label={t("billCommon.receiptScanner.multiPageChip")}
                     size="small"
                     sx={{
                       mt: 1,
@@ -542,8 +586,16 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                 }}
               >
                 {scanning
-                  ? `Scanning ${selectedFiles.length} ${selectedFiles.length === 1 ? "page" : "pages"}...`
-                  : `Scan ${selectedFiles.length} ${selectedFiles.length === 1 ? "Page" : "Pages"}`}
+                  ? getPluralizedLabel(
+                      selectedFiles.length,
+                      "billCommon.receiptScanner.scanButtonProcessingSingular",
+                      "billCommon.receiptScanner.scanButtonProcessingPlural",
+                    )
+                  : getPluralizedLabel(
+                      selectedFiles.length,
+                      "billCommon.receiptScanner.scanButtonReadySingular",
+                      "billCommon.receiptScanner.scanButtonReadyPlural",
+                    )}
               </Button>
             </Box>
           )}
@@ -576,12 +628,12 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                 />
                 <Box>
                   <Typography variant="body2" fontWeight="500">
-                    OCR Confidence:{" "}
-                    {Math.round(scanResult.overallConfidence || 0)}%
+                    {t("billCommon.receiptScanner.confidenceTitle", {
+                      confidence: Math.round(scanResult.overallConfidence || 0),
+                    })}
                   </Typography>
                   <Typography variant="caption" color="textSecondary">
-                    Review and edit fields as needed. Yellow/Red badges indicate
-                    lower confidence.
+                    {t("billCommon.receiptScanner.confidenceHint")}
                   </Typography>
                 </Box>
               </Box>
@@ -605,7 +657,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                 <Box>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
                     <Typography variant="body2" fontWeight="500">
-                      Merchant Name
+                      {t("billCommon.receiptScanner.fields.merchant.label")}
                     </Typography>
                     {getConfidenceBadge("merchant")}
                   </Box>
@@ -616,7 +668,9 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     onChange={(e) =>
                       handleFieldChange("merchant", e.target.value)
                     }
-                    placeholder="Enter merchant name"
+                    placeholder={t(
+                      "billCommon.receiptScanner.fields.merchant.placeholder",
+                    )}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         backgroundColor: colors.secondary_bg,
@@ -629,7 +683,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                 <Box>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
                     <Typography variant="body2" fontWeight="500">
-                      Total Amount
+                      {t("billCommon.receiptScanner.fields.amount.label")}
                     </Typography>
                     {getConfidenceBadge("amount")}
                   </Box>
@@ -641,7 +695,9 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     onChange={(e) =>
                       handleFieldChange("amount", e.target.value)
                     }
-                    placeholder="0.00"
+                    placeholder={t(
+                      "billCommon.receiptScanner.fields.amount.placeholder",
+                    )}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -661,7 +717,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                 <Box>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
                     <Typography variant="body2" fontWeight="500">
-                      Date
+                      {t("billCommon.receiptScanner.fields.date.label")}
                     </Typography>
                     {getConfidenceBadge("date")}
                   </Box>
@@ -686,7 +742,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                       sx={{ display: "flex", alignItems: "center", mb: 0.5 }}
                     >
                       <Typography variant="body2" fontWeight="500">
-                        Tax (GST/CGST/SGST)
+                        {t("billCommon.receiptScanner.fields.tax.label")}
                       </Typography>
                       {getConfidenceBadge("tax")}
                     </Box>
@@ -696,7 +752,9 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                       type="number"
                       value={editedData.tax}
                       onChange={(e) => handleFieldChange("tax", e.target.value)}
-                      placeholder="0.00"
+                      placeholder={t(
+                        "billCommon.receiptScanner.fields.tax.placeholder",
+                      )}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -721,7 +779,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                       fontWeight="500"
                       sx={{ mb: 0.5 }}
                     >
-                      Suggested Category
+                      {t("billCommon.receiptScanner.fields.category.label")}
                     </Typography>
                     <Chip
                       label={editedData.suggestedCategory}
@@ -741,7 +799,9 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                       fontWeight="500"
                       sx={{ mb: 0.5 }}
                     >
-                      Payment Method
+                      {t(
+                        "billCommon.receiptScanner.fields.paymentMethod.label",
+                      )}
                     </Typography>
                     <Chip
                       label={editedData.paymentMethod}
@@ -760,7 +820,9 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                         fontWeight="500"
                         sx={{ mb: 1 }}
                       >
-                        Detected Items ({scanResult.expenseItems.length})
+                        {t("billCommon.receiptScanner.fields.detectedItems", {
+                          count: scanResult.expenseItems.length,
+                        })}
                       </Typography>
                       <Box
                         sx={{
@@ -817,7 +879,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     color: colors.primary_text,
                   }}
                 >
-                  Scan Another
+                  {t("billCommon.receiptScanner.actions.scanAnother")}
                 </Button>
                 <Button
                   variant="contained"
@@ -828,7 +890,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     "&:hover": { backgroundColor: colors.primary_accent_hover },
                   }}
                 >
-                  Use This Data
+                  {t("billCommon.receiptScanner.actions.useData")}
                 </Button>
               </Box>
             </Box>
@@ -841,7 +903,9 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
               color="textSecondary"
               sx={{ display: "block", textAlign: "center", mt: 2 }}
             >
-              Processed in {scanResult.processingTimeMs}ms using OCR
+              {t("billCommon.receiptScanner.meta.processedIn", {
+                ms: scanResult.processingTimeMs,
+              })}
             </Typography>
           )}
         </Box>

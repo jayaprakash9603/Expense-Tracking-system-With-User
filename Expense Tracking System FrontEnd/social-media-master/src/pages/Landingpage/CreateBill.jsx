@@ -38,7 +38,7 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
-import { ReceiptScanModal } from "../../components/ocr";
+import ReceiptScanModal from "../../components/ocr/ReceiptScanModal";
 
 const CreateBill = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
@@ -560,9 +560,13 @@ const CreateBill = ({ onClose, onSuccess }) => {
     }));
 
     // Show success message
-    alert(
-      `Receipt scanned successfully!\n\nExtracted:\n- Name: ${extractedData.name || "N/A"}\n- Amount: ${currencySymbol}${extractedData.amount || "0"}\n- Date: ${extractedData.date || "N/A"}\n\nPlease review and edit if needed.`,
-    );
+    const successTitle = t("billCommon.receiptScanner.successMessage.title");
+    const successBody = t("billCommon.receiptScanner.successMessage.body", {
+      name: extractedData.name || t("common.notAvailable"),
+      amount: `${currencySymbol}${extractedData.amount || "0"}`,
+      date: extractedData.date || t("common.notAvailable"),
+    });
+    window.alert(`${successTitle}\n\n${successBody}`);
   };
 
   const handleSubmit = async (e) => {
@@ -1317,7 +1321,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 : t("billCommon.actions.linkBudgets")}
             </Button>
 
-            <Tooltip title="Scan receipt using OCR to auto-fill expense details">
+            <Tooltip title={t("billCommon.receiptScanner.tooltip")}>
               <Button
                 onClick={() => setShowReceiptScanModal(true)}
                 startIcon={<CameraIcon />}
@@ -1329,7 +1333,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   },
                 }}
               >
-                Scan Receipt
+                {t("billCommon.receiptScanner.buttonLabel")}
               </Button>
             </Tooltip>
           </div>
