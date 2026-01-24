@@ -87,9 +87,7 @@ export default function CalendarDayCell({
 
     const iconsLine = showIcons
       ? (() => {
-          const labels = iconItems
-            .map((it) => it?.label)
-            .filter(Boolean);
+          const labels = iconItems.map((it) => it?.label).filter(Boolean);
           if (!labels.length) return null;
           const shown = labels.slice(0, 3);
           const remaining = labels.length - shown.length;
@@ -129,7 +127,16 @@ export default function CalendarDayCell({
         )}
       </Box>
     );
-  }, [avgDailySpend, colors, currencySymbol, iconItems, isSalaryDay, paydayDistanceText, showIcons, spending]);
+  }, [
+    avgDailySpend,
+    colors,
+    currencySymbol,
+    iconItems,
+    isSalaryDay,
+    paydayDistanceText,
+    showIcons,
+    spending,
+  ]);
 
   return (
     <Tooltip
@@ -208,10 +215,10 @@ export default function CalendarDayCell({
               pointerEvents: "none",
               background: `linear-gradient(135deg, ${hexToRgba(
                 spendingColor,
-                0.12
+                0.12,
               )} 0%, ${hexToRgba(incomeColor, 0.12)} 50%, ${hexToRgba(
                 spendingColor,
-                0.12
+                0.12,
               )} 100%)`,
               backgroundSize: "200% 200%",
               animation: `${waveFlow} 6s ease-in-out infinite`,

@@ -297,6 +297,12 @@ const MonthlyCalendarView = ({
   // Optional: render icons instead of amounts inside day cells
   dayCellConfig,
 
+  // Optional: right-side panel aligned with the calendar grid (desktop only)
+  rightPanel,
+  rightPanelOpen = false,
+  rightPanelWidth = 350,
+  rightPanelGap = 20,
+
   // Styling
   containerStyle = {},
 }) => {
@@ -312,12 +318,12 @@ const MonthlyCalendarView = ({
   // Calculate days array and start day
   const days = useMemo(
     () => getDaysArray(selectedDate.year(), selectedDate.month()),
-    [selectedDate]
+    [selectedDate],
   );
 
   const startDay = useMemo(
     () => dayjs(`${selectedDate.year()}-${selectedDate.month() + 1}-01`).day(),
-    [selectedDate]
+    [selectedDate],
   );
 
   // Calculate monthly summary
@@ -329,7 +335,7 @@ const MonthlyCalendarView = ({
         spendingKey: summaryConfig.spendingKey,
         incomeKey: summaryConfig.incomeKey,
       }),
-    [data, selectedDate, summaryConfig.spendingKey, summaryConfig.incomeKey]
+    [data, selectedDate, summaryConfig.spendingKey, summaryConfig.incomeKey],
   );
 
   const { totalSpending, totalIncome, avgDailySpend, maxSpending, maxIncome } =
@@ -339,7 +345,7 @@ const MonthlyCalendarView = ({
   const salaryDate = useMemo(
     () =>
       getSalaryDateLastWorkingDay(selectedDate.year(), selectedDate.month()),
-    [selectedDate]
+    [selectedDate],
   );
 
   // NOTE: Spending Momentum is now provided via `momentumInsight`.
@@ -347,7 +353,7 @@ const MonthlyCalendarView = ({
   // Check if viewing current month
   const isViewingCurrentMonth = useMemo(
     () => selectedDate.isSame(dayjs(), "month"),
-    [selectedDate]
+    [selectedDate],
   );
 
   // Navigation handlers
@@ -389,6 +395,14 @@ const MonthlyCalendarView = ({
     const dateStr = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
     onDayClick?.(dateStr, day, selectedDate);
   };
+
+  const showRightPanelDesktop = Boolean(rightPanel) && !isSmallScreen;
+  const computedRightPanelGap =
+    showRightPanelDesktop && rightPanelOpen ? rightPanelGap : 0;
+  const computedLeftWidth =
+    showRightPanelDesktop && rightPanelOpen
+      ? `calc(100% - ${rightPanelWidth}px - ${computedRightPanelGap}px)`
+      : "100%";
 
   return (
     <div
@@ -542,149 +556,185 @@ const MonthlyCalendarView = ({
         )}
       </Box>
 
-      {/* Calendar grid */}
+      {/* Calendar grid + optional right panel (desktop) */}
       <Box
         sx={{
           flex: 1,
-          overflow: "hidden",
-          background: colors.primary_bg,
-          borderRadius: 2,
-          p: 2,
-          minHeight: isSmallScreen ? "auto" : "0px",
+          minHeight: isSmallScreen ? "auto" : 0,
           height: isSmallScreen ? "auto" : "100%",
+          display: showRightPanelDesktop ? "flex" : "block",
+          gap: computedRightPanelGap,
+          alignItems: "stretch",
+          overflow: "hidden",
         }}
       >
-        {/* Weekday headers */}
-        <Grid
-          container
-          spacing={1}
-          columns={7}
+        <Box
           sx={{
-            mb: 2,
-            background: colors.primary_bg,
-            borderRadius: 2,
-            borderBottom: 0,
-            position: "relative",
-            ...(showSummaryCards
-              ? {
-                  "::after": {
-                    content: '""',
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: 4,
-                    borderRadius: "0 0 8px 8px",
-                    background: (() => {
-                      const total = totalIncome + Math.abs(totalSpending);
-                      if (total === 0)
-                        return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
-                      const incomePercent = (totalIncome / total) * 100;
-                      return `linear-gradient(90deg, ${summaryConfig.incomeColor} ${incomePercent}%, ${summaryConfig.spendingColor} ${incomePercent}%, ${summaryConfig.spendingColor} 100%)`;
-                    })(),
-                    zIndex: 1,
-                  },
-                }
-              : null),
+            width: computedLeftWidth,
+            transition: "width 280ms ease",
+            minWidth: 0,
+            flex: showRightPanelDesktop ? "0 0 auto" : "1 1 auto",
           }}
         >
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <Grid item xs={1} key={d}>
-              <Typography
-                align="center"
-                variant="subtitle2"
-                sx={{
-                  fontWeight: 700,
-                  color: colors.primary_text,
-                  py: 1,
-                  letterSpacing: 1,
-                  border: "none",
-                  borderRadius: 2,
-                }}
-              >
-                {d}
-              </Typography>
+          <Box
+            sx={{
+              overflow: "hidden",
+              background: colors.primary_bg,
+              borderRadius: 2,
+              p: 2,
+              minHeight: isSmallScreen ? "auto" : "0px",
+              height: isSmallScreen ? "auto" : "100%",
+            }}
+          >
+            {/* Weekday headers */}
+            <Grid
+              container
+              spacing={1}
+              columns={7}
+              sx={{
+                mb: 2,
+                background: colors.primary_bg,
+                borderRadius: 2,
+                borderBottom: 0,
+                position: "relative",
+                ...(showSummaryCards
+                  ? {
+                      "::after": {
+                        content: '""',
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: 4,
+                        borderRadius: "0 0 8px 8px",
+                        background: (() => {
+                          const total = totalIncome + Math.abs(totalSpending);
+                          if (total === 0)
+                            return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
+                          const incomePercent = (totalIncome / total) * 100;
+                          return `linear-gradient(90deg, ${summaryConfig.incomeColor} ${incomePercent}%, ${summaryConfig.spendingColor} ${incomePercent}%, ${summaryConfig.spendingColor} 100%)`;
+                        })(),
+                        zIndex: 1,
+                      },
+                    }
+                  : null),
+              }}
+            >
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                <Grid item xs={1} key={d}>
+                  <Typography
+                    align="center"
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 700,
+                      color: colors.primary_text,
+                      py: 1,
+                      letterSpacing: 1,
+                      border: "none",
+                      borderRadius: 2,
+                    }}
+                  >
+                    {d}
+                  </Typography>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
 
-        {/* Calendar days */}
-        <Grid container spacing={1} columns={7}>
-          {/* Empty cells for offset */}
-          {Array.from({ length: startDay }).map((_, i) => (
-            <Grid item xs={1} key={`empty-${i}`}></Grid>
-          ))}
+            {/* Calendar days */}
+            <Grid container spacing={1} columns={7}>
+              {/* Empty cells for offset */}
+              {Array.from({ length: startDay }).map((_, i) => (
+                <Grid item xs={1} key={`empty-${i}`}></Grid>
+              ))}
 
-          {/* Day cells */}
-          {days.map((day) => {
-            const key = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
-            const dayData = data[key];
-            const dateObj = dayjs(selectedDate).date(day);
-            const isToday = dayjs().isSame(dateObj, "day");
-            const isWeekend = dateObj.day() === 0 || dateObj.day() === 6;
-            const isSalaryDay =
-              showSalaryIndicator &&
-              day === salaryDate.date() &&
-              selectedDate.month() === salaryDate.month() &&
-              selectedDate.year() === salaryDate.year();
+              {/* Day cells */}
+              {days.map((day) => {
+                const key = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
+                const dayData = data[key];
+                const dateObj = dayjs(selectedDate).date(day);
+                const isToday = dayjs().isSame(dateObj, "day");
+                const isWeekend = dateObj.day() === 0 || dateObj.day() === 6;
+                const isSalaryDay =
+                  showSalaryIndicator &&
+                  day === salaryDate.date() &&
+                  selectedDate.month() === salaryDate.month() &&
+                  selectedDate.year() === salaryDate.year();
 
-            const paydayDistanceText = showSalaryIndicator
-              ? getPaydayDistanceText(dateObj, salaryDate)
-              : "";
+                const paydayDistanceText = showSalaryIndicator
+                  ? getPaydayDistanceText(dateObj, salaryDate)
+                  : "";
 
-            const spending = Number(dayData?.[summaryConfig.spendingKey]) || 0;
-            const income = Number(dayData?.[summaryConfig.incomeKey]) || 0;
+                const spending =
+                  Number(dayData?.[summaryConfig.spendingKey]) || 0;
+                const income = Number(dayData?.[summaryConfig.incomeKey]) || 0;
 
-            const heatmapBackground = showHeatmap
-              ? buildHeatmapBackground({
-                  baseBg: colors.secondary_bg,
-                  accentColor: colors.primary_accent,
-                  isWeekend,
-                  spending,
-                  income,
-                  maxSpending,
-                  maxIncome,
-                  spendingColor: summaryConfig.spendingColor,
-                  incomeColor: summaryConfig.incomeColor,
-                })
-              : null;
+                const heatmapBackground = showHeatmap
+                  ? buildHeatmapBackground({
+                      baseBg: colors.secondary_bg,
+                      accentColor: colors.primary_accent,
+                      isWeekend,
+                      spending,
+                      income,
+                      maxSpending,
+                      maxIncome,
+                      spendingColor: summaryConfig.spendingColor,
+                      incomeColor: summaryConfig.incomeColor,
+                    })
+                  : null;
 
-            return (
-              <Grid
-                item
-                xs={1}
-                key={day}
-                sx={{
-                  borderRadius: 2,
-                  position: "relative",
-                  overflow: "visible",
-                }}
-              >
-                <CalendarDayCell
-                  dayNumber={day}
-                  date={dateObj}
-                  dayData={dayData}
-                  isToday={showTodayIndicator && isToday}
-                  isSalaryDay={isSalaryDay}
-                  paydayDistanceText={paydayDistanceText}
-                  onClick={handleDayClick}
-                  isSmallScreen={isSmallScreen}
-                  spendingKey={summaryConfig.spendingKey}
-                  incomeKey={summaryConfig.incomeKey}
-                  spendingColor={summaryConfig.spendingColor}
-                  incomeColor={summaryConfig.incomeColor}
-                  colors={colors}
-                  currencySymbol={currencySymbol}
-                  heatmapBackground={heatmapBackground}
-                  avgDailySpend={avgDailySpend}
-                  iconsKey={dayCellConfig?.iconsKey}
-                  renderIcon={dayCellConfig?.renderIcon}
-                  maxIcons={dayCellConfig?.maxIcons}
-                />
-              </Grid>
-            );
-          })}
-        </Grid>
+                return (
+                  <Grid
+                    item
+                    xs={1}
+                    key={day}
+                    sx={{
+                      borderRadius: 2,
+                      position: "relative",
+                      overflow: "visible",
+                    }}
+                  >
+                    <CalendarDayCell
+                      dayNumber={day}
+                      date={dateObj}
+                      dayData={dayData}
+                      isToday={showTodayIndicator && isToday}
+                      isSalaryDay={isSalaryDay}
+                      paydayDistanceText={paydayDistanceText}
+                      onClick={handleDayClick}
+                      isSmallScreen={isSmallScreen}
+                      spendingKey={summaryConfig.spendingKey}
+                      incomeKey={summaryConfig.incomeKey}
+                      spendingColor={summaryConfig.spendingColor}
+                      incomeColor={summaryConfig.incomeColor}
+                      colors={colors}
+                      currencySymbol={currencySymbol}
+                      heatmapBackground={heatmapBackground}
+                      avgDailySpend={avgDailySpend}
+                      iconsKey={dayCellConfig?.iconsKey}
+                      renderIcon={dayCellConfig?.renderIcon}
+                      maxIcons={dayCellConfig?.maxIcons}
+                    />
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Box>
+        </Box>
+
+        {showRightPanelDesktop && (
+          <Box
+            sx={{
+              width: rightPanelOpen ? rightPanelWidth : 0,
+              minWidth: rightPanelOpen ? rightPanelWidth : 0,
+              maxWidth: rightPanelWidth,
+              transition: "width 280ms ease, min-width 280ms ease",
+              overflow: "hidden",
+              flex: "0 0 auto",
+            }}
+          >
+            {rightPanelOpen ? rightPanel : null}
+          </Box>
+        )}
       </Box>
 
       {/* Jump to Today button */}
@@ -765,6 +815,10 @@ MonthlyCalendarView.propTypes = {
     renderIcon: PropTypes.func,
     maxIcons: PropTypes.number,
   }),
+  rightPanel: PropTypes.node,
+  rightPanelOpen: PropTypes.bool,
+  rightPanelWidth: PropTypes.number,
+  rightPanelGap: PropTypes.number,
   showBackButton: PropTypes.bool,
   containerStyle: PropTypes.object,
 };

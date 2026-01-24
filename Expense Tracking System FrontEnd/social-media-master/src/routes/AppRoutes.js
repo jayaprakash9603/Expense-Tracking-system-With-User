@@ -100,7 +100,10 @@ export const getAppRoutes = () => (
         <Route index element={<PaymentMethodFlow />} />
         <Route path=":friendId" element={<PaymentMethodFlow />} />
         <Route path="calendar" element={<PaymentMethodCalendarView />} />
-        <Route path="calendar/:friendId" element={<PaymentMethodCalendarView />} />
+        <Route
+          path="calendar/:friendId"
+          element={<PaymentMethodCalendarView />}
+        />
         <Route path="reports" element={<PaymentMethodsReport />} />
         <Route path="reports/:friendId" element={<PaymentMethodsReport />} />
         <Route path="create" element={<CreatePaymentMethod />} />

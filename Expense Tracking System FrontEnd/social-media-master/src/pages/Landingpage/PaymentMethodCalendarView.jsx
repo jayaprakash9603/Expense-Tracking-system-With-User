@@ -7,6 +7,7 @@ import MonthlyCalendarView from "../../components/calendar/MonthlyCalendarView";
 import { getFinanceCalendarColors } from "../../config/financeColorTokens";
 import { useTheme } from "../../hooks/useTheme";
 import { getPaymentMethodIcon } from "../../utils/iconMapping";
+import CalendarDayDetailsSidebar from "../../components/calendar/CalendarDayDetailsSidebar";
 
 const PaymentMethodCalendarView = () => {
   const dispatch = useDispatch();
@@ -14,6 +15,7 @@ const PaymentMethodCalendarView = () => {
   const navigate = useNavigate();
   const { friendId } = useParams();
   const [monthOffset, setMonthOffset] = React.useState(0);
+  const [selectedDateStr, setSelectedDateStr] = React.useState(null);
   const { mode } = useTheme();
   const financeColors = getFinanceCalendarColors(mode);
 
@@ -25,7 +27,7 @@ const PaymentMethodCalendarView = () => {
         flowType: null,
         targetId: friendId || undefined,
         groupBy: false,
-      })
+      }),
     );
   }, [dispatch, monthOffset, friendId]);
 
@@ -64,7 +66,7 @@ const PaymentMethodCalendarView = () => {
 
       const matchKey = paymentMethodIconKey || paymentMethodName;
       const existingIdx = map[key].icons.findIndex(
-        (x) => (x?.key || x?.label) === matchKey
+        (x) => (x?.key || x?.label) === matchKey,
       );
 
       if (existingIdx === -1) {
@@ -85,15 +87,12 @@ const PaymentMethodCalendarView = () => {
   }, [cashflowExpenses]);
 
   const handleDayClick = (dateStr) => {
-    if (friendId && friendId !== "undefined") {
-      navigate(`/day-view/${dateStr}/friend/${friendId}`);
-    } else {
-      navigate(`/day-view/${dateStr}`);
-    }
+    setSelectedDateStr(dateStr);
   };
 
   const handleMonthChange = (newDate, newOffset) => {
     setMonthOffset(newOffset);
+    setSelectedDateStr(null);
   };
 
   const handleBack = () => {
@@ -103,6 +102,15 @@ const PaymentMethodCalendarView = () => {
       navigate("/payment-method");
     }
   };
+
+  const selectedDayItems = useMemo(() => {
+    if (!selectedDateStr || !Array.isArray(cashflowExpenses)) return [];
+    return cashflowExpenses.filter((it) => {
+      const exp = it?.expense || it;
+      const d = dayjs(exp?.date || it?.date);
+      return d.isValid() && d.format("YYYY-MM-DD") === selectedDateStr;
+    });
+  }, [cashflowExpenses, selectedDateStr]);
 
   return (
     <MonthlyCalendarView
@@ -136,6 +144,28 @@ const PaymentMethodCalendarView = () => {
       showBackButton={true}
       showHeatmap={false}
       showSummaryCards={false}
+      rightPanelOpen={Boolean(selectedDateStr)}
+      rightPanelWidth={350}
+      rightPanelGap={20}
+      rightPanel={
+        <CalendarDayDetailsSidebar
+          dateStr={selectedDateStr}
+          items={selectedDayItems}
+          headerTitle="Payment Method Calendar"
+          onClose={() => setSelectedDateStr(null)}
+          renderLeadingIcon={(raw, ctx) =>
+            getPaymentMethodIcon(
+              ctx?.paymentMethod?.iconKey || ctx?.paymentMethod?.name,
+              {
+                sx: {
+                  color: ctx?.paymentMethod?.color || "#14b8a6",
+                  fontSize: 18,
+                },
+              },
+            )
+          }
+        />
+      }
     />
   );
 };
