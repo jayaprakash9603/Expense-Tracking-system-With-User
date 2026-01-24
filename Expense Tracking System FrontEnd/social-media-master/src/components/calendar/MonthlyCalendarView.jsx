@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Typography,
   Grid,
@@ -281,6 +281,10 @@ const MonthlyCalendarView = ({
   initialDate = dayjs(),
   initialOffset = 0,
 
+  // Optional controlled mode (lets parents jump months programmatically)
+  controlledDate,
+  controlledOffset,
+
   // Features
   showSalaryIndicator = true,
   showTodayIndicator = true,
@@ -314,6 +318,25 @@ const MonthlyCalendarView = ({
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [monthOffset, setMonthOffset] = useState(initialOffset);
+
+  useEffect(() => {
+    if (!controlledDate) return;
+
+    const nextDate = controlledDate;
+    const shouldUpdateMonth =
+      !selectedDate?.isValid?.() || !selectedDate.isSame(nextDate, "month");
+
+    if (shouldUpdateMonth) {
+      setSelectedDate(nextDate);
+    }
+
+    if (
+      typeof controlledOffset === "number" &&
+      controlledOffset !== monthOffset
+    ) {
+      setMonthOffset(controlledOffset);
+    }
+  }, [controlledDate, controlledOffset, monthOffset, selectedDate]);
 
   // Calculate days array and start day
   const days = useMemo(
@@ -806,6 +829,8 @@ MonthlyCalendarView.propTypes = {
   }),
   initialDate: PropTypes.object,
   initialOffset: PropTypes.number,
+  controlledDate: PropTypes.object,
+  controlledOffset: PropTypes.number,
   showSalaryIndicator: PropTypes.bool,
   showTodayIndicator: PropTypes.bool,
   showJumpToToday: PropTypes.bool,

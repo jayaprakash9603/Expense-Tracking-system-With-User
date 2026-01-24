@@ -86,6 +86,11 @@ const CategoryCalendarView = () => {
     return map;
   }, [cashflowExpenses]);
 
+  const monthDate = useMemo(
+    () => dayjs().add(monthOffset, "month"),
+    [monthOffset],
+  );
+
   const handleDayClick = (dateStr) => {
     setSelectedDateStr(dateStr);
   };
@@ -93,6 +98,20 @@ const CategoryCalendarView = () => {
   const handleMonthChange = (newDate, newOffset) => {
     setMonthOffset(newOffset);
     setSelectedDateStr(null);
+  };
+
+  const handleNavigateToDate = (nextDateStr) => {
+    if (!nextDateStr) return;
+    const next = dayjs(nextDateStr);
+    if (next.isValid()) {
+      const diff = next
+        .startOf("month")
+        .diff(dayjs().startOf("month"), "month");
+      if (diff !== monthOffset) {
+        setMonthOffset(diff);
+      }
+    }
+    setSelectedDateStr(nextDateStr);
   };
 
   const handleBack = () => {
@@ -111,6 +130,18 @@ const CategoryCalendarView = () => {
       return d.isValid() && d.format("YYYY-MM-DD") === selectedDateStr;
     });
   }, [cashflowExpenses, selectedDateStr]);
+
+  const availableDates = useMemo(() => {
+    if (!Array.isArray(cashflowExpenses)) return [];
+    const dates = cashflowExpenses
+      .map((it) => {
+        const exp = it?.expense || it;
+        const d = dayjs(exp?.date || it?.date);
+        return d.isValid() ? d.format("YYYY-MM-DD") : null;
+      })
+      .filter(Boolean);
+    return Array.from(new Set(dates)).sort();
+  }, [cashflowExpenses]);
 
   return (
     <MonthlyCalendarView
@@ -138,6 +169,8 @@ const CategoryCalendarView = () => {
       }}
       initialDate={dayjs()}
       initialOffset={0}
+      controlledDate={monthDate}
+      controlledOffset={monthOffset}
       showSalaryIndicator={true}
       showTodayIndicator={true}
       showJumpToToday={true}
@@ -151,8 +184,24 @@ const CategoryCalendarView = () => {
         <CalendarDayDetailsSidebar
           dateStr={selectedDateStr}
           items={selectedDayItems}
+          availableDates={availableDates}
           headerTitle="Category Calendar"
           onClose={() => setSelectedDateStr(null)}
+          onNavigateDate={handleNavigateToDate}
+          onItemClick={(expenseLike) => {
+            const expenseId =
+              expenseLike?.id ||
+              expenseLike?.expenseId ||
+              expenseLike?.expense?.id ||
+              expenseLike?.expense?.expenseId;
+            if (!expenseId) return;
+
+            if (friendId && friendId !== "undefined") {
+              navigate(`/expenses/edit/${expenseId}/friend/${friendId}`);
+            } else {
+              navigate(`/expenses/edit/${expenseId}`);
+            }
+          }}
           renderLeadingIcon={(raw, ctx) =>
             getCategoryIcon(ctx?.category?.iconKey || ctx?.category?.name, {
               sx: { color: ctx?.category?.color || "#14b8a6", fontSize: 18 },

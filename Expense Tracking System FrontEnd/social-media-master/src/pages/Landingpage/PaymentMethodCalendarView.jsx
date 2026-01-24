@@ -86,6 +86,11 @@ const PaymentMethodCalendarView = () => {
     return map;
   }, [cashflowExpenses]);
 
+  const monthDate = useMemo(
+    () => dayjs().add(monthOffset, "month"),
+    [monthOffset],
+  );
+
   const handleDayClick = (dateStr) => {
     setSelectedDateStr(dateStr);
   };
@@ -93,6 +98,20 @@ const PaymentMethodCalendarView = () => {
   const handleMonthChange = (newDate, newOffset) => {
     setMonthOffset(newOffset);
     setSelectedDateStr(null);
+  };
+
+  const handleNavigateToDate = (nextDateStr) => {
+    if (!nextDateStr) return;
+    const next = dayjs(nextDateStr);
+    if (next.isValid()) {
+      const diff = next
+        .startOf("month")
+        .diff(dayjs().startOf("month"), "month");
+      if (diff !== monthOffset) {
+        setMonthOffset(diff);
+      }
+    }
+    setSelectedDateStr(nextDateStr);
   };
 
   const handleBack = () => {
@@ -111,6 +130,18 @@ const PaymentMethodCalendarView = () => {
       return d.isValid() && d.format("YYYY-MM-DD") === selectedDateStr;
     });
   }, [cashflowExpenses, selectedDateStr]);
+
+  const availableDates = useMemo(() => {
+    if (!Array.isArray(cashflowExpenses)) return [];
+    const dates = cashflowExpenses
+      .map((it) => {
+        const exp = it?.expense || it;
+        const d = dayjs(exp?.date || it?.date);
+        return d.isValid() ? d.format("YYYY-MM-DD") : null;
+      })
+      .filter(Boolean);
+    return Array.from(new Set(dates)).sort();
+  }, [cashflowExpenses]);
 
   return (
     <MonthlyCalendarView
@@ -138,6 +169,8 @@ const PaymentMethodCalendarView = () => {
       }}
       initialDate={dayjs()}
       initialOffset={0}
+      controlledDate={monthDate}
+      controlledOffset={monthOffset}
       showSalaryIndicator={true}
       showTodayIndicator={true}
       showJumpToToday={true}
@@ -151,8 +184,24 @@ const PaymentMethodCalendarView = () => {
         <CalendarDayDetailsSidebar
           dateStr={selectedDateStr}
           items={selectedDayItems}
+          availableDates={availableDates}
           headerTitle="Payment Method Calendar"
           onClose={() => setSelectedDateStr(null)}
+          onNavigateDate={handleNavigateToDate}
+          onItemClick={(expenseLike) => {
+            const expenseId =
+              expenseLike?.id ||
+              expenseLike?.expenseId ||
+              expenseLike?.expense?.id ||
+              expenseLike?.expense?.expenseId;
+            if (!expenseId) return;
+
+            if (friendId && friendId !== "undefined") {
+              navigate(`/expenses/edit/${expenseId}/friend/${friendId}`);
+            } else {
+              navigate(`/expenses/edit/${expenseId}`);
+            }
+          }}
           renderLeadingIcon={(raw, ctx) =>
             getPaymentMethodIcon(
               ctx?.paymentMethod?.iconKey || ctx?.paymentMethod?.name,
