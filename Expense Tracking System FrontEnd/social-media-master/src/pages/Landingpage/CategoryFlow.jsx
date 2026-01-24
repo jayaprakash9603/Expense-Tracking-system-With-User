@@ -104,6 +104,14 @@ const CategoryFlow = () => {
             label: t("navigation.reports"),
           },
           {
+            path:
+              friendId && friendId !== "undefined"
+                ? `/category-flow/calendar/${friendId}`
+                : "/category-flow/calendar",
+            icon: "calendar.png",
+            label: t("cashflow.nav.calendar"),
+          },
+          {
             path: "/budget",
             icon: "budget.png",
             label: t("cashflow.nav.budget"),

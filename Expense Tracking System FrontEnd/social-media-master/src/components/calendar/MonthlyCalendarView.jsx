@@ -287,8 +287,15 @@ const MonthlyCalendarView = ({
   showJumpToToday = true,
   showBackButton = true,
 
+  // Visual toggles
+  showHeatmap = true,
+  showSummaryCards = true,
+
   // Optional macro insight (anchored to today, computed outside)
   momentumInsight,
+
+  // Optional: render icons instead of amounts inside day cells
+  dayCellConfig,
 
   // Styling
   containerStyle = {},
@@ -497,16 +504,18 @@ const MonthlyCalendarView = ({
         )}
 
         {/* Spending card */}
-        <SummaryCard
-          label={summaryConfig.spendingLabel}
-          amount={totalSpending}
-          backgroundColor={summaryConfig.spendingColor}
-          iconColor={summaryConfig.spendingIconColor}
-          textColor={summaryConfig.spendingTextColor}
-          iconType="down"
-          isSmallScreen={isSmallScreen}
-          currencySymbol={currencySymbol}
-        />
+        {showSummaryCards && (
+          <SummaryCard
+            label={summaryConfig.spendingLabel}
+            amount={totalSpending}
+            backgroundColor={summaryConfig.spendingColor}
+            iconColor={summaryConfig.spendingIconColor}
+            textColor={summaryConfig.spendingTextColor}
+            iconType="down"
+            isSmallScreen={isSmallScreen}
+            currencySymbol={currencySymbol}
+          />
+        )}
 
         {/* Month navigator */}
         <MonthNavigator
@@ -519,16 +528,18 @@ const MonthlyCalendarView = ({
         />
 
         {/* Income card */}
-        <SummaryCard
-          label={summaryConfig.incomeLabel}
-          amount={totalIncome}
-          backgroundColor={summaryConfig.incomeColor}
-          iconColor={summaryConfig.incomeIconColor}
-          textColor={summaryConfig.incomeTextColor}
-          iconType="up"
-          isSmallScreen={isSmallScreen}
-          currencySymbol={currencySymbol}
-        />
+        {showSummaryCards && (
+          <SummaryCard
+            label={summaryConfig.incomeLabel}
+            amount={totalIncome}
+            backgroundColor={summaryConfig.incomeColor}
+            iconColor={summaryConfig.incomeIconColor}
+            textColor={summaryConfig.incomeTextColor}
+            iconType="up"
+            isSmallScreen={isSmallScreen}
+            currencySymbol={currencySymbol}
+          />
+        )}
       </Box>
 
       {/* Calendar grid */}
@@ -554,23 +565,27 @@ const MonthlyCalendarView = ({
             borderRadius: 2,
             borderBottom: 0,
             position: "relative",
-            "::after": {
-              content: '""',
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 4,
-              borderRadius: "0 0 8px 8px",
-              background: (() => {
-                const total = totalIncome + Math.abs(totalSpending);
-                if (total === 0)
-                  return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
-                const incomePercent = (totalIncome / total) * 100;
-                return `linear-gradient(90deg, ${summaryConfig.incomeColor} ${incomePercent}%, ${summaryConfig.spendingColor} ${incomePercent}%, ${summaryConfig.spendingColor} 100%)`;
-              })(),
-              zIndex: 1,
-            },
+            ...(showSummaryCards
+              ? {
+                  "::after": {
+                    content: '""',
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 4,
+                    borderRadius: "0 0 8px 8px",
+                    background: (() => {
+                      const total = totalIncome + Math.abs(totalSpending);
+                      if (total === 0)
+                        return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
+                      const incomePercent = (totalIncome / total) * 100;
+                      return `linear-gradient(90deg, ${summaryConfig.incomeColor} ${incomePercent}%, ${summaryConfig.spendingColor} ${incomePercent}%, ${summaryConfig.spendingColor} 100%)`;
+                    })(),
+                    zIndex: 1,
+                  },
+                }
+              : null),
           }}
         >
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
@@ -620,17 +635,19 @@ const MonthlyCalendarView = ({
             const spending = Number(dayData?.[summaryConfig.spendingKey]) || 0;
             const income = Number(dayData?.[summaryConfig.incomeKey]) || 0;
 
-            const heatmapBackground = buildHeatmapBackground({
-              baseBg: colors.secondary_bg,
-              accentColor: colors.primary_accent,
-              isWeekend,
-              spending,
-              income,
-              maxSpending,
-              maxIncome,
-              spendingColor: summaryConfig.spendingColor,
-              incomeColor: summaryConfig.incomeColor,
-            });
+            const heatmapBackground = showHeatmap
+              ? buildHeatmapBackground({
+                  baseBg: colors.secondary_bg,
+                  accentColor: colors.primary_accent,
+                  isWeekend,
+                  spending,
+                  income,
+                  maxSpending,
+                  maxIncome,
+                  spendingColor: summaryConfig.spendingColor,
+                  incomeColor: summaryConfig.incomeColor,
+                })
+              : null;
 
             return (
               <Grid
@@ -660,6 +677,9 @@ const MonthlyCalendarView = ({
                   currencySymbol={currencySymbol}
                   heatmapBackground={heatmapBackground}
                   avgDailySpend={avgDailySpend}
+                  iconsKey={dayCellConfig?.iconsKey}
+                  renderIcon={dayCellConfig?.renderIcon}
+                  maxIcons={dayCellConfig?.maxIcons}
                 />
               </Grid>
             );
@@ -738,6 +758,13 @@ MonthlyCalendarView.propTypes = {
   showSalaryIndicator: PropTypes.bool,
   showTodayIndicator: PropTypes.bool,
   showJumpToToday: PropTypes.bool,
+  showHeatmap: PropTypes.bool,
+  showSummaryCards: PropTypes.bool,
+  dayCellConfig: PropTypes.shape({
+    iconsKey: PropTypes.string,
+    renderIcon: PropTypes.func,
+    maxIcons: PropTypes.number,
+  }),
   showBackButton: PropTypes.bool,
   containerStyle: PropTypes.object,
 };

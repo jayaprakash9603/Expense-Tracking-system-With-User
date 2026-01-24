@@ -44,6 +44,8 @@ import EditBudget from "../pages/Landingpage/EditBudget";
 import BudgetReport from "../pages/Landingpage/Budget Report/BudgetReport";
 import AllBudgetsReport from "../pages/Landingpage/Budget Report/AllBudgetsReport";
 import CalendarView from "../pages/Landingpage/CalendarView";
+import CategoryCalendarView from "../pages/Landingpage/CategoryCalendarView";
+import PaymentMethodCalendarView from "../pages/Landingpage/PaymentMethodCalendarView";
 import DayTransactionsView from "../pages/Landingpage/DayTransactionsView";
 import DayBillsView from "../pages/Landingpage/DayBillsView";
 import SystemAnalytics from "../pages/Landingpage/Admin/SystemAnalytics";
@@ -97,6 +99,8 @@ export const getAppRoutes = () => (
       <Route path="payment-method">
         <Route index element={<PaymentMethodFlow />} />
         <Route path=":friendId" element={<PaymentMethodFlow />} />
+        <Route path="calendar" element={<PaymentMethodCalendarView />} />
+        <Route path="calendar/:friendId" element={<PaymentMethodCalendarView />} />
         <Route path="reports" element={<PaymentMethodsReport />} />
         <Route path="reports/:friendId" element={<PaymentMethodsReport />} />
         <Route path="create" element={<CreatePaymentMethod />} />
@@ -150,6 +154,8 @@ export const getAppRoutes = () => (
       <Route path="category-flow">
         <Route index element={<CategoryFlow />} />
         <Route path=":friendId" element={<CategoryFlow />} />
+        <Route path="calendar" element={<CategoryCalendarView />} />
+        <Route path="calendar/:friendId" element={<CategoryCalendarView />} />
         <Route path="create" element={<CreateCategory />} />
         <Route path="create/:friendId" element={<CreateCategory />} />
         <Route path="reports" element={<CategoryReport />} />

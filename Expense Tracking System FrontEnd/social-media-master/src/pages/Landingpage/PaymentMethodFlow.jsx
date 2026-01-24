@@ -103,6 +103,14 @@ const PaymentMethodFlow = () => {
             label: t("navigation.reports"),
           },
           {
+            path:
+              friendId && friendId !== "undefined"
+                ? `/payment-method/calendar/${friendId}`
+                : "/payment-method/calendar",
+            icon: "calendar.png",
+            label: t("cashflow.nav.calendar"),
+          },
+          {
             path: "/budget",
             icon: "budget.png",
             label: t("cashflow.nav.budget"),

@@ -39,45 +39,77 @@ export default function CalendarDayCell({
   incomeColor,
   heatmapBackground,
   avgDailySpend,
+  iconsKey,
+  renderIcon,
+  maxIcons = 4,
 }) {
   const spending = safeNumber(dayData?.[spendingKey]);
   const income = safeNumber(dayData?.[incomeKey]);
   const hasMixedAmounts = spending !== 0 && income !== 0;
 
+  const iconItemsRaw = iconsKey ? dayData?.[iconsKey] : null;
+  const iconItems = Array.isArray(iconItemsRaw) ? iconItemsRaw : [];
+  const showIcons = typeof renderIcon === "function" && iconItems.length > 0;
+
   const tooltipContent = useMemo(() => {
     // Keep tooltips lightweight + helpful, shown only on hover.
-    const avg = safeNumber(avgDailySpend);
-    const spentToday = spending;
+    const showAmountInsights = !showIcons;
 
-    const avgLine =
-      avg > 0
+    const avg = showAmountInsights ? safeNumber(avgDailySpend) : 0;
+    const spentToday = showAmountInsights ? spending : 0;
+
+    const avgLine = showAmountInsights
+      ? avg > 0
         ? `Daily avg spend this month: ${formatAmount(avg, {
             currencySymbol,
             maximumFractionDigits: 0,
           })}`
-        : "Daily avg spend this month: —";
+        : "Daily avg spend this month: —"
+      : null;
 
     let comparisonLine = "";
-    if (avg > 0) {
-      const ratio = spentToday / avg;
-      if (spentToday === 0) {
-        comparisonLine = "Nice — no spending recorded today.";
-      } else if (ratio >= 1) {
-        comparisonLine = `You spent ${ratio.toFixed(1)}× more than average`;
+    if (showAmountInsights) {
+      if (avg > 0) {
+        const ratio = spentToday / avg;
+        if (spentToday === 0) {
+          comparisonLine = "Nice — no spending recorded today.";
+        } else if (ratio >= 1) {
+          comparisonLine = `You spent ${ratio.toFixed(1)}× more than average`;
+        } else {
+          comparisonLine = `Good job — ${ratio.toFixed(1)}× of average`;
+        }
+      } else if (spentToday > 0) {
+        comparisonLine = "No monthly average yet.";
       } else {
-        comparisonLine = `Good job — ${ratio.toFixed(1)}× of average`;
+        comparisonLine = "";
       }
-    } else if (spentToday > 0) {
-      comparisonLine = "No monthly average yet.";
-    } else {
-      comparisonLine = "";
     }
+
+    const iconsLine = showIcons
+      ? (() => {
+          const labels = iconItems
+            .map((it) => it?.label)
+            .filter(Boolean);
+          if (!labels.length) return null;
+          const shown = labels.slice(0, 3);
+          const remaining = labels.length - shown.length;
+          return `${shown.join(", ")}${remaining > 0 ? ` (+${remaining})` : ""}`;
+        })()
+      : null;
 
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-        <Typography variant="caption" sx={{ color: colors.primary_text }}>
-          {avgLine}
-        </Typography>
+        {iconsLine && (
+          <Typography variant="caption" sx={{ color: colors.primary_text }}>
+            {iconsLine}
+          </Typography>
+        )}
+
+        {avgLine && (
+          <Typography variant="caption" sx={{ color: colors.primary_text }}>
+            {avgLine}
+          </Typography>
+        )}
 
         {!!paydayDistanceText && paydayDistanceText !== "Salary day" && (
           <Typography variant="caption" sx={{ color: colors.placeholder_text }}>
@@ -97,7 +129,7 @@ export default function CalendarDayCell({
         )}
       </Box>
     );
-  }, [avgDailySpend, colors, currencySymbol, isSalaryDay, spending]);
+  }, [avgDailySpend, colors, currencySymbol, iconItems, isSalaryDay, paydayDistanceText, showIcons, spending]);
 
   return (
     <Tooltip
@@ -165,7 +197,7 @@ export default function CalendarDayCell({
           overflow: "hidden",
         }}
       >
-        {hasMixedAmounts && (
+        {!showIcons && hasMixedAmounts && (
           <Box
             aria-hidden
             sx={{
@@ -253,7 +285,7 @@ export default function CalendarDayCell({
           </Typography>
 
           {/* Amounts */}
-          {(spending !== 0 || income !== 0) && (
+          {!showIcons && (spending !== 0 || income !== 0) && (
             <Box
               sx={{
                 display: "flex",
@@ -305,6 +337,60 @@ export default function CalendarDayCell({
                     currencySymbol,
                     maximumFractionDigits: 0,
                   })}
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          {/* Icon mode (categories/payment methods) */}
+          {showIcons && (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                flexWrap: "wrap",
+                gap: 0.8,
+                width: "100%",
+                mt: 1.4,
+                px: 0.4,
+              }}
+            >
+              {iconItems.slice(0, maxIcons).map((it, idx) => (
+                <Box
+                  key={`${it?.key || it?.label || "icon"}-${idx}`}
+                  className="amountPill"
+                  sx={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: colors.primary_bg,
+                    border: `1px solid ${colors.border}`,
+                  }}
+                >
+                  {renderIcon(it?.key || it?.label || "", {
+                    sx: {
+                      fontSize: 16,
+                      color: it?.color || it?.iconColor || colors.primary_text,
+                    },
+                  })}
+                </Box>
+              ))}
+              {iconItems.length > maxIcons && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: colors.placeholder_text,
+                    fontWeight: 800,
+                    lineHeight: 1,
+                    px: 0.6,
+                  }}
+                >
+                  +{iconItems.length - maxIcons}
                 </Typography>
               )}
             </Box>
