@@ -93,6 +93,26 @@ export const loginUserAction = (loginData) => async (dispatch) => {
     };
   }
 
+  // ==========================================================================
+  // MFA Check (Priority over email 2FA)
+  // ==========================================================================
+  // If MFA (Google Authenticator) is enabled, user needs to verify TOTP.
+  // MFA takes priority over email 2FA when both are enabled.
+  if (data?.message === "MFA_REQUIRED" || data?.mfaRequired) {
+    dispatch({ type: LOGIN_FAILURE, payload: "MFA_REQUIRED" });
+    return {
+      success: false,
+      mfaRequired: true,
+      mfaToken: data?.mfaToken,
+      message: "MFA_REQUIRED",
+      email: loginData?.data?.email,
+    };
+  }
+
+  // ==========================================================================
+  // Email 2FA Check
+  // ==========================================================================
+  // If email-based 2FA is enabled (and MFA is not), user needs to verify OTP.
   if (data?.message === "OTP_REQUIRED" || data?.twoFactorRequired) {
     // 2FA enabled: OTP has been sent and JWT will be issued after verification
     dispatch({ type: LOGIN_FAILURE, payload: "OTP_REQUIRED" });

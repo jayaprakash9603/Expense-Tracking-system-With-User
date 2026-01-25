@@ -12,10 +12,13 @@ import com.jaya.task.user.service.service.CustomUserServiceImplementation;
 import com.jaya.task.user.service.exceptions.MissingRequestHeaderException;
 import com.jaya.task.user.service.exceptions.UserAlreadyExistsException;
 import com.jaya.task.user.service.service.OtpService;
+import com.jaya.task.user.service.service.TotpService;
 import com.jaya.task.user.service.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +39,8 @@ import java.util.*;
 @Validated
 public class AuthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @Autowired
     private UserRepository userRepository;
 
@@ -50,6 +55,9 @@ public class AuthController {
 
     @Autowired
     private CustomUserServiceImplementation customUserService;
+
+    @Autowired
+    private TotpService totpService;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest) {
@@ -93,7 +101,29 @@ public class AuthController {
             Authentication authentication = authenticate(username, password);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // If user has 2FA enabled, send OTP and require verification before issuing JWT
+            // =================================================================
+            // MFA/2FA Priority Check
+            // =================================================================
+            // Priority: MFA (Google Authenticator) > Email 2FA > No additional auth
+            // When both MFA and 2FA are enabled, MFA takes precedence for security.
+
+            // Check MFA first (highest priority)
+            if (user != null && user.isMfaEnabled()) {
+                // Generate short-lived MFA token (5 minutes)
+                String mfaToken = JwtProvider.generateMfaToken(authentication);
+
+                AuthResponse authResponse = new AuthResponse();
+                authResponse.setStatus(true);
+                authResponse.setMessage("MFA_REQUIRED");
+                authResponse.setMfaRequired(true);
+                authResponse.setMfaToken(mfaToken);
+                authResponse.setTwoFactorRequired(false);
+                authResponse.setJwt(null);
+
+                return new ResponseEntity<>(authResponse, HttpStatus.OK);
+            }
+
+            // Check email 2FA (only if MFA not enabled)
             if (user != null && user.isTwoFactorEnabled()) {
                 otpService.generateAndSendLoginOtp(username);
 
@@ -101,11 +131,13 @@ public class AuthController {
                 authResponse.setStatus(true);
                 authResponse.setMessage("OTP_REQUIRED");
                 authResponse.setTwoFactorRequired(true);
+                authResponse.setMfaRequired(false);
                 authResponse.setJwt(null);
 
                 return new ResponseEntity<>(authResponse, HttpStatus.OK);
             }
 
+            // No additional auth required - issue JWT directly
             String token = JwtProvider.generateToken(authentication);
 
             AuthResponse authResponse = new AuthResponse();
@@ -113,6 +145,7 @@ public class AuthController {
             authResponse.setMessage("Login Success");
             authResponse.setJwt(token);
             authResponse.setTwoFactorRequired(false);
+            authResponse.setMfaRequired(false);
 
             return new ResponseEntity<>(authResponse, HttpStatus.OK);
         } catch (BadCredentialsException ex) {
@@ -120,6 +153,7 @@ public class AuthController {
             authResponse.setStatus(false);
             authResponse.setMessage("Invalid Username or Password");
             authResponse.setTwoFactorRequired(false);
+            authResponse.setMfaRequired(false);
             return new ResponseEntity<>(authResponse, HttpStatus.UNAUTHORIZED);
         }
     }

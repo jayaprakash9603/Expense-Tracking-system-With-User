@@ -14,7 +14,7 @@ export const useSettingsActions = (
   showSnackbar,
   setDeleteDialogOpen,
   setPasswordDialogOpen,
-  isDark
+  isDark,
 ) => {
   const dispatch = useDispatch();
   const { setLanguage, t } = useTranslation();
@@ -48,7 +48,7 @@ export const useSettingsActions = (
         showSnackbar("Failed to update language", "error");
       }
     },
-    [dispatch, setLanguage, showSnackbar, t]
+    [dispatch, setLanguage, showSnackbar, t],
   );
 
   // Action handlers mapped to action IDs
@@ -74,6 +74,14 @@ export const useSettingsActions = (
       showSnackbar("Opening blocked users management...", "info");
       // Navigate to blocked users page
     },
+    configureMfa: () => {
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/settings/mfa");
+    },
 
     // Data & Storage
     viewStorage: () => {
@@ -98,7 +106,7 @@ export const useSettingsActions = (
       // Save scroll position before navigating
       sessionStorage.setItem(
         "settingsScrollPosition",
-        window.scrollY.toString()
+        window.scrollY.toString(),
       );
       navigate("/settings/notifications");
     },
@@ -132,7 +140,7 @@ export const useSettingsActions = (
         console.warn(`No handler found for action: ${actionId}`);
       }
     },
-    [actionHandlers]
+    [actionHandlers],
   );
 
   return {

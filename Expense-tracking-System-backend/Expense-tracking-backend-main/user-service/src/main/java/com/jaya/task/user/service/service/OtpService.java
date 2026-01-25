@@ -24,7 +24,7 @@ public class OtpService {
     private EmailService emailService;
 
     private static final int OTP_LENGTH = 6;
-    private static final int OTP_VALIDITY_MINUTES = 3;
+    private static final int OTP_VALIDITY_SECONDS = 30;
 
     public String generateOtp() {
         SecureRandom random = new SecureRandom();
@@ -43,7 +43,7 @@ public class OtpService {
         // Generate new OTP
         String otp = generateOtp();
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiresAt = now.plusMinutes(OTP_VALIDITY_MINUTES);
+        LocalDateTime expiresAt = now.plusSeconds(OTP_VALIDITY_SECONDS);
 
         // Save OTP
         Otp otpEntity = new Otp(email, otp, now, expiresAt);
@@ -64,7 +64,7 @@ public class OtpService {
 
         String otp = generateOtp();
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiresAt = now.plusMinutes(OTP_VALIDITY_MINUTES);
+        LocalDateTime expiresAt = now.plusSeconds(OTP_VALIDITY_SECONDS);
 
         Otp otpEntity = new Otp(email, otp, now, expiresAt);
         otpRepository.save(otpEntity);

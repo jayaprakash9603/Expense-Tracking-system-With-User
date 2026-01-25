@@ -13,9 +13,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  loginUserAction,
-} from "../../Redux/Auth/auth.action";
+import { loginUserAction } from "../../Redux/Auth/auth.action";
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
 
 const initialValues = { email: "", password: "" };
@@ -71,6 +69,24 @@ const Login = () => {
         return;
       }
 
+      // =======================================================================
+      // MFA Required - Redirect to MFA verification page
+      // =======================================================================
+      // MFA (Google Authenticator) takes priority over email 2FA
+      if (result.mfaRequired) {
+        navigate("/mfa", {
+          state: {
+            mfaToken: result.mfaToken,
+            email: result.email || values.email,
+          },
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      // =======================================================================
+      // Email 2FA Required - Redirect to OTP verification page
+      // =======================================================================
       if (result.twoFactorRequired) {
         navigate(
           `/otp-verification?mode=login&email=${encodeURIComponent(

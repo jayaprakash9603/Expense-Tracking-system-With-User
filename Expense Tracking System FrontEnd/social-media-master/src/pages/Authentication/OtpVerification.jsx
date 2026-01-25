@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import { api } from "../../config/api";
 import { useDispatch } from "react-redux";
 import { verifyTwoFactorOtpAction } from "../../Redux/Auth/auth.action";
+import ToastNotification from "../Landingpage/ToastNotification";
 
 const OTP_LENGTH = 6;
-const TIMER_SECONDS = 180; // 3 minutes
+const TIMER_SECONDS = 30; // 30 seconds
 
 const formatTime = (seconds) => {
   const minutes = Math.floor(seconds / 60);
@@ -32,6 +33,11 @@ const OtpVerification = () => {
   const [error, setError] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   const inputsRef = useRef([]);
 
@@ -65,7 +71,9 @@ const OtpVerification = () => {
   };
 
   const setDigit = (index, value) => {
-    const sanitized = String(value || "").replace(/\D/g, "").slice(0, 1);
+    const sanitized = String(value || "")
+      .replace(/\D/g, "")
+      .slice(0, 1);
     setDigits((prev) => {
       const next = [...prev];
       next[index] = sanitized;
@@ -79,7 +87,6 @@ const OtpVerification = () => {
   };
 
   const handleInputChange = (index, value) => {
-    if (expired) return;
     setError("");
 
     setDigit(index, value);
@@ -91,8 +98,6 @@ const OtpVerification = () => {
   };
 
   const handleKeyDown = (index, e) => {
-    if (expired) return;
-
     if (e.key === "Backspace") {
       if (!digits[index] && index > 0) {
         focusIndex(index - 1);
@@ -121,11 +126,6 @@ const OtpVerification = () => {
       return;
     }
 
-    if (expired || timeLeft <= 0) {
-      setError("OTP has expired. Please resend the code.");
-      return;
-    }
-
     if (otp.length !== OTP_LENGTH || digits.some((d) => !d)) {
       setError("Please enter a 6-digit OTP");
       return;
@@ -135,13 +135,11 @@ const OtpVerification = () => {
     setError("");
     try {
       if (mode === "reset") {
-        await api.post(
-          "/auth/verify-otp",
-          { email, otp },
-          { skipAuth: true },
-        );
+        await api.post("/auth/verify-otp", { email, otp }, { skipAuth: true });
 
-        const target = isPasswordCreation ? "/create-password" : "/forgot-password";
+        const target = isPasswordCreation
+          ? "/create-password"
+          : "/forgot-password";
         navigate(`${target}?email=${encodeURIComponent(email)}&otpVerified=1`, {
           replace: true,
         });
@@ -150,19 +148,34 @@ const OtpVerification = () => {
 
       const result = await dispatch(verifyTwoFactorOtpAction({ email, otp }));
       if (!result.success) {
-        setError(result.message || "OTP verification failed");
+        setToast({
+          open: true,
+          message: result.message || "OTP verification failed",
+          severity: "error",
+        });
         return;
       }
 
       // Auth action already fetched profile; route accordingly
       const { currentMode, role, user } = result;
-      if (currentMode === "ADMIN" || role === "ADMIN" || user?.role === "ADMIN") {
+      if (
+        currentMode === "ADMIN" ||
+        role === "ADMIN" ||
+        user?.role === "ADMIN"
+      ) {
         navigate("/admin/dashboard", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
     } catch (err) {
-      setError(err?.response?.data?.error || err?.message || "OTP verification failed");
+      setToast({
+        open: true,
+        message:
+          err?.response?.data?.error ||
+          err?.message ||
+          "OTP verification failed",
+        severity: "error",
+      });
     } finally {
       setIsVerifying(false);
     }
@@ -186,10 +199,18 @@ const OtpVerification = () => {
       clearOtp();
       setExpired(false);
       setTimeLeft(TIMER_SECONDS);
+      setToast({
+        open: true,
+        message: "OTP code sent successfully!",
+        severity: "success",
+      });
     } catch (err) {
-      setError(
-        err?.response?.data?.error || err?.message || "Failed to resend OTP.",
-      );
+      setToast({
+        open: true,
+        message:
+          err?.response?.data?.error || err?.message || "Failed to resend OTP",
+        severity: "error",
+      });
     } finally {
       setIsResending(false);
     }
@@ -237,7 +258,7 @@ const OtpVerification = () => {
         </Typography>
 
         <Typography variant="body2" sx={{ color: muted, mb: 1.5 }}>
-          Enter the 6-digit code sent to your device
+          Enter the 6-digit code sent to your email
         </Typography>
 
         <Typography
@@ -245,18 +266,14 @@ const OtpVerification = () => {
           sx={{
             fontSize: "1.1rem",
             fontWeight: 700,
-            color: expired ? "#ff6b6b" : "#ff9800",
+            color: expired ? colors.primary_accent : "#ff9800",
             mb: 2.5,
           }}
         >
-          {expired ? "Code expired" : `Time remaining: ${formatTime(timeLeft)}`}
+          {expired
+            ? "Resend available"
+            : `Time remaining: ${formatTime(timeLeft)}`}
         </Typography>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
 
         <Box
           className="otp-input"
@@ -278,7 +295,6 @@ const OtpVerification = () => {
               value={value}
               onChange={(e) => handleInputChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
-              disabled={expired}
               inputMode="numeric"
               aria-label={`OTP digit ${index + 1}`}
               sx={{
@@ -306,7 +322,7 @@ const OtpVerification = () => {
           <Button
             variant="contained"
             onClick={verify}
-            disabled={isVerifying || expired}
+            disabled={isVerifying}
             sx={{
               minWidth: 120,
               backgroundColor: colors.button_bg,
@@ -363,6 +379,13 @@ const OtpVerification = () => {
           </Button>
         </Box>
       </Box>
+      <ToastNotification
+        open={toast.open}
+        message={toast.message}
+        severity={toast.severity}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        onClose={() => setToast({ ...toast, open: false })}
+      />
     </Box>
   );
 };

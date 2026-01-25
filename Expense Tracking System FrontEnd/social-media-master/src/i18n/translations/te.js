@@ -843,7 +843,12 @@ export const te = {
     maskSensitiveDataDescription:
       "గోప్యత కోసం ఖర్చు మొత్తాలు మరియు ఆర్థిక వివరాలను దాచండి",
     twoFactorAuth: "రెండు-దశల ప్రమాణీకరణ",
-    twoFactorAuthDescription: "మీ ఖాతాకు అదనపు భద్రతను జోడించండి",
+    twoFactorAuthDescription:
+      "ఈమెయిల్ OTP ద్వారా మీ ఖాతాకు అదనపు భద్రతను జోడించండి",
+    mfaAuth: "ఆథెంటికేటర్ యాప్ (MFA)",
+    mfaAuthDescription:
+      "మెరుగుపడిన భద్రత కోసం Google Authenticator ఉపయోగించండి (ఈమెయిల్ 2FA కంటే ప్రాధాన్యత)",
+    configure: "కాన్ఫిగర్ చేయండి",
     blockedUsers: "తరిమివేయబడిన వినియోగదారులు",
     blockedUsersDescription:
       "బ్లాక్ చేసిన వినియోగదారులను మరియు గోప్యత సెట్టింగ్స్‌ను నిర్వహించండి",
@@ -1144,6 +1149,113 @@ export const te = {
       invalidFormat:
         "చెల్లని ఫార్మాట్ (JPG, PNG, GIF, BMP లేదా TIFF ఉపయోగించండి)",
       fileTooLarge: "ఫైల్ 10MB కంటే ఎక్కువ",
+    },
+  },
+
+  // MFA (మల్టీ-ఫాక్టర్ అథెంటికేషన్)
+  mfa: {
+    verification: {
+      title: "రెండు-దశల ప్రమాణీకరణ",
+      subtitle: "మీ అథెంటికేటర్ యాప్ నుండి 6-అంకెల కోడ్‌ను నమోదు చేయండి",
+      backupSubtitle: "మీ బ్యాకప్ కోడ్‌లలో ఒకదాన్ని నమోదు చేయండి",
+      signingInAs: "సైన్ ఇన్ అవుతున్నారు:",
+      codeRefreshes: "కోడ్ ప్రతి 30 సెకన్లకు రిఫ్రెష్ అవుతుంది",
+      verify: "ధృవీకరించు",
+      verifying: "ధృవీకరిస్తోంది...",
+      useBackupCode: "బ్యాకప్ కోడ్ ఉపయోగించండి",
+      lostAccess:
+        "అథెంటికేటర్‌కు యాక్సెస్ కోల్పోయారా? బ్యాకప్ కోడ్ ఉపయోగించండి",
+      useAuthenticator: "← బదులుగా అథెంటికేటర్ యాప్ ఉపయోగించండి",
+      backToLogin: "లాగిన్‌కు తిరిగి వెళ్ళండి",
+      backupCodeFormat: "బ్యాకప్ కోడ్‌లు 8 అక్షరాలు (XXXX-XXXX ఫార్మాట్)",
+      sessionExpired: "సెషన్ గడువు ముగిసింది. దయచేసి మళ్ళీ లాగిన్ అవ్వండి.",
+      loginSuccess: "లాగిన్ విజయవంతం!",
+      verificationFailed: "ధృవీకరణ విఫలమైంది",
+    },
+    setup: {
+      title: "అథెంటికేటర్ యాప్",
+      subtitle: "Google Authenticatorతో మీ ఖాతాను సురక్షితం చేయండి",
+      authenticatorApp: "అథెంటికేటర్ యాప్",
+      authenticatorAppDescription:
+        "Google Authenticatorతో మీ ఖాతాను సురక్షితం చేయండి",
+      setUpAuthenticator: "అథెంటికేటర్ యాప్ సెటప్ చేయండి",
+      setUpAuthenticatorDescription:
+        "మీ ఖాతాకు అదనపు భద్రత జోడించడానికి Google Authenticator లేదా ఏదైనా TOTP యాప్ ఉపయోగించండి. ప్రారంభించినప్పుడు, సైన్ ఇన్ చేసేటప్పుడు మీ యాప్ నుండి కోడ్ నమోదు చేయాల్సి ఉంటుంది.",
+      getStarted: "ప్రారంభించండి",
+      settingUp: "సెటప్ అవుతోంది...",
+      setupTitle: "అథెంటికేటర్ యాప్ సెటప్ చేయండి",
+      setupDescription:
+        "మీ ఖాతాకు అదనపు భద్రత జోడించడానికి Google Authenticator లేదా ఏదైనా TOTP యాప్ ఉపయోగించండి.",
+      priorityNote: "గమనిక",
+      priorityNoteDescription:
+        "రెండూ ప్రారంభించినప్పుడు MFA, ఇమెయిల్ 2FA కంటే ప్రాధాన్యత తీసుకుంటుంది.",
+      priorityDescription:
+        "రెండూ ప్రారంభించినప్పుడు MFA, ఇమెయిల్ 2FA కంటే ప్రాధాన్యత తీసుకుంటుంది.",
+      steps: {
+        scanQr: "QR కోడ్ స్కాన్ చేయండి",
+        verifyCode: "కోడ్ ధృవీకరించండి",
+        saveBackup: "బ్యాకప్ కోడ్‌లు సేవ్ చేయండి",
+      },
+      step1Title: "1. QR కోడ్ స్కాన్ చేయండి",
+      step1Description:
+        "Google Authenticator తెరిచి ఈ QR కోడ్‌ను స్కాన్ చేయండి",
+      orEnterManually: "లేదా మాన్యువల్‌గా నమోదు చేయండి",
+      account: "ఖాతా",
+      issuer: "జారీదారు",
+      copySecret: "సీక్రెట్ కాపీ చేయండి",
+      copied: "కాపీ చేయబడింది!",
+      continue: "కొనసాగించు",
+      step2Title: "2. సెటప్ ధృవీకరించండి",
+      step2Description:
+        "సెటప్ ధృవీకరించడానికి మీ అథెంటికేటర్ యాప్ నుండి 6-అంకెల కోడ్ నమోదు చేయండి",
+      codeChangesEvery30Seconds: "కోడ్ ప్రతి 30 సెకన్లకు మారుతుంది",
+      codeChanges: "కోడ్ ప్రతి 30 సెకన్లకు మారుతుంది",
+      back: "వెనుకకు",
+      verifyAndEnable: "ధృవీకరించి ప్రారంభించు",
+      verifyEnable: "ధృవీకరించి ప్రారంభించు",
+      verifying: "ధృవీకరిస్తోంది...",
+      step3Title: "MFA విజయవంతంగా ప్రారంభించబడింది!",
+      mfaEnabledSuccessfully: "MFA విజయవంతంగా ప్రారంభించబడింది!",
+      saveBackupCodes: "బ్యాకప్ కోడ్‌లు",
+      backupCodesWarning:
+        "ఈ కోడ్‌లను సురక్షితంగా సేవ్ చేయండి. అథెంటికేటర్ యాప్ ప్రాప్యత కోల్పోతే ఉపయోగించండి.",
+      backupCodesOnce: "ప్రతి కోడ్ ఒక్కసారి మాత్రమే ఉపయోగించవచ్చు.",
+      copyCodes: "కోడ్‌లు కాపీ చేయండి",
+      download: "డౌన్‌లోడ్",
+      done: "పూర్తయింది",
+      mfaEnabled: "MFA ప్రారంభించబడింది",
+      mfaEnabledDescription: "మీ ఖాతా Google Authenticatorతో రక్షించబడింది.",
+      backupCodesRemaining: "{{count}} బ్యాకప్ కోడ్‌లు మిగిలి ఉన్నాయి",
+      primaryAuth: "ప్రాథమిక అథెంటికేషన్",
+      regenerateBackupCodes: "బ్యాకప్ కోడ్‌లు పునరుత్పత్తి చేయండి",
+      disableMfa: "MFA నిలిపివేయండి",
+      disableTitle: "MFA నిలిపివేయండి",
+      disableMfaWarning:
+        "ఇది మీ ఖాతా నుండి అథెంటికేటర్ రక్షణను తొలగిస్తుంది. కొనసాగించడానికి మీ గుర్తింపును ధృవీకరించాలి.",
+      disableWarning: "ఇది మీ ఖాతా నుండి అథెంటికేటర్ రక్షణను తొలగిస్తుంది.",
+      importantReminder: "గుర్తింపు",
+      removeAuthenticatorEntry:
+        "నిలిపివేసిన తర్వాత మీ అథెంటికేటర్ యాప్ నుండి 'Expensio Finance' తొలగించండి.",
+      beforeYouScan: "స్కాన్ చేయడానికి ముందు",
+      deleteOldEntriesWarning:
+        "మీరు ఇంతకు ముందు MFA ప్రారంభించి ఉంటే, దయచేసి ముందుగా మీ Google Authenticator యాప్ నుండి పాత 'Expensio Finance' ఎంట్రీలను తొలగించండి. ఇది మీకు ఒకే సక్రియ కోడ్ ఉండేలా చేస్తుంది మరియు గందరగోళాన్ని నివారిస్తుంది.",
+      useAuthenticatorCode: "అథెంటికేటర్ కోడ్ ఉపయోగించండి",
+      usePassword: "పాస్‌వర్డ్ ఉపయోగించండి",
+      authenticatorCode: "అథెంటికేటర్ కోడ్",
+      password: "పాస్‌వర్డ్",
+      cancel: "రద్దు",
+      mfaEnabledSuccess: "MFA విజయవంతంగా ప్రారంభించబడింది!",
+      mfaDisabledSuccess: "MFA విజయవంతంగా నిలిపివేయబడింది",
+      verificationFailed: "ధృవీకరణ విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+      failedToLoadStatus: "MFA స్థితి లోడ్ చేయడంలో విఫలమైంది",
+      failedToStartSetup: "MFA సెటప్ ప్రారంభించడంలో విఫలమైంది",
+      failedToDisable: "MFA నిలిపివేయడంలో విఫలమైంది",
+      newCodesGenerated: "కొత్త బ్యాకప్ కోడ్‌లు రూపొందించబడ్డాయి!",
+      failedToRegenerate: "కోడ్‌లు పునరుత్పత్తి చేయడంలో విఫలమైంది",
+      copiedToClipboard: "క్లిప్‌బోర్డ్‌కు కాపీ చేయబడింది!",
+      backupCodesDownloaded: "బ్యాకప్ కోడ్‌లు డౌన్‌లోడ్ చేయబడ్డాయి!",
+      enterCodeToRegenerate:
+        "హెచ్చరిక: ఇది మీ అన్ని ఇప్పటికే ఉన్న బ్యాకప్ కోడ్‌లను చెల్లనివిగా చేస్తుంది!\n\nకొత్త బ్యాకప్ కోడ్‌లు రూపొందించడానికి మీ ప్రస్తుత అథెంటికేటర్ కోడ్ నమోదు చేయండి:",
     },
   },
 };

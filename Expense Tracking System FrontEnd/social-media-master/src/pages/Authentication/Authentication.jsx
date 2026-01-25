@@ -4,6 +4,7 @@ import Login from "./Login";
 import Register from "./Register";
 import ForgotPassword from "./ForgotPassword";
 import OtpVerification from "./OtpVerification";
+import MfaVerification from "../AuthPage/MfaVerification";
 import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import OAuthCallback from "../OAuthCallback";
 
@@ -18,6 +19,11 @@ const Authentication = () => {
   // OTP verification page should render without the card wrapper
   if (location.pathname === "/otp-verification") {
     return <OtpVerification />;
+  }
+
+  // MFA verification page should render without the card wrapper
+  if (location.pathname === "/mfa") {
+    return <MfaVerification />;
   }
 
   // Check if current route is forgot-password or create-password
@@ -67,6 +73,7 @@ const Authentication = () => {
             element={<ForgotPassword isPasswordCreation={true} />}
           />
           <Route path="/otp-verification" element={<OtpVerification />} />
+          <Route path="/mfa" element={<MfaVerification />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

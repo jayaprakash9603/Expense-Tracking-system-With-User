@@ -3,9 +3,11 @@ import { TextField, Button, CircularProgress, Box } from "@mui/material";
 import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import axios from "axios";
 import { API_BASE_URL } from "../../config/api";
 import ToastNotification from "../Landingpage/ToastNotification";
+import { loginUserAction } from "../../Redux/Auth/auth.action";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import EmailIcon from "@mui/icons-material/Email";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -13,6 +15,7 @@ import CheckIcon from "@mui/icons-material/Check";
 
 const ForgotPassword = ({ isPasswordCreation = false }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const prefilledEmail = searchParams.get("email") || "";
   const otpVerified = searchParams.get("otpVerified") === "1";
@@ -134,9 +137,39 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
           : "Password reset successfully!";
       setToast({ open: true, message: successMessage, severity: "success" });
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+      // Auto-login after successful password reset/create
+      const loginResult = await dispatch(
+        loginUserAction({ data: { email, password: values.password } }),
+      );
+
+      if (loginResult?.twoFactorRequired) {
+        navigate(
+          `/otp-verification?mode=login&email=${encodeURIComponent(email)}`,
+          { replace: true },
+        );
+        return;
+      }
+
+      if (!loginResult?.success) {
+        setToast({
+          open: true,
+          message:
+            loginResult?.message || "Auto-login failed. Please try logging in.",
+          severity: "error",
+        });
+        return;
+      }
+
+      const { currentMode, role, user } = loginResult;
+      if (
+        currentMode === "ADMIN" ||
+        role === "ADMIN" ||
+        user?.role === "ADMIN"
+      ) {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     } catch (err) {
       setError(
         err.response?.data?.error ||

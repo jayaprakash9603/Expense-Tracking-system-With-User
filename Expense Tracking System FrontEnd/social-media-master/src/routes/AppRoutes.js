@@ -11,6 +11,7 @@ import GroupDetail from "../pages/Landingpage/GroupDetail";
 import Profile from "../pages/Landingpage/Profile";
 import Settings from "../pages/Landingpage/Settings";
 import NotificationSettings from "../pages/Landingpage/NotificationSettings";
+import MfaSetup from "../pages/Landingpage/Settings/MfaSetup";
 import Friends from "../pages/Landingpage/Friends";
 import FriendshipReport from "../pages/Landingpage/FriendshipReport";
 import { FriendActivityPage } from "../pages/Landingpage/FriendActivity";
@@ -86,6 +87,7 @@ export const getAppRoutes = () => (
       <Route path="profile" element={<Profile />} />
       <Route path="settings" element={<Settings />} />
       <Route path="settings/notifications" element={<NotificationSettings />} />
+      <Route path="settings/mfa" element={<MfaSetup />} />
 
       {/* Friends Routes */}
       <Route path="friends">

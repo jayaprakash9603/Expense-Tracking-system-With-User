@@ -836,7 +836,12 @@ export const en = {
     maskSensitiveDataDescription:
       "Hide expense amounts and financial details for privacy",
     twoFactorAuth: "Two-Factor Authentication",
-    twoFactorAuthDescription: "Add an extra layer of security to your account",
+    twoFactorAuthDescription:
+      "Add an extra layer of security to your account via email OTP",
+    mfaAuth: "Authenticator App (MFA)",
+    mfaAuthDescription:
+      "Use Google Authenticator for enhanced security (takes priority over email 2FA)",
+    configure: "Configure",
     blockedUsers: "Blocked Users",
     blockedUsersDescription: "Manage blocked users and privacy settings",
     autoLogout: "Auto Logout",
@@ -1131,6 +1136,123 @@ export const en = {
       maxFiles: "Maximum 10 files allowed",
       invalidFormat: "Invalid format (use JPG, PNG, GIF, BMP, or TIFF)",
       fileTooLarge: "File exceeds 10MB",
+    },
+  },
+
+  // MFA (Multi-Factor Authentication)
+  mfa: {
+    // MFA Verification Page
+    verification: {
+      title: "Two-Factor Authentication",
+      subtitle: "Enter the 6-digit code from your authenticator app",
+      backupSubtitle: "Enter one of your backup codes",
+      signingInAs: "Signing in as:",
+      codeRefreshes: "Code refreshes every 30 seconds",
+      verify: "Verify",
+      verifying: "Verifying...",
+      useBackupCode: "Use Backup Code",
+      lostAccess: "Lost access to authenticator? Use backup code",
+      useAuthenticator: "← Use authenticator app instead",
+      backToLogin: "Back to login",
+      backupCodeFormat: "Backup codes are 8 characters (XXXX-XXXX format)",
+      sessionExpired: "Session expired. Please login again.",
+      loginSuccess: "Login successful!",
+      verificationFailed: "Verification failed",
+    },
+    // MFA Setup Page
+    setup: {
+      title: "Authenticator App",
+      subtitle: "Secure your account with Google Authenticator",
+      authenticatorApp: "Authenticator App",
+      authenticatorAppDescription:
+        "Secure your account with Google Authenticator",
+      setUpAuthenticator: "Set Up Authenticator App",
+      setUpAuthenticatorDescription:
+        "Use Google Authenticator or any TOTP app to add an extra layer of security to your account. When enabled, you'll need to enter a code from your app when signing in.",
+      getStarted: "Get Started",
+      settingUp: "Setting up...",
+      setupTitle: "Set Up Authenticator App",
+      setupDescription:
+        "Use Google Authenticator or any TOTP app to add an extra layer of security to your account. When enabled, you'll need to enter a code from your app when signing in.",
+      priorityNote: "Note",
+      priorityNoteDescription:
+        "MFA takes priority over Email 2FA when both are enabled.",
+      priorityDescription:
+        "MFA takes priority over Email 2FA when both are enabled.",
+      // Steps
+      steps: {
+        scanQr: "Scan QR Code",
+        verifyCode: "Verify Code",
+        saveBackup: "Save Backup Codes",
+      },
+      // Step 1
+      step1Title: "1. Scan QR Code",
+      step1Description:
+        "Open Google Authenticator (or any TOTP app) and scan this QR code",
+      orEnterManually: "or enter manually",
+      account: "Account",
+      issuer: "Issuer",
+      copySecret: "Copy secret",
+      copied: "Copied!",
+      continue: "Continue",
+      // Step 2
+      step2Title: "2. Verify Setup",
+      step2Description:
+        "Enter the 6-digit code from your authenticator app to verify setup",
+      codeChangesEvery30Seconds: "The code changes every 30 seconds",
+      codeChanges: "The code changes every 30 seconds",
+      back: "Back",
+      verifyAndEnable: "Verify & Enable",
+      verifyEnable: "Verify & Enable",
+      verifying: "Verifying...",
+      // Step 3
+      step3Title: "MFA Enabled Successfully!",
+      mfaEnabledSuccessfully: "MFA Enabled Successfully!",
+      saveBackupCodes: "Backup Codes",
+      backupCodesWarning:
+        "Save these codes securely. Use them if you lose access to your authenticator app.",
+      backupCodesOnce: "Each code can only be used once.",
+      copyCodes: "Copy Codes",
+      download: "Download",
+      done: "Done",
+      // MFA Enabled State
+      mfaEnabled: "MFA is Enabled",
+      mfaEnabledDescription:
+        "Your account is protected with Google Authenticator. You'll need to enter a code from your authenticator app when signing in.",
+      backupCodesRemaining: "{{count}} backup codes remaining",
+      primaryAuth: "Primary Auth",
+      regenerateBackupCodes: "Regenerate Backup Codes",
+      disableMfa: "Disable MFA",
+      // Disable Dialog
+      disableTitle: "Disable MFA",
+      disableMfaWarning:
+        "This will remove the authenticator protection from your account. You'll need to verify your identity to proceed.",
+      disableWarning:
+        "This will remove the authenticator protection from your account. You'll need to verify your identity to proceed.",
+      importantReminder: "Reminder",
+      removeAuthenticatorEntry:
+        "Remove 'Expensio Finance' from your authenticator app after disabling.",
+      beforeYouScan: "Before You Scan",
+      deleteOldEntriesWarning:
+        "If you previously had MFA enabled, please delete any old 'Expensio Finance' entries from your Google Authenticator app first. This ensures you only have one active code and avoids confusion.",
+      useAuthenticatorCode: "Use Authenticator Code",
+      usePassword: "Use Password",
+      authenticatorCode: "Authenticator Code",
+      password: "Password",
+      cancel: "Cancel",
+      // Messages
+      mfaEnabledSuccess: "MFA enabled successfully!",
+      mfaDisabledSuccess: "MFA disabled successfully",
+      verificationFailed: "Verification failed. Please try again.",
+      failedToLoadStatus: "Failed to load MFA status",
+      failedToStartSetup: "Failed to start MFA setup",
+      failedToDisable: "Failed to disable MFA",
+      newCodesGenerated: "New backup codes generated!",
+      failedToRegenerate: "Failed to regenerate codes",
+      copiedToClipboard: "Copied to clipboard!",
+      backupCodesDownloaded: "Backup codes downloaded!",
+      enterCodeToRegenerate:
+        "WARNING: This will invalidate ALL your existing backup codes!\n\nEnter your current authenticator code to generate new backup codes:",
     },
   },
 };
