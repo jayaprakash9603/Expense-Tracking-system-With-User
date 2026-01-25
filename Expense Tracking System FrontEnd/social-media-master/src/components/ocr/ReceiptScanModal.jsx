@@ -602,7 +602,18 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
 
           {/* Error Display */}
           {scanError && (
-            <Alert severity="error" sx={{ mb: 3 }}>
+            <Alert
+              severity="error"
+              sx={{
+                mb: 3,
+                backgroundColor: "rgba(244, 67, 54, 0.12)",
+                border: "1px solid rgba(244, 67, 54, 0.3)",
+                color: "#fff",
+                "& .MuiAlert-icon": {
+                  color: "#f44336",
+                },
+              }}
+            >
               {scanError}
             </Alert>
           )}
@@ -640,7 +651,18 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
 
               {/* Warnings */}
               {scanResult.warnings && scanResult.warnings.length > 0 && (
-                <Alert severity="warning" sx={{ mb: 2 }}>
+                <Alert
+                  severity="warning"
+                  sx={{
+                    mb: 2,
+                    backgroundColor: "rgba(255, 152, 0, 0.12)",
+                    border: "1px solid rgba(255, 152, 0, 0.3)",
+                    color: "#fff",
+                    "& .MuiAlert-icon": {
+                      color: "#ffb74d",
+                    },
+                  }}
+                >
                   {scanResult.warnings.map((w, i) => (
                     <Typography key={i} variant="body2">
                       • {w}

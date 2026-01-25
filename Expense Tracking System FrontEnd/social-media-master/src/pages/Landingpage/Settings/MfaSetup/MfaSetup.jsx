@@ -411,9 +411,20 @@ If you lose your authenticator device, use one of these codes to sign in.
           maxWidth: 500,
           mx: "auto",
           py: 0.5,
+          backgroundColor: "rgba(41, 182, 246, 0.12)",
+          border: "1px solid rgba(41, 182, 246, 0.3)",
+          "& .MuiAlert-icon": {
+            color: "#29b6f6",
+          },
           "& .MuiAlert-message": { py: 0.5 },
-          "& .MuiAlertTitle-root": { fontSize: "0.85rem", mb: 0 },
+          "& .MuiAlertTitle-root": {
+            fontSize: "0.85rem",
+            mb: 0,
+            color: "#29b6f6",
+            fontWeight: 600,
+          },
           fontSize: "0.8rem",
+          color: colors.primary_text,
         }}
       >
         <AlertTitle>{t("mfa.setup.beforeYouScan")}</AlertTitle>
@@ -616,10 +627,21 @@ If you lose your authenticator device, use one of these codes to sign in.
         sx={{
           mb: 2,
           textAlign: "left",
-          py: 0.25,
+          py: 0.5,
+          backgroundColor: "rgba(255, 152, 0, 0.12)",
+          border: "1px solid rgba(255, 152, 0, 0.3)",
+          "& .MuiAlert-icon": {
+            color: "#ffb74d",
+          },
           "& .MuiAlert-message": { py: 0.25 },
-          "& .MuiAlertTitle-root": { fontSize: "0.8rem", mb: 0 },
+          "& .MuiAlertTitle-root": {
+            fontSize: "0.8rem",
+            mb: 0,
+            color: "#ffb74d",
+            fontWeight: 600,
+          },
           fontSize: "0.75rem",
+          color: colors.primary_text,
         }}
       >
         <AlertTitle>{t("mfa.setup.saveBackupCodes")}</AlertTitle>
@@ -753,9 +775,20 @@ If you lose your authenticator device, use one of these codes to sign in.
                 mb: 3,
                 textAlign: "left",
                 py: 0.5,
+                backgroundColor: "rgba(255, 152, 0, 0.12)",
+                border: "1px solid rgba(255, 152, 0, 0.3)",
+                "& .MuiAlert-icon": {
+                  color: "#ffb74d",
+                },
                 "& .MuiAlert-message": { py: 0.5 },
-                "& .MuiAlertTitle-root": { fontSize: "0.85rem", mb: 0 },
+                "& .MuiAlertTitle-root": {
+                  fontSize: "0.85rem",
+                  mb: 0,
+                  color: "#ffb74d",
+                  fontWeight: 600,
+                },
                 fontSize: "0.8rem",
+                color: colors.primary_text,
               }}
             >
               <AlertTitle>{t("mfa.setup.saveBackupCodes")}</AlertTitle>
@@ -899,9 +932,20 @@ If you lose your authenticator device, use one of these codes to sign in.
               sx={{
                 mb: 2,
                 py: 0.5,
+                backgroundColor: "rgba(255, 152, 0, 0.12)",
+                border: "1px solid rgba(255, 152, 0, 0.3)",
+                "& .MuiAlert-icon": {
+                  color: "#ffb74d",
+                },
                 "& .MuiAlert-message": { py: 0.5 },
-                "& .MuiAlertTitle-root": { fontSize: "0.85rem", mb: 0 },
+                "& .MuiAlertTitle-root": {
+                  fontSize: "0.85rem",
+                  mb: 0,
+                  color: "#ffb74d",
+                  fontWeight: 600,
+                },
                 fontSize: "0.8rem",
+                color: colors.primary_text,
               }}
             >
               <AlertTitle>{t("mfa.setup.importantReminder")}</AlertTitle>
@@ -1205,9 +1249,20 @@ If you lose your authenticator device, use one of these codes to sign in.
                     mb: 3,
                     textAlign: "left",
                     py: 0.5,
+                    backgroundColor: "rgba(41, 182, 246, 0.12)",
+                    border: "1px solid rgba(41, 182, 246, 0.3)",
+                    "& .MuiAlert-icon": {
+                      color: "#29b6f6",
+                    },
                     "& .MuiAlert-message": { py: 0.5 },
-                    "& .MuiAlertTitle-root": { fontSize: "0.85rem", mb: 0 },
+                    "& .MuiAlertTitle-root": {
+                      fontSize: "0.85rem",
+                      mb: 0,
+                      color: "#29b6f6",
+                      fontWeight: 600,
+                    },
                     fontSize: "0.8rem",
+                    color: colors.primary_text,
                   }}
                 >
                   <AlertTitle>{t("mfa.setup.priorityNote")}</AlertTitle>

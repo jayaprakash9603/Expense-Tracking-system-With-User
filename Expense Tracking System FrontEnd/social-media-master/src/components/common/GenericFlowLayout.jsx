@@ -69,6 +69,7 @@ const GenericFlowLayout = ({
     navItems,
     showBackButton,
     onPageBack,
+    autocompleteOptions = [],
   },
   components: {
     ChartComponent,
@@ -232,6 +233,7 @@ const GenericFlowLayout = ({
         placeholder={t("cashflow.searchPlaceholder")}
         // Use 'expenses' as origin so other flows back button returns to the main expenses view
         currentFlow="expenses"
+        autocompleteOptions={autocompleteOptions}
       />
       <SortPopover
         open={popoverOpen}

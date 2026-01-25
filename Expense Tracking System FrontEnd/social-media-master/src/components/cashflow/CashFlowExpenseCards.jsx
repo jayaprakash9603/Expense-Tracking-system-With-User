@@ -883,59 +883,72 @@ function CashFlowExpenseCards({
     const container = scrollContainerRef.current;
     if (!container) return;
 
+    // Throttle scroll handler for better performance
+    let ticking = false;
     const handleScroll = () => {
-      savedScrollPositionRef.current = container.scrollTop;
+      if (ticking) return;
+      ticking = true;
 
-      // Check scroll position for button visibility (800px threshold)
-      const scrollTop = container.scrollTop;
-      const scrollHeight = container.scrollHeight;
-      const clientHeight = container.clientHeight;
-      const scrollBottom = scrollHeight - scrollTop - clientHeight;
-
-      setShowScrollTop(scrollTop > 800);
-      setShowScrollBottom(scrollBottom > 800 && scrollTop > 800);
-
-      // Update sticky header based on scroll position
-      const sections = container.querySelectorAll("[data-date-section]");
-      let foundHeader = null;
-
-      sections.forEach((section) => {
-        const rect = section.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        // Check if section is visible in viewport (with better detection for last items)
-        if (
-          rect.top <= containerRect.top + 100 &&
-          rect.bottom > containerRect.top + 50
-        ) {
-          foundHeader = {
-            year: section.dataset.year,
-            month: section.dataset.month,
-            week: section.dataset.week,
-            date: section.dataset.date,
-          };
+      requestAnimationFrame(() => {
+        if (!container) {
+          ticking = false;
+          return;
         }
-      });
+        savedScrollPositionRef.current = container.scrollTop;
 
-      // If we're near the bottom and no header was found, use the last section
-      if (!foundHeader && sections.length > 0) {
-        const scrollBottom = container.scrollTop + container.clientHeight;
+        // Check scroll position for button visibility (200px threshold for responsive UX)
+        const scrollTop = container.scrollTop;
         const scrollHeight = container.scrollHeight;
+        const clientHeight = container.clientHeight;
+        const scrollBottom = scrollHeight - scrollTop - clientHeight;
+        const hasScrollableContent = scrollHeight > clientHeight + 100;
 
-        if (scrollHeight - scrollBottom < 50) {
-          const lastSection = sections[sections.length - 1];
-          foundHeader = {
-            year: lastSection.dataset.year,
-            month: lastSection.dataset.month,
-            week: lastSection.dataset.week,
-            date: lastSection.dataset.date,
-          };
+        setShowScrollTop(scrollTop > 200 && hasScrollableContent);
+        setShowScrollBottom(scrollBottom > 200 && hasScrollableContent);
+
+        // Update sticky header based on scroll position
+        const sections = container.querySelectorAll("[data-date-section]");
+        let foundHeader = null;
+
+        sections.forEach((section) => {
+          const rect = section.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+
+          // Check if section is visible in viewport (with better detection for last items)
+          if (
+            rect.top <= containerRect.top + 100 &&
+            rect.bottom > containerRect.top + 50
+          ) {
+            foundHeader = {
+              year: section.dataset.year,
+              month: section.dataset.month,
+              week: section.dataset.week,
+              date: section.dataset.date,
+            };
+          }
+        });
+
+        // If we're near the bottom and no header was found, use the last section
+        if (!foundHeader && sections.length > 0) {
+          const scrollBottom = container.scrollTop + container.clientHeight;
+          const scrollHeight = container.scrollHeight;
+
+          if (scrollHeight - scrollBottom < 50) {
+            const lastSection = sections[sections.length - 1];
+            foundHeader = {
+              year: lastSection.dataset.year,
+              month: lastSection.dataset.month,
+              week: lastSection.dataset.week,
+              date: lastSection.dataset.date,
+            };
+          }
         }
-      }
 
-      if (foundHeader) {
-        setCurrentHeader(foundHeader);
-      }
+        if (foundHeader) {
+          setCurrentHeader(foundHeader);
+        }
+        ticking = false;
+      });
     };
 
     container.addEventListener("scroll", handleScroll, { passive: true });
@@ -950,6 +963,26 @@ function CashFlowExpenseCards({
       clearTimeout(timer);
     };
   }, []);
+
+  // Update scroll button visibility when data changes
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Small delay to let DOM render
+    const timer = setTimeout(() => {
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight;
+      const clientHeight = container.clientHeight;
+      const scrollBottom = scrollHeight - scrollTop - clientHeight;
+      const hasScrollableContent = scrollHeight > clientHeight + 100;
+
+      setShowScrollTop(scrollTop > 200 && hasScrollableContent);
+      setShowScrollBottom(scrollBottom > 200 && hasScrollableContent);
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [data]);
 
   // Memoized edit handler to prevent re-renders - MUST be before early returns
   const handleEdit = useCallback(
@@ -1197,22 +1230,24 @@ function CashFlowExpenseCards({
           sx={{
             position: "absolute",
             top: "70px",
-            right: "5px",
-            width: "28px",
-            height: "28px",
-            background: `${colors.primary_accent}15`,
-            border: `1px solid ${colors.primary_accent}40`,
+            right: "8px",
+            width: "32px",
+            height: "32px",
+            background: `${colors.primary_accent}20`,
+            border: `1px solid ${colors.primary_accent}60`,
             color: colors.primary_accent,
-            zIndex: 9,
+            zIndex: 15,
             transition: "all 0.2s ease",
+            boxShadow: `0 2px 8px rgba(0,0,0,0.15)`,
             "&:hover": {
-              background: `${colors.primary_accent}25`,
+              background: `${colors.primary_accent}35`,
               transform: "scale(1.1)",
+              boxShadow: `0 4px 12px rgba(0,0,0,0.2)`,
             },
           }}
           title={t("cashflow.tooltips.scrollTop")}
         >
-          <KeyboardArrowUpIcon sx={{ fontSize: 18 }} />
+          <KeyboardArrowUpIcon sx={{ fontSize: 20 }} />
         </IconButton>
       )}
 
@@ -1223,23 +1258,25 @@ function CashFlowExpenseCards({
           size="small"
           sx={{
             position: "absolute",
-            bottom: "10px",
-            right: "5px",
-            width: "28px",
-            height: "28px",
-            background: `${colors.primary_accent}15`,
-            border: `1px solid ${colors.primary_accent}40`,
+            bottom: "15px",
+            right: "8px",
+            width: "32px",
+            height: "32px",
+            background: `${colors.primary_accent}20`,
+            border: `1px solid ${colors.primary_accent}60`,
             color: colors.primary_accent,
-            zIndex: 9,
+            zIndex: 15,
             transition: "all 0.2s ease",
+            boxShadow: `0 2px 8px rgba(0,0,0,0.15)`,
             "&:hover": {
-              background: `${colors.primary_accent}25`,
+              background: `${colors.primary_accent}35`,
               transform: "scale(1.1)",
+              boxShadow: `0 4px 12px rgba(0,0,0,0.2)`,
             },
           }}
           title={t("cashflow.tooltips.scrollBottom")}
         >
-          <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
+          <KeyboardArrowDownIcon sx={{ fontSize: 20 }} />
         </IconButton>
       )}
 

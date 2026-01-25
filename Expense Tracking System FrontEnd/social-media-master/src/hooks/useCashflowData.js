@@ -74,7 +74,7 @@ const sanitizeViewState = (incomingState = buildDefaultViewState()) => {
     offset:
       typeof state.offset === "number" && Number.isFinite(state.offset)
         ? state.offset
-        : sanitizedOffsets[activeRange] ?? VIEW_STATE_DEFAULTS.offset,
+        : (sanitizedOffsets[activeRange] ?? VIEW_STATE_DEFAULTS.offset),
     flowTab: VALID_FLOW_TABS.has(state.flowTab)
       ? state.flowTab
       : VIEW_STATE_DEFAULTS.flowTab,
@@ -124,15 +124,15 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
   const ownerId = ownerIdRaw == null ? null : String(ownerIdRaw);
   const storageKey = useMemo(
     () => getCashflowViewStorageKey(friendId, isFriendView, ownerId),
-    [friendId, isFriendView, ownerId]
+    [friendId, isFriendView, ownerId],
   );
   const initialViewState = useMemo(
     () => readPersistedViewState(storageKey),
-    [storageKey]
+    [storageKey],
   );
   const [activeRange, setActiveRange] = useState(initialViewState.activeRange);
   const [rangeOffsets, setRangeOffsets] = useState(
-    initialViewState.rangeOffsets || createDefaultRangeOffsets()
+    initialViewState.rangeOffsets || createDefaultRangeOffsets(),
   );
   const [flowTab, setFlowTab] = useState(initialViewState.flowTab);
   const { cashflowExpenses, cashflowDashboard, cashflowOwnerId, loading } =
@@ -143,7 +143,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
   const deferredSearch = useDeferredValue(trimmedSearch);
   const normalizedSearch = useMemo(
     () => deferredSearch.toLowerCase(),
-    [deferredSearch]
+    [deferredSearch],
   );
   const searchQuery = deferredSearch.length ? deferredSearch : null;
   const previousStorageKeyRef = useRef(storageKey);
@@ -204,11 +204,11 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     previousStorageKeyRef.current = storageKey;
     const persisted = readPersistedViewState(storageKey);
     setActiveRange((prev) =>
-      prev === persisted.activeRange ? prev : persisted.activeRange
+      prev === persisted.activeRange ? prev : persisted.activeRange,
     );
     setRangeOffsets(persisted.rangeOffsets || createDefaultRangeOffsets());
     setFlowTab((prev) =>
-      prev === persisted.flowTab ? prev : persisted.flowTab
+      prev === persisted.flowTab ? prev : persisted.flowTab,
     );
     hydratedStorageKeyRef.current = storageKey;
   }, [storageKey]);
@@ -226,7 +226,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
         ownerId,
         groupBy: false, // flat list for timeline visualization
         search: searchQuery,
-      })
+      }),
     );
   }, [
     activeRange,
@@ -310,7 +310,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     if (activeRange === "week") {
       const weekMap = {};
       weekDays.forEach(
-        (d) => (weekMap[d] = { day: d, amount: 0, expenses: [] })
+        (d) => (weekMap[d] = { day: d, amount: 0, expenses: [] }),
       );
       filteredExpensesForView.forEach((item) => {
         const date = item.date || item.expense?.date;
@@ -325,7 +325,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
         expenses: weekMap[d].expenses,
       }));
       cardData = weekDays.flatMap((d) =>
-        buildCardsFromExpenses(weekMap[d].expenses, () => ({ day: d }))
+        buildCardsFromExpenses(weekMap[d].expenses, () => ({ day: d })),
       );
     } else if (activeRange === "month") {
       const targetMonth = dayjs().startOf("month").add(offset, "month");
@@ -353,13 +353,13 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
       cardData = Array.from({ length: daysInMonth }, (_, i) =>
         buildCardsFromExpenses(monthMap[i + 1].expenses, () => ({
           day: (i + 1).toString(),
-        }))
+        })),
       ).flat();
     } else if (activeRange === "year") {
       const targetYear = dayjs().add(offset, "year").year();
       const yearMap = {};
       yearMonths.forEach(
-        (m, idx) => (yearMap[idx] = { month: m, amount: 0, expenses: [] })
+        (m, idx) => (yearMap[idx] = { month: m, amount: 0, expenses: [] }),
       );
       filteredExpensesForView.forEach((item) => {
         const date = item.date || item.expense?.date;
@@ -376,7 +376,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
         expenses: yearMap[idx].expenses,
       }));
       cardData = yearMonths.flatMap((m, idx) =>
-        buildCardsFromExpenses(yearMap[idx].expenses, () => ({ month: m }))
+        buildCardsFromExpenses(yearMap[idx].expenses, () => ({ month: m })),
       );
     } else {
       chartData = [];
@@ -427,7 +427,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
         originalIndex:
           typeof card?.originalIndex === "number" ? card.originalIndex : idx,
       })),
-    [resolvedCardData]
+    [resolvedCardData],
   );
 
   const rangeLabel =
@@ -439,6 +439,25 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     hideNumbers: false,
     hideAxisLabels: false,
   };
+
+  // Extract unique expense names from raw API data for autocomplete (performance optimized)
+  const expenseNames = useMemo(() => {
+    if (!expenseList || expenseList.length === 0) return [];
+
+    const uniqueNames = new Set();
+
+    expenseList.forEach((item) => {
+      // Get name from expense object or direct property
+      const name =
+        item?.expense?.expenseName || item?.name || item?.expenseName;
+      if (name && typeof name === "string") {
+        const trimmed = name.trim();
+        if (trimmed) uniqueNames.add(trimmed);
+      }
+    });
+
+    return Array.from(uniqueNames).sort((a, b) => a.localeCompare(b));
+  }, [expenseList]);
 
   return {
     activeRange,
@@ -455,5 +474,6 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     barChartStyles,
     totals: resolvedTotals,
     rangeLabel,
+    expenseNames, // Unique expense names for autocomplete
   };
 }

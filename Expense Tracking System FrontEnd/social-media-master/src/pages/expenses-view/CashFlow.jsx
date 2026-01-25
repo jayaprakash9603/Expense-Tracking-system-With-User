@@ -85,6 +85,7 @@ const Cashflow = () => {
     barChartStyles,
     totals,
     rangeLabel,
+    expenseNames, // Pre-extracted unique names from API for autocomplete
   } = useCashflowData({ friendId, isFriendView, search });
   const {
     selectedBar,
@@ -321,6 +322,7 @@ const Cashflow = () => {
         navigate,
         friendId,
         isFriendView,
+        autocompleteOptions: expenseNames, // Pre-extracted unique names from API (performance optimized)
         addNewOptions: [
           {
             label: t("expenses.addExpense"),

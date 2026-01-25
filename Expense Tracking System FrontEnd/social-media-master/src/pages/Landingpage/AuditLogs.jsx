@@ -53,7 +53,7 @@ const AuditLogs = () => {
   const dispatch = useDispatch();
   const { colors } = useTheme();
   const { auditLogs, loading, error } = useSelector(
-    (state) => state.auditLogs || {}
+    (state) => state.auditLogs || {},
   );
 
   // State for filters
@@ -171,7 +171,7 @@ const AuditLogs = () => {
 
   const paginatedLogs = filteredLogs.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+    page * rowsPerPage + rowsPerPage,
   );
 
   const formatTimestamp = (timestamp) => {
@@ -457,7 +457,18 @@ const AuditLogs = () => {
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert
+          severity="error"
+          sx={{
+            mb: 2,
+            backgroundColor: "rgba(244, 67, 54, 0.12)",
+            border: "1px solid rgba(244, 67, 54, 0.3)",
+            color: "#fff",
+            "& .MuiAlert-icon": {
+              color: "#f44336",
+            },
+          }}
+        >
           {error}
         </Alert>
       )}

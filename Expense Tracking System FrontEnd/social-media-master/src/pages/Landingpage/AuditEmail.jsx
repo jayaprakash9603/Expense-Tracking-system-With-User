@@ -209,7 +209,18 @@ const AuditEmail = () => {
       }}
     >
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert
+          severity="error"
+          sx={{
+            mb: 3,
+            backgroundColor: "rgba(244, 67, 54, 0.12)",
+            border: "1px solid rgba(244, 67, 54, 0.3)",
+            color: "#fff",
+            "& .MuiAlert-icon": {
+              color: "#f44336",
+            },
+          }}
+        >
           {error}
         </Alert>
       )}
