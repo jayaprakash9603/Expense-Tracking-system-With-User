@@ -113,7 +113,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         setLoadError(null);
 
         const billResponse = await dispatch(
-          getBillById(currentBillId, friendId || "")
+          getBillById(currentBillId, friendId || ""),
         );
         let bill = billResponse?.payload || billResponse?.data || billResponse;
 
@@ -198,12 +198,14 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     if (budgets.length > 0) {
       const newCheckboxStates = budgets.map(
         (budget) =>
-          selectedBudgets.includes(budget.id) || budget.includeInBudget || false
+          selectedBudgets.includes(budget.id) ||
+          budget.includeInBudget ||
+          false,
       );
       setCheckboxStates((prev) =>
         JSON.stringify(prev) !== JSON.stringify(newCheckboxStates)
           ? newCheckboxStates
-          : prev
+          : prev,
       );
     }
   }, [budgets, selectedBudgets]);
@@ -211,7 +213,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   useEffect(() => {
     const totalAmount = expenses.reduce(
       (sum, expense) => sum + (expense.totalPrice || 0),
-      0
+      0,
     );
     if (billData.amount !== totalAmount.toString()) {
       setBillData((prev) => ({ ...prev, amount: totalAmount.toString() }));
@@ -336,13 +338,13 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           parseFloat(expense.unitPrice) > 0) ||
         (expense.quantity !== "" &&
           !isNaN(parseFloat(expense.quantity)) &&
-          parseFloat(expense.quantity) > 0)
+          parseFloat(expense.quantity) > 0),
     );
   };
 
   const handleSaveExpenses = () => {
     const validExpenses = tempExpenses.filter((expense) =>
-      isCurrentRowComplete(expense)
+      isCurrentRowComplete(expense),
     );
 
     if (validExpenses.length === 0) {
@@ -374,7 +376,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const handleCloseExpenseTableWithConfirmation = () => {
     if (hasUnsavedExpenseChanges && hasValidExpenseEntries()) {
       const confirmClose = window.confirm(
-        t("billCommon.messages.unsavedChanges")
+        t("billCommon.messages.unsavedChanges"),
       );
       if (confirmClose) {
         setTempExpenses([
@@ -423,7 +425,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         expense.quantity !== "" &&
         !isNaN(parseFloat(expense.quantity)) &&
         parseFloat(expense.quantity) > 0 &&
-        !expense.quantity.toString().includes("-")
+        !expense.quantity.toString().includes("-"),
     );
 
     if (validExpenses.length === 0) {
@@ -441,7 +443,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
           expense.quantity === "" ||
           isNaN(parseFloat(expense.quantity)) ||
           parseFloat(expense.quantity) <= 0 ||
-          expense.quantity.toString().includes("-"))
+          expense.quantity.toString().includes("-")),
     );
 
     if (invalidExpenses.length > 0) {
@@ -455,7 +457,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     try {
       const totalAmount = expenses.reduce(
         (sum, expense) => sum + (expense.totalPrice || 0),
-        0
+        0,
       );
       const selectedBudgetIds = budgets
         .filter((_, index) => checkboxStates[index])
@@ -481,7 +483,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
       };
 
       const result = await dispatch(
-        updateBill(currentBillId, updatedBillData, friendId || "")
+        updateBill(currentBillId, updatedBillData, friendId || ""),
       );
       if (result) {
         alert(t("editBill.messages.success"));
@@ -970,7 +972,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
 
   const handleDataGridSelection = (newSelection) => {
     const newCheckboxStates = dataGridRows.map((row) =>
-      newSelection.includes(row.id)
+      newSelection.includes(row.id),
     );
     setCheckboxStates(newCheckboxStates);
   };
@@ -1226,13 +1228,12 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                     <div
                       key={index}
                       ref={isLastRow ? lastRowRef : null}
-                      className={`grid grid-cols-6 gap-3 items-center p-3 rounded ${
-                        isIncomplete ? "border border-red-500" : ""
-                      }`}
+                      className="grid grid-cols-6 gap-3 items-center p-3 rounded"
                       style={{
                         backgroundColor: isIncomplete
                           ? "rgba(255, 68, 68, 0.1)"
                           : colors.primary_bg,
+                        border: `1px solid ${isIncomplete ? "#ef4444" : colors.border_color}`,
                       }}
                     >
                       <div className="col-span-1">
@@ -1318,7 +1319,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                               handleTempExpenseChange(
                                 index,
                                 "unitPrice",
-                                value
+                                value,
                               );
                             }
                           }}
@@ -1374,7 +1375,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                             handleTempExpenseChange(
                               index,
                               "comments",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className="w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm"
@@ -1426,23 +1427,23 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                       startIcon={<AddIcon />}
                       disabled={
                         !isCurrentRowComplete(
-                          tempExpenses[tempExpenses.length - 1]
+                          tempExpenses[tempExpenses.length - 1],
                         )
                       }
                       sx={{
                         backgroundColor: isCurrentRowComplete(
-                          tempExpenses[tempExpenses.length - 1]
+                          tempExpenses[tempExpenses.length - 1],
                         )
                           ? colors.button_bg
                           : "#666",
                         color: isCurrentRowComplete(
-                          tempExpenses[tempExpenses.length - 1]
+                          tempExpenses[tempExpenses.length - 1],
                         )
                           ? colors.button_text
                           : "#999",
                         "&:hover": {
                           backgroundColor: isCurrentRowComplete(
-                            tempExpenses[tempExpenses.length - 1]
+                            tempExpenses[tempExpenses.length - 1],
                           )
                             ? colors.button_hover
                             : "#666",
@@ -1459,7 +1460,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                       {t("billCommon.actions.addRow")}
                     </Button>
                     {!isCurrentRowComplete(
-                      tempExpenses[tempExpenses.length - 1]
+                      tempExpenses[tempExpenses.length - 1],
                     ) && (
                       <div className="text-red-400 text-xs mt-1">
                         {t("billCommon.expenseTable.validationHintSimple")}
@@ -1476,7 +1477,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                       {tempExpenses
                         .reduce(
                           (sum, expense) => sum + (expense.totalPrice || 0),
-                          0
+                          0,
                         )
                         .toFixed(2)}
                     </div>
@@ -1570,10 +1571,21 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                       {expenses.map((expense, index) => (
                         <div
                           key={index}
-                          className="rounded-lg p-2 border hover:border-opacity-80 transition-colors"
+                          className="rounded-lg p-3 transition-all duration-200"
                           style={{
                             backgroundColor: colors.primary_bg,
-                            borderColor: colors.border_color,
+                            border: `1px solid ${colors.border_color}`,
+                            boxShadow: `0 2px 8px ${colors.primary_bg}40`,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor =
+                              colors.primary_accent;
+                            e.currentTarget.style.boxShadow = `0 4px 12px ${colors.primary_accent}20`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor =
+                              colors.border_color;
+                            e.currentTarget.style.boxShadow = `0 2px 8px ${colors.primary_bg}40`;
                           }}
                         >
                           <div className="flex items-center justify-between mb-1">
@@ -1609,7 +1621,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                             <div className="flex justify-between">
                               <span style={{ color: colors.icon_muted }}>
                                 {t(
-                                  "billCommon.expenseTable.summaryLabels.unit"
+                                  "billCommon.expenseTable.summaryLabels.unit",
                                 )}
                               </span>
                               <span
@@ -1623,7 +1635,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                             <div className="flex justify-between">
                               <span style={{ color: colors.icon_muted }}>
                                 {t(
-                                  "billCommon.expenseTable.summaryLabels.calc"
+                                  "billCommon.expenseTable.summaryLabels.calc",
                                 )}
                               </span>
                               <span style={{ color: colors.secondary_text }}>
@@ -1643,15 +1655,15 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                                   style={{ color: colors.icon_muted }}
                                 >
                                   {t(
-                                    "billCommon.expenseTable.summaryLabels.comments"
+                                    "billCommon.expenseTable.summaryLabels.comments",
                                   )}
                                 </div>
                                 <div
-                                  className="text-[10px] p-1 rounded border break-words max-h-16 overflow-auto"
+                                  className="text-[10px] p-1 rounded break-words max-h-16 overflow-auto"
                                   style={{
                                     color: colors.secondary_text,
                                     backgroundColor: colors.secondary_bg,
-                                    borderColor: colors.border_color,
+                                    border: `1px solid ${colors.border_color}`,
                                   }}
                                 >
                                   {expense.comments}

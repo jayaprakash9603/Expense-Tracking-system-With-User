@@ -1536,16 +1536,12 @@ const CreateBill = ({ onClose, onSuccess }) => {
                     <div
                       key={index}
                       ref={isLastRow ? lastRowRef : null}
-                      className={`grid grid-cols-6 gap-3 items-center p-3 rounded ${
-                        isIncomplete ? "border border-red-500" : "border"
-                      }`}
+                      className="grid grid-cols-6 gap-3 items-center p-3 rounded"
                       style={{
                         backgroundColor: isIncomplete
                           ? "rgba(255, 68, 68, 0.1)"
-                          : colors.secondary_bg,
-                        borderColor: isIncomplete
-                          ? "#ef4444"
-                          : colors.border_color,
+                          : colors.primary_bg,
+                        border: `1px solid ${isIncomplete ? "#ef4444" : colors.border_color}`,
                       }}
                     >
                       {/* Item Name Autocomplete - Updated */}
@@ -1730,7 +1726,10 @@ const CreateBill = ({ onClose, onSuccess }) => {
               </div>
 
               {/* Add Row Button and Actions - Fixed at bottom */}
-              <div className="mt-4 pt-4 border-t border-gray-600">
+              <div
+                className="mt-4 pt-4"
+                style={{ borderTop: `1px solid ${colors.border_color}` }}
+              >
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex flex-col">
                     <Button
@@ -1897,10 +1896,21 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       {expenses.map((expense, index) => (
                         <div
                           key={index}
-                          className="rounded-lg p-2 border hover:border-gray-600 transition-colors"
+                          className="rounded-lg p-3 transition-all duration-200"
                           style={{
                             backgroundColor: colors.primary_bg,
-                            borderColor: colors.border_color,
+                            border: `1px solid ${colors.border_color}`,
+                            boxShadow: `0 2px 8px ${colors.primary_bg}40`,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor =
+                              colors.primary_accent;
+                            e.currentTarget.style.boxShadow = `0 4px 12px ${colors.primary_accent}20`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor =
+                              colors.border_color;
+                            e.currentTarget.style.boxShadow = `0 2px 8px ${colors.primary_bg}40`;
                           }}
                         >
                           <div className="flex items-center justify-between mb-1">
@@ -1974,11 +1984,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
                                   )}
                                 </div>
                                 <div
-                                  className="text-[10px] p-1 rounded border break-words max-h-16 overflow-auto"
+                                  className="text-[10px] p-1 rounded break-words max-h-16 overflow-auto"
                                   style={{
                                     color: colors.secondary_text,
                                     backgroundColor: colors.secondary_bg,
-                                    borderColor: colors.border_color,
+                                    border: `1px solid ${colors.border_color}`,
                                   }}
                                 >
                                   {expense.comments}
@@ -1991,12 +2001,21 @@ const CreateBill = ({ onClose, onSuccess }) => {
                   </div>
 
                   {/* Total summary section */}
-                  <div className="border-t border-gray-600 pt-3 mt-3">
+                  <div
+                    className="pt-3 mt-3"
+                    style={{ borderTop: `1px solid ${colors.border_color}` }}
+                  >
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium text-sm">
+                      <span
+                        className="font-medium text-sm"
+                        style={{ color: colors.icon_muted }}
+                      >
                         {t("billCommon.expenseTable.totalLabel")}:
                       </span>
-                      <span className="text-[#00dac6] font-bold text-lg">
+                      <span
+                        className="font-bold text-lg"
+                        style={{ color: colors.secondary_accent }}
+                      >
                         {currencySymbol}
                         {expenses
                           .reduce((sum, expense) => sum + expense.totalPrice, 0)
