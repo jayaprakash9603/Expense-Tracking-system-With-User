@@ -112,7 +112,7 @@ public class EmailService {
                         <h1>${HEADING}</h1>
                         <p class=\"lead\">${LEAD_TEXT} If you didn’t request it, you can safely ignore this email.</p>
                         <div class=\"otp-box\">${OTP_CODE}</div>
-                        <div class=\"meta\">Valid for 5 minutes • Do not share with anyone.</div>
+                        <div class=\"meta\">Valid for 3 minutes • Do not share with anyone.</div>
                         <div class=\"divider\"></div>
                         <div class=\"small\">Expensio Finance will never ask you for this code in any other email, chat or call.<br/>Need help? Contact support.</div>
                     </div>

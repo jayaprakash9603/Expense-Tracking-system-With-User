@@ -295,6 +295,30 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/resend-login-otp")
+    public ResponseEntity<Map<String, String>> resendLoginOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Email not found"));
+        }
+
+        if (!user.isTwoFactorEnabled()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Two-factor authentication is not enabled for this account"));
+        }
+
+        try {
+            otpService.generateAndSendLoginOtp(email);
+            return ResponseEntity.ok(Map.of("message", "Login OTP resent successfully"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to resend login OTP"));
+        }
+    }
+
     @PostMapping("/verify-otp")
     public ResponseEntity<Map<String, String>> verifyOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");

@@ -3,6 +3,7 @@ import { Card } from "@mui/material";
 import Login from "./Login";
 import Register from "./Register";
 import ForgotPassword from "./ForgotPassword";
+import OtpVerification from "./OtpVerification";
 import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import OAuthCallback from "../OAuthCallback";
 
@@ -12,6 +13,11 @@ const Authentication = () => {
   // OAuth callback page should render without the card wrapper
   if (location.pathname === "/oauth/callback") {
     return <OAuthCallback />;
+  }
+
+  // OTP verification page should render without the card wrapper
+  if (location.pathname === "/otp-verification") {
+    return <OtpVerification />;
   }
 
   // Check if current route is forgot-password or create-password
@@ -60,6 +66,7 @@ const Authentication = () => {
             path="/create-password"
             element={<ForgotPassword isPasswordCreation={true} />}
           />
+          <Route path="/otp-verification" element={<OtpVerification />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

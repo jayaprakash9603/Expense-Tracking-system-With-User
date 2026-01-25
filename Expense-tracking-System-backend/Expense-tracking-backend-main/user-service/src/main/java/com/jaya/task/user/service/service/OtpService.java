@@ -2,6 +2,8 @@ package com.jaya.task.user.service.service;
 
 import com.jaya.task.user.service.modal.Otp;
 import com.jaya.task.user.service.repository.OtpRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +15,8 @@ import java.util.Optional;
 @Service
 public class OtpService {
 
+    private static final Logger logger = LoggerFactory.getLogger(OtpService.class);
+
     @Autowired
     private OtpRepository otpRepository;
 
@@ -20,7 +24,7 @@ public class OtpService {
     private EmailService emailService;
 
     private static final int OTP_LENGTH = 6;
-    private static final int OTP_VALIDITY_MINUTES = 5;
+    private static final int OTP_VALIDITY_MINUTES = 3;
 
     public String generateOtp() {
         SecureRandom random = new SecureRandom();
@@ -45,6 +49,9 @@ public class OtpService {
         Otp otpEntity = new Otp(email, otp, now, expiresAt);
         otpRepository.save(otpEntity);
 
+        // Debug logging (requested): print OTP in backend logs
+        logger.info("Generated password-reset OTP for email={}: otp={}", email, otp);
+
         // Send OTP via email (currently logged)
         emailService.sendOtpEmail(email, otp);
 
@@ -61,6 +68,9 @@ public class OtpService {
 
         Otp otpEntity = new Otp(email, otp, now, expiresAt);
         otpRepository.save(otpEntity);
+
+        // Debug logging (requested): print OTP in backend logs
+        logger.info("Generated login OTP for email={}: otp={}", email, otp);
 
         emailService.sendLoginOtpEmail(email, otp);
 

@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  TextField,
-  Button,
-  CircularProgress,
-  Box,
-  IconButton,
-} from "@mui/material";
+import { TextField, Button, CircularProgress, Box } from "@mui/material";
 import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -14,7 +8,6 @@ import { API_BASE_URL } from "../../config/api";
 import ToastNotification from "../Landingpage/ToastNotification";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import EmailIcon from "@mui/icons-material/Email";
-import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CheckIcon from "@mui/icons-material/Check";
 
@@ -22,8 +15,9 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prefilledEmail = searchParams.get("email") || "";
+  const otpVerified = searchParams.get("otpVerified") === "1";
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(otpVerified ? 3 : 1);
   const [email, setEmail] = useState(prefilledEmail);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,9 +31,21 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
   // If prefilled email is provided (OAuth user), start OTP flow immediately
   useEffect(() => {
     if (prefilledEmail && isPasswordCreation) {
-      handleSendOtpDirect(prefilledEmail);
+      if (!otpVerified) {
+        handleSendOtpDirect(prefilledEmail);
+      } else {
+        setEmail(prefilledEmail);
+        setStep(3);
+      }
     }
-  }, [prefilledEmail, isPasswordCreation]);
+  }, [prefilledEmail, isPasswordCreation, otpVerified]);
+
+  // If otpVerified is present but email is missing, bounce back to start
+  useEffect(() => {
+    if (otpVerified && !prefilledEmail) {
+      setStep(1);
+    }
+  }, [otpVerified, prefilledEmail]);
 
   const handleSendOtpDirect = async (emailToSend) => {
     setIsLoading(true);
@@ -49,7 +55,11 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
         email: emailToSend,
       });
       setEmail(emailToSend);
-      setStep(2);
+      navigate(
+        `/otp-verification?mode=reset&email=${encodeURIComponent(
+          emailToSend,
+        )}&isPasswordCreation=${isPasswordCreation ? "1" : "0"}`,
+      );
       setToast({
         open: true,
         message: "OTP sent to your email",
@@ -88,7 +98,11 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
         email: values.email,
       });
       setEmail(values.email);
-      setStep(2);
+      navigate(
+        `/otp-verification?mode=reset&email=${encodeURIComponent(
+          values.email,
+        )}&isPasswordCreation=${isPasswordCreation ? "1" : "0"}`,
+      );
       setToast({
         open: true,
         message: "OTP sent to your email",
@@ -103,26 +117,7 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
     }
   };
 
-  const handleVerifyOtp = async (values) => {
-    setIsLoading(true);
-    setError("");
-    try {
-      await axios.post(`${API_BASE_URL}/auth/verify-otp`, {
-        email,
-        otp: values.otp,
-      });
-      setStep(3);
-      setToast({
-        open: true,
-        message: "OTP verified successfully",
-        severity: "success",
-      });
-    } catch (err) {
-      setError(err.response?.data?.error || "Invalid OTP. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // OTP verification step is handled in /otp-verification route
 
   const handleResetPassword = async (values) => {
     setIsLoading(true);
@@ -152,32 +147,13 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
     }
   };
 
-  const handleResendOtp = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      await axios.post(`${API_BASE_URL}/auth/send-otp`, { email });
-      setToast({
-        open: true,
-        message: "OTP resent successfully",
-        severity: "success",
-      });
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to resend OTP.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Resend OTP is handled in /otp-verification route
 
   const emailSchema = Yup.object({
     email: Yup.string().email("Invalid email").required("Email is required"),
   });
 
-  const otpSchema = Yup.object({
-    otp: Yup.string()
-      .required("OTP is required")
-      .length(6, "OTP must be 6 digits"),
-  });
+  // OTP schema not needed; handled by /otp-verification
 
   const passwordSchema = Yup.object({
     password: Yup.string()
@@ -195,23 +171,12 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
     return "Forgot Password";
   };
 
-  const getStepIcon = () => {
-    if (step === 1)
-      return <EmailIcon sx={{ fontSize: 40, color: "#14b8a6" }} />;
-    if (step === 2)
-      return <VpnKeyIcon sx={{ fontSize: 40, color: "#14b8a6" }} />;
-    return <LockResetIcon sx={{ fontSize: 40, color: "#14b8a6" }} />;
-  };
-
   const getStepDescription = () => {
     if (step === 1) {
       if (isOAuthUser || isPasswordCreation) {
         return "Enter your email to create a password for email/password login.";
       }
       return "Enter your email and we'll send you an OTP to reset your password.";
-    }
-    if (step === 2) {
-      return `We've sent a 6-digit code to ${email}. Enter it below.`;
     }
     if (isOAuthUser || isPasswordCreation) {
       return "Create a password to enable email/password login.";
@@ -489,109 +454,6 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
           </Formik>
         )}
 
-        {/* Step 2: OTP Verification */}
-        {step === 2 && (
-          <Formik
-            onSubmit={handleVerifyOtp}
-            validationSchema={otpSchema}
-            initialValues={{ otp: "" }}
-          >
-            {({ errors, touched }) => (
-              <Form className="space-y-4">
-                <Field name="otp">
-                  {({ field }) => (
-                    <TextField
-                      {...field}
-                      placeholder="Enter 6-digit OTP"
-                      type="text"
-                      variant="outlined"
-                      fullWidth
-                      error={touched.otp && !!errors.otp}
-                      helperText={touched.otp && errors.otp}
-                      inputProps={{
-                        maxLength: 6,
-                        style: {
-                          textAlign: "center",
-                          letterSpacing: "8px",
-                          fontSize: "1.25rem",
-                        },
-                      }}
-                      InputProps={{
-                        style: {
-                          backgroundColor: "rgb(56, 56, 56)",
-                          color: "#d8fffb",
-                          borderRadius: "8px",
-                        },
-                      }}
-                      FormHelperTextProps={{
-                        style: { color: "#f44336", textAlign: "center" },
-                      }}
-                    />
-                  )}
-                </Field>
-
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  disabled={isLoading}
-                  sx={{
-                    backgroundColor: "#14b8a6",
-                    color: "#fff",
-                    py: 1.5,
-                    borderRadius: "8px",
-                    textTransform: "none",
-                    fontWeight: "bold",
-                    "&:hover": { backgroundColor: "#0d9488" },
-                    "&:disabled": {
-                      backgroundColor: "rgba(20, 184, 166, 0.5)",
-                    },
-                  }}
-                >
-                  {isLoading ? (
-                    <CircularProgress size={24} sx={{ color: "#fff" }} />
-                  ) : (
-                    "Verify OTP"
-                  )}
-                </Button>
-
-                <div className="flex justify-between items-center">
-                  <Button
-                    onClick={() => {
-                      setStep(1);
-                      setError("");
-                    }}
-                    startIcon={<ArrowBackIosNewIcon sx={{ fontSize: 12 }} />}
-                    sx={{
-                      color: "#9ca3af",
-                      textTransform: "none",
-                      fontSize: "0.85rem",
-                      "&:hover": {
-                        color: "#14b8a6",
-                        backgroundColor: "rgba(20, 184, 166, 0.1)",
-                      },
-                    }}
-                  >
-                    Change Email
-                  </Button>
-                  <Button
-                    onClick={handleResendOtp}
-                    disabled={isLoading}
-                    sx={{
-                      color: "#14b8a6",
-                      textTransform: "none",
-                      fontSize: "0.85rem",
-                      "&:hover": { backgroundColor: "rgba(20, 184, 166, 0.1)" },
-                    }}
-                  >
-                    Resend OTP
-                  </Button>
-                </div>
-              </Form>
-            )}
-          </Formik>
-        )}
-
         {/* Step 3: New Password */}
         {step === 3 && (
           <Formik
@@ -682,8 +544,12 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
 
                 <Button
                   onClick={() => {
-                    setStep(2);
                     setError("");
+                    navigate(
+                      `/otp-verification?mode=reset&email=${encodeURIComponent(
+                        email,
+                      )}&isPasswordCreation=${isPasswordCreation ? "1" : "0"}`,
+                    );
                   }}
                   startIcon={<ArrowBackIosNewIcon sx={{ fontSize: 12 }} />}
                   fullWidth
