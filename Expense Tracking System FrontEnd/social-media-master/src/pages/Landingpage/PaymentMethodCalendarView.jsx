@@ -187,6 +187,7 @@ const PaymentMethodCalendarView = () => {
     <MonthlyCalendarView
       title="Payment Method Calendar"
       data={daysData}
+      activeDateStr={selectedDateStr}
       onDayClick={handleDayClick}
       onMonthChange={handleMonthChange}
       onBack={handleBack}
@@ -254,6 +255,10 @@ const PaymentMethodCalendarView = () => {
               },
             )
           }
+          showCategoryChip={true}
+          showPaymentMethodChip={false}
+          leadingIconTooltipType="paymentMethod"
+          titleMode="category"
         />
       }
     />

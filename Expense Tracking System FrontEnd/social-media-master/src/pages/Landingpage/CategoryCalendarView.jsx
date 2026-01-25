@@ -188,6 +188,7 @@ const CategoryCalendarView = () => {
     <MonthlyCalendarView
       title="Category Calendar"
       data={daysData}
+      activeDateStr={selectedDateStr}
       onDayClick={handleDayClick}
       onMonthChange={handleMonthChange}
       onBack={handleBack}
@@ -249,6 +250,9 @@ const CategoryCalendarView = () => {
               sx: { color: ctx?.category?.color || "#14b8a6", fontSize: 18 },
             })
           }
+          showCategoryChip={false}
+          showPaymentMethodChip={true}
+          leadingIconTooltipType="category"
         />
       }
     />

@@ -8,11 +8,13 @@ import {
   Chip,
   Select,
   MenuItem,
+  Tooltip,
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import DatePickerPopover from "../common/DatePickerPopover";
@@ -20,6 +22,7 @@ import NoDataPlaceholder from "../NoDataPlaceholder";
 import { useTheme as useAppTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { formatAmount } from "../../utils/formatAmount";
+import { getCategoryIcon } from "../../utils/iconMapping";
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
@@ -52,6 +55,10 @@ const CalendarDayDetailsSidebar = ({
   onNavigateDate,
   onItemClick,
   availableDates,
+  showCategoryChip = true,
+  showPaymentMethodChip = true,
+  leadingIconTooltipType = "auto", // 'auto' | 'category' | 'paymentMethod'
+  titleMode = "expense", // 'expense' | 'category'
 }) => {
   const { colors } = useAppTheme();
   const settings = useUserSettings();
@@ -509,31 +516,110 @@ const CalendarDayDetailsSidebar = ({
             const cls = classifyFlowType(raw?.type || exp?.type);
             const isLoss = cls === "loss";
             const amount = Number(raw?.amount ?? exp?.amount ?? 0) || 0;
-            const title =
+            const baseTitle =
               exp?.expenseName ||
               exp?.name ||
               exp?.title ||
               raw?.title ||
               "Transaction";
 
+            const commentTextRaw =
+              exp?.comments ||
+              exp?.comment ||
+              exp?.note ||
+              exp?.description ||
+              raw?.comments ||
+              raw?.comment ||
+              raw?.note ||
+              raw?.description ||
+              null;
+            const commentText =
+              typeof commentTextRaw === "string" ? commentTextRaw.trim() : null;
             const categoryName =
-              exp?.categoryName || exp?.category?.name || exp?.category || null;
+              exp?.categoryName ||
+              exp?.category?.name ||
+              exp?.category ||
+              raw?.categoryName ||
+              raw?.category?.name ||
+              raw?.category ||
+              null;
             const categoryColor =
-              exp?.categoryColor || exp?.category?.color || "#14b8a6";
+              exp?.categoryColor ||
+              exp?.category?.color ||
+              raw?.categoryColor ||
+              raw?.category?.color ||
+              "#14b8a6";
             const categoryIconKey =
-              exp?.categoryIcon || exp?.category?.icon || categoryName;
+              exp?.categoryIcon ||
+              exp?.category?.icon ||
+              raw?.categoryIcon ||
+              raw?.category?.icon ||
+              categoryName;
 
             const paymentMethodName =
               exp?.paymentMethodName ||
               exp?.paymentMethod?.name ||
               exp?.paymentMethod ||
+              raw?.paymentMethodName ||
+              raw?.paymentMethod?.name ||
+              raw?.paymentMethod ||
               null;
             const paymentMethodColor =
-              exp?.paymentMethodColor || exp?.paymentMethod?.color || "#14b8a6";
+              exp?.paymentMethodColor ||
+              exp?.paymentMethod?.color ||
+              raw?.paymentMethodColor ||
+              raw?.paymentMethod?.color ||
+              "#14b8a6";
             const paymentMethodIconKey =
               exp?.paymentMethodIcon ||
               exp?.paymentMethod?.icon ||
+              raw?.paymentMethodIcon ||
+              raw?.paymentMethod?.icon ||
               paymentMethodName;
+
+            const title =
+              titleMode === "category" ? categoryName || baseTitle : baseTitle;
+
+            const showComment =
+              Boolean(commentText) &&
+              String(commentText).toLowerCase() !==
+                String(baseTitle).toLowerCase();
+
+            const leadingTooltipLabel = (() => {
+              if (leadingIconTooltipType === "category") {
+                return categoryName ? `Category: ${categoryName}` : null;
+              }
+              if (leadingIconTooltipType === "paymentMethod") {
+                return paymentMethodName
+                  ? `Payment method: ${paymentMethodName}`
+                  : null;
+              }
+
+              if (categoryName) return `Category: ${categoryName}`;
+              if (paymentMethodName)
+                return `Payment method: ${paymentMethodName}`;
+              return null;
+            })();
+
+            const leadingIconNode =
+              typeof renderLeadingIcon === "function"
+                ? renderLeadingIcon(raw, {
+                    category: {
+                      name: categoryName,
+                      iconKey: categoryIconKey,
+                      color: categoryColor,
+                    },
+                    paymentMethod: {
+                      name: paymentMethodName,
+                      iconKey: paymentMethodIconKey,
+                      color: paymentMethodColor,
+                    },
+                  })
+                : categoryName
+                  ? getCategoryIcon(categoryIconKey || categoryName, {
+                      sx: { color: categoryColor || "#14b8a6", fontSize: 18 },
+                    })
+                  : null;
 
             const timeText = (() => {
               const d = dayjs(exp?.date || raw?.date);
@@ -582,33 +668,29 @@ const CalendarDayDetailsSidebar = ({
                       flex: 1,
                     }}
                   >
-                    {typeof renderLeadingIcon === "function" && (
-                      <Box
-                        sx={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: 1.5,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: colors.primary_bg,
-                          border: `1px solid ${colors.border}`,
-                          flex: "0 0 auto",
-                        }}
+                    {leadingIconNode && (
+                      <Tooltip
+                        arrow
+                        placement="top"
+                        title={leadingTooltipLabel || ""}
+                        disableHoverListener={!leadingTooltipLabel}
                       >
-                        {renderLeadingIcon(raw, {
-                          category: {
-                            name: categoryName,
-                            iconKey: categoryIconKey,
-                            color: categoryColor,
-                          },
-                          paymentMethod: {
-                            name: paymentMethodName,
-                            iconKey: paymentMethodIconKey,
-                            color: paymentMethodColor,
-                          },
-                        })}
-                      </Box>
+                        <Box
+                          sx={{
+                            width: 34,
+                            height: 34,
+                            borderRadius: 1.5,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: colors.primary_bg,
+                            border: `1px solid ${colors.border}`,
+                            flex: "0 0 auto",
+                          }}
+                        >
+                          {leadingIconNode}
+                        </Box>
+                      </Tooltip>
                     )}
 
                     <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -634,10 +716,10 @@ const CalendarDayDetailsSidebar = ({
                           mt: 0.6,
                         }}
                       >
-                        {categoryName && (
+                        {showCategoryChip && categoryName && (
                           <Chip
                             size="small"
-                            label={String(categoryName).toUpperCase()}
+                            label={String(categoryName)}
                             sx={{
                               height: 22,
                               fontSize: 11,
@@ -648,10 +730,10 @@ const CalendarDayDetailsSidebar = ({
                             }}
                           />
                         )}
-                        {paymentMethodName && (
+                        {showPaymentMethodChip && paymentMethodName && (
                           <Chip
                             size="small"
-                            label={String(paymentMethodName).toUpperCase()}
+                            label={String(paymentMethodName)}
                             sx={{
                               height: 22,
                               fontSize: 11,
@@ -712,6 +794,46 @@ const CalendarDayDetailsSidebar = ({
                     })}
                   </Typography>
                 </Box>
+
+                {showComment && (
+                  <Tooltip
+                    arrow
+                    placement="top"
+                    title={commentText}
+                    enterDelay={350}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.6,
+                        mt: 0.85,
+                        width: "100%",
+                        minWidth: 0,
+                        color: colors.secondary_text,
+                      }}
+                    >
+                      <EditNoteRoundedIcon
+                        sx={{
+                          fontSize: 16,
+                          color: colors.placeholder_text,
+                          flex: "0 0 auto",
+                        }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          minWidth: 0,
+                          flex: 1,
+                          color: colors.secondary_text,
+                        }}
+                        noWrap
+                      >
+                        {commentText}
+                      </Typography>
+                    </Box>
+                  </Tooltip>
+                )}
               </Box>
             );
           })

@@ -298,6 +298,9 @@ const MonthlyCalendarView = ({
   // Disable selecting days with no data (no expenses)
   disableDaysWithoutData = false,
 
+  // Optional: highlight a single active date (YYYY-MM-DD)
+  activeDateStr,
+
   // Optional macro insight (anchored to today, computed outside)
   momentumInsight,
 
@@ -705,6 +708,9 @@ const MonthlyCalendarView = ({
                   disableDaysWithoutData &&
                   (!dayData || (spending === 0 && income === 0 && !hasIcons));
 
+                const isActive =
+                  typeof activeDateStr === "string" && activeDateStr === key;
+
                 const heatmapBackground = showHeatmap
                   ? buildHeatmapBackground({
                       baseBg: colors.secondary_bg,
@@ -736,6 +742,7 @@ const MonthlyCalendarView = ({
                       dayData={dayData}
                       isToday={showTodayIndicator && isToday}
                       isSalaryDay={isSalaryDay}
+                      isActive={isActive}
                       paydayDistanceText={paydayDistanceText}
                       onClick={handleDayClick}
                       disabled={isDayDisabled}
@@ -818,6 +825,7 @@ MonthNavigator.propTypes = {
 MonthlyCalendarView.propTypes = {
   title: PropTypes.string,
   data: PropTypes.object.isRequired,
+  activeDateStr: PropTypes.string,
   onDayClick: PropTypes.func,
   onMonthChange: PropTypes.func,
   onBack: PropTypes.func,

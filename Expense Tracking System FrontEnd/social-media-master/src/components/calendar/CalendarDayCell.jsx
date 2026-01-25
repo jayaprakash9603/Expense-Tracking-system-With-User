@@ -28,6 +28,7 @@ export default function CalendarDayCell({
   dayData,
   isToday,
   isSalaryDay,
+  isActive = false,
   paydayDistanceText,
   onClick,
   disabled = false,
@@ -190,10 +191,10 @@ export default function CalendarDayCell({
           position: "relative",
           zIndex: 3,
           background: heatmapBackground || colors.secondary_bg,
-          border: isSalaryDay
-            ? `1px solid ${colors.primary_accent}`
+          border: isActive
+            ? `1px solid ${colors.primary_accent || colors.secondary_accent}`
             : "1px solid transparent",
-          boxShadow: isSalaryDay ? 3 : 1,
+          boxShadow: 1,
           transition: "transform 120ms ease, box-shadow 120ms ease",
           willChange: "transform",
           ...(canClick
@@ -213,7 +214,6 @@ export default function CalendarDayCell({
           ...(isToday
             ? {
                 animation: `${gentlePulse} 2.8s ease-in-out infinite`,
-                outline: `1px solid ${colors.secondary_accent}`,
               }
             : null),
           "& .amountPill": {
@@ -265,7 +265,7 @@ export default function CalendarDayCell({
               type="salary"
               position="top-right"
               showAnimation={true}
-              showCornerAccent={true}
+              showCornerAccent={false}
               showBadge={true}
             />
           )}
@@ -276,7 +276,7 @@ export default function CalendarDayCell({
               type="today"
               position="top-left"
               showAnimation={true}
-              showCornerAccent={true}
+              showCornerAccent={false}
               showBadge={true}
             />
           )}
