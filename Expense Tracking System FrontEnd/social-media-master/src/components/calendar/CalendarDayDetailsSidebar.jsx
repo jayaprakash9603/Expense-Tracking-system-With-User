@@ -248,7 +248,7 @@ const CalendarDayDetailsSidebar = ({
           alignItems: "stretch",
           px: 1.5,
           pt: 1.25,
-          pb: 1.5,
+          pb: 0,
           backgroundColor: colors.primary_bg,
           borderBottom: `1px solid ${colors.border}`,
           position: "relative",
@@ -403,7 +403,7 @@ const CalendarDayDetailsSidebar = ({
       </Box>
 
       {/* Totals */}
-      <Box sx={{ px: 1.5, py: 1.25 }}>
+      <Box sx={{ px: 1.5, pt: 1.25, pb: 0 }}>
         <Box
           sx={{
             display: "flex",
@@ -413,7 +413,8 @@ const CalendarDayDetailsSidebar = ({
             border: `1px solid ${colors.border}`,
             borderRadius: 2,
             px: 1.25,
-            py: 0.9,
+            pt: 0.9,
+            pb: 0.9,
           }}
         >
           <Box

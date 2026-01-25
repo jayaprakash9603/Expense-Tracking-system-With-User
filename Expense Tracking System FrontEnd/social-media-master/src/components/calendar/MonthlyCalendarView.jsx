@@ -591,7 +591,7 @@ const MonthlyCalendarView = ({
           flex: 1,
           minHeight: isSmallScreen ? "auto" : 0,
           height: isSmallScreen ? "auto" : "100%",
-          display: showRightPanelDesktop ? "flex" : "block",
+          display: isSmallScreen ? "block" : "flex",
           // Use px gap to avoid MUI theme spacing multiplying the number.
           gap: computedRightPanelGap ? `${computedRightPanelGap}px` : 0,
           alignItems: "stretch",
@@ -604,6 +604,8 @@ const MonthlyCalendarView = ({
             transition: "width 280ms ease",
             minWidth: 0,
             flex: showRightPanelDesktop ? "0 0 auto" : "1 1 auto",
+            height: isSmallScreen ? "auto" : "100%",
+            minHeight: isSmallScreen ? "auto" : 0,
           }}
         >
           <Box
@@ -614,6 +616,9 @@ const MonthlyCalendarView = ({
               p: 2,
               minHeight: isSmallScreen ? "auto" : "0px",
               height: isSmallScreen ? "auto" : "100%",
+              display: "flex",
+              flexDirection: "column",
+              minWidth: 0,
             }}
           >
             {/* Weekday headers */}
@@ -671,10 +676,26 @@ const MonthlyCalendarView = ({
             </Grid>
 
             {/* Calendar days */}
-            <Grid container spacing={1} columns={7}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+                gridTemplateRows: isSmallScreen
+                  ? "auto"
+                  : "repeat(6, minmax(0, 1fr))",
+                gap: 1,
+                flex: isSmallScreen ? "0 0 auto" : "1 1 auto",
+                minHeight: isSmallScreen ? "auto" : 0,
+                height: isSmallScreen ? "auto" : "100%",
+                alignContent: "stretch",
+              }}
+            >
               {/* Empty cells for offset */}
               {Array.from({ length: startDay }).map((_, i) => (
-                <Grid item xs={1} key={`empty-${i}`}></Grid>
+                <Box
+                  key={`empty-start-${i}`}
+                  sx={{ display: "flex", alignItems: "stretch", minWidth: 0 }}
+                />
               ))}
 
               {/* Day cells */}
@@ -726,14 +747,16 @@ const MonthlyCalendarView = ({
                   : null;
 
                 return (
-                  <Grid
-                    item
-                    xs={1}
+                  <Box
                     key={day}
                     sx={{
                       borderRadius: 2,
                       position: "relative",
                       overflow: "visible",
+                      display: "flex",
+                      alignItems: "stretch",
+                      minWidth: 0,
+                      minHeight: 0,
                     }}
                   >
                     <CalendarDayCell
@@ -759,10 +782,20 @@ const MonthlyCalendarView = ({
                       renderIcon={dayCellConfig?.renderIcon}
                       maxIcons={dayCellConfig?.maxIcons}
                     />
-                  </Grid>
+                  </Box>
                 );
               })}
-            </Grid>
+
+              {/* Trailing empty cells to keep a stable 7x6 grid */}
+              {Array.from({
+                length: Math.max(0, 42 - (startDay + days.length)),
+              }).map((_, i) => (
+                <Box
+                  key={`empty-end-${i}`}
+                  sx={{ display: "flex", alignItems: "stretch", minWidth: 0 }}
+                />
+              ))}
+            </Box>
           </Box>
         </Box>
 
