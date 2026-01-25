@@ -16,6 +16,7 @@ const CategoryCalendarView = () => {
   const { friendId } = useParams();
   const [monthOffset, setMonthOffset] = React.useState(0);
   const [selectedDateStr, setSelectedDateStr] = React.useState(null);
+  const [lastNavSource, setLastNavSource] = React.useState(null);
   const { mode } = useTheme();
   const financeColors = getFinanceCalendarColors(mode);
 
@@ -100,7 +101,7 @@ const CategoryCalendarView = () => {
     setSelectedDateStr(null);
   };
 
-  const handleNavigateToDate = (nextDateStr) => {
+  const handleNavigateToDate = (nextDateStr, meta) => {
     if (!nextDateStr) return;
     const next = dayjs(nextDateStr);
     if (next.isValid()) {
@@ -111,6 +112,7 @@ const CategoryCalendarView = () => {
         setMonthOffset(diff);
       }
     }
+    setLastNavSource(meta?.source || null);
     setSelectedDateStr(nextDateStr);
   };
 
@@ -142,6 +144,45 @@ const CategoryCalendarView = () => {
       .filter(Boolean);
     return Array.from(new Set(dates)).sort();
   }, [cashflowExpenses]);
+
+  React.useEffect(() => {
+    if (!selectedDateStr) return;
+    if (!Array.isArray(availableDates) || availableDates.length === 0) return;
+    if (availableDates.includes(selectedDateStr)) return;
+
+    const target = dayjs(selectedDateStr);
+    if (!target.isValid()) return;
+
+    const pickFromDirection = () => {
+      if (lastNavSource === "prev" || lastNavSource === "prevCrossMonth") {
+        return availableDates[availableDates.length - 1];
+      }
+      if (lastNavSource === "next" || lastNavSource === "nextCrossMonth") {
+        return availableDates[0];
+      }
+      return null;
+    };
+
+    const directionalPick = pickFromDirection();
+    if (directionalPick) {
+      setSelectedDateStr(directionalPick);
+      return;
+    }
+
+    // Picker/unknown: snap to the closest available date in this loaded month.
+    let best = availableDates[0];
+    let bestDiff = Infinity;
+    availableDates.forEach((d) => {
+      const dd = dayjs(d);
+      if (!dd.isValid()) return;
+      const diff = Math.abs(dd.diff(target, "day"));
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = d;
+      }
+    });
+    if (best) setSelectedDateStr(best);
+  }, [availableDates, lastNavSource, selectedDateStr]);
 
   return (
     <MonthlyCalendarView
@@ -177,6 +218,7 @@ const CategoryCalendarView = () => {
       showBackButton={true}
       showHeatmap={false}
       showSummaryCards={false}
+      disableDaysWithoutData={true}
       rightPanelOpen={Boolean(selectedDateStr)}
       rightPanelWidth={350}
       rightPanelGap={10}

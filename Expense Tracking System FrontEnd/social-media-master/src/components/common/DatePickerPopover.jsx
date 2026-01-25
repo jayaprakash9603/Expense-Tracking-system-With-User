@@ -1,8 +1,8 @@
 import React from "react";
 import { Popover } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { useTheme } from "../../hooks/useTheme";
 
 /**
@@ -18,6 +18,7 @@ import { useTheme } from "../../hooks/useTheme";
  * @param {Array<string>} props.availableDates - Array of available dates in YYYY-MM-DD format (optional)
  * @param {dayjs.Dayjs} props.minDate - Minimum selectable date (optional)
  * @param {dayjs.Dayjs} props.maxDate - Maximum selectable date (optional)
+ * @param {Function} props.onMonthChange - Callback when the displayed month changes (optional)
  * @param {Object} props.anchorOrigin - Popover anchor origin (optional)
  * @param {Object} props.transformOrigin - Popover transform origin (optional)
  */
@@ -31,6 +32,7 @@ const DatePickerPopover = ({
   availableDates = null,
   minDate = null,
   maxDate = null,
+  onMonthChange,
   anchorOrigin = {
     vertical: "bottom",
     horizontal: "center",
@@ -47,22 +49,6 @@ const DatePickerPopover = ({
     if (!availableDates || availableDates.length === 0) return false;
     const dateString = date.format("YYYY-MM-DD");
     return !availableDates.includes(dateString);
-  };
-
-  // Function to check if a month should be disabled for navigation
-  const shouldDisableMonth = (month) => {
-    if (!availableDates || availableDates.length === 0) return false;
-
-    // Check if any date in this month exists in availableDates
-    const startOfMonth = month.startOf("month");
-    const endOfMonth = month.endOf("month");
-
-    return !availableDates.some((dateStr) => {
-      const date = new Date(dateStr);
-      const dateMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-      const checkMonth = new Date(startOfMonth.year(), startOfMonth.month(), 1);
-      return dateMonth.getTime() === checkMonth.getTime();
-    });
   };
 
   return (
@@ -83,83 +69,46 @@ const DatePickerPopover = ({
       }}
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DatePicker
+        <DateCalendar
           value={value}
           onChange={onChange}
-          format={format}
+          onMonthChange={onMonthChange}
           shouldDisableDate={shouldDisableDate}
-          shouldDisableMonth={shouldDisableMonth}
           minDate={minDate}
           maxDate={maxDate}
-          slotProps={{
-            textField: {
-              size: "small",
-              sx: {
-                "& .MuiInputBase-root": {
-                  color: colors.primary_text,
-                  background: colors.secondary_bg,
-                },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: colors.border_color,
-                },
-                "& .MuiInputBase-input": {
-                  padding: "8px 12px",
-                },
-                "& .MuiSvgIcon-root": {
-                  color: colors.primary_accent,
+          sx={{
+            "& .MuiPickersDay-root": {
+              color: colors.primary_text,
+              "&.Mui-selected": {
+                background: colors.primary_accent,
+                color: "#fff",
+                "&:hover": {
+                  background: colors.primary_accent,
                 },
               },
+              "&:hover": {
+                background: `${colors.primary_accent}30`,
+              },
+              "&.Mui-disabled": {
+                color: `${colors.secondary_text}60`,
+                textDecoration: "line-through",
+                opacity: 0.4,
+              },
             },
-            popper: {
-              sx: {
-                "& .MuiPaper-root": {
-                  background: colors.primary_bg,
-                  border: `1px solid ${colors.border_color}`,
-                },
-                "& .MuiPickersDay-root": {
-                  color: colors.primary_text,
-                  "&.Mui-selected": {
-                    background: colors.primary_accent,
-                    color: "#fff",
-                    "&:hover": {
-                      background: colors.primary_accent,
-                    },
-                  },
-                  "&:hover": {
-                    background: `${colors.primary_accent}30`,
-                  },
-                  "&.Mui-disabled": {
-                    color: `${colors.secondary_text}60`,
-                    textDecoration: "line-through",
-                    opacity: 0.4,
-                  },
-                },
-                "& .MuiPickersCalendarHeader-label": {
-                  color: colors.primary_text,
-                },
-                "& .MuiDayCalendar-weekDayLabel": {
-                  color: colors.secondary_text,
-                },
-                "& .MuiIconButton-root": {
-                  color: colors.primary_text,
-                  "&:hover": {
-                    background: `${colors.primary_accent}20`,
-                  },
-                  "&.Mui-disabled": {
-                    color: `${colors.secondary_text}40`,
-                    opacity: 0.3,
-                  },
-                },
-                "& .MuiPickersYear-yearButton": {
-                  color: colors.primary_text,
-                  "&.Mui-selected": {
-                    background: colors.primary_accent,
-                    color: "#fff",
-                  },
-                  "&:hover": {
-                    background: `${colors.primary_accent}30`,
-                  },
-                },
+            "& .MuiPickersCalendarHeader-label": {
+              color: colors.primary_text,
+            },
+            "& .MuiDayCalendar-weekDayLabel": {
+              color: colors.secondary_text,
+            },
+            "& .MuiIconButton-root": {
+              color: colors.primary_text,
+              "&:hover": {
+                background: `${colors.primary_accent}20`,
+              },
+              "&.Mui-disabled": {
+                color: `${colors.secondary_text}40`,
+                opacity: 0.3,
               },
             },
           }}

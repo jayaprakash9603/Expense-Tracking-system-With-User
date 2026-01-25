@@ -295,6 +295,9 @@ const MonthlyCalendarView = ({
   showHeatmap = true,
   showSummaryCards = true,
 
+  // Disable selecting days with no data (no expenses)
+  disableDaysWithoutData = false,
+
   // Optional macro insight (anchored to today, computed outside)
   momentumInsight,
 
@@ -692,6 +695,16 @@ const MonthlyCalendarView = ({
                   Number(dayData?.[summaryConfig.spendingKey]) || 0;
                 const income = Number(dayData?.[summaryConfig.incomeKey]) || 0;
 
+                const hasIcons = (() => {
+                  const iconsKey = dayCellConfig?.iconsKey;
+                  const icons = iconsKey ? dayData?.[iconsKey] : null;
+                  return Array.isArray(icons) && icons.length > 0;
+                })();
+
+                const isDayDisabled =
+                  disableDaysWithoutData &&
+                  (!dayData || (spending === 0 && income === 0 && !hasIcons));
+
                 const heatmapBackground = showHeatmap
                   ? buildHeatmapBackground({
                       baseBg: colors.secondary_bg,
@@ -725,6 +738,7 @@ const MonthlyCalendarView = ({
                       isSalaryDay={isSalaryDay}
                       paydayDistanceText={paydayDistanceText}
                       onClick={handleDayClick}
+                      disabled={isDayDisabled}
                       isSmallScreen={isSmallScreen}
                       spendingKey={summaryConfig.spendingKey}
                       incomeKey={summaryConfig.incomeKey}
@@ -847,6 +861,7 @@ MonthlyCalendarView.propTypes = {
   rightPanelGap: PropTypes.number,
   showBackButton: PropTypes.bool,
   containerStyle: PropTypes.object,
+  disableDaysWithoutData: PropTypes.bool,
 };
 
 export default MonthlyCalendarView;

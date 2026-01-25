@@ -126,8 +126,19 @@ const CalendarDayDetailsSidebar = ({
     if (!dayjs(newValue).isValid()) return;
     const next = dayjs(newValue);
     setSelectedPickerDate(next);
-    onNavigateDate?.(next.format("YYYY-MM-DD"));
+    onNavigateDate?.(next.format("YYYY-MM-DD"), { source: "picker" });
     setDatePickerAnchor(null);
+  };
+
+  const handlePickerMonthChange = (newMonth) => {
+    if (!newMonth) return;
+    const month = dayjs(newMonth);
+    if (!month.isValid()) return;
+    // Trigger parent month fetch by navigating to a safe anchor in that month.
+    // Parent auto-snaps to a valid available date once data loads.
+    onNavigateDate?.(month.startOf("month").format("YYYY-MM-DD"), {
+      source: "pickerMonth",
+    });
   };
 
   const getPrevAvailableDate = () => {
@@ -169,15 +180,35 @@ const CalendarDayDetailsSidebar = ({
   };
 
   const handlePrevDate = () => {
+    if (!dateObj.isValid()) return;
     const prev = getPrevAvailableDate();
-    if (!prev) return;
-    onNavigateDate?.(prev);
+    if (prev) {
+      onNavigateDate?.(prev, { source: "prev" });
+      return;
+    }
+
+    // Cross-month navigation: move to previous month anchor, parent will load month
+    // and can auto-snap to the nearest available date.
+    const prevMonthAnchor = dateObj
+      .startOf("month")
+      .subtract(1, "day")
+      .format("YYYY-MM-DD");
+    onNavigateDate?.(prevMonthAnchor, { source: "prevCrossMonth" });
   };
 
   const handleNextDate = () => {
+    if (!dateObj.isValid()) return;
     const next = getNextAvailableDate();
-    if (!next) return;
-    onNavigateDate?.(next);
+    if (next) {
+      onNavigateDate?.(next, { source: "next" });
+      return;
+    }
+
+    const nextMonthAnchor = dateObj
+      .endOf("month")
+      .add(1, "day")
+      .format("YYYY-MM-DD");
+    onNavigateDate?.(nextMonthAnchor, { source: "nextCrossMonth" });
   };
 
   const totalCount = list.length;
@@ -264,7 +295,7 @@ const CalendarDayDetailsSidebar = ({
             size="small"
             aria-label="Previous day"
             onClick={handlePrevDate}
-            disabled={!getPrevAvailableDate()}
+            disabled={!dateObj.isValid()}
             sx={{
               color: colors.primary_text,
               backgroundColor: colors.secondary_bg,
@@ -334,7 +365,7 @@ const CalendarDayDetailsSidebar = ({
             size="small"
             aria-label="Next day"
             onClick={handleNextDate}
-            disabled={!getNextAvailableDate()}
+            disabled={!dateObj.isValid()}
             sx={{
               color: colors.primary_text,
               backgroundColor: colors.secondary_bg,
@@ -358,10 +389,9 @@ const CalendarDayDetailsSidebar = ({
           onClose={handleDatePickerClose}
           value={selectedPickerDate}
           onChange={handlePickedDateChange}
+          onMonthChange={handlePickerMonthChange}
           format={displayDateFormat}
           availableDates={sortedAvailableDates}
-          minDate={minAvailableDate}
-          maxDate={maxAvailableDate}
         />
       </Box>
 

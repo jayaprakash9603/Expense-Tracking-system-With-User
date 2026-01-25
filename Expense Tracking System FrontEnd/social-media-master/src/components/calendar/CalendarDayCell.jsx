@@ -30,6 +30,7 @@ export default function CalendarDayCell({
   isSalaryDay,
   paydayDistanceText,
   onClick,
+  disabled = false,
   isSmallScreen,
   colors,
   currencySymbol,
@@ -51,8 +52,18 @@ export default function CalendarDayCell({
   const iconItems = Array.isArray(iconItemsRaw) ? iconItemsRaw : [];
   const showIcons = typeof renderIcon === "function" && iconItems.length > 0;
 
+  const canClick = !disabled && typeof onClick === "function";
+
   const tooltipContent = useMemo(() => {
     // Keep tooltips lightweight + helpful, shown only on hover.
+    if (disabled) {
+      return (
+        <Typography variant="caption" sx={{ color: colors.primary_text }}>
+          No transactions
+        </Typography>
+      );
+    }
+
     const showAmountInsights = !showIcons;
 
     const avg = showAmountInsights ? safeNumber(avgDailySpend) : 0;
@@ -129,6 +140,7 @@ export default function CalendarDayCell({
     );
   }, [
     avgDailySpend,
+    disabled,
     colors,
     currencySymbol,
     iconItems,
@@ -163,10 +175,10 @@ export default function CalendarDayCell({
       }}
     >
       <Box
-        onClick={() => onClick(dayNumber)}
+        onClick={canClick ? () => onClick(dayNumber) : undefined}
         sx={{
           borderRadius: 2,
-          cursor: "pointer",
+          cursor: canClick ? "pointer" : "not-allowed",
           p: 1,
           minHeight: isSmallScreen ? 50 : 60,
           height: isSmallScreen ? 74 : 86,
@@ -184,10 +196,20 @@ export default function CalendarDayCell({
           boxShadow: isSalaryDay ? 3 : 1,
           transition: "transform 120ms ease, box-shadow 120ms ease",
           willChange: "transform",
-          "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: 6,
-          },
+          ...(canClick
+            ? {
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: 6,
+                },
+              }
+            : null),
+          ...(disabled
+            ? {
+                opacity: 0.45,
+                filter: "grayscale(0.25)",
+              }
+            : null),
           ...(isToday
             ? {
                 animation: `${gentlePulse} 2.8s ease-in-out infinite`,
