@@ -98,6 +98,9 @@ public class User {
     @Column(name = "current_mode")
     private String currentMode = "USER"; // Default mode is USER
 
+    @Column(name = "two_factor_enabled", nullable = false)
+    private boolean twoFactorEnabled = false;
+
     @PastOrPresent(message = "Created date cannot be in the future")
     @Column(name = "created_at")
     private LocalDateTime createdAt;

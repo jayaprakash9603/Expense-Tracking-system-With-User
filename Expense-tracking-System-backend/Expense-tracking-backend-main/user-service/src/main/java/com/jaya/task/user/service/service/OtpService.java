@@ -1,7 +1,5 @@
 package com.jaya.task.user.service.service;
 
-
-
 import com.jaya.task.user.service.modal.Otp;
 import com.jaya.task.user.service.repository.OtpRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +16,8 @@ public class OtpService {
     @Autowired
     private OtpRepository otpRepository;
 
-        @Autowired
-        private EmailService emailService;
+    @Autowired
+    private EmailService emailService;
 
     private static final int OTP_LENGTH = 6;
     private static final int OTP_VALIDITY_MINUTES = 5;
@@ -51,6 +49,22 @@ public class OtpService {
         emailService.sendOtpEmail(email, otp);
 
         return "Otp Send Successfull"; // Return OTP for response
+    }
+
+    @Transactional
+    public String generateAndSendLoginOtp(String email) {
+        otpRepository.deleteByEmail(email);
+
+        String otp = generateOtp();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expiresAt = now.plusMinutes(OTP_VALIDITY_MINUTES);
+
+        Otp otpEntity = new Otp(email, otp, now, expiresAt);
+        otpRepository.save(otpEntity);
+
+        emailService.sendLoginOtpEmail(email, otp);
+
+        return "Login OTP sent";
     }
 
     @Transactional

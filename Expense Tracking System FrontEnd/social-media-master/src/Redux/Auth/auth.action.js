@@ -45,29 +45,12 @@ const loadUserDashboardPreferences = async () => {
   return true;
 };
 
-// Login User Action
-export const loginUserAction = (loginData) => async (dispatch) => {
-  dispatch({ type: LOGIN_REQUEST });
-
-  const { data, error } = await safeApiCall(() =>
-    api.post("/auth/signin", loginData.data, { skipAuth: true }),
-  );
-
-  if (error || !data?.jwt) {
-    const errorMessage = error?.message || "Login failed. Please try again.";
-    console.log("Login error:", errorMessage);
-    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
-    return {
-      success: false,
-      message: errorMessage,
-    };
-  }
-
-  dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
-  localStorage.setItem("jwt", data.jwt);
+const completeLoginWithJwt = async (dispatch, jwt) => {
+  dispatch({ type: LOGIN_SUCCESS, payload: jwt });
+  localStorage.setItem("jwt", jwt);
 
   // Immediately fetch the user profile after login
-  const profileResult = await dispatch(getProfileAction(data.jwt));
+  const profileResult = await dispatch(getProfileAction(jwt));
   updateAuthHeader();
 
   // Load user dashboard preferences (non-blocking)
@@ -90,6 +73,65 @@ export const loginUserAction = (loginData) => async (dispatch) => {
     currentMode: userProfile?.currentMode,
     role: userProfile?.role,
   };
+};
+
+// Login User Action
+export const loginUserAction = (loginData) => async (dispatch) => {
+  dispatch({ type: LOGIN_REQUEST });
+
+  const { data, error } = await safeApiCall(() =>
+    api.post("/auth/signin", loginData.data, { skipAuth: true }),
+  );
+
+  if (error) {
+    const errorMessage = error?.message || "Login failed. Please try again.";
+    console.log("Login error:", errorMessage);
+    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+
+  if (data?.message === "OTP_REQUIRED" || data?.twoFactorRequired) {
+    // 2FA enabled: OTP has been sent and JWT will be issued after verification
+    dispatch({ type: LOGIN_FAILURE, payload: "OTP_REQUIRED" });
+    return {
+      success: false,
+      twoFactorRequired: true,
+      message: "OTP_REQUIRED",
+      email: loginData?.data?.email,
+    };
+  }
+
+  if (!data?.jwt) {
+    const errorMessage = "Login failed. Please try again.";
+    console.log("Login error:", errorMessage);
+    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+
+  return await completeLoginWithJwt(dispatch, data.jwt);
+};
+
+export const verifyTwoFactorOtpAction = (payload) => async (dispatch) => {
+  dispatch({ type: LOGIN_REQUEST });
+
+  const { data, error } = await safeApiCall(() =>
+    api.post("/auth/verify-login-otp", payload, { skipAuth: true }),
+  );
+
+  if (error || !data?.jwt) {
+    const errorMessage =
+      error?.message || data?.message || "OTP verification failed.";
+    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
+    return { success: false, message: errorMessage };
+  }
+
+  return await completeLoginWithJwt(dispatch, data.jwt);
 };
 
 // Google OAuth Login Action

@@ -95,6 +95,9 @@ export const en = {
     expensesTable: {
       title: "Expenses",
       entityTitle: "{{name}} Expenses",
+      summary: "{{count}} entries • Total {{total}}",
+      empty: "No expenses found",
+      emptyHint: "Try selecting a different card or period",
       unnamedExpense: "Unnamed Expense",
       noDate: "No date",
       type: {

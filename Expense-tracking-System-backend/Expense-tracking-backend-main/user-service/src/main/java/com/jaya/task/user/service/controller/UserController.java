@@ -6,6 +6,7 @@ import com.jaya.task.user.service.modal.Role;
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.repository.RoleRepository;
 import com.jaya.task.user.service.repository.UserRepository;
+import com.jaya.task.user.service.request.TwoFactorUpdateRequest;
 import com.jaya.task.user.service.request.UserUpdateRequest;
 import com.jaya.task.user.service.service.CustomUserServiceImplementation;
 import com.jaya.task.user.service.service.UserService;
@@ -99,6 +100,25 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(ERROR_KEY, "Failed to update user: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/two-factor")
+    public ResponseEntity<Object> updateTwoFactorAuthentication(
+            @RequestHeader("Authorization") String jwt,
+            @Valid @RequestBody TwoFactorUpdateRequest request) {
+
+        try {
+            User user = userService.getUserProfile(jwt);
+            user.setTwoFactorEnabled(Boolean.TRUE.equals(request.getEnabled()));
+            User updatedUser = userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                    MESSAGE_KEY, "Two-factor authentication updated successfully",
+                    "twoFactorEnabled", updatedUser.isTwoFactorEnabled()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(ERROR_KEY, "Failed to update two-factor authentication: " + e.getMessage()));
         }
     }
 

@@ -174,6 +174,9 @@ export const te = {
     expensesTable: {
       title: "ఖర్చులు",
       entityTitle: "{{name}} ఖర్చులు",
+      summary: "{{count}} ఎంట్రీలు • మొత్తం {{total}}",
+      empty: "ఖర్చులు కనబడలేదు",
+      emptyHint: "వేరే కార్డు లేదా కాలాన్ని ఎంచి ప్రయత్నించండి",
       unnamedExpense: "పేరు లేని ఖర్చు",
       noDate: "తేదీ లేదు",
       type: {

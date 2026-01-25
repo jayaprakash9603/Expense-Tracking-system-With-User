@@ -173,6 +173,9 @@ export const hi = {
     expensesTable: {
       title: "खर्चे",
       entityTitle: "{{name}} खर्चे",
+      summary: "{{count}} प्रविष्टियाँ • कुल {{total}}",
+      empty: "कोई खर्च नहीं मिला",
+      emptyHint: "दूसरा कार्ड या अवधि चुनकर देखें",
       unnamedExpense: "बिना नाम का खर्च",
       noDate: "कोई तारीख नहीं",
       type: {

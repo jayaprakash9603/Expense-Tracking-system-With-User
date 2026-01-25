@@ -53,10 +53,10 @@ const Settings = () => {
   const { colors, mode } = useTheme();
   const { t } = useTranslation();
   const { settings: userSettings } = useSelector(
-    (state) => state.userSettings || {}
+    (state) => state.userSettings || {},
   );
   const notificationPreferences = useSelector(
-    (state) => state.notificationPreferences?.preferences
+    (state) => state.notificationPreferences?.preferences,
   );
   const userId = useSelector((state) => state.auth?.user?.id);
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
@@ -66,7 +66,7 @@ const Settings = () => {
   useEffect(() => {
     // Restore scroll position when returning to this page
     const savedScrollPosition = sessionStorage.getItem(
-      "settingsScrollPosition"
+      "settingsScrollPosition",
     );
     if (savedScrollPosition) {
       setTimeout(() => {
@@ -95,7 +95,7 @@ const Settings = () => {
   } = useDialogState();
   const { settingsState, updateSetting } = useSettingsState(
     userSettings,
-    showSnackbar
+    showSnackbar,
   );
   const { handleThemeToggle, handleLanguageChange, executeAction } =
     useSettingsActions(
@@ -103,7 +103,7 @@ const Settings = () => {
       showSnackbar,
       setDeleteDialogOpen,
       setPasswordDialogOpen,
-      isDark
+      isDark,
     );
 
   // Render switch-type setting
@@ -125,6 +125,10 @@ const Settings = () => {
         switchChecked={settingsState[stateKey]}
         onSwitchChange={(e) => {
           const checked = e.target.checked;
+          if (stateKey === settingsKey) {
+            updateSetting(stateKey, checked, getToggleMessage(title, checked));
+            return;
+          }
           updateSetting(stateKey, checked);
           updateSetting(settingsKey, checked, getToggleMessage(title, checked));
         }}
@@ -380,7 +384,7 @@ const Settings = () => {
         <Box sx={{ maxWidth: 900, mx: "auto" }}>
           {/* Render all sections dynamically */}
           {Object.values(SETTINGS_SECTIONS).map((section) =>
-            renderSection(section)
+            renderSection(section),
           )}
         </Box>
       </Box>

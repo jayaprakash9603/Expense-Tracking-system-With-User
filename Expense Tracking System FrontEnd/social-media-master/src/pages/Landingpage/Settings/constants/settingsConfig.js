@@ -376,10 +376,9 @@ export const SETTINGS_SECTIONS = {
         titleKey: "settings.twoFactorAuth",
         description: "Add an extra layer of security to your account",
         descriptionKey: "settings.twoFactorAuthDescription",
-        type: "button",
-        buttonText: "Enable",
-        buttonTextKey: "settings.enable",
-        action: "enable2FA",
+        type: "switch",
+        stateKey: "twoFactorEnabled",
+        settingsKey: "twoFactorEnabled",
       },
       {
         id: "blockedUsers",

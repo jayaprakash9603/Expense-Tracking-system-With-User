@@ -8,12 +8,20 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUserAction } from "../../Redux/Auth/auth.action";
+import {
+  loginUserAction,
+  verifyTwoFactorOtpAction,
+} from "../../Redux/Auth/auth.action";
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
 
 const initialValues = { email: "", password: "" };
@@ -38,6 +46,31 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false);
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+
+  const navigateAfterLogin = (result) => {
+    const { currentMode, role, user } = result;
+
+    console.log("Login Navigation Debug:", {
+      currentMode,
+      role,
+      userRole: user?.role,
+      fullUser: user,
+    });
+
+    if (currentMode === "ADMIN" || role === "ADMIN" || user?.role === "ADMIN") {
+      console.log("Navigating to ADMIN dashboard");
+      navigate("/admin/dashboard");
+    } else {
+      console.log("Navigating to USER dashboard");
+      navigate("/dashboard");
+    }
+  };
+
   const handleSubmit = async (values, { setSubmitting }) => {
     setError("");
     const result = await dispatch(loginUserAction({ data: values }));
@@ -46,35 +79,49 @@ const Login = () => {
       if (result.message === "OAUTH_NO_PASSWORD") {
         // Navigate to create password page with email
         navigate(`/create-password?email=${encodeURIComponent(values.email)}`);
+        setSubmitting(false);
+        return;
+      }
+
+      if (result.twoFactorRequired) {
+        setOtpEmail(result.email || values.email);
+        setOtp("");
+        setOtpError("");
+        setOtpDialogOpen(true);
+        setSubmitting(false);
         return;
       } else {
         setError(result.message);
       }
     } else {
-      // Navigate based on user role/currentMode
-      const { currentMode, role, user } = result;
-
-      console.log("Login Navigation Debug:", {
-        currentMode,
-        role,
-        userRole: user?.role,
-        fullUser: user,
-      });
-
-      // Check if user is ADMIN (either by currentMode or role)
-      if (
-        currentMode === "ADMIN" ||
-        role === "ADMIN" ||
-        user?.role === "ADMIN"
-      ) {
-        console.log("Navigating to ADMIN dashboard");
-        navigate("/admin/dashboard");
-      } else {
-        console.log("Navigating to USER dashboard");
-        navigate("/dashboard");
-      }
+      navigateAfterLogin(result);
     }
     setSubmitting(false);
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otpEmail || !otp) {
+      setOtpError("Enter the OTP sent to your email");
+      return;
+    }
+
+    setOtpError("");
+    setIsVerifyingOtp(true);
+    try {
+      const result = await dispatch(
+        verifyTwoFactorOtpAction({ email: otpEmail, otp: otp.trim() }),
+      );
+
+      if (!result.success) {
+        setOtpError(result.message || "OTP verification failed");
+        return;
+      }
+
+      setOtpDialogOpen(false);
+      navigateAfterLogin(result);
+    } finally {
+      setIsVerifyingOtp(false);
+    }
   };
 
   // Function to handle forgot password click
@@ -286,6 +333,66 @@ const Login = () => {
           );
         }}
       </Formik>
+
+      <Dialog
+        open={otpDialogOpen}
+        onClose={() => {
+          setOtpDialogOpen(false);
+          setOtp("");
+          setOtpError("");
+        }}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Two-Factor Authentication</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Enter the OTP sent to {otpEmail} to complete login.
+          </Typography>
+
+          {otpError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {otpError}
+            </Alert>
+          )}
+
+          <TextField
+            placeholder="6-digit OTP"
+            value={otp}
+            onChange={(e) => {
+              const next = e.target.value.replace(/\D/g, "").slice(0, 6);
+              setOtp(next);
+              if (otpError) setOtpError("");
+            }}
+            fullWidth
+            inputMode="numeric"
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setOtpDialogOpen(false);
+              setOtp("");
+              setOtpError("");
+            }}
+            disabled={isVerifyingOtp}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleVerifyOtp}
+            disabled={isVerifyingOtp}
+          >
+            {isVerifyingOtp ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              "Verify"
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import com.jaya.task.user.service.repository.UserRepository;
 import com.jaya.task.user.service.repository.RoleRepository;
 import com.jaya.task.user.service.request.LoginRequest;
 import com.jaya.task.user.service.request.SignupRequest;
+import com.jaya.task.user.service.request.VerifyLoginOtpRequest;
 import com.jaya.task.user.service.response.AuthResponse;
 import com.jaya.task.user.service.service.CustomUserServiceImplementation;
 import com.jaya.task.user.service.exceptions.MissingRequestHeaderException;
@@ -92,20 +93,76 @@ public class AuthController {
             Authentication authentication = authenticate(username, password);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
+            // If user has 2FA enabled, send OTP and require verification before issuing JWT
+            if (user != null && user.isTwoFactorEnabled()) {
+                otpService.generateAndSendLoginOtp(username);
+
+                AuthResponse authResponse = new AuthResponse();
+                authResponse.setStatus(true);
+                authResponse.setMessage("OTP_REQUIRED");
+                authResponse.setTwoFactorRequired(true);
+                authResponse.setJwt(null);
+
+                return new ResponseEntity<>(authResponse, HttpStatus.OK);
+            }
+
             String token = JwtProvider.generateToken(authentication);
 
             AuthResponse authResponse = new AuthResponse();
             authResponse.setStatus(true);
             authResponse.setMessage("Login Success");
             authResponse.setJwt(token);
+            authResponse.setTwoFactorRequired(false);
 
             return new ResponseEntity<>(authResponse, HttpStatus.OK);
         } catch (BadCredentialsException ex) {
             AuthResponse authResponse = new AuthResponse();
             authResponse.setStatus(false);
             authResponse.setMessage("Invalid Username or Password");
+            authResponse.setTwoFactorRequired(false);
             return new ResponseEntity<>(authResponse, HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    @PostMapping("/verify-login-otp")
+    public ResponseEntity<AuthResponse> verifyLoginOtp(@Valid @RequestBody VerifyLoginOtpRequest request) {
+        String email = request.getEmail();
+        String otp = request.getOtp();
+
+        boolean isValid = otpService.verifyOtp(email, otp);
+        if (!isValid) {
+            AuthResponse authResponse = new AuthResponse();
+            authResponse.setStatus(false);
+            authResponse.setMessage("Invalid or expired OTP");
+            authResponse.setTwoFactorRequired(true);
+            return new ResponseEntity<>(authResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            AuthResponse authResponse = new AuthResponse();
+            authResponse.setStatus(false);
+            authResponse.setMessage("User not found");
+            authResponse.setTwoFactorRequired(false);
+            return new ResponseEntity<>(authResponse, HttpStatus.NOT_FOUND);
+        }
+
+        UserDetails userDetails = customUserService.loadUserByUsername(email);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails.getUsername(),
+                null,
+                userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String token = JwtProvider.generateToken(authentication);
+
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setStatus(true);
+        authResponse.setMessage("Login Success");
+        authResponse.setJwt(token);
+        authResponse.setTwoFactorRequired(false);
+
+        return new ResponseEntity<>(authResponse, HttpStatus.OK);
     }
 
     private Authentication authenticate(String username, String password) {
