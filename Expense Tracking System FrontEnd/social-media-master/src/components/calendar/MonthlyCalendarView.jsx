@@ -16,6 +16,7 @@ import PropTypes from "prop-types";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import CalendarDayCell from "./CalendarDayCell";
+import HeatmapModeToggle from "./HeatmapModeToggle";
 import SpendingMomentumInsight from "./SpendingMomentumInsight";
 import { FINANCE_COLOR_TOKENS } from "../../config/financeColorTokens";
 import {
@@ -34,32 +35,6 @@ import { formatCompactNumber } from "../../utils/numberFormatters";
  *
  * A flexible, feature-rich calendar component for displaying financial data
  * across months with support for daily spending/income tracking.
- *
- * FEATURES:
- * - Month navigation (prev/next/date picker)
- * - Daily data visualization (spending/income)
- * - Summary cards (total spending/income)
- * - Date indicators (today, salary day, custom)
- * - Jump to today functionality
- * - Fully responsive design
- * - Customizable colors and labels
- * - Extensible for future features
- *
- * USAGE:
- * ------
- * <MonthlyCalendarView
- *   title="Calendar View"
- *   data={daysData}
- *   onDayClick={handleDayClick}
- *   onMonthChange={handleMonthChange}
- *   summaryConfig={{
- *     spendingLabel: "Spending",
- *     incomeLabel: "Income",
- *     spendingColor: "#cf667a",
- *     incomeColor: "#437746"
- *   }}
- *   onBack={() => navigate('/expenses')}
- * />
  */
 
 // ============================================================================
@@ -128,22 +103,21 @@ const SummaryCard = ({
           viewBox="0 0 32 32"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          style={{ display: "block" }}
         >
-          <circle cx="16" cy="16" r="15" fill={iconColor} />
+          <circle cx="16" cy="16" r="16" fill={iconColor} />
           {iconType === "down" ? (
             <path
-              d="M16 8v16M16 24l7-7M16 24l-7-7"
+              d="M16 8V24M16 24L10 18M16 24L22 18"
               stroke="#fff"
-              strokeWidth="3"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           ) : (
             <path
-              d="M16 24V8M16 8L9 15M16 8L23 15"
+              d="M16 24V8M16 8L10 14M16 8L22 14"
               stroke="#fff"
-              strokeWidth="3"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -151,20 +125,19 @@ const SummaryCard = ({
         </svg>
       </Box>
 
-      {/* Text content */}
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
-          height: "100%",
+          alignItems: "flex-start",
           flex: 1,
-          ml: -0.5,
+          pr: 1.5,
         }}
       >
         <Typography
-          variant="subtitle2"
+          variant="body2"
           sx={{
+            fontSize: "0.95rem",
             color: textColor,
             fontWeight: 700,
             lineHeight: 1.2,
@@ -295,6 +268,10 @@ const MonthlyCalendarView = ({
   showHeatmap = true,
   showSummaryCards = true,
 
+  // Optional heatmap mode toggle (Loss / Gain / Both)
+  showHeatmapModeToggle = false,
+  initialHeatmapMode = "both",
+
   // Disable selecting days with no data (no expenses)
   disableDaysWithoutData = false,
 
@@ -324,6 +301,11 @@ const MonthlyCalendarView = ({
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [monthOffset, setMonthOffset] = useState(initialOffset);
+  const [heatmapMode, setHeatmapMode] = useState(initialHeatmapMode);
+
+  useEffect(() => {
+    setHeatmapMode(initialHeatmapMode);
+  }, [initialHeatmapMode]);
 
   useEffect(() => {
     if (!controlledDate) return;
@@ -585,6 +567,49 @@ const MonthlyCalendarView = ({
         )}
       </Box>
 
+      {/* Top-right controls: Heatmap mode + Current Month */}
+      {(showJumpToToday || (showHeatmap && showHeatmapModeToggle)) && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 16,
+            right: 30,
+            zIndex: 22,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: 1,
+            maxWidth: isSmallScreen ? "calc(100% - 120px)" : "none",
+            flexWrap: isSmallScreen ? "wrap" : "nowrap",
+          }}
+        >
+          {showHeatmap && showHeatmapModeToggle && (
+            <HeatmapModeToggle
+              value={heatmapMode}
+              onChange={setHeatmapMode}
+              lossColor={summaryConfig.spendingColor}
+              gainColor={summaryConfig.incomeColor}
+              background="rgba(255,255,255,0.9)"
+              borderColor="rgba(0,0,0,0.12)"
+              textColor="rgba(0,0,0,0.75)"
+            />
+          )}
+
+          {showJumpToToday && (
+            <JumpToTodayButton
+              onClick={handleJumpToToday}
+              isToday={isViewingCurrentMonth}
+              visible={true}
+              hideWhenActive={false}
+              position="static"
+              customPosition={{}}
+              viewType="month"
+              zIndex={20}
+            />
+          )}
+        </Box>
+      )}
+
       {/* Calendar grid + optional right panel (desktop) */}
       <Box
         sx={{
@@ -732,15 +757,32 @@ const MonthlyCalendarView = ({
                 const isActive =
                   typeof activeDateStr === "string" && activeDateStr === key;
 
+                const effectiveSpending =
+                  showHeatmap && showHeatmapModeToggle && heatmapMode === "gain"
+                    ? 0
+                    : spending;
+                const effectiveIncome =
+                  showHeatmap && showHeatmapModeToggle && heatmapMode === "loss"
+                    ? 0
+                    : income;
+                const effectiveMaxSpending =
+                  showHeatmap && showHeatmapModeToggle && heatmapMode === "gain"
+                    ? 0
+                    : maxSpending;
+                const effectiveMaxIncome =
+                  showHeatmap && showHeatmapModeToggle && heatmapMode === "loss"
+                    ? 0
+                    : maxIncome;
+
                 const heatmapBackground = showHeatmap
                   ? buildHeatmapBackground({
                       baseBg: colors.secondary_bg,
                       accentColor: colors.primary_accent,
                       isWeekend,
-                      spending,
-                      income,
-                      maxSpending,
-                      maxIncome,
+                      spending: effectiveSpending,
+                      income: effectiveIncome,
+                      maxSpending: effectiveMaxSpending,
+                      maxIncome: effectiveMaxIncome,
                       spendingColor: summaryConfig.spendingColor,
                       incomeColor: summaryConfig.incomeColor,
                     })
@@ -777,6 +819,9 @@ const MonthlyCalendarView = ({
                       colors={colors}
                       currencySymbol={currencySymbol}
                       heatmapBackground={heatmapBackground}
+                      showMixedAmountsOverlay={
+                        !(showHeatmapModeToggle && heatmapMode !== "both")
+                      }
                       avgDailySpend={avgDailySpend}
                       iconsKey={dayCellConfig?.iconsKey}
                       renderIcon={dayCellConfig?.renderIcon}
@@ -814,19 +859,6 @@ const MonthlyCalendarView = ({
           </Box>
         )}
       </Box>
-
-      {/* Jump to Today button */}
-      {showJumpToToday && (
-        <JumpToTodayButton
-          onClick={handleJumpToToday}
-          isToday={isViewingCurrentMonth}
-          visible={true}
-          position="absolute"
-          customPosition={{ top: 16, right: 30 }}
-          viewType="month"
-          zIndex={20}
-        />
-      )}
     </div>
   );
 };
@@ -890,6 +922,8 @@ MonthlyCalendarView.propTypes = {
   showTodayIndicator: PropTypes.bool,
   showJumpToToday: PropTypes.bool,
   showHeatmap: PropTypes.bool,
+  showHeatmapModeToggle: PropTypes.bool,
+  initialHeatmapMode: PropTypes.oneOf(["loss", "gain", "both"]),
   showSummaryCards: PropTypes.bool,
   dayCellConfig: PropTypes.shape({
     iconsKey: PropTypes.string,

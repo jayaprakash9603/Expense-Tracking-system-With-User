@@ -29,7 +29,7 @@ const CalendarView = () => {
         flowType: null,
         targetId: friendId || undefined,
         groupBy: false,
-      })
+      }),
     );
   }, [dispatch, monthOffset, friendId]);
 
@@ -122,6 +122,7 @@ const CalendarView = () => {
       onDayClick={handleDayClick}
       onMonthChange={handleMonthChange}
       onBack={handleBack}
+      showHeatmapModeToggle={true}
       summaryConfig={{
         spendingLabel: "Spending",
         incomeLabel: "Income",

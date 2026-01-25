@@ -40,6 +40,7 @@ export default function CalendarDayCell({
   spendingColor,
   incomeColor,
   heatmapBackground,
+  showMixedAmountsOverlay = true,
   avgDailySpend,
   iconsKey,
   renderIcon,
@@ -227,7 +228,7 @@ export default function CalendarDayCell({
           overflow: "hidden",
         }}
       >
-        {!showIcons && hasMixedAmounts && (
+        {!showIcons && hasMixedAmounts && showMixedAmountsOverlay && (
           <Box
             aria-hidden
             sx={{

@@ -21,6 +21,7 @@ const JumpToTodayButton = ({
   onClick,
   isToday = false,
   visible = true,
+  hideWhenActive = true,
   position = "absolute",
   customPosition = { top: 16, right: 70 },
   buttonText = null,
@@ -31,8 +32,12 @@ const JumpToTodayButton = ({
   const defaultText = viewType === "month" ? "Current Month" : "Today";
   const displayText = buttonText || defaultText;
 
-  // Don't render if not visible or if already viewing today
-  if (!visible || isToday) return null;
+  // Don't render if not visible.
+  // In some views we keep it visible (disabled) to preserve layout.
+  if (!visible) return null;
+  if (isToday && hideWhenActive) return null;
+
+  const isDisabled = Boolean(isToday);
 
   const baseStyles = {
     position: position,
@@ -46,18 +51,26 @@ const JumpToTodayButton = ({
     display: "flex",
     alignItems: "center",
     gap: 1,
-    cursor: "pointer",
-    "&:hover": {
-      background: "#00b8a3",
-      transform: "scale(1.05)",
-      boxShadow: 4,
-    },
+    cursor: isDisabled ? "default" : "pointer",
+    ...(isDisabled
+      ? {
+          opacity: 0.75,
+          filter: "saturate(0.9)",
+          boxShadow: 1,
+        }
+      : {
+          "&:hover": {
+            background: "#00b8a3",
+            transform: "scale(1.05)",
+            boxShadow: 4,
+          },
+        }),
     ...customPosition,
     ...customStyles,
   };
 
   return (
-    <Box onClick={onClick} sx={baseStyles}>
+    <Box onClick={isDisabled ? undefined : onClick} sx={baseStyles}>
       <TodayIcon sx={{ fontSize: 20 }} />
       <Typography
         variant="body2"

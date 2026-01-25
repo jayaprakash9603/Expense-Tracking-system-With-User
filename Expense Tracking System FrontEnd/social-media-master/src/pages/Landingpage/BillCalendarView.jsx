@@ -74,6 +74,7 @@ const BillCalendarView = () => {
       onDayClick={handleDayClick}
       onMonthChange={handleMonthChange}
       onBack={handleBack}
+      showHeatmapModeToggle={true}
       summaryConfig={{
         spendingLabel: "Bill Spending",
         incomeLabel: "Bill Income",
