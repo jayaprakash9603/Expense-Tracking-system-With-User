@@ -22,7 +22,7 @@ const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { friendship, friends, loading } = useSelector(
-    (state) => state.friends || {}
+    (state) => state.friends || {},
   );
   const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
   const [showFriendInfo, setShowFriendInfo] = useState(true);

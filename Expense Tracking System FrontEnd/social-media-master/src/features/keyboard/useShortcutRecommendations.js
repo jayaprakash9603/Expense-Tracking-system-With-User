@@ -1,13 +1,13 @@
 /**
  * useShortcutRecommendations - Smart shortcut recommendation system
- * 
+ *
  * This hook analyzes user behavior and provides intelligent shortcut
  * recommendations based on:
  * - Action frequency
  * - Recency of actions
  * - Context relevance
  * - User acceptance/rejection history
- * 
+ *
  * The system learns from user interactions and avoids overwhelming
  * users with too many suggestions.
  */
@@ -54,7 +54,8 @@ const CONFIG = {
  * Hook to get and manage shortcut recommendations
  */
 export function useShortcutRecommendations() {
-  const { getBehaviorData, getAllShortcuts, trackAction } = useKeyboardShortcuts();
+  const { getBehaviorData, getAllShortcuts, trackAction } =
+    useKeyboardShortcuts();
 
   // State
   const [recommendations, setRecommendations] = useState([]);
@@ -88,7 +89,7 @@ export function useShortcutRecommendations() {
         JSON.stringify({
           dismissed: dismissedRecommendations,
           accepted: acceptedRecommendations,
-        })
+        }),
       );
     } catch (e) {
       console.warn("Failed to save recommendation history:", e);
@@ -98,54 +99,54 @@ export function useShortcutRecommendations() {
   /**
    * Calculate recommendation score for an action
    */
-  const calculateScore = useCallback(
-    (actionId, behaviorData) => {
-      const { actionCounts, lastActions } = behaviorData;
+  const calculateScore = useCallback((actionId, behaviorData) => {
+    const { actionCounts, lastActions } = behaviorData;
 
-      // Get count for this action
-      const count = actionCounts[actionId] || 0;
-      if (count < CONFIG.MIN_ACTION_COUNT) return 0;
+    // Get count for this action
+    const count = actionCounts[actionId] || 0;
+    if (count < CONFIG.MIN_ACTION_COUNT) return 0;
 
-      // Calculate frequency score (normalized)
-      const maxCount = Math.max(...Object.values(actionCounts), 1);
-      const frequencyScore = count / maxCount;
+    // Calculate frequency score (normalized)
+    const maxCount = Math.max(...Object.values(actionCounts), 1);
+    const frequencyScore = count / maxCount;
 
-      // Calculate recency score
-      const recentActions = lastActions.filter((a) => a.actionId === actionId);
-      let recencyScore = 0;
-      if (recentActions.length > 0) {
-        const mostRecent = recentActions[0];
-        const hoursAgo = (Date.now() - mostRecent.timestamp) / (1000 * 60 * 60);
-        recencyScore = Math.pow(CONFIG.RECENCY_DECAY, hoursAgo);
+    // Calculate recency score
+    const recentActions = lastActions.filter((a) => a.actionId === actionId);
+    let recencyScore = 0;
+    if (recentActions.length > 0) {
+      const mostRecent = recentActions[0];
+      const hoursAgo = (Date.now() - mostRecent.timestamp) / (1000 * 60 * 60);
+      recencyScore = Math.pow(CONFIG.RECENCY_DECAY, hoursAgo);
+    }
+
+    // Calculate context score (how often used via UI vs shortcut)
+    const uiActions = recentActions.filter((a) => a.source === "click").length;
+    const shortcutActions = recentActions.filter(
+      (a) => a.source === "shortcut",
+    ).length;
+    const contextScore =
+      shortcutActions > 0 ? 0 : uiActions / (uiActions + shortcutActions + 1);
+
+    // Calculate time saved score (based on action type)
+    const shortcut = DEFAULT_SHORTCUTS[actionId];
+    let timeSavedScore = 0.5; // Default
+    if (shortcut) {
+      if (shortcut.priority === "HIGH" || shortcut.priority === "CRITICAL") {
+        timeSavedScore = 1.0;
+      } else if (shortcut.priority === "LOW") {
+        timeSavedScore = 0.3;
       }
+    }
 
-      // Calculate context score (how often used via UI vs shortcut)
-      const uiActions = recentActions.filter((a) => a.source === "click").length;
-      const shortcutActions = recentActions.filter((a) => a.source === "shortcut").length;
-      const contextScore = shortcutActions > 0 ? 0 : uiActions / (uiActions + shortcutActions + 1);
+    // Combine scores with weights
+    const totalScore =
+      CONFIG.WEIGHTS.FREQUENCY * frequencyScore +
+      CONFIG.WEIGHTS.RECENCY * recencyScore +
+      CONFIG.WEIGHTS.CONTEXT * contextScore +
+      CONFIG.WEIGHTS.TIME_SAVED * timeSavedScore;
 
-      // Calculate time saved score (based on action type)
-      const shortcut = DEFAULT_SHORTCUTS[actionId];
-      let timeSavedScore = 0.5; // Default
-      if (shortcut) {
-        if (shortcut.priority === "HIGH" || shortcut.priority === "CRITICAL") {
-          timeSavedScore = 1.0;
-        } else if (shortcut.priority === "LOW") {
-          timeSavedScore = 0.3;
-        }
-      }
-
-      // Combine scores with weights
-      const totalScore =
-        CONFIG.WEIGHTS.FREQUENCY * frequencyScore +
-        CONFIG.WEIGHTS.RECENCY * recencyScore +
-        CONFIG.WEIGHTS.CONTEXT * contextScore +
-        CONFIG.WEIGHTS.TIME_SAVED * timeSavedScore;
-
-      return totalScore;
-    },
-    []
-  );
+    return totalScore;
+  }, []);
 
   /**
    * Generate recommendations based on behavior data
@@ -174,10 +175,10 @@ export function useShortcutRecommendations() {
 
       // Check if user is already using the shortcut
       const recentActions = behaviorData.lastActions.filter(
-        (a) => a.actionId === actionId
+        (a) => a.actionId === actionId,
       );
       const shortcutUsage = recentActions.filter(
-        (a) => a.source === "shortcut"
+        (a) => a.source === "shortcut",
       ).length;
 
       // If they're already using shortcuts for this action, skip
@@ -213,12 +214,18 @@ export function useShortcutRecommendations() {
   const showNextRecommendation = useCallback(() => {
     // Check cooldown
     const now = Date.now();
-    if (now - lastRecommendationTimeRef.current < CONFIG.RECOMMENDATION_COOLDOWN) {
+    if (
+      now - lastRecommendationTimeRef.current <
+      CONFIG.RECOMMENDATION_COOLDOWN
+    ) {
       return null;
     }
 
     // Check session limit
-    if (sessionRecommendationCountRef.current >= CONFIG.MAX_RECOMMENDATIONS_PER_SESSION) {
+    if (
+      sessionRecommendationCountRef.current >=
+      CONFIG.MAX_RECOMMENDATIONS_PER_SESSION
+    ) {
       return null;
     }
 
@@ -247,7 +254,7 @@ export function useShortcutRecommendations() {
       // Track this acceptance for future learning
       trackAction(`RECOMMENDATION_ACCEPTED_${actionId}`, "system");
     },
-    [trackAction]
+    [trackAction],
   );
 
   /**
@@ -264,7 +271,7 @@ export function useShortcutRecommendations() {
       // Track this dismissal for future learning
       trackAction(`RECOMMENDATION_DISMISSED_${actionId}`, "system");
     },
-    [trackAction]
+    [trackAction],
   );
 
   /**
@@ -301,11 +308,8 @@ export function useShortcutRecommendations() {
  * Usage: <ShortcutRecommendationToast />
  */
 export function ShortcutRecommendationToast() {
-  const {
-    showRecommendation,
-    acceptRecommendation,
-    dismissRecommendation,
-  } = useShortcutRecommendations();
+  const { showRecommendation, acceptRecommendation, dismissRecommendation } =
+    useShortcutRecommendations();
 
   if (!showRecommendation) return null;
 
@@ -316,7 +320,8 @@ export function ShortcutRecommendationToast() {
       <div className="recommendation-content">
         <div className="recommendation-icon">💡</div>
         <div className="recommendation-text">
-          <strong>Quick Tip:</strong> You frequently use "{shortcut.description}".
+          <strong>Quick Tip:</strong> You frequently use "{shortcut.description}
+          ".
           <br />
           Try the shortcut: <kbd>{shortcut.keys}</kbd>
         </div>
@@ -347,26 +352,26 @@ export function ShortcutRecommendationToast() {
 
 /**
  * Algorithm pseudo-code for recommendation scoring:
- * 
+ *
  * RECOMMENDATION_SCORE(action_id) =
  *   W_freq * FREQUENCY_SCORE +
  *   W_rec * RECENCY_SCORE +
  *   W_ctx * CONTEXT_SCORE +
  *   W_time * TIME_SAVED_SCORE
- * 
+ *
  * Where:
  * - FREQUENCY_SCORE = action_count / max_action_count
  * - RECENCY_SCORE = DECAY_FACTOR ^ hours_since_last_use
  * - CONTEXT_SCORE = ui_clicks / (ui_clicks + shortcut_uses + 1)
  *   (High score = user not using shortcuts for this action)
  * - TIME_SAVED_SCORE = priority-based (HIGH=1.0, NORMAL=0.5, LOW=0.3)
- * 
+ *
  * Weights (W_*) sum to 1.0:
  * - W_freq = 0.4 (most important)
  * - W_rec = 0.3 (recent usage matters)
  * - W_ctx = 0.2 (context relevance)
  * - W_time = 0.1 (time saving potential)
- * 
+ *
  * Filters:
  * - Exclude destructive actions
  * - Exclude dismissed recommendations

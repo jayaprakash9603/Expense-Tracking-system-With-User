@@ -6,7 +6,11 @@ import GlobalErrorHandler from "./pages/Landingpage/Errors/GlobalErrorHandler";
 import { useAppInitialization } from "./hooks/useAppInitialization";
 import { getAuthRoutes, getAppRoutes } from "./routes/AppRoutes";
 import { LanguageProvider } from "./i18n/LanguageContext";
-import { KeyboardShortcutProvider, ShortcutGuideModal, AltKeyOverlay } from "./features/keyboard";
+import {
+  KeyboardShortcutProvider,
+  ShortcutGuideModal,
+  AltKeyOverlay,
+} from "./features/keyboard";
 // Import WebSocket Service
 import "./services/socketService";
 

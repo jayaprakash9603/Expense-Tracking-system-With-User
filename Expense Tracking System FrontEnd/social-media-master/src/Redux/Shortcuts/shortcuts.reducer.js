@@ -20,21 +20,21 @@ import {
 const initialState = {
   // User's shortcut configurations
   shortcuts: [],
-  
+
   // Counts
   customCount: 0,
   disabledCount: 0,
   rejectedRecommendationsCount: 0,
-  
+
   // Recommendations
   recommendations: [],
   totalPotentialRecommendations: 0,
-  
+
   // Loading states
   loading: false,
   updating: false,
   recommendationsLoading: false,
-  
+
   // Error states
   error: null,
   recommendationsError: null,
@@ -57,7 +57,8 @@ export const shortcutsReducer = (state = initialState, action) => {
         shortcuts: action.payload.shortcuts || [],
         customCount: action.payload.customCount || 0,
         disabledCount: action.payload.disabledCount || 0,
-        rejectedRecommendationsCount: action.payload.rejectedRecommendationsCount || 0,
+        rejectedRecommendationsCount:
+          action.payload.rejectedRecommendationsCount || 0,
         error: null,
       };
 
@@ -83,8 +84,9 @@ export const shortcutsReducer = (state = initialState, action) => {
         shortcuts: action.payload.shortcuts || state.shortcuts,
         customCount: action.payload.customCount ?? state.customCount,
         disabledCount: action.payload.disabledCount ?? state.disabledCount,
-        rejectedRecommendationsCount: 
-          action.payload.rejectedRecommendationsCount ?? state.rejectedRecommendationsCount,
+        rejectedRecommendationsCount:
+          action.payload.rejectedRecommendationsCount ??
+          state.rejectedRecommendationsCount,
         error: null,
       };
 

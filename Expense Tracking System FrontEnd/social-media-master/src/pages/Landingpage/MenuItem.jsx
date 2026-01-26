@@ -117,8 +117,8 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
           <span>{name}</span>
           {/* Show keyboard shortcut hint if available */}
           {path && PATH_TO_SHORTCUT[path] && (
-            <ShortcutBadge 
-              actionId={PATH_TO_SHORTCUT[path]} 
+            <ShortcutBadge
+              actionId={PATH_TO_SHORTCUT[path]}
               size="small"
               showOnHover={true}
             />

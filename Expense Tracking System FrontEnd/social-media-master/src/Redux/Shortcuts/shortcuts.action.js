@@ -1,6 +1,6 @@
 /**
  * Keyboard Shortcuts Redux Actions
- * 
+ *
  * Actions for syncing keyboard shortcuts with the backend.
  */
 
@@ -142,7 +142,9 @@ export const fetchRecommendations = () => async (dispatch) => {
  */
 export const trackShortcutUsage = (actionId) => async () => {
   try {
-    await api.post(`/api/shortcuts/track?actionId=${encodeURIComponent(actionId)}`);
+    await api.post(
+      `/api/shortcuts/track?actionId=${encodeURIComponent(actionId)}`,
+    );
   } catch (error) {
     console.warn("Failed to track shortcut usage:", error);
   }
@@ -153,7 +155,9 @@ export const trackShortcutUsage = (actionId) => async () => {
  */
 export const acceptRecommendation = (actionId) => async (dispatch) => {
   try {
-    const { data } = await api.post(`/api/shortcuts/recommendations/${actionId}/accept`);
+    const { data } = await api.post(
+      `/api/shortcuts/recommendations/${actionId}/accept`,
+    );
 
     dispatch({
       type: SHORTCUTS_UPDATE_SUCCESS,
@@ -172,7 +176,9 @@ export const acceptRecommendation = (actionId) => async (dispatch) => {
  */
 export const rejectRecommendation = (actionId) => async (dispatch) => {
   try {
-    const { data } = await api.post(`/api/shortcuts/recommendations/${actionId}/reject`);
+    const { data } = await api.post(
+      `/api/shortcuts/recommendations/${actionId}/reject`,
+    );
 
     dispatch({
       type: SHORTCUTS_UPDATE_SUCCESS,

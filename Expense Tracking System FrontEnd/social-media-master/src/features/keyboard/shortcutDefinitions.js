@@ -1,11 +1,11 @@
 /**
  * Shortcut Definitions - Central configuration for all keyboard shortcuts
- * 
+ *
  * This file contains:
  * 1. Default shortcuts for all application features
  * 2. Reserved browser/OS shortcuts that should never be overridden
  * 3. Shortcut categories and metadata
- * 
+ *
  * Components reference these definitions, but actual registration
  * happens through the ShortcutRegistry when components mount.
  */
@@ -91,7 +91,7 @@ export const DEFAULT_SHORTCUTS = {
   // ═══════════════════════════════════════════════════════════════════
   // NAVIGATION SHORTCUTS
   // ═══════════════════════════════════════════════════════════════════
-  
+
   GO_DASHBOARD: {
     id: "GO_DASHBOARD",
     keys: "g d",
@@ -597,7 +597,7 @@ export function getShortcutById(id) {
 export function isReserved(keys) {
   const normalized = keys.toLowerCase().replace(/ctrl|cmd|meta/g, "mod");
   return RESERVED_SHORTCUTS.some(
-    (reserved) => reserved.toLowerCase() === normalized
+    (reserved) => reserved.toLowerCase() === normalized,
   );
 }
 

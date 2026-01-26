@@ -1,6 +1,6 @@
 /**
  * ShortcutHint - Component to display keyboard shortcut hints
- * 
+ *
  * Shows a subtle keyboard hint next to buttons and actions.
  * Auto-detects if the action has a shortcut registered.
  */
@@ -63,11 +63,11 @@ export function ShortcutHint({ actionId, showTooltip = true, size = "small" }) {
 /**
  * Badge-style shortcut hint (for icon buttons or menu items)
  */
-export function ShortcutBadge({ 
-  actionId, 
-  position = "inline", 
+export function ShortcutBadge({
+  actionId,
+  position = "inline",
   size = "medium",
-  showOnHover = false 
+  showOnHover = false,
 }) {
   const { colors } = useTheme();
   const { keys, formatted } = useShortcutHint(actionId);
@@ -77,7 +77,7 @@ export function ShortcutBadge({
   const isAbsolute = position !== "inline";
 
   const positionStyles = {
-    "inline": {},
+    inline: {},
     "bottom-right": { position: "absolute", bottom: -4, right: -4 },
     "bottom-left": { position: "absolute", bottom: -4, left: -4 },
     "top-right": { position: "absolute", top: -4, right: -4 },

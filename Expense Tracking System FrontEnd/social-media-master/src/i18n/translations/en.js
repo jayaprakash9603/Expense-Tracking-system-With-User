@@ -901,21 +901,24 @@ export const en = {
     shortcutCategorySearch: "Search",
     shortcutCategoryGeneral: "General",
     shortcutCategoryAdmin: "Admin",
-    
+
     // Shortcut Modal
     shortcutModalTitle: "Keyboard Shortcuts",
     shortcutModalSearch: "Search shortcuts...",
     shortcutModalShowingCount: "Showing {count} of {total} shortcuts",
-    shortcutModalDisabledWarning: "Keyboard shortcuts are currently disabled. Enable them in Settings → Keyboard Shortcuts.",
+    shortcutModalDisabledWarning:
+      "Keyboard shortcuts are currently disabled. Enable them in Settings → Keyboard Shortcuts.",
     shortcutModalPlatformHint: "Using {key} key",
     shortcutModalCurrentScope: "Current scope: {scope}",
     shortcutModalFooterHint: "Press {keys} anytime to show this guide",
-    shortcutModalContextHint: "Shortcuts are context-aware and may change based on active page",
-    shortcutModalNoResults: "No shortcuts found for \"{query}\"",
-    
+    shortcutModalContextHint:
+      "Shortcuts are context-aware and may change based on active page",
+    shortcutModalNoResults: 'No shortcuts found for "{query}"',
+
     // Shortcut Recommendations
     shortcutRecommendationTitle: "Quick Tip",
-    shortcutRecommendationMessage: "You frequently use \"{action}\". Try the shortcut:",
+    shortcutRecommendationMessage:
+      'You frequently use "{action}". Try the shortcut:',
     shortcutRecommendationGotIt: "Got it!",
     shortcutRecommendationLater: "Later",
     shortcutRecommendationNever: "Don't show again",

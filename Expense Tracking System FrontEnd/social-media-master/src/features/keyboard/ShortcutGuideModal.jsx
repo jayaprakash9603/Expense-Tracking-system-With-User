@@ -1,9 +1,9 @@
 /**
  * ShortcutGuideModal - Keyboard Shortcuts Help Modal
- * 
+ *
  * Displays all available keyboard shortcuts in a searchable, categorized modal.
  * Inspired by VS Code, Linear, and Notion shortcut guides.
- * 
+ *
  * Features:
  * - Searchable shortcuts list
  * - Grouped by category
@@ -90,10 +90,7 @@ function ShortcutKeysDisplay({ keys, size = "medium" }) {
       {sequences.map((combo, seqIndex) => (
         <React.Fragment key={seqIndex}>
           {seqIndex > 0 && (
-            <Typography
-              variant="caption"
-              sx={{ mx: 0.5, opacity: 0.5 }}
-            >
+            <Typography variant="caption" sx={{ mx: 0.5, opacity: 0.5 }}>
               then
             </Typography>
           )}
@@ -259,7 +256,7 @@ export function ShortcutGuideModal() {
         (s) =>
           s.description.toLowerCase().includes(query) ||
           s.keys.toLowerCase().includes(query) ||
-          category.toLowerCase().includes(query)
+          category.toLowerCase().includes(query),
       );
 
       if (matchingShortcuts.length > 0) {
@@ -348,7 +345,9 @@ export function ShortcutGuideModal() {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <KeyboardIcon sx={{ color: colors.accent || colors.button_bg || "#00DAC6" }} />
+          <KeyboardIcon
+            sx={{ color: colors.accent || colors.button_bg || "#00DAC6" }}
+          />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             {t("keyboardShortcutsGuide", "Keyboard Shortcuts")}
           </Typography>
@@ -380,7 +379,12 @@ export function ShortcutGuideModal() {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: colors.secondary_text || "#9ca3af", fontSize: 20 }} />
+                <SearchIcon
+                  sx={{
+                    color: colors.secondary_text || "#9ca3af",
+                    fontSize: 20,
+                  }}
+                />
               </InputAdornment>
             ),
             endAdornment: searchQuery && (
@@ -433,7 +437,10 @@ export function ShortcutGuideModal() {
               gap: 1.5,
             }}
           >
-            <Typography variant="body2" sx={{ color: colors.primary_text || "#ffffff" }}>
+            <Typography
+              variant="body2"
+              sx={{ color: colors.primary_text || "#ffffff" }}
+            >
               ⚠️ Keyboard shortcuts are currently disabled. Enable them in{" "}
               <strong>Settings → Keyboard Shortcuts</strong>.
             </Typography>
@@ -450,13 +457,19 @@ export function ShortcutGuideModal() {
             px: 1.5,
           }}
         >
-          <Typography variant="caption" sx={{ color: colors.secondary_text || "#9ca3af" }}>
+          <Typography
+            variant="caption"
+            sx={{ color: colors.secondary_text || "#9ca3af" }}
+          >
             {navigator.platform.toUpperCase().indexOf("MAC") >= 0
               ? "Using ⌘ Command key"
               : "Using Ctrl key"}
           </Typography>
           <Divider orientation="vertical" flexItem />
-          <Typography variant="caption" sx={{ color: colors.secondary_text || "#9ca3af" }}>
+          <Typography
+            variant="caption"
+            sx={{ color: colors.secondary_text || "#9ca3af" }}
+          >
             Current scope: <strong>{activeScope}</strong>
           </Typography>
         </Box>
@@ -502,11 +515,17 @@ export function ShortcutGuideModal() {
             justifyContent: "space-between",
           }}
         >
-          <Typography variant="caption" sx={{ color: colors.secondary_text || "#9ca3af" }}>
+          <Typography
+            variant="caption"
+            sx={{ color: colors.secondary_text || "#9ca3af" }}
+          >
             Press <ShortcutKeysDisplay keys="mod+/" size="small" /> anytime to
             show this guide
           </Typography>
-          <Typography variant="caption" sx={{ color: colors.secondary_text || "#9ca3af" }}>
+          <Typography
+            variant="caption"
+            sx={{ color: colors.secondary_text || "#9ca3af" }}
+          >
             Shortcuts are context-aware and may change based on active page
           </Typography>
         </Box>

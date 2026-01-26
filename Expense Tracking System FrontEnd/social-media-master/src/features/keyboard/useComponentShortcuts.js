@@ -1,18 +1,18 @@
 /**
  * useComponentShortcuts - Easy shortcut integration for any component
- * 
+ *
  * This hook provides a simple way for any component to declare its shortcuts.
  * It handles registration/unregistration automatically based on component lifecycle.
- * 
+ *
  * Usage:
  * ```
  * function MyComponent() {
  *   const { registerAction, ShortcutHint } = useComponentShortcuts('MY_PAGE');
- * 
+ *
  *   // Register shortcuts for this component
  *   registerAction('SAVE', 'mod+s', handleSave, 'Save changes');
  *   registerAction('CANCEL', 'escape', handleCancel, 'Cancel');
- * 
+ *
  *   return (
  *     <button onClick={handleSave}>
  *       Save <ShortcutHint actionId="SAVE" />
@@ -32,8 +32,13 @@ import { ShortcutHint as ShortcutHintComponent } from "./ShortcutHint";
  * @param {string} scope - Scope of shortcuts ('GLOBAL', 'PAGE', 'MODAL', 'COMPONENT')
  * @param {string} category - Category for grouping in help modal
  */
-export function useComponentShortcuts(componentId, scope = "COMPONENT", category = "General") {
-  const { registerShortcut, unregisterShortcut, trackAction } = useKeyboardShortcuts();
+export function useComponentShortcuts(
+  componentId,
+  scope = "COMPONENT",
+  category = "General",
+) {
+  const { registerShortcut, unregisterShortcut, trackAction } =
+    useKeyboardShortcuts();
   const registeredIdsRef = useRef([]);
   const actionsRef = useRef({});
 
@@ -74,7 +79,7 @@ export function useComponentShortcuts(componentId, scope = "COMPONENT", category
 
       return fullId;
     },
-    [componentId, scope, category, registerShortcut, trackAction]
+    [componentId, scope, category, registerShortcut, trackAction],
   );
 
   /**
@@ -84,15 +89,15 @@ export function useComponentShortcuts(componentId, scope = "COMPONENT", category
     (actionName) => {
       const fullId = `${componentId}_${actionName}`;
       unregisterShortcut(fullId);
-      
+
       const idx = registeredIdsRef.current.indexOf(fullId);
       if (idx !== -1) {
         registeredIdsRef.current.splice(idx, 1);
       }
-      
+
       delete actionsRef.current[fullId];
     },
-    [componentId, unregisterShortcut]
+    [componentId, unregisterShortcut],
   );
 
   // Cleanup all registered shortcuts on unmount
@@ -143,79 +148,124 @@ export function useTableShortcuts(componentId, options = {}) {
   const { registerAction, ShortcutHint } = useComponentShortcuts(
     componentId,
     "COMPONENT",
-    "Table Navigation"
+    "Table Navigation",
   );
 
   // Register table navigation shortcuts
   useEffect(() => {
     // Navigate down
-    registerAction("NAV_DOWN", "j", () => {
-      if (onNavigate && selectedIndex < items.length - 1) {
-        onNavigate(selectedIndex + 1);
-      }
-    }, "Move to next item");
+    registerAction(
+      "NAV_DOWN",
+      "j",
+      () => {
+        if (onNavigate && selectedIndex < items.length - 1) {
+          onNavigate(selectedIndex + 1);
+        }
+      },
+      "Move to next item",
+    );
 
     // Navigate up
-    registerAction("NAV_UP", "k", () => {
-      if (onNavigate && selectedIndex > 0) {
-        onNavigate(selectedIndex - 1);
-      }
-    }, "Move to previous item");
+    registerAction(
+      "NAV_UP",
+      "k",
+      () => {
+        if (onNavigate && selectedIndex > 0) {
+          onNavigate(selectedIndex - 1);
+        }
+      },
+      "Move to previous item",
+    );
 
     // Select current item
-    registerAction("SELECT", "enter", () => {
-      if (onSelect && items[selectedIndex]) {
-        onSelect(items[selectedIndex], selectedIndex);
-      }
-    }, "Select item");
+    registerAction(
+      "SELECT",
+      "enter",
+      () => {
+        if (onSelect && items[selectedIndex]) {
+          onSelect(items[selectedIndex], selectedIndex);
+        }
+      },
+      "Select item",
+    );
 
     // Toggle selection (for multi-select)
     if (multiSelect) {
-      registerAction("TOGGLE_SELECT", "x", () => {
-        if (onSelect && items[selectedIndex]) {
-          onSelect(items[selectedIndex], selectedIndex, true);
-        }
-      }, "Toggle selection");
+      registerAction(
+        "TOGGLE_SELECT",
+        "x",
+        () => {
+          if (onSelect && items[selectedIndex]) {
+            onSelect(items[selectedIndex], selectedIndex, true);
+          }
+        },
+        "Toggle selection",
+      );
 
       if (onSelectAll) {
-        registerAction("SELECT_ALL", "mod+shift+a", () => {
-          onSelectAll();
-        }, "Select all items");
+        registerAction(
+          "SELECT_ALL",
+          "mod+shift+a",
+          () => {
+            onSelectAll();
+          },
+          "Select all items",
+        );
       }
     }
 
     // Edit
     if (onEdit) {
-      registerAction("EDIT", "e", () => {
-        if (items[selectedIndex]) {
-          onEdit(items[selectedIndex], selectedIndex);
-        }
-      }, "Edit item");
+      registerAction(
+        "EDIT",
+        "e",
+        () => {
+          if (items[selectedIndex]) {
+            onEdit(items[selectedIndex], selectedIndex);
+          }
+        },
+        "Edit item",
+      );
     }
 
     // Delete
     if (onDelete) {
-      registerAction("DELETE", "mod+backspace", () => {
-        if (items[selectedIndex]) {
-          onDelete(items[selectedIndex], selectedIndex);
-        }
-      }, "Delete item", { destructive: true });
+      registerAction(
+        "DELETE",
+        "mod+backspace",
+        () => {
+          if (items[selectedIndex]) {
+            onDelete(items[selectedIndex], selectedIndex);
+          }
+        },
+        "Delete item",
+        { destructive: true },
+      );
     }
 
     // First item
-    registerAction("GO_FIRST", "g g", () => {
-      if (onNavigate && items.length > 0) {
-        onNavigate(0);
-      }
-    }, "Go to first item");
+    registerAction(
+      "GO_FIRST",
+      "g g",
+      () => {
+        if (onNavigate && items.length > 0) {
+          onNavigate(0);
+        }
+      },
+      "Go to first item",
+    );
 
     // Last item
-    registerAction("GO_LAST", "shift+g", () => {
-      if (onNavigate && items.length > 0) {
-        onNavigate(items.length - 1);
-      }
-    }, "Go to last item");
-
+    registerAction(
+      "GO_LAST",
+      "shift+g",
+      () => {
+        if (onNavigate && items.length > 0) {
+          onNavigate(items.length - 1);
+        }
+      },
+      "Go to last item",
+    );
   }, [
     registerAction,
     items,
@@ -241,29 +291,45 @@ export function useFormShortcuts(componentId, options = {}) {
   const { registerAction, ShortcutHint } = useComponentShortcuts(
     componentId,
     "COMPONENT",
-    "Forms"
+    "Forms",
   );
 
   useEffect(() => {
     // Submit form
     if (onSubmit) {
-      registerAction("SUBMIT", "mod+enter", () => {
-        onSubmit();
-      }, "Submit form", { globalOverride: true });
+      registerAction(
+        "SUBMIT",
+        "mod+enter",
+        () => {
+          onSubmit();
+        },
+        "Submit form",
+        { globalOverride: true },
+      );
     }
 
     // Cancel/close
     if (onCancel) {
-      registerAction("CANCEL", "escape", () => {
-        onCancel();
-      }, "Cancel");
+      registerAction(
+        "CANCEL",
+        "escape",
+        () => {
+          onCancel();
+        },
+        "Cancel",
+      );
     }
 
     // Reset form
     if (onReset) {
-      registerAction("RESET", "mod+shift+backspace", () => {
-        onReset();
-      }, "Reset form");
+      registerAction(
+        "RESET",
+        "mod+shift+backspace",
+        () => {
+          onReset();
+        },
+        "Reset form",
+      );
     }
   }, [registerAction, onSubmit, onCancel, onReset]);
 
@@ -277,11 +343,8 @@ export function useFormShortcuts(componentId, options = {}) {
 export function useModalShortcuts(componentId, options = {}) {
   const { onClose, onConfirm, isOpen = true } = options;
 
-  const { registerAction, unregisterAction, ShortcutHint } = useComponentShortcuts(
-    componentId,
-    "MODAL",
-    "Modals & Dialogs"
-  );
+  const { registerAction, unregisterAction, ShortcutHint } =
+    useComponentShortcuts(componentId, "MODAL", "Modals & Dialogs");
 
   useEffect(() => {
     if (!isOpen) {
@@ -293,16 +356,27 @@ export function useModalShortcuts(componentId, options = {}) {
 
     // Close modal
     if (onClose) {
-      registerAction("CLOSE", "escape", () => {
-        onClose();
-      }, "Close modal", { globalOverride: true });
+      registerAction(
+        "CLOSE",
+        "escape",
+        () => {
+          onClose();
+        },
+        "Close modal",
+        { globalOverride: true },
+      );
     }
 
     // Confirm action
     if (onConfirm) {
-      registerAction("CONFIRM", "enter", () => {
-        onConfirm();
-      }, "Confirm");
+      registerAction(
+        "CONFIRM",
+        "enter",
+        () => {
+          onConfirm();
+        },
+        "Confirm",
+      );
     }
   }, [registerAction, unregisterAction, onClose, onConfirm, isOpen]);
 

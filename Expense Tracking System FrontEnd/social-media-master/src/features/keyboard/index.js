@@ -1,22 +1,26 @@
 /**
  * Keyboard Shortcuts Module - Public API
- * 
+ *
  * This module provides a universal keyboard shortcut system for the
  * Expense Tracking Application. Import from this index file for clean imports.
- * 
+ *
  * Usage:
  * ```
- * import { 
+ * import {
  *   KeyboardShortcutProvider,
  *   useKeyboardShortcut,
  *   ShortcutGuideModal,
- *   ShortcutHint 
+ *   ShortcutHint
  * } from '@/features/keyboard';
  * ```
  */
 
 // Provider - wrap at app root
-export { KeyboardShortcutProvider, useKeyboardShortcuts, SCOPE_PRIORITY } from "./KeyboardShortcutProvider";
+export {
+  KeyboardShortcutProvider,
+  useKeyboardShortcuts,
+  SCOPE_PRIORITY,
+} from "./KeyboardShortcutProvider";
 
 // Registry class
 export { ShortcutRegistry } from "./ShortcutRegistry";
@@ -49,7 +53,11 @@ export {
 
 // UI Components
 export { ShortcutGuideModal } from "./ShortcutGuideModal";
-export { ShortcutHint, ShortcutBadge, WithShortcutTooltip } from "./ShortcutHint";
+export {
+  ShortcutHint,
+  ShortcutBadge,
+  WithShortcutTooltip,
+} from "./ShortcutHint";
 export { GlobalShortcuts } from "./GlobalShortcuts";
 export { RecommendationToast } from "./RecommendationToast";
 export { AltKeyOverlay } from "./AltKeyOverlay";

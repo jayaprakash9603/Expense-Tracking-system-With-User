@@ -1,13 +1,21 @@
 /**
  * RecommendationToast - Smart Shortcut Recommendation Notification
- * 
+ *
  * Displays contextual shortcut recommendations to users based on their
  * behavior patterns. Shows when user performs an action that could be
  * done faster with a keyboard shortcut.
  */
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, Typography, Button, IconButton, Snackbar, Alert, Fade } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  IconButton,
+  Snackbar,
+  Alert,
+  Fade,
+} from "@mui/material";
 import { Keyboard, Close, ThumbUp, ThumbDown } from "@mui/icons-material";
 import { useShortcutRecommendations } from "./useShortcutRecommendations";
 import { formatShortcutKeys } from "./useKeyboardShortcut";
@@ -18,20 +26,20 @@ import { useTheme } from "../../hooks/useTheme";
  */
 function KeyboardKey({ keyName }) {
   const { colors } = useTheme();
-  
+
   // Format special keys for display
   const displayKey = keyName
-    .replace('mod', '⌘')
-    .replace('ctrl', 'Ctrl')
-    .replace('alt', 'Alt')
-    .replace('shift', '⇧')
-    .replace('enter', '↵')
-    .replace('escape', 'Esc')
-    .replace('arrowup', '↑')
-    .replace('arrowdown', '↓')
-    .replace('arrowleft', '←')
-    .replace('arrowright', '→');
-  
+    .replace("mod", "⌘")
+    .replace("ctrl", "Ctrl")
+    .replace("alt", "Alt")
+    .replace("shift", "⇧")
+    .replace("enter", "↵")
+    .replace("escape", "Esc")
+    .replace("arrowup", "↑")
+    .replace("arrowdown", "↓")
+    .replace("arrowleft", "←")
+    .replace("arrowright", "→");
+
   return (
     <Box
       component="span"
@@ -64,15 +72,18 @@ function KeyboardKey({ keyName }) {
  */
 function ShortcutDisplay({ keys }) {
   if (!keys) return null;
-  
+
   const keyParts = formatShortcutKeys(keys).split("+");
-  
+
   return (
     <Box sx={{ display: "inline-flex", alignItems: "center" }}>
       {keyParts.map((key, index) => (
         <React.Fragment key={index}>
           {index > 0 && (
-            <Typography component="span" sx={{ mx: 0.25, fontSize: "0.75rem", color: "#666" }}>
+            <Typography
+              component="span"
+              sx={{ mx: 0.25, fontSize: "0.75rem", color: "#666" }}
+            >
               +
             </Typography>
           )}
@@ -94,49 +105,49 @@ export function RecommendationToast() {
     rejectRecommendation,
     dismissRecommendation,
   } = useShortcutRecommendations();
-  
+
   const [isVisible, setIsVisible] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  
+
   // Show toast when recommendation changes
   useEffect(() => {
     if (currentRecommendation) {
       setIsVisible(true);
     }
   }, [currentRecommendation]);
-  
+
   // Auto-dismiss after delay (unless paused)
   useEffect(() => {
     if (!isVisible || !currentRecommendation || isPaused) return;
-    
+
     const timer = setTimeout(() => {
       handleClose();
     }, 8000); // 8 seconds
-    
+
     return () => clearTimeout(timer);
   }, [isVisible, currentRecommendation, isPaused]);
-  
+
   const handleClose = useCallback(() => {
     setIsVisible(false);
     setTimeout(() => {
       dismissRecommendation?.();
     }, 300); // After fade animation
   }, [dismissRecommendation]);
-  
+
   const handleAccept = useCallback(() => {
     acceptRecommendation?.(currentRecommendation?.actionId);
     handleClose();
   }, [acceptRecommendation, currentRecommendation, handleClose]);
-  
+
   const handleReject = useCallback(() => {
     rejectRecommendation?.(currentRecommendation?.actionId);
     handleClose();
   }, [rejectRecommendation, currentRecommendation, handleClose]);
-  
+
   if (!currentRecommendation) {
     return null;
   }
-  
+
   return (
     <Snackbar
       open={isVisible}
@@ -193,12 +204,18 @@ export function RecommendationToast() {
             💡 Pro tip: Use a shortcut!
           </Typography>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            {currentRecommendation.message || `Try "${currentRecommendation.label}" with:`}
+            {currentRecommendation.message ||
+              `Try "${currentRecommendation.label}" with:`}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <ShortcutDisplay keys={currentRecommendation.keys} />
-            <Typography variant="caption" sx={{ color: colors.secondary_text || "#9ca3af" }}>
-              (saves ~{Math.round((currentRecommendation.timeSaved || 2000) / 1000)}s each time)
+            <Typography
+              variant="caption"
+              sx={{ color: colors.secondary_text || "#9ca3af" }}
+            >
+              (saves ~
+              {Math.round((currentRecommendation.timeSaved || 2000) / 1000)}s
+              each time)
             </Typography>
           </Box>
         </Box>
