@@ -140,9 +140,13 @@ const SearchResultItem = ({
           : "1px solid transparent",
         transition: "all 0.15s ease",
         "&:hover": {
-          backgroundColor: isDark
-            ? "rgba(255, 255, 255, 0.05)"
-            : "rgba(0, 0, 0, 0.03)",
+          backgroundColor: isSelected
+            ? isDark
+              ? "rgba(20, 184, 166, 0.15)"
+              : "rgba(20, 184, 166, 0.1)"
+            : isDark
+              ? "rgba(255, 255, 255, 0.08)"
+              : "rgba(0, 0, 0, 0.04)",
         },
       }}
     >
@@ -182,7 +186,7 @@ const SearchResultItem = ({
           <Typography
             sx={{
               fontSize: "12px",
-              color: isDark ? "#888" : "#666",
+              color: isDark ? "rgba(255, 255, 255, 0.6)" : "#666",
               lineHeight: 1.3,
               marginTop: "2px",
               overflow: "hidden",
@@ -206,7 +210,7 @@ const SearchResultItem = ({
             padding: "2px 8px",
             borderRadius: "4px",
             backgroundColor: isDark
-              ? "rgba(255, 255, 255, 0.05)"
+              ? "rgba(0, 218, 198, 0.15)" // Teal tint for dark mode
               : "rgba(0, 0, 0, 0.05)",
             flexShrink: 0,
           }}
@@ -217,7 +221,7 @@ const SearchResultItem = ({
               fontWeight: 500,
               textTransform: "uppercase",
               letterSpacing: "0.3px",
-              color: isDark ? "#666" : "#999",
+              color: isDark ? "#00dac6" : "#0d9488", // Theme accent color
             }}
           >
             {result.type?.toLowerCase().replace("_", " ")}

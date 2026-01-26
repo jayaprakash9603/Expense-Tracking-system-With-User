@@ -1244,4 +1244,121 @@ export const hi = {
         "चेतावनी: यह आपके सभी मौजूदा बैकअप कोड अमान्य कर देगा!\n\nनए बैकअप कोड जनरेट करने के लिए अपना वर्तमान ऑथेंटिकेटर कोड दर्ज करें:",
     },
   },
+
+  // Universal Search (सार्वभौमिक खोज)
+  search: {
+    placeholder: "खर्चे, बजट, कार्यों को खोजें...",
+    openSearch: "खोजें",
+    noResults: "कोई परिणाम नहीं मिला",
+    tryDifferent: "कोई अन्य खोज शब्द आज़माएं",
+    suggestions: "सुझाव",
+    typeToSearch: "खोजने के लिए टाइप करें...",
+    navigate: "नेविगेट करें",
+    select: "चुनें",
+    close: "बंद करें",
+    poweredBy: "सार्वभौमिक खोज",
+
+    // Section Headers
+    sections: {
+      quickActions: "त्वरित कार्य",
+      actions: "कार्य",
+      expenses: "खर्चे",
+      budgets: "बजट",
+      categories: "श्रेणियां",
+      bills: "बिल",
+      paymentMethods: "भुगतान विधियाँ",
+      payment_methods: "भुगतान विधियाँ",
+      friends: "मित्र",
+      reports: "रिपोर्ट्स",
+      settings: "सेटिंग्स",
+      notifications: "सूचनाएं",
+    },
+
+    // Quick Actions
+    actions: {
+      // Expense Actions
+      addExpense: "खर्च जोड़ें",
+      addExpenseDesc: "नया खर्च बनाएं",
+      viewExpenses: "सभी खर्चे देखें",
+      viewExpensesDesc: "अपना खर्च इतिहास ब्राउज़ करें",
+      expenseReports: "खर्च रिपोर्ट्स",
+      expenseReportsDesc: "खर्च विश्लेषण देखें",
+
+      // Budget Actions
+      createBudget: "बजट बनाएं",
+      createBudgetDesc: "नया बजट सेट करें",
+      viewBudgets: "बजट देखें",
+      viewBudgetsDesc: "अपने बजट प्रबंधित करें",
+      budgetReports: "बजट रिपोर्ट्स",
+      budgetReportsDesc: "बजट विश्लेषण देखें",
+
+      // Bill Actions
+      createBill: "बिल बनाएं",
+      createBillDesc: "नया आवर्ती बिल जोड़ें",
+      viewBills: "बिल देखें",
+      viewBillsDesc: "अपने बिल प्रबंधित करें",
+      billCalendar: "बिल कैलेंडर",
+      billCalendarDesc: "कैलेंडर पर बिल देखें",
+      billReports: "बिल रिपोर्ट्स",
+      billReportsDesc: "बिल विश्लेषण देखें",
+
+      // Category Actions
+      createCategory: "श्रेणी बनाएं",
+      createCategoryDesc: "नई खर्च श्रेणी जोड़ें",
+      viewCategories: "श्रेणियां देखें",
+      viewCategoriesDesc: "खर्च श्रेणियां प्रबंधित करें",
+      categoryReports: "श्रेणी रिपोर्ट्स",
+      categoryReportsDesc: "श्रेणी के अनुसार खर्च देखें",
+
+      // Payment Method Actions
+      addPaymentMethod: "भुगतान विधि जोड़ें",
+      addPaymentMethodDesc: "नई भुगतान विधि जोड़ें",
+      viewPaymentMethods: "भुगतान विधियां देखें",
+      viewPaymentMethodsDesc: "अपनी भुगतान विधियां प्रबंधित करें",
+      paymentReports: "भुगतान विधि रिपोर्ट्स",
+      paymentReportsDesc: "भुगतान विधि के अनुसार खर्च देखें",
+
+      // Dashboard & General
+      dashboard: "डैशबोर्ड",
+      dashboardDesc: "मुख्य डैशबोर्ड पर जाएं",
+      calendarView: "कैलेंडर दृश्य",
+      calendarViewDesc: "कैलेंडर पर खर्चे देखें",
+      transactions: "लेनदेन",
+      transactionsDesc: "सभी लेनदेन देखें",
+      allReports: "सभी रिपोर्ट्स",
+      allReportsDesc: "व्यापक रिपोर्ट्स देखें",
+      insights: "अंतर्दृष्टि",
+      insightsDesc: "खर्च की अंतर्दृष्टि देखें",
+
+      // Friends
+      viewFriends: "मित्र",
+      viewFriendsDesc: "अपने मित्र प्रबंधित करें",
+      friendActivity: "मित्र गतिविधि",
+      friendActivityDesc: "मित्रों की गतिविधियां देखें",
+
+      // Groups
+      viewGroups: "समूह",
+      viewGroupsDesc: "खर्च समूह प्रबंधित करें",
+      createGroup: "समूह बनाएं",
+      createGroupDesc: "नया खर्च समूह बनाएं",
+
+      // Settings
+      settings: "सेटिंग्स",
+      settingsDesc: "ऐप सेटिंग्स और प्राथमिकताएं",
+      profile: "प्रोफ़ाइल",
+      profileDesc: "अपनी प्रोफ़ाइल देखें और संपादित करें",
+      notificationSettings: "सूचना सेटिंग्स",
+      notificationSettingsDesc: "सूचना प्राथमिकताएं प्रबंधित करें",
+
+      // Upload
+      uploadExpenses: "खर्चे अपलोड करें",
+      uploadExpensesDesc: "फ़ाइल से खर्चे थोक में अपलोड करें",
+      uploadBills: "बिल अपलोड करें",
+      uploadBillsDesc: "फ़ाइल से बिल थोक में अपलोड करें",
+
+      // Chat
+      chat: "चैट",
+      chatDesc: "मित्रों के साथ चैट खोलें",
+    },
+  },
 };

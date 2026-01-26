@@ -142,8 +142,8 @@ const InlineSearchBar = () => {
     isExpanded && isFocused && (query.length > 0 || hasResults);
 
   return (
-    <Box ref={containerRef} sx={{ position: "relative" }}>
-      {/* Search Input Container */}
+    <Box ref={containerRef} sx={{ position: "relative", width: "350px" }}>
+      {/* Search Input Container - Fixed width to prevent layout shift */}
       <Box
         onClick={!isExpanded ? handleExpand : undefined}
         sx={{
@@ -153,8 +153,8 @@ const InlineSearchBar = () => {
           backgroundColor: isExpanded
             ? "transparent"
             : isDark
-              ? "rgb(31, 41, 55)" // bg-gray-800
-              : "rgb(243, 244, 246)", // bg-gray-100
+              ? "#1f2937" // bg-gray-800 - matches other header buttons
+              : "#f3f4f6", // bg-gray-100 - matches other header buttons
           border: `1px solid ${
             isExpanded
               ? isDark
@@ -164,14 +164,17 @@ const InlineSearchBar = () => {
           }`,
           cursor: isExpanded ? "text" : "pointer",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          width: isExpanded ? "280px" : "36px",
+          width: isExpanded ? "100%" : "36px", // Expand to full container width
           height: "36px",
           overflow: "hidden",
+          marginLeft: isExpanded ? 0 : "auto", // Push icon to right when collapsed
           "&:hover": {
-            backgroundColor: isDark
-              ? "rgb(55, 65, 81)" // bg-gray-700
-              : "rgb(229, 231, 235)", // bg-gray-200
-            transform: isExpanded ? "none" : "scale(1.1)",
+            backgroundColor: isExpanded
+              ? "transparent"
+              : isDark
+                ? "#374151" // bg-gray-700 - matches other header buttons hover
+                : "#e5e7eb", // bg-gray-200 - matches other header buttons hover
+            transform: isExpanded ? "none" : "scale(1.1)", // Match hover scale effect
           },
         }}
       >
@@ -188,7 +191,7 @@ const InlineSearchBar = () => {
           <SearchIcon
             sx={{
               fontSize: "20px",
-              color: isDark ? "#d1d5db" : "#374151", // text-gray-300 / text-gray-700
+              color: isDark ? "#d1d5db" : "#374151", // text-gray-300 / text-gray-700 - matches other header icons
             }}
           />
         </Box>
@@ -211,7 +214,7 @@ const InlineSearchBar = () => {
                 "& input": {
                   padding: 0,
                   "&::placeholder": {
-                    color: isDark ? "#888" : "#999",
+                    color: isDark ? "rgba(255, 255, 255, 0.5)" : "#999",
                     opacity: 1,
                   },
                 },
@@ -297,9 +300,10 @@ const InlineSearchBar = () => {
             maxHeight: "400px",
             overflowY: "auto",
             borderRadius: "12px",
-            backgroundColor: isDark ? "#1e1e1e" : "#fff",
-            border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.08)"}`,
+            backgroundColor: isDark ? "#121212" : "#fff", // Darker background for dark theme
+            border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)"}`,
             zIndex: 1300,
+            padding: 0, // Remove default Paper padding
             "&::-webkit-scrollbar": {
               width: "6px",
             },
@@ -317,7 +321,7 @@ const InlineSearchBar = () => {
             <Box sx={{ p: 3, textAlign: "center" }}>
               <Typography
                 sx={{
-                  color: isDark ? "#888" : "#666",
+                  color: isDark ? "rgba(255, 255, 255, 0.7)" : "#666",
                   fontSize: "13px",
                 }}
               >
@@ -342,13 +346,13 @@ const InlineSearchBar = () => {
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
-                    color: isDark ? "#888" : "#666",
+                    color: isDark ? "#00dac6" : "#0d9488", // Use theme accent color
                     backgroundColor: isDark
-                      ? "rgba(255, 255, 255, 0.03)"
+                      ? "#121212" // Match dropdown bg
                       : "rgba(0, 0, 0, 0.02)",
                     borderBottom: `1px solid ${
                       isDark
-                        ? "rgba(255, 255, 255, 0.05)"
+                        ? "rgba(255, 255, 255, 0.1)"
                         : "rgba(0, 0, 0, 0.05)"
                     }`,
                     position: "sticky",
@@ -356,8 +360,9 @@ const InlineSearchBar = () => {
                     zIndex: 1,
                   }}
                 >
-                  {t(`search.sections.${sectionKey}`) ||
-                    SECTION_LABELS[sectionKey]}
+                  {t(SECTION_LABELS[sectionKey]) ||
+                    t(`search.sections.${sectionKey}`) ||
+                    sectionKey}
                 </Typography>
 
                 {/* Section Results */}
@@ -375,6 +380,7 @@ const InlineSearchBar = () => {
                       key={result.id || `${sectionKey}-${idx}`}
                       result={result}
                       isSelected={localSelectedIndex === globalIndex}
+                      isDark={isDark}
                       onClick={() => {
                         selectResult(result);
                         handleClose();
@@ -409,16 +415,19 @@ const InlineSearchBar = () => {
                     py: 0.25,
                     borderRadius: "4px",
                     backgroundColor: isDark
-                      ? "rgba(255, 255, 255, 0.1)"
+                      ? "rgba(0, 218, 198, 0.15)"
                       : "rgba(0, 0, 0, 0.06)",
                     fontSize: "10px",
-                    color: isDark ? "#888" : "#666",
+                    color: isDark ? "#00dac6" : "#666",
                   }}
                 >
                   ↑↓
                 </Box>
                 <Typography
-                  sx={{ fontSize: "10px", color: isDark ? "#666" : "#999" }}
+                  sx={{
+                    fontSize: "10px",
+                    color: isDark ? "rgba(255, 255, 255, 0.6)" : "#999",
+                  }}
                 >
                   {t("search.navigate") || "Navigate"}
                 </Typography>
@@ -430,16 +439,19 @@ const InlineSearchBar = () => {
                     py: 0.25,
                     borderRadius: "4px",
                     backgroundColor: isDark
-                      ? "rgba(255, 255, 255, 0.1)"
+                      ? "rgba(0, 218, 198, 0.15)"
                       : "rgba(0, 0, 0, 0.06)",
                     fontSize: "10px",
-                    color: isDark ? "#888" : "#666",
+                    color: isDark ? "#00dac6" : "#666",
                   }}
                 >
                   ↵
                 </Box>
                 <Typography
-                  sx={{ fontSize: "10px", color: isDark ? "#666" : "#999" }}
+                  sx={{
+                    fontSize: "10px",
+                    color: isDark ? "rgba(255, 255, 255, 0.6)" : "#999",
+                  }}
                 >
                   {t("search.select") || "Select"}
                 </Typography>

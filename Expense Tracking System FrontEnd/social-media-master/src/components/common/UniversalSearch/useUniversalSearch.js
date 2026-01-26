@@ -8,16 +8,33 @@ import {
   SEARCH_TYPES,
   SECTION_ORDER,
 } from "./quickActions.config";
+import { sortByRelevance, memoize, createDebouncer } from "./searchUtils";
+import UserSettingsHelper from "../../../utils/UserSettingsHelper";
 
-// Debounce delay in ms
-const DEBOUNCE_DELAY = 300;
+// Debounce delay in ms - Reduced for better UX
+const DEBOUNCE_DELAY = 150;
+
+// Minimum query length for API search
+const MIN_QUERY_LENGTH = 2;
+
+// Maximum results per section
+const MAX_RESULTS_PER_SECTION = 5;
 
 // API endpoint for unified search
 const SEARCH_API_ENDPOINT = "/api/search";
 
+// Memoized quick action search for performance
+const memoizedSearchQuickActions = memoize(searchQuickActions, 50);
+
 /**
  * Custom hook for Universal Search functionality
  * Handles debounced API calls, local quick action search, and keyboard navigation
+ *
+ * Performance optimizations:
+ * - Memoized quick action search
+ * - Debounced API calls with reduced delay
+ * - Request cancellation for stale queries
+ * - Relevance-based result sorting
  */
 export const useUniversalSearch = () => {
   const dispatch = useDispatch();
@@ -41,17 +58,37 @@ export const useUniversalSearch = () => {
     friends: [],
   });
 
-  // Refs for debouncing
+  // Refs for debouncing and request management
   const debounceTimerRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const lastQueryRef = useRef("");
+  const debouncerRef = useRef(createDebouncer(DEBOUNCE_DELAY));
 
-  // Get existing data from Redux for local search
-  const { expenses } = useSelector((state) => state.expenses || {});
-  const { budgets } = useSelector((state) => state.budgets || {});
-  const { categories } = useSelector((state) => state.categories || {});
-  const { bills } = useSelector((state) => state.bill || {});
-  const { paymentMethods } = useSelector((state) => state.paymentMethod || {});
-  const { friends } = useSelector((state) => state.friends || {});
+  // Get existing data from Redux for local search with shallow comparison
+  const expenses = useSelector((state) => state.expenses?.expenses || []);
+  const budgets = useSelector((state) => state.budgets?.budgets || []);
+  const categories = useSelector((state) => state.categories?.categories || []);
+  const bills = useSelector((state) => state.bill?.bills || []);
+  const paymentMethods = useSelector(
+    (state) => state.paymentMethod?.paymentMethods || [],
+  );
+  const friends = useSelector((state) => state.friends?.friends || []);
+
+  // Get user's currency preference
+  const userCurrency = useSelector(
+    (state) => state.userSettings?.settings?.currency || "INR",
+  );
+
+  /**
+   * Format currency amount using user's preferred currency
+   */
+  const formatAmount = useCallback(
+    (amount) => {
+      if (amount === null || amount === undefined) return "";
+      return UserSettingsHelper.formatCurrency(amount, userCurrency);
+    },
+    [userCurrency],
+  );
 
   /**
    * Open the search modal
@@ -61,8 +98,8 @@ export const useUniversalSearch = () => {
     setQuery("");
     setSelectedIndex(0);
     setError(null);
-    // Show default quick actions immediately
-    setQuickActionResults(searchQuickActions(""));
+    // Show default quick actions immediately using memoized search
+    setQuickActionResults(memoizedSearchQuickActions(""));
   }, []);
 
   /**
@@ -88,13 +125,12 @@ export const useUniversalSearch = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+    debouncerRef.current.cancel();
   }, []);
 
   /**
-   * Local search in Redux data (for instant results)
+   * Optimized local search in Redux data
+   * Uses early termination and efficient string matching
    */
   const performLocalSearch = useCallback(
     (searchQuery) => {
@@ -111,13 +147,13 @@ export const useUniversalSearch = () => {
 
       const queryLower = searchQuery.toLowerCase();
 
-      // Search expenses
+      // Search expenses - expense data structure: { id, name, amount, categoryName, date, ... }
       const matchedExpenses = (expenses || [])
         .filter((exp) => {
-          const name = exp?.expense?.name || exp?.name || "";
+          const name = exp?.name || exp?.expense?.name || "";
           const description =
-            exp?.expense?.description || exp?.description || "";
-          const categoryName = exp?.categoryName || "";
+            exp?.description || exp?.expense?.description || "";
+          const categoryName = exp?.categoryName || exp?.category?.name || "";
           return (
             name.toLowerCase().includes(queryLower) ||
             description.toLowerCase().includes(queryLower) ||
@@ -125,18 +161,24 @@ export const useUniversalSearch = () => {
           );
         })
         .slice(0, 5)
-        .map((exp) => ({
-          id: exp.id,
-          type: SEARCH_TYPES.EXPENSE,
-          title: exp?.expense?.name || exp?.name || "Expense",
-          subtitle: `${exp?.categoryName || "Uncategorized"} • ${exp?.expense?.amount || exp?.amount || 0}`,
-          metadata: {
-            amount: exp?.expense?.amount || exp?.amount,
-            date: exp?.date,
-            categoryName: exp?.categoryName,
-          },
-          route: getRouteForResult(SEARCH_TYPES.EXPENSE, exp.id),
-        }));
+        .map((exp) => {
+          const expName = exp?.name || exp?.expense?.name || "Expense";
+          const amount = exp?.amount || exp?.expense?.amount || 0;
+          const categoryName =
+            exp?.categoryName || exp?.category?.name || "Uncategorized";
+          return {
+            id: exp.id,
+            type: SEARCH_TYPES.EXPENSE,
+            title: expName,
+            subtitle: `${categoryName} • ${formatAmount(amount)}`,
+            metadata: {
+              amount: amount,
+              date: exp?.date,
+              categoryName: categoryName,
+            },
+            route: getRouteForResult(SEARCH_TYPES.EXPENSE, exp.id),
+          };
+        });
 
       // Search budgets
       const matchedBudgets = (budgets || [])
@@ -153,7 +195,7 @@ export const useUniversalSearch = () => {
           id: budget.id,
           type: SEARCH_TYPES.BUDGET,
           title: budget.name || "Budget",
-          subtitle: `${budget?.categoryName || "All Categories"} • ${budget?.amount || 0}`,
+          subtitle: `${budget?.categoryName || "All Categories"} • ${formatAmount(budget?.amount || 0)}`,
           metadata: {
             amount: budget?.amount,
             spent: budget?.spent,
@@ -194,7 +236,7 @@ export const useUniversalSearch = () => {
           id: bill.id,
           type: SEARCH_TYPES.BILL,
           title: bill.name || "Bill",
-          subtitle: `${bill?.frequency || "One-time"} • ${bill?.amount || 0}`,
+          subtitle: `${bill?.frequency || "One-time"} • ${formatAmount(bill?.amount || 0)}`,
           metadata: {
             amount: bill?.amount,
             dueDate: bill?.dueDate,
@@ -259,7 +301,15 @@ export const useUniversalSearch = () => {
         friends: matchedFriends,
       };
     },
-    [expenses, budgets, categories, bills, paymentMethods, friends],
+    [
+      expenses,
+      budgets,
+      categories,
+      bills,
+      paymentMethods,
+      friends,
+      formatAmount,
+    ],
   );
 
   /**
@@ -373,28 +423,29 @@ export const useUniversalSearch = () => {
           ? queryOrEvent
           : (queryOrEvent?.target?.value ?? "");
 
+      // Skip if query hasn't changed
+      if (newQuery === lastQueryRef.current) return;
+      lastQueryRef.current = newQuery;
+
       setQuery(newQuery);
       setSelectedIndex(0);
 
-      // Immediate local search for quick actions
-      setQuickActionResults(searchQuickActions(newQuery));
+      // Immediate local search for quick actions using memoized function
+      setQuickActionResults(memoizedSearchQuickActions(newQuery));
 
       // Immediate local search for Redux data
       const localResults = performLocalSearch(newQuery);
       setApiResults(localResults);
 
       // Debounced API search for comprehensive results
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
-      if (newQuery && newQuery.length >= 2) {
+      if (newQuery && newQuery.length >= MIN_QUERY_LENGTH) {
         setLoading(true);
-        debounceTimerRef.current = setTimeout(() => {
+        debouncerRef.current.debounce(() => {
           performApiSearch(newQuery);
-        }, DEBOUNCE_DELAY);
+        });
       } else {
         setLoading(false);
+        debouncerRef.current.cancel();
       }
     },
     [performLocalSearch, performApiSearch],
@@ -402,11 +453,12 @@ export const useUniversalSearch = () => {
 
   /**
    * Combine and flatten all results for navigation
+   * Results are sorted by relevance within each section
    */
   const allResults = useMemo(() => {
     const results = [];
 
-    // Add quick actions first
+    // Add quick actions first (already sorted by priority)
     quickActionResults.forEach((action) => {
       results.push({
         ...action,
@@ -415,39 +467,23 @@ export const useUniversalSearch = () => {
     });
 
     // Add API/local results by section
-    if (apiResults.expenses.length > 0) {
-      apiResults.expenses.forEach((item) =>
-        results.push({ ...item, section: "expenses" }),
-      );
-    }
-    if (apiResults.budgets.length > 0) {
-      apiResults.budgets.forEach((item) =>
-        results.push({ ...item, section: "budgets" }),
-      );
-    }
-    if (apiResults.categories.length > 0) {
-      apiResults.categories.forEach((item) =>
-        results.push({ ...item, section: "categories" }),
-      );
-    }
-    if (apiResults.bills.length > 0) {
-      apiResults.bills.forEach((item) =>
-        results.push({ ...item, section: "bills" }),
-      );
-    }
-    if (apiResults.paymentMethods.length > 0) {
-      apiResults.paymentMethods.forEach((item) =>
-        results.push({ ...item, section: "payment_methods" }),
-      );
-    }
-    if (apiResults.friends.length > 0) {
-      apiResults.friends.forEach((item) =>
-        results.push({ ...item, section: "friends" }),
-      );
-    }
+    // Sort each section by relevance when there's a query
+    const addSortedResults = (items, section) => {
+      if (items.length > 0) {
+        const sortedItems = query ? sortByRelevance(items, query) : items;
+        sortedItems.forEach((item) => results.push({ ...item, section }));
+      }
+    };
+
+    addSortedResults(apiResults.expenses, "expenses");
+    addSortedResults(apiResults.budgets, "budgets");
+    addSortedResults(apiResults.categories, "categories");
+    addSortedResults(apiResults.bills, "bills");
+    addSortedResults(apiResults.paymentMethods, "payment_methods");
+    addSortedResults(apiResults.friends, "friends");
 
     return results;
-  }, [quickActionResults, apiResults]);
+  }, [quickActionResults, apiResults, query]);
 
   /**
    * Group results by section for display
@@ -556,9 +592,7 @@ export const useUniversalSearch = () => {
    */
   useEffect(() => {
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
+      debouncerRef.current.cancel();
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }

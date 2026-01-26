@@ -1272,14 +1272,17 @@ export const en = {
     // Section Headers
     sections: {
       quickActions: "Quick Actions",
+      actions: "Actions",
       expenses: "Expenses",
       budgets: "Budgets",
       categories: "Categories",
       bills: "Bills",
       paymentMethods: "Payment Methods",
+      payment_methods: "Payment Methods",
       friends: "Friends",
       reports: "Reports",
       settings: "Settings",
+      notifications: "Notifications",
     },
 
     // Quick Actions

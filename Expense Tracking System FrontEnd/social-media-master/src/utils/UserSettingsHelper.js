@@ -11,11 +11,26 @@
 class UserSettingsHelper {
   // Currency configurations
   static CURRENCY_CONFIG = {
-    USD: { symbol: "$", name: "US Dollar", code: "USD" },
-    EUR: { symbol: "€", name: "Euro", code: "EUR" },
-    GBP: { symbol: "£", name: "British Pound", code: "GBP" },
-    INR: { symbol: "₹", name: "Indian Rupee", code: "INR" },
-    JPY: { symbol: "¥", name: "Japanese Yen", code: "JPY" },
+    USD: { symbol: "$", name: "US Dollar", code: "USD", locale: "en-US" },
+    EUR: { symbol: "€", name: "Euro", code: "EUR", locale: "de-DE" },
+    GBP: { symbol: "£", name: "British Pound", code: "GBP", locale: "en-GB" },
+    INR: { symbol: "₹", name: "Indian Rupee", code: "INR", locale: "en-IN" },
+    JPY: { symbol: "¥", name: "Japanese Yen", code: "JPY", locale: "ja-JP" },
+    CNY: { symbol: "¥", name: "Chinese Yuan", code: "CNY", locale: "zh-CN" },
+    AUD: { symbol: "A$", name: "Australian Dollar", code: "AUD", locale: "en-AU" },
+    CAD: { symbol: "C$", name: "Canadian Dollar", code: "CAD", locale: "en-CA" },
+    CHF: { symbol: "CHF", name: "Swiss Franc", code: "CHF", locale: "de-CH" },
+    SGD: { symbol: "S$", name: "Singapore Dollar", code: "SGD", locale: "en-SG" },
+    AED: { symbol: "د.إ", name: "UAE Dirham", code: "AED", locale: "ar-AE" },
+    SAR: { symbol: "﷼", name: "Saudi Riyal", code: "SAR", locale: "ar-SA" },
+    KRW: { symbol: "₩", name: "South Korean Won", code: "KRW", locale: "ko-KR" },
+    BRL: { symbol: "R$", name: "Brazilian Real", code: "BRL", locale: "pt-BR" },
+    MXN: { symbol: "$", name: "Mexican Peso", code: "MXN", locale: "es-MX" },
+    RUB: { symbol: "₽", name: "Russian Ruble", code: "RUB", locale: "ru-RU" },
+    THB: { symbol: "฿", name: "Thai Baht", code: "THB", locale: "th-TH" },
+    MYR: { symbol: "RM", name: "Malaysian Ringgit", code: "MYR", locale: "ms-MY" },
+    IDR: { symbol: "Rp", name: "Indonesian Rupiah", code: "IDR", locale: "id-ID" },
+    PHP: { symbol: "₱", name: "Philippine Peso", code: "PHP", locale: "en-PH" },
   };
 
   // Language configurations

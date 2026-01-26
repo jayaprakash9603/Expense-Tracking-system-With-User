@@ -1258,4 +1258,121 @@ export const te = {
         "హెచ్చరిక: ఇది మీ అన్ని ఇప్పటికే ఉన్న బ్యాకప్ కోడ్‌లను చెల్లనివిగా చేస్తుంది!\n\nకొత్త బ్యాకప్ కోడ్‌లు రూపొందించడానికి మీ ప్రస్తుత అథెంటికేటర్ కోడ్ నమోదు చేయండి:",
     },
   },
+
+  // Universal Search (సార్వత్రిక శోధన)
+  search: {
+    placeholder: "ఖర్చులు, బడ్జెట్‌లు, చర్యలను శోధించండి...",
+    openSearch: "శోధించండి",
+    noResults: "ఫలితాలు కనుగొనబడలేదు",
+    tryDifferent: "వేరే శోధన పదం ప్రయత్నించండి",
+    suggestions: "సూచనలు",
+    typeToSearch: "శోధించడానికి టైప్ చేయండి...",
+    navigate: "నావిగేట్ చేయండి",
+    select: "ఎంచుకోండి",
+    close: "మూసివేయండి",
+    poweredBy: "సార్వత్రిక శోధన",
+
+    // Section Headers
+    sections: {
+      quickActions: "శీఘ్ర చర్యలు",
+      actions: "చర్యలు",
+      expenses: "ఖర్చులు",
+      budgets: "బడ్జెట్‌లు",
+      categories: "వర్గాలు",
+      bills: "బిల్లులు",
+      paymentMethods: "చెల్లింపు విధానాలు",
+      payment_methods: "చెల్లింపు విధానాలు",
+      friends: "స్నేహితులు",
+      reports: "రిపోర్టులు",
+      settings: "సెట్టింగ్స్",
+      notifications: "నోటిఫికేషన్లు",
+    },
+
+    // Quick Actions
+    actions: {
+      // Expense Actions
+      addExpense: "ఖర్చు జోడించండి",
+      addExpenseDesc: "కొత్త ఖర్చు సృష్టించండి",
+      viewExpenses: "అన్ని ఖర్చులు చూడండి",
+      viewExpensesDesc: "మీ ఖర్చు చరిత్ర చూడండి",
+      expenseReports: "ఖర్చు రిపోర్టులు",
+      expenseReportsDesc: "ఖర్చు విశ్లేషణ చూడండి",
+
+      // Budget Actions
+      createBudget: "బడ్జెట్ సృష్టించండి",
+      createBudgetDesc: "కొత్త బడ్జెట్ సెట్ చేయండి",
+      viewBudgets: "బడ్జెట్‌లు చూడండి",
+      viewBudgetsDesc: "మీ బడ్జెట్‌లను నిర్వహించండి",
+      budgetReports: "బడ్జెట్ రిపోర్టులు",
+      budgetReportsDesc: "బడ్జెట్ విశ్లేషణ చూడండి",
+
+      // Bill Actions
+      createBill: "బిల్లు సృష్టించండి",
+      createBillDesc: "కొత్త పునరావృత బిల్లు జోడించండి",
+      viewBills: "బిల్లులు చూడండి",
+      viewBillsDesc: "మీ బిల్లులను నిర్వహించండి",
+      billCalendar: "బిల్లు క్యాలెండర్",
+      billCalendarDesc: "క్యాలెండర్‌లో బిల్లులు చూడండి",
+      billReports: "బిల్లు రిపోర్టులు",
+      billReportsDesc: "బిల్లు విశ్లేషణ చూడండి",
+
+      // Category Actions
+      createCategory: "వర్గం సృష్టించండి",
+      createCategoryDesc: "కొత్త ఖర్చు వర్గం జోడించండి",
+      viewCategories: "వర్గాలు చూడండి",
+      viewCategoriesDesc: "ఖర్చు వర్గాలను నిర్వహించండి",
+      categoryReports: "వర్గం రిపోర్టులు",
+      categoryReportsDesc: "వర్గం వారీగా ఖర్చు చూడండి",
+
+      // Payment Method Actions
+      addPaymentMethod: "చెల్లింపు విధానం జోడించండి",
+      addPaymentMethodDesc: "కొత్త చెల్లింపు విధానం జోడించండి",
+      viewPaymentMethods: "చెల్లింపు విధానాలు చూడండి",
+      viewPaymentMethodsDesc: "మీ చెల్లింపు విధానాలను నిర్వహించండి",
+      paymentReports: "చెల్లింపు విధానం రిపోర్టులు",
+      paymentReportsDesc: "చెల్లింపు విధానం వారీగా ఖర్చు చూడండి",
+
+      // Dashboard & General
+      dashboard: "డ్యాష్‌బోర్డ్",
+      dashboardDesc: "ప్రధాన డ్యాష్‌బోర్డ్‌కు వెళ్లండి",
+      calendarView: "క్యాలెండర్ వీక్షణ",
+      calendarViewDesc: "క్యాలెండర్‌లో ఖర్చులు చూడండి",
+      transactions: "లావాదేవీలు",
+      transactionsDesc: "అన్ని లావాదేవీలు చూడండి",
+      allReports: "అన్ని రిపోర్టులు",
+      allReportsDesc: "సమగ్ర రిపోర్టులు చూడండి",
+      insights: "అంతర్దృష్టులు",
+      insightsDesc: "ఖర్చు అంతర్దృష్టులు చూడండి",
+
+      // Friends
+      viewFriends: "స్నేహితులు",
+      viewFriendsDesc: "మీ స్నేహితులను నిర్వహించండి",
+      friendActivity: "స్నేహితుల కార్యకలాపం",
+      friendActivityDesc: "స్నేహితుల కార్యకలాపాలు చూడండి",
+
+      // Groups
+      viewGroups: "సమూహాలు",
+      viewGroupsDesc: "ఖర్చు సమూహాలను నిర్వహించండి",
+      createGroup: "సమూహం సృష్టించండి",
+      createGroupDesc: "కొత్త ఖర్చు సమూహం సృష్టించండి",
+
+      // Settings
+      settings: "సెట్టింగ్స్",
+      settingsDesc: "యాప్ సెట్టింగ్స్ మరియు ప్రాధాన్యతలు",
+      profile: "ప్రొఫైల్",
+      profileDesc: "మీ ప్రొఫైల్ చూడండి మరియు సవరించండి",
+      notificationSettings: "నోటిఫికేషన్ సెట్టింగ్స్",
+      notificationSettingsDesc: "నోటిఫికేషన్ ప్రాధాన్యతలను నిర్వహించండి",
+
+      // Upload
+      uploadExpenses: "ఖర్చులు అప్‌లోడ్ చేయండి",
+      uploadExpensesDesc: "ఫైల్ నుండి ఖర్చులను బల్క్‌లో అప్‌లోడ్ చేయండి",
+      uploadBills: "బిల్లులు అప్‌లోడ్ చేయండి",
+      uploadBillsDesc: "ఫైల్ నుండి బిల్లులను బల్క్‌లో అప్‌లోడ్ చేయండి",
+
+      // Chat
+      chat: "చాట్",
+      chatDesc: "స్నేహితులతో చాట్ తెరవండి",
+    },
+  },
 };

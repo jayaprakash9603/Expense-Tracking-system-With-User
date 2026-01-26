@@ -135,9 +135,9 @@ const HeaderBar = () => {
         </div>
 
         {/* Center Section: Global messages */}
-        <div className="flex-1 flex justify-center px-2">
-          <div className="w-full" style={{ maxWidth: 360 }}>
-            <GlobalHeaderMessageSlot className="justify-center" />
+        <div className="flex-1 flex justify-end px-2">
+          <div className="w-full" style={{ maxWidth: 500 }}>
+            <GlobalHeaderMessageSlot className="justify-end" />
           </div>
         </div>
 
