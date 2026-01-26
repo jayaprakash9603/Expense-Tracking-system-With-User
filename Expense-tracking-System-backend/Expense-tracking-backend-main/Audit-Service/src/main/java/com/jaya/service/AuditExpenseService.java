@@ -49,11 +49,10 @@ public class AuditExpenseService {
         }
     }
 
-
-    public  List<AuditExpense> getAllAuditLogs(Integer userId)
-    {
+    public List<AuditExpense> getAllAuditLogs(Integer userId) {
         return auditExpenseRepository.findByUserId(userId);
     }
+
     private void processAdditionalAuditLogic(AuditExpense auditExpense) {
         // Check for suspicious activities
         if ("FAILURE".equals(auditExpense.getStatus()) &&
@@ -101,5 +100,43 @@ public class AuditExpenseService {
 
     public List<AuditExpense> getFailedOperations(LocalDateTime since) {
         return auditExpenseRepository.findByStatusAndTimestampAfterOrderByTimestampDesc("FAILURE", since);
+    }
+
+    // Admin methods for audit log management
+    public Page<AuditExpense> getAllAuditLogsPaginated(Pageable pageable) {
+        return auditExpenseRepository.findAllOrderByTimestampDesc(pageable);
+    }
+
+    public Page<AuditExpense> getAuditLogsByType(String actionType, Pageable pageable) {
+        return auditExpenseRepository.findByActionTypeOrderByTimestampDesc(actionType, pageable);
+    }
+
+    public Page<AuditExpense> getAuditLogsSince(LocalDateTime since, Pageable pageable) {
+        return auditExpenseRepository.findByTimestampAfterOrderByTimestampDesc(since, pageable);
+    }
+
+    public Page<AuditExpense> getAuditLogsByTypeAndTime(String actionType, LocalDateTime since, Pageable pageable) {
+        return auditExpenseRepository.findByActionTypeAndTimestampAfterOrderByTimestampDesc(actionType, since,
+                pageable);
+    }
+
+    public Page<AuditExpense> searchAuditLogs(String search, Pageable pageable) {
+        return auditExpenseRepository.searchAuditLogs(search, pageable);
+    }
+
+    public Page<AuditExpense> searchAuditLogsByType(String search, String actionType, Pageable pageable) {
+        return auditExpenseRepository.searchAuditLogsByType(search, actionType, pageable);
+    }
+
+    public List<Object[]> getActionTypeStatistics(LocalDateTime since) {
+        return auditExpenseRepository.getActionTypeStatisticsSince(since);
+    }
+
+    public Long countAuditLogsSince(LocalDateTime since) {
+        return auditExpenseRepository.countAuditLogsSince(since);
+    }
+
+    public Long countByActionTypeSince(String actionType, LocalDateTime since) {
+        return auditExpenseRepository.countByActionTypeSince(actionType, since);
     }
 }

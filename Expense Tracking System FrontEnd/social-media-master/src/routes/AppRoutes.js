@@ -56,6 +56,12 @@ import AuditLogsAdmin from "../pages/Landingpage/Admin/AuditLogs";
 import ReportsAdmin from "../pages/Landingpage/Admin/Reports";
 import AdminSettings from "../pages/Landingpage/Admin/AdminSettings";
 import NotFound from "../pages/Landingpage/Errors/NotFound";
+import {
+  HelpCenter,
+  ContactSupport,
+  TermsOfService,
+  PrivacyPolicy,
+} from "../pages/Landingpage/HelpSupport";
 
 /**
  * Authentication Routes - Returns Route element directly
@@ -88,6 +94,14 @@ export const getAppRoutes = () => (
       <Route path="settings" element={<Settings />} />
       <Route path="settings/notifications" element={<NotificationSettings />} />
       <Route path="settings/mfa" element={<MfaSetup />} />
+
+      {/* Help & Support Routes */}
+      <Route path="support">
+        <Route path="help" element={<HelpCenter />} />
+        <Route path="contact" element={<ContactSupport />} />
+        <Route path="terms" element={<TermsOfService />} />
+        <Route path="privacy" element={<PrivacyPolicy />} />
+      </Route>
 
       {/* Friends Routes */}
       <Route path="friends">

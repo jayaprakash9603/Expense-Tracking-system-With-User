@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
@@ -39,9 +40,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.id = :id")
         Expense findByUserIdAndId(@Param("userId") Integer userId, @Param("id") Integer id);
 
-        // Add these methods to your ExpenseRepository interface
+        // Fixed N+1: Using EntityGraph for pagination to avoid N+1 queries
+        @EntityGraph(attributePaths = { "expense" })
         Page<Expense> findByUserId(Integer userId, Pageable pageable);
 
+        // Fixed N+1: Using EntityGraph for pagination to avoid N+1 queries
+        @EntityGraph(attributePaths = { "expense" })
         Page<Expense> findByUserIdAndDateBetween(Integer userId, LocalDate startDate, LocalDate endDate,
                         Pageable pageable);
 
@@ -66,19 +70,23 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId")
         List<Expense> findByUserId(@Param("userId") Integer userId);
 
-        List<Expense> findByUserId(Integer userId, Sort sort);
+        // Optimized with JOIN FETCH to avoid N+1 queries
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId")
+        List<Expense> findByUserIdWithSort(@Param("userId") Integer userId, Sort sort);
 
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.date BETWEEN :startDate AND :endDate")
         List<Expense> findByUserIdAndDateBetween(@Param("userId") Integer userId,
                         @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-        @Query("SELECT e FROM Expense e WHERE e.userId = :userId AND e.date BETWEEN :startDate AND :endDate")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.date BETWEEN :startDate AND :endDate")
         List<Expense> findByUserAndDateBetween(
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate,
                         @Param("userId") Integer userId);
 
-        @Query("SELECT e FROM Expense e WHERE e.userId = :userId AND e.date = :date")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.date = :date")
         List<Expense> findByUserIdAndDate(@Param("userId") Integer userId, @Param("date") LocalDate date);
 
         @QueryHints({
@@ -95,7 +103,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         List<Expense> findExpensesByUserAndAmountRange(@Param("userId") Integer userId,
                         @Param("minAmount") double minAmount, @Param("maxAmount") double maxAmount);
 
-        @Query("SELECT e FROM Expense e JOIN e.expense d WHERE e.userId = :userId AND d.type = 'loss' ORDER BY d.amount DESC")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense d WHERE e.userId = :userId AND d.type = 'loss' ORDER BY d.amount DESC")
         Page<Expense> findTopNExpensesByUserAndAmount(@Param("userId") Integer userId, Pageable pageable);
 
         @Query("SELECT e FROM Expense e WHERE e.userId = ?1 AND e.expense.expenseName = ?2 ORDER BY e.date DESC")
@@ -171,13 +180,16 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         "ORDER BY frequency DESC")
         Page<Object[]> findTopExpenseNamesByUser(@Param("userId") Integer userId, Pageable pageable);
 
-        @Query("SELECT e FROM Expense e JOIN e.expense ed WHERE e.userId = :userId AND ed.type = 'gain'")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = 'gain'")
         List<Expense> findExpensesWithGainTypeByUser(@Param("userId") Integer userId);
 
-        @Query("SELECT e FROM Expense e JOIN e.expense ed WHERE e.userId = :userId AND ed.type = 'loss'")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = 'loss'")
         List<Expense> findByLossTypeAndUser(@Param("userId") Integer userId);
 
-        @Query("SELECT e FROM Expense e JOIN e.expense ed WHERE e.userId = :userId AND ed.paymentMethod = :paymentMethod")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.paymentMethod = :paymentMethod")
         List<Expense> findByUserAndPaymentMethod(@Param("userId") Integer userId,
                         @Param("paymentMethod") String paymentMethod);
 
@@ -191,7 +203,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         Double findTotalExpensesForCurrentMonth(@Param("month") int month, @Param("year") int year,
                         @Param("userId") Integer userId);
 
-        @Query("SELECT e FROM Expense e JOIN e.expense ed WHERE e.userId = :userId AND ed.type = :type AND ed.paymentMethod = :paymentMethod")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = :type AND ed.paymentMethod = :paymentMethod")
         List<Expense> findByUserAndTypeAndPaymentMethod(@Param("userId") Integer userId, @Param("type") String type,
                         @Param("paymentMethod") String paymentMethod);
 
@@ -203,13 +216,16 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         "GROUP BY ed.paymentMethod ORDER BY COUNT(ed.paymentMethod) DESC")
         List<Object[]> findTopPaymentMethodsByUser(@Param("userId") Integer userId);
 
-        @Query("SELECT e FROM Expense e JOIN e.expense ed WHERE e.userId = :userId AND ed.type = 'gain' ORDER BY ed.amount DESC")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = 'gain' ORDER BY ed.amount DESC")
         List<Expense> findTop10GainsByUser(@Param("userId") Integer userId, Pageable pageable);
 
-        @Query("SELECT e FROM Expense e JOIN e.expense ed WHERE e.userId = :userId AND ed.type = 'loss' ORDER BY ed.amount DESC")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = 'loss' ORDER BY ed.amount DESC")
         List<Expense> findTop10LossesByUser(@Param("userId") Integer userId, Pageable pageable);
 
-        @Query("SELECT e FROM Expense e WHERE e.userId = :userId AND MONTH(e.date) = :month AND YEAR(e.date) = :year")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND MONTH(e.date) = :month AND YEAR(e.date) = :year")
         List<Expense> findByUserAndMonthAndYear(@Param("userId") Integer userId, @Param("month") int month,
                         @Param("year") int year);
 
@@ -227,7 +243,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         "ORDER BY e2.amount DESC")
         List<String> findTopExpensesByLoss(@Param("userId") Integer userId, Pageable pageable);
 
-        @Query("SELECT e FROM Expense e JOIN e.expense d WHERE " +
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense d WHERE " +
                         "(e.userId = :userId) AND " +
                         "(d.expenseName LIKE %:expenseName% OR :expenseName IS NULL) AND " +
                         "(e.date BETWEEN :startDate AND :endDate OR :startDate IS NULL OR :endDate IS NULL) AND " +
@@ -302,10 +319,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         @Param("flowType") String flowType,
                         @Param("type") String type);
 
-        @Query("SELECT e FROM Expense e WHERE YEAR(e.date) = :year AND e.userId = :userId")
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE YEAR(e.date) = :year AND e.userId = :userId")
         List<Expense> findByYearAndUser(@Param("year") int year, @Param("userId") int userId);
 
-        @Query("SELECT e, ed FROM Expense e JOIN e.expense ed " +
+        // Fixed N+1: Added JOIN FETCH for expense details
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed " +
                         "WHERE YEAR(e.date) = :year AND e.userId = :userId " +
                         "AND ed.paymentMethod != 'creditPaid' AND ed.type = 'loss'")
         List<Expense> findExpensesWithDetailsByUserIdAndYear(

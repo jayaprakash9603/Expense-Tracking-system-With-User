@@ -1,92 +1,77 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchDashboardAnalytics,
+  fetchAllUsers,
+  updateUserStatus,
+  deleteUser,
+  bulkUserAction,
+  fetchAllRoles,
+} from "../../../../Redux/Admin/admin.action";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
+  const dispatch = useDispatch();
+
+  // Redux state
+  const { analytics, users, roles, loading, error } = useSelector(
+    (state) => state.admin,
+  );
+
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [timeRange, setTimeRange] = useState("7d");
-  const [loading, setLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("ALL");
 
-  // Mock data - replace with actual API calls
-  const [dashboardData, setDashboardData] = useState({
+  // Fetch dashboard data on mount and when timeRange changes
+  useEffect(() => {
+    dispatch(fetchDashboardAnalytics(timeRange));
+  }, [dispatch, timeRange]);
+
+  // Fetch users when user tab is active or filters change
+  useEffect(() => {
+    if (activeTab === "users") {
+      dispatch(
+        fetchAllUsers({
+          page: currentPage - 1,
+          size: 10,
+          status: statusFilter !== "all" ? statusFilter : null,
+          role: roleFilter !== "ALL" ? roleFilter : null,
+          search: searchQuery || null,
+        }),
+      );
+    }
+  }, [dispatch, activeTab, currentPage, statusFilter, roleFilter, searchQuery]);
+
+  // Fetch roles when roles tab is active
+  useEffect(() => {
+    if (activeTab === "roles") {
+      dispatch(fetchAllRoles());
+    }
+  }, [dispatch, activeTab]);
+
+  // Derive dashboard data from Redux state with fallbacks
+  const dashboardData = {
     overview: {
-      totalUsers: 12847,
-      activeUsers: 9234,
-      totalExpenses: 45623,
-      totalRevenue: 234567,
-      userGrowth: 12.5,
-      expenseGrowth: -3.2,
-      revenueGrowth: 8.7,
+      totalUsers: analytics.overview?.totalUsers || 0,
+      activeUsers: analytics.overview?.activeUsers || 0,
+      totalExpenses: analytics.overview?.totalExpenses || 0,
+      totalRevenue: analytics.overview?.totalRevenue || 0,
+      userGrowth: analytics.overview?.userGrowthPercentage || 0,
+      expenseGrowth: analytics.overview?.expenseGrowthPercentage || 0,
+      revenueGrowth: analytics.overview?.revenueGrowthPercentage || 0,
+      avgExpenseAmount: analytics.overview?.avgExpenseAmount || 0,
+      newUsersThisMonth: analytics.overview?.newUsersThisMonth || 0,
     },
-    users: [
-      {
-        id: 1,
-        name: "John Doe",
-        email: "john.doe@example.com",
-        avatar: "/api/placeholder/40/40",
-        status: "active",
-        role: "user",
-        joinDate: "2024-01-15",
-        lastActive: "2 hours ago",
-        totalExpenses: 1250.5,
-      },
-      {
-        id: 2,
-        name: "Jane Smith",
-        email: "jane.smith@example.com",
-        avatar: "/api/placeholder/40/40",
-        status: "active",
-        role: "moderator",
-        joinDate: "2024-01-10",
-        lastActive: "1 day ago",
-        totalExpenses: 2340.75,
-      },
-      {
-        id: 3,
-        name: "Mike Johnson",
-        email: "mike.johnson@example.com",
-        avatar: "/api/placeholder/40/40",
-        status: "suspended",
-        role: "user",
-        joinDate: "2024-01-05",
-        lastActive: "1 week ago",
-        totalExpenses: 890.25,
-      },
-    ],
-    auditLogs: [
-      {
-        id: 1,
-        type: "info",
-        title: "User Registration",
-        description: "New user john.doe@example.com registered successfully",
-        timestamp: "2024-01-20 14:30:00",
-        severity: "info",
-        user: "System",
-      },
-      {
-        id: 2,
-        type: "warning",
-        title: "Failed Login Attempt",
-        description:
-          "Multiple failed login attempts detected for user jane.smith@example.com",
-        timestamp: "2024-01-20 13:45:00",
-        severity: "warning",
-        user: "Security System",
-      },
-      {
-        id: 3,
-        type: "error",
-        title: "Database Connection Error",
-        description:
-          "Temporary database connection issue resolved automatically",
-        timestamp: "2024-01-20 12:15:00",
-        severity: "error",
-        user: "System Monitor",
-      },
-    ],
-  });
+    users: users.list || [],
+    topCategories: analytics.topCategories || [],
+    recentActivity: analytics.recentActivity || [],
+    topUsers: analytics.topUsers || [],
+    auditLogs: [],
+  };
 
   const tabs = [
     { id: "overview", label: "Overview", icon: "📊" },
@@ -101,29 +86,89 @@ const AdminDashboard = () => {
     setSelectedUsers((prev) =>
       prev.includes(userId)
         ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
+        : [...prev, userId],
     );
   };
 
-  const handleBulkAction = (action) => {
-    console.log(`Performing ${action} on users:`, selectedUsers);
-    setSelectedUsers([]);
-  };
+  const handleBulkAction = useCallback(
+    (action) => {
+      if (selectedUsers.length === 0) return;
+
+      if (
+        action === "delete" &&
+        !window.confirm(
+          `Are you sure you want to delete ${selectedUsers.length} user(s)?`,
+        )
+      ) {
+        return;
+      }
+
+      dispatch(bulkUserAction(selectedUsers, action));
+      setSelectedUsers([]);
+    },
+    [dispatch, selectedUsers],
+  );
+
+  const handleDeleteUser = useCallback(
+    (userId) => {
+      if (window.confirm("Are you sure you want to delete this user?")) {
+        dispatch(deleteUser(userId));
+      }
+    },
+    [dispatch],
+  );
+
+  const handleUpdateUserStatus = useCallback(
+    (userId, status) => {
+      dispatch(updateUserStatus(userId, status));
+    },
+    [dispatch],
+  );
+
+  const handleTimeRangeChange = useCallback((newRange) => {
+    setTimeRange(newRange);
+  }, []);
+
+  const handleStatusFilterChange = useCallback((e) => {
+    setStatusFilter(e.target.value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleRoleFilterChange = useCallback((e) => {
+    setRoleFilter(e.target.value);
+    setCurrentPage(1);
+  }, []);
 
   const filteredUsers = dashboardData.users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+      (user.fullName || user.name || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (user.email || "").toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const renderOverviewTab = () => (
     <div className="expense-tab-content">
+      {loading.analytics && (
+        <div className="expense-loading-overlay">
+          <div className="expense-loading-spinner">Loading...</div>
+        </div>
+      )}
+
+      {error && (
+        <div className="expense-error-message">Error loading data: {error}</div>
+      )}
+
       <div className="expense-overview-grid">
         <div className="expense-overview-card">
           <div className="expense-overview-header">
             <div className="expense-overview-icon">👥</div>
-            <div className="expense-overview-trend up">
-              <span>↗</span>+{dashboardData.overview.userGrowth}%
+            <div
+              className={`expense-overview-trend ${dashboardData.overview.userGrowth >= 0 ? "up" : "down"}`}
+            >
+              <span>{dashboardData.overview.userGrowth >= 0 ? "↗" : "↘"}</span>
+              {dashboardData.overview.userGrowth >= 0 ? "+" : ""}
+              {dashboardData.overview.userGrowth}%
             </div>
           </div>
           <div className="expense-overview-content">
@@ -132,7 +177,7 @@ const AdminDashboard = () => {
               {dashboardData.overview.totalUsers.toLocaleString()}
             </div>
             <p className="expense-overview-description">
-              Active users across all platforms
+              {dashboardData.overview.newUsersThisMonth} new this month
             </p>
           </div>
         </div>
@@ -140,8 +185,14 @@ const AdminDashboard = () => {
         <div className="expense-overview-card">
           <div className="expense-overview-header">
             <div className="expense-overview-icon">💰</div>
-            <div className="expense-overview-trend up">
-              <span>↗</span>+{dashboardData.overview.revenueGrowth}%
+            <div
+              className={`expense-overview-trend ${dashboardData.overview.revenueGrowth >= 0 ? "up" : "down"}`}
+            >
+              <span>
+                {dashboardData.overview.revenueGrowth >= 0 ? "↗" : "↘"}
+              </span>
+              {dashboardData.overview.revenueGrowth >= 0 ? "+" : ""}
+              {dashboardData.overview.revenueGrowth}%
             </div>
           </div>
           <div className="expense-overview-content">
@@ -158,8 +209,13 @@ const AdminDashboard = () => {
         <div className="expense-overview-card">
           <div className="expense-overview-header">
             <div className="expense-overview-icon">📋</div>
-            <div className="expense-overview-trend down">
-              <span>↘</span>
+            <div
+              className={`expense-overview-trend ${dashboardData.overview.expenseGrowth >= 0 ? "up" : "down"}`}
+            >
+              <span>
+                {dashboardData.overview.expenseGrowth >= 0 ? "↗" : "↘"}
+              </span>
+              {dashboardData.overview.expenseGrowth >= 0 ? "+" : ""}
               {dashboardData.overview.expenseGrowth}%
             </div>
           </div>
@@ -169,7 +225,9 @@ const AdminDashboard = () => {
               {dashboardData.overview.totalExpenses.toLocaleString()}
             </div>
             <p className="expense-overview-description">
-              Expenses tracked this month
+              Avg $
+              {dashboardData.overview.avgExpenseAmount?.toFixed(2) || "0.00"}{" "}
+              per transaction
             </p>
           </div>
         </div>
@@ -177,8 +235,12 @@ const AdminDashboard = () => {
         <div className="expense-overview-card">
           <div className="expense-overview-header">
             <div className="expense-overview-icon">✅</div>
-            <div className="expense-overview-trend up">
-              <span>↗</span>+{dashboardData.overview.userGrowth}%
+            <div
+              className={`expense-overview-trend ${dashboardData.overview.userGrowth >= 0 ? "up" : "down"}`}
+            >
+              <span>{dashboardData.overview.userGrowth >= 0 ? "↗" : "↘"}</span>
+              {dashboardData.overview.userGrowth >= 0 ? "+" : ""}
+              {dashboardData.overview.userGrowth}%
             </div>
           </div>
           <div className="expense-overview-content">
@@ -218,7 +280,7 @@ const AdminDashboard = () => {
                     className={`expense-time-option ${
                       timeRange === period ? "active" : ""
                     }`}
-                    onClick={() => setTimeRange(period)}
+                    onClick={() => handleTimeRangeChange(period)}
                   >
                     {period}
                   </button>
@@ -226,7 +288,32 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="expense-chart-placeholder">
-              Chart will be rendered here
+              {/* Top Categories Section */}
+              <div className="expense-top-categories">
+                <h4>Top Expense Categories</h4>
+                {dashboardData.topCategories.length > 0 ? (
+                  <ul className="expense-category-list">
+                    {dashboardData.topCategories.map((cat, index) => (
+                      <li key={index} className="expense-category-item">
+                        <span className="expense-category-name">
+                          {cat.name}
+                        </span>
+                        <span className="expense-category-count">
+                          {cat.count?.toLocaleString()} expenses
+                        </span>
+                        <span
+                          className={`expense-category-growth ${cat.growthPercentage >= 0 ? "up" : "down"}`}
+                        >
+                          {cat.growthPercentage >= 0 ? "+" : ""}
+                          {cat.growthPercentage?.toFixed(1)}%
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No category data available</p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -286,19 +373,41 @@ const AdminDashboard = () => {
 
   const renderUsersTab = () => (
     <div className="expense-tab-content">
+      {loading.users && (
+        <div className="expense-loading-overlay">
+          <div className="expense-loading-spinner">Loading users...</div>
+        </div>
+      )}
+
       <div className="expense-user-management">
         <div className="expense-user-management-header">
           <div className="expense-section-header">
             <div className="expense-section-title">
               <span className="expense-section-icon">👥</span>
               <h2>User Management</h2>
+              <span className="expense-user-count">
+                ({users.totalCount || 0} total)
+              </span>
             </div>
             <div className="expense-section-actions">
-              <select className="expense-filter-select">
+              <select
+                className="expense-filter-select"
+                value={statusFilter}
+                onChange={handleStatusFilterChange}
+              >
                 <option value="all">All Users</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="suspended">Suspended</option>
+              </select>
+              <select
+                className="expense-filter-select"
+                value={roleFilter}
+                onChange={handleRoleFilterChange}
+              >
+                <option value="ALL">All Roles</option>
+                <option value="ADMIN">Admin</option>
+                <option value="USER">User</option>
               </select>
               <button className="expense-btn primary">
                 <span>➕</span>
@@ -371,40 +480,64 @@ const AdminDashboard = () => {
               <div className="expense-table-cell">
                 <div className="expense-user-info">
                   <img
-                    src={user.avatar}
-                    alt={user.name}
+                    src={
+                      user.profileImage ||
+                      user.avatar ||
+                      "/api/placeholder/40/40"
+                    }
+                    alt={user.fullName || user.name || "User"}
                     className="expense-user-avatar"
                   />
                   <div className="expense-user-details">
-                    <div className="expense-user-name">{user.name}</div>
+                    <div className="expense-user-name">
+                      {user.fullName || user.name || "Unknown"}
+                    </div>
                     <div className="expense-user-email">{user.email}</div>
                     <div className="expense-user-id">ID: {user.id}</div>
                   </div>
                 </div>
               </div>
               <div className="expense-table-cell">
-                <span className={`expense-status-badge ${user.status}`}>
-                  {user.status}
+                <span
+                  className={`expense-status-badge ${user.status || "active"}`}
+                >
+                  {user.status || "active"}
                 </span>
               </div>
               <div className="expense-table-cell">
-                <span className={`expense-role-badge ${user.role}`}>
-                  {user.role}
+                <span
+                  className={`expense-role-badge ${(user.roles && user.roles[0]?.replace("ROLE_", "").toLowerCase()) || user.role || "user"}`}
+                >
+                  {user.roles
+                    ? user.roles.map((r) => r.replace("ROLE_", "")).join(", ")
+                    : user.role || "user"}
                 </span>
               </div>
               <div className="expense-table-cell">
-                ${user.totalExpenses.toFixed(2)}
+                ${(user.totalExpenses || 0).toFixed(2)}
               </div>
-              <div className="expense-table-cell">{user.lastActive}</div>
+              <div className="expense-table-cell">
+                {user.updatedAt
+                  ? new Date(user.updatedAt).toLocaleDateString()
+                  : user.lastActive || "N/A"}
+              </div>
               <div className="expense-table-cell">
                 <div className="expense-action-buttons">
-                  <button className="expense-icon-btn">
+                  <button className="expense-icon-btn" title="Edit User">
                     <span>✏️</span>
                   </button>
-                  <button className="expense-icon-btn warning">
+                  <button
+                    className="expense-icon-btn warning"
+                    title="Suspend User"
+                    onClick={() => handleUpdateUserStatus(user.id, "suspended")}
+                  >
                     <span>⚠️</span>
                   </button>
-                  <button className="expense-icon-btn danger">
+                  <button
+                    className="expense-icon-btn danger"
+                    title="Delete User"
+                    onClick={() => handleDeleteUser(user.id)}
+                  >
                     <span>🗑️</span>
                   </button>
                 </div>
@@ -421,7 +554,10 @@ const AdminDashboard = () => {
           >
             ←
           </button>
-          {[1, 2, 3, 4, 5].map((page) => (
+          {Array.from(
+            { length: Math.min(5, users.totalPages || 1) },
+            (_, i) => i + 1,
+          ).map((page) => (
             <button
               key={page}
               className={`expense-pagination-btn ${
@@ -434,12 +570,16 @@ const AdminDashboard = () => {
           ))}
           <button
             className="expense-pagination-btn"
+            disabled={currentPage >= (users.totalPages || 1)}
             onClick={() => setCurrentPage((prev) => prev + 1)}
           >
             →
           </button>
           <div className="expense-pagination-info">
-            Showing 1-10 of 247 users
+            Showing{" "}
+            {Math.min((currentPage - 1) * 10 + 1, users.totalCount || 0)}-
+            {Math.min(currentPage * 10, users.totalCount || 0)} of{" "}
+            {users.totalCount || 0} users
           </div>
         </div>
       </div>
@@ -762,8 +902,8 @@ const AdminDashboard = () => {
                   {log.type === "info"
                     ? "📝"
                     : log.type === "warning"
-                    ? "⚠️"
-                    : "🚨"}
+                      ? "⚠️"
+                      : "🚨"}
                 </div>
                 <div className="expense-log-content">
                   <div className="expense-log-title">{log.title}</div>

@@ -346,101 +346,123 @@ export const useUniversalSearch = () => {
   /**
    * API search for comprehensive results
    */
-  const performApiSearch = useCallback(async (searchQuery) => {
-    if (!searchQuery || searchQuery.length < 2) {
-      return;
-    }
-
-    // Cancel previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await api.get(SEARCH_API_ENDPOINT, {
-        params: {
-          q: searchQuery,
-          limit: 20, // Limit per section - increased for comprehensive results
-        },
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (response.data) {
-        // Transform API response to match our format
-        const transformedResults = {
-          expenses: (response.data.expenses || []).map((exp) => ({
-            id: exp.id,
-            type: SEARCH_TYPES.EXPENSE,
-            title: exp.title || exp.name,
-            subtitle:
-              exp.subtitle || `${exp.categoryName || ""} • ${exp.amount || ""}`,
-            metadata: exp.metadata || {},
-            route: getRouteForResult(SEARCH_TYPES.EXPENSE, exp.id),
-          })),
-          budgets: (response.data.budgets || []).map((budget) => ({
-            id: budget.id,
-            type: SEARCH_TYPES.BUDGET,
-            title: budget.title || budget.name,
-            subtitle:
-              budget.subtitle ||
-              `${budget.categoryName || ""} • ${budget.amount || ""}`,
-            metadata: budget.metadata || {},
-            route: getRouteForResult(SEARCH_TYPES.BUDGET, budget.id),
-          })),
-          categories: (response.data.categories || []).map((cat) => ({
-            id: cat.id,
-            type: SEARCH_TYPES.CATEGORY,
-            title: cat.title || cat.name,
-            subtitle: cat.subtitle || cat.type || "",
-            icon: cat.icon,
-            color: cat.color,
-            route: getRouteForResult(SEARCH_TYPES.CATEGORY, cat.id),
-          })),
-          bills: (response.data.bills || []).map((bill) => ({
-            id: bill.id,
-            type: SEARCH_TYPES.BILL,
-            title: bill.title || bill.name,
-            subtitle:
-              bill.subtitle || `${bill.frequency || ""} • ${bill.amount || ""}`,
-            metadata: bill.metadata || {},
-            route: getRouteForResult(SEARCH_TYPES.BILL, bill.id),
-          })),
-          paymentMethods: (response.data.paymentMethods || []).map((pm) => ({
-            id: pm.id,
-            type: SEARCH_TYPES.PAYMENT_METHOD,
-            title: pm.title || pm.name,
-            subtitle: pm.subtitle || pm.type || "",
-            icon: pm.icon,
-            color: pm.color,
-            route: getRouteForResult(SEARCH_TYPES.PAYMENT_METHOD, pm.id),
-          })),
-          friends: (response.data.friends || []).map((friend) => ({
-            id: friend.id,
-            type: SEARCH_TYPES.FRIEND,
-            title: friend.title || friend.name,
-            subtitle: friend.subtitle || friend.email || "",
-            metadata: friend.metadata || {},
-            route: getRouteForResult(SEARCH_TYPES.FRIEND, friend.id),
-          })),
-        };
-
-        setApiResults(transformedResults);
+  const performApiSearch = useCallback(
+    async (searchQuery) => {
+      if (!searchQuery || searchQuery.length < 2) {
+        return;
       }
-    } catch (err) {
-      if (err.name !== "CanceledError" && err.code !== "ERR_CANCELED") {
-        console.error("Search API error:", err);
-        // Don't show error to user for search - just use local results
-        // setError('Search temporarily unavailable');
+
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+
+      abortControllerRef.current = new AbortController();
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await api.get(SEARCH_API_ENDPOINT, {
+          params: {
+            q: searchQuery,
+            limit: 20, // Limit per section - increased for comprehensive results
+          },
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (response.data) {
+          // Transform API response to match our format
+          // Use formatAmount to format amounts with user's currency preference
+          const transformedResults = {
+            expenses: (response.data.expenses || []).map((exp) => {
+              // Get amount from metadata or direct field
+              const amount = exp.metadata?.amount || exp.amount || 0;
+              const categoryName =
+                exp.metadata?.categoryName ||
+                exp.categoryName ||
+                "Uncategorized";
+              return {
+                id: exp.id,
+                type: SEARCH_TYPES.EXPENSE,
+                title: exp.title || exp.name,
+                subtitle: `${categoryName} • ${formatAmount(amount)}`,
+                metadata: exp.metadata || {},
+                route: getRouteForResult(SEARCH_TYPES.EXPENSE, exp.id),
+              };
+            }),
+            budgets: (response.data.budgets || []).map((budget) => {
+              // Get amount from metadata or direct field
+              const amount = budget.metadata?.amount || budget.amount || 0;
+              const categoryName =
+                budget.metadata?.categoryName ||
+                budget.categoryName ||
+                "All Categories";
+              return {
+                id: budget.id,
+                type: SEARCH_TYPES.BUDGET,
+                title: budget.title || budget.name,
+                subtitle: `${categoryName} • ${formatAmount(amount)}`,
+                metadata: budget.metadata || {},
+                route: getRouteForResult(SEARCH_TYPES.BUDGET, budget.id),
+              };
+            }),
+            categories: (response.data.categories || []).map((cat) => ({
+              id: cat.id,
+              type: SEARCH_TYPES.CATEGORY,
+              title: cat.title || cat.name,
+              subtitle: cat.subtitle || cat.type || "",
+              icon: cat.icon,
+              color: cat.color,
+              route: getRouteForResult(SEARCH_TYPES.CATEGORY, cat.id),
+            })),
+            bills: (response.data.bills || []).map((bill) => {
+              // Get amount from metadata or direct field
+              const amount = bill.metadata?.amount || bill.amount || 0;
+              const frequency =
+                bill.metadata?.frequency || bill.frequency || "One-time";
+              return {
+                id: bill.id,
+                type: SEARCH_TYPES.BILL,
+                title: bill.title || bill.name,
+                subtitle: `${frequency} • ${formatAmount(amount)}`,
+                metadata: bill.metadata || {},
+                route: getRouteForResult(SEARCH_TYPES.BILL, bill.id),
+              };
+            }),
+            paymentMethods: (response.data.paymentMethods || []).map((pm) => ({
+              id: pm.id,
+              type: SEARCH_TYPES.PAYMENT_METHOD,
+              title: pm.title || pm.name,
+              subtitle: pm.subtitle || pm.type || "",
+              icon: pm.icon,
+              color: pm.color,
+              route: getRouteForResult(SEARCH_TYPES.PAYMENT_METHOD, pm.id),
+            })),
+            friends: (response.data.friends || []).map((friend) => ({
+              id: friend.id,
+              type: SEARCH_TYPES.FRIEND,
+              title: friend.title || friend.name,
+              subtitle: friend.subtitle || friend.email || "",
+              metadata: friend.metadata || {},
+              route: getRouteForResult(SEARCH_TYPES.FRIEND, friend.id),
+            })),
+          };
+
+          setApiResults(transformedResults);
+        }
+      } catch (err) {
+        if (err.name !== "CanceledError" && err.code !== "ERR_CANCELED") {
+          console.error("Search API error:", err);
+          // Don't show error to user for search - just use local results
+          // setError('Search temporarily unavailable');
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [formatAmount],
+  );
 
   /**
    * Handle query change with debouncing

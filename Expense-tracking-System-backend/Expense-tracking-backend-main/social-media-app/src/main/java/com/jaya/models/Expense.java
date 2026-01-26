@@ -26,7 +26,6 @@ public class Expense {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-
     @JsonFormat(pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate date;
@@ -39,16 +38,15 @@ public class Expense {
 
     private Integer categoryId = 0;
 
-
     private String categoryName = "";
 
-    @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL)
+    // Using LAZY fetch - all queries use JOIN FETCH to avoid N+1 problem
+    @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     @ToString.Exclude
     private ExpenseDetails expense;
 
     private boolean isBill = false;
-
 
     @Column(name = "expense_user_id")
     private Integer userId;

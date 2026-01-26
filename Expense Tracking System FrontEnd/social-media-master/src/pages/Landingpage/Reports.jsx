@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -35,7 +35,12 @@ import ReportsGeneration from "../ReportsGeneration";
 import SearchExpenses from "../SearchExpenses/SearchExpenses";
 import SearchAudits from "../SearchAudits/SearchAudits";
 import { ReportsHistoryContainer } from "../../components/ReportsHistory";
-import { useNavigate, useParams, useLocation } from "react-router";
+import {
+  useNavigate,
+  useParams,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchReportHistory } from "../../Redux/ReportHistory/reportHistory.action";
 
@@ -151,21 +156,49 @@ const defaultColumns = [
 
 const Reports = () => {
   const [selectedReport, setSelectedReport] = useState("select");
-  const [activeTab, setActiveTab] = useState(0);
-  const [Url, setUrl] = useState(null);
   const muiTheme = useMuiTheme();
   const { colors } = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const { friendId } = useParams();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const hideBackButton = location?.state?.fromSidebar === true;
 
   // Redux
   const dispatch = useDispatch();
   const { reports, loading, error } = useSelector(
-    (state) => state.reportHistory
+    (state) => state.reportHistory,
   );
+
+  const [activeTab, setActiveTab] = useState(0);
+  const [Url, setUrl] = useState(null);
+
+  // Sync activeTab with URL parameter - runs on mount AND when searchParams change
+  // This is the source of truth approach - URL drives the state
+  const lastProcessedTabRef = useRef(null);
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam !== null) {
+      const tabIndex = parseInt(tabParam, 10);
+      // Only update if it's a valid tab and different from what we last processed
+      if (
+        !isNaN(tabIndex) &&
+        tabIndex >= 0 &&
+        tabIndex <= 2 &&
+        lastProcessedTabRef.current !== tabParam
+      ) {
+        lastProcessedTabRef.current = tabParam;
+        setActiveTab(tabIndex);
+        // Clean up URL after applying the tab (use setTimeout to avoid state update during render)
+        setTimeout(() => {
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.delete("tab");
+          setSearchParams(newSearchParams, { replace: true });
+        }, 0);
+      }
+    }
+  }, [searchParams, setSearchParams]);
 
   // Fetch report history when Reports History tab is active
   useEffect(() => {

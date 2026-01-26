@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Button,
   FormControl,
@@ -6,20 +7,42 @@ import {
   Select,
   MenuItem as MuiMenuItem,
   TextField,
+  CircularProgress,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
   AdminPanelContainer,
   AdminPageHeader,
   StatCard,
   SectionCard,
 } from "./components";
+import { fetchAdminReports, generateReport, deleteReport } from "../../../Redux/Admin/admin.action";
 
 const Reports = () => {
+  const dispatch = useDispatch();
+  const adminState = useSelector(state => state.admin) || {};
+  const reportsState = adminState.reports || {
+    list: [],
+    totalCount: 0,
+    generating: false,
+    loading: false,
+    error: null
+  };
+  const { list: reports, totalCount, generating, loading, error } = reportsState;
+
   const [reportType, setReportType] = useState("user-activity");
   const [dateRange, setDateRange] = useState("30d");
   const [format, setFormat] = useState("pdf");
+  const [reportName, setReportName] = useState("");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  useEffect(() => {
+    dispatch(fetchAdminReports());
+  }, [dispatch]);
 
   const reportTypes = [
     {
@@ -49,36 +72,49 @@ const Reports = () => {
     },
   ];
 
-  // Recent reports data
-  const recentReports = [
-    {
-      id: 1,
-      name: "Monthly User Activity - January 2024",
-      type: "User Activity",
-      generatedBy: "Admin User",
-      date: "2024-01-31",
-      size: "2.4 MB",
-      format: "PDF",
-    },
-    {
-      id: 2,
-      name: "Q4 2023 Expense Summary",
-      type: "Expense Summary",
-      generatedBy: "System",
-      date: "2024-01-01",
-      size: "5.8 MB",
-      format: "Excel",
-    },
-    {
-      id: 3,
-      name: "Annual Audit Trail 2023",
-      type: "Audit Trail",
-      generatedBy: "Admin User",
-      date: "2023-12-31",
-      size: "12.3 MB",
-      format: "PDF",
-    },
-  ];
+  const handleGenerateReport = async () => {
+    try {
+      const reportConfig = {
+        type: reportType,
+        dateRange,
+        format,
+        name: reportName || `${reportTypes.find(r => r.value === reportType)?.label} - ${new Date().toLocaleDateString()}`,
+      };
+      await dispatch(generateReport(reportConfig));
+      setSnackbar({ open: true, message: "Report generated successfully!", severity: "success" });
+      setReportName("");
+    } catch (err) {
+      setSnackbar({ open: true, message: "Failed to generate report", severity: "error" });
+    }
+  };
+
+  const handleDeleteReport = async (reportId) => {
+    if (window.confirm("Are you sure you want to delete this report?")) {
+      try {
+        await dispatch(deleteReport(reportId));
+        setSnackbar({ open: true, message: "Report deleted successfully!", severity: "success" });
+      } catch (err) {
+        setSnackbar({ open: true, message: "Failed to delete report", severity: "error" });
+      }
+    }
+  };
+
+  const handleDownloadReport = (report) => {
+    // This would typically call an API to download the report file
+    console.log("Downloading report:", report.id);
+    setSnackbar({ open: true, message: "Download started...", severity: "info" });
+  };
+
+  // Calculate stats
+  const reportsThisMonth = reports.filter(r => {
+    const reportDate = new Date(r.createdAt || r.date);
+    const now = new Date();
+    return reportDate.getMonth() === now.getMonth() && reportDate.getFullYear() === now.getFullYear();
+  }).length;
+
+  const avgSize = reports.length > 0 
+    ? (reports.reduce((sum, r) => sum + parseFloat(r.size || 0), 0) / reports.length).toFixed(1) 
+    : "0";
 
   return (
     <AdminPanelContainer>
@@ -88,12 +124,19 @@ const Reports = () => {
         description="Generate and manage system reports"
       />
 
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" className="mb-4">
+          {error}
+        </Alert>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Report Types" value={reportTypes.length.toString()} />
-        <StatCard label="Generated This Month" value="12" color="#4caf50" />
-        <StatCard label="Total Reports" value="87" color="#2196f3" />
-        <StatCard label="Avg Size" value="4.2 MB" color="#9c27b0" />
+        <StatCard label="Generated This Month" value={reportsThisMonth.toString()} color="#4caf50" />
+        <StatCard label="Total Reports" value={(totalCount || reports.length).toString()} color="#2196f3" />
+        <StatCard label="Avg Size" value={`${avgSize} MB`} color="#9c27b0" />
       </div>
 
       {/* Report Configuration */}
@@ -148,6 +191,8 @@ const Reports = () => {
               variant="outlined"
               fullWidth
               placeholder="e.g., Q1 2024 Summary"
+              value={reportName}
+              onChange={(e) => setReportName(e.target.value)}
             />
           </div>
 
@@ -165,14 +210,16 @@ const Reports = () => {
           <div className="flex gap-3">
             <Button
               variant="contained"
-              startIcon={<FileDownloadIcon />}
+              startIcon={generating ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+              onClick={handleGenerateReport}
+              disabled={generating}
               style={{
                 backgroundColor: "#14b8a6",
                 color: "#fff",
               }}
               fullWidth
             >
-              Generate Report
+              {generating ? "Generating..." : "Generate Report"}
             </Button>
             <Button variant="outlined" startIcon={<VisibilityIcon />}>
               Preview
@@ -183,43 +230,82 @@ const Reports = () => {
 
       {/* Recent Reports */}
       <SectionCard title="Recent Reports" className="mt-6">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-700">
-                <th className="px-6 py-4 text-left text-sm font-semibold">Report Name</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Type</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Generated By</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Date</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Size</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Format</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentReports.map((report) => (
-                <tr key={report.id} className="border-b border-gray-700">
-                  <td className="px-6 py-4 font-medium">{report.name}</td>
-                  <td className="px-6 py-4 text-sm opacity-70">{report.type}</td>
-                  <td className="px-6 py-4 text-sm opacity-70">{report.generatedBy}</td>
-                  <td className="px-6 py-4 text-sm opacity-70">{report.date}</td>
-                  <td className="px-6 py-4 text-sm opacity-70">{report.size}</td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 rounded text-xs font-medium bg-blue-900 text-blue-300">
-                      {report.format}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <Button size="small" startIcon={<FileDownloadIcon />}>
-                      Download
-                    </Button>
-                  </td>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <CircularProgress style={{ color: "#14b8a6" }} />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Report Name</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Type</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Generated By</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Size</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Format</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {reports.length > 0 ? (
+                  reports.map((report) => (
+                    <tr key={report.id} className="border-b border-gray-700">
+                      <td className="px-6 py-4 font-medium">{report.name}</td>
+                      <td className="px-6 py-4 text-sm opacity-70">{report.type}</td>
+                      <td className="px-6 py-4 text-sm opacity-70">{report.generatedBy || "System"}</td>
+                      <td className="px-6 py-4 text-sm opacity-70">
+                        {new Date(report.createdAt || report.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm opacity-70">{report.size || "N/A"}</td>
+                      <td className="px-6 py-4">
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-blue-900 text-blue-300">
+                          {report.format?.toUpperCase() || "PDF"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Button 
+                          size="small" 
+                          startIcon={<FileDownloadIcon />}
+                          onClick={() => handleDownloadReport(report)}
+                        >
+                          Download
+                        </Button>
+                        <Button 
+                          size="small" 
+                          color="error"
+                          startIcon={<DeleteIcon />}
+                          onClick={() => handleDeleteReport(report.id)}
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center opacity-70">
+                      No reports generated yet. Create your first report above.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </SectionCard>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </AdminPanelContainer>
   );
 };

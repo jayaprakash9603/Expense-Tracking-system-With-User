@@ -113,20 +113,36 @@ export const useSettingsActions = (
 
     // Help & Support
     helpCenter: () => {
-      showSnackbar("Opening help center...", "info");
-      // Navigate to help center
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/support/help");
     },
     contactSupport: () => {
-      showSnackbar("Opening contact support form...", "info");
-      // Open support form modal
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/support/contact");
     },
     termsOfService: () => {
-      showSnackbar("Opening terms of service...", "info");
-      // Navigate to terms page
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/support/terms");
     },
     privacyPolicy: () => {
-      showSnackbar("Opening privacy policy...", "info");
-      // Navigate to privacy page
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/support/privacy");
     },
   };
 

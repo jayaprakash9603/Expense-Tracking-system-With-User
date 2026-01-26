@@ -26,6 +26,7 @@ import notificationPreferencesReducer from "./NotificationPreferences/notificati
 import { reportHistoryReducer } from "./ReportHistory/reportHistory.reducer";
 import friendActivityReducer from "./FriendActivity/friendActivity.reducer";
 import { shortcutsReducer } from "./Shortcuts/shortcuts.reducer";
+import { adminReducer } from "./Admin";
 
 // Combine reducers
 const appReducer = combineReducers({
@@ -47,6 +48,7 @@ const appReducer = combineReducers({
   reportHistory: reportHistoryReducer,
   friendActivity: friendActivityReducer,
   shortcuts: shortcutsReducer,
+  admin: adminReducer,
 });
 
 const rootReducer = (state, action) => {
