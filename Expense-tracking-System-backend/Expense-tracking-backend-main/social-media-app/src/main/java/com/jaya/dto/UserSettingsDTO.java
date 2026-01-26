@@ -119,6 +119,9 @@ public class UserSettingsDTO {
     @JsonProperty("keyboardShortcuts")
     private Boolean keyboardShortcuts;
 
+    @JsonProperty("showShortcutIndicators")
+    private Boolean showShortcutIndicators;
+
     @JsonProperty("reduceMotion")
     private Boolean reduceMotion;
 

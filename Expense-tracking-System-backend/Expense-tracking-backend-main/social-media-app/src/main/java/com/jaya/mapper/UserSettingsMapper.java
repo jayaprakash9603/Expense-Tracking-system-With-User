@@ -68,6 +68,7 @@ public class UserSettingsMapper {
                 // Accessibility
                 .screenReader(entity.getScreenReader())
                 .keyboardShortcuts(entity.getKeyboardShortcuts())
+                .showShortcutIndicators(entity.getShowShortcutIndicators())
                 .reduceMotion(entity.getReduceMotion())
                 .focusIndicators(entity.getFocusIndicators())
                 // Timestamps
@@ -126,6 +127,7 @@ public class UserSettingsMapper {
                 // Accessibility
                 .screenReader(dto.getScreenReader())
                 .keyboardShortcuts(dto.getKeyboardShortcuts())
+                .showShortcutIndicators(dto.getShowShortcutIndicators())
                 .reduceMotion(dto.getReduceMotion())
                 .focusIndicators(dto.getFocusIndicators())
                 .build();
@@ -242,6 +244,9 @@ public class UserSettingsMapper {
         }
         if (request.getKeyboardShortcuts() != null) {
             entity.setKeyboardShortcuts(request.getKeyboardShortcuts());
+        }
+        if (request.getShowShortcutIndicators() != null) {
+            entity.setShowShortcutIndicators(request.getShowShortcutIndicators());
         }
         if (request.getReduceMotion() != null) {
             entity.setReduceMotion(request.getReduceMotion());

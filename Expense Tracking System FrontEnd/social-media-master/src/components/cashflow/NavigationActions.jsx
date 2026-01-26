@@ -62,8 +62,11 @@ const NavigationActions = ({
         flexWrap: isMobile ? "wrap" : "nowrap",
       }}
     >
-      {items.map(({ path, icon, label }) => {
+      {items.map(({ path, icon, label, shortcutKey }) => {
         const target = isFriendView ? `${path}/${friendId}` : path;
+        // Generate shortcut key from path if not provided
+        const derivedShortcut =
+          shortcutKey || path.replace(/^\//, "").replace(/[/-]/g, "-");
         return (
           <button
             key={path}
@@ -74,6 +77,8 @@ const NavigationActions = ({
               });
             }}
             className="nav-button"
+            data-shortcut={`nav-flow-${derivedShortcut}`}
+            title={`${label} (${shortcutKey || derivedShortcut.charAt(0).toUpperCase()})`}
             style={{
               display: "flex",
               alignItems: "center",
@@ -109,6 +114,7 @@ const NavigationActions = ({
         <button
           ref={btnRef}
           onClick={() => setOpen((v) => !v)}
+          data-shortcut="nav-flow-add-new"
           style={{
             display: "flex",
             alignItems: "center",
@@ -125,7 +131,7 @@ const NavigationActions = ({
           }}
           title={
             hasWriteAccess
-              ? t("cashflow.addNew.tooltip")
+              ? `${t("cashflow.addNew.tooltip")} (A)`
               : t("cashflow.addNew.readOnly")
           }
         >
@@ -201,7 +207,7 @@ const NavigationActions = ({
               </button>
             ))}
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

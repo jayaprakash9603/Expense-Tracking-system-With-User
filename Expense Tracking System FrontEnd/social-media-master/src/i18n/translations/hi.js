@@ -880,6 +880,9 @@ export const hi = {
     screenReaderSupportDescription: "स्क्रीन रीडर के लिए बेहतर सपोर्ट",
     keyboardShortcuts: "कीबोर्ड शॉर्टकट",
     keyboardShortcutsDescription: "कीबोर्ड नेविगेशन शॉर्टकट सक्षम करें",
+    showShortcutIndicators: "शॉर्टकट संकेतक दिखाएं",
+    showShortcutIndicatorsDescription:
+      "Alt कुंजी दबाने पर शॉर्टकट बैज प्रदर्शित करें",
     reduceMotion: "मोशन कम करें",
     reduceMotionDescription: "बेहतर पहुंच के लिए एनिमेशन को कम करें",
     enhancedFocusIndicators: "बेहतर फोकस संकेतक",
@@ -1360,6 +1363,22 @@ export const hi = {
       chat: "चैट",
       chatDesc: "मित्रों के साथ चैट खोलें",
     },
+
+    // सेटिंग्स खोज आइटम
+    settings: {
+      keyboardShortcuts: "कीबोर्ड शॉर्टकट",
+      keyboardShortcutsDesc: "कीबोर्ड नेविगेशन शॉर्टकट सक्षम करें",
+      showShortcutIndicators: "शॉर्टकट संकेतक दिखाएं",
+      showShortcutIndicatorsDesc:
+        "Alt कुंजी दबाने पर शॉर्टकट बैज प्रदर्शित करें",
+      screenReader: "स्क्रीन रीडर सपोर्ट",
+      screenReaderDesc: "स्क्रीन रीडर के लिए बेहतर सपोर्ट",
+      reduceMotion: "मोशन कम करें",
+      reduceMotionDesc: "बेहतर पहुंच के लिए एनिमेशन कम करें",
+      focusIndicators: "बेहतर फोकस संकेतक",
+      focusIndicatorsDesc:
+        "फोकस किए गए तत्वों को अधिक प्रमुखता से हाइलाइट करें",
+    },
   },
 
   // कीबोर्ड Alt ओवरले
@@ -1395,5 +1414,14 @@ export const hi = {
     previous: "पिछला",
     next: "अगला",
     flowToggle: "फ्लो टॉगल",
+    // फ्लो नेविगेशन बार शॉर्टकट
+    flowReports: "रिपोर्ट्स",
+    flowCategories: "श्रेणियाँ",
+    flowBudget: "बजट",
+    flowPayments: "भुगतान",
+    flowBill: "बिल",
+    flowCalendar: "कैलेंडर",
+    flowExpenses: "खर्च",
+    flowAddNew: "नया जोड़ें",
   },
 };

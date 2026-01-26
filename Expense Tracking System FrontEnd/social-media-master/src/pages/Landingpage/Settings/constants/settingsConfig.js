@@ -583,6 +583,18 @@ export const SETTINGS_SECTIONS = {
         settingsKey: "keyboardShortcuts",
       },
       {
+        id: "showShortcutIndicators",
+        icon: KeyboardIcon,
+        title: "Show Shortcut Indicators",
+        titleKey: "settings.showShortcutIndicators",
+        description: "Display shortcut badges when Alt key is pressed",
+        descriptionKey: "settings.showShortcutIndicatorsDescription",
+        type: "switch",
+        stateKey: "showShortcutIndicators",
+        settingsKey: "showShortcutIndicators",
+        indent: true, // Sub-option visual indicator
+      },
+      {
         id: "reduceMotion",
         icon: MotionPhotosOffIcon,
         title: "Reduce Motion",

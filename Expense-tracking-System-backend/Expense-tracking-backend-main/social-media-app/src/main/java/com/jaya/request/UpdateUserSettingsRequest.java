@@ -160,6 +160,10 @@ public class UpdateUserSettingsRequest {
     @JsonAlias("keyboard_shortcuts")
     private Boolean keyboardShortcuts;
 
+    @JsonProperty("showShortcutIndicators")
+    @JsonAlias("show_shortcut_indicators")
+    private Boolean showShortcutIndicators;
+
     @JsonProperty("reduceMotion")
     @JsonAlias("reduce_motion")
     private Boolean reduceMotion;

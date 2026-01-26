@@ -80,7 +80,7 @@ const ALT_SHORTCUTS = {
     selector: '[data-shortcut="range-week"]',
   },
   "flow-month": {
-    key: "1",
+    key: "M",
     labelKey: "keyboard.month",
     selector: '[data-shortcut="range-month"]',
   },
@@ -105,6 +105,45 @@ const ALT_SHORTCUTS = {
     selector: '[data-shortcut="flow-toggle"]',
   },
 
+  // Flow navigation bar shortcuts (visible on flow pages) - Numbers 1-7
+  "flow-nav-reports": {
+    key: "1",
+    labelKey: "keyboard.flowReports",
+    selector:
+      '[data-shortcut="nav-flow-expenses-reports"], [data-shortcut="nav-flow-category-flow-reports"], [data-shortcut="nav-flow-payment-method-reports"]',
+  },
+  "flow-nav-categories": {
+    key: "2",
+    labelKey: "keyboard.flowCategories",
+    selector: '[data-shortcut="nav-flow-category-flow"]',
+  },
+  "flow-nav-budget": {
+    key: "3",
+    labelKey: "keyboard.flowBudget",
+    selector: '[data-shortcut="nav-flow-budget"]',
+  },
+  "flow-nav-payments": {
+    key: "4",
+    labelKey: "keyboard.flowPayments",
+    selector: '[data-shortcut="nav-flow-payment-method"]',
+  },
+  "flow-nav-bill": {
+    key: "5",
+    labelKey: "keyboard.flowBill",
+    selector: '[data-shortcut="nav-flow-bill"]',
+  },
+  "flow-nav-calendar": {
+    key: "6",
+    labelKey: "keyboard.flowCalendar",
+    selector:
+      '[data-shortcut*="nav-flow-calendar"], [data-shortcut*="nav-flow-category-flow-calendar"], [data-shortcut*="nav-flow-payment-method-calendar"]',
+  },
+  "flow-nav-add-new": {
+    key: "7",
+    labelKey: "keyboard.flowAddNew",
+    selector: '[data-shortcut="nav-flow-add-new"]',
+  },
+
   // Actions - Header bar
   "action-theme": {
     key: "T",
@@ -112,7 +151,7 @@ const ALT_SHORTCUTS = {
     selector: '[data-shortcut="theme"]',
   },
   "action-masking": {
-    key: "M",
+    key: "V",
     labelKey: "keyboard.toggleMasking",
     selector: '[data-shortcut="masking"]',
   },
@@ -329,6 +368,7 @@ export function AltKeyOverlay() {
   const { mode } = useSelector((state) => state.theme || {});
   const userSettings = useSelector((state) => state.userSettings?.settings);
   const keyboardShortcutsEnabled = userSettings?.keyboardShortcuts ?? true;
+  const showShortcutIndicators = userSettings?.showShortcutIndicators ?? true; // Control badge display
   const isDark = mode === "dark";
   const [isAltPressed, setIsAltPressed] = useState(false);
   const [elements, setElements] = useState({});
@@ -670,8 +710,8 @@ export function AltKeyOverlay() {
 
   return (
     <Portal>
-      {/* Overlay dim background */}
-      {isAltPressed && (
+      {/* Overlay dim background - only show if indicators are enabled */}
+      {isAltPressed && showShortcutIndicators && (
         <Fade in={isAltPressed} timeout={150}>
           <Box
             sx={{
@@ -685,18 +725,19 @@ export function AltKeyOverlay() {
         </Fade>
       )}
 
-      {/* Shortcut badges on elements */}
-      {Object.entries(displayElements).map(([id, config]) => (
-        <ShortcutBadge
-          key={id}
-          element={config.element}
-          shortcutKey={config.key}
-          isVisible={isAltPressed}
-        />
-      ))}
+      {/* Shortcut badges on elements - only show if indicators are enabled */}
+      {showShortcutIndicators &&
+        Object.entries(displayElements).map(([id, config]) => (
+          <ShortcutBadge
+            key={id}
+            element={config.element}
+            shortcutKey={config.key}
+            isVisible={isAltPressed}
+          />
+        ))}
 
-      {/* Bottom hint bar */}
-      {hintBar}
+      {/* Bottom hint bar - only show if indicators are enabled */}
+      {showShortcutIndicators && hintBar}
     </Portal>
   );
 }

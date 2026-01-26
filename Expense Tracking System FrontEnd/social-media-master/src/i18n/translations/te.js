@@ -889,6 +889,9 @@ export const te = {
     keyboardShortcuts: "కీబోర్డ్ షార్ట్‌కట్లు",
     keyboardShortcutsDescription:
       "కీబోర్డ్ నావిగేషన్ షార్ట్‌కట్‌లను ప్రారంభించండి",
+    showShortcutIndicators: "షార్ట్‌కట్ సూచకాలు చూపించు",
+    showShortcutIndicatorsDescription:
+      "Alt కీ నొక్కినప్పుడు షార్ట్‌కట్ బ్యాజ్‌లు చూపించండి",
     reduceMotion: "చలనాన్ని తగ్గించండి",
     reduceMotionDescription:
       "మెరుగైన యాక్సెసిబిలిటీ కోసం యానిమేషన్‌లను తగ్గించండి",
@@ -1374,6 +1377,22 @@ export const te = {
       chat: "చాట్",
       chatDesc: "స్నేహితులతో చాట్ తెరవండి",
     },
+
+    // సెట్టింగ్స్ సెర్చ్ ఐటంలు
+    settings: {
+      keyboardShortcuts: "కీబోర్డ్ షార్ట్‌కట్లు",
+      keyboardShortcutsDesc: "కీబోర్డ్ నావిగేషన్ షార్ట్‌కట్లు ప్రారంభించండి",
+      showShortcutIndicators: "షార్ట్‌కట్ సూచకాలు చూపించు",
+      showShortcutIndicatorsDesc:
+        "Alt కీ నొక్కినప్పుడు షార్ట్‌కట్ బ్యాజ్‌లు చూపించండి",
+      screenReader: "స్క్రీన్ రీడర్ మద్దతు",
+      screenReaderDesc: "స్క్రీన్ రీడర్‌ల కోసం మెరుగైన మద్దతు",
+      reduceMotion: "చలనాన్ని తగ్గించండి",
+      reduceMotionDesc: "మెరుగైన యాక్సెసిబిలిటీ కోసం యానిమేషన్‌లను తగ్గించండి",
+      focusIndicators: "మెరుగైన ఫోకస్ సూచికలు",
+      focusIndicatorsDesc:
+        "ఫోకస్ చేసిన ఎలిమెంట్‌లను మరింత ప్రముఖంగా హైలైట్ చేయండి",
+    },
   },
 
   // కీబోర్డ్ Alt ఓవర్లే
@@ -1409,5 +1428,14 @@ export const te = {
     previous: "ముందు",
     next: "తర్వాత",
     flowToggle: "ఫ్లో టాగల్",
+    // ఫ్లో నావిగేషన్ బార్ షార్ట్‌కట్లు
+    flowReports: "నివేదికలు",
+    flowCategories: "వర్గాలు",
+    flowBudget: "బడ్జెట్",
+    flowPayments: "చెల్లింపులు",
+    flowBill: "బిల్లు",
+    flowCalendar: "క్యాలెండర్",
+    flowExpenses: "ఖర్చులు",
+    flowAddNew: "కొత్త జోడించు",
   },
 };

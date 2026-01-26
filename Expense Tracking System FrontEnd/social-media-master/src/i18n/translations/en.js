@@ -879,6 +879,9 @@ export const en = {
     screenReaderSupportDescription: "Enhanced support for screen readers",
     keyboardShortcuts: "Keyboard Shortcuts",
     keyboardShortcutsDescription: "Enable keyboard navigation shortcuts",
+    showShortcutIndicators: "Show Shortcut Indicators",
+    showShortcutIndicatorsDescription:
+      "Display shortcut badges when Alt key is pressed",
     reduceMotion: "Reduce Motion",
     reduceMotionDescription: "Minimize animations for better accessibility",
     enhancedFocusIndicators: "Enhanced Focus Indicators",
@@ -1407,6 +1410,21 @@ export const en = {
       chat: "Chat",
       chatDesc: "Open chat with friends",
     },
+
+    // Settings Search Items
+    settings: {
+      keyboardShortcuts: "Keyboard Shortcuts",
+      keyboardShortcutsDesc: "Enable keyboard navigation shortcuts",
+      showShortcutIndicators: "Show Shortcut Indicators",
+      showShortcutIndicatorsDesc:
+        "Display shortcut badges when Alt key is pressed",
+      screenReader: "Screen Reader Support",
+      screenReaderDesc: "Enhanced support for screen readers",
+      reduceMotion: "Reduce Motion",
+      reduceMotionDesc: "Minimize animations for better accessibility",
+      focusIndicators: "Enhanced Focus Indicators",
+      focusIndicatorsDesc: "Highlight focused elements more prominently",
+    },
   },
 
   // Keyboard Alt Overlay
@@ -1442,5 +1460,14 @@ export const en = {
     previous: "Previous",
     next: "Next",
     flowToggle: "Toggle Flow",
+    // Flow navigation bar shortcuts
+    flowReports: "Reports",
+    flowCategories: "Categories",
+    flowBudget: "Budget",
+    flowPayments: "Payments",
+    flowBill: "Bill",
+    flowCalendar: "Calendar",
+    flowExpenses: "Expenses",
+    flowAddNew: "Add New",
   },
 };
