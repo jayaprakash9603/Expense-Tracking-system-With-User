@@ -18,7 +18,7 @@ const DEBOUNCE_DELAY = 150;
 const MIN_QUERY_LENGTH = 2;
 
 // Maximum results per section
-const MAX_RESULTS_PER_SECTION = 5;
+const MAX_RESULTS_PER_SECTION = 20;
 
 // API endpoint for unified search
 const SEARCH_API_ENDPOINT = "/api/search";
@@ -160,7 +160,7 @@ export const useUniversalSearch = () => {
             categoryName.toLowerCase().includes(queryLower)
           );
         })
-        .slice(0, 5)
+        .slice(0, MAX_RESULTS_PER_SECTION)
         .map((exp) => {
           const expName = exp?.name || exp?.expense?.name || "Expense";
           const amount = exp?.amount || exp?.expense?.amount || 0;
@@ -190,7 +190,7 @@ export const useUniversalSearch = () => {
             categoryName.toLowerCase().includes(queryLower)
           );
         })
-        .slice(0, 5)
+        .slice(0, MAX_RESULTS_PER_SECTION)
         .map((budget) => ({
           id: budget.id,
           type: SEARCH_TYPES.BUDGET,
@@ -210,7 +210,7 @@ export const useUniversalSearch = () => {
           const name = cat?.name || "";
           return name.toLowerCase().includes(queryLower);
         })
-        .slice(0, 5)
+        .slice(0, MAX_RESULTS_PER_SECTION)
         .map((cat) => ({
           id: cat.id,
           type: SEARCH_TYPES.CATEGORY,
@@ -231,7 +231,7 @@ export const useUniversalSearch = () => {
             description.toLowerCase().includes(queryLower)
           );
         })
-        .slice(0, 5)
+        .slice(0, MAX_RESULTS_PER_SECTION)
         .map((bill) => ({
           id: bill.id,
           type: SEARCH_TYPES.BILL,
@@ -255,7 +255,7 @@ export const useUniversalSearch = () => {
             type.toLowerCase().includes(queryLower)
           );
         })
-        .slice(0, 5)
+        .slice(0, MAX_RESULTS_PER_SECTION)
         .map((pm) => ({
           id: pm.id,
           type: SEARCH_TYPES.PAYMENT_METHOD,
@@ -277,7 +277,7 @@ export const useUniversalSearch = () => {
             email.toLowerCase().includes(queryLower)
           );
         })
-        .slice(0, 5)
+        .slice(0, MAX_RESULTS_PER_SECTION)
         .map((friend) => ({
           id: friend.id,
           type: SEARCH_TYPES.FRIEND,
@@ -334,7 +334,7 @@ export const useUniversalSearch = () => {
       const response = await api.get(SEARCH_API_ENDPOINT, {
         params: {
           q: searchQuery,
-          limit: 5, // Limit per section
+          limit: 20, // Limit per section - increased for comprehensive results
         },
         signal: abortControllerRef.current.signal,
       });

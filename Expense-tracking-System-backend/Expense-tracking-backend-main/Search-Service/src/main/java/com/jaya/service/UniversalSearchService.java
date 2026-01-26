@@ -51,7 +51,7 @@ public class UniversalSearchService {
     @Value("${search.timeout-ms:3000}")
     private long searchTimeoutMs;
 
-    @Value("${search.default-limit:5}")
+    @Value("${search.default-limit:20}")
     private int defaultLimit;
 
     /**
@@ -130,12 +130,43 @@ public class UniversalSearchService {
     }
 
     /**
-     * Search expenses
+     * Search expenses with category enrichment
      */
     private CompletableFuture<List<SearchResultDTO>> searchExpenses(
             String query, int limit, String authToken, Integer targetId) {
 
-        return webClient.get()
+        // First, fetch categories to get icon/color mappings
+        Mono<Map<Integer, Map<String, Object>>> categoriesMono = webClient.get()
+                .uri(categoryServiceUrl + "/api/categories", uriBuilder -> {
+                    if (targetId != null) {
+                        uriBuilder.queryParam("targetId", targetId);
+                    }
+                    return uriBuilder.build();
+                })
+                .header(HttpHeaders.AUTHORIZATION, authToken)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .timeout(Duration.ofMillis(searchTimeoutMs))
+                .map(categories -> {
+                    Map<Integer, Map<String, Object>> categoryMap = new HashMap<>();
+                    for (Map<String, Object> cat : categories) {
+                        Object idObj = cat.get("id");
+                        if (idObj != null) {
+                            Integer catId = idObj instanceof Number ? ((Number) idObj).intValue()
+                                    : Integer.parseInt(idObj.toString());
+                            categoryMap.put(catId, cat);
+                        }
+                    }
+                    return categoryMap;
+                })
+                .onErrorResume(e -> {
+                    log.warn("Could not fetch categories for enrichment: {}", e.getMessage());
+                    return Mono.just(new HashMap<>());
+                });
+
+        // Then fetch expenses and enrich with category data
+        Mono<List<Map<String, Object>>> expensesMono = webClient.get()
                 .uri(expenseServiceUrl + "/api/expenses/search", uriBuilder -> {
                     uriBuilder.queryParam("expenseName", query);
                     if (targetId != null) {
@@ -148,10 +179,17 @@ public class UniversalSearchService {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
                 })
                 .timeout(Duration.ofMillis(searchTimeoutMs))
-                .map(expenses -> mapExpenseResults(expenses, limit))
                 .onErrorResume(e -> {
                     log.error("Error searching expenses: {}", e.getMessage());
                     return Mono.just(Collections.emptyList());
+                });
+
+        // Combine both results
+        return Mono.zip(expensesMono, categoriesMono)
+                .map(tuple -> {
+                    List<Map<String, Object>> expenses = tuple.getT1();
+                    Map<Integer, Map<String, Object>> categoryMap = tuple.getT2();
+                    return mapExpenseResultsWithCategories(expenses, categoryMap, limit);
                 })
                 .toFuture();
     }
@@ -284,28 +322,110 @@ public class UniversalSearchService {
 
     // ==================== Result Mapping Methods ====================
 
-    private List<SearchResultDTO> mapExpenseResults(List<Map<String, Object>> expenses, int limit) {
+    /**
+     * Map expense results with category enrichment
+     */
+    private List<SearchResultDTO> mapExpenseResultsWithCategories(
+            List<Map<String, Object>> expenses,
+            Map<Integer, Map<String, Object>> categoryMap,
+            int limit) {
         return expenses.stream()
                 .limit(limit)
                 .map(exp -> {
+                    // Get expense details from nested object
                     Map<String, Object> expenseDetails = (Map<String, Object>) exp.get("expense");
-                    String name = expenseDetails != null ? (String) expenseDetails.get("name")
-                            : (String) exp.get("name");
-                    Object amount = expenseDetails != null ? expenseDetails.get("amount") : exp.get("amount");
+
+                    // Extract name - from expense details or direct
+                    String name = null;
+                    if (expenseDetails != null) {
+                        name = (String) expenseDetails.get("expenseName");
+                        if (name == null) {
+                            name = (String) expenseDetails.get("name");
+                        }
+                    }
+                    if (name == null) {
+                        name = (String) exp.get("name");
+                    }
+
+                    // Extract amount - from expense details or direct
+                    Object amount = null;
+                    if (expenseDetails != null) {
+                        amount = expenseDetails.get("amount");
+                    }
+                    if (amount == null) {
+                        amount = exp.get("amount");
+                    }
+
+                    // Extract other fields from expense details
+                    String type = null;
+                    String paymentMethod = null;
+                    String comments = null;
+                    Object netAmount = null;
+                    Object creditDue = null;
+
+                    if (expenseDetails != null) {
+                        type = (String) expenseDetails.get("type");
+                        paymentMethod = (String) expenseDetails.get("paymentMethod");
+                        comments = (String) expenseDetails.get("comments");
+                        netAmount = expenseDetails.get("netAmount");
+                        creditDue = expenseDetails.get("creditDue");
+                    }
+
+                    // Get category info - first try from expense, then from category map
+                    String categoryName = (String) exp.getOrDefault("categoryName", "Uncategorized");
+                    String categoryIcon = null;
+                    String categoryColor = null;
+                    Integer categoryId = null;
+
+                    Object catIdObj = exp.get("categoryId");
+                    if (catIdObj != null) {
+                        categoryId = catIdObj instanceof Number ? ((Number) catIdObj).intValue()
+                                : Integer.parseInt(catIdObj.toString());
+
+                        // Enrich with category data from map
+                        Map<String, Object> category = categoryMap.get(categoryId);
+                        if (category != null) {
+                            categoryIcon = (String) category.get("icon");
+                            categoryColor = (String) category.get("color");
+                            if (categoryName.equals("Uncategorized") || categoryName.isEmpty()) {
+                                categoryName = (String) category.getOrDefault("name", "Uncategorized");
+                            }
+                        }
+                    }
+
+                    // Build metadata with all relevant expense fields
+                    Map<String, Object> metadata = new HashMap<>();
+                    metadata.put("amount", amount != null ? amount : 0);
+                    metadata.put("date", exp.getOrDefault("date", ""));
+                    metadata.put("categoryName", categoryName);
+                    metadata.put("categoryId", categoryId);
+                    metadata.put("categoryIcon", categoryIcon);
+                    metadata.put("categoryColor", categoryColor);
+
+                    if (type != null)
+                        metadata.put("type", type);
+                    if (paymentMethod != null)
+                        metadata.put("paymentMethod", paymentMethod);
+                    if (comments != null)
+                        metadata.put("comments", comments);
+                    if (netAmount != null)
+                        metadata.put("netAmount", netAmount);
+                    if (creditDue != null)
+                        metadata.put("creditDue", creditDue);
+
+                    metadata.put("includeInBudget", exp.getOrDefault("includeInBudget", false));
+                    metadata.put("isBill", exp.getOrDefault("isBill", false));
 
                     return SearchResultDTO.builder()
                             .id(String.valueOf(exp.get("id")))
                             .type(SearchResultType.EXPENSE)
-                            .title(name != null ? name : "Expense")
+                            .title(name != null && !name.isEmpty() ? name : "Expense")
                             .subtitle(String.format("%s • %s",
-                                    exp.getOrDefault("categoryName", "Uncategorized"),
+                                    categoryName,
                                     formatAmount(amount)))
-                            .icon((String) exp.get("categoryIcon"))
-                            .color((String) exp.get("categoryColor"))
-                            .metadata(Map.of(
-                                    "amount", amount != null ? amount : 0,
-                                    "date", exp.getOrDefault("date", ""),
-                                    "categoryName", exp.getOrDefault("categoryName", "")))
+                            .icon(categoryIcon)
+                            .color(categoryColor)
+                            .metadata(metadata)
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -322,18 +442,32 @@ public class UniversalSearchService {
                             (categoryName != null && categoryName.toLowerCase().contains(queryLower));
                 })
                 .limit(limit)
-                .map(budget -> SearchResultDTO.builder()
-                        .id(String.valueOf(budget.get("id")))
-                        .type(SearchResultType.BUDGET)
-                        .title((String) budget.getOrDefault("name", "Budget"))
-                        .subtitle(String.format("%s • %s",
-                                budget.getOrDefault("categoryName", "All Categories"),
-                                formatAmount(budget.get("amount"))))
-                        .metadata(Map.of(
-                                "amount", budget.getOrDefault("amount", 0),
-                                "spent", budget.getOrDefault("spent", 0),
-                                "remaining", budget.getOrDefault("remaining", 0)))
-                        .build())
+                .map(budget -> {
+                    // Build comprehensive metadata for budgets
+                    Map<String, Object> metadata = new HashMap<>();
+                    metadata.put("amount", budget.getOrDefault("amount", 0));
+                    metadata.put("spent", budget.getOrDefault("spent", 0));
+                    metadata.put("remaining", budget.getOrDefault("remaining", 0));
+                    metadata.put("categoryName", budget.getOrDefault("categoryName", "All Categories"));
+                    metadata.put("categoryId", budget.get("categoryId"));
+                    metadata.put("startDate", budget.get("startDate"));
+                    metadata.put("endDate", budget.get("endDate"));
+                    metadata.put("period", budget.get("period"));
+                    metadata.put("alertThreshold", budget.get("alertThreshold"));
+                    metadata.put("isActive", budget.getOrDefault("isActive", true));
+
+                    return SearchResultDTO.builder()
+                            .id(String.valueOf(budget.get("id")))
+                            .type(SearchResultType.BUDGET)
+                            .title((String) budget.getOrDefault("name", "Budget"))
+                            .subtitle(String.format("%s • %s",
+                                    budget.getOrDefault("categoryName", "All Categories"),
+                                    formatAmount(budget.get("amount"))))
+                            .icon((String) budget.get("icon"))
+                            .color((String) budget.get("color"))
+                            .metadata(metadata)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -343,17 +477,29 @@ public class UniversalSearchService {
         return categories.stream()
                 .filter(cat -> {
                     String name = (String) cat.get("name");
-                    return name != null && name.toLowerCase().contains(queryLower);
+                    String description = (String) cat.get("description");
+                    return (name != null && name.toLowerCase().contains(queryLower)) ||
+                            (description != null && description.toLowerCase().contains(queryLower));
                 })
                 .limit(limit)
-                .map(cat -> SearchResultDTO.builder()
-                        .id(String.valueOf(cat.get("id")))
-                        .type(SearchResultType.CATEGORY)
-                        .title((String) cat.getOrDefault("name", "Category"))
-                        .subtitle((String) cat.getOrDefault("type", "Custom category"))
-                        .icon((String) cat.get("icon"))
-                        .color((String) cat.get("color"))
-                        .build())
+                .map(cat -> {
+                    // Build comprehensive metadata for categories
+                    Map<String, Object> metadata = new HashMap<>();
+                    metadata.put("description", cat.get("description"));
+                    metadata.put("type", cat.getOrDefault("type", "expense"));
+                    metadata.put("isGlobal", cat.getOrDefault("isGlobal", false));
+                    metadata.put("expenseCount", cat.get("expenseCount"));
+
+                    return SearchResultDTO.builder()
+                            .id(String.valueOf(cat.get("id")))
+                            .type(SearchResultType.CATEGORY)
+                            .title((String) cat.getOrDefault("name", "Category"))
+                            .subtitle((String) cat.getOrDefault("type", "Custom category"))
+                            .icon((String) cat.get("icon"))
+                            .color((String) cat.get("color"))
+                            .metadata(metadata)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -364,22 +510,38 @@ public class UniversalSearchService {
                 .filter(bill -> {
                     String name = (String) bill.get("name");
                     String description = (String) bill.get("description");
+                    String categoryName = (String) bill.get("categoryName");
                     return (name != null && name.toLowerCase().contains(queryLower)) ||
-                            (description != null && description.toLowerCase().contains(queryLower));
+                            (description != null && description.toLowerCase().contains(queryLower)) ||
+                            (categoryName != null && categoryName.toLowerCase().contains(queryLower));
                 })
                 .limit(limit)
-                .map(bill -> SearchResultDTO.builder()
-                        .id(String.valueOf(bill.get("id")))
-                        .type(SearchResultType.BILL)
-                        .title((String) bill.getOrDefault("name", "Bill"))
-                        .subtitle(String.format("%s • %s",
-                                bill.getOrDefault("frequency", "One-time"),
-                                formatAmount(bill.get("amount"))))
-                        .metadata(Map.of(
-                                "amount", bill.getOrDefault("amount", 0),
-                                "dueDate", bill.getOrDefault("dueDate", ""),
-                                "frequency", bill.getOrDefault("frequency", "")))
-                        .build())
+                .map(bill -> {
+                    // Build comprehensive metadata for bills
+                    Map<String, Object> metadata = new HashMap<>();
+                    metadata.put("amount", bill.getOrDefault("amount", 0));
+                    metadata.put("dueDate", bill.get("dueDate"));
+                    metadata.put("frequency", bill.getOrDefault("frequency", "One-time"));
+                    metadata.put("description", bill.get("description"));
+                    metadata.put("categoryName", bill.get("categoryName"));
+                    metadata.put("categoryId", bill.get("categoryId"));
+                    metadata.put("isPaid", bill.getOrDefault("isPaid", false));
+                    metadata.put("isAutoPay", bill.getOrDefault("isAutoPay", false));
+                    metadata.put("reminder", bill.get("reminder"));
+                    metadata.put("paymentMethod", bill.get("paymentMethod"));
+
+                    return SearchResultDTO.builder()
+                            .id(String.valueOf(bill.get("id")))
+                            .type(SearchResultType.BILL)
+                            .title((String) bill.getOrDefault("name", "Bill"))
+                            .subtitle(String.format("%s • %s",
+                                    bill.getOrDefault("frequency", "One-time"),
+                                    formatAmount(bill.get("amount"))))
+                            .icon((String) bill.get("icon"))
+                            .color((String) bill.get("color"))
+                            .metadata(metadata)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -390,18 +552,32 @@ public class UniversalSearchService {
                 .filter(pm -> {
                     String name = (String) pm.get("name");
                     String type = (String) pm.get("type");
+                    String accountNumber = (String) pm.get("accountNumber");
                     return (name != null && name.toLowerCase().contains(queryLower)) ||
-                            (type != null && type.toLowerCase().contains(queryLower));
+                            (type != null && type.toLowerCase().contains(queryLower)) ||
+                            (accountNumber != null && accountNumber.toLowerCase().contains(queryLower));
                 })
                 .limit(limit)
-                .map(pm -> SearchResultDTO.builder()
-                        .id(String.valueOf(pm.get("id")))
-                        .type(SearchResultType.PAYMENT_METHOD)
-                        .title((String) pm.getOrDefault("name", "Payment Method"))
-                        .subtitle((String) pm.getOrDefault("type", "Payment method"))
-                        .icon((String) pm.get("icon"))
-                        .color((String) pm.get("color"))
-                        .build())
+                .map(pm -> {
+                    // Build comprehensive metadata for payment methods
+                    Map<String, Object> metadata = new HashMap<>();
+                    metadata.put("type", pm.getOrDefault("type", "Other"));
+                    metadata.put("accountNumber", pm.get("accountNumber"));
+                    metadata.put("bankName", pm.get("bankName"));
+                    metadata.put("isDefault", pm.getOrDefault("isDefault", false));
+                    metadata.put("isActive", pm.getOrDefault("isActive", true));
+                    metadata.put("lastFourDigits", pm.get("lastFourDigits"));
+
+                    return SearchResultDTO.builder()
+                            .id(String.valueOf(pm.get("id")))
+                            .type(SearchResultType.PAYMENT_METHOD)
+                            .title((String) pm.getOrDefault("name", "Payment Method"))
+                            .subtitle((String) pm.getOrDefault("type", "Payment method"))
+                            .icon((String) pm.get("icon"))
+                            .color((String) pm.get("color"))
+                            .metadata(metadata)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -412,17 +588,29 @@ public class UniversalSearchService {
                     String firstName = (String) friend.getOrDefault("firstName", "");
                     String lastName = (String) friend.getOrDefault("lastName", "");
                     String fullName = (firstName + " " + lastName).trim();
+                    String email = (String) friend.getOrDefault("email", "");
+
                     if (fullName.isEmpty()) {
-                        fullName = (String) friend.getOrDefault("email", "Friend");
+                        fullName = email.isEmpty() ? "Friend" : email;
                     }
+
+                    // Build comprehensive metadata for friends
+                    Map<String, Object> metadata = new HashMap<>();
+                    metadata.put("email", email);
+                    metadata.put("firstName", firstName);
+                    metadata.put("lastName", lastName);
+                    metadata.put("status", friend.getOrDefault("status", "ACCEPTED"));
+                    metadata.put("friendshipId", friend.get("friendshipId"));
+                    metadata.put("profilePicture", friend.get("profilePicture"));
+                    metadata.put("accessLevel", friend.get("accessLevel"));
 
                     return SearchResultDTO.builder()
                             .id(String.valueOf(friend.get("id")))
                             .type(SearchResultType.FRIEND)
                             .title(fullName)
-                            .subtitle((String) friend.getOrDefault("email", ""))
-                            .metadata(Map.of(
-                                    "email", friend.getOrDefault("email", "")))
+                            .subtitle(email)
+                            .icon((String) friend.get("profilePicture"))
+                            .metadata(metadata)
                             .build();
                 })
                 .collect(Collectors.toList());

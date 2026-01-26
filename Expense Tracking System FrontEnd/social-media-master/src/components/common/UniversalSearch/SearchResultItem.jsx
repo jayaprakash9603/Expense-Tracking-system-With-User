@@ -3,43 +3,102 @@ import { Box, Typography } from "@mui/material";
 import { TYPE_ICONS, SEARCH_TYPES } from "./quickActions.config";
 
 /**
- * Highlight matching text in search results
+ * Highlight ALL matching text occurrences in search results
+ * Supports fuzzy matching by highlighting each character match
  */
 const HighlightedText = ({ text, query, isDark }) => {
   if (!query || !text) {
     return <span>{text}</span>;
   }
 
-  const queryLower = query.toLowerCase();
-  const textLower = text.toLowerCase();
-  const index = textLower.indexOf(queryLower);
+  const queryLower = query.toLowerCase().trim();
+  const textStr = String(text);
+  const textLower = textStr.toLowerCase();
 
-  if (index === -1) {
-    return <span>{text}</span>;
+  // First try exact substring match (highlight all occurrences)
+  if (textLower.includes(queryLower)) {
+    const parts = [];
+    let lastIndex = 0;
+    let searchIndex = 0;
+
+    while ((searchIndex = textLower.indexOf(queryLower, lastIndex)) !== -1) {
+      // Add text before match
+      if (searchIndex > lastIndex) {
+        parts.push(
+          <span key={`text-${lastIndex}`}>
+            {textStr.slice(lastIndex, searchIndex)}
+          </span>,
+        );
+      }
+      // Add highlighted match
+      parts.push(
+        <span
+          key={`match-${searchIndex}`}
+          style={{
+            color: isDark ? "#5eead4" : "#0d9488",
+            fontWeight: 600,
+          }}
+        >
+          {textStr.slice(searchIndex, searchIndex + queryLower.length)}
+        </span>,
+      );
+      lastIndex = searchIndex + queryLower.length;
+    }
+
+    // Add remaining text
+    if (lastIndex < textStr.length) {
+      parts.push(<span key={`text-end`}>{textStr.slice(lastIndex)}</span>);
+    }
+
+    return <span>{parts}</span>;
   }
 
-  const before = text.slice(0, index);
-  const match = text.slice(index, index + query.length);
-  const after = text.slice(index + query.length);
+  // Fuzzy matching - highlight each matching character in sequence
+  const matchIndices = [];
+  let queryIdx = 0;
 
-  return (
-    <span>
-      {before}
-      <span
-        style={{
-          backgroundColor: isDark
-            ? "rgba(20, 184, 166, 0.3)"
-            : "rgba(20, 184, 166, 0.2)",
-          color: isDark ? "#5eead4" : "#0d9488",
-          borderRadius: "2px",
-          padding: "0 2px",
-        }}
-      >
-        {match}
-      </span>
-      {after}
-    </span>
-  );
+  for (let i = 0; i < textLower.length && queryIdx < queryLower.length; i++) {
+    if (textLower[i] === queryLower[queryIdx]) {
+      matchIndices.push(i);
+      queryIdx++;
+    }
+  }
+
+  // If we didn't match all query chars, no highlight
+  if (queryIdx < queryLower.length) {
+    return <span>{textStr}</span>;
+  }
+
+  // Build highlighted result
+  const matchSet = new Set(matchIndices);
+  const parts = [];
+  let i = 0;
+
+  while (i < textStr.length) {
+    if (!matchSet.has(i)) {
+      // Non-matching span
+      const start = i;
+      while (i < textStr.length && !matchSet.has(i)) i++;
+      parts.push(<span key={`t-${start}`}>{textStr.slice(start, i)}</span>);
+    } else {
+      // Matching span (group consecutive matches)
+      const start = i;
+      while (i < textStr.length && matchSet.has(i)) i++;
+      parts.push(
+        <span
+          key={`m-${start}`}
+          style={{
+            color: isDark ? "#5eead4" : "#0d9488",
+            fontWeight: 600,
+          }}
+        >
+          {textStr.slice(start, i)}
+        </span>,
+      );
+    }
+  }
+
+  return <span>{parts}</span>;
 };
 
 /**

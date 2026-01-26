@@ -158,7 +158,15 @@ const InlineSearchBar = () => {
     isExpanded && isFocused && (query.length > 0 || hasResults);
 
   return (
-    <Box ref={containerRef} sx={{ position: "relative", width: "350px" }}>
+    <Box
+      ref={containerRef}
+      sx={{
+        position: "relative",
+        width: "350px",
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
+    >
       {/* Search Input Container - Fixed width to prevent layout shift */}
       <Box
         onClick={!isExpanded ? handleExpand : undefined}
@@ -179,11 +187,11 @@ const InlineSearchBar = () => {
               : "transparent"
           }`,
           cursor: isExpanded ? "text" : "pointer",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          width: isExpanded ? "100%" : "36px", // Expand to full container width
+          transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)", // Slower animation (0.5s)
+          width: isExpanded ? "100%" : "auto", // Auto width when collapsed to fit Ctrl+K
           height: "36px",
           overflow: "hidden",
-          marginLeft: isExpanded ? 0 : "auto", // Push icon to right when collapsed
+          transformOrigin: "right center", // Animate from right to left
           "&:hover": {
             backgroundColor: isExpanded
               ? "transparent"
@@ -194,14 +202,16 @@ const InlineSearchBar = () => {
           },
         }}
       >
-        {/* Search Icon */}
+        {/* Search Icon with Ctrl+K hint when collapsed */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            minWidth: "36px",
+            minWidth: isExpanded ? "36px" : "auto",
             height: "36px",
+            gap: "6px",
+            px: isExpanded ? 0 : 1,
           }}
         >
           <SearchIcon
@@ -210,6 +220,47 @@ const InlineSearchBar = () => {
               color: isDark ? "#d1d5db" : "#374151", // text-gray-300 / text-gray-700 - matches other header icons
             }}
           />
+          {/* Ctrl+K hint - only shown when collapsed */}
+          {!isExpanded && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: "2px",
+              }}
+            >
+              <Box
+                sx={{
+                  padding: "2px 4px",
+                  borderRadius: "4px",
+                  backgroundColor: isDark
+                    ? "rgba(255, 255, 255, 0.1)"
+                    : "rgba(0, 0, 0, 0.08)",
+                  fontSize: "10px",
+                  fontWeight: 500,
+                  color: isDark ? "#9ca3af" : "#6b7280",
+                  lineHeight: 1,
+                }}
+              >
+                {isMac ? "⌘" : "Ctrl"}
+              </Box>
+              <Box
+                sx={{
+                  padding: "2px 4px",
+                  borderRadius: "4px",
+                  backgroundColor: isDark
+                    ? "rgba(255, 255, 255, 0.1)"
+                    : "rgba(0, 0, 0, 0.08)",
+                  fontSize: "10px",
+                  fontWeight: 500,
+                  color: isDark ? "#9ca3af" : "#6b7280",
+                  lineHeight: 1,
+                }}
+              >
+                K
+              </Box>
+            </Box>
+          )}
         </Box>
 
         {/* Input Field - shown when expanded */}
