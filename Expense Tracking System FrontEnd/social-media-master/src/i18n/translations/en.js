@@ -1460,14 +1460,13 @@ export const en = {
     previous: "Previous",
     next: "Next",
     flowToggle: "Toggle Flow",
-    // Flow navigation bar shortcuts
-    flowReports: "Reports",
-    flowCategories: "Categories",
-    flowBudget: "Budget",
-    flowPayments: "Payments",
-    flowBill: "Bill",
-    flowCalendar: "Calendar",
-    flowExpenses: "Expenses",
-    flowAddNew: "Add New",
+    // Flow navigation bar shortcuts (sequential 1-7)
+    flowNav1: "Navigation 1",
+    flowNav2: "Navigation 2",
+    flowNav3: "Navigation 3",
+    flowNav4: "Navigation 4",
+    flowNav5: "Navigation 5",
+    flowNav6: "Navigation 6",
+    flowNav7: "Navigation 7",
   },
 };

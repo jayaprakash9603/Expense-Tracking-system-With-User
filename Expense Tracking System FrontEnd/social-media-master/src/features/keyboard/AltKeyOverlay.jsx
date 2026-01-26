@@ -105,43 +105,41 @@ const ALT_SHORTCUTS = {
     selector: '[data-shortcut="flow-toggle"]',
   },
 
-  // Flow navigation bar shortcuts (visible on flow pages) - Numbers 1-7
-  "flow-nav-reports": {
+  // Flow navigation bar shortcuts (visible on flow pages) - Sequential 1-7 based on position
+  "flow-nav-item-1": {
     key: "1",
-    labelKey: "keyboard.flowReports",
-    selector:
-      '[data-shortcut="nav-flow-expenses-reports"], [data-shortcut="nav-flow-category-flow-reports"], [data-shortcut="nav-flow-payment-method-reports"]',
+    labelKey: "keyboard.flowNav1",
+    selector: '[data-shortcut="nav-flow-item-1"]',
   },
-  "flow-nav-categories": {
+  "flow-nav-item-2": {
     key: "2",
-    labelKey: "keyboard.flowCategories",
-    selector: '[data-shortcut="nav-flow-category-flow"]',
+    labelKey: "keyboard.flowNav2",
+    selector: '[data-shortcut="nav-flow-item-2"]',
   },
-  "flow-nav-budget": {
+  "flow-nav-item-3": {
     key: "3",
-    labelKey: "keyboard.flowBudget",
-    selector: '[data-shortcut="nav-flow-budget"]',
+    labelKey: "keyboard.flowNav3",
+    selector: '[data-shortcut="nav-flow-item-3"]',
   },
-  "flow-nav-payments": {
+  "flow-nav-item-4": {
     key: "4",
-    labelKey: "keyboard.flowPayments",
-    selector: '[data-shortcut="nav-flow-payment-method"]',
+    labelKey: "keyboard.flowNav4",
+    selector: '[data-shortcut="nav-flow-item-4"]',
   },
-  "flow-nav-bill": {
+  "flow-nav-item-5": {
     key: "5",
-    labelKey: "keyboard.flowBill",
-    selector: '[data-shortcut="nav-flow-bill"]',
+    labelKey: "keyboard.flowNav5",
+    selector: '[data-shortcut="nav-flow-item-5"]',
   },
-  "flow-nav-calendar": {
+  "flow-nav-item-6": {
     key: "6",
-    labelKey: "keyboard.flowCalendar",
-    selector:
-      '[data-shortcut*="nav-flow-calendar"], [data-shortcut*="nav-flow-category-flow-calendar"], [data-shortcut*="nav-flow-payment-method-calendar"]',
+    labelKey: "keyboard.flowNav6",
+    selector: '[data-shortcut="nav-flow-item-6"]',
   },
-  "flow-nav-add-new": {
+  "flow-nav-item-7": {
     key: "7",
-    labelKey: "keyboard.flowAddNew",
-    selector: '[data-shortcut="nav-flow-add-new"]',
+    labelKey: "keyboard.flowNav7",
+    selector: '[data-shortcut="nav-flow-item-7"]',
   },
 
   // Actions - Header bar

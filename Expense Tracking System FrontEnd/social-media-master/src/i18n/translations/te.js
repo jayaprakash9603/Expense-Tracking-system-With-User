@@ -1428,14 +1428,13 @@ export const te = {
     previous: "ముందు",
     next: "తర్వాత",
     flowToggle: "ఫ్లో టాగల్",
-    // ఫ్లో నావిగేషన్ బార్ షార్ట్‌కట్లు
-    flowReports: "నివేదికలు",
-    flowCategories: "వర్గాలు",
-    flowBudget: "బడ్జెట్",
-    flowPayments: "చెల్లింపులు",
-    flowBill: "బిల్లు",
-    flowCalendar: "క్యాలెండర్",
-    flowExpenses: "ఖర్చులు",
-    flowAddNew: "కొత్త జోడించు",
+    // ఫ్లో నావిగేషన్ బార్ షార్ట్‌కట్లు (వరుస 1-7)
+    flowNav1: "నావిగేషన్ 1",
+    flowNav2: "నావిగేషన్ 2",
+    flowNav3: "నావిగేషన్ 3",
+    flowNav4: "నావిగేషన్ 4",
+    flowNav5: "నావిగేషన్ 5",
+    flowNav6: "నావిగేషన్ 6",
+    flowNav7: "నావిగేషన్ 7",
   },
 };

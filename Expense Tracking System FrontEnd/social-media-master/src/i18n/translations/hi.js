@@ -1414,14 +1414,13 @@ export const hi = {
     previous: "पिछला",
     next: "अगला",
     flowToggle: "फ्लो टॉगल",
-    // फ्लो नेविगेशन बार शॉर्टकट
-    flowReports: "रिपोर्ट्स",
-    flowCategories: "श्रेणियाँ",
-    flowBudget: "बजट",
-    flowPayments: "भुगतान",
-    flowBill: "बिल",
-    flowCalendar: "कैलेंडर",
-    flowExpenses: "खर्च",
-    flowAddNew: "नया जोड़ें",
+    // फ्लो नेविगेशन बार शॉर्टकट (क्रमिक 1-7)
+    flowNav1: "नेविगेशन 1",
+    flowNav2: "नेविगेशन 2",
+    flowNav3: "नेविगेशन 3",
+    flowNav4: "नेविगेशन 4",
+    flowNav5: "नेविगेशन 5",
+    flowNav6: "नेविगेशन 6",
+    flowNav7: "नेविगेशन 7",
   },
 };

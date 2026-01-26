@@ -62,11 +62,10 @@ const NavigationActions = ({
         flexWrap: isMobile ? "wrap" : "nowrap",
       }}
     >
-      {items.map(({ path, icon, label, shortcutKey }) => {
+      {items.map(({ path, icon, label, shortcutKey }, index) => {
         const target = isFriendView ? `${path}/${friendId}` : path;
-        // Generate shortcut key from path if not provided
-        const derivedShortcut =
-          shortcutKey || path.replace(/^\//, "").replace(/[/-]/g, "-");
+        // Use sequential index (1-based) for shortcut key
+        const shortcutIndex = index + 1;
         return (
           <button
             key={path}
@@ -77,8 +76,9 @@ const NavigationActions = ({
               });
             }}
             className="nav-button"
-            data-shortcut={`nav-flow-${derivedShortcut}`}
-            title={`${label} (${shortcutKey || derivedShortcut.charAt(0).toUpperCase()})`}
+            data-shortcut={`nav-flow-item-${shortcutIndex}`}
+            data-shortcut-label={label}
+            title={`${label} (${shortcutIndex})`}
             style={{
               display: "flex",
               alignItems: "center",
@@ -114,7 +114,7 @@ const NavigationActions = ({
         <button
           ref={btnRef}
           onClick={() => setOpen((v) => !v)}
-          data-shortcut="nav-flow-add-new"
+          data-shortcut={`nav-flow-item-${items.length + 1}`}
           style={{
             display: "flex",
             alignItems: "center",
@@ -131,7 +131,7 @@ const NavigationActions = ({
           }}
           title={
             hasWriteAccess
-              ? `${t("cashflow.addNew.tooltip")} (A)`
+              ? `${t("cashflow.addNew.tooltip")} (${items.length + 1})`
               : t("cashflow.addNew.readOnly")
           }
         >
