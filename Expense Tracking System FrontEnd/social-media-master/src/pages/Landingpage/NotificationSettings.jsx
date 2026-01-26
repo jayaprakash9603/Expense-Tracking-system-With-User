@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Box, useMediaQuery, Typography, Button, Divider } from "@mui/material";
 import {
   NotificationsActive as NotificationsActiveIcon,
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
+import { useSearchHighlight } from "../../hooks/useSearchHighlight";
 import ToastNotification from "./ToastNotification";
 
 // Import modular components
@@ -33,9 +34,15 @@ import {
  */
 const NotificationSettings = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { colors, mode } = useTheme();
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const isDark = mode === "dark";
+
+  // Search highlight functionality
+  const { isItemHighlighted, currentParams } = useSearchHighlight({
+    highlightDuration: 4000,
+  });
 
   // Custom hooks
   const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
@@ -55,6 +62,17 @@ const NotificationSettings = () => {
   // Expanded state for service cards
   const [expandedServices, setExpandedServices] = useState({});
 
+  // Auto-expand service from URL parameter
+  useEffect(() => {
+    const serviceFromUrl = currentParams.service;
+    if (serviceFromUrl) {
+      setExpandedServices((prev) => ({
+        ...prev,
+        [serviceFromUrl]: true,
+      }));
+    }
+  }, [currentParams.service]);
+
   // Toggle service expansion
   const toggleServiceExpansion = (serviceId) => {
     setExpandedServices((prev) => ({
@@ -70,7 +88,7 @@ const NotificationSettings = () => {
       .map((word, index) =>
         index === 0
           ? word.toLowerCase()
-          : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
       )
       .join("");
   };
@@ -118,12 +136,12 @@ const NotificationSettings = () => {
     console.log(`[getDeliveryMethods] preferences:`, preferences);
     console.log(
       `[getDeliveryMethods] JSON field:`,
-      preferences?.notificationPreferencesJson
+      preferences?.notificationPreferencesJson,
     );
 
     if (!preferences?.notificationPreferencesJson) {
       console.log(
-        `[getDeliveryMethods] No JSON preferences for ${notificationId}, using defaults`
+        `[getDeliveryMethods] No JSON preferences for ${notificationId}, using defaults`,
       );
       return {
         inApp: true,
@@ -140,7 +158,7 @@ const NotificationSettings = () => {
       console.log(`[getDeliveryMethods] Parsed JSON:`, jsonPrefs);
       console.log(
         `[getDeliveryMethods] Methods array for ${notificationId}:`,
-        methods
+        methods,
       );
 
       const result = {
@@ -170,7 +188,7 @@ const NotificationSettings = () => {
     const notifications =
       NOTIFICATION_SERVICES[
         Object.keys(NOTIFICATION_SERVICES).find(
-          (key) => NOTIFICATION_SERVICES[key].id === serviceId
+          (key) => NOTIFICATION_SERVICES[key].id === serviceId,
         )
       ]?.notifications || [];
 
@@ -439,55 +457,96 @@ const NotificationSettings = () => {
               const serviceEnabled = isServiceEnabled(service.id);
 
               return (
-                <NotificationServiceCard
+                <Box
+                  id={`setting-${service.id}`}
                   key={service.id}
-                  service={service}
-                  serviceEnabled={serviceEnabled}
-                  onServiceToggle={(enabled) =>
-                    updateServiceToggle(service.id, enabled)
+                  className={
+                    isItemHighlighted(service.id)
+                      ? "setting-item-highlighted"
+                      : ""
                   }
-                  expanded={expandedServices[service.id] || false}
-                  onToggleExpand={() => toggleServiceExpansion(service.id)}
-                  colors={colors}
-                  notificationCount={notificationCount}
-                  enabledCount={enabledCount}
+                  sx={{
+                    borderRadius: "12px",
+                    transition: "all 0.3s ease-in-out",
+                    ...(isItemHighlighted(service.id) && {
+                      boxShadow: `0 0 0 2px ${colors.primary_accent}`,
+                    }),
+                  }}
                 >
-                  {/* Individual Notifications */}
-                  <Box
-                    sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+                  <NotificationServiceCard
+                    service={service}
+                    serviceEnabled={serviceEnabled}
+                    onServiceToggle={(enabled) =>
+                      updateServiceToggle(service.id, enabled)
+                    }
+                    expanded={expandedServices[service.id] || false}
+                    onToggleExpand={() => toggleServiceExpansion(service.id)}
+                    colors={colors}
+                    notificationCount={notificationCount}
+                    enabledCount={enabledCount}
                   >
-                    {service.notifications.map((notification) => (
-                      <NotificationItem
-                        key={notification.id}
-                        notification={notification}
-                        preferences={{
-                          enabled: isNotificationEnabled(notification.id),
-                          frequency: getNotificationFrequency(notification.id),
-                          methods: getDeliveryMethods(notification.id),
-                        }}
-                        onToggle={(enabled) =>
-                          updateNotificationToggle(notification.id, enabled)
-                        }
-                        onFrequencyChange={(frequency) =>
-                          updateNotificationFrequency(
-                            notification.id,
-                            frequency
-                          )
-                        }
-                        onMethodToggle={(method, enabled) =>
-                          updateNotificationMethod(
-                            notification.id,
-                            method,
-                            enabled
-                          )
-                        }
-                        colors={colors}
-                        serviceEnabled={serviceEnabled}
-                        serviceColor={service.color}
-                      />
-                    ))}
-                  </Box>
-                </NotificationServiceCard>
+                    {/* Individual Notifications */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1.5,
+                      }}
+                    >
+                      {service.notifications.map((notification) => (
+                        <Box
+                          id={`setting-${notification.id}`}
+                          key={notification.id}
+                          className={
+                            isItemHighlighted(notification.id)
+                              ? "setting-item-highlighted"
+                              : ""
+                          }
+                          sx={{
+                            borderRadius: "8px",
+                            transition: "all 0.3s ease-in-out",
+                            ...(isItemHighlighted(notification.id) && {
+                              backgroundColor: `${colors.primary_accent}15`,
+                              boxShadow: `0 0 0 2px ${colors.primary_accent}`,
+                              p: 1,
+                              mx: -1,
+                            }),
+                          }}
+                        >
+                          <NotificationItem
+                            notification={notification}
+                            preferences={{
+                              enabled: isNotificationEnabled(notification.id),
+                              frequency: getNotificationFrequency(
+                                notification.id,
+                              ),
+                              methods: getDeliveryMethods(notification.id),
+                            }}
+                            onToggle={(enabled) =>
+                              updateNotificationToggle(notification.id, enabled)
+                            }
+                            onFrequencyChange={(frequency) =>
+                              updateNotificationFrequency(
+                                notification.id,
+                                frequency,
+                              )
+                            }
+                            onMethodToggle={(method, enabled) =>
+                              updateNotificationMethod(
+                                notification.id,
+                                method,
+                                enabled,
+                              )
+                            }
+                            colors={colors}
+                            serviceEnabled={serviceEnabled}
+                            serviceColor={service.color}
+                          />
+                        </Box>
+                      ))}
+                    </Box>
+                  </NotificationServiceCard>
+                </Box>
               );
             })}
           </Box>
@@ -523,7 +582,7 @@ const NotificationSettings = () => {
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       />
 
-      {/* Custom Scrollbar Styles */}
+      {/* Custom Scrollbar Styles + Highlight Animation */}
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
@@ -539,6 +598,23 @@ const NotificationSettings = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: ${colors.primary_accent};
           opacity: 0.8;
+        }
+        
+        /* Highlight animation for search results */
+        @keyframes settingHighlightPulse {
+          0% {
+            box-shadow: 0 0 0 0 ${colors.primary_accent}66;
+          }
+          50% {
+            box-shadow: 0 0 0 10px ${colors.primary_accent}00;
+          }
+          100% {
+            box-shadow: 0 0 0 0 ${colors.primary_accent}00;
+          }
+        }
+        
+        .setting-item-highlighted {
+          animation: settingHighlightPulse 1s ease-in-out 3;
         }
       `}</style>
     </Box>

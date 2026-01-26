@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Box, useMediaQuery, Chip } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";
+import {
+  useSearchHighlight,
+  highlightAnimationStyles,
+} from "../../hooks/useSearchHighlight";
 import ToastNotification from "./ToastNotification";
 import { fetchNotificationPreferences } from "../../Redux/NotificationPreferences/notificationPreferences.action";
 
@@ -50,6 +54,7 @@ import {
 const Settings = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
   const { colors, mode } = useTheme();
   const { t } = useTranslation();
   const { settings: userSettings } = useSelector(
@@ -61,6 +66,13 @@ const Settings = () => {
   const userId = useSelector((state) => state.auth?.user?.id);
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const isDark = mode === "dark";
+
+  // Search highlight functionality
+  const {
+    isItemHighlighted,
+    isSectionHighlighted,
+    currentParams,
+  } = useSearchHighlight({ highlightDuration: 4000 });
 
   // Scroll position restoration
   useEffect(() => {
@@ -288,13 +300,35 @@ const Settings = () => {
     );
   };
 
-  // Render setting item based on type
+  // Render setting item based on type with highlight support
   const renderSettingItem = (item) => {
+    const isHighlighted = isItemHighlighted(item.id);
+
+    // Wrapper with ID and highlight styles
+    const wrapWithHighlight = (component) => (
+      <Box
+        id={`setting-${item.id}`}
+        key={item.id}
+        className={isHighlighted ? "setting-item-highlighted" : ""}
+        sx={{
+          transition: "all 0.3s ease-in-out",
+          borderRadius: "12px",
+          ...(isHighlighted && {
+            backgroundColor: `${colors.primary_accent}15`,
+            boxShadow: `0 0 0 2px ${colors.primary_accent}`,
+            mx: -1,
+            px: 1,
+          }),
+        }}
+      >
+        {component}
+      </Box>
+    );
+
     // Special handling for theme toggle
     if (item.id === "theme") {
-      return (
+      return wrapWithHighlight(
         <SettingItem
-          key={item.id}
           icon={getThemeIcon(isDark)}
           title={t("settings.theme")}
           description={
@@ -308,45 +342,60 @@ const Settings = () => {
       );
     }
 
+    let component;
     switch (item.type) {
       case "switch":
-        return renderSwitchSetting(item);
+        component = renderSwitchSetting(item);
+        break;
       case "select":
-        return renderSelectSetting(item);
+        component = renderSelectSetting(item);
+        break;
       case "button":
-        return renderButtonSetting(item);
+        component = renderButtonSetting(item);
+        break;
       case "navigation":
-        return renderNavigationSetting(item);
+        component = renderNavigationSetting(item);
+        break;
       case "slider":
-        return renderSliderSetting(item);
+        component = renderSliderSetting(item);
+        break;
       default:
         return null;
     }
+
+    return wrapWithHighlight(component);
   };
 
-  // Render settings section
+  // Render settings section with highlight support
   const renderSection = (section) => {
     if (section.type === "info") {
       return <AppInfoSection key={section.id} colors={colors} />;
     }
 
     const title = section.titleKey ? t(section.titleKey) : section.title;
+    const isSectionActive = isSectionHighlighted(section.id);
 
     return (
-      <SettingSection
+      <Box
+        id={`setting-${section.id}`}
         key={section.id}
-        icon={section.icon}
-        title={title}
-        colors={colors}
-        showChip={section.showChip}
-        chipLabel={
-          section.showChip
-            ? getProfileVisibilityLabel(settingsState.profileVisibility, t)
-            : ""
-        }
+        className={isSectionActive ? "setting-section-highlighted" : ""}
       >
-        {section.items.map((item) => renderSettingItem(item))}
-      </SettingSection>
+        <SettingSection
+          icon={section.icon}
+          title={title}
+          colors={colors}
+          showChip={section.showChip}
+          chipLabel={
+            section.showChip
+              ? getProfileVisibilityLabel(settingsState.profileVisibility, t)
+              : ""
+          }
+          isHighlighted={isSectionActive}
+        >
+          {section.items.map((item) => renderSettingItem(item))}
+        </SettingSection>
+      </Box>
     );
   };
 
@@ -422,7 +471,7 @@ const Settings = () => {
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       />
 
-      {/* Custom Scrollbar Styles */}
+      {/* Custom Scrollbar Styles + Highlight Animation */}
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
@@ -438,6 +487,27 @@ const Settings = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: ${colors.primary_accent};
           opacity: 0.8;
+        }
+        
+        /* Highlight animation for search results */
+        @keyframes settingHighlightPulse {
+          0% {
+            box-shadow: 0 0 0 0 ${colors.primary_accent}66;
+          }
+          50% {
+            box-shadow: 0 0 0 10px ${colors.primary_accent}00;
+          }
+          100% {
+            box-shadow: 0 0 0 0 ${colors.primary_accent}00;
+          }
+        }
+        
+        .setting-item-highlighted {
+          animation: settingHighlightPulse 1s ease-in-out 3;
+        }
+        
+        .setting-section-highlighted {
+          animation: settingHighlightPulse 0.8s ease-in-out 2;
         }
       `}</style>
     </Box>
