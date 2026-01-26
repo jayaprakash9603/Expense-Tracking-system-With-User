@@ -1277,6 +1277,7 @@ export const te = {
 
     // Section Headers
     sections: {
+      admin: "అడ్మిన్",
       quickActions: "శీఘ్ర చర్యలు",
       actions: "చర్యలు",
       expenses: "ఖర్చులు",
@@ -1289,6 +1290,24 @@ export const te = {
       reports: "రిపోర్టులు",
       settings: "సెట్టింగ్స్",
       notifications: "నోటిఫికేషన్లు",
+    },
+
+    // Admin Mode Actions
+    admin: {
+      dashboard: "అడ్మిన్ డాష్‌బోర్డ్",
+      dashboardDesc: "సిస్టమ్ అవలోకనం మరియు మెట్రిక్స్",
+      users: "వినియోగదారు నిర్వహణ",
+      usersDesc: "సిస్టమ్ వినియోగదారులను నిర్వహించండి",
+      roles: "పాత్ర నిర్వహణ",
+      rolesDesc: "వినియోగదారు పాత్రలు మరియు అనుమతులను నిర్వహించండి",
+      analytics: "సిస్టమ్ విశ్లేషణలు",
+      analyticsDesc: "సిస్టమ్-వ్యాప్త విశ్లేషణలు మరియు గణాంకాలు చూడండి",
+      audit: "ఆడిట్ లాగ్‌లు",
+      auditDesc: "సిస్టమ్ ఆడిట్ ట్రయిల్ మరియు కార్యకలాప లాగ్‌లు చూడండి",
+      reports: "సిస్టమ్ రిపోర్టులు",
+      reportsDesc: "సిస్టమ్ రిపోర్టులను రూపొందించండి మరియు చూడండి",
+      settings: "సిస్టమ్ సెట్టింగ్స్",
+      settingsDesc: "సిస్టమ్-వ్యాప్త సెట్టింగ్స్ కాన్ఫిగర్ చేయండి",
     },
 
     // Quick Actions

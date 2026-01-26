@@ -7,6 +7,7 @@ import {
   getRouteForResult,
   SEARCH_TYPES,
   SECTION_ORDER,
+  SEARCH_MODES,
 } from "./quickActions.config";
 import { sortByRelevance, memoize, createDebouncer } from "./searchUtils";
 import UserSettingsHelper from "../../../utils/UserSettingsHelper";
@@ -23,8 +24,33 @@ const MAX_RESULTS_PER_SECTION = 20;
 // API endpoint for unified search
 const SEARCH_API_ENDPOINT = "/api/search";
 
-// Memoized quick action search for performance
-const memoizedSearchQuickActions = memoize(searchQuickActions, 50);
+// Create a memoization key that includes both query and mode
+const createMemoizedSearchQuickActions = () => {
+  const cache = new Map();
+  const maxSize = 50;
+
+  return (query, mode) => {
+    const cacheKey = `${query || ""}:${mode || "USER"}`;
+
+    if (cache.has(cacheKey)) {
+      return cache.get(cacheKey);
+    }
+
+    const result = searchQuickActions(query, mode);
+
+    // Manage cache size
+    if (cache.size >= maxSize) {
+      const firstKey = cache.keys().next().value;
+      cache.delete(firstKey);
+    }
+
+    cache.set(cacheKey, result);
+    return result;
+  };
+};
+
+// Memoized quick action search for performance (handles query + mode)
+const memoizedSearchQuickActions = createMemoizedSearchQuickActions();
 
 /**
  * Custom hook for Universal Search functionality
@@ -79,6 +105,11 @@ export const useUniversalSearch = () => {
     (state) => state.userSettings?.settings?.currency || "INR",
   );
 
+  // Get current mode (USER or ADMIN) from auth state
+  const currentMode = useSelector(
+    (state) => state.auth?.currentMode || SEARCH_MODES.USER,
+  );
+
   /**
    * Format currency amount using user's preferred currency
    */
@@ -98,9 +129,9 @@ export const useUniversalSearch = () => {
     setQuery("");
     setSelectedIndex(0);
     setError(null);
-    // Show default quick actions immediately using memoized search
-    setQuickActionResults(memoizedSearchQuickActions(""));
-  }, []);
+    // Show default quick actions immediately using memoized search (filtered by mode)
+    setQuickActionResults(memoizedSearchQuickActions("", currentMode));
+  }, [currentMode]);
 
   /**
    * Close the search modal
@@ -430,8 +461,8 @@ export const useUniversalSearch = () => {
       setQuery(newQuery);
       setSelectedIndex(0);
 
-      // Immediate local search for quick actions using memoized function
-      setQuickActionResults(memoizedSearchQuickActions(newQuery));
+      // Immediate local search for quick actions using memoized function (filtered by mode)
+      setQuickActionResults(memoizedSearchQuickActions(newQuery, currentMode));
 
       // Immediate local search for Redux data
       const localResults = performLocalSearch(newQuery);
@@ -448,7 +479,7 @@ export const useUniversalSearch = () => {
         debouncerRef.current.cancel();
       }
     },
-    [performLocalSearch, performApiSearch],
+    [performLocalSearch, performApiSearch, currentMode],
   );
 
   /**

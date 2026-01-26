@@ -1310,6 +1310,7 @@ export const en = {
 
     // Section Headers
     sections: {
+      admin: "Admin",
       quickActions: "Quick Actions",
       actions: "Actions",
       expenses: "Expenses",
@@ -1322,6 +1323,24 @@ export const en = {
       reports: "Reports",
       settings: "Settings",
       notifications: "Notifications",
+    },
+
+    // Admin Mode Actions
+    admin: {
+      dashboard: "Admin Dashboard",
+      dashboardDesc: "System overview and metrics",
+      users: "User Management",
+      usersDesc: "Manage system users",
+      roles: "Role Management",
+      rolesDesc: "Manage user roles and permissions",
+      analytics: "System Analytics",
+      analyticsDesc: "View system-wide analytics and statistics",
+      audit: "Audit Logs",
+      auditDesc: "View system audit trail and activity logs",
+      reports: "System Reports",
+      reportsDesc: "Generate and view system reports",
+      settings: "System Settings",
+      settingsDesc: "Configure system-wide settings",
     },
 
     // Quick Actions

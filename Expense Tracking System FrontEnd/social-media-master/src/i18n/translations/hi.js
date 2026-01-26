@@ -1263,6 +1263,7 @@ export const hi = {
 
     // Section Headers
     sections: {
+      admin: "एडमिन",
       quickActions: "त्वरित कार्य",
       actions: "कार्य",
       expenses: "खर्चे",
@@ -1275,6 +1276,24 @@ export const hi = {
       reports: "रिपोर्ट्स",
       settings: "सेटिंग्स",
       notifications: "सूचनाएं",
+    },
+
+    // Admin Mode Actions
+    admin: {
+      dashboard: "एडमिन डैशबोर्ड",
+      dashboardDesc: "सिस्टम अवलोकन और मेट्रिक्स",
+      users: "उपयोगकर्ता प्रबंधन",
+      usersDesc: "सिस्टम उपयोगकर्ताओं को प्रबंधित करें",
+      roles: "भूमिका प्रबंधन",
+      rolesDesc: "उपयोगकर्ता भूमिकाएं और अनुमतियाँ प्रबंधित करें",
+      analytics: "सिस्टम एनालिटिक्स",
+      analyticsDesc: "सिस्टम-व्यापी एनालिटिक्स और सांख्यिकी देखें",
+      audit: "ऑडिट लॉग",
+      auditDesc: "सिस्टम ऑडिट ट्रेल और गतिविधि लॉग देखें",
+      reports: "सिस्टम रिपोर्ट्स",
+      reportsDesc: "सिस्टम रिपोर्ट्स जनरेट और देखें",
+      settings: "सिस्टम सेटिंग्स",
+      settingsDesc: "सिस्टम-व्यापी सेटिंग्स कॉन्फ़िगर करें",
     },
 
     // Quick Actions

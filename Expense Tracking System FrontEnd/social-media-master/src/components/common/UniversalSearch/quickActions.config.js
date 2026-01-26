@@ -6,6 +6,7 @@
  * 1. Add to QUICK_ACTIONS array with appropriate category
  * 2. Ensure route exists in AppRoutes.js
  * 3. Add translation keys if needed
+ * 4. Set mode: "USER", "ADMIN", or "BOTH" for proper filtering
  */
 
 // Search result types
@@ -22,6 +23,13 @@ export const SEARCH_TYPES = {
   NOTIFICATION: "NOTIFICATION",
 };
 
+// Mode constants for filtering actions by user context
+export const SEARCH_MODES = {
+  USER: "USER",
+  ADMIN: "ADMIN",
+  BOTH: "BOTH",
+};
+
 // Icons mapping for each type
 export const TYPE_ICONS = {
   [SEARCH_TYPES.EXPENSE]: "💰",
@@ -36,8 +44,9 @@ export const TYPE_ICONS = {
   [SEARCH_TYPES.NOTIFICATION]: "🔔",
 };
 
-// Section display order
+// Section display order (admin section appears first in admin mode)
 export const SECTION_ORDER = [
+  "admin",
   "actions",
   "expenses",
   "budgets",
@@ -52,6 +61,7 @@ export const SECTION_ORDER = [
 
 // Section labels (translation keys)
 export const SECTION_LABELS = {
+  admin: "search.sections.admin",
   actions: "search.sections.quickActions",
   expenses: "search.sections.expenses",
   budgets: "search.sections.budgets",
@@ -1612,6 +1622,199 @@ export const QUICK_ACTIONS = [
     keywords: ["chat", "message", "talk", "communicate"],
     priority: 3,
   },
+
+  // ========================================
+  // ADMIN MODE - Quick Actions
+  // These actions are ONLY shown when user is in Admin mode
+  // ========================================
+
+  // Admin Dashboard
+  {
+    id: "admin-dashboard",
+    type: SEARCH_TYPES.ACTION,
+    section: "admin",
+    title: "Admin Dashboard",
+    titleKey: "search.admin.dashboard",
+    subtitle: "System overview and metrics",
+    subtitleKey: "search.admin.dashboardDesc",
+    route: "/admin/dashboard",
+    icon: "🏠",
+    keywords: [
+      "admin",
+      "dashboard",
+      "home",
+      "overview",
+      "metrics",
+      "system",
+      "panel",
+    ],
+    priority: 0,
+    mode: SEARCH_MODES.ADMIN,
+  },
+
+  // User Management
+  {
+    id: "admin-users",
+    type: SEARCH_TYPES.ACTION,
+    section: "admin",
+    title: "User Management",
+    titleKey: "search.admin.users",
+    subtitle: "Manage system users",
+    subtitleKey: "search.admin.usersDesc",
+    route: "/admin/users",
+    icon: "👥",
+    keywords: [
+      "users",
+      "management",
+      "accounts",
+      "members",
+      "people",
+      "admin",
+      "manage",
+    ],
+    priority: 1,
+    mode: SEARCH_MODES.ADMIN,
+  },
+
+  // Role Management
+  {
+    id: "admin-roles",
+    type: SEARCH_TYPES.ACTION,
+    section: "admin",
+    title: "Role Management",
+    titleKey: "search.admin.roles",
+    subtitle: "Manage user roles and permissions",
+    subtitleKey: "search.admin.rolesDesc",
+    route: "/admin/roles",
+    icon: "🔐",
+    keywords: [
+      "roles",
+      "permissions",
+      "access",
+      "control",
+      "admin",
+      "security",
+      "manage",
+    ],
+    priority: 1,
+    mode: SEARCH_MODES.ADMIN,
+  },
+
+  // System Analytics
+  {
+    id: "admin-analytics",
+    type: SEARCH_TYPES.ACTION,
+    section: "admin",
+    title: "System Analytics",
+    titleKey: "search.admin.analytics",
+    subtitle: "View system-wide analytics and statistics",
+    subtitleKey: "search.admin.analyticsDesc",
+    route: "/admin/analytics",
+    icon: "📊",
+    keywords: [
+      "analytics",
+      "statistics",
+      "metrics",
+      "charts",
+      "reports",
+      "system",
+      "data",
+    ],
+    priority: 1,
+    mode: SEARCH_MODES.ADMIN,
+  },
+
+  // Audit Logs
+  {
+    id: "admin-audit",
+    type: SEARCH_TYPES.ACTION,
+    section: "admin",
+    title: "Audit Logs",
+    titleKey: "search.admin.audit",
+    subtitle: "View system audit trail and activity logs",
+    subtitleKey: "search.admin.auditDesc",
+    route: "/admin/audit",
+    icon: "📋",
+    keywords: [
+      "audit",
+      "logs",
+      "activity",
+      "history",
+      "trail",
+      "security",
+      "tracking",
+    ],
+    priority: 1,
+    mode: SEARCH_MODES.ADMIN,
+  },
+
+  // Admin Reports
+  {
+    id: "admin-reports",
+    type: SEARCH_TYPES.ACTION,
+    section: "admin",
+    title: "System Reports",
+    titleKey: "search.admin.reports",
+    subtitle: "Generate and view system reports",
+    subtitleKey: "search.admin.reportsDesc",
+    route: "/admin/reports",
+    icon: "📈",
+    keywords: [
+      "reports",
+      "system",
+      "generate",
+      "export",
+      "summary",
+      "admin",
+      "statistics",
+    ],
+    priority: 1,
+    mode: SEARCH_MODES.ADMIN,
+  },
+
+  // Admin Settings
+  {
+    id: "admin-settings",
+    type: SEARCH_TYPES.ACTION,
+    section: "admin",
+    title: "System Settings",
+    titleKey: "search.admin.settings",
+    subtitle: "Configure system-wide settings",
+    subtitleKey: "search.admin.settingsDesc",
+    route: "/admin/settings",
+    icon: "⚙️",
+    keywords: [
+      "settings",
+      "configuration",
+      "system",
+      "preferences",
+      "admin",
+      "config",
+      "setup",
+    ],
+    priority: 1,
+    mode: SEARCH_MODES.ADMIN,
+  },
+
+  // ========================================
+  // BOTH MODES - Actions available in both User and Admin modes
+  // ========================================
+
+  // Profile (available in both modes)
+  {
+    id: "profile-both",
+    type: SEARCH_TYPES.SETTING,
+    section: "settings",
+    title: "My Profile",
+    titleKey: "search.actions.profile",
+    subtitle: "View and edit your profile",
+    subtitleKey: "search.actions.profileDesc",
+    route: "/profile",
+    icon: "👤",
+    keywords: ["profile", "account", "user", "personal", "my account"],
+    priority: 1,
+    mode: SEARCH_MODES.BOTH,
+  },
 ];
 
 /**
@@ -1687,56 +1890,79 @@ export const fuzzyMatch = (text, pattern) => {
 };
 
 /**
+ * Filter actions by mode
+ * Actions without a mode property default to USER mode
+ * @param {Array} actions - Array of actions to filter
+ * @param {string} currentMode - Current user mode (USER or ADMIN)
+ * @returns {Array} - Filtered actions
+ */
+const filterByMode = (actions, currentMode = SEARCH_MODES.USER) => {
+  return actions.filter((action) => {
+    const actionMode = action.mode || SEARCH_MODES.USER;
+    return actionMode === SEARCH_MODES.BOTH || actionMode === currentMode;
+  });
+};
+
+/**
  * Search quick actions locally
  * @param {string} query - Search query
+ * @param {string} currentMode - Current user mode (USER or ADMIN)
  * @returns {Array} - Filtered and sorted quick actions
  */
-export const searchQuickActions = (query) => {
+export const searchQuickActions = (query, currentMode = SEARCH_MODES.USER) => {
+  // Filter actions by current mode first
+  const modeFilteredActions = filterByMode(QUICK_ACTIONS, currentMode);
+
   if (!query || !query.trim()) {
     // Return top priority actions when no query
-    return QUICK_ACTIONS.filter((action) => action.priority <= 1)
+    return modeFilteredActions
+      .filter((action) => action.priority <= 1)
       .sort((a, b) => a.priority - b.priority)
       .slice(0, 8);
   }
 
   const queryLower = query.toLowerCase().trim();
 
-  return QUICK_ACTIONS.map((action) => {
-    // Match against title
-    const titleMatch = fuzzyMatch(action.title, queryLower);
+  return modeFilteredActions
+    .map((action) => {
+      // Match against title
+      const titleMatch = fuzzyMatch(action.title, queryLower);
 
-    // Match against keywords
-    const keywordMatches = action.keywords.map((kw) =>
-      fuzzyMatch(kw, queryLower),
-    );
-    const bestKeywordMatch = keywordMatches.reduce(
-      (best, current) => (current.score < best.score ? current : best),
-      { matches: false, score: Infinity },
-    );
+      // Match against keywords
+      const keywordMatches = action.keywords.map((kw) =>
+        fuzzyMatch(kw, queryLower),
+      );
+      const bestKeywordMatch = keywordMatches.reduce(
+        (best, current) => (current.score < best.score ? current : best),
+        { matches: false, score: Infinity },
+      );
 
-    // Match against subtitle
-    const subtitleMatch = fuzzyMatch(action.subtitle, queryLower);
+      // Match against subtitle
+      const subtitleMatch = fuzzyMatch(action.subtitle, queryLower);
 
-    // Determine best match
-    let bestMatch = { matches: false, score: Infinity };
-    if (titleMatch.matches && titleMatch.score < bestMatch.score) {
-      bestMatch = { ...titleMatch, source: "title" };
-    }
-    if (bestKeywordMatch.matches && bestKeywordMatch.score < bestMatch.score) {
-      bestMatch = { ...bestKeywordMatch, source: "keyword" };
-    }
-    if (subtitleMatch.matches && subtitleMatch.score < bestMatch.score) {
-      bestMatch = { ...subtitleMatch, source: "subtitle" };
-    }
+      // Determine best match
+      let bestMatch = { matches: false, score: Infinity };
+      if (titleMatch.matches && titleMatch.score < bestMatch.score) {
+        bestMatch = { ...titleMatch, source: "title" };
+      }
+      if (
+        bestKeywordMatch.matches &&
+        bestKeywordMatch.score < bestMatch.score
+      ) {
+        bestMatch = { ...bestKeywordMatch, source: "keyword" };
+      }
+      if (subtitleMatch.matches && subtitleMatch.score < bestMatch.score) {
+        bestMatch = { ...subtitleMatch, source: "subtitle" };
+      }
 
-    return {
-      ...action,
-      matchScore: bestMatch.score,
-      matches: bestMatch.matches,
-      matchSource: bestMatch.source,
-      matchIndices: bestMatch.indices,
-    };
-  })
+      return {
+        ...action,
+        matchScore: bestMatch.score,
+        matches: bestMatch.matches,
+        matchSource: bestMatch.source,
+        matchIndices: bestMatch.indices,
+      };
+    })
     .filter((action) => action.matches)
     .sort((a, b) => {
       // Sort by score first, then by priority
