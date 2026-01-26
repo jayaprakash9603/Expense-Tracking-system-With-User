@@ -59,6 +59,8 @@ const ReportHeader = ({
   extraSelects = [],
   rightActions = null,
   showExportButton = true,
+  showBackButton = true,
+  stickyBackground = null,
 }) => {
   const { colors } = useTheme();
   const selectStyle = {
@@ -73,7 +75,7 @@ const ReportHeader = ({
 
   const hasMatchingTimeframe = useMemo(
     () => timeframeOptions.some((option) => option.value === timeframe),
-    [timeframe, timeframeOptions]
+    [timeframe, timeframeOptions],
   );
   const hasExplicitTimeframe =
     timeframe !== undefined && timeframe !== null && timeframe !== "";
@@ -83,8 +85,8 @@ const ReportHeader = ({
   const timeframeSelectValue = shouldShowPlaceholderOption
     ? CUSTOM_TIMEFRAME_PLACEHOLDER
     : hasExplicitTimeframe
-    ? timeframe
-    : "";
+      ? timeframe
+      : "";
 
   const derivedCenterContent = useMemo(() => {
     if (centerContent) {
@@ -184,10 +186,18 @@ const ReportHeader = ({
         paddingBottom: "24px",
         borderBottom: `1px solid ${colors.border_color}`,
         paddingTop: "24px",
+        marginTop: stickyBackground === "inherit" ? "-24px" : "0",
+        marginLeft: stickyBackground === "inherit" ? "-24px" : "0",
+        marginRight: stickyBackground === "inherit" ? "-24px" : "0",
+        paddingLeft: stickyBackground === "inherit" ? "24px" : "0",
+        paddingRight: stickyBackground === "inherit" ? "24px" : "0",
         position: "sticky",
-        top: 0,
+        top: stickyBackground === "inherit" ? "-24px" : 0,
         zIndex: 10,
-        background: colors.tertiary_bg,
+        background:
+          stickyBackground === "inherit"
+            ? colors.secondary_bg
+            : stickyBackground || colors.tertiary_bg,
       }}
     >
       <div
@@ -209,33 +219,35 @@ const ReportHeader = ({
             minWidth: 240,
           }}
         >
-          <IconButton
-            sx={{
-              color: colors.secondary_accent,
-              backgroundColor: colors.primary_bg,
-              "&:hover": { backgroundColor: colors.hover_bg },
-              zIndex: 10,
-              transform: "translateY(-15px)",
-            }}
-            onClick={onBack}
-            aria-label="Back"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          {showBackButton && (
+            <IconButton
+              sx={{
+                color: colors.secondary_accent,
+                backgroundColor: colors.primary_bg,
+                "&:hover": { backgroundColor: colors.hover_bg },
+                zIndex: 10,
+                transform: "translateY(-15px)",
+              }}
+              onClick={onBack}
+              aria-label="Back"
             >
-              <path
-                d="M15 18L9 12L15 6"
-                stroke={colors.secondary_accent}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </IconButton>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 18L9 12L15 6"
+                  stroke={colors.secondary_accent}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </IconButton>
+          )}
           <div>
             <h1
               style={{

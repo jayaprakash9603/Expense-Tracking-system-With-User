@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Button,
   FormControl,
@@ -14,31 +15,43 @@ import {
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { AdminPanelContainer, SectionCard } from "./components";
+import ReportHeader from "../../../components/ReportHeader";
+import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import {
-  AdminPanelContainer,
-  AdminPageHeader,
-  StatCard,
-  SectionCard,
-} from "./components";
-import { fetchAdminReports, generateReport, deleteReport } from "../../../Redux/Admin/admin.action";
+  fetchAdminReports,
+  generateReport,
+  deleteReport,
+} from "../../../Redux/Admin/admin.action";
 
 const Reports = () => {
   const dispatch = useDispatch();
-  const adminState = useSelector(state => state.admin) || {};
+  const navigate = useNavigate();
+  const adminState = useSelector((state) => state.admin) || {};
   const reportsState = adminState.reports || {
     list: [],
     totalCount: 0,
     generating: false,
     loading: false,
-    error: null
+    error: null,
   };
-  const { list: reports, totalCount, generating, loading, error } = reportsState;
+  const {
+    list: reports,
+    totalCount,
+    generating,
+    loading,
+    error,
+  } = reportsState;
 
   const [reportType, setReportType] = useState("user-activity");
   const [dateRange, setDateRange] = useState("30d");
   const [format, setFormat] = useState("pdf");
   const [reportName, setReportName] = useState("");
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
     dispatch(fetchAdminReports());
@@ -78,13 +91,23 @@ const Reports = () => {
         type: reportType,
         dateRange,
         format,
-        name: reportName || `${reportTypes.find(r => r.value === reportType)?.label} - ${new Date().toLocaleDateString()}`,
+        name:
+          reportName ||
+          `${reportTypes.find((r) => r.value === reportType)?.label} - ${new Date().toLocaleDateString()}`,
       };
       await dispatch(generateReport(reportConfig));
-      setSnackbar({ open: true, message: "Report generated successfully!", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Report generated successfully!",
+        severity: "success",
+      });
       setReportName("");
     } catch (err) {
-      setSnackbar({ open: true, message: "Failed to generate report", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Failed to generate report",
+        severity: "error",
+      });
     }
   };
 
@@ -92,9 +115,17 @@ const Reports = () => {
     if (window.confirm("Are you sure you want to delete this report?")) {
       try {
         await dispatch(deleteReport(reportId));
-        setSnackbar({ open: true, message: "Report deleted successfully!", severity: "success" });
+        setSnackbar({
+          open: true,
+          message: "Report deleted successfully!",
+          severity: "success",
+        });
       } catch (err) {
-        setSnackbar({ open: true, message: "Failed to delete report", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: "Failed to delete report",
+          severity: "error",
+        });
       }
     }
   };
@@ -102,26 +133,62 @@ const Reports = () => {
   const handleDownloadReport = (report) => {
     // This would typically call an API to download the report file
     console.log("Downloading report:", report.id);
-    setSnackbar({ open: true, message: "Download started...", severity: "info" });
+    setSnackbar({
+      open: true,
+      message: "Download started...",
+      severity: "info",
+    });
   };
 
   // Calculate stats
-  const reportsThisMonth = reports.filter(r => {
+  const reportsThisMonth = reports.filter((r) => {
     const reportDate = new Date(r.createdAt || r.date);
     const now = new Date();
-    return reportDate.getMonth() === now.getMonth() && reportDate.getFullYear() === now.getFullYear();
+    return (
+      reportDate.getMonth() === now.getMonth() &&
+      reportDate.getFullYear() === now.getFullYear()
+    );
   }).length;
 
-  const avgSize = reports.length > 0 
-    ? (reports.reduce((sum, r) => sum + parseFloat(r.size || 0), 0) / reports.length).toFixed(1) 
-    : "0";
+  const avgSize =
+    reports.length > 0
+      ? (
+          reports.reduce((sum, r) => sum + parseFloat(r.size || 0), 0) /
+          reports.length
+        ).toFixed(1)
+      : "0";
+
+  // Prepare data for SharedOverviewCards
+  const overviewData = [
+    {
+      reportTypes: reportTypes.length,
+      generatedThisMonth: reportsThisMonth,
+      totalReports: totalCount || reports.length,
+      avgSize: avgSize,
+    },
+  ];
+
+  const [flowType, setFlowType] = useState("all");
+
+  const handleExport = () => {
+    console.log("Exporting reports data...");
+  };
 
   return (
     <AdminPanelContainer>
-      {/* Page Header */}
-      <AdminPageHeader
+      {/* Report Header */}
+      <ReportHeader
         title="Reports"
-        description="Generate and manage system reports"
+        subtitle="Generate and manage system reports"
+        timeframe="all"
+        flowType={flowType}
+        onFlowTypeChange={setFlowType}
+        onExport={handleExport}
+        showFilterButton={false}
+        timeframeOptions={[{ value: "all", label: "All Time" }]}
+        isLoading={loading}
+        showBackButton={false}
+        stickyBackground="inherit"
       />
 
       {/* Error Alert */}
@@ -131,13 +198,8 @@ const Reports = () => {
         </Alert>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Report Types" value={reportTypes.length.toString()} />
-        <StatCard label="Generated This Month" value={reportsThisMonth.toString()} color="#4caf50" />
-        <StatCard label="Total Reports" value={(totalCount || reports.length).toString()} color="#2196f3" />
-        <StatCard label="Avg Size" value={`${avgSize} MB`} color="#9c27b0" />
-      </div>
+      {/* Stats Cards using SharedOverviewCards */}
+      <SharedOverviewCards data={overviewData} mode="admin-reports" />
 
       {/* Report Configuration */}
       <SectionCard title="Generate New Report">
@@ -210,7 +272,13 @@ const Reports = () => {
           <div className="flex gap-3">
             <Button
               variant="contained"
-              startIcon={generating ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+              startIcon={
+                generating ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <FileDownloadIcon />
+                )
+              }
               onClick={handleGenerateReport}
               disabled={generating}
               style={{
@@ -239,13 +307,27 @@ const Reports = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-700">
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Report Name</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Type</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Generated By</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Date</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Size</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold">Format</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold">Actions</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Report Name
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Type
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Generated By
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Date
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Size
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">
+                    Format
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -253,27 +335,35 @@ const Reports = () => {
                   reports.map((report) => (
                     <tr key={report.id} className="border-b border-gray-700">
                       <td className="px-6 py-4 font-medium">{report.name}</td>
-                      <td className="px-6 py-4 text-sm opacity-70">{report.type}</td>
-                      <td className="px-6 py-4 text-sm opacity-70">{report.generatedBy || "System"}</td>
                       <td className="px-6 py-4 text-sm opacity-70">
-                        {new Date(report.createdAt || report.date).toLocaleDateString()}
+                        {report.type}
                       </td>
-                      <td className="px-6 py-4 text-sm opacity-70">{report.size || "N/A"}</td>
+                      <td className="px-6 py-4 text-sm opacity-70">
+                        {report.generatedBy || "System"}
+                      </td>
+                      <td className="px-6 py-4 text-sm opacity-70">
+                        {new Date(
+                          report.createdAt || report.date,
+                        ).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm opacity-70">
+                        {report.size || "N/A"}
+                      </td>
                       <td className="px-6 py-4">
                         <span className="px-2 py-1 rounded text-xs font-medium bg-blue-900 text-blue-300">
                           {report.format?.toUpperCase() || "PDF"}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Button 
-                          size="small" 
+                        <Button
+                          size="small"
                           startIcon={<FileDownloadIcon />}
                           onClick={() => handleDownloadReport(report)}
                         >
                           Download
                         </Button>
-                        <Button 
-                          size="small" 
+                        <Button
+                          size="small"
                           color="error"
                           startIcon={<DeleteIcon />}
                           onClick={() => handleDeleteReport(report.id)}
@@ -285,7 +375,10 @@ const Reports = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center opacity-70">
+                    <td
+                      colSpan={7}
+                      className="px-6 py-8 text-center opacity-70"
+                    >
                       No reports generated yet. Create your first report above.
                     </td>
                   </tr>
@@ -302,7 +395,10 @@ const Reports = () => {
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

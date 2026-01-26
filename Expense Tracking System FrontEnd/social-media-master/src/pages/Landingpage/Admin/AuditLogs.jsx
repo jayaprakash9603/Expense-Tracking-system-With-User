@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   TextField,
   FormControl,
@@ -12,13 +13,10 @@ import {
   Alert,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import {
-  AdminPanelContainer,
-  AdminPageHeader,
-  SectionCard,
-} from "./components";
+import { AdminPanelContainer, SectionCard } from "./components";
+import ReportHeader from "../../../components/ReportHeader";
+import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import { formatRelativeTime, formatDate } from "./utils/adminUtils";
 import {
   fetchAuditLogs,
@@ -27,6 +25,7 @@ import {
 
 const AuditLogs = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const adminState = useSelector((state) => state.admin) || {};
   const auditLogs = adminState.auditLogs || {
     list: [],
@@ -150,39 +149,61 @@ const AuditLogs = () => {
     }
   };
 
+  // Prepare data for SharedOverviewCards
+  const overviewData = [
+    {
+      totalLogs: stats?.totalLogs || 0,
+      userManagement: stats?.userManagement || 0,
+      dataChanges: stats?.dataModification || 0,
+      authentication: stats?.authentication || 0,
+      reports: stats?.reportGeneration || 0,
+    },
+  ];
+
+  const [flowType, setFlowType] = useState("all");
+
+  const timeframeOptions = [
+    { value: "24h", label: "Last 24 Hours" },
+    { value: "7d", label: "Last 7 Days" },
+    { value: "30d", label: "Last 30 Days" },
+    { value: "90d", label: "Last 90 Days" },
+  ];
+
+  const RefreshButton = () => (
+    <Button
+      variant="outlined"
+      startIcon={<RefreshIcon />}
+      onClick={handleRefresh}
+      disabled={loading}
+      style={{
+        borderColor: "#14b8a6",
+        color: "#14b8a6",
+      }}
+    >
+      Refresh
+    </Button>
+  );
+
   return (
     <AdminPanelContainer>
-      {/* Page Header */}
-      <AdminPageHeader
+      {/* Report Header */}
+      <ReportHeader
         title="Audit Logs"
-        description="Track system activities and user actions"
-        actions={
-          <div className="flex gap-2">
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={handleRefresh}
-              disabled={loading}
-              style={{
-                borderColor: "#14b8a6",
-                color: "#14b8a6",
-              }}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<FileDownloadIcon />}
-              onClick={handleExport}
-              style={{
-                backgroundColor: "#14b8a6",
-                color: "#fff",
-              }}
-            >
-              Export Logs
-            </Button>
-          </div>
-        }
+        subtitle="Track system activities and user actions"
+        timeframe={filterDate}
+        flowType={flowType}
+        onTimeframeChange={(val) => {
+          setFilterDate(val);
+          setCurrentPage(1);
+        }}
+        onFlowTypeChange={setFlowType}
+        onExport={handleExport}
+        timeframeOptions={timeframeOptions}
+        isLoading={loading}
+        showFilterButton={false}
+        rightActions={<RefreshButton />}
+        showBackButton={false}
+        stickyBackground="inherit"
       />
 
       {/* Error Alert */}
@@ -192,56 +213,8 @@ const AuditLogs = () => {
         </Alert>
       )}
 
-      {/* Stats Summary */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <div
-            className="p-4 rounded-lg"
-            style={{ backgroundColor: "rgba(20, 184, 166, 0.1)" }}
-          >
-            <p className="text-sm opacity-70">Total Logs</p>
-            <p className="text-2xl font-bold" style={{ color: "#14b8a6" }}>
-              {stats.totalLogs || 0}
-            </p>
-          </div>
-          <div
-            className="p-4 rounded-lg"
-            style={{ backgroundColor: "rgba(33, 150, 243, 0.1)" }}
-          >
-            <p className="text-sm opacity-70">User Management</p>
-            <p className="text-2xl font-bold" style={{ color: "#2196f3" }}>
-              {stats.userManagement || 0}
-            </p>
-          </div>
-          <div
-            className="p-4 rounded-lg"
-            style={{ backgroundColor: "rgba(255, 152, 0, 0.1)" }}
-          >
-            <p className="text-sm opacity-70">Data Changes</p>
-            <p className="text-2xl font-bold" style={{ color: "#ff9800" }}>
-              {stats.dataModification || 0}
-            </p>
-          </div>
-          <div
-            className="p-4 rounded-lg"
-            style={{ backgroundColor: "rgba(76, 175, 80, 0.1)" }}
-          >
-            <p className="text-sm opacity-70">Authentication</p>
-            <p className="text-2xl font-bold" style={{ color: "#4caf50" }}>
-              {stats.authentication || 0}
-            </p>
-          </div>
-          <div
-            className="p-4 rounded-lg"
-            style={{ backgroundColor: "rgba(0, 188, 212, 0.1)" }}
-          >
-            <p className="text-sm opacity-70">Reports</p>
-            <p className="text-2xl font-bold" style={{ color: "#00bcd4" }}>
-              {stats.reportGeneration || 0}
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Stats Summary using SharedOverviewCards */}
+      <SharedOverviewCards data={overviewData} mode="admin-audit" />
 
       {/* Filters Section */}
       <SectionCard title="Filters">
@@ -323,8 +296,8 @@ const AuditLogs = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {auditLogs.length > 0 ? (
-                    auditLogs.map((log) => (
+                  {logs.length > 0 ? (
+                    logs.map((log) => (
                       <tr key={log.id} className="border-b border-gray-700">
                         <td className="px-6 py-4 text-sm opacity-70">
                           {formatRelativeTime(log.timestamp)}

@@ -1,29 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem as MuiMenuItem,
-  CircularProgress,
-} from "@mui/material";
-import {
-  AdminPanelContainer,
-  AdminPageHeader,
-  StatCard,
-  SectionCard,
-} from "./components";
+import { useNavigate } from "react-router-dom";
+import { CircularProgress } from "@mui/material";
+import { AdminPanelContainer, SectionCard } from "./components";
+import ReportHeader from "../../../components/ReportHeader";
+import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import {
   formatNumber,
   formatCurrency,
   formatPercentage,
 } from "./utils/adminUtils";
-import {
-  fetchDashboardAnalytics,
-  fetchTopCategories,
-  fetchRecentActivity,
-  fetchTopUsers,
-} from "../../../Redux/Admin/admin.action";
+import { fetchDashboardAnalytics } from "../../../Redux/Admin/admin.action";
 
 /**
  * System Analytics Component
@@ -31,6 +18,7 @@ import {
  */
 const SystemAnalytics = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Safely access admin state with fallbacks
   const adminState = useSelector((state) => state.admin) || {};
@@ -46,6 +34,7 @@ const SystemAnalytics = () => {
   const error = analytics.error || null;
 
   const [timeRange, setTimeRange] = useState("7d");
+  const [flowType, setFlowType] = useState("all");
 
   // Fetch analytics data when component mounts or time range changes
   useEffect(() => {
@@ -104,34 +93,51 @@ const SystemAnalytics = () => {
     return icons[type] || "📋";
   }
 
-  // Time range selector component
-  const TimeRangeSelector = () => (
-    <FormControl size="small" style={{ minWidth: 150 }}>
-      <InputLabel>Time Range</InputLabel>
-      <Select
-        value={timeRange}
-        onChange={(e) => setTimeRange(e.target.value)}
-        label="Time Range"
-      >
-        <MuiMenuItem value="7d">Last 7 Days</MuiMenuItem>
-        <MuiMenuItem value="30d">Last 30 Days</MuiMenuItem>
-        <MuiMenuItem value="90d">Last 90 Days</MuiMenuItem>
-        <MuiMenuItem value="1y">Last Year</MuiMenuItem>
-      </Select>
-    </FormControl>
-  );
+  // Prepare data for SharedOverviewCards
+  const overviewData = [
+    {
+      totalUsers: stats.totalUsers,
+      activeUsers: stats.activeUsers,
+      totalExpenses: stats.totalExpenses,
+      totalRevenue: stats.totalRevenue,
+      userGrowth: stats.userGrowth,
+      activeGrowth: stats.activeGrowth,
+      expenseGrowth: stats.expenseGrowth,
+      revenueGrowth: stats.revenueGrowth,
+    },
+  ];
+
+  const timeframeOptions = [
+    { value: "7d", label: "Last 7 Days" },
+    { value: "30d", label: "Last 30 Days" },
+    { value: "90d", label: "Last 90 Days" },
+    { value: "1y", label: "Last Year" },
+  ];
+
+  const handleExport = () => {
+    console.log("Exporting analytics data...");
+  };
 
   return (
     <AdminPanelContainer>
-      {/* Page Header */}
-      <AdminPageHeader
+      {/* Report Header */}
+      <ReportHeader
         title="System Analytics"
-        description="Monitor system performance and user activity"
-        actions={<TimeRangeSelector />}
+        subtitle="Monitor system performance and user activity"
+        timeframe={timeRange}
+        flowType={flowType}
+        onTimeframeChange={setTimeRange}
+        onFlowTypeChange={setFlowType}
+        onExport={handleExport}
+        timeframeOptions={timeframeOptions}
+        isLoading={loading}
+        showFilterButton={false}
+        showBackButton={false}
+        stickyBackground="inherit"
       />
 
       {/* Loading State */}
-      {loading.analytics && (
+      {loading && (
         <div className="flex justify-center p-8">
           <CircularProgress />
         </div>
@@ -144,29 +150,8 @@ const SystemAnalytics = () => {
         </div>
       )}
 
-      {/* Key Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          label="Total Users"
-          value={formatNumber(stats.totalUsers)}
-          growth={formatPercentage(stats.userGrowth)}
-        />
-        <StatCard
-          label="Active Users"
-          value={formatNumber(stats.activeUsers)}
-          growth={formatPercentage(stats.activeGrowth)}
-        />
-        <StatCard
-          label="Total Expenses"
-          value={formatNumber(stats.totalExpenses)}
-          growth={formatPercentage(stats.expenseGrowth)}
-        />
-        <StatCard
-          label="Total Revenue"
-          value={formatCurrency(stats.totalRevenue)}
-          growth={formatPercentage(stats.revenueGrowth)}
-        />
-      </div>
+      {/* Key Metrics using SharedOverviewCards */}
+      <SharedOverviewCards data={overviewData} mode="admin-analytics" />
 
       {/* Activity & Categories Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

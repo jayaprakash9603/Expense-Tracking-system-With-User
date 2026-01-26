@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Avatar,
   Chip,
@@ -19,12 +20,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BlockIcon from "@mui/icons-material/Block";
-import {
-  AdminPanelContainer,
-  AdminPageHeader,
-  StatCard,
-  SectionCard,
-} from "./components";
+import { AdminPanelContainer, SectionCard } from "./components";
+import ReportHeader from "../../../components/ReportHeader";
+import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import {
   formatCurrency,
   getStatusColor,
@@ -40,6 +38,7 @@ import {
 
 const UserManagement = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Safely access admin state with fallbacks
   const adminState = useSelector((state) => state.admin) || {};
@@ -137,33 +136,40 @@ const UserManagement = () => {
 
   const filteredUsers = userList;
 
+  // Prepare data for SharedOverviewCards
+  const overviewData = [
+    {
+      totalUsers: stats.total,
+      activeUsers: stats.active,
+      admins: stats.admins,
+      newThisMonth: stats.newThisMonth,
+    },
+  ];
+
+  const [flowType, setFlowType] = useState("all");
+
+  const handleExport = () => {
+    console.log("Exporting user data...");
+  };
+
   return (
     <AdminPanelContainer>
-      {/* Page Header */}
-      <AdminPageHeader
+      {/* Report Header */}
+      <ReportHeader
         title="User Management"
-        description="Manage user accounts, roles, and permissions"
+        subtitle="Manage user accounts, roles, and permissions"
+        timeframe="all"
+        flowType={flowType}
+        onFlowTypeChange={setFlowType}
+        onExport={handleExport}
+        showFilterButton={false}
+        timeframeOptions={[{ value: "all", label: "All Time" }]}
+        showBackButton={false}
+        stickyBackground="inherit"
       />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total Users" value={stats.total.toString()} />
-        <StatCard
-          label="Active Users"
-          value={stats.active.toString()}
-          color="#4caf50"
-        />
-        <StatCard
-          label="Admins"
-          value={stats.admins.toString()}
-          color="#e91e63"
-        />
-        <StatCard
-          label="New This Month"
-          value={stats.newThisMonth.toString()}
-          color="#2196f3"
-        />
-      </div>
+      {/* Stats Cards using SharedOverviewCards */}
+      <SharedOverviewCards data={overviewData} mode="admin-users" />
 
       {/* Search and Filter Section */}
       <SectionCard

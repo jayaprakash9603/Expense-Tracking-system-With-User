@@ -4,10 +4,14 @@ import { useTheme } from "../../hooks/useTheme";
 
 /**
  * SharedOverviewCards
- * Modes: payment | category | expenses | budget | friendship
+ * Modes: payment | category | expenses | budget | friendship | admin-analytics | admin-users | admin-audit | admin-reports
  * For expenses mode we show: Total Spending, Top Expense Name, Avg Transaction, Total Transactions
  * For budget mode we show: Total Budgets, Active Budgets, Total Spent, Total Remaining
  * For friendship mode we show: Total Friends, Pending Requests, I Shared With, Shared With Me
+ * For admin-analytics mode we show: Total Users, Active Users, Total Expenses, Total Revenue
+ * For admin-users mode we show: Total Users, Active Users, Admins, New This Month
+ * For admin-audit mode we show: Total Logs, User Management, Data Changes, Authentication
+ * For admin-reports mode we show: Report Types, Generated This Month, Total Reports, Avg Size
  */
 const SharedOverviewCards = ({
   data = [],
@@ -23,6 +27,10 @@ const SharedOverviewCards = ({
   const isExpenses = mode === "expenses";
   const isBudget = mode === "budget";
   const isFriendship = mode === "friendship";
+  const isAdminAnalytics = mode === "admin-analytics";
+  const isAdminUsers = mode === "admin-users";
+  const isAdminAudit = mode === "admin-audit";
+  const isAdminReports = mode === "admin-reports";
 
   const amountKey = isPayment || isExpenses ? "totalAmount" : "amount";
   const nameKey = isPayment ? "method" : isCategory ? "name" : "method"; // expenses receives payment-method style objects
@@ -32,13 +40,13 @@ const SharedOverviewCards = ({
   // Total amount
   const totalAmount = safe.reduce(
     (sum, item) => sum + Number(item?.[amountKey] || 0),
-    0
+    0,
   );
 
   // Total transactions count (expenses & payment share logic)
   const totalTransactions = safe.reduce(
     (sum, item) => sum + Number(item?.transactions || item?.count || 0),
-    0
+    0,
   );
 
   // Build expense name aggregation only for expenses mode
@@ -275,6 +283,480 @@ const SharedOverviewCards = ({
     );
   }
 
+  // Admin Analytics mode
+  if (isAdminAnalytics) {
+    const analyticsData = safe[0] || {};
+    const totalUsers = analyticsData.totalUsers || 0;
+    const activeUsers = analyticsData.activeUsers || 0;
+    const totalExpenses = analyticsData.totalExpenses || 0;
+    const totalRevenue = analyticsData.totalRevenue || 0;
+    const userGrowth = analyticsData.userGrowth || 0;
+    const activeGrowth = analyticsData.activeGrowth || 0;
+    const expenseGrowth = analyticsData.expenseGrowth || 0;
+    const revenueGrowth = analyticsData.revenueGrowth || 0;
+
+    return (
+      <div
+        className="shared-overview-cards admin-analytics-overview-cards"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: "20px",
+          marginBottom: "32px",
+        }}
+      >
+        <div
+          className="overview-card primary"
+          style={getCardStyleWithBorder(borderColors.primary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            👥
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Users</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(totalUsers).toLocaleString()}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: userGrowth >= 0 ? "#10b981" : "#ef4444",
+              }}
+            >
+              {userGrowth >= 0 ? "+" : ""}
+              {userGrowth}% vs last period
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card secondary"
+          style={getCardStyleWithBorder(borderColors.secondary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            ✅
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Active Users</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(activeUsers).toLocaleString()}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: activeGrowth >= 0 ? "#10b981" : "#ef4444",
+              }}
+            >
+              {activeGrowth >= 0 ? "+" : ""}
+              {activeGrowth}% vs last period
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card tertiary"
+          style={getCardStyleWithBorder(borderColors.tertiary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            💰
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Expenses</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(totalExpenses).toLocaleString()}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: expenseGrowth >= 0 ? "#10b981" : "#ef4444",
+              }}
+            >
+              {expenseGrowth >= 0 ? "+" : ""}
+              {expenseGrowth}% vs last period
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card quaternary"
+          style={getCardStyleWithBorder(borderColors.quaternary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            💵
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Revenue</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {displayCurrency}
+              {Number(totalRevenue).toLocaleString()}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: revenueGrowth >= 0 ? "#10b981" : "#ef4444",
+              }}
+            >
+              {revenueGrowth >= 0 ? "+" : ""}
+              {revenueGrowth}% vs last period
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin Users mode
+  if (isAdminUsers) {
+    const usersData = safe[0] || {};
+    const totalUsers = usersData.totalUsers || usersData.total || 0;
+    const activeUsers = usersData.activeUsers || usersData.active || 0;
+    const admins = usersData.admins || 0;
+    const newThisMonth = usersData.newThisMonth || 0;
+
+    return (
+      <div
+        className="shared-overview-cards admin-users-overview-cards"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: "20px",
+          marginBottom: "32px",
+        }}
+      >
+        <div
+          className="overview-card primary"
+          style={getCardStyleWithBorder(borderColors.primary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            👥
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Users</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(totalUsers).toLocaleString()}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: themeMode === "dark" ? "#888" : "#666",
+              }}
+            >
+              All registered users
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card secondary"
+          style={getCardStyleWithBorder(borderColors.secondary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            ✅
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Active Users</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(activeUsers).toLocaleString()}
+            </div>
+            <div
+              className="card-change positive"
+              style={{ ...cardChangeStyle, color: "#10b981" }}
+            >
+              Currently active
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card tertiary"
+          style={getCardStyleWithBorder(borderColors.tertiary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            🛡️
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Admins</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(admins).toLocaleString()}
+            </div>
+            <div
+              className="card-change"
+              style={{ ...cardChangeStyle, color: "#e91e63" }}
+            >
+              Admin privileges
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card quaternary"
+          style={getCardStyleWithBorder(borderColors.quaternary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            🆕
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>New This Month</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(newThisMonth).toLocaleString()}
+            </div>
+            <div
+              className="card-change positive"
+              style={{ ...cardChangeStyle, color: "#2196f3" }}
+            >
+              Recent registrations
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin Audit mode
+  if (isAdminAudit) {
+    const auditData = safe[0] || {};
+    const totalLogs = auditData.totalLogs || 0;
+    const userManagement = auditData.userManagement || 0;
+    const dataChanges =
+      auditData.dataChanges || auditData.dataModification || 0;
+    const authentication = auditData.authentication || 0;
+    const reports = auditData.reports || auditData.reportGeneration || 0;
+
+    return (
+      <div
+        className="shared-overview-cards admin-audit-overview-cards"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "20px",
+          marginBottom: "32px",
+        }}
+      >
+        <div
+          className="overview-card primary"
+          style={getCardStyleWithBorder(borderColors.primary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📋
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Logs</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(totalLogs).toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card secondary"
+          style={getCardStyleWithBorder("#2196f3")}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            👤
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>User Management</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(userManagement).toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card tertiary"
+          style={getCardStyleWithBorder("#ff9800")}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📝
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Data Changes</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(dataChanges).toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card quaternary"
+          style={getCardStyleWithBorder("#4caf50")}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            🔐
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Authentication</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(authentication).toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card quinary"
+          style={getCardStyleWithBorder("#00bcd4")}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📊
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Reports</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(reports).toLocaleString()}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin Reports mode
+  if (isAdminReports) {
+    const reportsData = safe[0] || {};
+    const reportTypes = reportsData.reportTypes || 5;
+    const generatedThisMonth = reportsData.generatedThisMonth || 0;
+    const totalReports = reportsData.totalReports || 0;
+    const avgSize = reportsData.avgSize || "0";
+
+    return (
+      <div
+        className="shared-overview-cards admin-reports-overview-cards"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: "20px",
+          marginBottom: "32px",
+        }}
+      >
+        <div
+          className="overview-card primary"
+          style={getCardStyleWithBorder(borderColors.primary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📑
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Report Types</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {reportTypes}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: themeMode === "dark" ? "#888" : "#666",
+              }}
+            >
+              Available templates
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card secondary"
+          style={getCardStyleWithBorder(borderColors.secondary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📅
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Generated This Month</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(generatedThisMonth).toLocaleString()}
+            </div>
+            <div
+              className="card-change positive"
+              style={{ ...cardChangeStyle, color: "#4caf50" }}
+            >
+              This month
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card tertiary"
+          style={getCardStyleWithBorder(borderColors.tertiary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📊
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Reports</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {Number(totalReports).toLocaleString()}
+            </div>
+            <div
+              className="card-change"
+              style={{ ...cardChangeStyle, color: "#2196f3" }}
+            >
+              All time
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="overview-card quaternary"
+          style={getCardStyleWithBorder(borderColors.quaternary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            💾
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Avg Size</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {avgSize} MB
+            </div>
+            <div
+              className="card-change"
+              style={{ ...cardChangeStyle, color: "#9c27b0" }}
+            >
+              Per report
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Friendship mode renders friendship-specific cards
   if (isFriendship) {
     const friendshipData = safe[0] || {};
@@ -340,8 +822,8 @@ const SharedOverviewCards = ({
                   pendingRequests > 0
                     ? "#f59e0b"
                     : themeMode === "dark"
-                    ? "#888"
-                    : "#666",
+                      ? "#888"
+                      : "#666",
               }}
             >
               {pendingRequests > 0
@@ -458,8 +940,8 @@ const SharedOverviewCards = ({
             {isExpenses
               ? "Top Expense Name"
               : isPayment
-              ? "Top Payment Method"
-              : "Top Category"}
+                ? "Top Payment Method"
+                : "Top Category"}
           </h3>
           <div
             className="card-value"
