@@ -31,6 +31,7 @@ const InlineSearchBar = () => {
   const [localSelectedIndex, setLocalSelectedIndex] = useState(0);
   const inputRef = useRef(null);
   const containerRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   const {
     query,
@@ -81,6 +82,19 @@ const InlineSearchBar = () => {
     setLocalSelectedIndex(0);
   };
 
+  // Scroll selected item into view
+  const scrollToSelected = (index) => {
+    if (dropdownRef.current) {
+      const items = dropdownRef.current.querySelectorAll("[data-result-index]");
+      if (items[index]) {
+        items[index].scrollIntoView({
+          block: "nearest",
+          behavior: "smooth",
+        });
+      }
+    }
+  };
+
   // Local keyboard handler for inline search
   const handleLocalKeyDown = (e) => {
     if (e.key === "Escape") {
@@ -91,17 +105,19 @@ const InlineSearchBar = () => {
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setLocalSelectedIndex((prev) =>
-        prev < allResults.length - 1 ? prev + 1 : 0,
-      );
+      const newIndex =
+        localSelectedIndex < allResults.length - 1 ? localSelectedIndex + 1 : 0;
+      setLocalSelectedIndex(newIndex);
+      setTimeout(() => scrollToSelected(newIndex), 0);
       return;
     }
 
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      setLocalSelectedIndex((prev) =>
-        prev > 0 ? prev - 1 : allResults.length - 1,
-      );
+      const newIndex =
+        localSelectedIndex > 0 ? localSelectedIndex - 1 : allResults.length - 1;
+      setLocalSelectedIndex(newIndex);
+      setTimeout(() => scrollToSelected(newIndex), 0);
       return;
     }
 
@@ -291,6 +307,7 @@ const InlineSearchBar = () => {
       {/* Results Dropdown */}
       {showDropdown && (
         <Paper
+          ref={dropdownRef}
           elevation={8}
           sx={{
             position: "absolute",
@@ -376,17 +393,24 @@ const InlineSearchBar = () => {
                   globalIndex += idx;
 
                   return (
-                    <SearchResultItem
+                    <Box
                       key={result.id || `${sectionKey}-${idx}`}
-                      result={result}
-                      isSelected={localSelectedIndex === globalIndex}
-                      isDark={isDark}
-                      onClick={() => {
+                      data-result-index={globalIndex}
+                      onMouseDown={(e) => {
+                        // Prevent blur and handle click
+                        e.preventDefault();
+                        e.stopPropagation();
                         selectResult(result);
                         handleClose();
                       }}
-                      query={query}
-                    />
+                    >
+                      <SearchResultItem
+                        result={result}
+                        isSelected={localSelectedIndex === globalIndex}
+                        isDark={isDark}
+                        query={query}
+                      />
+                    </Box>
                   );
                 })}
               </Box>
