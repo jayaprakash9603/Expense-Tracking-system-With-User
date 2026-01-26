@@ -77,12 +77,16 @@ const Modal = ({
           <button
             onClick={onDecline}
             className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-500 w-full sm:w-auto"
+            data-shortcut="modal-decline"
+            title={`${declineText} (N)`}
           >
             {declineText}
           </button>
           <button
             onClick={onApprove}
             className="bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-500 w-full sm:w-auto"
+            data-shortcut="modal-approve"
+            title={`${approveText} (Y)`}
           >
             {approveText}
           </button>

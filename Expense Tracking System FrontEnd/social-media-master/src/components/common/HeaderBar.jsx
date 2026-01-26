@@ -220,6 +220,7 @@ const HeaderBar = () => {
           <div className="relative">
             <button
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              data-shortcut="notifications"
               className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
                 isDark
                   ? "bg-gray-800 hover:bg-gray-700"
@@ -258,6 +259,7 @@ const HeaderBar = () => {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={handleProfileClick}
+              data-shortcut="profile"
               className="flex items-center gap-2 focus:outline-none group"
             >
               <Avatar
@@ -362,6 +364,7 @@ const HeaderBar = () => {
                 <div className="py-2">
                   <button
                     onClick={handleProfileNavigate}
+                    data-shortcut="profile-view"
                     className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${
                       isDark
                         ? "text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
@@ -394,6 +397,7 @@ const HeaderBar = () => {
 
                   <button
                     onClick={handleSettingsNavigate}
+                    data-shortcut="profile-settings"
                     className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${
                       isDark
                         ? "text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
@@ -440,6 +444,7 @@ const HeaderBar = () => {
                       />
                       <button
                         onClick={handleSwitchMode}
+                        data-shortcut="profile-switch-mode"
                         className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${
                           isDark
                             ? "text-teal-400 hover:bg-[#2a2a2a] hover:text-teal-300"
@@ -485,6 +490,7 @@ const HeaderBar = () => {
                       setIsProfileOpen(false);
                       setIsLogoutModalOpen(true);
                     }}
+                    data-shortcut="profile-logout"
                     className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 transition-all duration-150 ${
                       isDark
                         ? "text-red-400 hover:bg-red-500/10 hover:text-red-300"

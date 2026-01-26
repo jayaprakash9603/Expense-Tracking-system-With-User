@@ -100,6 +100,8 @@ const RangePeriodNavigator = ({
                 setActiveRange(tab.value);
               }}
               className="px-4 py-2 rounded font-semibold flex items-center gap-2"
+              data-shortcut={`range-${tab.value}`}
+              title={`${tab.label} (${tab.value === "week" ? "W" : tab.value === "month" ? "M" : "Y"})`}
               style={{
                 backgroundColor:
                   activeRange === tab.value
@@ -122,6 +124,8 @@ const RangePeriodNavigator = ({
           onClick={handleBack}
           disabled={offset <= disablePrevAt}
           className="px-3 py-1 rounded text-lg flex items-center"
+          data-shortcut="range-prev"
+          title={`${t("common.previous")} ([)`}
           style={{
             backgroundColor:
               offset <= disablePrevAt
@@ -145,6 +149,8 @@ const RangePeriodNavigator = ({
           onClick={handleNext}
           disabled={offset >= disableNextAt}
           className="px-3 py-1 rounded text-lg flex items-center"
+          data-shortcut="range-next"
+          title={`${t("common.next")} (])`}
           style={{
             backgroundColor:
               offset >= disableNextAt

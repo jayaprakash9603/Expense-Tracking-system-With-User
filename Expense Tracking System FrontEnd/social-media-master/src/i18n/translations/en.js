@@ -1418,5 +1418,29 @@ export const en = {
     toggleMasking: "Masking",
     search: "Search",
     help: "Help",
+    // Header actions
+    notifications: "Notifications",
+    profile: "Profile",
+    // Notification panel child shortcuts
+    markAllRead: "Mark All Read",
+    clearAll: "Clear All",
+    close: "Close",
+    // Profile dropdown child shortcuts
+    viewProfile: "View Profile",
+    settings: "Settings",
+    switchMode: "Switch Mode",
+    logout: "Logout",
+    // Modal shortcuts
+    yes: "Yes",
+    no: "No",
+    confirm: "Confirm",
+    cancel: "Cancel",
+    // Flow page shortcuts
+    week: "Week",
+    month: "Month",
+    year: "Year",
+    previous: "Previous",
+    next: "Next",
+    flowToggle: "Toggle Flow",
   },
 };

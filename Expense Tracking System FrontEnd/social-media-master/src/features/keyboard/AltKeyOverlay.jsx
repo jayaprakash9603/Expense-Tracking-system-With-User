@@ -73,6 +73,38 @@ const ALT_SHORTCUTS = {
     selector: '[data-shortcut="calendar"]',
   },
 
+  // Flow page controls (visible on CashFlow, CategoryFlow, PaymentMethodFlow pages)
+  "flow-week": {
+    key: "W",
+    labelKey: "keyboard.week",
+    selector: '[data-shortcut="range-week"]',
+  },
+  "flow-month": {
+    key: "1",
+    labelKey: "keyboard.month",
+    selector: '[data-shortcut="range-month"]',
+  },
+  "flow-year": {
+    key: "Y",
+    labelKey: "keyboard.year",
+    selector: '[data-shortcut="range-year"]',
+  },
+  "flow-prev": {
+    key: "[",
+    labelKey: "keyboard.previous",
+    selector: '[data-shortcut="range-prev"]',
+  },
+  "flow-next": {
+    key: "]",
+    labelKey: "keyboard.next",
+    selector: '[data-shortcut="range-next"]',
+  },
+  "flow-toggle": {
+    key: "O",
+    labelKey: "keyboard.flowToggle",
+    selector: '[data-shortcut="flow-toggle"]',
+  },
+
   // Actions - Header bar
   "action-theme": {
     key: "T",
@@ -94,10 +126,79 @@ const ALT_SHORTCUTS = {
     labelKey: "keyboard.help",
     selector: '[data-shortcut="help"]',
   },
+  "action-notifications": {
+    key: "N",
+    labelKey: "keyboard.notifications",
+    selector: '[data-shortcut="notifications"]',
+  },
+  "action-profile": {
+    key: "U",
+    labelKey: "keyboard.profile",
+    selector: '[data-shortcut="profile"]',
+  },
+};
+
+// Child shortcuts that appear when parent is active (notification panel or profile dropdown)
+const CHILD_SHORTCUTS = {
+  // Notification panel child shortcuts
+  notifications: {
+    "notifications-mark-read": {
+      key: "R",
+      labelKey: "keyboard.markAllRead",
+      selector: '[data-shortcut="notifications-mark-read"]',
+    },
+    "notifications-clear": {
+      key: "C",
+      labelKey: "keyboard.clearAll",
+      selector: '[data-shortcut="notifications-clear"]',
+    },
+    "notifications-close": {
+      key: "X",
+      labelKey: "keyboard.close",
+      selector: '[data-shortcut="notifications-close"]',
+    },
+  },
+  // Profile dropdown child shortcuts
+  profile: {
+    "profile-view": {
+      key: "V",
+      labelKey: "keyboard.viewProfile",
+      selector: '[data-shortcut="profile-view"]',
+    },
+    "profile-settings": {
+      key: "S",
+      labelKey: "keyboard.settings",
+      selector: '[data-shortcut="profile-settings"]',
+    },
+    "profile-switch-mode": {
+      key: "W",
+      labelKey: "keyboard.switchMode",
+      selector: '[data-shortcut="profile-switch-mode"]',
+    },
+    "profile-logout": {
+      key: "L",
+      labelKey: "keyboard.logout",
+      selector: '[data-shortcut="profile-logout"]',
+      opensChild: "modal", // This indicates clicking logout opens a modal
+    },
+  },
+  // Modal (logout confirmation, delete confirmation, etc.)
+  modal: {
+    "modal-approve": {
+      key: "Y",
+      labelKey: "keyboard.yes",
+      selector: '[data-shortcut="modal-approve"]',
+    },
+    "modal-decline": {
+      key: "N",
+      labelKey: "keyboard.no",
+      selector: '[data-shortcut="modal-decline"]',
+    },
+  },
 };
 
 /**
- * Single shortcut badge positioned on an element
+ * Single shortcut badge positioned directly on the icon of an element
  */
 function ShortcutBadge({ element, shortcutKey, isVisible }) {
   const { colors } = useTheme();
@@ -107,6 +208,7 @@ function ShortcutBadge({ element, shortcutKey, isVisible }) {
     width: 0,
     height: 0,
   });
+  const [iconPosition, setIconPosition] = useState(null);
 
   useEffect(() => {
     if (!element || !isVisible) return;
@@ -119,6 +221,22 @@ function ShortcutBadge({ element, shortcutKey, isVisible }) {
         width: rect.width,
         height: rect.height,
       });
+
+      // Try to find the icon element inside (svg, img, or icon container)
+      const iconEl = element.querySelector(
+        'svg, img, [class*="icon"], .MuiSvgIcon-root',
+      );
+      if (iconEl) {
+        const iconRect = iconEl.getBoundingClientRect();
+        setIconPosition({
+          top: iconRect.top,
+          left: iconRect.left,
+          width: iconRect.width,
+          height: iconRect.height,
+        });
+      } else {
+        setIconPosition(null);
+      }
     };
 
     updatePosition();
@@ -133,42 +251,62 @@ function ShortcutBadge({ element, shortcutKey, isVisible }) {
 
   if (!element || !isVisible) return null;
 
+  // Badge size
+  const badgeSize = 24;
+
+  // Calculate badge position - center on icon if found, otherwise on left side
+  let badgeTop, badgeLeft;
+  if (iconPosition) {
+    // Center badge on the icon
+    badgeTop = iconPosition.top + (iconPosition.height - badgeSize) / 2;
+    badgeLeft = iconPosition.left + (iconPosition.width - badgeSize) / 2;
+  } else {
+    // Fallback: position on left side
+    badgeTop = position.top + (position.height - badgeSize) / 2;
+    badgeLeft = position.left + 8;
+  }
+
   return (
-    <Box
-      sx={{
-        position: "fixed",
-        top: position.top,
-        left: position.left,
-        width: position.width,
-        height: position.height,
-        zIndex: 10000,
-        pointerEvents: "none",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(0, 218, 198, 0.15)",
-        borderRadius: "8px",
-        border: "2px solid",
-        borderColor: colors.accent || "#00DAC6",
-      }}
-    >
+    <>
+      {/* Highlight border around entire element */}
+      <Box
+        sx={{
+          position: "fixed",
+          top: position.top,
+          left: position.left,
+          width: position.width,
+          height: position.height,
+          zIndex: 10000,
+          pointerEvents: "none",
+          backgroundColor: "rgba(0, 218, 198, 0.08)",
+          borderRadius: "8px",
+          border: "2px solid",
+          borderColor: colors.accent || "#00DAC6",
+        }}
+      />
+      {/* Badge positioned directly on the icon */}
       <Fade in={isVisible} timeout={100}>
         <Box
           sx={{
+            position: "fixed",
+            top: badgeTop,
+            left: badgeLeft,
+            zIndex: 10001,
+            pointerEvents: "none",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: colors.accent || colors.button_bg || "#00DAC6",
             color: "#000",
-            width: 28,
-            height: 28,
+            width: badgeSize,
+            height: badgeSize,
             borderRadius: "6px",
             boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
           }}
         >
           <Typography
             sx={{
-              fontSize: "0.95rem",
+              fontSize: "0.85rem",
               fontWeight: 800,
               fontFamily: '"SF Mono", "Monaco", "Menlo", monospace',
               textAlign: "center",
@@ -178,7 +316,7 @@ function ShortcutBadge({ element, shortcutKey, isVisible }) {
           </Typography>
         </Box>
       </Fade>
-    </Box>
+    </>
   );
 }
 
@@ -194,24 +332,63 @@ export function AltKeyOverlay() {
   const isDark = mode === "dark";
   const [isAltPressed, setIsAltPressed] = useState(false);
   const [elements, setElements] = useState({});
+  const [activeParent, setActiveParent] = useState(null); // Track which parent panel is active (e.g., 'notifications', 'profile')
+  const [childElements, setChildElements] = useState({});
 
-  // Find all shortcut-enabled elements
+  // Ref to track if we're transitioning to child mode (to prevent click handler from closing overlay)
+  const isTransitioningToChildRef = React.useRef(false);
+
+  // Find all shortcut-enabled elements (main or child based on activeParent)
   const findElements = useCallback(() => {
     const found = {};
-    Object.entries(ALT_SHORTCUTS).forEach(([id, config]) => {
+    const shortcuts =
+      activeParent && CHILD_SHORTCUTS[activeParent]
+        ? CHILD_SHORTCUTS[activeParent]
+        : ALT_SHORTCUTS;
+
+    Object.entries(shortcuts).forEach(([id, config]) => {
       const el = document.querySelector(config.selector);
       if (el) {
         found[id] = { element: el, ...config };
       }
     });
     setElements(found);
-  }, []);
+  }, [activeParent]);
+
+  // Find child elements for active parent
+  const findChildElements = useCallback(() => {
+    if (!activeParent || !CHILD_SHORTCUTS[activeParent]) {
+      setChildElements({});
+      return;
+    }
+
+    const found = {};
+    Object.entries(CHILD_SHORTCUTS[activeParent]).forEach(([id, config]) => {
+      const el = document.querySelector(config.selector);
+      if (el) {
+        found[id] = { element: el, ...config };
+      }
+    });
+    setChildElements(found);
+  }, [activeParent]);
+
+  // Re-find child elements when parent changes
+  useEffect(() => {
+    if (activeParent) {
+      // Small delay to allow panel/dropdown to open and render
+      const timer = setTimeout(() => {
+        findChildElements();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [activeParent, findChildElements]);
 
   // Handle Alt key press/release - TOGGLE mode (click Alt to show, press letter to navigate)
   useEffect(() => {
     // Don't register event listeners if shortcuts are disabled
     if (!keyboardShortcutsEnabled) {
       setIsAltPressed(false);
+      setActiveParent(null);
       return;
     }
 
@@ -221,9 +398,11 @@ export function AltKeyOverlay() {
         e.preventDefault();
         if (!isAltPressed) {
           setIsAltPressed(true);
+          setActiveParent(null); // Reset to show main shortcuts
           findElements();
         } else {
           setIsAltPressed(false);
+          setActiveParent(null);
         }
         return;
       }
@@ -232,7 +411,50 @@ export function AltKeyOverlay() {
       if (isAltPressed && e.key.length === 1) {
         const pressedKey = e.key.toUpperCase();
 
-        // Find matching shortcut
+        // Check if we're in child mode (panel/dropdown is open)
+        if (activeParent && CHILD_SHORTCUTS[activeParent]) {
+          const childMatch = Object.entries(CHILD_SHORTCUTS[activeParent]).find(
+            ([_, config]) => config.key.toUpperCase() === pressedKey,
+          );
+
+          if (childMatch) {
+            e.preventDefault();
+            const element = document.querySelector(childMatch[1].selector);
+            const childConfig = childMatch[1];
+
+            if (element) {
+              // Check if this child shortcut opens another child level (e.g., logout -> modal)
+              if (
+                childConfig.opensChild &&
+                CHILD_SHORTCUTS[childConfig.opensChild]
+              ) {
+                // Mark that we're transitioning to prevent click handler from closing
+                isTransitioningToChildRef.current = true;
+
+                // Click to trigger the action (e.g., open logout modal)
+                element.click();
+
+                // Transition to the next child level
+                setActiveParent(childConfig.opensChild);
+
+                // Reset the transition flag after a short delay
+                setTimeout(() => {
+                  isTransitioningToChildRef.current = false;
+                }, 300);
+
+                return;
+              }
+
+              // Regular child action - click and close
+              element.click();
+            }
+            setIsAltPressed(false);
+            setActiveParent(null);
+            return;
+          }
+        }
+
+        // Find matching shortcut from main shortcuts
         const match = Object.entries(ALT_SHORTCUTS).find(
           ([_, config]) => config.key.toUpperCase() === pressedKey,
         );
@@ -241,9 +463,39 @@ export function AltKeyOverlay() {
           e.preventDefault();
           const element = document.querySelector(match[1].selector);
           if (element) {
+            // Check if this is a parent that has children (notifications or profile)
+            const shortcutId = match[0];
+            if (
+              shortcutId === "action-notifications" ||
+              shortcutId === "action-profile"
+            ) {
+              // Mark that we're transitioning to prevent click handler from closing
+              isTransitioningToChildRef.current = true;
+
+              // Click to open the panel/dropdown
+              element.click();
+
+              // Set the active parent for child shortcuts
+              const parentKey =
+                shortcutId === "action-notifications"
+                  ? "notifications"
+                  : "profile";
+              setActiveParent(parentKey);
+
+              // Reset the transition flag after a short delay
+              setTimeout(() => {
+                isTransitioningToChildRef.current = false;
+              }, 200);
+
+              // Keep overlay visible - don't close
+              return;
+            }
+
+            // Regular shortcut - click and close
             element.click();
           }
           setIsAltPressed(false);
+          setActiveParent(null);
         }
       }
 
@@ -251,11 +503,21 @@ export function AltKeyOverlay() {
       if (e.key === "Escape" && isAltPressed) {
         e.preventDefault();
         setIsAltPressed(false);
+        setActiveParent(null);
       }
     };
 
-    // Close overlay on any click
-    const handleClick = () => {
+    // Close overlay on any click (except when activating a parent or in child mode)
+    const handleClick = (e) => {
+      // Don't close if we're transitioning to child mode
+      if (isTransitioningToChildRef.current) {
+        return;
+      }
+      // Don't close if we're in child mode (activeParent is set)
+      if (activeParent) {
+        return;
+      }
+      // Close only when in main mode and clicking outside
       if (isAltPressed) {
         setIsAltPressed(false);
       }
@@ -268,11 +530,26 @@ export function AltKeyOverlay() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("click", handleClick);
     };
-  }, [isAltPressed, findElements, keyboardShortcutsEnabled]);
+  }, [isAltPressed, activeParent, findElements, keyboardShortcutsEnabled]);
+
+  // Get current shortcuts to display (main or child based on activeParent)
+  const currentShortcuts = useMemo(() => {
+    if (activeParent && CHILD_SHORTCUTS[activeParent]) {
+      return CHILD_SHORTCUTS[activeParent];
+    }
+    return ALT_SHORTCUTS;
+  }, [activeParent]);
 
   // Hint bar at bottom when Alt is pressed
   const hintBar = useMemo(() => {
     if (!isAltPressed) return null;
+
+    const parentLabel =
+      activeParent === "notifications"
+        ? t("keyboard.notifications")
+        : activeParent === "profile"
+          ? t("keyboard.profile")
+          : null;
 
     return (
       <Fade in={isAltPressed} timeout={100}>
@@ -300,6 +577,27 @@ export function AltKeyOverlay() {
               : "0 -4px 20px rgba(0,0,0,0.1)",
           }}
         >
+          {/* Show parent context if in child mode */}
+          {activeParent && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mr: 2,
+                py: 0.5,
+                px: 1.5,
+                borderRadius: "6px",
+                backgroundColor: colors.accent || "#00DAC6",
+                color: "#000",
+              }}
+            >
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600 }}>
+                📂 {parentLabel}
+              </Typography>
+            </Box>
+          )}
+
           <Typography
             sx={{
               color: colors.secondary_text || (isDark ? "#9ca3af" : "#6b7280"),
@@ -311,7 +609,7 @@ export function AltKeyOverlay() {
             🎹 {t("keyboard.pressLetter")}
           </Typography>
 
-          {Object.entries(ALT_SHORTCUTS).map(([id, config]) => (
+          {Object.entries(currentShortcuts).map(([id, config]) => (
             <Box
               key={id}
               sx={{
@@ -360,7 +658,15 @@ export function AltKeyOverlay() {
         </Box>
       </Fade>
     );
-  }, [isAltPressed, colors, isDark, t]);
+  }, [isAltPressed, activeParent, currentShortcuts, colors, isDark, t]);
+
+  // Get current elements to display badges on
+  const displayElements = useMemo(() => {
+    if (activeParent && Object.keys(childElements).length > 0) {
+      return childElements;
+    }
+    return elements;
+  }, [activeParent, elements, childElements]);
 
   return (
     <Portal>
@@ -380,7 +686,7 @@ export function AltKeyOverlay() {
       )}
 
       {/* Shortcut badges on elements */}
-      {Object.entries(elements).map(([id, config]) => (
+      {Object.entries(displayElements).map(([id, config]) => (
         <ShortcutBadge
           key={id}
           element={config.element}
