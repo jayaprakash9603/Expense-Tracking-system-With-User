@@ -1375,4 +1375,15 @@ export const te = {
       chatDesc: "స్నేహితులతో చాట్ తెరవండి",
     },
   },
+
+  // కీబోర్డ్ Alt ఓవర్లే
+  keyboard: {
+    pressLetter: "ఒక అక్షరం నొక్కండి:",
+    escToCancel: "రద్దు చేయడానికి Esc",
+    calendar: "క్యాలెండర్",
+    toggleTheme: "థీమ్",
+    toggleMasking: "మాస్కింగ్",
+    search: "వెతకండి",
+    help: "సహాయం",
+  },
 };

@@ -259,7 +259,7 @@ const CashFlowChart = ({
             cursor={false}
             content={tooltipContent}
             wrapperStyle={{
-              zIndex: 1200,
+              zIndex: 10,
               outline: "none",
               overflow: "visible",
               pointerEvents: "none",

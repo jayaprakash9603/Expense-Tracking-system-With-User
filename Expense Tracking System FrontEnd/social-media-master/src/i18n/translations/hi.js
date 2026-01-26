@@ -1361,4 +1361,15 @@ export const hi = {
       chatDesc: "मित्रों के साथ चैट खोलें",
     },
   },
+
+  // कीबोर्ड Alt ओवरले
+  keyboard: {
+    pressLetter: "एक अक्षर दबाएं:",
+    escToCancel: "रद्द करने के लिए Esc",
+    calendar: "कैलेंडर",
+    toggleTheme: "थीम",
+    toggleMasking: "मास्किंग",
+    search: "खोजें",
+    help: "सहायता",
+  },
 };

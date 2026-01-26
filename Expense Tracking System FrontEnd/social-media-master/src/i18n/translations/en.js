@@ -887,6 +887,39 @@ export const en = {
     keyboardShortcutsGuide: "Keyboard Shortcuts Guide",
     keyboardShortcutsGuideDescription: "View all available keyboard shortcuts",
 
+    // Keyboard Shortcut Categories
+    shortcutCategoryNavigation: "Navigation",
+    shortcutCategoryExpenses: "Expenses",
+    shortcutCategoryBudgets: "Budgets",
+    shortcutCategoryBills: "Bills",
+    shortcutCategoryCategories: "Categories",
+    shortcutCategoryPayments: "Payment Methods",
+    shortcutCategoryFriends: "Friends",
+    shortcutCategoryTables: "Table Navigation",
+    shortcutCategoryForms: "Forms",
+    shortcutCategoryModals: "Modals & Dialogs",
+    shortcutCategorySearch: "Search",
+    shortcutCategoryGeneral: "General",
+    shortcutCategoryAdmin: "Admin",
+    
+    // Shortcut Modal
+    shortcutModalTitle: "Keyboard Shortcuts",
+    shortcutModalSearch: "Search shortcuts...",
+    shortcutModalShowingCount: "Showing {count} of {total} shortcuts",
+    shortcutModalDisabledWarning: "Keyboard shortcuts are currently disabled. Enable them in Settings → Keyboard Shortcuts.",
+    shortcutModalPlatformHint: "Using {key} key",
+    shortcutModalCurrentScope: "Current scope: {scope}",
+    shortcutModalFooterHint: "Press {keys} anytime to show this guide",
+    shortcutModalContextHint: "Shortcuts are context-aware and may change based on active page",
+    shortcutModalNoResults: "No shortcuts found for \"{query}\"",
+    
+    // Shortcut Recommendations
+    shortcutRecommendationTitle: "Quick Tip",
+    shortcutRecommendationMessage: "You frequently use \"{action}\". Try the shortcut:",
+    shortcutRecommendationGotIt: "Got it!",
+    shortcutRecommendationLater: "Later",
+    shortcutRecommendationNever: "Don't show again",
+
     // Account Management
     notificationSettings: "Notification Settings",
     notificationSettingsDescription:
@@ -1371,5 +1404,16 @@ export const en = {
       chat: "Chat",
       chatDesc: "Open chat with friends",
     },
+  },
+
+  // Keyboard Alt Overlay
+  keyboard: {
+    pressLetter: "Press a letter:",
+    escToCancel: "Esc to cancel",
+    calendar: "Calendar",
+    toggleTheme: "Theme",
+    toggleMasking: "Masking",
+    search: "Search",
+    help: "Help",
   },
 };

@@ -1,0 +1,269 @@
+/**
+ * Keyboard Shortcuts Styles
+ * 
+ * Styles for shortcut-related UI components
+ */
+
+/* Recommendation Toast */
+.shortcut-recommendation-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  max-width: 400px;
+  background: var(--card-background, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  z-index: 9999;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.dark .shortcut-recommendation-toast {
+  background: var(--card-background-dark, #1f2937);
+  border-color: var(--border-color-dark, #374151);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.recommendation-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.recommendation-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.recommendation-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary, #1f2937);
+}
+
+.dark .recommendation-text {
+  color: var(--text-primary-dark, #f3f4f6);
+}
+
+.recommendation-text strong {
+  font-weight: 600;
+}
+
+.recommendation-text kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 4px 8px;
+  margin: 0 2px;
+  font-family: "SF Mono", "Monaco", "Menlo", monospace;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dark .recommendation-text kbd {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.recommendation-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.recommendation-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.recommendation-btn.accept {
+  background: var(--primary-color, #3b82f6);
+  color: white;
+}
+
+.recommendation-btn.accept:hover {
+  background: var(--primary-color-hover, #2563eb);
+}
+
+.recommendation-btn.dismiss {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-secondary, #6b7280);
+}
+
+.dark .recommendation-btn.dismiss {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary-dark, #9ca3af);
+}
+
+.recommendation-btn.dismiss:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.dark .recommendation-btn.dismiss:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.recommendation-btn.never {
+  background: transparent;
+  color: var(--text-tertiary, #9ca3af);
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+.recommendation-btn.never:hover {
+  color: var(--text-secondary, #6b7280);
+  text-decoration: underline;
+}
+
+/* Keyboard Key Styling (for inline hints) */
+.keyboard-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 2px 6px;
+  font-family: "SF Mono", "Monaco", "Menlo", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  text-transform: capitalize;
+}
+
+.dark .keyboard-key {
+  color: var(--text-secondary-dark, #9ca3af);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Shortcut hint inline styles */
+.shortcut-hint-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.shortcut-hint-inline:hover {
+  opacity: 1;
+}
+
+/* Shortcut badge (for icon buttons) */
+.shortcut-badge {
+  position: absolute;
+  font-family: "SF Mono", "Monaco", "Menlo", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--primary-color, #3b82f6);
+  color: white;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Help modal overrides */
+.shortcut-guide-modal .MuiDialog-paper {
+  max-height: 80vh;
+}
+
+.shortcut-guide-modal .shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.shortcut-guide-modal .shortcut-row:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.dark .shortcut-guide-modal .shortcut-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.shortcut-guide-modal .shortcut-description {
+  font-size: 14px;
+  color: var(--text-primary, #1f2937);
+}
+
+.dark .shortcut-guide-modal .shortcut-description {
+  color: var(--text-primary-dark, #f3f4f6);
+}
+
+.shortcut-guide-modal .shortcut-keys {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shortcut-guide-modal .category-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary, #9ca3af);
+  padding: 8px 12px 4px;
+  margin-top: 8px;
+}
+
+/* Sequence separator */
+.sequence-separator {
+  font-size: 10px;
+  color: var(--text-tertiary, #9ca3af);
+  margin: 0 4px;
+}
+
+/* Destructive action warning */
+.shortcut-destructive {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+/* Disabled shortcut */
+.shortcut-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.shortcut-disabled-reason {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text-tertiary, #9ca3af);
+}

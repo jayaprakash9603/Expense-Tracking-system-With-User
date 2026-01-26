@@ -149,6 +149,7 @@ const HeaderBar = () => {
           {/* Masking Toggle Button */}
           <button
             onClick={toggleMasking}
+            data-shortcut="masking"
             className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
               isDark
                 ? "bg-gray-800 hover:bg-gray-700"
@@ -176,6 +177,7 @@ const HeaderBar = () => {
           {/* Theme Toggle Button */}
           <button
             onClick={handleThemeToggle}
+            data-shortcut="theme"
             className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
               isDark
                 ? "bg-gray-800 hover:bg-gray-700"

@@ -2,6 +2,35 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { getThemeColors, getIconFilter } from "../../config/themeConfig";
+import { ShortcutBadge } from "../../features/keyboard";
+
+// Mapping of paths to shortcut action IDs
+const PATH_TO_SHORTCUT = {
+  "/dashboard": "GO_DASHBOARD",
+  "/expenses": "GO_EXPENSES",
+  "/budget": "GO_BUDGETS",
+  "/category-flow": "GO_CATEGORIES",
+  "/payment-method": "GO_PAYMENTS",
+  "/friends": "GO_FRIENDS",
+  "/reports": "GO_REPORTS",
+  "/settings": "GO_SETTINGS",
+  "/bill": "GO_BILLS",
+};
+
+// Mapping of paths to shortcut data attributes for Alt-key overlay
+const PATH_TO_SHORTCUT_ATTR = {
+  "/dashboard": "dashboard",
+  "/expenses": "expenses",
+  "/budget": "budgets",
+  "/category-flow": "categories",
+  "/payment-method": "payments",
+  "/friends": "friends",
+  "/reports": "reports",
+  "/settings": "settings",
+  "/bill": "bills",
+  "/groups": "groups",
+  "/calendar-view": "calendar",
+};
 
 const CASHFLOW_VIEW_STATE_PREFIX = "cashflow:view-state:";
 const CATEGORY_FLOW_VIEW_STATE_PREFIX = "categoryflow:view-state:";
@@ -70,9 +99,13 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
   // Check if icon is a React component or a string (image URL)
   const isReactComponent = typeof icon === "function" || (icon && icon.type);
 
+  // Get shortcut attribute for Alt-key overlay
+  const shortcutAttr = path ? PATH_TO_SHORTCUT_ATTR[path] : null;
+
   return (
     <div
       onClick={handleClick}
+      data-shortcut={shortcutAttr}
       className={`flex items-center justify-start w-full max-w-[360px] h-[52px] cursor-pointer rounded-lg overflow-hidden transition-all duration-200 pl-6`}
       style={{
         backgroundColor: isActive ? themeColors.active_bg : "transparent",
@@ -80,8 +113,16 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
       }}
     >
       <span className="flex items-center flex-row-reverse px-3 w-full">
-        <div className="flex-grow text-left font-bold text-[16px] leading-[20px] whitespace-nowrap">
-          {name}
+        <div className="flex-grow text-left font-bold text-[16px] leading-[20px] whitespace-nowrap flex items-center justify-between">
+          <span>{name}</span>
+          {/* Show keyboard shortcut hint if available */}
+          {path && PATH_TO_SHORTCUT[path] && (
+            <ShortcutBadge 
+              actionId={PATH_TO_SHORTCUT[path]} 
+              size="small"
+              showOnHover={true}
+            />
+          )}
         </div>
 
         {icon && (

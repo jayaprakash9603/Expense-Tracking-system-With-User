@@ -12,6 +12,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { FloatingNotificationContainer } from "../../components/common/FloatingNotifications";
 import NotFound from "./Errors/NotFound";
 import Loader from "../../components/Loaders/Loader";
+import { GlobalShortcuts, RecommendationToast } from "../../features/keyboard";
 
 const Home = () => {
   const { colors } = useTheme();
@@ -108,6 +109,12 @@ const Home = () => {
       className="flex flex-col md:flex-row min-h-screen"
       style={{ backgroundColor: colors.primary_bg }}
     >
+      {/* Global Keyboard Shortcuts - Registers navigation and action shortcuts */}
+      <GlobalShortcuts />
+
+      {/* Smart Shortcut Recommendations - Shows tips based on user behavior */}
+      <RecommendationToast />
+
       {/* Global Floating Notifications - Visible across all pages */}
       <FloatingNotificationContainer />
 

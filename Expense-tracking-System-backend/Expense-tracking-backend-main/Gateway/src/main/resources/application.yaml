@@ -23,7 +23,7 @@ spring:
         - id: SEARCH-SERVICE
           uri: ${SEARCH_SERVICE_URL:http://localhost:7005}
           predicates:
-            - Path=/api/search/**
+            - Path=/api/search/**, /api/shortcuts/**
         - id: ANALYTICS-SERVICE
           uri: ${ANALYTICS_SERVICE_URL:http://localhost:7004}
           predicates:
