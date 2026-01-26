@@ -1255,4 +1255,118 @@ export const en = {
         "WARNING: This will invalidate ALL your existing backup codes!\n\nEnter your current authenticator code to generate new backup codes:",
     },
   },
+
+  // Universal Search
+  search: {
+    placeholder: "Search expenses, budgets, actions...",
+    openSearch: "Search",
+    noResults: "No results found",
+    tryDifferent: "Try a different search term",
+    suggestions: "Suggestions",
+    typeToSearch: "Start typing to search...",
+    navigate: "Navigate",
+    select: "Select",
+    close: "Close",
+    poweredBy: "Universal Search",
+
+    // Section Headers
+    sections: {
+      quickActions: "Quick Actions",
+      expenses: "Expenses",
+      budgets: "Budgets",
+      categories: "Categories",
+      bills: "Bills",
+      paymentMethods: "Payment Methods",
+      friends: "Friends",
+      reports: "Reports",
+      settings: "Settings",
+    },
+
+    // Quick Actions
+    actions: {
+      // Expense Actions
+      addExpense: "Add Expense",
+      addExpenseDesc: "Create a new expense entry",
+      viewExpenses: "View All Expenses",
+      viewExpensesDesc: "Browse your expense history",
+      expenseReports: "Expense Reports",
+      expenseReportsDesc: "View expense analytics and reports",
+
+      // Budget Actions
+      createBudget: "Create Budget",
+      createBudgetDesc: "Set up a new budget",
+      viewBudgets: "View Budgets",
+      viewBudgetsDesc: "Manage your budgets",
+      budgetReports: "Budget Reports",
+      budgetReportsDesc: "View budget analytics",
+
+      // Bill Actions
+      createBill: "Create Bill",
+      createBillDesc: "Add a new recurring bill",
+      viewBills: "View Bills",
+      viewBillsDesc: "Manage your bills",
+      billCalendar: "Bill Calendar",
+      billCalendarDesc: "View bills on calendar",
+      billReports: "Bill Reports",
+      billReportsDesc: "View bill analytics",
+
+      // Category Actions
+      createCategory: "Create Category",
+      createCategoryDesc: "Add a new expense category",
+      viewCategories: "View Categories",
+      viewCategoriesDesc: "Manage expense categories",
+      categoryReports: "Category Reports",
+      categoryReportsDesc: "View spending by category",
+
+      // Payment Method Actions
+      addPaymentMethod: "Add Payment Method",
+      addPaymentMethodDesc: "Add a new payment method",
+      viewPaymentMethods: "View Payment Methods",
+      viewPaymentMethodsDesc: "Manage your payment methods",
+      paymentReports: "Payment Method Reports",
+      paymentReportsDesc: "View spending by payment method",
+
+      // Dashboard & General
+      dashboard: "Dashboard",
+      dashboardDesc: "Go to main dashboard",
+      calendarView: "Calendar View",
+      calendarViewDesc: "View expenses on calendar",
+      transactions: "Transactions",
+      transactionsDesc: "View all transactions",
+      allReports: "All Reports",
+      allReportsDesc: "View comprehensive reports",
+      insights: "Insights",
+      insightsDesc: "View spending insights",
+
+      // Friends
+      viewFriends: "Friends",
+      viewFriendsDesc: "Manage your friends",
+      friendActivity: "Friend Activity",
+      friendActivityDesc: "View friend activities",
+
+      // Groups
+      viewGroups: "Groups",
+      viewGroupsDesc: "Manage expense groups",
+      createGroup: "Create Group",
+      createGroupDesc: "Create a new expense group",
+
+      // Settings
+      settings: "Settings",
+      settingsDesc: "App settings and preferences",
+      profile: "Profile",
+      profileDesc: "View and edit your profile",
+      notificationSettings: "Notification Settings",
+      notificationSettingsDesc: "Manage notification preferences",
+
+      // Upload
+      uploadExpenses: "Upload Expenses",
+      uploadExpensesDesc: "Bulk upload expenses from file",
+      uploadBills: "Upload Bills",
+      uploadBillsDesc: "Bulk upload bills from file",
+
+      // Chat
+      chat: "Chat",
+      chatDesc: "Open chat with friends",
+    },
+  },
 };

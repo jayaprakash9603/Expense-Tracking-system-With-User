@@ -16,6 +16,7 @@ import NotificationsPanelRedux from "./NotificationsPanelRedux";
 import SystemErrorIndicator from "./SystemErrorIndicator";
 import { useTranslation } from "../../hooks/useTranslation";
 import GlobalHeaderMessageSlot from "./GlobalHeaderMessage/GlobalHeaderMessageSlot";
+import { InlineSearchBar, UniversalSearchModal } from "./UniversalSearch";
 
 /**
  * HeaderBar Component
@@ -120,19 +121,31 @@ const HeaderBar = () => {
 
   return (
     <>
+      {/* Universal Search Modal - Opens with Ctrl/Cmd + K */}
+      <UniversalSearchModal />
+
       <div
         className={`h-[50px] flex items-center justify-between px-4 sm:px-6  transition-colors ${
           isDark ? "bg-[#1b1b1b] " : "bg-white "
         }`}
       >
+        {/* Left Section: Empty or logo */}
+        <div className="flex items-center gap-3">
+          {/* Placeholder for left content */}
+        </div>
+
+        {/* Center Section: Global messages */}
         <div className="flex-1 flex justify-center px-2">
           <div className="w-full" style={{ maxWidth: 360 }}>
             <GlobalHeaderMessageSlot className="justify-center" />
           </div>
         </div>
 
-        {/* Right Section: Theme Toggle & Profile */}
+        {/* Right Section: Search, Masking Toggle, Theme Toggle & Profile */}
         <div className="flex items-center gap-3 sm:gap-4">
+          {/* Inline Search Bar */}
+          <InlineSearchBar />
+
           {/* Masking Toggle Button */}
           <button
             onClick={toggleMasking}

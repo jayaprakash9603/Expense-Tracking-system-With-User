@@ -1,0 +1,76 @@
+server:
+  port: ${SERVER_PORT:7005}
+
+spring:
+  application:
+    name: SEARCH-SERVICE
+
+  # Cache Configuration - defaults to simple (in-memory)
+  # Set to 'redis' if Redis is available
+  cache:
+    type: ${CACHE_TYPE:simple}
+
+  # Redis Configuration (Optional - only used when cache.type=redis)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+
+  # Disable Redis auto-config when not using Redis cache
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# Eureka Client Configuration
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 5
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
+
+# Service URLs for direct communication (fallback if Eureka unavailable)
+services:
+  expense:
+    url: ${EXPENSE_SERVICE_URL:http://localhost:6000}
+  budget:
+    url: ${BUDGET_SERVICE_URL:http://localhost:6005}
+  category:
+    url: ${CATEGORY_SERVICE_URL:http://localhost:6008}
+  bill:
+    url: ${BILL_SERVICE_URL:http://localhost:6007}
+  payment-method:
+    url: ${PAYMENT_SERVICE_URL:http://localhost:6006}
+  friendship:
+    url: ${FRIENDSHIP_SERVICE_URL:http://localhost:6009}
+  user:
+    url: ${USER_SERVICE_URL:http://localhost:6001}
+
+# Search Configuration
+search:
+  default-limit: 5
+  max-limit: 20
+  timeout-ms: 3000
+  cache:
+    enabled: true
+    ttl-seconds: 300
+
+# Logging
+logging:
+  level:
+    com.jaya: DEBUG
+    org.springframework.web.reactive: DEBUG
+
+# OpenFeign Configuration
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
