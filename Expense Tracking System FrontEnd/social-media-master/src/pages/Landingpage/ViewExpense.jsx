@@ -544,7 +544,7 @@ const ViewExpense = () => {
             style={{
               background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.secondary_bg} 100%)`,
               borderRadius: "12px",
-              padding: "14px 16px",
+              padding: "18px 20px",
               border: `2px solid ${isCredit ? "#52c41a" : "#ff4d4f"}`,
               position: "relative",
               overflow: "hidden",
@@ -571,9 +571,9 @@ const ViewExpense = () => {
             <Typography
               sx={{
                 color: colors.primary_text,
-                fontSize: "1.2rem",
+                fontSize: "1.3rem",
                 fontWeight: "700",
-                marginBottom: "4px",
+                marginBottom: "8px",
                 letterSpacing: "-0.5px",
               }}
             >
@@ -581,25 +581,25 @@ const ViewExpense = () => {
             </Typography>
 
             {/* Amount - Large and Prominent */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-3 mb-3">
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
-                  padding: "4px 12px",
-                  borderRadius: "8px",
+                  gap: "8px",
+                  padding: "6px 14px",
+                  borderRadius: "10px",
                   backgroundColor: isCredit ? "#52c41a15" : "#ff4d4f15",
                 }}
               >
                 {isCredit ? (
-                  <TrendingUpIcon sx={{ fontSize: 22, color: "#52c41a" }} />
+                  <TrendingUpIcon sx={{ fontSize: 24, color: "#52c41a" }} />
                 ) : (
-                  <TrendingDownIcon sx={{ fontSize: 22, color: "#ff4d4f" }} />
+                  <TrendingDownIcon sx={{ fontSize: 24, color: "#ff4d4f" }} />
                 )}
                 <span
                   style={{
-                    fontSize: "1.4rem",
+                    fontSize: "1.6rem",
                     fontWeight: "800",
                     color: isCredit ? "#52c41a" : "#ff4d4f",
                   }}
@@ -614,19 +614,20 @@ const ViewExpense = () => {
                   backgroundColor: isCredit ? "#52c41a" : "#ff4d4f",
                   color: "#fff",
                   fontWeight: "bold",
-                  fontSize: "0.55rem",
-                  height: "20px",
+                  fontSize: "0.65rem",
+                  height: "24px",
+                  letterSpacing: "0.5px",
                 }}
               />
             </div>
 
             {/* Date */}
-            <div className="flex items-center gap-2 mb-2">
-              <CalendarTodayIcon sx={{ fontSize: 12, color: "#00dac6" }} />
+            <div className="flex items-center gap-2 mb-3">
+              <CalendarTodayIcon sx={{ fontSize: 14, color: "#00dac6" }} />
               <span
                 style={{
                   color: colors.primary_text,
-                  fontSize: "0.8rem",
+                  fontSize: "0.9rem",
                   fontWeight: "500",
                 }}
               >
@@ -634,37 +635,56 @@ const ViewExpense = () => {
               </span>
             </div>
 
-            {/* Comments */}
+            {/* Comments/Notes Section */}
             {comments && (
-              <div
-                style={{
-                  backgroundColor: colors.secondary_bg,
-                  padding: "6px 8px",
-                  borderRadius: "6px",
-                  border: `1px solid ${colors.border_color}`,
-                  marginTop: "auto",
+              <Tooltip
+                title={comments.length > 80 ? comments : ""}
+                placement="top"
+                arrow
+                slotProps={{
+                  tooltip: {
+                    sx: { maxWidth: 350, fontSize: "0.85rem", lineHeight: 1.5 },
+                  },
                 }}
               >
-                <div className="flex items-center gap-1 mb-1">
+                <div
+                  className="flex items-start gap-2"
+                  style={{
+                    backgroundColor: colors.secondary_bg,
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    border: `1px solid ${colors.border_color}`,
+                    borderLeft: `3px solid ${isCredit ? "#52c41a" : "#ff4d4f"}`,
+                    marginTop: "8px",
+                    cursor: comments.length > 80 ? "pointer" : "default",
+                  }}
+                >
                   <CommentIcon
-                    sx={{ fontSize: 10, color: colors.secondary_text }}
+                    sx={{
+                      fontSize: 16,
+                      color: isCredit ? "#52c41a" : "#ff4d4f",
+                      marginTop: "2px",
+                      flexShrink: 0,
+                    }}
                   />
-                  <span
+                  <p
                     style={{
-                      fontSize: "0.55rem",
-                      color: colors.secondary_text,
-                      textTransform: "uppercase",
+                      color: colors.primary_text,
+                      fontSize: "0.9rem",
+                      lineHeight: "1.4",
+                      margin: 0,
+                      fontWeight: "500",
+                      wordBreak: "break-word",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
                     }}
                   >
-                    Note
-                  </span>
+                    {comments}
+                  </p>
                 </div>
-                <span
-                  style={{ color: colors.primary_text, fontSize: "0.75rem" }}
-                >
-                  {comments}
-                </span>
-              </div>
+              </Tooltip>
             )}
           </div>
 
@@ -697,31 +717,59 @@ const ViewExpense = () => {
                   }}
                 />
 
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-3">
                   <div
                     style={{
-                      width: "28px",
-                      height: "28px",
-                      borderRadius: "6px",
-                      backgroundColor: `${categoryColor}15`,
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "8px",
+                      backgroundColor: `${categoryColor}20`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    <CategoryIcon sx={{ fontSize: 14, color: categoryColor }} />
+                    {category?.icon ? (
+                      <span style={{ fontSize: "1.1rem" }}>
+                        {category.icon}
+                      </span>
+                    ) : (
+                      <CategoryIcon
+                        sx={{ fontSize: 16, color: categoryColor }}
+                      />
+                    )}
                   </div>
-                  <span
+                  <div
                     style={{
-                      fontSize: "0.7rem",
-                      color: colors.secondary_text,
-                      textTransform: "uppercase",
-                      fontWeight: "600",
-                      letterSpacing: "0.5px",
+                      display: "flex",
+                      flexDirection: "column",
+                      flex: 1,
                     }}
                   >
-                    Category
-                  </span>
+                    <span
+                      style={{
+                        fontSize: "1.1rem",
+                        color: colors.primary_text,
+                        fontWeight: "700",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      {category?.name || "Uncategorized"}
+                      {category?.color && (
+                        <span
+                          style={{
+                            width: "8px",
+                            height: "8px",
+                            borderRadius: "50%",
+                            backgroundColor: categoryColor,
+                            boxShadow: `0 0 6px ${categoryColor}`,
+                          }}
+                        />
+                      )}
+                    </span>
+                  </div>
                   {category?.percentageOfTotalExpenses > 0 && (
                     <Chip
                       icon={
@@ -735,38 +783,9 @@ const ViewExpense = () => {
                         backgroundColor: `${categoryColor}15`,
                         color: categoryColor,
                         fontWeight: "bold",
-                        fontSize: "0.6rem",
-                        height: "20px",
-                        marginLeft: "auto",
+                        fontSize: "0.65rem",
+                        height: "22px",
                         "& .MuiChip-icon": { marginLeft: "4px" },
-                      }}
-                    />
-                  )}
-                </div>
-
-                <div
-                  style={{
-                    color: colors.primary_text,
-                    fontSize: "1.15rem",
-                    fontWeight: "700",
-                    marginBottom: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  {category?.icon && (
-                    <span style={{ fontSize: "1.2rem" }}>{category.icon}</span>
-                  )}
-                  {category?.name || "Uncategorized"}
-                  {category?.color && (
-                    <span
-                      style={{
-                        width: "10px",
-                        height: "10px",
-                        borderRadius: "3px",
-                        backgroundColor: categoryColor,
-                        boxShadow: `0 0 6px ${categoryColor}`,
                       }}
                     />
                   )}
@@ -777,122 +796,150 @@ const ViewExpense = () => {
                     className="grid grid-cols-2 gap-2"
                     style={{ marginTop: "auto" }}
                   >
-                    <div
-                      style={{
-                        backgroundColor: colors.secondary_bg,
-                        padding: "8px 10px",
-                        borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
-                      }}
+                    <Tooltip
+                      title="Total number of expenses in this category"
+                      arrow
+                      placement="top"
                     >
-                      <span
-                        style={{
-                          fontSize: "0.6rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                          display: "block",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        Count
-                      </span>
                       <div
                         style={{
-                          fontSize: "1.1rem",
-                          color: colors.primary_text,
-                          fontWeight: "700",
+                          backgroundColor: colors.secondary_bg,
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          border: `1px solid ${colors.border_color}`,
+                          cursor: "pointer",
                         }}
                       >
-                        {category.totalExpensesInCategory || 0}
+                        <span
+                          style={{
+                            fontSize: "0.6rem",
+                            color: colors.secondary_text,
+                            textTransform: "uppercase",
+                            display: "block",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Count
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "1.1rem",
+                            color: colors.primary_text,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {category.totalExpensesInCategory || 0}
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        backgroundColor: colors.secondary_bg,
-                        padding: "8px 10px",
-                        borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
-                      }}
+                    </Tooltip>
+                    <Tooltip
+                      title="Total amount spent in this category"
+                      arrow
+                      placement="top"
                     >
-                      <span
-                        style={{
-                          fontSize: "0.6rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                          display: "block",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        Total
-                      </span>
                       <div
                         style={{
-                          fontSize: "1.1rem",
-                          color: categoryColor,
-                          fontWeight: "700",
+                          backgroundColor: colors.secondary_bg,
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          border: `1px solid ${colors.border_color}`,
+                          cursor: "pointer",
                         }}
                       >
-                        {formatCurrency(category.totalAmountInCategory)}
+                        <span
+                          style={{
+                            fontSize: "0.6rem",
+                            color: colors.secondary_text,
+                            textTransform: "uppercase",
+                            display: "block",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Total
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "1.1rem",
+                            color: categoryColor,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {formatCurrency(category.totalAmountInCategory)}
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        backgroundColor: colors.secondary_bg,
-                        padding: "8px 10px",
-                        borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
-                      }}
+                    </Tooltip>
+                    <Tooltip
+                      title="Average expense amount in this category"
+                      arrow
+                      placement="top"
                     >
-                      <span
-                        style={{
-                          fontSize: "0.6rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                          display: "block",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        Average
-                      </span>
                       <div
                         style={{
-                          fontSize: "1.1rem",
-                          color: colors.primary_text,
-                          fontWeight: "700",
+                          backgroundColor: colors.secondary_bg,
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          border: `1px solid ${colors.border_color}`,
+                          cursor: "pointer",
                         }}
                       >
-                        {formatCurrency(category.averageAmountInCategory)}
+                        <span
+                          style={{
+                            fontSize: "0.6rem",
+                            color: colors.secondary_text,
+                            textTransform: "uppercase",
+                            display: "block",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Average
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "1.1rem",
+                            color: colors.primary_text,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {formatCurrency(category.averageAmountInCategory)}
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        backgroundColor: colors.secondary_bg,
-                        padding: "8px 10px",
-                        borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
-                      }}
+                    </Tooltip>
+                    <Tooltip
+                      title="Number of expenses this month in this category"
+                      arrow
+                      placement="top"
                     >
-                      <span
-                        style={{
-                          fontSize: "0.6rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                          display: "block",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        This Month
-                      </span>
                       <div
                         style={{
-                          fontSize: "1.1rem",
-                          color: categoryColor,
-                          fontWeight: "700",
+                          backgroundColor: colors.secondary_bg,
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          border: `1px solid ${colors.border_color}`,
+                          cursor: "pointer",
                         }}
                       >
-                        {category.expensesThisMonthInCategory || 0}
+                        <span
+                          style={{
+                            fontSize: "0.6rem",
+                            color: colors.secondary_text,
+                            textTransform: "uppercase",
+                            display: "block",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          This Month
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "1.1rem",
+                            color: categoryColor,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {category.expensesThisMonthInCategory || 0}
+                        </div>
                       </div>
-                    </div>
+                    </Tooltip>
                   </div>
                 )}
               </div>
@@ -928,13 +975,13 @@ const ViewExpense = () => {
                   }}
                 />
 
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-3">
                   <div
                     style={{
-                      width: "28px",
-                      height: "28px",
-                      borderRadius: "6px",
-                      backgroundColor: `${paymentColor}15`,
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "8px",
+                      backgroundColor: `${paymentColor}20`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -943,20 +990,26 @@ const ViewExpense = () => {
                     {getPaymentMethodIcon(
                       paymentMethodInfo?.name,
                       paymentColor,
-                      14,
+                      18,
                     )}
                   </div>
-                  <span
+                  <div
                     style={{
-                      fontSize: "0.7rem",
-                      color: colors.secondary_text,
-                      textTransform: "uppercase",
-                      fontWeight: "600",
-                      letterSpacing: "0.5px",
+                      display: "flex",
+                      flexDirection: "column",
+                      flex: 1,
                     }}
                   >
-                    Payment Method
-                  </span>
+                    <span
+                      style={{
+                        fontSize: "1.1rem",
+                        color: colors.primary_text,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {paymentMethodInfo?.displayName || "Unknown"}
+                    </span>
+                  </div>
                   {paymentMethodInfo?.percentageOfTotalExpenses > 0 && (
                     <Chip
                       icon={
@@ -970,30 +1023,12 @@ const ViewExpense = () => {
                         backgroundColor: `${paymentColor}15`,
                         color: paymentColor,
                         fontWeight: "bold",
-                        fontSize: "0.6rem",
-                        height: "20px",
-                        marginLeft: "auto",
+                        fontSize: "0.65rem",
+                        height: "22px",
                         "& .MuiChip-icon": { marginLeft: "4px" },
                       }}
                     />
                   )}
-                </div>
-
-                <div
-                  className="flex items-center gap-2"
-                  style={{
-                    color: colors.primary_text,
-                    fontSize: "1.15rem",
-                    fontWeight: "700",
-                    marginBottom: "10px",
-                  }}
-                >
-                  {getPaymentMethodIcon(
-                    paymentMethodInfo?.name,
-                    paymentColor,
-                    20,
-                  )}
-                  {paymentMethodInfo?.displayName || "Unknown"}
                 </div>
 
                 {paymentMethodInfo && (
@@ -1001,126 +1036,154 @@ const ViewExpense = () => {
                     className="grid grid-cols-2 gap-2"
                     style={{ marginTop: "auto" }}
                   >
-                    <div
-                      style={{
-                        backgroundColor: colors.secondary_bg,
-                        padding: "8px 10px",
-                        borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
-                      }}
+                    <Tooltip
+                      title="Total number of expenses using this payment method"
+                      arrow
+                      placement="top"
                     >
-                      <span
-                        style={{
-                          fontSize: "0.6rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                          display: "block",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        Count
-                      </span>
                       <div
                         style={{
-                          fontSize: "1.1rem",
-                          color: colors.primary_text,
-                          fontWeight: "700",
+                          backgroundColor: colors.secondary_bg,
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          border: `1px solid ${colors.border_color}`,
+                          cursor: "pointer",
                         }}
                       >
-                        {paymentMethodInfo.totalExpensesWithMethod || 0}
+                        <span
+                          style={{
+                            fontSize: "0.6rem",
+                            color: colors.secondary_text,
+                            textTransform: "uppercase",
+                            display: "block",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Count
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "1.1rem",
+                            color: colors.primary_text,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {paymentMethodInfo.totalExpensesWithMethod || 0}
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        backgroundColor: colors.secondary_bg,
-                        padding: "8px 10px",
-                        borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
-                      }}
+                    </Tooltip>
+                    <Tooltip
+                      title="Total amount spent using this payment method"
+                      arrow
+                      placement="top"
                     >
-                      <span
-                        style={{
-                          fontSize: "0.6rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                          display: "block",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        Total
-                      </span>
                       <div
                         style={{
-                          fontSize: "1.1rem",
-                          color: paymentColor,
-                          fontWeight: "700",
+                          backgroundColor: colors.secondary_bg,
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          border: `1px solid ${colors.border_color}`,
+                          cursor: "pointer",
                         }}
                       >
-                        {formatCurrency(
-                          paymentMethodInfo.totalAmountWithMethod,
-                        )}
+                        <span
+                          style={{
+                            fontSize: "0.6rem",
+                            color: colors.secondary_text,
+                            textTransform: "uppercase",
+                            display: "block",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Total
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "1.1rem",
+                            color: paymentColor,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {formatCurrency(
+                            paymentMethodInfo.totalAmountWithMethod,
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        backgroundColor: colors.secondary_bg,
-                        padding: "8px 10px",
-                        borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
-                      }}
+                    </Tooltip>
+                    <Tooltip
+                      title="Average expense amount with this payment method"
+                      arrow
+                      placement="top"
                     >
-                      <span
-                        style={{
-                          fontSize: "0.6rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                          display: "block",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        Average
-                      </span>
                       <div
                         style={{
-                          fontSize: "1.1rem",
-                          color: colors.primary_text,
-                          fontWeight: "700",
+                          backgroundColor: colors.secondary_bg,
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          border: `1px solid ${colors.border_color}`,
+                          cursor: "pointer",
                         }}
                       >
-                        {formatCurrency(
-                          paymentMethodInfo.averageAmountWithMethod,
-                        )}
+                        <span
+                          style={{
+                            fontSize: "0.6rem",
+                            color: colors.secondary_text,
+                            textTransform: "uppercase",
+                            display: "block",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Average
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "1.1rem",
+                            color: colors.primary_text,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {formatCurrency(
+                            paymentMethodInfo.averageAmountWithMethod,
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        backgroundColor: colors.secondary_bg,
-                        padding: "8px 10px",
-                        borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
-                      }}
+                    </Tooltip>
+                    <Tooltip
+                      title="Number of expenses this month with this payment method"
+                      arrow
+                      placement="top"
                     >
-                      <span
-                        style={{
-                          fontSize: "0.6rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                          display: "block",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        This Month
-                      </span>
                       <div
                         style={{
-                          fontSize: "1.1rem",
-                          color: paymentColor,
-                          fontWeight: "700",
+                          backgroundColor: colors.secondary_bg,
+                          padding: "8px 10px",
+                          borderRadius: "6px",
+                          border: `1px solid ${colors.border_color}`,
+                          cursor: "pointer",
                         }}
                       >
-                        {paymentMethodInfo.expensesThisMonthWithMethod || 0}
+                        <span
+                          style={{
+                            fontSize: "0.6rem",
+                            color: colors.secondary_text,
+                            textTransform: "uppercase",
+                            display: "block",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          This Month
+                        </span>
+                        <div
+                          style={{
+                            fontSize: "1.1rem",
+                            color: paymentColor,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {paymentMethodInfo.expensesThisMonthWithMethod || 0}
+                        </div>
                       </div>
-                    </div>
+                    </Tooltip>
                   </div>
                 )}
               </div>
@@ -1178,6 +1241,7 @@ const ViewExpense = () => {
                       <ScheduleIcon sx={{ fontSize: 18, color: "#3b82f6" }} />
                     ),
                     accentColor: "#3b82f6",
+                    tooltip: "Number of times this expense occurred this month",
                   },
                   {
                     label: "This Year",
@@ -1187,6 +1251,7 @@ const ViewExpense = () => {
                       <DateRangeIcon sx={{ fontSize: 18, color: "#8b5cf6" }} />
                     ),
                     accentColor: "#8b5cf6",
+                    tooltip: "Number of times this expense occurred this year",
                   },
                   {
                     label: "Average",
@@ -1197,6 +1262,7 @@ const ViewExpense = () => {
                       <ShowChartIcon sx={{ fontSize: 18, color: "#00dac6" }} />
                     ),
                     accentColor: "#00dac6",
+                    tooltip: "Average amount spent on this expense",
                   },
                   {
                     label: "All Time",
@@ -1209,6 +1275,7 @@ const ViewExpense = () => {
                       />
                     ),
                     accentColor: "#00dac6",
+                    tooltip: "Total amount spent on this expense over all time",
                   },
                   {
                     label: "First",
@@ -1216,6 +1283,7 @@ const ViewExpense = () => {
                     type: "date",
                     icon: <EventIcon sx={{ fontSize: 18, color: "#f59e0b" }} />,
                     accentColor: "#f59e0b",
+                    tooltip: "Date of the first occurrence of this expense",
                   },
                   {
                     label: "Last",
@@ -1227,6 +1295,8 @@ const ViewExpense = () => {
                       />
                     ),
                     accentColor: "#ec4899",
+                    tooltip:
+                      "Date of the most recent occurrence of this expense",
                   },
                   {
                     label: "Min",
@@ -1238,6 +1308,7 @@ const ViewExpense = () => {
                       />
                     ),
                     accentColor: "#22c55e",
+                    tooltip: "Minimum amount spent on this expense",
                   },
                   {
                     label: "Max",
@@ -1249,51 +1320,54 @@ const ViewExpense = () => {
                       />
                     ),
                     accentColor: "#ef4444",
+                    tooltip: "Maximum amount spent on this expense",
                   },
                 ].map((stat, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      backgroundColor: colors.secondary_bg,
-                      padding: "12px 14px",
-                      borderRadius: "8px",
-                      border: `1px solid ${colors.border_color}`,
-                      borderLeft: `3px solid ${stat.accentColor}`,
-                      transition: "all 0.2s ease",
-                    }}
-                    className="hover:scale-[1.02]"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      {stat.icon}
-                      <span
-                        style={{
-                          fontSize: "0.7rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                          fontWeight: "500",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        {stat.label}
-                      </span>
-                    </div>
+                  <Tooltip key={idx} title={stat.tooltip} arrow placement="top">
                     <div
                       style={{
-                        fontSize: stat.highlight ? "1.15rem" : "1.05rem",
-                        fontWeight: "700",
-                        color: stat.highlight
-                          ? stat.accentColor
-                          : colors.primary_text,
-                        marginTop: "4px",
+                        backgroundColor: colors.secondary_bg,
+                        padding: "12px 14px",
+                        borderRadius: "8px",
+                        border: `1px solid ${colors.border_color}`,
+                        borderLeft: `3px solid ${stat.accentColor}`,
+                        transition: "all 0.2s ease",
+                        cursor: "pointer",
                       }}
+                      className="hover:scale-[1.02]"
                     >
-                      {stat.type === "currency"
-                        ? formatCurrency(stat.value)
-                        : stat.type === "date"
-                          ? formatDate(stat.value)
-                          : stat.value}
+                      <div className="flex items-center gap-2 mb-1">
+                        {stat.icon}
+                        <span
+                          style={{
+                            fontSize: "0.7rem",
+                            color: colors.secondary_text,
+                            textTransform: "uppercase",
+                            fontWeight: "500",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          {stat.label}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: stat.highlight ? "1.15rem" : "1.05rem",
+                          fontWeight: "700",
+                          color: stat.highlight
+                            ? stat.accentColor
+                            : colors.primary_text,
+                          marginTop: "4px",
+                        }}
+                      >
+                        {stat.type === "currency"
+                          ? formatCurrency(stat.value)
+                          : stat.type === "date"
+                            ? formatDate(stat.value)
+                            : stat.value}
+                      </div>
                     </div>
-                  </div>
+                  </Tooltip>
                 ))}
               </div>
             </div>
