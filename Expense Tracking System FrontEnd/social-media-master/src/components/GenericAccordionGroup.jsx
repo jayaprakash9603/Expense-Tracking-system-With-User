@@ -61,7 +61,7 @@ export function GenericAccordionGroup({
       }
       return String(fallbackIndex);
     },
-    [getGroupKey]
+    [getGroupKey],
   );
 
   const resolveRowKey = useCallback(
@@ -74,7 +74,7 @@ export function GenericAccordionGroup({
       if (k != null && String(k).trim() !== "") return String(k);
       return `${groupKey}::${fallbackIndex}`;
     },
-    [getRowKey]
+    [getRowKey],
   );
 
   const normalizedGroups = useMemo(() => {
@@ -92,7 +92,7 @@ export function GenericAccordionGroup({
     }
     // defaultOpen can be a label or key
     const match = normalizedGroups.find(
-      (e) => e.key === defaultOpen || e.group?.label === defaultOpen
+      (e) => e.key === defaultOpen || e.group?.label === defaultOpen,
     );
     return match ? match.key : null;
   })();
@@ -135,7 +135,7 @@ export function GenericAccordionGroup({
   const selectedCount = useMemo(() => {
     return Object.values(selectedRowsByGroup).reduce(
       (acc, m) => acc + Object.keys(m || {}).length,
-      0
+      0,
     );
   }, [selectedRowsByGroup]);
 
@@ -151,11 +151,11 @@ export function GenericAccordionGroup({
     const hasRowSearch =
       enableRowSearch &&
       Object.values(rowSearchByGroup || {}).some(
-        (v) => String(v || "").trim().length > 0
+        (v) => String(v || "").trim().length > 0,
       );
 
     const hasRowSort = Object.values(sortByGroupKey || {}).some(
-      (s) => s && s.key && s.key !== "none"
+      (s) => s && s.key && s.key !== "none",
     );
 
     return hasGroupSearch || hasGroupSort || hasRowSearch || hasRowSort;
@@ -193,7 +193,7 @@ export function GenericAccordionGroup({
       ? normalizedGroups.filter((e) =>
           String(e.group?.label || "")
             .toLowerCase()
-            .includes(q)
+            .includes(q),
         )
       : normalizedGroups;
 
@@ -233,7 +233,7 @@ export function GenericAccordionGroup({
 
   const totalGroupPages = Math.max(
     1,
-    Math.ceil(filteredSortedGroups.length / Math.max(1, groupsPerPage))
+    Math.ceil(filteredSortedGroups.length / Math.max(1, groupsPerPage)),
   );
   const showGroupPagination =
     filteredSortedGroups.length >= groupPaginationThreshold;
@@ -253,12 +253,12 @@ export function GenericAccordionGroup({
     totalGroups < BASE_GROUPS_PER_PAGE || groupsPerPage <= 5
       ? 0
       : groupsPerPage === BASE_GROUPS_PER_PAGE
-      ? Math.max(
-          0,
-          BASE_GROUPS_PER_PAGE -
-            Math.min(BASE_GROUPS_PER_PAGE, visibleGroups.length)
-        )
-      : 0;
+        ? Math.max(
+            0,
+            BASE_GROUPS_PER_PAGE -
+              Math.min(BASE_GROUPS_PER_PAGE, visibleGroups.length),
+          )
+        : 0;
   // Scroll mode when larger page size selected; keep viewport height fixed to 8 items.
   const scrollMode = groupsPerPage > BASE_GROUPS_PER_PAGE;
 
@@ -285,7 +285,7 @@ export function GenericAccordionGroup({
         return next;
       });
     },
-    [onToggle]
+    [onToggle],
   );
 
   const formatAmount = (v) => fmt(v, { currencySymbol: displayCurrency });
@@ -363,7 +363,7 @@ export function GenericAccordionGroup({
               .toLowerCase()
               .trim();
             const amt = Number(
-              row?.details?.amount ?? row?.details?.netAmount ?? 0
+              row?.details?.amount ?? row?.details?.netAmount ?? 0,
             );
             if (activeTab === "loss") {
               if (rawType === "loss") return true;
@@ -389,7 +389,7 @@ export function GenericAccordionGroup({
                   (columns || []).forEach((col) => {
                     const v = col.value
                       ? col.value(row)
-                      : row.details?.[col.key] ?? row[col.key];
+                      : (row.details?.[col.key] ?? row[col.key]);
                     if (v != null) parts.push(String(v));
                   });
                   if (parts.length === 0) parts.push(JSON.stringify(row || {}));
@@ -456,7 +456,7 @@ export function GenericAccordionGroup({
               else next[groupKey] = bucket;
               const selectedCount = Object.values(next).reduce(
                 (acc, m) => acc + Object.keys(m).length,
-                0
+                0,
               );
               if (onSelectionChange) {
                 onSelectionChange({
@@ -480,7 +480,7 @@ export function GenericAccordionGroup({
               else next[groupKey] = bucket;
               const selectedCount = Object.values(next).reduce(
                 (acc, m) => acc + Object.keys(m).length,
-                0
+                0,
               );
               if (onSelectionChange) {
                 onSelectionChange({ selectedRowsByGroup: next, selectedCount });
@@ -726,8 +726,8 @@ export function GenericAccordionGroup({
                           activeTab === t.key && t.key === "loss"
                             ? "pm-tab-loss-active"
                             : activeTab === t.key && t.key === "profit"
-                            ? "pm-tab-gain-active"
-                            : ""
+                              ? "pm-tab-gain-active"
+                              : ""
                         }`}
                         data-key={t.key}
                         onClick={() => {
@@ -818,8 +818,8 @@ export function GenericAccordionGroup({
                               direction === "asc"
                                 ? "▲"
                                 : direction === "desc"
-                                ? "▼"
-                                : "↕";
+                                  ? "▼"
+                                  : "↕";
                             return (
                               <th
                                 key={col.key}
@@ -830,8 +830,8 @@ export function GenericAccordionGroup({
                                   direction === "none"
                                     ? "none"
                                     : direction === "asc"
-                                    ? "ascending"
-                                    : "descending"
+                                      ? "ascending"
+                                      : "descending"
                                 }
                               >
                                 <button
@@ -914,7 +914,7 @@ export function GenericAccordionGroup({
                                       toggleRow(
                                         row,
                                         start + rowIdx,
-                                        e.target.checked
+                                        e.target.checked,
                                       )
                                     }
                                     aria-label="Select row"
@@ -924,23 +924,31 @@ export function GenericAccordionGroup({
                               {columns.map((col) => {
                                 const val = col.value
                                   ? col.value(row)
-                                  : row.details?.[col.key] ?? row[col.key];
+                                  : (row.details?.[col.key] ?? row[col.key]);
                                 const cls =
                                   typeof col.className === "function"
                                     ? col.className(row)
                                     : col.className;
+                                // Support custom render function for the cell
+                                const cellContent = col.render
+                                  ? col.render(val, row)
+                                  : val != null
+                                    ? val
+                                    : "-";
                                 return (
                                   <td
                                     key={col.key}
                                     className={cls}
-                                    title={String(val ?? "")}
+                                    title={
+                                      col.render ? undefined : String(val ?? "")
+                                    }
                                   >
-                                    {val != null ? val : "-"}
+                                    {cellContent}
                                   </td>
                                 );
                               })}
                             </tr>
-                          )
+                          ),
                         )}
                         {fillerRowsCount > 0 &&
                           Array.from({ length: fillerRowsCount }).map(
@@ -959,7 +967,7 @@ export function GenericAccordionGroup({
                                   &nbsp;
                                 </td>
                               </tr>
-                            )
+                            ),
                           )}
                       </tbody>
                     </table>

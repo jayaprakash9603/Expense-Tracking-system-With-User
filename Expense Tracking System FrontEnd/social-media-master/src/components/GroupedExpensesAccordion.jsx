@@ -1,4 +1,5 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import { useTheme } from "../hooks/useTheme";
@@ -19,6 +20,25 @@ const GroupedExpensesAccordion = ({
   currencySymbol = "₹",
 }) => {
   const { colors, mode } = useTheme();
+  const navigate = useNavigate();
+
+  // Navigate to view expense page
+  const handleNameClick = useCallback(
+    (e, expenseId) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (expenseId) {
+        navigate(`/expenses/view/${expenseId}`);
+      }
+    },
+    [navigate],
+  );
+
+  // Generate full URL for tooltip
+  const getViewExpenseUrl = useCallback((expenseId) => {
+    return `${window.location.origin}/expenses/view/${expenseId}`;
+  }, []);
+
   // Normalize source: prefer explicit methods array, else derive from rawData
   const sourceMethods = useMemo(() => {
     if (Array.isArray(methods) && methods.length) return methods;
@@ -93,6 +113,29 @@ const GroupedExpensesAccordion = ({
       value: (row) => (row.details || row.expense)?.expenseName || "-",
       sortValue: (row) =>
         String((row.details || row.expense)?.expenseName || "").toLowerCase(),
+      render: (val, row) => {
+        const expenseId = row?.id || row?.details?.id || row?.expense?.id;
+        if (!expenseId) return val || "-";
+        return (
+          <span
+            title={getViewExpenseUrl(expenseId)}
+            onClick={(e) => handleNameClick(e, expenseId)}
+            style={{
+              color: colors.primary_text,
+              cursor: "pointer",
+              transition: "text-decoration 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.textDecoration = "underline";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.textDecoration = "none";
+            }}
+          >
+            {val || "-"}
+          </span>
+        );
+      },
     },
     {
       key: "amount",

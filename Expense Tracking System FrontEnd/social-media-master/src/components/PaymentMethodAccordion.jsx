@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Grid, Card, Typography } from "@mui/material";
 import "./PaymentMethodAccordion.css";
 import GenericAccordionGroup, {
   GenericAccordionGroup as Generic,
 } from "./GenericAccordionGroup";
 import useUserSettings from "../hooks/useUserSettings";
+import { useTheme } from "../hooks/useTheme";
 
 const getExpenseDetails = (row) => row?.expense || row?.details || row || {};
 const getNormalizedType = (row) => {
@@ -65,12 +67,31 @@ export default function PaymentMethodAccordionGroup({
   pageSizeOptions = [5, 10, 20, 50],
 }) {
   const settings = useUserSettings();
+  const { colors } = useTheme();
+  const navigate = useNavigate();
   const displayCurrency = currencySymbol || settings.getCurrency().symbol;
+
+  // Navigate to view expense page
+  const handleNameClick = useCallback(
+    (e, expenseId) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (expenseId) {
+        navigate(`/expenses/view/${expenseId}`);
+      }
+    },
+    [navigate],
+  );
+
+  // Generate full URL for tooltip
+  const getViewExpenseUrl = useCallback((expenseId) => {
+    return `${window.location.origin}/expenses/view/${expenseId}`;
+  }, []);
 
   // Compute grand total for percentage calculation
   const grandTotal = methods.reduce(
     (sum, m) => sum + Number(m.totalAmount || 0),
-    0
+    0,
   );
   const groups = methods.map((m) => {
     const count =
@@ -96,6 +117,29 @@ export default function PaymentMethodAccordionGroup({
       label: "Name",
       width: "270px",
       value: (row) => getExpenseDetails(row)?.expenseName || "-",
+      render: (val, row) => {
+        const expenseId = row?.id || row?.details?.id || row?.expense?.id;
+        if (!expenseId) return val || "-";
+        return (
+          <span
+            title={getViewExpenseUrl(expenseId)}
+            onClick={(e) => handleNameClick(e, expenseId)}
+            style={{
+              color: colors.primary_text,
+              cursor: "pointer",
+              transition: "text-decoration 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.textDecoration = "underline";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.textDecoration = "none";
+            }}
+          >
+            {val || "-"}
+          </span>
+        );
+      },
     },
     {
       key: "amount",

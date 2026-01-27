@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import ListSkeleton from "../../components/ListSkeleton";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
@@ -24,10 +25,25 @@ const RecentTransactions = ({
   isCompact = false,
 }) => {
   const { colors } = useTheme();
+  const navigate = useNavigate();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
+
+  // Navigate to view expense page
+  const handleNameClick = (e, transactionId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (transactionId) {
+      navigate(`/expenses/view/${transactionId}`);
+    }
+  };
+
+  // Generate full URL for tooltip
+  const getViewExpenseUrl = (transactionId) => {
+    return `${window.location.origin}/expenses/view/${transactionId}`;
+  };
 
   const showEmpty =
     !loading && (!Array.isArray(transactions) || transactions.length === 0);
@@ -94,8 +110,8 @@ const RecentTransactions = ({
                   transaction.expense?.type === "loss"
                     ? "rgba(255,0,0,0.08)"
                     : transaction.expense?.type === "gain"
-                    ? "rgba(0,255,0,0.08)"
-                    : colors.tertiary_bg,
+                      ? "rgba(0,255,0,0.08)"
+                      : colors.tertiary_bg,
                 transition: "background-color 0.3s ease",
                 border: `1px solid ${colors.border_color}`,
               }}
@@ -106,8 +122,19 @@ const RecentTransactions = ({
               <div className="transaction-details">
                 <div
                   className="transaction-name"
-                  title={transaction.expense?.expenseName}
-                  style={{ color: colors.primary_text }}
+                  title={getViewExpenseUrl(transaction.id)}
+                  onClick={(e) => handleNameClick(e, transaction.id)}
+                  style={{
+                    color: colors.primary_text,
+                    cursor: "pointer",
+                    transition: "text-decoration 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.textDecoration = "underline";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.textDecoration = "none";
+                  }}
                 >
                   {transaction.expense?.expenseName}
                 </div>
@@ -140,7 +167,7 @@ const RecentTransactions = ({
                 {transaction.expense?.type === "loss" ? "-" : "+"}
                 {currencySymbol}
                 {Number(
-                  Math.abs(transaction.expense?.amount || 0)
+                  Math.abs(transaction.expense?.amount || 0),
                 ).toLocaleString(undefined, {
                   maximumFractionDigits: 0,
                   minimumFractionDigits: 0,

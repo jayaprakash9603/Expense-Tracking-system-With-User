@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Typography, Box, Chip } from "@mui/material";
 import { useTheme } from "../hooks/useTheme";
@@ -16,6 +17,24 @@ const BudgetAccordionGroup = ({ budgets }) => {
   const currencySymbol = settings.getCurrency().symbol;
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const isDarkMode = mode === "dark";
+  const navigate = useNavigate();
+
+  // Handle expense name click - navigate to view expense page
+  const handleNameClick = useCallback(
+    (e, expenseId) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (expenseId) {
+        navigate(`/expenses/view/${expenseId}`);
+      }
+    },
+    [navigate]
+  );
+
+  // Get full URL for expense view page (for tooltip)
+  const getViewExpenseUrl = useCallback((expenseId) => {
+    return `${window.location.origin}/expenses/view/${expenseId}`;
+  }, []);
 
   if (!budgets || budgets.length === 0) {
     return (
@@ -68,6 +87,28 @@ const BudgetAccordionGroup = ({ budgets }) => {
       width: "30%",
       value: (row) => row.name || "-",
       sortValue: (row) => (row.name || "").toLowerCase(),
+      render: (val, row) => {
+        const expenseId = row?.id || row?.expenseId;
+        if (!expenseId) return val || "-";
+        return (
+          <span
+            title={getViewExpenseUrl(expenseId)}
+            onClick={(e) => handleNameClick(e, expenseId)}
+            style={{
+              color: colors.primary_text,
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.textDecoration = "underline";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.textDecoration = "none";
+            }}
+          >
+            {val || "-"}
+          </span>
+        );
+      },
     },
     {
       key: "category",
