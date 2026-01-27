@@ -1,16 +1,18 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  Box,
   Typography,
-  CircularProgress,
   Chip,
   IconButton,
   Tooltip,
   Skeleton,
+  TextField,
+  InputAdornment,
+  Select,
+  MenuItem,
+  FormControl,
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -32,6 +34,13 @@ import DateRangeIcon from "@mui/icons-material/DateRange";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import SearchIcon from "@mui/icons-material/Search";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useTheme } from "../../hooks/useTheme";
 import PageHeader from "../../components/PageHeader";
 import {
@@ -121,6 +130,115 @@ const ViewExpense = () => {
     return dayjs(date).format(displayDateFormat);
   };
 
+  // Budget table state for sorting, filtering, pagination
+  const [budgetSearch, setBudgetSearch] = useState("");
+  const [budgetStatusFilter, setBudgetStatusFilter] = useState("all");
+  const [budgetSort, setBudgetSort] = useState({
+    field: "name",
+    direction: "asc",
+  });
+  const [budgetPage, setBudgetPage] = useState(0);
+  const budgetRowsPerPage = 5;
+
+  // Handle budget sort
+  const handleBudgetSort = useCallback((field) => {
+    setBudgetSort((prev) => ({
+      field,
+      direction:
+        prev.field === field && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  }, []);
+
+  // Get sort icon
+  const getSortIcon = useCallback(
+    (field) => {
+      if (budgetSort.field !== field) {
+        return <UnfoldMoreIcon sx={{ fontSize: 14, opacity: 0.4 }} />;
+      }
+      return budgetSort.direction === "asc" ? (
+        <ExpandLessIcon sx={{ fontSize: 14, color: "#00dac6" }} />
+      ) : (
+        <ExpandMoreIcon sx={{ fontSize: 14, color: "#00dac6" }} />
+      );
+    },
+    [budgetSort],
+  );
+
+  // Filtered and sorted budgets
+  const processedBudgets = useMemo(() => {
+    const budgets = expenseDetailedView?.linkedBudgets;
+    if (!budgets || budgets.length === 0) return [];
+
+    let filtered = [...budgets];
+
+    // Apply search filter
+    if (budgetSearch.trim()) {
+      const searchLower = budgetSearch.toLowerCase();
+      filtered = filtered.filter(
+        (b) =>
+          b.name?.toLowerCase().includes(searchLower) ||
+          b.description?.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Apply status filter
+    if (budgetStatusFilter !== "all") {
+      filtered = filtered.filter((b) => b.status === budgetStatusFilter);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aVal = a[budgetSort.field];
+      let bVal = b[budgetSort.field];
+
+      // Handle different types
+      if (
+        budgetSort.field === "amount" ||
+        budgetSort.field === "usedAmount" ||
+        budgetSort.field === "percentageUsed"
+      ) {
+        aVal = Number(aVal) || 0;
+        bVal = Number(bVal) || 0;
+      } else if (
+        budgetSort.field === "startDate" ||
+        budgetSort.field === "endDate"
+      ) {
+        aVal = new Date(aVal).getTime() || 0;
+        bVal = new Date(bVal).getTime() || 0;
+      } else {
+        aVal = String(aVal || "").toLowerCase();
+        bVal = String(bVal || "").toLowerCase();
+      }
+
+      if (aVal < bVal) return budgetSort.direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return budgetSort.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [
+    expenseDetailedView?.linkedBudgets,
+    budgetSearch,
+    budgetStatusFilter,
+    budgetSort,
+  ]);
+
+  // Paginated budgets
+  const paginatedBudgets = useMemo(() => {
+    const start = budgetPage * budgetRowsPerPage;
+    return processedBudgets.slice(start, start + budgetRowsPerPage);
+  }, [processedBudgets, budgetPage, budgetRowsPerPage]);
+
+  // Total pages
+  const totalBudgetPages = Math.ceil(
+    processedBudgets.length / budgetRowsPerPage,
+  );
+
+  // Reset page when filters change
+  useEffect(() => {
+    setBudgetPage(0);
+  }, [budgetSearch, budgetStatusFilter]);
+
   // Main container style
   const containerStyle = {
     width: "calc(100vw - 370px)",
@@ -135,92 +253,41 @@ const ViewExpense = () => {
     flexDirection: "column",
   };
 
-  // Budget table columns - simplified
-  const budgetColumns = useMemo(
-    () => [
-      { field: "name", headerName: "Budget", flex: 1, minWidth: 100 },
-      {
-        field: "description",
-        headerName: "Description",
-        flex: 1.2,
-        minWidth: 120,
-      },
-      {
-        field: "startDate",
-        headerName: "Start",
-        flex: 0.6,
-        minWidth: 80,
-        renderCell: (params) => formatDate(params.value),
-      },
-      {
-        field: "endDate",
-        headerName: "End",
-        flex: 0.6,
-        minWidth: 80,
-        renderCell: (params) => formatDate(params.value),
-      },
-      {
-        field: "amount",
-        headerName: "Total",
-        flex: 0.6,
-        minWidth: 80,
-        renderCell: (params) => formatCurrency(params.value),
-      },
-      {
-        field: "usedAmount",
-        headerName: "Used",
-        flex: 0.6,
-        minWidth: 80,
-        renderCell: (params) => formatCurrency(params.value),
-      },
-      {
-        field: "percentageUsed",
-        headerName: "%",
-        flex: 0.4,
-        minWidth: 50,
-        renderCell: (params) => {
-          const value = params.value || 0;
-          const color =
-            value >= 90 ? "#ff4d4f" : value >= 70 ? "#faad14" : "#52c41a";
-          return (
-            <span style={{ color, fontWeight: "bold" }}>
-              {value.toFixed(0)}%
-            </span>
-          );
-        },
-      },
-      {
-        field: "status",
-        headerName: "Status",
-        flex: 0.5,
-        minWidth: 70,
-        renderCell: (params) => {
-          const statusColors = {
-            ACTIVE: { bg: "#52c41a20", text: "#52c41a" },
-            EXCEEDED: { bg: "#ff4d4f20", text: "#ff4d4f" },
-            EXPIRED: { bg: "#8c8c8c20", text: "#8c8c8c" },
-            CRITICAL: { bg: "#ff4d4f20", text: "#ff4d4f" },
-            WARNING: { bg: "#faad1420", text: "#faad14" },
-          };
-          const style = statusColors[params.value] || statusColors.ACTIVE;
-          return (
-            <Chip
-              label={params.value}
-              size="small"
-              sx={{
-                backgroundColor: style.bg,
-                color: style.text,
-                fontWeight: "bold",
-                fontSize: "0.6rem",
-                height: "20px",
-              }}
-            />
-          );
-        },
-      },
-    ],
-    [displayDateFormat],
-  );
+  // Budget status colors helper
+  const getStatusStyle = (status) => {
+    const statusColors = {
+      ACTIVE: { bg: "#52c41a20", text: "#52c41a" },
+      EXCEEDED: { bg: "#ff4d4f20", text: "#ff4d4f" },
+      EXPIRED: { bg: "#8c8c8c20", text: "#8c8c8c" },
+      CRITICAL: { bg: "#ff4d4f20", text: "#ff4d4f" },
+      WARNING: { bg: "#faad1420", text: "#faad14" },
+    };
+    return statusColors[status] || statusColors.ACTIVE;
+  };
+
+  // Get percentage color
+  const getPercentageColor = (value) => {
+    if (value >= 90) return "#ff4d4f";
+    if (value >= 70) return "#faad14";
+    return "#52c41a";
+  };
+
+  // Budget table column definitions
+  const budgetTableColumns = [
+    { field: "name", label: "Budget", sortable: true, width: "18%" },
+    {
+      field: "description",
+      label: "Description",
+      sortable: true,
+      width: "22%",
+    },
+    { field: "startDate", label: "Start", sortable: true, width: "12%" },
+    { field: "endDate", label: "End", sortable: true, width: "12%" },
+    { field: "amount", label: "Total", sortable: true, width: "12%" },
+    { field: "usedAmount", label: "Used", sortable: true, width: "12%" },
+    { field: "percentageUsed", label: "%", sortable: true, width: "6%" },
+    { field: "status", label: "Status", sortable: true, width: "10%" },
+  ];
 
   // Loading state with Skeleton
   if (expenseDetailedViewLoading) {
@@ -796,19 +863,18 @@ const ViewExpense = () => {
                     className="grid grid-cols-2 gap-2"
                     style={{ marginTop: "auto" }}
                   >
-                    <Tooltip
-                      title="Total number of expenses in this category"
-                      arrow
-                      placement="top"
+                    <div
+                      style={{
+                        backgroundColor: colors.secondary_bg,
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        border: `1px solid ${colors.border_color}`,
+                      }}
                     >
-                      <div
-                        style={{
-                          backgroundColor: colors.secondary_bg,
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          border: `1px solid ${colors.border_color}`,
-                          cursor: "pointer",
-                        }}
+                      <Tooltip
+                        title="Total number of expenses in this category"
+                        arrow
+                        placement="top"
                       >
                         <span
                           style={{
@@ -817,34 +883,34 @@ const ViewExpense = () => {
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
+                            cursor: "help",
                           }}
                         >
                           Count
                         </span>
-                        <div
-                          style={{
-                            fontSize: "1.1rem",
-                            color: colors.primary_text,
-                            fontWeight: "700",
-                          }}
-                        >
-                          {category.totalExpensesInCategory || 0}
-                        </div>
-                      </div>
-                    </Tooltip>
-                    <Tooltip
-                      title="Total amount spent in this category"
-                      arrow
-                      placement="top"
-                    >
+                      </Tooltip>
                       <div
                         style={{
-                          backgroundColor: colors.secondary_bg,
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          border: `1px solid ${colors.border_color}`,
-                          cursor: "pointer",
+                          fontSize: "1.1rem",
+                          color: colors.primary_text,
+                          fontWeight: "700",
                         }}
+                      >
+                        {category.totalExpensesInCategory || 0}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        backgroundColor: colors.secondary_bg,
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        border: `1px solid ${colors.border_color}`,
+                      }}
+                    >
+                      <Tooltip
+                        title="Total amount spent in this category"
+                        arrow
+                        placement="top"
                       >
                         <span
                           style={{
@@ -853,34 +919,34 @@ const ViewExpense = () => {
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
+                            cursor: "help",
                           }}
                         >
                           Total
                         </span>
-                        <div
-                          style={{
-                            fontSize: "1.1rem",
-                            color: categoryColor,
-                            fontWeight: "700",
-                          }}
-                        >
-                          {formatCurrency(category.totalAmountInCategory)}
-                        </div>
-                      </div>
-                    </Tooltip>
-                    <Tooltip
-                      title="Average expense amount in this category"
-                      arrow
-                      placement="top"
-                    >
+                      </Tooltip>
                       <div
                         style={{
-                          backgroundColor: colors.secondary_bg,
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          border: `1px solid ${colors.border_color}`,
-                          cursor: "pointer",
+                          fontSize: "1.1rem",
+                          color: categoryColor,
+                          fontWeight: "700",
                         }}
+                      >
+                        {formatCurrency(category.totalAmountInCategory)}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        backgroundColor: colors.secondary_bg,
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        border: `1px solid ${colors.border_color}`,
+                      }}
+                    >
+                      <Tooltip
+                        title="Average expense amount in this category"
+                        arrow
+                        placement="top"
                       >
                         <span
                           style={{
@@ -889,34 +955,34 @@ const ViewExpense = () => {
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
+                            cursor: "help",
                           }}
                         >
                           Average
                         </span>
-                        <div
-                          style={{
-                            fontSize: "1.1rem",
-                            color: colors.primary_text,
-                            fontWeight: "700",
-                          }}
-                        >
-                          {formatCurrency(category.averageAmountInCategory)}
-                        </div>
-                      </div>
-                    </Tooltip>
-                    <Tooltip
-                      title="Number of expenses this month in this category"
-                      arrow
-                      placement="top"
-                    >
+                      </Tooltip>
                       <div
                         style={{
-                          backgroundColor: colors.secondary_bg,
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          border: `1px solid ${colors.border_color}`,
-                          cursor: "pointer",
+                          fontSize: "1.1rem",
+                          color: colors.primary_text,
+                          fontWeight: "700",
                         }}
+                      >
+                        {formatCurrency(category.averageAmountInCategory)}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        backgroundColor: colors.secondary_bg,
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        border: `1px solid ${colors.border_color}`,
+                      }}
+                    >
+                      <Tooltip
+                        title="Number of expenses this month in this category"
+                        arrow
+                        placement="top"
                       >
                         <span
                           style={{
@@ -925,21 +991,22 @@ const ViewExpense = () => {
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
+                            cursor: "help",
                           }}
                         >
                           This Month
                         </span>
-                        <div
-                          style={{
-                            fontSize: "1.1rem",
-                            color: categoryColor,
-                            fontWeight: "700",
-                          }}
-                        >
-                          {category.expensesThisMonthInCategory || 0}
-                        </div>
+                      </Tooltip>
+                      <div
+                        style={{
+                          fontSize: "1.1rem",
+                          color: categoryColor,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {category.expensesThisMonthInCategory || 0}
                       </div>
-                    </Tooltip>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1036,19 +1103,18 @@ const ViewExpense = () => {
                     className="grid grid-cols-2 gap-2"
                     style={{ marginTop: "auto" }}
                   >
-                    <Tooltip
-                      title="Total number of expenses using this payment method"
-                      arrow
-                      placement="top"
+                    <div
+                      style={{
+                        backgroundColor: colors.secondary_bg,
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        border: `1px solid ${colors.border_color}`,
+                      }}
                     >
-                      <div
-                        style={{
-                          backgroundColor: colors.secondary_bg,
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          border: `1px solid ${colors.border_color}`,
-                          cursor: "pointer",
-                        }}
+                      <Tooltip
+                        title="Total number of expenses using this payment method"
+                        arrow
+                        placement="top"
                       >
                         <span
                           style={{
@@ -1057,34 +1123,34 @@ const ViewExpense = () => {
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
+                            cursor: "help",
                           }}
                         >
                           Count
                         </span>
-                        <div
-                          style={{
-                            fontSize: "1.1rem",
-                            color: colors.primary_text,
-                            fontWeight: "700",
-                          }}
-                        >
-                          {paymentMethodInfo.totalExpensesWithMethod || 0}
-                        </div>
-                      </div>
-                    </Tooltip>
-                    <Tooltip
-                      title="Total amount spent using this payment method"
-                      arrow
-                      placement="top"
-                    >
+                      </Tooltip>
                       <div
                         style={{
-                          backgroundColor: colors.secondary_bg,
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          border: `1px solid ${colors.border_color}`,
-                          cursor: "pointer",
+                          fontSize: "1.1rem",
+                          color: colors.primary_text,
+                          fontWeight: "700",
                         }}
+                      >
+                        {paymentMethodInfo.totalExpensesWithMethod || 0}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        backgroundColor: colors.secondary_bg,
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        border: `1px solid ${colors.border_color}`,
+                      }}
+                    >
+                      <Tooltip
+                        title="Total amount spent using this payment method"
+                        arrow
+                        placement="top"
                       >
                         <span
                           style={{
@@ -1093,36 +1159,36 @@ const ViewExpense = () => {
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
+                            cursor: "help",
                           }}
                         >
                           Total
                         </span>
-                        <div
-                          style={{
-                            fontSize: "1.1rem",
-                            color: paymentColor,
-                            fontWeight: "700",
-                          }}
-                        >
-                          {formatCurrency(
-                            paymentMethodInfo.totalAmountWithMethod,
-                          )}
-                        </div>
-                      </div>
-                    </Tooltip>
-                    <Tooltip
-                      title="Average expense amount with this payment method"
-                      arrow
-                      placement="top"
-                    >
+                      </Tooltip>
                       <div
                         style={{
-                          backgroundColor: colors.secondary_bg,
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          border: `1px solid ${colors.border_color}`,
-                          cursor: "pointer",
+                          fontSize: "1.1rem",
+                          color: paymentColor,
+                          fontWeight: "700",
                         }}
+                      >
+                        {formatCurrency(
+                          paymentMethodInfo.totalAmountWithMethod,
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        backgroundColor: colors.secondary_bg,
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        border: `1px solid ${colors.border_color}`,
+                      }}
+                    >
+                      <Tooltip
+                        title="Average expense amount with this payment method"
+                        arrow
+                        placement="top"
                       >
                         <span
                           style={{
@@ -1131,36 +1197,36 @@ const ViewExpense = () => {
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
+                            cursor: "help",
                           }}
                         >
                           Average
                         </span>
-                        <div
-                          style={{
-                            fontSize: "1.1rem",
-                            color: colors.primary_text,
-                            fontWeight: "700",
-                          }}
-                        >
-                          {formatCurrency(
-                            paymentMethodInfo.averageAmountWithMethod,
-                          )}
-                        </div>
-                      </div>
-                    </Tooltip>
-                    <Tooltip
-                      title="Number of expenses this month with this payment method"
-                      arrow
-                      placement="top"
-                    >
+                      </Tooltip>
                       <div
                         style={{
-                          backgroundColor: colors.secondary_bg,
-                          padding: "8px 10px",
-                          borderRadius: "6px",
-                          border: `1px solid ${colors.border_color}`,
-                          cursor: "pointer",
+                          fontSize: "1.1rem",
+                          color: colors.primary_text,
+                          fontWeight: "700",
                         }}
+                      >
+                        {formatCurrency(
+                          paymentMethodInfo.averageAmountWithMethod,
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        backgroundColor: colors.secondary_bg,
+                        padding: "8px 10px",
+                        borderRadius: "6px",
+                        border: `1px solid ${colors.border_color}`,
+                      }}
+                    >
+                      <Tooltip
+                        title="Number of expenses this month with this payment method"
+                        arrow
+                        placement="top"
                       >
                         <span
                           style={{
@@ -1169,21 +1235,22 @@ const ViewExpense = () => {
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
+                            cursor: "help",
                           }}
                         >
                           This Month
                         </span>
-                        <div
-                          style={{
-                            fontSize: "1.1rem",
-                            color: paymentColor,
-                            fontWeight: "700",
-                          }}
-                        >
-                          {paymentMethodInfo.expensesThisMonthWithMethod || 0}
-                        </div>
+                      </Tooltip>
+                      <div
+                        style={{
+                          fontSize: "1.1rem",
+                          color: paymentColor,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {paymentMethodInfo.expensesThisMonthWithMethod || 0}
                       </div>
-                    </Tooltip>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1323,21 +1390,21 @@ const ViewExpense = () => {
                     tooltip: "Maximum amount spent on this expense",
                   },
                 ].map((stat, idx) => (
-                  <Tooltip key={idx} title={stat.tooltip} arrow placement="top">
-                    <div
-                      style={{
-                        backgroundColor: colors.secondary_bg,
-                        padding: "12px 14px",
-                        borderRadius: "8px",
-                        border: `1px solid ${colors.border_color}`,
-                        borderLeft: `3px solid ${stat.accentColor}`,
-                        transition: "all 0.2s ease",
-                        cursor: "pointer",
-                      }}
-                      className="hover:scale-[1.02]"
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        {stat.icon}
+                  <div
+                    key={idx}
+                    style={{
+                      backgroundColor: colors.secondary_bg,
+                      padding: "12px 14px",
+                      borderRadius: "8px",
+                      border: `1px solid ${colors.border_color}`,
+                      borderLeft: `3px solid ${stat.accentColor}`,
+                      transition: "all 0.2s ease",
+                    }}
+                    className="hover:scale-[1.02]"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {stat.icon}
+                      <Tooltip title={stat.tooltip} arrow placement="top">
                         <span
                           style={{
                             fontSize: "0.7rem",
@@ -1345,29 +1412,30 @@ const ViewExpense = () => {
                             textTransform: "uppercase",
                             fontWeight: "500",
                             letterSpacing: "0.5px",
+                            cursor: "help",
                           }}
                         >
                           {stat.label}
                         </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: stat.highlight ? "1.15rem" : "1.05rem",
-                          fontWeight: "700",
-                          color: stat.highlight
-                            ? stat.accentColor
-                            : colors.primary_text,
-                          marginTop: "4px",
-                        }}
-                      >
-                        {stat.type === "currency"
-                          ? formatCurrency(stat.value)
-                          : stat.type === "date"
-                            ? formatDate(stat.value)
-                            : stat.value}
-                      </div>
+                      </Tooltip>
                     </div>
-                  </Tooltip>
+                    <div
+                      style={{
+                        fontSize: stat.highlight ? "1.15rem" : "1.05rem",
+                        fontWeight: "700",
+                        color: stat.highlight
+                          ? stat.accentColor
+                          : colors.primary_text,
+                        marginTop: "4px",
+                      }}
+                    >
+                      {stat.type === "currency"
+                        ? formatCurrency(stat.value)
+                        : stat.type === "date"
+                          ? formatDate(stat.value)
+                          : stat.value}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -1386,7 +1454,8 @@ const ViewExpense = () => {
               overflow: "hidden",
             }}
           >
-            <div className="flex items-center gap-2 mb-2">
+            {/* Header with title and badge */}
+            <div className="flex items-center gap-2 mb-3">
               <AccountBalanceWalletIcon
                 sx={{ fontSize: 16, color: "#00dac6" }}
               />
@@ -1416,48 +1485,421 @@ const ViewExpense = () => {
             </div>
 
             {linkedBudgets && linkedBudgets.length > 0 ? (
-              <Box sx={{ flex: 1, overflow: "hidden" }}>
-                <DataGrid
-                  rows={linkedBudgets.map((b, i) => ({
-                    ...b,
-                    id: b.id || `budget-${i}`,
-                  }))}
-                  columns={budgetColumns}
-                  getRowId={(row) => row.id}
-                  disableRowSelectionOnClick
-                  hideFooter
-                  autoHeight
-                  density="compact"
-                  sx={{
-                    border: "none",
-                    fontSize: "0.7rem",
-                    "& .MuiDataGrid-columnHeaders": {
-                      backgroundColor: colors.secondary_bg,
-                      color: colors.primary_text,
-                      fontWeight: "bold",
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Search and Filter Row */}
+                <div className="flex items-center gap-3 mb-3">
+                  {/* Search Input */}
+                  <TextField
+                    size="small"
+                    placeholder="Search budgets..."
+                    value={budgetSearch}
+                    onChange={(e) => setBudgetSearch(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon
+                            sx={{ fontSize: 16, color: colors.secondary_text }}
+                          />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      flex: 1,
+                      maxWidth: "200px",
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: colors.secondary_bg,
+                        fontSize: "0.75rem",
+                        height: "32px",
+                        "& fieldset": { borderColor: colors.border_color },
+                        "&:hover fieldset": { borderColor: "#00dac6" },
+                        "&.Mui-focused fieldset": { borderColor: "#00dac6" },
+                      },
+                      "& .MuiInputBase-input": {
+                        color: colors.primary_text,
+                        padding: "6px 8px",
+                        "&::placeholder": {
+                          color: colors.secondary_text,
+                          opacity: 0.7,
+                        },
+                      },
+                    }}
+                  />
+
+                  {/* Status Filter */}
+                  <div className="flex items-center gap-1">
+                    <FilterListIcon
+                      sx={{ fontSize: 14, color: colors.secondary_text }}
+                    />
+                    <FormControl size="small" sx={{ minWidth: 100 }}>
+                      <Select
+                        value={budgetStatusFilter}
+                        onChange={(e) => setBudgetStatusFilter(e.target.value)}
+                        displayEmpty
+                        sx={{
+                          backgroundColor: colors.secondary_bg,
+                          fontSize: "0.7rem",
+                          height: "32px",
+                          color: colors.primary_text,
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: colors.border_color,
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#00dac6",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#00dac6",
+                          },
+                          "& .MuiSelect-icon": { color: colors.secondary_text },
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              backgroundColor: colors.secondary_bg,
+                              border: `1px solid ${colors.border_color}`,
+                              "& .MuiMenuItem-root": {
+                                fontSize: "0.7rem",
+                                color: colors.primary_text,
+                                "&:hover": {
+                                  backgroundColor: colors.primary_bg,
+                                },
+                                "&.Mui-selected": {
+                                  backgroundColor: "#00dac620",
+                                },
+                              },
+                            },
+                          },
+                        }}
+                      >
+                        <MenuItem value="all">All Status</MenuItem>
+                        <MenuItem value="ACTIVE">Active</MenuItem>
+                        <MenuItem value="WARNING">Warning</MenuItem>
+                        <MenuItem value="EXCEEDED">Exceeded</MenuItem>
+                        <MenuItem value="EXPIRED">Expired</MenuItem>
+                        <MenuItem value="CRITICAL">Critical</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </div>
+
+                  {/* Results count */}
+                  <span
+                    style={{
                       fontSize: "0.65rem",
-                      minHeight: "28px !important",
-                      maxHeight: "28px !important",
-                    },
-                    "& .MuiDataGrid-cell": {
-                      color: colors.primary_text,
-                      borderBottom: `1px solid ${colors.border_color}`,
-                      fontSize: "0.7rem",
-                      py: 0,
-                    },
-                    "& .MuiDataGrid-row": {
-                      minHeight: "28px !important",
-                      maxHeight: "28px !important",
-                    },
-                    "& .MuiDataGrid-row:hover": {
-                      backgroundColor: colors.secondary_bg,
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                      backgroundColor: colors.primary_bg,
-                    },
+                      color: colors.secondary_text,
+                      marginLeft: "auto",
+                    }}
+                  >
+                    {processedBudgets.length} of {linkedBudgets.length} budget
+                    {linkedBudgets.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+
+                {/* Custom Table */}
+                <div
+                  style={{
+                    flex: 1,
+                    overflow: "auto",
+                    borderRadius: "6px",
+                    border: `1px solid ${colors.border_color}`,
                   }}
-                />
-              </Box>
+                >
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      tableLayout: "fixed",
+                    }}
+                  >
+                    {/* Table Header */}
+                    <thead>
+                      <tr style={{ backgroundColor: colors.secondary_bg }}>
+                        {budgetTableColumns.map((col) => (
+                          <th
+                            key={col.field}
+                            onClick={() =>
+                              col.sortable && handleBudgetSort(col.field)
+                            }
+                            style={{
+                              width: col.width,
+                              padding: "8px 10px",
+                              textAlign: "left",
+                              fontSize: "0.65rem",
+                              fontWeight: "600",
+                              color: colors.secondary_text,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                              borderBottom: `1px solid ${colors.border_color}`,
+                              cursor: col.sortable ? "pointer" : "default",
+                              userSelect: "none",
+                              whiteSpace: "nowrap",
+                              position: "sticky",
+                              top: 0,
+                              backgroundColor: colors.secondary_bg,
+                              zIndex: 1,
+                            }}
+                          >
+                            <div className="flex items-center gap-1">
+                              <span>{col.label}</span>
+                              {col.sortable && getSortIcon(col.field)}
+                            </div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    {/* Table Body */}
+                    <tbody>
+                      {paginatedBudgets.length > 0 ? (
+                        paginatedBudgets.map((budget, idx) => {
+                          const percentageValue = budget.percentageUsed || 0;
+                          const statusStyle = getStatusStyle(budget.status);
+                          return (
+                            <tr
+                              key={budget.id || idx}
+                              style={{
+                                backgroundColor:
+                                  idx % 2 === 0
+                                    ? colors.primary_bg
+                                    : colors.secondary_bg + "40",
+                                transition: "background-color 0.15s ease",
+                              }}
+                              className="hover:bg-opacity-80"
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                  colors.secondary_bg;
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                  idx % 2 === 0
+                                    ? colors.primary_bg
+                                    : colors.secondary_bg + "40";
+                              }}
+                            >
+                              {/* Budget Name */}
+                              <td
+                                style={{
+                                  padding: "8px 10px",
+                                  fontSize: "0.7rem",
+                                  color: colors.primary_text,
+                                  fontWeight: "500",
+                                  borderBottom: `1px solid ${colors.border_color}`,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                <Tooltip
+                                  title={budget.name}
+                                  arrow
+                                  placement="top"
+                                >
+                                  <span style={{ cursor: "default" }}>
+                                    {budget.name || "-"}
+                                  </span>
+                                </Tooltip>
+                              </td>
+                              {/* Description */}
+                              <td
+                                style={{
+                                  padding: "8px 10px",
+                                  fontSize: "0.7rem",
+                                  color: colors.secondary_text,
+                                  borderBottom: `1px solid ${colors.border_color}`,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                <Tooltip
+                                  title={budget.description || ""}
+                                  arrow
+                                  placement="top"
+                                >
+                                  <span
+                                    style={{
+                                      cursor: budget.description
+                                        ? "default"
+                                        : "text",
+                                    }}
+                                  >
+                                    {budget.description || "-"}
+                                  </span>
+                                </Tooltip>
+                              </td>
+                              {/* Start Date */}
+                              <td
+                                style={{
+                                  padding: "8px 10px",
+                                  fontSize: "0.7rem",
+                                  color: colors.primary_text,
+                                  borderBottom: `1px solid ${colors.border_color}`,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {formatDate(budget.startDate)}
+                              </td>
+                              {/* End Date */}
+                              <td
+                                style={{
+                                  padding: "8px 10px",
+                                  fontSize: "0.7rem",
+                                  color: colors.primary_text,
+                                  borderBottom: `1px solid ${colors.border_color}`,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {formatDate(budget.endDate)}
+                              </td>
+                              {/* Total */}
+                              <td
+                                style={{
+                                  padding: "8px 10px",
+                                  fontSize: "0.7rem",
+                                  color: colors.primary_text,
+                                  fontWeight: "500",
+                                  borderBottom: `1px solid ${colors.border_color}`,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {formatCurrency(budget.amount)}
+                              </td>
+                              {/* Used */}
+                              <td
+                                style={{
+                                  padding: "8px 10px",
+                                  fontSize: "0.7rem",
+                                  color: getPercentageColor(percentageValue),
+                                  fontWeight: "500",
+                                  borderBottom: `1px solid ${colors.border_color}`,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {formatCurrency(budget.usedAmount)}
+                              </td>
+                              {/* Percentage */}
+                              <td
+                                style={{
+                                  padding: "8px 10px",
+                                  fontSize: "0.7rem",
+                                  fontWeight: "bold",
+                                  color: getPercentageColor(percentageValue),
+                                  borderBottom: `1px solid ${colors.border_color}`,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {percentageValue.toFixed(0)}%
+                              </td>
+                              {/* Status */}
+                              <td
+                                style={{
+                                  padding: "8px 10px",
+                                  borderBottom: `1px solid ${colors.border_color}`,
+                                }}
+                              >
+                                <Chip
+                                  label={budget.status || "ACTIVE"}
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: statusStyle.bg,
+                                    color: statusStyle.text,
+                                    fontWeight: "bold",
+                                    fontSize: "0.55rem",
+                                    height: "18px",
+                                    "& .MuiChip-label": { padding: "0 6px" },
+                                  }}
+                                />
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={budgetTableColumns.length}
+                            style={{
+                              padding: "24px",
+                              textAlign: "center",
+                              color: colors.secondary_text,
+                              fontSize: "0.75rem",
+                            }}
+                          >
+                            No budgets match your filters
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {totalBudgetPages > 1 && (
+                  <div
+                    className="flex items-center justify-between"
+                    style={{
+                      padding: "8px 0 0 0",
+                      borderTop: "none",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.65rem",
+                        color: colors.secondary_text,
+                      }}
+                    >
+                      Page {budgetPage + 1} of {totalBudgetPages}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <IconButton
+                        size="small"
+                        onClick={() => setBudgetPage((p) => Math.max(0, p - 1))}
+                        disabled={budgetPage === 0}
+                        sx={{
+                          width: 26,
+                          height: 26,
+                          color:
+                            budgetPage === 0
+                              ? colors.secondary_text
+                              : "#00dac6",
+                          "&:hover": { backgroundColor: "#00dac620" },
+                          "&.Mui-disabled": {
+                            color: colors.secondary_text + "50",
+                          },
+                        }}
+                      >
+                        <KeyboardArrowLeftIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() =>
+                          setBudgetPage((p) =>
+                            Math.min(totalBudgetPages - 1, p + 1),
+                          )
+                        }
+                        disabled={budgetPage >= totalBudgetPages - 1}
+                        sx={{
+                          width: 26,
+                          height: 26,
+                          color:
+                            budgetPage >= totalBudgetPages - 1
+                              ? colors.secondary_text
+                              : "#00dac6",
+                          "&:hover": { backgroundColor: "#00dac620" },
+                          "&.Mui-disabled": {
+                            color: colors.secondary_text + "50",
+                          },
+                        }}
+                      >
+                        <KeyboardArrowRightIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div
                 style={{
