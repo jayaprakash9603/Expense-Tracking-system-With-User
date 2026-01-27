@@ -1,18 +1,7 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Typography,
-  Chip,
-  IconButton,
-  Tooltip,
-  Skeleton,
-  TextField,
-  InputAdornment,
-  Select,
-  MenuItem,
-  FormControl,
-} from "@mui/material";
+import { Typography, Chip, IconButton, Tooltip } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -34,15 +23,10 @@ import DateRangeIcon from "@mui/icons-material/DateRange";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import SearchIcon from "@mui/icons-material/Search";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useTheme } from "../../hooks/useTheme";
 import PageHeader from "../../components/PageHeader";
+import CustomDataTable from "../../components/common/CustomDataTable";
+import ViewExpenseSkeleton from "../../components/skeletons/ViewExpenseSkeleton";
 import {
   getExpenseDetailedView,
   clearExpenseDetailedView,
@@ -130,115 +114,6 @@ const ViewExpense = () => {
     return dayjs(date).format(displayDateFormat);
   };
 
-  // Budget table state for sorting, filtering, pagination
-  const [budgetSearch, setBudgetSearch] = useState("");
-  const [budgetStatusFilter, setBudgetStatusFilter] = useState("all");
-  const [budgetSort, setBudgetSort] = useState({
-    field: "name",
-    direction: "asc",
-  });
-  const [budgetPage, setBudgetPage] = useState(0);
-  const budgetRowsPerPage = 5;
-
-  // Handle budget sort
-  const handleBudgetSort = useCallback((field) => {
-    setBudgetSort((prev) => ({
-      field,
-      direction:
-        prev.field === field && prev.direction === "asc" ? "desc" : "asc",
-    }));
-  }, []);
-
-  // Get sort icon
-  const getSortIcon = useCallback(
-    (field) => {
-      if (budgetSort.field !== field) {
-        return <UnfoldMoreIcon sx={{ fontSize: 14, opacity: 0.4 }} />;
-      }
-      return budgetSort.direction === "asc" ? (
-        <ExpandLessIcon sx={{ fontSize: 14, color: "#00dac6" }} />
-      ) : (
-        <ExpandMoreIcon sx={{ fontSize: 14, color: "#00dac6" }} />
-      );
-    },
-    [budgetSort],
-  );
-
-  // Filtered and sorted budgets
-  const processedBudgets = useMemo(() => {
-    const budgets = expenseDetailedView?.linkedBudgets;
-    if (!budgets || budgets.length === 0) return [];
-
-    let filtered = [...budgets];
-
-    // Apply search filter
-    if (budgetSearch.trim()) {
-      const searchLower = budgetSearch.toLowerCase();
-      filtered = filtered.filter(
-        (b) =>
-          b.name?.toLowerCase().includes(searchLower) ||
-          b.description?.toLowerCase().includes(searchLower),
-      );
-    }
-
-    // Apply status filter
-    if (budgetStatusFilter !== "all") {
-      filtered = filtered.filter((b) => b.status === budgetStatusFilter);
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let aVal = a[budgetSort.field];
-      let bVal = b[budgetSort.field];
-
-      // Handle different types
-      if (
-        budgetSort.field === "amount" ||
-        budgetSort.field === "usedAmount" ||
-        budgetSort.field === "percentageUsed"
-      ) {
-        aVal = Number(aVal) || 0;
-        bVal = Number(bVal) || 0;
-      } else if (
-        budgetSort.field === "startDate" ||
-        budgetSort.field === "endDate"
-      ) {
-        aVal = new Date(aVal).getTime() || 0;
-        bVal = new Date(bVal).getTime() || 0;
-      } else {
-        aVal = String(aVal || "").toLowerCase();
-        bVal = String(bVal || "").toLowerCase();
-      }
-
-      if (aVal < bVal) return budgetSort.direction === "asc" ? -1 : 1;
-      if (aVal > bVal) return budgetSort.direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return filtered;
-  }, [
-    expenseDetailedView?.linkedBudgets,
-    budgetSearch,
-    budgetStatusFilter,
-    budgetSort,
-  ]);
-
-  // Paginated budgets
-  const paginatedBudgets = useMemo(() => {
-    const start = budgetPage * budgetRowsPerPage;
-    return processedBudgets.slice(start, start + budgetRowsPerPage);
-  }, [processedBudgets, budgetPage, budgetRowsPerPage]);
-
-  // Total pages
-  const totalBudgetPages = Math.ceil(
-    processedBudgets.length / budgetRowsPerPage,
-  );
-
-  // Reset page when filters change
-  useEffect(() => {
-    setBudgetPage(0);
-  }, [budgetSearch, budgetStatusFilter]);
-
   // Main container style
   const containerStyle = {
     width: "calc(100vw - 370px)",
@@ -272,238 +147,118 @@ const ViewExpense = () => {
     return "#52c41a";
   };
 
-  // Budget table column definitions
-  const budgetTableColumns = [
-    { field: "name", label: "Budget", sortable: true, width: "18%" },
-    {
-      field: "description",
-      label: "Description",
-      sortable: true,
-      width: "22%",
-    },
-    { field: "startDate", label: "Start", sortable: true, width: "12%" },
-    { field: "endDate", label: "End", sortable: true, width: "12%" },
-    { field: "amount", label: "Total", sortable: true, width: "12%" },
-    { field: "usedAmount", label: "Used", sortable: true, width: "12%" },
-    { field: "percentageUsed", label: "%", sortable: true, width: "6%" },
-    { field: "status", label: "Status", sortable: true, width: "10%" },
-  ];
+  // Budget table column definitions for CustomDataTable
+  const budgetTableColumns = useMemo(
+    () => [
+      {
+        field: "name",
+        label: "Budget",
+        sortable: true,
+        width: "18%",
+        tooltip: true,
+        bold: true,
+      },
+      {
+        field: "description",
+        label: "Description",
+        sortable: true,
+        width: "22%",
+        tooltip: true,
+        getColor: () => colors?.secondary_text || "#888888",
+      },
+      {
+        field: "startDate",
+        label: "Start",
+        sortable: true,
+        width: "12%",
+        sortType: "date",
+        render: (row) => formatDate(row.startDate),
+      },
+      {
+        field: "endDate",
+        label: "End",
+        sortable: true,
+        width: "12%",
+        sortType: "date",
+        render: (row) => formatDate(row.endDate),
+      },
+      {
+        field: "amount",
+        label: "Total",
+        sortable: true,
+        width: "12%",
+        sortType: "number",
+        bold: true,
+        render: (row) => formatCurrency(row.amount),
+      },
+      {
+        field: "usedAmount",
+        label: "Used",
+        sortable: true,
+        width: "12%",
+        sortType: "number",
+        bold: true,
+        getColor: (row) => getPercentageColor(row.percentageUsed || 0),
+        render: (row) => formatCurrency(row.usedAmount),
+      },
+      {
+        field: "percentageUsed",
+        label: "%",
+        sortable: true,
+        width: "6%",
+        sortType: "number",
+        bold: true,
+        getColor: (row) => getPercentageColor(row.percentageUsed || 0),
+        render: (row) => `${(row.percentageUsed || 0).toFixed(0)}%`,
+      },
+      {
+        field: "status",
+        label: "Status",
+        sortable: true,
+        width: "10%",
+        render: (row, themeColors, fontSizes) => {
+          const statusStyle = getStatusStyle(row.status);
+          return (
+            <Chip
+              label={row.status || "ACTIVE"}
+              size="small"
+              sx={{
+                backgroundColor: statusStyle.bg,
+                color: statusStyle.text,
+                fontWeight: "bold",
+                fontSize: fontSizes?.chip || "0.65rem",
+                height: "20px",
+                "& .MuiChip-label": { padding: "0 8px" },
+              }}
+            />
+          );
+        },
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    ],
+    [colors, displayDateFormat, formatDate, formatCurrency],
+  );
+
+  // Budget filter configuration
+  const budgetFilterConfig = {
+    field: "status",
+    options: [
+      { value: "all", label: "All Status" },
+      { value: "ACTIVE", label: "Active" },
+      { value: "WARNING", label: "Warning" },
+      { value: "EXCEEDED", label: "Exceeded" },
+      { value: "EXPIRED", label: "Expired" },
+      { value: "CRITICAL", label: "Critical" },
+    ],
+  };
 
   // Loading state with Skeleton
   if (expenseDetailedViewLoading) {
     return (
-      <div className="flex flex-col relative" style={containerStyle}>
-        <PageHeader title="View Expense" onClose={handleOnClose} />
-        <div className="flex gap-4 flex-1" style={{ overflow: "hidden" }}>
-          {/* Left Column Skeleton */}
-          <div
-            className="flex flex-col gap-3"
-            style={{ width: "340px", flexShrink: 0 }}
-          >
-            {/* Hero Card Skeleton */}
-            <div
-              style={{
-                backgroundColor: colors.primary_bg,
-                borderRadius: "12px",
-                padding: "16px 18px",
-                border: `1px solid ${colors.border_color}`,
-                flex: 1,
-              }}
-            >
-              <Skeleton
-                variant="text"
-                width="60%"
-                height={32}
-                sx={{ bgcolor: colors.secondary_bg }}
-              />
-              <Skeleton
-                variant="rounded"
-                width="80%"
-                height={48}
-                sx={{ bgcolor: colors.secondary_bg, my: 2 }}
-              />
-              <Skeleton
-                variant="text"
-                width="40%"
-                height={24}
-                sx={{ bgcolor: colors.secondary_bg }}
-              />
-              <Skeleton
-                variant="rounded"
-                width="100%"
-                height={60}
-                sx={{ bgcolor: colors.secondary_bg, mt: 2 }}
-              />
-            </div>
-
-            {/* Category Card Skeleton */}
-            <div
-              style={{
-                backgroundColor: colors.primary_bg,
-                borderRadius: "12px",
-                padding: "14px 16px",
-                border: `1px solid ${colors.border_color}`,
-                flex: 1,
-              }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Skeleton
-                  variant="rounded"
-                  width={26}
-                  height={26}
-                  sx={{ bgcolor: colors.secondary_bg }}
-                />
-                <Skeleton
-                  variant="text"
-                  width={80}
-                  height={20}
-                  sx={{ bgcolor: colors.secondary_bg }}
-                />
-              </div>
-              <Skeleton
-                variant="text"
-                width="50%"
-                height={28}
-                sx={{ bgcolor: colors.secondary_bg, mb: 2 }}
-              />
-              <div className="grid grid-cols-2 gap-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton
-                    key={i}
-                    variant="rounded"
-                    height={50}
-                    sx={{ bgcolor: colors.secondary_bg }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Payment Card Skeleton */}
-            <div
-              style={{
-                backgroundColor: colors.primary_bg,
-                borderRadius: "12px",
-                padding: "14px 16px",
-                border: `1px solid ${colors.border_color}`,
-                flex: 1,
-              }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Skeleton
-                  variant="rounded"
-                  width={26}
-                  height={26}
-                  sx={{ bgcolor: colors.secondary_bg }}
-                />
-                <Skeleton
-                  variant="text"
-                  width={100}
-                  height={20}
-                  sx={{ bgcolor: colors.secondary_bg }}
-                />
-              </div>
-              <Skeleton
-                variant="text"
-                width="40%"
-                height={28}
-                sx={{ bgcolor: colors.secondary_bg, mb: 2 }}
-              />
-              <div className="grid grid-cols-2 gap-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton
-                    key={i}
-                    variant="rounded"
-                    height={50}
-                    sx={{ bgcolor: colors.secondary_bg }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column Skeleton */}
-          <div
-            className="flex flex-col gap-3 flex-1"
-            style={{ overflow: "hidden" }}
-          >
-            {/* Occurrence Stats Skeleton */}
-            <div
-              style={{
-                backgroundColor: colors.primary_bg,
-                borderRadius: "8px",
-                padding: "14px 16px",
-                border: `1px solid ${colors.border_color}`,
-              }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Skeleton
-                  variant="circular"
-                  width={20}
-                  height={20}
-                  sx={{ bgcolor: colors.secondary_bg }}
-                />
-                <Skeleton
-                  variant="text"
-                  width={150}
-                  height={24}
-                  sx={{ bgcolor: colors.secondary_bg }}
-                />
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <Skeleton
-                    key={i}
-                    variant="rounded"
-                    height={55}
-                    sx={{ bgcolor: colors.secondary_bg }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Linked Budgets Skeleton */}
-            <div
-              style={{
-                backgroundColor: colors.primary_bg,
-                borderRadius: "8px",
-                padding: "14px 16px",
-                border: `1px solid ${colors.border_color}`,
-                flex: 1,
-              }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Skeleton
-                  variant="circular"
-                  width={20}
-                  height={20}
-                  sx={{ bgcolor: colors.secondary_bg }}
-                />
-                <Skeleton
-                  variant="text"
-                  width={120}
-                  height={24}
-                  sx={{ bgcolor: colors.secondary_bg }}
-                />
-              </div>
-              <Skeleton
-                variant="rounded"
-                width="100%"
-                height={28}
-                sx={{ bgcolor: colors.secondary_bg, mb: 1 }}
-              />
-              {[1, 2, 3].map((i) => (
-                <Skeleton
-                  key={i}
-                  variant="rounded"
-                  width="100%"
-                  height={28}
-                  sx={{ bgcolor: colors.secondary_bg, mb: 0.5 }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <ViewExpenseSkeleton
+        onClose={handleOnClose}
+        containerStyle={containerStyle}
+      />
     );
   }
 
@@ -1484,450 +1239,23 @@ const ViewExpense = () => {
               )}
             </div>
 
-            {linkedBudgets && linkedBudgets.length > 0 ? (
-              <div
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  overflow: "hidden",
-                }}
-              >
-                {/* Search and Filter Row */}
-                <div className="flex items-center gap-3 mb-3">
-                  {/* Search Input */}
-                  <TextField
-                    size="small"
-                    placeholder="Search budgets..."
-                    value={budgetSearch}
-                    onChange={(e) => setBudgetSearch(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon
-                            sx={{ fontSize: 16, color: colors.secondary_text }}
-                          />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{
-                      flex: 1,
-                      maxWidth: "200px",
-                      "& .MuiOutlinedInput-root": {
-                        backgroundColor: colors.secondary_bg,
-                        fontSize: "0.75rem",
-                        height: "32px",
-                        "& fieldset": { borderColor: colors.border_color },
-                        "&:hover fieldset": { borderColor: "#00dac6" },
-                        "&.Mui-focused fieldset": { borderColor: "#00dac6" },
-                      },
-                      "& .MuiInputBase-input": {
-                        color: colors.primary_text,
-                        padding: "6px 8px",
-                        "&::placeholder": {
-                          color: colors.secondary_text,
-                          opacity: 0.7,
-                        },
-                      },
-                    }}
-                  />
-
-                  {/* Status Filter */}
-                  <div className="flex items-center gap-1">
-                    <FilterListIcon
-                      sx={{ fontSize: 14, color: colors.secondary_text }}
-                    />
-                    <FormControl size="small" sx={{ minWidth: 100 }}>
-                      <Select
-                        value={budgetStatusFilter}
-                        onChange={(e) => setBudgetStatusFilter(e.target.value)}
-                        displayEmpty
-                        sx={{
-                          backgroundColor: colors.secondary_bg,
-                          fontSize: "0.7rem",
-                          height: "32px",
-                          color: colors.primary_text,
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: colors.border_color,
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#00dac6",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#00dac6",
-                          },
-                          "& .MuiSelect-icon": { color: colors.secondary_text },
-                        }}
-                        MenuProps={{
-                          PaperProps: {
-                            sx: {
-                              backgroundColor: colors.secondary_bg,
-                              border: `1px solid ${colors.border_color}`,
-                              "& .MuiMenuItem-root": {
-                                fontSize: "0.7rem",
-                                color: colors.primary_text,
-                                "&:hover": {
-                                  backgroundColor: colors.primary_bg,
-                                },
-                                "&.Mui-selected": {
-                                  backgroundColor: "#00dac620",
-                                },
-                              },
-                            },
-                          },
-                        }}
-                      >
-                        <MenuItem value="all">All Status</MenuItem>
-                        <MenuItem value="ACTIVE">Active</MenuItem>
-                        <MenuItem value="WARNING">Warning</MenuItem>
-                        <MenuItem value="EXCEEDED">Exceeded</MenuItem>
-                        <MenuItem value="EXPIRED">Expired</MenuItem>
-                        <MenuItem value="CRITICAL">Critical</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </div>
-
-                  {/* Results count */}
-                  <span
-                    style={{
-                      fontSize: "0.65rem",
-                      color: colors.secondary_text,
-                      marginLeft: "auto",
-                    }}
-                  >
-                    {processedBudgets.length} of {linkedBudgets.length} budget
-                    {linkedBudgets.length !== 1 ? "s" : ""}
-                  </span>
-                </div>
-
-                {/* Custom Table */}
-                <div
-                  style={{
-                    flex: 1,
-                    overflow: "auto",
-                    borderRadius: "6px",
-                    border: `1px solid ${colors.border_color}`,
-                  }}
-                >
-                  <table
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      tableLayout: "fixed",
-                    }}
-                  >
-                    {/* Table Header */}
-                    <thead>
-                      <tr style={{ backgroundColor: colors.secondary_bg }}>
-                        {budgetTableColumns.map((col) => (
-                          <th
-                            key={col.field}
-                            onClick={() =>
-                              col.sortable && handleBudgetSort(col.field)
-                            }
-                            style={{
-                              width: col.width,
-                              padding: "8px 10px",
-                              textAlign: "left",
-                              fontSize: "0.65rem",
-                              fontWeight: "600",
-                              color: colors.secondary_text,
-                              textTransform: "uppercase",
-                              letterSpacing: "0.5px",
-                              borderBottom: `1px solid ${colors.border_color}`,
-                              cursor: col.sortable ? "pointer" : "default",
-                              userSelect: "none",
-                              whiteSpace: "nowrap",
-                              position: "sticky",
-                              top: 0,
-                              backgroundColor: colors.secondary_bg,
-                              zIndex: 1,
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              <span>{col.label}</span>
-                              {col.sortable && getSortIcon(col.field)}
-                            </div>
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    {/* Table Body */}
-                    <tbody>
-                      {paginatedBudgets.length > 0 ? (
-                        paginatedBudgets.map((budget, idx) => {
-                          const percentageValue = budget.percentageUsed || 0;
-                          const statusStyle = getStatusStyle(budget.status);
-                          return (
-                            <tr
-                              key={budget.id || idx}
-                              style={{
-                                backgroundColor:
-                                  idx % 2 === 0
-                                    ? colors.primary_bg
-                                    : colors.secondary_bg + "40",
-                                transition: "background-color 0.15s ease",
-                              }}
-                              className="hover:bg-opacity-80"
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                  colors.secondary_bg;
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                  idx % 2 === 0
-                                    ? colors.primary_bg
-                                    : colors.secondary_bg + "40";
-                              }}
-                            >
-                              {/* Budget Name */}
-                              <td
-                                style={{
-                                  padding: "8px 10px",
-                                  fontSize: "0.7rem",
-                                  color: colors.primary_text,
-                                  fontWeight: "500",
-                                  borderBottom: `1px solid ${colors.border_color}`,
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                <Tooltip
-                                  title={budget.name}
-                                  arrow
-                                  placement="top"
-                                >
-                                  <span style={{ cursor: "default" }}>
-                                    {budget.name || "-"}
-                                  </span>
-                                </Tooltip>
-                              </td>
-                              {/* Description */}
-                              <td
-                                style={{
-                                  padding: "8px 10px",
-                                  fontSize: "0.7rem",
-                                  color: colors.secondary_text,
-                                  borderBottom: `1px solid ${colors.border_color}`,
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                <Tooltip
-                                  title={budget.description || ""}
-                                  arrow
-                                  placement="top"
-                                >
-                                  <span
-                                    style={{
-                                      cursor: budget.description
-                                        ? "default"
-                                        : "text",
-                                    }}
-                                  >
-                                    {budget.description || "-"}
-                                  </span>
-                                </Tooltip>
-                              </td>
-                              {/* Start Date */}
-                              <td
-                                style={{
-                                  padding: "8px 10px",
-                                  fontSize: "0.7rem",
-                                  color: colors.primary_text,
-                                  borderBottom: `1px solid ${colors.border_color}`,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {formatDate(budget.startDate)}
-                              </td>
-                              {/* End Date */}
-                              <td
-                                style={{
-                                  padding: "8px 10px",
-                                  fontSize: "0.7rem",
-                                  color: colors.primary_text,
-                                  borderBottom: `1px solid ${colors.border_color}`,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {formatDate(budget.endDate)}
-                              </td>
-                              {/* Total */}
-                              <td
-                                style={{
-                                  padding: "8px 10px",
-                                  fontSize: "0.7rem",
-                                  color: colors.primary_text,
-                                  fontWeight: "500",
-                                  borderBottom: `1px solid ${colors.border_color}`,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {formatCurrency(budget.amount)}
-                              </td>
-                              {/* Used */}
-                              <td
-                                style={{
-                                  padding: "8px 10px",
-                                  fontSize: "0.7rem",
-                                  color: getPercentageColor(percentageValue),
-                                  fontWeight: "500",
-                                  borderBottom: `1px solid ${colors.border_color}`,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {formatCurrency(budget.usedAmount)}
-                              </td>
-                              {/* Percentage */}
-                              <td
-                                style={{
-                                  padding: "8px 10px",
-                                  fontSize: "0.7rem",
-                                  fontWeight: "bold",
-                                  color: getPercentageColor(percentageValue),
-                                  borderBottom: `1px solid ${colors.border_color}`,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {percentageValue.toFixed(0)}%
-                              </td>
-                              {/* Status */}
-                              <td
-                                style={{
-                                  padding: "8px 10px",
-                                  borderBottom: `1px solid ${colors.border_color}`,
-                                }}
-                              >
-                                <Chip
-                                  label={budget.status || "ACTIVE"}
-                                  size="small"
-                                  sx={{
-                                    backgroundColor: statusStyle.bg,
-                                    color: statusStyle.text,
-                                    fontWeight: "bold",
-                                    fontSize: "0.55rem",
-                                    height: "18px",
-                                    "& .MuiChip-label": { padding: "0 6px" },
-                                  }}
-                                />
-                              </td>
-                            </tr>
-                          );
-                        })
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan={budgetTableColumns.length}
-                            style={{
-                              padding: "24px",
-                              textAlign: "center",
-                              color: colors.secondary_text,
-                              fontSize: "0.75rem",
-                            }}
-                          >
-                            No budgets match your filters
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                {totalBudgetPages > 1 && (
-                  <div
-                    className="flex items-center justify-between"
-                    style={{
-                      padding: "8px 0 0 0",
-                      borderTop: "none",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "0.65rem",
-                        color: colors.secondary_text,
-                      }}
-                    >
-                      Page {budgetPage + 1} of {totalBudgetPages}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <IconButton
-                        size="small"
-                        onClick={() => setBudgetPage((p) => Math.max(0, p - 1))}
-                        disabled={budgetPage === 0}
-                        sx={{
-                          width: 26,
-                          height: 26,
-                          color:
-                            budgetPage === 0
-                              ? colors.secondary_text
-                              : "#00dac6",
-                          "&:hover": { backgroundColor: "#00dac620" },
-                          "&.Mui-disabled": {
-                            color: colors.secondary_text + "50",
-                          },
-                        }}
-                      >
-                        <KeyboardArrowLeftIcon sx={{ fontSize: 18 }} />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() =>
-                          setBudgetPage((p) =>
-                            Math.min(totalBudgetPages - 1, p + 1),
-                          )
-                        }
-                        disabled={budgetPage >= totalBudgetPages - 1}
-                        sx={{
-                          width: 26,
-                          height: 26,
-                          color:
-                            budgetPage >= totalBudgetPages - 1
-                              ? colors.secondary_text
-                              : "#00dac6",
-                          "&:hover": { backgroundColor: "#00dac620" },
-                          "&.Mui-disabled": {
-                            color: colors.secondary_text + "50",
-                          },
-                        }}
-                      >
-                        <KeyboardArrowRightIcon sx={{ fontSize: 18 }} />
-                      </IconButton>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                  padding: "20px",
-                  backgroundColor: colors.secondary_bg,
-                  borderRadius: "6px",
-                }}
-              >
-                <AccountBalanceWalletIcon
-                  sx={{
-                    fontSize: 32,
-                    color: colors.secondary_text,
-                    opacity: 0.5,
-                    mb: 1,
-                  }}
-                />
-                <Typography
-                  sx={{ fontSize: "0.8rem", color: colors.secondary_text }}
-                >
-                  Not linked to any budget
-                </Typography>
-              </div>
-            )}
+            {/* CustomDataTable for Linked Budgets */}
+            <CustomDataTable
+              data={linkedBudgets?.map((b, i) => ({
+                ...b,
+                id: b.id || `budget-${i}`,
+              }))}
+              columns={budgetTableColumns}
+              searchPlaceholder="Search budgets..."
+              searchFields={["name", "description"]}
+              filterConfig={budgetFilterConfig}
+              rowsPerPage={5}
+              emptyMessage="Not linked to any budget"
+              noMatchMessage="No budgets match your filters"
+              accentColor="#00dac6"
+              fontSize="medium"
+              padding="compact"
+            />
           </div>
         </div>
       </div>
