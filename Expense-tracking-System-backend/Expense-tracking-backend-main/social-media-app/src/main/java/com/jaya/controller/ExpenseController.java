@@ -65,6 +65,7 @@ public class ExpenseController extends BaseExpenseController {
     private final ReportHistoryService reportHistoryService;
     private final com.jaya.service.BillExportClient billExportClient;
     private final CashflowAggregationService cashflowAggregationService;
+    private final com.jaya.service.ExpenseViewService expenseViewService;
 
     @Autowired
     public ExpenseController(ExpenseService expenseService,
@@ -81,7 +82,8 @@ public class ExpenseController extends BaseExpenseController {
             UnifiedActivityService unifiedActivityService,
             ReportHistoryService reportHistoryService,
             com.jaya.service.BillExportClient billExportClient,
-            CashflowAggregationService cashflowAggregationService) {
+            CashflowAggregationService cashflowAggregationService,
+            com.jaya.service.ExpenseViewService expenseViewService) {
         this.helper = helper;
         this.userService = userService;
         this.excelService = excelService;
@@ -93,6 +95,7 @@ public class ExpenseController extends BaseExpenseController {
         this.reportHistoryService = reportHistoryService;
         this.billExportClient = billExportClient;
         this.cashflowAggregationService = cashflowAggregationService;
+        this.expenseViewService = expenseViewService;
     }
 
     @PostMapping("/add-expense")
@@ -225,6 +228,38 @@ public class ExpenseController extends BaseExpenseController {
 
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         return new ResponseEntity<>(expenseService.getExpenseById(id, targetUser.getId()), HttpStatus.OK);
+    }
+
+    /**
+     * Get detailed expense view with budget, category, payment method, and
+     * occurrence info.
+     * This endpoint provides a comprehensive view of an expense including:
+     * - Full expense details
+     * - Linked budget information
+     * - Category details with statistics
+     * - Payment method statistics
+     * - Occurrence/frequency data (how many times this expense has been created)
+     *
+     * @param id       The expense ID
+     * @param jwt      Authorization token
+     * @param targetId Optional target user ID for friend access
+     * @return ExpenseViewDTO with complete expense information
+     */
+    @GetMapping("/expense/{id}/detailed")
+    public ResponseEntity<?> getExpenseDetailedView(@PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+            com.jaya.dto.ExpenseViewDTO expenseView = expenseViewService.getExpenseDetailedView(id, targetUser.getId());
+            return ResponseEntity.ok(expenseView);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Expense not found", "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to fetch expense details", "message", e.getMessage()));
+        }
     }
 
     @GetMapping("/fetch-expenses-by-date")

@@ -2192,7 +2192,7 @@ export const QUICK_ACTIONS = [
  */
 export const getRouteForResult = (type, id) => {
   const routes = {
-    [SEARCH_TYPES.EXPENSE]: `/expenses/edit/${id}`,
+    [SEARCH_TYPES.EXPENSE]: `/expenses/view/${id}`,
     [SEARCH_TYPES.BUDGET]: `/budget/report/${id}`,
     [SEARCH_TYPES.CATEGORY]: `/category-flow`,
     [SEARCH_TYPES.BILL]: `/bill/edit/${id}`,

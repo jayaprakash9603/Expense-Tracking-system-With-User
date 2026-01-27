@@ -71,6 +71,10 @@ import {
   FETCH_MOMENTUM_DATA_REQUEST,
   FETCH_MOMENTUM_DATA_SUCCESS,
   FETCH_MOMENTUM_DATA_FAILURE,
+  GET_EXPENSE_DETAILED_VIEW_REQUEST,
+  GET_EXPENSE_DETAILED_VIEW_SUCCESS,
+  GET_EXPENSE_DETAILED_VIEW_FAILURE,
+  CLEAR_EXPENSE_DETAILED_VIEW,
 } from "./expense.actionType";
 import {
   getCashflowCacheDescriptor,
@@ -107,7 +111,7 @@ export const getExpensesSuggestions = (targetId) => async (dispatch) => {
 
   try {
     const { data } = await api.get(
-      `/api/expenses/top-expense-names?topN=500&targetId=${targetId}`
+      `/api/expenses/top-expense-names?topN=500&targetId=${targetId}`,
     );
 
     dispatch({ type: GET_EXPENSES_SUGGESTIONS_SUCCESS, payload: data });
@@ -216,7 +220,7 @@ export const createExpenseAction =
 
       const { data } = await api.post(
         endpoint,
-        expenseData // Send the expense data in the body of the POST request
+        expenseData, // Send the expense data in the body of the POST request
       );
 
       dispatch({ type: CREATE_EXPENSE_SUCCESS, payload: data });
@@ -258,7 +262,7 @@ export const editExpenseAction =
           params: {
             targetId: targetId || "",
           },
-        }
+        },
       ); // Adjust the API endpoint
       dispatch({ type: EDIT_EXPENSE_SUCCESS, payload: response.data });
       console.log("Expense edited successfully:", response.data);
@@ -280,7 +284,7 @@ export const editMultipleExpenseAction =
           params: {
             targetId: targetId || "",
           },
-        }
+        },
       ); // Adjust the API endpoint
       dispatch({
         type: EDIT_MUTLTIPLE_EXPENSE_SUCCESS,
@@ -318,7 +322,7 @@ export const deleteMultiExpenses = (ids, targetId) => async (dispatch) => {
   try {
     await api.delete(
       `/api/expenses/delete-multiple?targetId=${targetId || ""}`,
-      { data: ids }
+      { data: ids },
     );
     dispatch({
       type: DELETE_EXPENSE_SUCCESS,
@@ -345,7 +349,7 @@ export const fetchPreviousExpenses =
           params: {
             targetId: targetId || "", // Include targetId if provided
           },
-        }
+        },
       );
 
       console.log("Response from backend:", response);
@@ -421,7 +425,7 @@ export const uploadCategoriesFile = (file, targetId) => async (dispatch) => {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
 
     dispatch({ type: UPLOAD_CATEGORIES_SUCCESS, payload: response.data });
@@ -478,7 +482,7 @@ export const startTrackedSaveExpenses = (expenses, targetId) => async () => {
     expenses,
     {
       params: { targetId: targetId || "" },
-    }
+    },
   );
   return data?.jobId;
 };
@@ -486,7 +490,7 @@ export const startTrackedSaveExpenses = (expenses, targetId) => async () => {
 // Poll progress for a jobId; returns the ProgressStatus
 export const pollSaveProgress = async (jobId) => {
   const { data } = await api.get(
-    `/api/expenses/add-multiple/progress/${jobId}`
+    `/api/expenses/add-multiple/progress/${jobId}`,
   );
   return data; // { jobId, total, processed, percent, status, message }
 };
@@ -618,7 +622,7 @@ export const fetchCashflowExpenses =
       }
 
       const { data } = await api.get(
-        `/api/expenses/cashflow?${params.toString()}`
+        `/api/expenses/cashflow?${params.toString()}`,
       );
 
       dispatch({
@@ -660,7 +664,7 @@ export const getExpensesByParticularDate =
           params: {
             targetId: targetId || "", // Include targetId if provided
           },
-        }
+        },
       );
       dispatch({ type: GET_PARTICULAR_DATE_EXPENSES_SUCCESS, payload: data });
     } catch (error) {
@@ -709,7 +713,7 @@ export const fetchCategoriesWithExpenses =
           params: {
             targetId: normalizedParams.targetId || "",
           },
-        }
+        },
       );
 
       dispatch({
@@ -741,3 +745,53 @@ export const fetchCategoriesWithExpenses =
       return { error: errorMessage };
     }
   };
+
+/**
+ * Get detailed expense view with budget, category, payment, and occurrence info.
+ * @param {string|number} expenseId - The expense ID to fetch
+ * @param {string} [targetId] - Optional friend ID for friend access
+ * @returns {Function} Async thunk action
+ */
+export const getExpenseDetailedView =
+  (expenseId, targetId) => async (dispatch) => {
+    dispatch({ type: GET_EXPENSE_DETAILED_VIEW_REQUEST });
+
+    try {
+      const { data } = await api.get(
+        `/api/expenses/expense/${expenseId}/detailed`,
+        {
+          params: {
+            targetId: targetId || "",
+          },
+        },
+      );
+
+      dispatch({
+        type: GET_EXPENSE_DETAILED_VIEW_SUCCESS,
+        payload: data,
+      });
+
+      return data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch expense details";
+
+      console.error("Error fetching expense detailed view:", error);
+      dispatch({
+        type: GET_EXPENSE_DETAILED_VIEW_FAILURE,
+        payload: errorMessage,
+      });
+
+      throw error;
+    }
+  };
+
+/**
+ * Clear the detailed expense view from state.
+ */
+export const clearExpenseDetailedView = () => ({
+  type: CLEAR_EXPENSE_DETAILED_VIEW,
+});

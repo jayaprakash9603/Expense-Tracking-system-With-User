@@ -64,12 +64,19 @@ import {
   UPLOAD_CATEGORIES_REQUEST,
   UPLOAD_CATEGORIES_SUCCESS,
   UPLOAD_CATEGORIES_FAILURE,
+  GET_EXPENSE_DETAILED_VIEW_REQUEST,
+  GET_EXPENSE_DETAILED_VIEW_SUCCESS,
+  GET_EXPENSE_DETAILED_VIEW_FAILURE,
+  CLEAR_EXPENSE_DETAILED_VIEW,
 } from "./expense.actionType";
 
 const initialState = {
   expenses: [],
   previousExpenses: [],
   expense: null, // For single expense
+  expenseDetailedView: null, // For detailed expense view
+  expenseDetailedViewLoading: false,
+  expenseDetailedViewError: null,
   loading: false,
   error: null,
   uploadSuccess: false,
@@ -282,7 +289,7 @@ export const expenseReducer = (state = initialState, action) => {
       // Loop through each date key and filter the deleted expense by id
       Object.keys(updatedExpenses).forEach((date) => {
         updatedExpenses[date] = updatedExpenses[date].filter(
-          (expense) => expense.id !== action.payload
+          (expense) => expense.id !== action.payload,
         );
       });
       return clearExpenseFlowCaches({
@@ -344,6 +351,34 @@ export const expenseReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         error: action.payload,
+      };
+
+    // Detailed Expense View
+    case GET_EXPENSE_DETAILED_VIEW_REQUEST:
+      return {
+        ...state,
+        expenseDetailedViewLoading: true,
+        expenseDetailedViewError: null,
+      };
+    case GET_EXPENSE_DETAILED_VIEW_SUCCESS:
+      return {
+        ...state,
+        expenseDetailedViewLoading: false,
+        expenseDetailedView: action.payload,
+        expenseDetailedViewError: null,
+      };
+    case GET_EXPENSE_DETAILED_VIEW_FAILURE:
+      return {
+        ...state,
+        expenseDetailedViewLoading: false,
+        expenseDetailedViewError: action.payload,
+      };
+    case CLEAR_EXPENSE_DETAILED_VIEW:
+      return {
+        ...state,
+        expenseDetailedView: null,
+        expenseDetailedViewLoading: false,
+        expenseDetailedViewError: null,
       };
 
     // Default case

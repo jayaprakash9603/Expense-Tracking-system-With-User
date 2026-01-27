@@ -30,6 +30,7 @@ import Utilities from "../pages/Landingpage/Utilities";
 import Upload from "../pages/Fileupload/Upload";
 import NewExpense from "../pages/Landingpage/NewExpense";
 import EditExpense from "../pages/Landingpage/EditExpense";
+import ViewExpense from "../pages/Landingpage/ViewExpense";
 import CombinedExpenseReport from "../pages/Landingpage/CombinedExpenseReport";
 import CategoryFlow from "../pages/Landingpage/CategoryFlow";
 import CreateCategory from "../pages/Landingpage/CreateCategory";
@@ -163,6 +164,8 @@ export const getAppRoutes = () => (
         <Route index element={<Cashflow />} />
         <Route path="create" element={<NewExpense />} />
         <Route path="create/:friendId" element={<NewExpense />} />
+        <Route path="view/:id" element={<ViewExpense />} />
+        <Route path="view/:id/friend/:friendId" element={<ViewExpense />} />
         <Route path="edit/:id" element={<EditExpense />} />
         <Route path="edit/:id/friend/:friendId" element={<EditExpense />} />
         <Route path="reports" element={<CombinedExpenseReport />} />
