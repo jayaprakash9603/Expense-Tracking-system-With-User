@@ -397,6 +397,8 @@ const ViewExpense = () => {
                 fontWeight: "700",
                 marginBottom: "8px",
                 letterSpacing: "-0.5px",
+                lineHeight: 1.3,
+                wordBreak: "break-word",
               }}
             >
               {expenseName || "Untitled Expense"}
@@ -444,7 +446,7 @@ const ViewExpense = () => {
             </div>
 
             {/* Date */}
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-1">
               <CalendarTodayIcon sx={{ fontSize: 14, color: "#00dac6" }} />
               <span
                 style={{
@@ -566,31 +568,44 @@ const ViewExpense = () => {
                       display: "flex",
                       flexDirection: "column",
                       flex: 1,
+                      overflow: "hidden",
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: "1.1rem",
-                        color: colors.primary_text,
-                        fontWeight: "700",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
+                    <Tooltip
+                      title={category?.name || "Uncategorized"}
+                      arrow
+                      placement="top"
                     >
-                      {category?.name || "Uncategorized"}
-                      {category?.color && (
-                        <span
-                          style={{
-                            width: "8px",
-                            height: "8px",
-                            borderRadius: "50%",
-                            backgroundColor: categoryColor,
-                            boxShadow: `0 0 6px ${categoryColor}`,
-                          }}
-                        />
-                      )}
-                    </span>
+                      <span
+                        style={{
+                          fontSize: "1.1rem",
+                          color: colors.primary_text,
+                          fontWeight: "700",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "default",
+                          maxWidth: "180px",
+                        }}
+                      >
+                        {category?.name || "Uncategorized"}
+                        {category?.color && (
+                          <span
+                            style={{
+                              width: "8px",
+                              height: "8px",
+                              borderRadius: "50%",
+                              backgroundColor: categoryColor,
+                              boxShadow: `0 0 6px ${categoryColor}`,
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+                      </span>
+                    </Tooltip>
                   </div>
                   {category?.percentageOfTotalExpenses > 0 && (
                     <Chip
@@ -820,17 +835,28 @@ const ViewExpense = () => {
                       display: "flex",
                       flexDirection: "column",
                       flex: 1,
+                      overflow: "hidden",
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: "1.1rem",
-                        color: colors.primary_text,
-                        fontWeight: "700",
-                      }}
+                    <Tooltip
+                      title={paymentMethodInfo?.displayName || "Unknown"}
+                      arrow
+                      placement="top"
                     >
-                      {paymentMethodInfo?.displayName || "Unknown"}
-                    </span>
+                      <span
+                        style={{
+                          fontSize: "1.1rem",
+                          color: colors.primary_text,
+                          fontWeight: "700",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "default",
+                        }}
+                      >
+                        {paymentMethodInfo?.displayName || "Unknown"}
+                      </span>
+                    </Tooltip>
                   </div>
                   {paymentMethodInfo?.percentageOfTotalExpenses > 0 && (
                     <Chip

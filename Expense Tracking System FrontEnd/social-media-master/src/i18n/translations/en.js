@@ -182,6 +182,7 @@ export const en = {
       previousSelected: "Go to previous selected expense",
       nextSelected: "Go to next selected expense",
       selectionNavigator: "Navigate between selected expenses",
+      viewExpense: "Click to view expense",
     },
     summary: {
       collapseAria: "Collapse selection stats",

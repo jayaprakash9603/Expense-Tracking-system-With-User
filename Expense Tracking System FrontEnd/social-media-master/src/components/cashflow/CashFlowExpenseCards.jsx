@@ -1117,6 +1117,8 @@ function CashFlowExpenseCards({
           handleCardClick={handleCardClickWrapper}
           handleDeleteClick={handleDeleteClick}
           onEdit={handleEdit}
+          friendId={friendId}
+          isFriendView={isFriendView}
         />
       );
     },
@@ -1131,6 +1133,8 @@ function CashFlowExpenseCards({
       handleCardClickWrapper,
       handleDeleteClick,
       handleEdit,
+      friendId,
+      isFriendView,
     ],
   );
 

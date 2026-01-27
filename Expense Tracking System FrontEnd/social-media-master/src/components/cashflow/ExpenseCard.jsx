@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -30,8 +31,11 @@ const ExpenseCard = React.memo(
     handleCardClick,
     handleDeleteClick,
     onEdit,
+    friendId,
+    isFriendView,
   }) {
     const { colors } = useTheme();
+    const navigate = useNavigate();
     const { maskAmount, isMasking } = useMasking();
     const { t } = useTranslation();
 
@@ -127,6 +131,31 @@ const ExpenseCard = React.memo(
       [handleCardClick, sourceIndex, row],
     );
 
+    // Navigate to view expense page
+    const handleNameClick = useCallback(
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const expenseId = row.id || row.expenseId;
+        if (expenseId) {
+          const viewPath = isFriendView
+            ? `/expenses/view/${expenseId}/friend/${friendId}`
+            : `/expenses/view/${expenseId}`;
+          navigate(viewPath);
+        }
+      },
+      [row, friendId, isFriendView, navigate],
+    );
+
+    // Generate full URL for tooltip
+    const getViewExpenseUrl = useCallback(() => {
+      const expenseId = row.id || row.expenseId;
+      const routePath = isFriendView
+        ? `/expenses/view/${expenseId}/friend/${friendId}`
+        : `/expenses/view/${expenseId}`;
+      return `${window.location.origin}${routePath}`;
+    }, [row, friendId, isFriendView]);
+
     return (
       <div
         key={row.id || row.expenseId || `expense-${idx}`}
@@ -182,7 +211,7 @@ const ExpenseCard = React.memo(
         tabIndex={-1}
       >
         <div className="flex flex-col gap-1" style={{ height: "100%" }}>
-          {/* Header: Expense Name (wrapped) */}
+          {/* Header: Expense Name (wrapped) - Clickable link */}
           <div
             className="flex items-center min-w-0 border-b pb-1"
             style={{
@@ -191,8 +220,9 @@ const ExpenseCard = React.memo(
             }}
           >
             <span
-              className="font-bold text-base min-w-0"
-              title={row.name}
+              className="font-bold text-base min-w-0 expense-name-link"
+              title={getViewExpenseUrl()}
+              onClick={handleNameClick}
               style={{
                 fontSize: "14px",
                 color: colors.primary_text,
@@ -203,6 +233,15 @@ const ExpenseCard = React.memo(
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
                 lineHeight: "1.3",
+                cursor: "pointer",
+                transition: "color 0.2s ease, text-decoration 0.2s ease",
+                textDecoration: "none",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.textDecoration = "underline";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.textDecoration = "none";
               }}
             >
               {row.name}
