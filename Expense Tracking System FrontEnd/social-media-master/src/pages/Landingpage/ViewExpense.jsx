@@ -99,6 +99,25 @@ const ViewExpense = () => {
     }
   };
 
+  // Navigate to category analytics page
+  const handleCategoryClick = (categoryId) => {
+    if (categoryId) {
+      const categoryPath = friendId
+        ? `/category-flow/view/${categoryId}/friend/${friendId}`
+        : `/category-flow/view/${categoryId}`;
+      navigate(categoryPath);
+    }
+  };
+
+  // Generate full URL for category tooltip
+  const getCategoryUrl = (categoryId) => {
+    if (!categoryId) return "";
+    const routePath = friendId
+      ? `/category-flow/view/${categoryId}/friend/${friendId}`
+      : `/category-flow/view/${categoryId}`;
+    return `${window.location.origin}${routePath}`;
+  };
+
   const formatCurrency = (amount) => {
     if (amount == null) return "₹0";
     return new Intl.NumberFormat("en-IN", {
@@ -572,11 +591,26 @@ const ViewExpense = () => {
                     }}
                   >
                     <Tooltip
-                      title={category?.name || "Uncategorized"}
+                      title={
+                        category?.id
+                          ? getCategoryUrl(category.id)
+                          : category?.name || "Uncategorized"
+                      }
                       arrow
                       placement="top"
                     >
                       <span
+                        onClick={() =>
+                          category?.id && handleCategoryClick(category.id)
+                        }
+                        onMouseEnter={(e) => {
+                          if (category?.id) {
+                            e.currentTarget.style.textDecoration = "underline";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textDecoration = "none";
+                        }}
                         style={{
                           fontSize: "1.1rem",
                           color: colors.primary_text,
@@ -587,8 +621,9 @@ const ViewExpense = () => {
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          cursor: "default",
+                          cursor: category?.id ? "pointer" : "default",
                           maxWidth: "180px",
+                          transition: "text-decoration 0.2s ease",
                         }}
                       >
                         {category?.name || "Uncategorized"}

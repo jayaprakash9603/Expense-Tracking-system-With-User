@@ -45,6 +45,21 @@ const RecentTransactions = ({
     return `${window.location.origin}/expenses/view/${transactionId}`;
   };
 
+  // Navigate to category analytics page
+  const handleCategoryClick = (e, categoryId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (categoryId) {
+      navigate(`/category-flow/view/${categoryId}`);
+    }
+  };
+
+  // Generate full URL for category tooltip
+  const getCategoryUrl = (categoryId) => {
+    if (!categoryId) return "";
+    return `${window.location.origin}/category-flow/view/${categoryId}`;
+  };
+
   const showEmpty =
     !loading && (!Array.isArray(transactions) || transactions.length === 0);
   const listStyle = showEmpty
@@ -140,7 +155,23 @@ const RecentTransactions = ({
                 </div>
                 <div
                   className="transaction-category"
-                  style={{ color: colors.secondary_text }}
+                  title={getCategoryUrl(transaction.categoryId)}
+                  onClick={(e) =>
+                    handleCategoryClick(e, transaction.categoryId)
+                  }
+                  style={{
+                    color: colors.secondary_text,
+                    cursor: transaction.categoryId ? "pointer" : "default",
+                    transition: "text-decoration 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (transaction.categoryId) {
+                      e.currentTarget.style.textDecoration = "underline";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.textDecoration = "none";
+                  }}
                 >
                   {transaction.categoryName}
                 </div>

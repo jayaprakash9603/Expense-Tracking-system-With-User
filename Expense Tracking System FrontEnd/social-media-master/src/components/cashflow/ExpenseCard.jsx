@@ -156,6 +156,34 @@ const ExpenseCard = React.memo(
       return `${window.location.origin}${routePath}`;
     }, [row, friendId, isFriendView]);
 
+    // Navigate to category analytics page
+    const handleCategoryClick = useCallback(
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const categoryId =
+          row.categoryId || row.category?.id || row.expense?.categoryId;
+        if (categoryId) {
+          const categoryPath = isFriendView
+            ? `/category-flow/view/${categoryId}/friend/${friendId}`
+            : `/category-flow/view/${categoryId}`;
+          navigate(categoryPath);
+        }
+      },
+      [row, friendId, isFriendView, navigate],
+    );
+
+    // Generate full URL for category tooltip
+    const getCategoryUrl = useCallback(() => {
+      const categoryId =
+        row.categoryId || row.category?.id || row.expense?.categoryId;
+      if (!categoryId) return "";
+      const routePath = isFriendView
+        ? `/category-flow/view/${categoryId}/friend/${friendId}`
+        : `/category-flow/view/${categoryId}`;
+      return `${window.location.origin}${routePath}`;
+    }, [row, friendId, isFriendView]);
+
     return (
       <div
         key={row.id || row.expenseId || `expense-${idx}`}
@@ -304,10 +332,32 @@ const ExpenseCard = React.memo(
             style={{ color: colors.secondary_text, margin: "2px 0" }}
           >
             <div
-              className="flex items-center gap-1 min-w-0 flex-1"
-              title={t("cashflow.tooltips.category", {
-                category: categoryName,
-              })}
+              className="flex items-center gap-1 min-w-0 flex-1 category-link"
+              title={
+                getCategoryUrl() ||
+                t("cashflow.tooltips.category", {
+                  category: categoryName,
+                })
+              }
+              onClick={handleCategoryClick}
+              style={{
+                cursor:
+                  row.categoryId || row.category?.id || row.expense?.categoryId
+                    ? "pointer"
+                    : "default",
+              }}
+              onMouseEnter={(e) => {
+                if (
+                  row.categoryId ||
+                  row.category?.id ||
+                  row.expense?.categoryId
+                ) {
+                  e.currentTarget.style.textDecoration = "underline";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.textDecoration = "none";
+              }}
             >
               {getCategoryIcon(categoryIconKey, {
                 sx: { fontSize: 13, color: colors.primary_accent },
