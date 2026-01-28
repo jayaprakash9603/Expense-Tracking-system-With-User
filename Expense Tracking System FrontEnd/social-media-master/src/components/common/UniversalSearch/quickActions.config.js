@@ -2194,7 +2194,7 @@ export const getRouteForResult = (type, id) => {
   const routes = {
     [SEARCH_TYPES.EXPENSE]: `/expenses/view/${id}`,
     [SEARCH_TYPES.BUDGET]: `/budget/report/${id}`,
-    [SEARCH_TYPES.CATEGORY]: `/category-flow`,
+    [SEARCH_TYPES.CATEGORY]: `/category-flow/view/${id}`,
     [SEARCH_TYPES.BILL]: `/bill/edit/${id}`,
     [SEARCH_TYPES.PAYMENT_METHOD]: `/payment-method/edit/${id}`,
     [SEARCH_TYPES.FRIEND]: `/friends/expenses/${id}`,

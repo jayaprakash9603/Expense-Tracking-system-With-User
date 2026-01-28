@@ -36,6 +36,7 @@ import CategoryFlow from "../pages/Landingpage/CategoryFlow";
 import CreateCategory from "../pages/Landingpage/CreateCategory";
 import CategoryReport from "../pages/Landingpage/Category Report/CategoryReport";
 import EditCategory from "../pages/Landingpage/EditCategory";
+import CategoryAnalyticsView from "../pages/CategoryAnalytics";
 import TransactionsContent from "../pages/Landingpage/TransactionsContent";
 import CreditDueContent from "../pages/Landingpage/CreditDueContent";
 import Reports from "../pages/Landingpage/Reports";
@@ -184,6 +185,8 @@ export const getAppRoutes = () => (
         <Route path="reports/:friendId" element={<CategoryReport />} />
         <Route path="edit/:id" element={<EditCategory />} />
         <Route path="edit/:id/friend/:friendId" element={<EditCategory />} />
+        <Route path="view/:categoryId" element={<CategoryAnalyticsView />} />
+        <Route path="view/:categoryId/friend/:friendId" element={<CategoryAnalyticsView />} />
       </Route>
 
       {/* Transaction & Insights Routes */}

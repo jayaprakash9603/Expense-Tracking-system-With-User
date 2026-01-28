@@ -28,6 +28,7 @@ export const hi = {
     yes: "हाँ",
     no: "नहीं",
     notAvailable: "उपलब्ध नहीं",
+    viewAnalytics: "विश्लेषण देखें",
   },
 
   // नेविगेशन

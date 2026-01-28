@@ -369,6 +369,8 @@ const GenericFlowPage = ({
             flowTab={flowTab}
             selectedEntityId={selectedEntity?.[idKey] || null}
             hasWriteAccess={hasWriteAccess}
+            friendId={friendId}
+            isFriendView={isFriendView}
             onSelect={(ent) => handleEntityClick(ent)}
             onDouble={(ent, e) => handleEntityDoubleClick(e, ent)}
             onEdit={(ent) => {
@@ -381,6 +383,13 @@ const GenericFlowPage = ({
             onDelete={(ent) => {
               setEntityToDelete(ent);
               setDeleteDialogOpen(true);
+            }}
+            onViewAnalytics={(ent) => {
+              navigate(
+                friendId && friendId !== "undefined"
+                  ? `/${routeBase}/view/${ent[idKey]}/friend/${friendId}`
+                  : `/${routeBase}/view/${ent[idKey]}`
+              );
             }}
           />
         </>

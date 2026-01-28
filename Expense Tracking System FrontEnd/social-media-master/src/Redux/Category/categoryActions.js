@@ -15,6 +15,10 @@ import {
   UPDATE_CATEGORY_SUCCESS,
   DELETE_CATEGORY_SUCCESS,
   DELETE_CATEGORY_FAILURE,
+  FETCH_CATEGORY_ANALYTICS_REQUEST,
+  FETCH_CATEGORY_ANALYTICS_SUCCESS,
+  FETCH_CATEGORY_ANALYTICS_FAILURE,
+  CLEAR_CATEGORY_ANALYTICS,
 } from "./categoryTypes";
 import { api, API_BASE_URL } from "../../config/api"; // Import the api instance
 
@@ -207,3 +211,60 @@ export const deleteCategory = (categoryId, targetId) => async (dispatch) => {
     });
   }
 };
+
+/**
+ * Fetch comprehensive analytics for a specific category.
+ * Returns all analytics data including trends, budgets, payments, transactions, and insights.
+ *
+ * @param {number} categoryId - The category ID to analyze
+ * @param {Object} options - Query parameters
+ * @param {string} options.startDate - Start date (YYYY-MM-DD)
+ * @param {string} options.endDate - End date (YYYY-MM-DD)
+ * @param {string} options.trendType - DAILY | WEEKLY | MONTHLY | YEARLY
+ * @param {number} options.targetId - Optional target user ID for friend expense viewing
+ */
+export const fetchCategoryAnalytics =
+  (categoryId, { startDate, endDate, trendType = "MONTHLY", targetId } = {}) =>
+  async (dispatch) => {
+    dispatch({ type: FETCH_CATEGORY_ANALYTICS_REQUEST });
+
+    try {
+      const params = {
+        ...(startDate && { startDate }),
+        ...(endDate && { endDate }),
+        trendType,
+        ...(targetId && { targetId }),
+      };
+
+      const { data } = await api.get(`/api/analytics/categories/${categoryId}`, {
+        params,
+      });
+
+      dispatch({
+        type: FETCH_CATEGORY_ANALYTICS_SUCCESS,
+        payload: data,
+      });
+
+      return data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Failed to fetch category analytics";
+
+      dispatch({
+        type: FETCH_CATEGORY_ANALYTICS_FAILURE,
+        payload: errorMessage,
+      });
+
+      throw new Error(errorMessage);
+    }
+  };
+
+/**
+ * Clear category analytics from state
+ */
+export const clearCategoryAnalytics = () => ({
+  type: CLEAR_CATEGORY_ANALYTICS,
+});

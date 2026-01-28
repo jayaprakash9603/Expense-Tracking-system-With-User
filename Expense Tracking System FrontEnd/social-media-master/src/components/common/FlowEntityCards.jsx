@@ -10,6 +10,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import BarChartIcon from "@mui/icons-material/BarChart";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import { formatCurrencyCompact } from "../../utils/numberFormatters";
 import { useTheme } from "../../hooks/useTheme";
@@ -35,6 +36,9 @@ const FlowEntityCards = ({
   onDouble, // (entity, event) => void
   onEdit, // (entity) => void
   onDelete, // (entity) => void
+  onViewAnalytics, // (entity) => void - NEW: navigate to view/analytics page
+  friendId, // NEW: for friend view routing
+  isFriendView, // NEW: for friend view routing
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -61,6 +65,11 @@ const FlowEntityCards = ({
   const handleDelete = (e) => {
     e.stopPropagation();
     if (menuEntity) onDelete?.(menuEntity);
+    closeMenu(e);
+  };
+  const handleViewAnalytics = (e) => {
+    e.stopPropagation();
+    if (menuEntity) onViewAnalytics?.(menuEntity);
     closeMenu(e);
   };
 
@@ -235,6 +244,25 @@ const FlowEntityCards = ({
                         fontSize: "15px",
                         fontWeight: 700,
                         color: colors.primary_text,
+                        cursor: onViewAnalytics ? "pointer" : "default",
+                        textDecoration: onViewAnalytics ? "none" : "none",
+                        transition: "color 0.2s",
+                      }}
+                      onClick={(e) => {
+                        if (onViewAnalytics) {
+                          e.stopPropagation();
+                          onViewAnalytics(entity);
+                        }
+                      }}
+                      onMouseEnter={(e) => {
+                        if (onViewAnalytics) {
+                          e.target.style.color = entity.color || "#00DAC6";
+                          e.target.style.textDecoration = "underline";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.color = colors.primary_text;
+                        e.target.style.textDecoration = "none";
                       }}
                     >
                       {entity.categoryName}
@@ -297,6 +325,17 @@ const FlowEntityCards = ({
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
+        {onViewAnalytics && (
+          <MenuItem onClick={handleViewAnalytics}>
+            <ListItemIcon>
+              <BarChartIcon
+                fontSize="small"
+                sx={{ color: "#00DAC6" }}
+              />
+            </ListItemIcon>
+            <ListItemText primary={t("common.viewAnalytics")} />
+          </MenuItem>
+        )}
         <MenuItem onClick={handleEdit}>
           <ListItemIcon>
             <EditIcon

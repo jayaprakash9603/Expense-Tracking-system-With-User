@@ -28,6 +28,7 @@ export const te = {
     yes: "అవును",
     no: "కాదు",
     notAvailable: "అందుబాటులో లేదు",
+    viewAnalytics: "విశ్లేషణ చూడండి",
   },
 
   // Navigation

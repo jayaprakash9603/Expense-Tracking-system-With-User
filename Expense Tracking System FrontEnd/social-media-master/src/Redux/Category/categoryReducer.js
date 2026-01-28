@@ -20,6 +20,10 @@ import {
   FETCH_CATEGORY_EXPENSES_FAILURE,
   DELETE_CATEGORY_SUCCESS,
   DELETE_CATEGORY_FAILURE,
+  FETCH_CATEGORY_ANALYTICS_REQUEST,
+  FETCH_CATEGORY_ANALYTICS_SUCCESS,
+  FETCH_CATEGORY_ANALYTICS_FAILURE,
+  CLEAR_CATEGORY_ANALYTICS,
 } from "./categoryTypes";
 
 const initialState = {
@@ -29,6 +33,10 @@ const initialState = {
   currentCategory: null,
   categoryExpenses: null,
   error: "",
+  // Category Analytics state
+  categoryAnalytics: null,
+  categoryAnalyticsLoading: false,
+  categoryAnalyticsError: null,
 };
 
 const categoryReducer = (state = initialState, action) => {
@@ -185,6 +193,34 @@ const categoryReducer = (state = initialState, action) => {
       return {
         ...state,
         error: action.payload,
+      };
+
+    // Category Analytics
+    case FETCH_CATEGORY_ANALYTICS_REQUEST:
+      return {
+        ...state,
+        categoryAnalyticsLoading: true,
+        categoryAnalyticsError: null,
+      };
+    case FETCH_CATEGORY_ANALYTICS_SUCCESS:
+      return {
+        ...state,
+        categoryAnalyticsLoading: false,
+        categoryAnalytics: action.payload,
+        categoryAnalyticsError: null,
+      };
+    case FETCH_CATEGORY_ANALYTICS_FAILURE:
+      return {
+        ...state,
+        categoryAnalyticsLoading: false,
+        categoryAnalyticsError: action.payload,
+      };
+    case CLEAR_CATEGORY_ANALYTICS:
+      return {
+        ...state,
+        categoryAnalytics: null,
+        categoryAnalyticsLoading: false,
+        categoryAnalyticsError: null,
       };
 
     default:

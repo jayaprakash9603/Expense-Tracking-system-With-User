@@ -28,6 +28,7 @@ export const en = {
     yes: "Yes",
     no: "No",
     notAvailable: "N/A",
+    viewAnalytics: "View Analytics",
   },
 
   // Navigation

@@ -419,6 +419,8 @@ public class CategoryController {
             @RequestParam(required = false, defaultValue = "1000") Integer size,
             @RequestParam(required = false, defaultValue = "date") String sortBy,
             @RequestParam(required = false, defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
             @RequestParam(required = false) Integer targetId) {
         try {
             User reqUser = userService.getuserProfile(jwt);
@@ -433,6 +435,27 @@ public class CategoryController {
 
             List<ExpenseDTO> orderedExpenses = categoryService.getAllUserExpensesOrderedByCategoryFlag(
                     targetUser.getId(), categoryId, page, size, effectiveSortBy, effectiveSortDir);
+
+            // Apply date filtering if startDate and endDate are provided
+            if (startDate != null && endDate != null) {
+                java.time.LocalDate start = java.time.LocalDate.parse(startDate);
+                java.time.LocalDate end = java.time.LocalDate.parse(endDate);
+                orderedExpenses = orderedExpenses.stream()
+                        .filter(e -> e.isIncludeInBudget()) // Only include expenses in this category
+                        .filter(e -> {
+                            if (e.getDate() == null)
+                                return false;
+                            java.time.LocalDate expenseDate = e.getDate();
+                            return !expenseDate.isBefore(start) && !expenseDate.isAfter(end);
+                        })
+                        .collect(java.util.stream.Collectors.toList());
+            } else {
+                // If no date filter, still only return expenses in this category
+                orderedExpenses = orderedExpenses.stream()
+                        .filter(e -> e.isIncludeInBudget())
+                        .collect(java.util.stream.Collectors.toList());
+            }
+
             return ResponseEntity.ok(orderedExpenses);
         } catch (RuntimeException e) {
             return handleTargetUserException(e);
