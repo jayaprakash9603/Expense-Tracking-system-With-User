@@ -1037,52 +1037,80 @@ const CategoryAnalyticsView = () => {
               📋 Recent Transactions
             </Typography>
             <Box sx={{ flex: 1, overflow: "auto" }}>
-              {transactionData?.recentTransactions?.slice(0, 8).map((tx, i) => (
-                <Box
-                  key={i}
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "6px 8px",
-                    marginBottom: "4px",
-                    backgroundColor: `${colors.secondary_bg}80`,
-                    borderRadius: "6px",
-                    borderLeft: `3px solid ${tx.type === "loss" ? "#ef4444" : "#22c55e"}`,
-                  }}
-                >
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      sx={{
-                        fontSize: "0.7rem",
-                        fontWeight: 600,
-                        color: colors.primary_text,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {tx.expenseName}
-                    </Typography>
-                    <Typography
-                      sx={{ fontSize: "0.55rem", color: colors.secondary_text }}
-                    >
-                      {formatDate(tx.date)}
-                    </Typography>
-                  </Box>
-                  <Typography
+              {transactionData?.recentTransactions?.slice(0, 5).map((tx, i) => {
+                const expenseId = tx.id || tx.expenseId;
+                const viewPath = friendId
+                  ? `/expenses/view/${expenseId}/friend/${friendId}`
+                  : `/expenses/view/${expenseId}`;
+                const viewUrl = `${window.location.origin}${viewPath}`;
+
+                return (
+                  <Box
+                    key={i}
                     sx={{
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
-                      color: tx.type === "loss" ? "#ef4444" : "#22c55e",
-                      marginLeft: 1,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "6px 8px",
+                      marginBottom: "4px",
+                      backgroundColor: `${colors.secondary_bg}80`,
+                      borderRadius: "6px",
+                      borderLeft: `3px solid ${tx.type === "loss" ? "#ef4444" : "#22c55e"}`,
                     }}
                   >
-                    {tx.type === "loss" ? "-" : "+"}
-                    {formatCurrency(tx.amount)}
-                  </Typography>
-                </Box>
-              ))}
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Tooltip
+                        title={expenseId ? viewUrl : ""}
+                        arrow
+                        placement="top"
+                      >
+                        <Typography
+                          onClick={(e) => {
+                            if (expenseId) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              navigate(viewPath);
+                            }
+                          }}
+                          sx={{
+                            fontSize: "0.7rem",
+                            fontWeight: 600,
+                            color: colors.primary_text,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            cursor: expenseId ? "pointer" : "default",
+                            "&:hover": expenseId
+                              ? { textDecoration: "underline" }
+                              : {},
+                          }}
+                        >
+                          {tx.expenseName}
+                        </Typography>
+                      </Tooltip>
+                      <Typography
+                        sx={{
+                          fontSize: "0.55rem",
+                          color: colors.secondary_text,
+                        }}
+                      >
+                        {formatDate(tx.date)}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                        color: tx.type === "loss" ? "#ef4444" : "#22c55e",
+                        marginLeft: 1,
+                      }}
+                    >
+                      {tx.type === "loss" ? "-" : "+"}
+                      {formatCurrency(tx.amount)}
+                    </Typography>
+                  </Box>
+                );
+              })}
               {(!transactionData?.recentTransactions ||
                 transactionData.recentTransactions.length === 0) && (
                 <Typography
@@ -1110,7 +1138,7 @@ const CategoryAnalyticsView = () => {
           }}
         >
           {/* Occurrence Statistics - Individual Cards Without Container */}
-          <Grid container spacing={1.5}>
+          <Grid container spacing={1.5} sx={{ marginBottom: 1.5 }}>
             {/* Row 1 */}
             <Grid item xs={3}>
               <Box
@@ -1451,7 +1479,7 @@ const CategoryAnalyticsView = () => {
           </Box>
 
           {/* Bottom Row: Linked Budgets | Insights | Budget Overview & Consistency */}
-          <Grid container spacing={1.5} sx={{ minHeight: "180px" }}>
+          <Grid container spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
             {/* Linked Budgets Table */}
             <Grid item xs={12} md={5}>
               <Box
@@ -1460,7 +1488,7 @@ const CategoryAnalyticsView = () => {
                   border: `1px solid ${colors.border_color}`,
                   borderRadius: "12px",
                   padding: "12px",
-                  height: "180px",
+                  height: "100%",
                   display: "flex",
                   flexDirection: "column",
                 }}
@@ -1592,7 +1620,7 @@ const CategoryAnalyticsView = () => {
                   border: `1px solid ${colors.border_color}`,
                   borderRadius: "12px",
                   padding: "12px",
-                  height: "180px",
+                  height: "100%",
                   display: "flex",
                   flexDirection: "column",
                 }}
@@ -1667,7 +1695,7 @@ const CategoryAnalyticsView = () => {
                   border: `1px solid ${colors.border_color}`,
                   borderRadius: "12px",
                   padding: "12px",
-                  height: "180px",
+                  height: "100%",
                   display: "flex",
                   flexDirection: "column",
                 }}
