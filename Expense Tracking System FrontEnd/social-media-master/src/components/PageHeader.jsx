@@ -8,6 +8,7 @@ const PageHeader = ({
   rightContent = null,
   titleClassName = "font-extrabold text-4xl",
   containerClassName = "w-full flex justify-between items-center mb-1",
+  accentColor = null,
 }) => {
   const { colors } = useTheme();
 
@@ -24,7 +25,7 @@ const PageHeader = ({
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="flex items-center justify-center w-12 h-12 text-[32px] font-bold rounded mt-[-10px]"
+              className="flex items-center justify-center w-9 h-9 text-[24px] font-bold rounded"
               style={{ backgroundColor: colors.active_bg, color: "#00dac6" }}
               aria-label="Close"
             >
@@ -34,8 +35,8 @@ const PageHeader = ({
         </div>
       </div>
       <hr
-        style={{ borderColor: colors.border_color }}
-        className="border-t w-full mt-[-4px] mb-4 sm:mb-6"
+        style={{ borderColor: accentColor || colors.border_color }}
+        className="border-t w-full mt-[-4px] mb-2"
       />
     </>
   );

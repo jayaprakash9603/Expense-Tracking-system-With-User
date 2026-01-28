@@ -154,7 +154,12 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
                 {[1, 2, 3].map((item) => (
                   <Box
                     key={item}
-                    sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mb: 1,
+                    }}
                   >
                     <Skeleton
                       variant="circular"
@@ -294,7 +299,14 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
           {[1, 2, 3].map((item) => (
             <Grid item xs={12} md={4} key={item}>
               <Box sx={cardStyle}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    mb: 2,
+                  }}
+                >
                   <Skeleton
                     variant="circular"
                     width={36}

@@ -28,6 +28,8 @@ const MonthlyTrendChart = ({
   currencySymbol = "₹",
   comparison,
   accentColor = "#00DAC6",
+  height = 180,
+  compact = false,
 }) => {
   const { colors, mode } = useTheme();
 
@@ -116,7 +118,7 @@ const MonthlyTrendChart = ({
         : "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
     border: `1px solid ${colors.border_color}`,
     borderRadius: "12px",
-    padding: "16px 20px",
+    padding: compact ? "10px 12px" : "16px 20px",
     position: "relative",
   };
 
@@ -125,19 +127,29 @@ const MonthlyTrendChart = ({
       <div style={containerStyle}>
         <Typography
           variant="subtitle1"
-          sx={{ color: colors.primary_text, fontWeight: 600, marginBottom: "16px" }}
+          sx={{
+            color: colors.primary_text,
+            fontWeight: 600,
+            marginBottom: compact ? "8px" : "16px",
+            fontSize: compact ? "0.85rem" : "1rem",
+          }}
         >
           {title}
         </Typography>
         <div
           style={{
-            height: 200,
+            height: height,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Typography sx={{ color: colors.secondary_text }}>
+          <Typography
+            sx={{
+              color: colors.secondary_text,
+              fontSize: compact ? "0.75rem" : "0.875rem",
+            }}
+          >
             No trend data available
           </Typography>
         </div>
@@ -153,12 +165,16 @@ const MonthlyTrendChart = ({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "16px",
+          marginBottom: compact ? "8px" : "16px",
         }}
       >
         <Typography
           variant="subtitle1"
-          sx={{ color: colors.primary_text, fontWeight: 600 }}
+          sx={{
+            color: colors.primary_text,
+            fontWeight: 600,
+            fontSize: compact ? "0.85rem" : "1rem",
+          }}
         >
           {title}
         </Typography>
@@ -179,8 +195,7 @@ const MonthlyTrendChart = ({
             <Typography
               sx={{
                 fontSize: "0.75rem",
-                color:
-                  comparison.percentageChange > 0 ? "#ff4d4f" : "#52c41a",
+                color: comparison.percentageChange > 0 ? "#ff4d4f" : "#52c41a",
                 fontWeight: 600,
               }}
             >
@@ -193,8 +208,11 @@ const MonthlyTrendChart = ({
       </div>
 
       {/* Chart */}
-      <ResponsiveContainer width="100%" height={250}>
-        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+      <ResponsiveContainer width="100%" height={height}>
+        <AreaChart
+          data={chartData}
+          margin={{ top: 5, right: 10, left: -10, bottom: 0 }}
+        >
           <defs>
             <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={accentColor} stopOpacity={0.3} />

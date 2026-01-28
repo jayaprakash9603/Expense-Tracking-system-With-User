@@ -15,11 +15,7 @@ import { useTheme } from "../../hooks/useTheme";
  * @param {string} title - Panel title
  * @param {number} maxItems - Maximum number of insights to display
  */
-const InsightsPanel = ({
-  insights = [],
-  title = "Insights",
-  maxItems = 5,
-}) => {
+const InsightsPanel = ({ insights = [], title = "Insights", maxItems = 5 }) => {
   const { colors, mode } = useTheme();
 
   if (!insights || insights.length === 0) {

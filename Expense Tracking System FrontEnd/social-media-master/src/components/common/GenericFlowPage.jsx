@@ -114,7 +114,7 @@ const GenericFlowPage = ({
   const { sortType, setSortType, sortedCards } = useFlowCards(
     cards,
     search,
-    "high"
+    "high",
   );
 
   const handleEntityClick = (entity) => {
@@ -145,7 +145,7 @@ const GenericFlowPage = ({
     navigate(
       friendId && friendId !== "undefined"
         ? `/${routeBase}/edit/${entity[idKey]}/friend/${friendId}`
-        : `/${routeBase}/edit/${entity[idKey]}`
+        : `/${routeBase}/edit/${entity[idKey]}`,
     );
   };
 
@@ -164,7 +164,7 @@ const GenericFlowPage = ({
         t("flows.messages.deleteSuccess", {
           entity: singular,
           name: entityName,
-        })
+        }),
       );
       setToastOpen(true);
       setDeleteDialogOpen(false);
@@ -173,7 +173,7 @@ const GenericFlowPage = ({
       setToastMessage(
         t("flows.messages.deleteError", {
           entity: singular,
-        })
+        }),
       );
       setToastOpen(true);
     } finally {
@@ -257,7 +257,7 @@ const GenericFlowPage = ({
                   t("flows.messages.createSuccess", {
                     entity: singular,
                     name: entityName,
-                  })
+                  }),
                 );
                 setToastOpen(true);
                 onRefresh?.();
@@ -377,7 +377,7 @@ const GenericFlowPage = ({
               navigate(
                 friendId && friendId !== "undefined"
                   ? `/${routeBase}/edit/${ent[idKey]}/friend/${friendId}`
-                  : `/${routeBase}/edit/${ent[idKey]}`
+                  : `/${routeBase}/edit/${ent[idKey]}`,
               );
             }}
             onDelete={(ent) => {
@@ -388,7 +388,7 @@ const GenericFlowPage = ({
               navigate(
                 friendId && friendId !== "undefined"
                   ? `/${routeBase}/view/${ent[idKey]}/friend/${friendId}`
-                  : `/${routeBase}/view/${ent[idKey]}`
+                  : `/${routeBase}/view/${ent[idKey]}`,
               );
             }}
           />
@@ -402,8 +402,8 @@ const GenericFlowPage = ({
           flowTab === "outflow"
             ? "#ff4d4f"
             : flowTab === "inflow"
-            ? "#06d6a0"
-            : "#5b7fff"
+              ? "#06d6a0"
+              : "#5b7fff"
         }; border-radius: 6px; }
       `}</style>
     </div>

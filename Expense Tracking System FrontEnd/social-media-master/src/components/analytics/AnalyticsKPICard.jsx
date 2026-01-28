@@ -123,7 +123,11 @@ const AnalyticsKPICard = ({
         {(change !== undefined || trend) && (
           <Chip
             icon={getTrendIcon()}
-            label={change !== undefined ? `${change > 0 ? "+" : ""}${change.toFixed(1)}%` : ""}
+            label={
+              change !== undefined
+                ? `${change > 0 ? "+" : ""}${change.toFixed(1)}%`
+                : ""
+            }
             size="small"
             sx={{
               backgroundColor: `${getTrendColor()}15`,
@@ -132,7 +136,9 @@ const AnalyticsKPICard = ({
               fontSize: "0.65rem",
               height: "22px",
               "& .MuiChip-icon": { marginLeft: "4px" },
-              "& .MuiChip-label": { padding: change !== undefined ? "0 6px" : "0 4px" },
+              "& .MuiChip-label": {
+                padding: change !== undefined ? "0 6px" : "0 4px",
+              },
             }}
           />
         )}

@@ -186,7 +186,10 @@ export const getAppRoutes = () => (
         <Route path="edit/:id" element={<EditCategory />} />
         <Route path="edit/:id/friend/:friendId" element={<EditCategory />} />
         <Route path="view/:categoryId" element={<CategoryAnalyticsView />} />
-        <Route path="view/:categoryId/friend/:friendId" element={<CategoryAnalyticsView />} />
+        <Route
+          path="view/:categoryId/friend/:friendId"
+          element={<CategoryAnalyticsView />}
+        />
       </Route>
 
       {/* Transaction & Insights Routes */}

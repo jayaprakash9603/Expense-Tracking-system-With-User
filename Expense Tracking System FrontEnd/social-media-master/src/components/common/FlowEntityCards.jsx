@@ -328,10 +328,7 @@ const FlowEntityCards = ({
         {onViewAnalytics && (
           <MenuItem onClick={handleViewAnalytics}>
             <ListItemIcon>
-              <BarChartIcon
-                fontSize="small"
-                sx={{ color: "#00DAC6" }}
-              />
+              <BarChartIcon fontSize="small" sx={{ color: "#00DAC6" }} />
             </ListItemIcon>
             <ListItemText primary={t("common.viewAnalytics")} />
           </MenuItem>

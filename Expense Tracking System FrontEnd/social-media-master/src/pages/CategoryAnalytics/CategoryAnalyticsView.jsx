@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
@@ -53,28 +55,56 @@ const getCategoryIcon = (categoryName, size = 32, color = "#00DAC6") => {
   const name = (categoryName || "").toLowerCase();
   const iconProps = { sx: { fontSize: size, color } };
 
-  if (name.includes("food") || name.includes("dining") || name.includes("restaurant")) {
+  if (
+    name.includes("food") ||
+    name.includes("dining") ||
+    name.includes("restaurant")
+  ) {
     return <RestaurantIcon {...iconProps} />;
   }
   if (name.includes("shopping") || name.includes("retail")) {
     return <ShoppingCartIcon {...iconProps} />;
   }
-  if (name.includes("transport") || name.includes("car") || name.includes("fuel")) {
+  if (
+    name.includes("transport") ||
+    name.includes("car") ||
+    name.includes("fuel")
+  ) {
     return <DirectionsCarIcon {...iconProps} />;
   }
-  if (name.includes("home") || name.includes("rent") || name.includes("utilities")) {
+  if (
+    name.includes("home") ||
+    name.includes("rent") ||
+    name.includes("utilities")
+  ) {
     return <HomeIcon {...iconProps} />;
   }
-  if (name.includes("health") || name.includes("medical") || name.includes("hospital")) {
+  if (
+    name.includes("health") ||
+    name.includes("medical") ||
+    name.includes("hospital")
+  ) {
     return <LocalHospitalIcon {...iconProps} />;
   }
-  if (name.includes("education") || name.includes("school") || name.includes("course")) {
+  if (
+    name.includes("education") ||
+    name.includes("school") ||
+    name.includes("course")
+  ) {
     return <SchoolIcon {...iconProps} />;
   }
-  if (name.includes("travel") || name.includes("flight") || name.includes("vacation")) {
+  if (
+    name.includes("travel") ||
+    name.includes("flight") ||
+    name.includes("vacation")
+  ) {
     return <FlightIcon {...iconProps} />;
   }
-  if (name.includes("entertainment") || name.includes("game") || name.includes("movie")) {
+  if (
+    name.includes("entertainment") ||
+    name.includes("game") ||
+    name.includes("movie")
+  ) {
     return <SportsEsportsIcon {...iconProps} />;
   }
   if (name.includes("bill") || name.includes("subscription")) {
@@ -113,7 +143,9 @@ const CategoryAnalyticsView = () => {
   const currentRequestRef = useRef(null); // Track current request params
 
   // Local state for filters
-  const [trendType, setTrendType] = useState(searchParams.get("trendType") || "MONTHLY");
+  const [trendType, setTrendType] = useState(
+    searchParams.get("trendType") || "MONTHLY",
+  );
   const [dateRangePreset, setDateRangePreset] = useState("6m");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
@@ -156,7 +188,9 @@ const CategoryAnalyticsView = () => {
         endDate = now;
         break;
       case "custom":
-        startDate = customStartDate ? dayjs(customStartDate) : now.subtract(6, "month");
+        startDate = customStartDate
+          ? dayjs(customStartDate)
+          : now.subtract(6, "month");
         endDate = customEndDate ? dayjs(customEndDate) : now;
         break;
       default:
@@ -174,19 +208,19 @@ const CategoryAnalyticsView = () => {
   useEffect(() => {
     // Create a unique key for this request
     const requestKey = `${categoryId}-${friendId}-${dateRange.startDate}-${dateRange.endDate}-${trendType}`;
-    
+
     // Only fetch if we haven't fetched yet OR if the categoryId changed
     if (categoryId && !hasFetchedRef.current) {
       hasFetchedRef.current = true;
       currentRequestRef.current = requestKey;
-      
+
       dispatch(
         fetchCategoryAnalytics(categoryId, {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
           trendType,
           targetId: friendId,
-        })
+        }),
       );
     }
 
@@ -209,7 +243,7 @@ const CategoryAnalyticsView = () => {
           endDate: dateRange.endDate,
           trendType: newTrendType,
           targetId: friendId,
-        })
+        }),
       );
     }
   };
@@ -219,14 +253,26 @@ const CategoryAnalyticsView = () => {
     // For non-custom presets, trigger reload immediately
     if (newPreset !== "custom" && categoryId) {
       const now = dayjs();
-      let startDate, endDate = now;
+      let startDate,
+        endDate = now;
       switch (newPreset) {
-        case "7d": startDate = now.subtract(7, "day"); break;
-        case "30d": startDate = now.subtract(30, "day"); break;
-        case "3m": startDate = now.subtract(3, "month"); break;
-        case "6m": startDate = now.subtract(6, "month"); break;
-        case "1y": startDate = now.subtract(1, "year"); break;
-        default: startDate = now.subtract(6, "month");
+        case "7d":
+          startDate = now.subtract(7, "day");
+          break;
+        case "30d":
+          startDate = now.subtract(30, "day");
+          break;
+        case "3m":
+          startDate = now.subtract(3, "month");
+          break;
+        case "6m":
+          startDate = now.subtract(6, "month");
+          break;
+        case "1y":
+          startDate = now.subtract(1, "year");
+          break;
+        default:
+          startDate = now.subtract(6, "month");
       }
       dispatch(
         fetchCategoryAnalytics(categoryId, {
@@ -234,7 +280,7 @@ const CategoryAnalyticsView = () => {
           endDate: endDate.format("YYYY-MM-DD"),
           trendType,
           targetId: friendId,
-        })
+        }),
       );
     }
   };
@@ -247,7 +293,7 @@ const CategoryAnalyticsView = () => {
           endDate: customEndDate,
           trendType,
           targetId: friendId,
-        })
+        }),
       );
     }
   };
@@ -261,7 +307,7 @@ const CategoryAnalyticsView = () => {
           endDate: dateRange.endDate,
           trendType,
           targetId: friendId,
-        })
+        }),
       );
     }
   };
@@ -353,7 +399,7 @@ const CategoryAnalyticsView = () => {
         getColor: () => colors.secondary_text,
       },
     ],
-    [colors, formatDate, formatCurrency]
+    [colors, formatDate, formatCurrency],
   );
 
   // Extract data from analytics response (with defaults for when data is not available)
@@ -369,41 +415,52 @@ const CategoryAnalyticsView = () => {
   } = categoryAnalytics || {};
 
   // Prepare KPI data
-  const kpiData = useMemo(() => [
-    {
-      title: "Total Spend",
-      value: formatCurrency(summaryStatistics?.totalSpent || 0),
-      trend: trendAnalytics?.previousVsCurrentMonth?.percentageChange || 0,
-      trendLabel: "vs last month",
-      accentColor: "#00DAC6",
-      icon: <TrendingDownIcon />,
-    },
-    {
-      title: "Transactions",
-      value: summaryStatistics?.totalTransactions || summaryStatistics?.transactionCount || 0,
-      trend: null,
-      accentColor: "#f97316",
-    },
-    {
-      title: "Avg. Expense",
-      value: formatCurrency(summaryStatistics?.averageExpense || 0),
-      trend: null,
-      accentColor: "#8b5cf6",
-    },
-    {
-      title: "Budget Status",
-      value: `${Math.round(budgetAnalytics?.usagePercentage || budgetAnalytics?.overallBudgetUsage || 0)}%`,
-      trend: null,
-      accentColor:
-        (budgetAnalytics?.usagePercentage || budgetAnalytics?.overallBudgetUsage || 0) >= 90
-          ? "#ff4d4f"
-          : (budgetAnalytics?.usagePercentage || budgetAnalytics?.overallBudgetUsage || 0) >= 70
-          ? "#faad14"
-          : "#52c41a",
-    },
-  ], [summaryStatistics, budgetAnalytics, trendAnalytics, formatCurrency]);
+  const kpiData = useMemo(
+    () => [
+      {
+        title: "Total Spend",
+        value: formatCurrency(summaryStatistics?.totalSpent || 0),
+        trend: trendAnalytics?.previousVsCurrentMonth?.percentageChange || 0,
+        trendLabel: "vs last month",
+        accentColor: "#00DAC6",
+        icon: <TrendingDownIcon />,
+      },
+      {
+        title: "Transactions",
+        value:
+          summaryStatistics?.totalTransactions ||
+          summaryStatistics?.transactionCount ||
+          0,
+        trend: null,
+        accentColor: "#f97316",
+      },
+      {
+        title: "Avg. Expense",
+        value: formatCurrency(summaryStatistics?.averageExpense || 0),
+        trend: null,
+        accentColor: "#8b5cf6",
+      },
+      {
+        title: "Budget Status",
+        value: `${Math.round(budgetAnalytics?.usagePercentage || budgetAnalytics?.overallBudgetUsage || 0)}%`,
+        trend: null,
+        accentColor:
+          (budgetAnalytics?.usagePercentage ||
+            budgetAnalytics?.overallBudgetUsage ||
+            0) >= 90
+            ? "#ff4d4f"
+            : (budgetAnalytics?.usagePercentage ||
+                  budgetAnalytics?.overallBudgetUsage ||
+                  0) >= 70
+              ? "#faad14"
+              : "#52c41a",
+      },
+    ],
+    [summaryStatistics, budgetAnalytics, trendAnalytics, formatCurrency],
+  );
 
-  // Prepare chart data for Monthly Trend
+  // Prepare chart data for Monthly Trend - fields must match MonthlyTrendChart expectations
+  // MonthlyTrendChart expects: { month, amount, transactionCount } which maps internally to { name, amount, transactions }
   const trendChartData = useMemo(() => {
     if (!trendAnalytics) return [];
 
@@ -411,33 +468,53 @@ const CategoryAnalyticsView = () => {
     let rawData = [];
     switch (trendType) {
       case "DAILY":
-        rawData = trendAnalytics.dailySpendingTrend || trendAnalytics.dailySpending || [];
+        rawData =
+          trendAnalytics.dailySpendingTrend ||
+          trendAnalytics.dailySpending ||
+          [];
         return rawData.map((item) => ({
-          label: dayjs(item.date).format("DD MMM"),
-          value: item.amount || 0,
+          month: dayjs(item.date).format("DD MMM"),
+          amount: item.amount || 0,
+          transactionCount: item.transactionCount || 0,
           fullDate: item.date,
         }));
       case "WEEKLY":
-        rawData = trendAnalytics.weeklySpendingTrend || trendAnalytics.weeklySpending || [];
+        rawData =
+          trendAnalytics.weeklySpendingTrend ||
+          trendAnalytics.weeklySpending ||
+          [];
         return rawData.map((item) => ({
-          label: item.week || `W${item.weekNumber}`,
-          value: item.amount || 0,
+          month: item.week || `W${item.weekNumber}`,
+          amount: item.amount || 0,
+          transactionCount: item.transactionCount || 0,
           weekNumber: item.weekNumber,
           year: item.year,
         }));
       case "MONTHLY":
-        rawData = trendAnalytics.monthlySpendingTrend || trendAnalytics.monthlySpending || [];
+        rawData =
+          trendAnalytics.monthlySpendingTrend ||
+          trendAnalytics.monthlySpending ||
+          [];
         return rawData.map((item) => ({
-          label: item.month || dayjs().month((item.monthNumber || item.month) - 1).format("MMM"),
-          value: item.amount || 0,
-          month: item.monthNumber || item.month,
+          month:
+            item.month ||
+            dayjs()
+              .month((item.monthNumber || 1) - 1)
+              .format("MMM YYYY"),
+          amount: item.amount || 0,
+          transactionCount: item.transactionCount || 0,
+          monthNumber: item.monthNumber,
           year: item.year,
         }));
       case "YEARLY":
-        rawData = trendAnalytics.yearlySpendingTrend || trendAnalytics.yearlySpending || [];
+        rawData =
+          trendAnalytics.yearlySpendingTrend ||
+          trendAnalytics.yearlySpending ||
+          [];
         return rawData.map((item) => ({
-          label: item.year?.toString() || "",
-          value: item.amount || 0,
+          month: item.year?.toString() || "",
+          amount: item.amount || 0,
+          transactionCount: item.transactionCount || 0,
           year: item.year,
         }));
       default:
@@ -445,18 +522,66 @@ const CategoryAnalyticsView = () => {
     }
   }, [trendAnalytics, trendType]);
 
-  // Prepare payment distribution data
+  // Helper function to format payment method names
+  const formatPaymentMethodName = (method) => {
+    if (!method) return "Unknown";
+    // Convert camelCase to Title Case with spaces
+    return method
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim();
+  };
+
+  // Prepare payment distribution data - fields must match PaymentDistributionChart expectations
+  // PaymentDistributionChart expects: { displayName/paymentMethod, totalAmount, percentage, transactionCount, color }
   const paymentChartData = useMemo(() => {
-    if (!paymentMethodDistribution || !Array.isArray(paymentMethodDistribution)) {
+    if (
+      !paymentMethodDistribution ||
+      !Array.isArray(paymentMethodDistribution)
+    ) {
       return [];
     }
-    return paymentMethodDistribution.map((item) => ({
-      name: item.displayName || item.methodName || item.paymentMethod || "Unknown",
-      value: item.totalAmount || item.amount || 0,
-      percentage: item.percentage || 0,
-      count: item.transactionCount || 0,
-      color: item.color,
-    }));
+    return paymentMethodDistribution.map((item, index) => {
+      // Assign distinct colors based on payment method
+      const colorMap = {
+        cash: "#22c55e",
+        upi: "#6366f1",
+        creditcard: "#ef4444",
+        debitcard: "#3b82f6",
+        netbanking: "#8b5cf6",
+        creditneedtopaid: "#f97316",
+        other: "#ec4899",
+      };
+      const methodKey = (item.paymentMethod || "")
+        .toLowerCase()
+        .replace(/[^a-z]/g, "");
+      const defaultColors = [
+        "#6366f1",
+        "#22c55e",
+        "#f97316",
+        "#ef4444",
+        "#3b82f6",
+        "#8b5cf6",
+        "#ec4899",
+      ];
+      const assignedColor =
+        colorMap[methodKey] ||
+        item.color ||
+        defaultColors[index % defaultColors.length];
+
+      return {
+        displayName:
+          item.displayName ||
+          item.methodName ||
+          formatPaymentMethodName(item.paymentMethod) ||
+          "Unknown",
+        paymentMethod: item.paymentMethod,
+        totalAmount: item.totalAmount || item.amount || 0,
+        percentage: item.percentage || 0,
+        transactionCount: item.transactionCount || 0,
+        color: assignedColor,
+      };
+    });
   }, [paymentMethodDistribution]);
 
   // Loading state - use skeleton
@@ -511,43 +636,37 @@ const CategoryAnalyticsView = () => {
     <div className="flex flex-col relative" style={containerStyle}>
       {/* Header with Category Info */}
       <PageHeader
+        accentColor={categoryMetadata?.color || "#00DAC6"}
         title={
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: 48,
-                height: 48,
-                borderRadius: "12px",
+                width: 36,
+                height: 36,
+                borderRadius: "10px",
                 backgroundColor: `${categoryMetadata?.color || "#00DAC6"}20`,
                 border: `2px solid ${categoryMetadata?.color || "#00DAC6"}`,
               }}
             >
               {getCategoryIcon(
-                categoryMetadata?.name,
-                28,
-                categoryMetadata?.color || "#00DAC6"
+                categoryMetadata?.categoryName,
+                20,
+                categoryMetadata?.color || "#00DAC6",
               )}
             </Box>
             <Box>
               <Typography
                 sx={{
-                  fontSize: "1.25rem",
+                  fontSize: "2rem",
                   fontWeight: 700,
                   color: colors.primary_text,
+                  lineHeight: 1.2,
                 }}
               >
-                {categoryMetadata?.name || "Category"} Analytics
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: "0.85rem",
-                  color: colors.secondary_text,
-                }}
-              >
-                {categoryMetadata?.description || "Detailed spending insights"}
+                {categoryMetadata?.categoryName || "Category"}
               </Typography>
             </Box>
           </Box>
@@ -607,23 +726,52 @@ const CategoryAnalyticsView = () => {
               </Select>
             </FormControl>
 
-            {/* Refresh Button */}
-            <Tooltip title="Refresh Data">
+            {/* Edit Button */}
+            <Tooltip title="Edit Category">
               <IconButton
-                onClick={handleRefresh}
+                onClick={() => {
+                  if (friendId) {
+                    navigate(
+                      `/category-flow/edit/${categoryId}/friend/${friendId}`,
+                    );
+                  } else {
+                    navigate(`/category-flow/edit/${categoryId}`);
+                  }
+                }}
                 sx={{
-                  backgroundColor: colors.primary_bg,
-                  color: "#00DAC6",
-                  border: `1px solid ${colors.border_color}`,
-                  "&:hover": {
-                    backgroundColor: "#00DAC620",
-                    borderColor: "#00DAC6",
-                  },
+                  backgroundColor: "#00DAC6",
+                  color: "#000",
+                  "&:hover": { backgroundColor: "#00b8a0" },
                   width: 36,
                   height: 36,
                 }}
               >
-                <RefreshIcon sx={{ fontSize: 18 }} />
+                <EditIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+
+            {/* Delete Button */}
+            <Tooltip title="Delete Category">
+              <IconButton
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to delete this category?",
+                    )
+                  ) {
+                    // TODO: Add delete category action
+                    navigate(-1);
+                  }
+                }}
+                sx={{
+                  backgroundColor: "#ff4d4f",
+                  color: "#fff",
+                  "&:hover": { backgroundColor: "#d9363e" },
+                  width: 36,
+                  height: 36,
+                }}
+              >
+                <DeleteIcon sx={{ fontSize: 18 }} />
               </IconButton>
             </Tooltip>
           </Box>
@@ -684,276 +832,1050 @@ const CategoryAnalyticsView = () => {
         </Box>
       )}
 
-      {/* Main Content - Scrollable Area */}
+      {/* Main Content - Two Column Layout (Left Sidebar + Right Content) */}
       <Box
         sx={{
           flex: 1,
-          overflow: "auto",
-          paddingRight: 1,
-          "&::-webkit-scrollbar": {
-            width: "6px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: colors.border_color,
-            borderRadius: "3px",
-          },
+          display: "flex",
+          gap: 1.5,
+          overflow: "hidden",
         }}
       >
-        {/* KPI Cards Row */}
-        <Grid container spacing={2} sx={{ marginBottom: 3 }}>
-          {kpiData.map((kpi, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <AnalyticsKPICard
-                title={kpi.title}
-                value={kpi.value}
-                trend={kpi.trend}
-                trendLabel={kpi.trendLabel}
-                accentColor={kpi.accentColor}
-                icon={kpi.icon}
+        {/* LEFT COLUMN - Category Details, Payment Chart, Recent Transactions */}
+        <Box
+          sx={{
+            width: "280px",
+            minWidth: "280px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5,
+          }}
+        >
+          {/* Category Details Card - Hero Style */}
+          <Box
+            sx={{
+              background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.secondary_bg} 100%)`,
+              border: `2px solid ${categoryMetadata?.type === "CREDIT" ? "#52c41a" : "#ff4d4f"}`,
+              borderRadius: "12px",
+              padding: "14px 16px",
+              flexShrink: 0,
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            {/* Accent stripe at top */}
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: "4px",
+                background:
+                  categoryMetadata?.type === "CREDIT"
+                    ? "linear-gradient(90deg, #52c41a, #73d13d)"
+                    : "linear-gradient(90deg, #ff4d4f, #ff7875)",
+              }}
+            />
+
+            {/* Amount - Large and Prominent */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                marginBottom: 1.5,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "1.5rem",
+                  fontWeight: 800,
+                  color:
+                    categoryMetadata?.type === "CREDIT" ? "#52c41a" : "#ff4d4f",
+                }}
+              >
+                {formatCurrency(summaryStatistics?.totalSpent || 0)}
+              </Typography>
+              <Chip
+                label={categoryMetadata?.type === "CREDIT" ? "CREDIT" : "DEBIT"}
+                size="small"
+                sx={{
+                  backgroundColor:
+                    categoryMetadata?.type === "CREDIT" ? "#52c41a" : "#ff4d4f",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize: "0.6rem",
+                  height: "22px",
+                  letterSpacing: "0.5px",
+                }}
               />
-            </Grid>
-          ))}
-        </Grid>
+            </Box>
 
-        {/* Charts Row - Trend & Payment Distribution */}
-        <Grid container spacing={2} sx={{ marginBottom: 3 }}>
-          {/* Monthly Trend Chart */}
-          <Grid item xs={12} md={8}>
-            <MonthlyTrendChart
-              data={trendChartData}
-              title={`${trendType.charAt(0) + trendType.slice(1).toLowerCase()} Spending Trend`}
-              height={280}
-              accentColor={categoryMetadata?.color || "#00DAC6"}
-            />
-          </Grid>
-
-          {/* Payment Distribution Chart */}
-          <Grid item xs={12} md={4}>
-            <PaymentDistributionChart
-              data={paymentChartData}
-              title="Payment Methods"
-              height={280}
-            />
-          </Grid>
-        </Grid>
-
-        {/* Budget & Insights Row */}
-        <Grid container spacing={2} sx={{ marginBottom: 3 }}>
-          {/* Budget Status Card */}
-          <Grid item xs={12} md={6}>
-            <BudgetStatusCard
-              budgetData={{
-                allocatedAmount: budgetAnalytics?.totalAllocatedBudget || 0,
-                usedAmount: budgetAnalytics?.totalSpentFromBudgets || 0,
-                remainingAmount: budgetAnalytics?.remainingBudget || 0,
-                percentageUsed: budgetAnalytics?.overallBudgetUsage || 0,
-                projectedAmount: budgetAnalytics?.projectedMonthEndSpending || 0,
-                linkedBudgetsCount: budgetAnalytics?.linkedBudgets?.length || 0,
-                activeBudgetsCount: budgetAnalytics?.activeBudgetsCount || 0,
-              }}
-              formatCurrency={formatCurrency}
-            />
-          </Grid>
-
-          {/* Insights Panel */}
-          <Grid item xs={12} md={6}>
-            <InsightsPanel insights={insights || []} maxItems={4} />
-          </Grid>
-        </Grid>
-
-        {/* Expense Highlights Row */}
-        <Grid container spacing={2} sx={{ marginBottom: 3 }}>
-          <Grid item xs={12} md={4}>
-            <ExpenseHighlightCard
-              type="highest"
-              expense={expenseHighlights?.highestExpense}
-              formatCurrency={formatCurrency}
-              formatDate={formatDate}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <ExpenseHighlightCard
-              type="lowest"
-              expense={expenseHighlights?.lowestExpense}
-              formatCurrency={formatCurrency}
-              formatDate={formatDate}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <ExpenseHighlightCard
-              type="recent"
-              expense={expenseHighlights?.mostRecent}
-              formatCurrency={formatCurrency}
-              formatDate={formatDate}
-            />
-          </Grid>
-        </Grid>
-
-        {/* Recent Transactions Table */}
-        {transactionData?.recentTransactions?.length > 0 && (
-          <Box
-            sx={{
-              backgroundColor: colors.primary_bg,
-              borderRadius: "12px",
-              border: `1px solid ${colors.border_color}`,
-              padding: 2,
-              marginBottom: 2,
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: "1rem",
-                fontWeight: 600,
-                color: colors.primary_text,
-                marginBottom: 2,
-              }}
-            >
-              Recent Transactions
-            </Typography>
-            <CustomDataTable
-              columns={transactionColumns}
-              data={transactionData.recentTransactions || []}
-              rowsPerPage={5}
-              compact
-              emptyMessage="No recent transactions found"
-            />
-          </Box>
-        )}
-
-        {/* Month Comparison Section */}
-        {trendAnalytics?.monthComparison && (
-          <Box
-            sx={{
-              backgroundColor: colors.primary_bg,
-              borderRadius: "12px",
-              border: `1px solid ${colors.border_color}`,
-              padding: 2,
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: "1rem",
-                fontWeight: 600,
-                color: colors.primary_text,
-                marginBottom: 2,
-              }}
-            >
-              Month Comparison
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6} md={3}>
-                <Box sx={{ textAlign: "center" }}>
-                  <Typography
-                    sx={{ fontSize: "0.8rem", color: colors.secondary_text }}
-                  >
-                    Current Month
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "1.25rem",
-                      fontWeight: 700,
-                      color: "#00DAC6",
-                    }}
-                  >
-                    {formatCurrency(trendAnalytics.monthComparison.currentMonthTotal)}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <Box sx={{ textAlign: "center" }}>
-                  <Typography
-                    sx={{ fontSize: "0.8rem", color: colors.secondary_text }}
-                  >
-                    Previous Month
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "1.25rem",
-                      fontWeight: 700,
-                      color: colors.primary_text,
-                    }}
-                  >
-                    {formatCurrency(trendAnalytics.monthComparison.previousMonthTotal)}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <Box sx={{ textAlign: "center" }}>
-                  <Typography
-                    sx={{ fontSize: "0.8rem", color: colors.secondary_text }}
-                  >
-                    Change
-                  </Typography>
+            {/* Percentage Progress Bar */}
+            <Box sx={{ marginBottom: 1.5 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                }}
+              >
+                <Box
+                  sx={{
+                    flex: 1,
+                    height: "8px",
+                    backgroundColor: `${colors.border_color}50`,
+                    borderRadius: "4px",
+                    overflow: "hidden",
+                  }}
+                >
                   <Box
                     sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 0.5,
-                    }}
-                  >
-                    {trendAnalytics.monthComparison.percentageChange >= 0 ? (
-                      <TrendingUpIcon
-                        sx={{
-                          fontSize: 18,
-                          color:
-                            trendAnalytics.monthComparison.percentageChange > 10
-                              ? "#ff4d4f"
-                              : "#faad14",
-                        }}
-                      />
-                    ) : (
-                      <TrendingDownIcon sx={{ fontSize: 18, color: "#52c41a" }} />
-                    )}
-                    <Typography
-                      sx={{
-                        fontSize: "1.25rem",
-                        fontWeight: 700,
-                        color:
-                          trendAnalytics.monthComparison.percentageChange >= 0
-                            ? trendAnalytics.monthComparison.percentageChange > 10
-                              ? "#ff4d4f"
-                              : "#faad14"
-                            : "#52c41a",
-                      }}
-                    >
-                      {Math.abs(trendAnalytics.monthComparison.percentageChange).toFixed(1)}%
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <Box sx={{ textAlign: "center" }}>
-                  <Typography
-                    sx={{ fontSize: "0.8rem", color: colors.secondary_text }}
-                  >
-                    Trend
-                  </Typography>
-                  <Chip
-                    label={trendAnalytics.monthComparison.trend || "STABLE"}
-                    size="small"
-                    sx={{
+                      width: `${Math.min(summaryStatistics?.categoryPercentageOfAllExpenses || 0, 100)}%`,
+                      height: "100%",
                       backgroundColor:
-                        trendAnalytics.monthComparison.trend === "INCREASING"
-                          ? "#ff4d4f20"
-                          : trendAnalytics.monthComparison.trend === "DECREASING"
-                          ? "#52c41a20"
-                          : "#faad1420",
-                      color:
-                        trendAnalytics.monthComparison.trend === "INCREASING"
-                          ? "#ff4d4f"
-                          : trendAnalytics.monthComparison.trend === "DECREASING"
-                          ? "#52c41a"
-                          : "#faad14",
-                      fontWeight: 600,
-                      fontSize: "0.75rem",
+                        (summaryStatistics?.categoryPercentageOfAllExpenses ||
+                          0) >= 80
+                          ? "#f59e0b"
+                          : (summaryStatistics?.categoryPercentageOfAllExpenses ||
+                                0) >= 50
+                            ? "#eab308"
+                            : "#22c55e",
+                      borderRadius: "4px",
+                      transition: "width 0.3s ease",
                     }}
                   />
                 </Box>
-              </Grid>
-            </Grid>
+                <Typography
+                  sx={{
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    color: colors.primary_text,
+                    minWidth: "45px",
+                  }}
+                >
+                  {summaryStatistics?.categoryPercentageOfAllExpenses?.toFixed(
+                    0,
+                  ) || 0}
+                  %
+                </Typography>
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: "0.65rem",
+                  color: colors.secondary_text,
+                  marginTop: 0.5,
+                }}
+              >
+                of all expenses
+              </Typography>
+            </Box>
+
+            {/* Comments/Description Section */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 0.5,
+                backgroundColor: colors.secondary_bg,
+                padding: "8px 10px",
+                borderRadius: "8px",
+                border: `1px solid ${colors.border_color}`,
+                borderLeft: `3px solid ${categoryMetadata?.type === "CREDIT" ? "#52c41a" : "#ff4d4f"}`,
+              }}
+            >
+              <Typography sx={{ fontSize: "0.7rem", marginTop: "1px" }}>
+                📝
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: "0.75rem",
+                  color: colors.primary_text,
+                  fontWeight: 500,
+                  lineHeight: 1.4,
+                }}
+              >
+                {categoryMetadata?.categoryName || "Category"} Expenses
+              </Typography>
+            </Box>
           </Box>
-        )}
+
+          {/* Payment Distribution Pie Chart */}
+          <Box sx={{ flex: 1, minHeight: "200px" }}>
+            <PaymentDistributionChart
+              data={paymentChartData}
+              title="Payment Methods"
+              height={220}
+              compact
+              showHeader={false}
+              pieInnerRadius={0}
+            />
+          </Box>
+
+          {/* Recent Transactions */}
+          <Box
+            sx={{
+              flex: 1,
+              background: colors.primary_bg,
+              border: `1px solid ${colors.border_color}`,
+              borderRadius: "12px",
+              padding: "12px",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                color: colors.primary_text,
+                marginBottom: 1,
+              }}
+            >
+              📋 Recent Transactions
+            </Typography>
+            <Box sx={{ flex: 1, overflow: "auto" }}>
+              {transactionData?.recentTransactions?.slice(0, 8).map((tx, i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "6px 8px",
+                    marginBottom: "4px",
+                    backgroundColor: `${colors.secondary_bg}80`,
+                    borderRadius: "6px",
+                    borderLeft: `3px solid ${tx.type === "loss" ? "#ef4444" : "#22c55e"}`,
+                  }}
+                >
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography
+                      sx={{
+                        fontSize: "0.7rem",
+                        fontWeight: 600,
+                        color: colors.primary_text,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {tx.expenseName}
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: "0.55rem", color: colors.secondary_text }}
+                    >
+                      {formatDate(tx.date)}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      color: tx.type === "loss" ? "#ef4444" : "#22c55e",
+                      marginLeft: 1,
+                    }}
+                  >
+                    {tx.type === "loss" ? "-" : "+"}
+                    {formatCurrency(tx.amount)}
+                  </Typography>
+                </Box>
+              ))}
+              {(!transactionData?.recentTransactions ||
+                transactionData.recentTransactions.length === 0) && (
+                <Typography
+                  sx={{
+                    fontSize: "0.7rem",
+                    color: colors.secondary_text,
+                    textAlign: "center",
+                  }}
+                >
+                  No recent transactions
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        </Box>
+
+        {/* RIGHT CONTENT AREA */}
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5,
+            minWidth: 0,
+          }}
+        >
+          {/* Occurrence Statistics - Individual Cards Without Container */}
+          <Grid container spacing={1.5}>
+            {/* Row 1 */}
+            <Grid item xs={3}>
+              <Box
+                sx={{
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "10px",
+                  padding: "12px",
+                  backgroundColor: colors.primary_bg,
+                  height: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    marginBottom: 0.5,
+                  }}
+                >
+                  <Typography sx={{ fontSize: "0.7rem" }}>⏰</Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.65rem",
+                      color: colors.secondary_text,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    This Month
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: colors.primary_text,
+                  }}
+                >
+                  {trendAnalytics?.previousVsCurrentMonth
+                    ?.currentMonthTransactions || 0}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
+              <Box
+                sx={{
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "10px",
+                  padding: "12px",
+                  backgroundColor: colors.primary_bg,
+                  height: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    marginBottom: 0.5,
+                  }}
+                >
+                  <Typography sx={{ fontSize: "0.7rem" }}>📅</Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.65rem",
+                      color: colors.secondary_text,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    This Year
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: colors.primary_text,
+                  }}
+                >
+                  {summaryStatistics?.totalTransactions || 0}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
+              <Box
+                sx={{
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "10px",
+                  padding: "12px",
+                  backgroundColor: colors.primary_bg,
+                  height: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    marginBottom: 0.5,
+                  }}
+                >
+                  <Typography sx={{ fontSize: "0.7rem" }}>📈</Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.65rem",
+                      color: colors.secondary_text,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Average
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: "#00DAC6",
+                  }}
+                >
+                  {formatCurrency(summaryStatistics?.averageExpense || 0)}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
+              <Box
+                sx={{
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "10px",
+                  padding: "12px",
+                  backgroundColor: colors.primary_bg,
+                  height: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    marginBottom: 0.5,
+                  }}
+                >
+                  <Typography sx={{ fontSize: "0.7rem" }}>💰</Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.65rem",
+                      color: colors.secondary_text,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    All Time
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: "#00DAC6",
+                  }}
+                >
+                  {formatCurrency(summaryStatistics?.totalSpent || 0)}
+                </Typography>
+              </Box>
+            </Grid>
+
+            {/* Row 2 */}
+            <Grid item xs={3}>
+              <Box
+                sx={{
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "10px",
+                  padding: "12px",
+                  backgroundColor: colors.primary_bg,
+                  height: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    marginBottom: 0.5,
+                  }}
+                >
+                  <Typography sx={{ fontSize: "0.7rem" }}>📆</Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.65rem",
+                      color: "#8b5cf6",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    First
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    color: colors.primary_text,
+                  }}
+                >
+                  {formatDate(expenseHighlights?.oldestExpense?.date) || "N/A"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
+              <Box
+                sx={{
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "10px",
+                  padding: "12px",
+                  backgroundColor: colors.primary_bg,
+                  height: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    marginBottom: 0.5,
+                  }}
+                >
+                  <Typography sx={{ fontSize: "0.7rem" }}>📆</Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.65rem",
+                      color: "#f97316",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Last
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    color: colors.primary_text,
+                  }}
+                >
+                  {formatDate(expenseHighlights?.mostRecentExpense?.date) ||
+                    "N/A"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
+              <Box
+                sx={{
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "10px",
+                  padding: "12px",
+                  backgroundColor: colors.primary_bg,
+                  height: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    marginBottom: 0.5,
+                  }}
+                >
+                  <Typography sx={{ fontSize: "0.7rem" }}>⬇️</Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.65rem",
+                      color: "#22c55e",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Min
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: colors.primary_text,
+                  }}
+                >
+                  {formatCurrency(summaryStatistics?.minExpense || 0)}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
+              <Box
+                sx={{
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "10px",
+                  padding: "12px",
+                  backgroundColor: colors.primary_bg,
+                  height: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    marginBottom: 0.5,
+                  }}
+                >
+                  <Typography sx={{ fontSize: "0.7rem" }}>⬆️</Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.65rem",
+                      color: "#ef4444",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Max
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: "#ef4444",
+                  }}
+                >
+                  {formatCurrency(summaryStatistics?.maxExpense || 0)}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Monthly Spending Chart - Middle Section */}
+          <Box sx={{ flex: 1, minHeight: "200px" }}>
+            <MonthlyTrendChart
+              data={trendChartData}
+              title={`${trendType.charAt(0) + trendType.slice(1).toLowerCase()} Spending Trend`}
+              comparison={trendAnalytics?.previousVsCurrentMonth}
+              accentColor={categoryMetadata?.color || "#00DAC6"}
+              height={200}
+              compact
+            />
+          </Box>
+
+          {/* Bottom Row: Linked Budgets | Insights | Budget Overview & Consistency */}
+          <Grid container spacing={1.5} sx={{ minHeight: "180px" }}>
+            {/* Linked Budgets Table */}
+            <Grid item xs={12} md={5}>
+              <Box
+                sx={{
+                  background: colors.primary_bg,
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "12px",
+                  padding: "12px",
+                  height: "180px",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 1,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography sx={{ fontSize: "0.8rem" }}>💰</Typography>
+                    <Typography
+                      sx={{
+                        fontSize: "0.8rem",
+                        fontWeight: 600,
+                        color: colors.primary_text,
+                      }}
+                    >
+                      Linked Budgets
+                    </Typography>
+                  </Box>
+                  <Typography
+                    sx={{ fontSize: "0.6rem", color: colors.secondary_text }}
+                  >
+                    {budgetAnalytics?.linkedBudgets?.length || 0} items
+                  </Typography>
+                </Box>
+
+                {/* Compact Budget List */}
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}
+                >
+                  {budgetAnalytics?.linkedBudgets
+                    ?.slice(0, 3)
+                    .map((budget, i) => (
+                      <Box
+                        key={i}
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "8px 10px",
+                          backgroundColor: `${colors.secondary_bg}80`,
+                          borderRadius: "8px",
+                          borderLeft: `3px solid #00DAC6`,
+                        }}
+                      >
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography
+                            sx={{
+                              fontSize: "0.7rem",
+                              fontWeight: 600,
+                              color: colors.primary_text,
+                            }}
+                          >
+                            {budget.budgetName}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: "0.55rem",
+                              color: colors.secondary_text,
+                            }}
+                          >
+                            {formatCurrency(budget.categorySpentAmount || 0)} /{" "}
+                            {formatCurrency(budget.totalBudgetAmount || 0)}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: "0.7rem",
+                              fontWeight: 600,
+                              color: "#f97316",
+                            }}
+                          >
+                            {budget.categoryUsagePercentageInBudget?.toFixed(
+                              0,
+                            ) || 0}
+                            %
+                          </Typography>
+                          <Box
+                            sx={{
+                              backgroundColor:
+                                budget.status === "ACTIVE"
+                                  ? "#22c55e20"
+                                  : "#ef444420",
+                              color:
+                                budget.status === "ACTIVE"
+                                  ? "#22c55e"
+                                  : "#ef4444",
+                              fontSize: "0.55rem",
+                              fontWeight: 600,
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                            }}
+                          >
+                            {budget.status || "ACTIVE"}
+                          </Box>
+                        </Box>
+                      </Box>
+                    ))}
+                  {(!budgetAnalytics?.linkedBudgets ||
+                    budgetAnalytics.linkedBudgets.length === 0) && (
+                    <Typography
+                      sx={{
+                        fontSize: "0.7rem",
+                        color: colors.secondary_text,
+                        textAlign: "center",
+                        padding: 1,
+                      }}
+                    >
+                      No linked budgets
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            </Grid>
+
+            {/* Insights Panel */}
+            <Grid item xs={12} md={3.5}>
+              <Box
+                sx={{
+                  background: colors.primary_bg,
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "12px",
+                  padding: "12px",
+                  height: "180px",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    color: colors.primary_text,
+                    marginBottom: 1,
+                  }}
+                >
+                  💡 Insights
+                </Typography>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}
+                >
+                  {insights?.slice(0, 2).map((insight, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        padding: "8px",
+                        backgroundColor:
+                          insight.type === "WARNING"
+                            ? "#faad1410"
+                            : insight.type === "SUGGESTION"
+                              ? "#3b82f610"
+                              : `${colors.secondary_bg}80`,
+                        borderRadius: "8px",
+                        borderLeft: `3px solid ${insight.type === "WARNING" ? "#faad14" : insight.type === "SUGGESTION" ? "#3b82f6" : "#00DAC6"}`,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "0.7rem",
+                          fontWeight: 600,
+                          color: colors.primary_text,
+                        }}
+                      >
+                        {insight.title}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "0.55rem",
+                          color: colors.secondary_text,
+                        }}
+                      >
+                        {insight.message}
+                      </Typography>
+                    </Box>
+                  ))}
+                  {(!insights || insights.length === 0) && (
+                    <Typography
+                      sx={{
+                        fontSize: "0.7rem",
+                        color: colors.secondary_text,
+                        textAlign: "center",
+                      }}
+                    >
+                      No insights
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            </Grid>
+
+            {/* Budget Overview & Consistency */}
+            <Grid item xs={12} md={3.5}>
+              <Box
+                sx={{
+                  background: colors.primary_bg,
+                  border: `1px solid ${colors.border_color}`,
+                  borderRadius: "12px",
+                  padding: "12px",
+                  height: "180px",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    color: colors.primary_text,
+                    marginBottom: 1,
+                  }}
+                >
+                  📊 Overview & Patterns
+                </Typography>
+                <Grid container spacing={0.75}>
+                  <Grid item xs={6}>
+                    <Box
+                      sx={{
+                        padding: "6px",
+                        backgroundColor: `${colors.secondary_bg}80`,
+                        borderRadius: "6px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "0.5rem",
+                          color: colors.secondary_text,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Active Days
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          color: "#f97316",
+                        }}
+                      >
+                        {summaryStatistics?.activeDays || 0}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box
+                      sx={{
+                        padding: "6px",
+                        backgroundColor: `${colors.secondary_bg}80`,
+                        borderRadius: "6px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "0.5rem",
+                          color: colors.secondary_text,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Cost/Day
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          color: "#00DAC6",
+                        }}
+                      >
+                        {formatCurrency(summaryStatistics?.costPerDay || 0)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box
+                      sx={{
+                        padding: "6px",
+                        backgroundColor: `${colors.secondary_bg}80`,
+                        borderRadius: "6px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "0.5rem",
+                          color: colors.secondary_text,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Consistency
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          color: "#ec4899",
+                        }}
+                      >
+                        {summaryStatistics?.consistency || 0} mo
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box
+                      sx={{
+                        padding: "6px",
+                        backgroundColor: `${colors.secondary_bg}80`,
+                        borderRadius: "6px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "0.5rem",
+                          color: colors.secondary_text,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Trend
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          color:
+                            (trendAnalytics?.previousVsCurrentMonth
+                              ?.percentageChange || 0) >= 0
+                              ? "#ef4444"
+                              : "#22c55e",
+                        }}
+                      >
+                        {(trendAnalytics?.previousVsCurrentMonth
+                          ?.percentageChange || 0) >= 0
+                          ? "+"
+                          : ""}
+                        {trendAnalytics?.previousVsCurrentMonth?.percentageChange?.toFixed(
+                          1,
+                        ) || 0}
+                        %
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box
+                      sx={{
+                        padding: "6px",
+                        backgroundColor: `${colors.secondary_bg}80`,
+                        borderRadius: "6px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "0.5rem",
+                          color: colors.secondary_text,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Usage
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          color:
+                            (budgetAnalytics?.usagePercentage || 0) >= 90
+                              ? "#ef4444"
+                              : "#00DAC6",
+                        }}
+                      >
+                        {Math.round(budgetAnalytics?.usagePercentage || 0)}%
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box
+                      sx={{
+                        padding: "6px",
+                        backgroundColor: `${colors.secondary_bg}80`,
+                        borderRadius: "6px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "0.5rem",
+                          color: colors.secondary_text,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Remaining
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          color: "#22c55e",
+                        }}
+                      >
+                        {formatCurrency(budgetAnalytics?.remaining || 0)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
       </Box>
     </div>
   );
