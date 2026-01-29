@@ -110,7 +110,7 @@ const sharesReducer = (state = initialState, action) => {
         myShares: state.myShares.map((share) =>
           share.token === action.payload
             ? { ...share, isActive: false, status: "REVOKED" }
-            : share
+            : share,
         ),
         // Clear current share if it was revoked
         currentShare:
@@ -172,13 +172,16 @@ const sharesReducer = (state = initialState, action) => {
         // Update current share if it matches
         currentShare:
           state.currentShare?.token === action.payload.token
-            ? { ...state.currentShare, qrCodeDataUri: action.payload.qrCodeDataUri }
+            ? {
+                ...state.currentShare,
+                qrCodeDataUri: action.payload.qrCodeDataUri,
+              }
             : state.currentShare,
         // Update in myShares
         myShares: state.myShares.map((share) =>
           share.token === action.payload.token
             ? { ...share, qrCodeDataUri: action.payload.qrCodeDataUri }
-            : share
+            : share,
         ),
       };
     case SHARES_ACTION_TYPES.REGENERATE_QR_FAILURE:
@@ -209,6 +212,25 @@ const sharesReducer = (state = initialState, action) => {
         sharedData: null,
         sharedDataError: null,
         validation: null,
+      };
+
+    // Share with friend
+    case SHARES_ACTION_TYPES.SHARE_WITH_FRIEND_REQUEST:
+      return {
+        ...state,
+        shareWithFriendLoading: true,
+        shareWithFriendError: null,
+      };
+    case SHARES_ACTION_TYPES.SHARE_WITH_FRIEND_SUCCESS:
+      return {
+        ...state,
+        shareWithFriendLoading: false,
+      };
+    case SHARES_ACTION_TYPES.SHARE_WITH_FRIEND_FAILURE:
+      return {
+        ...state,
+        shareWithFriendLoading: false,
+        shareWithFriendError: action.payload,
       };
 
     default:

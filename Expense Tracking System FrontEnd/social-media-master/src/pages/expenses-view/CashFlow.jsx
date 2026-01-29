@@ -418,8 +418,13 @@ const Cashflow = () => {
           const expense = sortedCardData[idx];
           return {
             internalId: expense?.id || expense?.expenseId,
-            externalRef: expense?.externalRef || `EXP-${expense?.id || expense?.expenseId}`,
-            displayName: expense?.name || expense?.description || `Expense #${expense?.id || expense?.expenseId}`,
+            externalRef:
+              expense?.externalRef ||
+              `EXP-${expense?.id || expense?.expenseId}`,
+            displayName:
+              expense?.name ||
+              expense?.description ||
+              `Expense #${expense?.id || expense?.expenseId}`,
           };
         }),
         resourceType: "EXPENSE",

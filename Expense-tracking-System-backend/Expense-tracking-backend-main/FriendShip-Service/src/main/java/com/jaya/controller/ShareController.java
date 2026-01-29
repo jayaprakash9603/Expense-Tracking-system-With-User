@@ -2,6 +2,7 @@ package com.jaya.controller;
 
 import com.jaya.dto.share.*;
 import com.jaya.models.UserDto;
+import com.jaya.service.FriendshipNotificationService;
 import com.jaya.service.QrCodeService;
 import com.jaya.service.SharedResourceService;
 import com.jaya.service.UserService;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +26,7 @@ import java.util.Map;
  * - DELETE /api/shares/{token} - Revoke a share (owner only)
  * - GET /api/shares/my-shares - List user's shares
  * - GET /api/shares/stats - Get share statistics
+ * - POST /api/shares/{token}/share-with-friend - Share directly with a friend
  */
 @RestController
 @RequestMapping("/api/shares")
@@ -34,6 +37,7 @@ public class ShareController {
     private final SharedResourceService sharedResourceService;
     private final UserService userService;
     private final QrCodeService qrCodeService;
+    private final FriendshipNotificationService notificationService;
 
     /**
      * Create a new share and generate QR code.
@@ -206,5 +210,77 @@ public class ShareController {
         return ResponseEntity.ok(Map.of(
                 "qrCodeDataUri", qrCode,
                 "shareUrl", shareUrl));
+    }
+
+    /**
+     * Share directly with a friend and notify them.
+     * 
+     * @param jwt     Authorization header
+     * @param token   Share token
+     * @param request Friend sharing request
+     * @return Share with friend response
+     */
+    @PostMapping("/{token}/share-with-friend")
+    public ResponseEntity<ShareWithFriendResponse> shareWithFriend(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String token,
+            @Valid @RequestBody ShareWithFriendRequest request) throws Exception {
+
+        UserDto user = userService.getuserProfile(jwt);
+        log.info("User {} sharing token {}... with friend {}",
+                user.getId(), token.substring(0, Math.min(8, token.length())), request.getFriendId());
+
+        // Verify ownership of the share
+        List<ShareListItem> userShares = sharedResourceService.getUserShares(user.getId());
+        ShareListItem share = userShares.stream()
+                .filter(s -> s.getToken().equals(token))
+                .findFirst()
+                .orElse(null);
+
+        if (share == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ShareWithFriendResponse.builder()
+                            .success(false)
+                            .message("You don't have permission to share this data")
+                            .build());
+        }
+
+        if (!Boolean.TRUE.equals(share.getIsActive())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ShareWithFriendResponse.builder()
+                            .success(false)
+                            .message("This share has been revoked")
+                            .build());
+        }
+
+        // Build share URL
+        String shareUrl = qrCodeService.buildShareUrl(token);
+
+        // Send notification to friend
+        notificationService.sendDataSharedNotification(
+                user,
+                request.getFriendId(),
+                shareUrl,
+                share.getShareName() != null ? share.getShareName() : "Shared Data",
+                share.getResourceCount() != null ? share.getResourceCount() : 0,
+                request.getMessage());
+
+        // Get friend details for response (optional - if user service supports it)
+        String friendName = "Friend #" + request.getFriendId();
+        try {
+            // Try to get friend details if available
+            // This is optional - the notification will still work
+        } catch (Exception e) {
+            log.debug("Could not fetch friend details: {}", e.getMessage());
+        }
+
+        return ResponseEntity.ok(ShareWithFriendResponse.builder()
+                .success(true)
+                .message("Share sent successfully! Your friend has been notified.")
+                .friendId(request.getFriendId())
+                .friendName(friendName)
+                .shareUrl(shareUrl)
+                .sharedAt(LocalDateTime.now())
+                .build());
     }
 }

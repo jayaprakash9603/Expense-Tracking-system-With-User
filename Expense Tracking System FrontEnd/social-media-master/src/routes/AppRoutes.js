@@ -65,6 +65,7 @@ import {
   PrivacyPolicy,
 } from "../pages/Landingpage/HelpSupport";
 import SharedViewPage from "../pages/SharedViewPage";
+import MySharesPage from "../pages/Landingpage/MySharesPage";
 
 /**
  * Authentication Routes - Returns Route element directly
@@ -86,7 +87,7 @@ export const getAppRoutes = () => (
   <>
     {/* Public Share View Route - accessible for authenticated users too */}
     <Route path="/share/:token" element={<SharedViewPage />} />
-    
+
     <Route path="/" element={<Home />}>
       <Route index element={<Navigate to="/dashboard" />} />
       <Route path="/chats" element={<Chat />} />
@@ -106,6 +107,9 @@ export const getAppRoutes = () => (
       <Route path="settings" element={<Settings />} />
       <Route path="settings/notifications" element={<NotificationSettings />} />
       <Route path="settings/mfa" element={<MfaSetup />} />
+
+      {/* Shared Data Routes */}
+      <Route path="my-shares" element={<MySharesPage />} />
 
       {/* Help & Support Routes */}
       <Route path="support">

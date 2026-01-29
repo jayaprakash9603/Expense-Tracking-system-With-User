@@ -39,22 +39,25 @@ import {
   LockOpen as LockOpenIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
-import { createShare, clearShareError } from "../../Redux/Shares/shares.actions";
+import {
+  createShare,
+  clearShareError,
+} from "../../Redux/Shares/shares.actions";
 
 /**
  * Modal for creating a new share with QR code.
  * Allows selecting data (expenses, categories, budgets),
  * permission level (VIEW/EDIT), and expiry duration.
- * 
+ *
  * @param {boolean} open - Whether the modal is open
  * @param {function} onClose - Callback when modal closes
  * @param {function} onShareCreated - Callback when share is created
  * @param {string} preSelectedType - Pre-select resource type (EXPENSE, CATEGORY, BUDGET)
  * @param {Array} preSelectedItems - Pre-selected items from parent component
  */
-const ShareModal = ({ 
-  open, 
-  onClose, 
+const ShareModal = ({
+  open,
+  onClose,
   onShareCreated,
   preSelectedType = null,
   preSelectedItems = [],
@@ -64,7 +67,7 @@ const ShareModal = ({
 
   // Redux state
   const { createShareLoading, createShareError, currentShare } = useSelector(
-    (state) => state.shares
+    (state) => state.shares,
   );
   const { expenses } = useSelector((state) => state.expenses);
   const { categories } = useSelector((state) => state.categories);
@@ -87,8 +90,13 @@ const ShareModal = ({
       // Convert pre-selected items to the expected format
       const formattedItems = preSelectedItems.map((item) => ({
         id: item.internalId || item.id,
-        externalRef: item.externalRef || `${preSelectedType || 'EXPENSE'}_${item.internalId || item.id}`,
-        displayName: item.displayName || item.name || `Item #${item.internalId || item.id}`,
+        externalRef:
+          item.externalRef ||
+          `${preSelectedType || "EXPENSE"}_${item.internalId || item.id}`,
+        displayName:
+          item.displayName ||
+          item.name ||
+          `Item #${item.internalId || item.id}`,
         subtitle: item.subtitle || "",
       }));
       setSelectedItems(formattedItems);
@@ -168,6 +176,7 @@ const ShareModal = ({
       resourceType,
       resourceRefs: selectedItems.map((item) => ({
         type: resourceType,
+        internalId: item.id, // Include the internal database ID for lookup
         externalRef: item.externalRef,
         displayName: item.displayName,
       })),
@@ -233,7 +242,11 @@ const ShareModal = ({
 
       <DialogContent sx={{ pt: 3 }}>
         {createShareError && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => dispatch(clearShareError())}>
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            onClose={() => dispatch(clearShareError())}
+          >
             {createShareError}
           </Alert>
         )}
@@ -241,7 +254,8 @@ const ShareModal = ({
         {/* If share was created, show success with QR option */}
         {currentShare && (
           <Alert severity="success" sx={{ mb: 2 }}>
-            Share created successfully! Click "View QR Code" to see the QR code and share link.
+            Share created successfully! Click "View QR Code" to see the QR code
+            and share link.
           </Alert>
         )}
 
@@ -263,7 +277,9 @@ const ShareModal = ({
 
         {/* Resource Type Selection */}
         <FormControl fullWidth sx={{ mb: 3 }}>
-          <InputLabel sx={{ color: colors.secondary_text }}>Data Type</InputLabel>
+          <InputLabel sx={{ color: colors.secondary_text }}>
+            Data Type
+          </InputLabel>
           <Select
             value={resourceType}
             onChange={handleResourceTypeChange}
@@ -285,16 +301,31 @@ const ShareModal = ({
             "&:before": { display: "none" },
           }}
         >
-          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: colors.primary_text }} />}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ color: colors.primary_text }} />}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                width: "100%",
+              }}
+            >
               <Typography>
                 Select Items ({selectedItems.length} of {availableItems.length})
               </Typography>
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={selectedItems.length === availableItems.length && availableItems.length > 0}
-                    indeterminate={selectedItems.length > 0 && selectedItems.length < availableItems.length}
+                    checked={
+                      selectedItems.length === availableItems.length &&
+                      availableItems.length > 0
+                    }
+                    indeterminate={
+                      selectedItems.length > 0 &&
+                      selectedItems.length < availableItems.length
+                    }
                     onChange={handleSelectAll}
                     onClick={(e) => e.stopPropagation()}
                     size="small"
@@ -307,7 +338,10 @@ const ShareModal = ({
           </AccordionSummary>
           <AccordionDetails>
             {availableItems.length === 0 ? (
-              <Typography color="textSecondary" sx={{ textAlign: "center", py: 2 }}>
+              <Typography
+                color="textSecondary"
+                sx={{ textAlign: "center", py: 2 }}
+              >
                 No {resourceType.toLowerCase()}s available to share
               </Typography>
             ) : (
@@ -320,7 +354,9 @@ const ShareModal = ({
                       cursor: "pointer",
                       borderRadius: 1,
                       mb: 0.5,
-                      backgroundColor: selectedItems.find((i) => i.externalRef === item.externalRef)
+                      backgroundColor: selectedItems.find(
+                        (i) => i.externalRef === item.externalRef,
+                      )
                         ? `${colors.accent}20`
                         : "transparent",
                       "&:hover": {
@@ -330,7 +366,11 @@ const ShareModal = ({
                   >
                     <ListItemIcon sx={{ minWidth: 40 }}>
                       <Checkbox
-                        checked={!!selectedItems.find((i) => i.externalRef === item.externalRef)}
+                        checked={
+                          !!selectedItems.find(
+                            (i) => i.externalRef === item.externalRef,
+                          )
+                        }
                         size="small"
                       />
                     </ListItemIcon>
@@ -341,7 +381,9 @@ const ShareModal = ({
                       primary={item.displayName}
                       secondary={item.subtitle}
                       primaryTypographyProps={{ color: colors.primary_text }}
-                      secondaryTypographyProps={{ color: colors.secondary_text }}
+                      secondaryTypographyProps={{
+                        color: colors.secondary_text,
+                      }}
                     />
                   </ListItem>
                 ))}
@@ -356,7 +398,9 @@ const ShareModal = ({
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           {/* Permission */}
           <FormControl sx={{ flex: 1 }}>
-            <InputLabel sx={{ color: colors.secondary_text }}>Permission</InputLabel>
+            <InputLabel sx={{ color: colors.secondary_text }}>
+              Permission
+            </InputLabel>
             <Select
               value={permission}
               onChange={(e) => setPermission(e.target.value)}
@@ -380,7 +424,9 @@ const ShareModal = ({
 
           {/* Expiry */}
           <FormControl sx={{ flex: 1 }}>
-            <InputLabel sx={{ color: colors.secondary_text }}>Expires In</InputLabel>
+            <InputLabel sx={{ color: colors.secondary_text }}>
+              Expires In
+            </InputLabel>
             <Select
               value={expiryOption}
               onChange={(e) => setExpiryOption(e.target.value)}
@@ -404,7 +450,10 @@ const ShareModal = ({
             label="Custom Expiry Date"
             value={customExpiry}
             onChange={(e) => setCustomExpiry(e.target.value)}
-            InputLabelProps={{ shrink: true, sx: { color: colors.secondary_text } }}
+            InputLabelProps={{
+              shrink: true,
+              sx: { color: colors.secondary_text },
+            }}
             InputProps={{ sx: { color: colors.primary_text } }}
             sx={{ mb: 2 }}
           />
@@ -414,13 +463,14 @@ const ShareModal = ({
         <Alert severity="info" sx={{ mt: 2 }}>
           {permission === "VIEW" ? (
             <>
-              <strong>View Only:</strong> Recipients can only see the shared data. They cannot make
-              any changes.
+              <strong>View Only:</strong> Recipients can only see the shared
+              data. They cannot make any changes.
             </>
           ) : (
             <>
-              <strong>Edit Access:</strong> Recipients can add new items and update existing ones.
-              They <strong>cannot delete</strong> any data.
+              <strong>Edit Access:</strong> Recipients can add new items and
+              update existing ones. They <strong>cannot delete</strong> any
+              data.
             </>
           )}
         </Alert>
@@ -428,7 +478,10 @@ const ShareModal = ({
         {/* Selected Items Preview */}
         {selectedItems.length > 0 && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, color: colors.secondary_text }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ mb: 1, color: colors.secondary_text }}
+            >
               Selected Items:
             </Typography>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
@@ -448,7 +501,10 @@ const ShareModal = ({
                 <Chip
                   label={`+${selectedItems.length - 5} more`}
                   size="small"
-                  sx={{ backgroundColor: colors.card_bg, color: colors.primary_text }}
+                  sx={{
+                    backgroundColor: colors.card_bg,
+                    color: colors.primary_text,
+                  }}
                 />
               )}
             </Box>
@@ -456,7 +512,9 @@ const ShareModal = ({
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, borderTop: `1px solid ${colors.border}` }}>
+      <DialogActions
+        sx={{ px: 3, pb: 3, borderTop: `1px solid ${colors.border}` }}
+      >
         <Button onClick={handleClose} sx={{ color: colors.secondary_text }}>
           Cancel
         </Button>
@@ -464,7 +522,9 @@ const ShareModal = ({
           variant="contained"
           onClick={handleCreateShare}
           disabled={selectedItems.length === 0 || createShareLoading}
-          startIcon={createShareLoading ? <CircularProgress size={20} /> : <QrCodeIcon />}
+          startIcon={
+            createShareLoading ? <CircularProgress size={20} /> : <QrCodeIcon />
+          }
           sx={{
             backgroundColor: colors.accent,
             "&:hover": { backgroundColor: colors.accent_hover },

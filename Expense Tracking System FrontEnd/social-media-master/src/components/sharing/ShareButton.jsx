@@ -7,32 +7,32 @@ import { useSelector } from "react-redux";
 
 /**
  * Reusable Share Button Component
- * 
+ *
  * Usage Examples:
- * 
+ *
  * 1. Icon button (for cards/lists):
  *    <ShareButton variant="icon" />
- * 
+ *
  * 2. Full button:
  *    <ShareButton variant="button" label="Share Data" />
- * 
+ *
  * 3. Pre-selected items:
- *    <ShareButton 
- *      preSelectedType="EXPENSE" 
- *      preSelectedItems={[{ id: 1, externalRef: 'EXP-001' }]} 
+ *    <ShareButton
+ *      preSelectedType="EXPENSE"
+ *      preSelectedItems={[{ id: 1, externalRef: 'EXP-001' }]}
  *    />
  */
-const ShareButton = ({ 
-  variant = "button", 
+const ShareButton = ({
+  variant = "button",
   label = "Share",
   preSelectedType = null,
   preSelectedItems = [],
   size = "medium",
-  color = "primary"
+  color = "primary",
 }) => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [qrDisplayOpen, setQrDisplayOpen] = useState(false);
-  
+
   const { currentShare } = useSelector((state) => state.shares);
 
   const handleOpenShareModal = () => {

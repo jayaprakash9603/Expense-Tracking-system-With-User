@@ -52,6 +52,7 @@ export const hi = {
     history: "इतिहास",
     paymentMethod: "भुगतान विधि",
     calendar: "कैलेंडर",
+    myShares: "मेरे शेयर्स",
   },
 
   // Flows

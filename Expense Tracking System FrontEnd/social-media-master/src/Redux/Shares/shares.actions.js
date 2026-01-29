@@ -88,7 +88,9 @@ export const validateShare = (token) => async (dispatch) => {
     return { success: true, data: response.data };
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Failed to validate share";
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to validate share";
 
     dispatch({
       type: SHARES_ACTION_TYPES.VALIDATE_SHARE_FAILURE,
@@ -117,7 +119,9 @@ export const revokeShare = (token) => async (dispatch) => {
     return { success: true };
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Failed to revoke share";
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to revoke share";
 
     dispatch({
       type: SHARES_ACTION_TYPES.REVOKE_SHARE_FAILURE,
@@ -132,30 +136,36 @@ export const revokeShare = (token) => async (dispatch) => {
  * Fetch user's shares.
  * @param {boolean} activeOnly - If true, fetch only active shares
  */
-export const fetchMyShares = (activeOnly = false) => async (dispatch) => {
-  dispatch({ type: SHARES_ACTION_TYPES.FETCH_MY_SHARES_REQUEST });
+export const fetchMyShares =
+  (activeOnly = false) =>
+  async (dispatch) => {
+    dispatch({ type: SHARES_ACTION_TYPES.FETCH_MY_SHARES_REQUEST });
 
-  try {
-    const response = await api.get(`/api/shares/my-shares?activeOnly=${activeOnly}`);
+    try {
+      const response = await api.get(
+        `/api/shares/my-shares?activeOnly=${activeOnly}`,
+      );
 
-    dispatch({
-      type: SHARES_ACTION_TYPES.FETCH_MY_SHARES_SUCCESS,
-      payload: response.data,
-    });
+      dispatch({
+        type: SHARES_ACTION_TYPES.FETCH_MY_SHARES_SUCCESS,
+        payload: response.data,
+      });
 
-    return { success: true, data: response.data };
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Failed to fetch shares";
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch shares";
 
-    dispatch({
-      type: SHARES_ACTION_TYPES.FETCH_MY_SHARES_FAILURE,
-      payload: errorMessage,
-    });
+      dispatch({
+        type: SHARES_ACTION_TYPES.FETCH_MY_SHARES_FAILURE,
+        payload: errorMessage,
+      });
 
-    return { success: false, error: errorMessage };
-  }
-};
+      return { success: false, error: errorMessage };
+    }
+  };
 
 /**
  * Fetch share statistics.
@@ -174,7 +184,9 @@ export const fetchShareStats = () => async (dispatch) => {
     return { success: true, data: response.data };
   } catch (error) {
     const errorMessage =
-      error.response?.data?.message || error.message || "Failed to fetch share stats";
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch share stats";
 
     dispatch({
       type: SHARES_ACTION_TYPES.FETCH_SHARE_STATS_FAILURE,
@@ -190,30 +202,36 @@ export const fetchShareStats = () => async (dispatch) => {
  * @param {string} token - Share token
  * @param {number} size - QR code size in pixels
  */
-export const regenerateQr = (token, size = 300) => async (dispatch) => {
-  dispatch({ type: SHARES_ACTION_TYPES.REGENERATE_QR_REQUEST });
+export const regenerateQr =
+  (token, size = 300) =>
+  async (dispatch) => {
+    dispatch({ type: SHARES_ACTION_TYPES.REGENERATE_QR_REQUEST });
 
-  try {
-    const response = await api.post(`/api/shares/${token}/regenerate-qr?size=${size}`);
+    try {
+      const response = await api.post(
+        `/api/shares/${token}/regenerate-qr?size=${size}`,
+      );
 
-    dispatch({
-      type: SHARES_ACTION_TYPES.REGENERATE_QR_SUCCESS,
-      payload: { token, ...response.data },
-    });
+      dispatch({
+        type: SHARES_ACTION_TYPES.REGENERATE_QR_SUCCESS,
+        payload: { token, ...response.data },
+      });
 
-    return { success: true, data: response.data };
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || error.message || "Failed to regenerate QR code";
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to regenerate QR code";
 
-    dispatch({
-      type: SHARES_ACTION_TYPES.REGENERATE_QR_FAILURE,
-      payload: errorMessage,
-    });
+      dispatch({
+        type: SHARES_ACTION_TYPES.REGENERATE_QR_FAILURE,
+        payload: errorMessage,
+      });
 
-    return { success: false, error: errorMessage };
-  }
-};
+      return { success: false, error: errorMessage };
+    }
+  };
 
 /**
  * Clear share error.
@@ -235,3 +253,44 @@ export const clearCurrentShare = () => ({
 export const clearSharedData = () => ({
   type: SHARES_ACTION_TYPES.CLEAR_SHARED_DATA,
 });
+
+/**
+ * Share directly with a friend and notify them.
+ * @param {string} token - Share token
+ * @param {number} friendId - Friend's user ID
+ * @param {string} message - Optional message to send with notification
+ */
+export const shareWithFriend =
+  (token, friendId, message = "") =>
+  async (dispatch) => {
+    dispatch({ type: SHARES_ACTION_TYPES.SHARE_WITH_FRIEND_REQUEST });
+
+    try {
+      const response = await api.post(
+        `/api/shares/${token}/share-with-friend`,
+        {
+          friendId,
+          message,
+        },
+      );
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.SHARE_WITH_FRIEND_SUCCESS,
+        payload: response.data,
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to share with friend";
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.SHARE_WITH_FRIEND_FAILURE,
+        payload: errorMessage,
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };

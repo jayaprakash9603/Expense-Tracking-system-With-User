@@ -46,6 +46,7 @@ public class FriendshipNotificationEvent implements Serializable {
     public static final String ACCESS_LEVEL_CHANGED = "ACCESS_LEVEL_CHANGED";
     public static final String USER_BLOCKED = "USER_BLOCKED";
     public static final String USER_UNBLOCKED = "USER_UNBLOCKED";
+    public static final String DATA_SHARED = "DATA_SHARED";
 
     // Core Identifiers
     private Integer friendshipId;
@@ -78,10 +79,13 @@ public class FriendshipNotificationEvent implements Serializable {
     private Map<String, Object> metadata;
 
     /**
-     * Validate the event has required fields
+     * Validate the event has required fields.
+     * Note: friendshipId can be null for DATA_SHARED events (no friendship
+     * required).
      */
     public void validate() {
-        if (friendshipId == null) {
+        // friendshipId can be null for DATA_SHARED events
+        if (friendshipId == null && !DATA_SHARED.equals(action)) {
             throw new IllegalArgumentException("Friendship ID cannot be null");
         }
         if (userId == null) {
@@ -159,5 +163,12 @@ public class FriendshipNotificationEvent implements Serializable {
      */
     public boolean isUserUnblocked() {
         return USER_UNBLOCKED.equals(action);
+    }
+
+    /**
+     * Check if this is a DATA_SHARED action
+     */
+    public boolean isDataShared() {
+        return DATA_SHARED.equals(action);
     }
 }

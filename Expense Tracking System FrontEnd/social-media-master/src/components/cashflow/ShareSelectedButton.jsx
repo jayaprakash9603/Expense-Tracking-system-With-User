@@ -19,7 +19,7 @@ const ShareSelectedButton = ({
   const { colors } = useTheme();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [qrDisplayOpen, setQrDisplayOpen] = useState(false);
-  
+
   const { currentShare } = useSelector((state) => state.shares || {});
 
   const handleOpenShareModal = () => {

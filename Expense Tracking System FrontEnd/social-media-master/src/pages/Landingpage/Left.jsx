@@ -27,6 +27,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import SettingsIcon from "@mui/icons-material/Settings";
 import GroupsIcon from "@mui/icons-material/Groups";
+import ShareIcon from "@mui/icons-material/Share";
 
 const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
@@ -284,6 +285,12 @@ const Left = () => {
                   name={t("navigation.reports")}
                   path="/reports"
                   icon={<AssessmentIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name={t("navigation.myShares")}
+                  path="/my-shares"
+                  icon={<ShareIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
               </>

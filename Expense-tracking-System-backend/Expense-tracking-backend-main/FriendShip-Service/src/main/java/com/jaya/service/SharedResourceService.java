@@ -63,6 +63,7 @@ public class SharedResourceService {
         List<ResourceRef> resourceRefs = request.getResourceRefs().stream()
                 .map(dto -> ResourceRef.builder()
                         .type(dto.getType())
+                        .internalId(dto.getInternalId())
                         .externalRef(dto.getExternalRef())
                         .displayName(dto.getDisplayName())
                         .build())
@@ -311,21 +312,26 @@ public class SharedResourceService {
     private Object fetchResourceData(ResourceRef ref, Integer ownerUserId) {
         // Fetch data based on resource type using internal IDs
         try {
+            // Try to get internalId, or parse it from externalRef as fallback
+            Integer resourceId = ref.getInternalId();
+            if (resourceId == null) {
+                resourceId = parseIdFromExternalRef(ref.getExternalRef());
+            }
+
+            if (resourceId == null) {
+                log.warn("Could not determine resource ID for ref: {}", ref.getExternalRef());
+                return null;
+            }
+
             switch (ref.getType().toUpperCase()) {
                 case "EXPENSE":
-                    if (ref.getInternalId() != null) {
-                        return expenseService.getExpenseById(ref.getInternalId(), ownerUserId);
-                    }
-                    log.warn("No internalId for expense ref: {}", ref.getExternalRef());
-                    return null;
+                    return expenseService.getExpenseById(resourceId, ownerUserId);
                 case "CATEGORY":
                     // TODO: Add category service call when available
-                    // return categoryService.getCategoryById(ref.getInternalId(), ownerUserId);
                     log.info("Category data fetch not yet implemented for ref: {}", ref.getExternalRef());
                     return null;
                 case "BUDGET":
                     // TODO: Add budget service call when available
-                    // return budgetService.getBudgetById(ref.getInternalId(), ownerUserId);
                     log.info("Budget data fetch not yet implemented for ref: {}", ref.getExternalRef());
                     return null;
                 default:
@@ -334,6 +340,40 @@ public class SharedResourceService {
             }
         } catch (Exception e) {
             log.error("Failed to fetch resource data for ref: {}, error: {}", ref.getExternalRef(), e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Parse the resource ID from an external reference.
+     * Supports formats: EXP-123, EXP_123_date, CAT-123, BUD-123, etc.
+     */
+    private Integer parseIdFromExternalRef(String externalRef) {
+        if (externalRef == null || externalRef.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Try format: TYPE-ID (e.g., EXP-259402)
+            if (externalRef.contains("-")) {
+                String[] parts = externalRef.split("-");
+                if (parts.length >= 2) {
+                    return Integer.parseInt(parts[1]);
+                }
+            }
+
+            // Try format: TYPE_ID_... (e.g., EXP_123_2026-01-29)
+            if (externalRef.contains("_")) {
+                String[] parts = externalRef.split("_");
+                if (parts.length >= 2) {
+                    return Integer.parseInt(parts[1]);
+                }
+            }
+
+            // Try parsing as plain number
+            return Integer.parseInt(externalRef);
+        } catch (NumberFormatException e) {
+            log.debug("Could not parse ID from externalRef: {}", externalRef);
             return null;
         }
     }

@@ -86,6 +86,11 @@ public class CreateShareRequest {
         private String type;
 
         /**
+         * Internal database ID for lookup.
+         */
+        private Integer internalId;
+
+        /**
          * Stable business identifier.
          */
         @NotBlank(message = "External reference is required")

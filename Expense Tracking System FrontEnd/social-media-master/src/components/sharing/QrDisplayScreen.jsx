@@ -28,9 +28,15 @@ import {
   Visibility as ViewIcon,
   Edit as EditIcon,
   Download as DownloadIcon,
+  Send as SendIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
-import { revokeShare, regenerateQr, clearCurrentShare } from "../../Redux/Shares/shares.actions";
+import {
+  revokeShare,
+  regenerateQr,
+  clearCurrentShare,
+} from "../../Redux/Shares/shares.actions";
+import ShareWithFriendModal from "./ShareWithFriendModal";
 
 /**
  * Component to display QR code and share link.
@@ -44,6 +50,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
 
   const [copied, setCopied] = useState(false);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
+  const [showShareWithFriend, setShowShareWithFriend] = useState(false);
 
   // Copy share URL to clipboard
   const handleCopyLink = useCallback(async () => {
@@ -180,13 +187,27 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
         {/* QR Actions */}
         <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 3 }}>
           <Tooltip title="Download QR Code">
-            <IconButton onClick={handleDownloadQr} sx={{ color: colors.accent }}>
+            <IconButton
+              onClick={handleDownloadQr}
+              sx={{ color: colors.accent }}
+            >
               <DownloadIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Regenerate QR Code">
-            <IconButton onClick={handleRegenerateQr} sx={{ color: colors.accent }}>
+            <IconButton
+              onClick={handleRegenerateQr}
+              sx={{ color: colors.accent }}
+            >
               <RefreshIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Share with Friends">
+            <IconButton
+              onClick={() => setShowShareWithFriend(true)}
+              sx={{ color: colors.accent }}
+            >
+              <SendIcon />
             </IconButton>
           </Tooltip>
         </Box>
@@ -218,13 +239,22 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
         <Divider sx={{ my: 2, borderColor: colors.border }} />
 
         {/* Share Info */}
-        <Box sx={{ display: "flex", justifyContent: "center", gap: 2, flexWrap: "wrap", mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 2,
+            flexWrap: "wrap",
+            mb: 2,
+          }}
+        >
           {/* Permission */}
           <Chip
             icon={share.permission === "VIEW" ? <ViewIcon /> : <EditIcon />}
             label={share.permission === "VIEW" ? "View Only" : "Edit Access"}
             sx={{
-              backgroundColor: share.permission === "VIEW" ? colors.info : colors.warning,
+              backgroundColor:
+                share.permission === "VIEW" ? colors.info : colors.warning,
               color: "#fff",
             }}
           />
@@ -257,12 +287,23 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
         )}
 
         {/* Instructions */}
-        <Typography variant="body2" sx={{ color: colors.secondary_text, mt: 2 }}>
-          Scan the QR code or share the link with friends to give them access to your data.
+        <Typography
+          variant="body2"
+          sx={{ color: colors.secondary_text, mt: 2 }}
+        >
+          Scan the QR code or share the link with friends to give them access to
+          your data.
         </Typography>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, borderTop: `1px solid ${colors.border}`, justifyContent: "space-between" }}>
+      <DialogActions
+        sx={{
+          px: 3,
+          pb: 3,
+          borderTop: `1px solid ${colors.border}`,
+          justifyContent: "space-between",
+        }}
+      >
         {/* Revoke Button */}
         {share.isActive !== false && (
           <>
@@ -284,7 +325,13 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
                   color="error"
                   onClick={handleRevoke}
                   disabled={revokeLoading}
-                  startIcon={revokeLoading ? <CircularProgress size={16} /> : <DeleteIcon />}
+                  startIcon={
+                    revokeLoading ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <DeleteIcon />
+                    )
+                  }
                 >
                   Confirm
                 </Button>
@@ -313,6 +360,13 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           Done
         </Button>
       </DialogActions>
+
+      {/* Share with Friends Modal */}
+      <ShareWithFriendModal
+        open={showShareWithFriend}
+        onClose={() => setShowShareWithFriend(false)}
+        share={share}
+      />
     </Dialog>
   );
 };

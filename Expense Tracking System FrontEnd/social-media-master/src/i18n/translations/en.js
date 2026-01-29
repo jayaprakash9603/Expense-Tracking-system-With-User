@@ -52,6 +52,7 @@ export const en = {
     history: "History",
     paymentMethod: "Payment Method",
     calendar: "Calendar",
+    myShares: "My Shares",
   },
 
   // Flows
