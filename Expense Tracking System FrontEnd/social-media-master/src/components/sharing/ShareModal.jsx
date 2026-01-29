@@ -105,17 +105,31 @@ const ShareModal = ({
 
   // Get available items based on resource type
   const availableItems = useMemo(() => {
+    // Ensure we always have arrays - handle cases where data might be paginated objects
+    const expenseList = Array.isArray(expenses)
+      ? expenses
+      : expenses?.content || [];
+    const categoryList = Array.isArray(categories)
+      ? categories
+      : categories?.content || [];
+    const budgetList = Array.isArray(budgets)
+      ? budgets
+      : budgets?.content || [];
+
     switch (resourceType) {
       case "EXPENSE":
-        return (expenses || []).map((exp) => ({
+        return expenseList.map((exp) => ({
           id: exp.id,
           externalRef: exp.externalRef || `EXP_${exp.id}_${exp.date}`,
-          displayName: exp.expense?.name || `Expense #${exp.id}`,
+          displayName:
+            exp.expense?.name ||
+            exp.expense?.expenseName ||
+            `Expense #${exp.id}`,
           subtitle: `${exp.date} - ${exp.categoryName || "No category"}`,
           icon: <ReceiptIcon />,
         }));
       case "CATEGORY":
-        return (categories || []).map((cat) => ({
+        return categoryList.map((cat) => ({
           id: cat.id,
           externalRef: cat.externalRef || `CAT_${cat.id}_${cat.name}`,
           displayName: cat.name,
@@ -123,7 +137,7 @@ const ShareModal = ({
           icon: <CategoryIcon />,
         }));
       case "BUDGET":
-        return (budgets || []).map((budget) => ({
+        return budgetList.map((budget) => ({
           id: budget.id,
           externalRef: budget.externalRef || `BUD_${budget.id}_${budget.name}`,
           displayName: budget.name,

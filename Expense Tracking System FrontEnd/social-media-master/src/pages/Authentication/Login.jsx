@@ -48,6 +48,14 @@ const Login = () => {
       fullUser: user,
     });
 
+    // Check if there's a redirect URL saved (e.g., from shared page)
+    const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
+    if (redirectUrl) {
+      sessionStorage.removeItem("redirectAfterLogin");
+      navigate(redirectUrl);
+      return;
+    }
+
     if (currentMode === "ADMIN" || role === "ADMIN" || user?.role === "ADMIN") {
       console.log("Navigating to ADMIN dashboard");
       navigate("/admin/dashboard");

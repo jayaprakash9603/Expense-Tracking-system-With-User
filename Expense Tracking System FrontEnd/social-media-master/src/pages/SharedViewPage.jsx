@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -22,6 +22,10 @@ import {
   ListItemIcon,
   Avatar,
   CardActions,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -39,11 +43,15 @@ import {
   CalendarToday as DateIcon,
   Add as AddIcon,
   ContentCopy as CopyIcon,
+  Login as LoginIcon,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { useTheme } from "../hooks/useTheme";
 import { accessShare, clearShareError } from "../Redux/Shares/shares.actions";
 import { createExpenseAction } from "../Redux/Expenses/expense.action";
+
+// LocalStorage key for tracking added items per share token
+const getAddedItemsKey = (token) => `shared_added_items_${token}`;
 
 /**
  * Page to display shared data when accessing a share link.
@@ -53,16 +61,50 @@ const SharedViewPage = () => {
   const { token } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
 
-  const { sharedData: accessedShare, sharedDataLoading: accessLoading, sharedDataError: accessError } = useSelector(
-    (state) => state.shares,
-  );
+  const {
+    sharedData: accessedShare,
+    sharedDataLoading: accessLoading,
+    sharedDataError: accessError,
+  } = useSelector((state) => state.shares);
   const currentUser = useSelector((state) => state.auth?.user);
+  const isLoggedIn = Boolean(currentUser && localStorage.getItem("jwt"));
 
   const [hasAttemptedAccess, setHasAttemptedAccess] = useState(false);
   const [addedExpenses, setAddedExpenses] = useState(new Set());
   const [addingExpense, setAddingExpense] = useState(null);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+
+  // Load previously added items from localStorage on mount
+  useEffect(() => {
+    if (token) {
+      try {
+        const savedItems = localStorage.getItem(getAddedItemsKey(token));
+        if (savedItems) {
+          const parsed = JSON.parse(savedItems);
+          setAddedExpenses(new Set(parsed));
+        }
+      } catch (e) {
+        console.error("Error loading saved added items:", e);
+      }
+    }
+  }, [token]);
+
+  // Save added items to localStorage whenever they change
+  useEffect(() => {
+    if (token && addedExpenses.size > 0) {
+      try {
+        localStorage.setItem(
+          getAddedItemsKey(token),
+          JSON.stringify([...addedExpenses]),
+        );
+      } catch (e) {
+        console.error("Error saving added items:", e);
+      }
+    }
+  }, [token, addedExpenses]);
 
   // Access the share on mount
   useEffect(() => {
@@ -78,9 +120,9 @@ const SharedViewPage = () => {
 
   // Handle adding expense to user's account
   const handleAddToMyAccount = async (expenseData) => {
-    if (!currentUser) {
-      toast.warning("Please log in to add expenses to your account");
-      navigate("/login");
+    // Check if user is logged in
+    if (!isLoggedIn) {
+      setShowLoginDialog(true);
       return;
     }
 
@@ -114,13 +156,23 @@ const SharedViewPage = () => {
 
       await dispatch(createExpenseAction(newExpense));
       setAddedExpenses((prev) => new Set([...prev, expenseId]));
-      toast.success(`"${expense.expenseName || "Expense"}" added to your account!`);
+      toast.success(
+        `"${expense.expenseName || "Expense"}" added to your account!`,
+      );
     } catch (error) {
       console.error("Error adding expense:", error);
       toast.error("Failed to add expense. Please try again.");
     } finally {
       setAddingExpense(null);
     }
+  };
+
+  // Handle login redirect
+  const handleLoginRedirect = () => {
+    // Save current URL to redirect back after login
+    sessionStorage.setItem("redirectAfterLogin", window.location.pathname);
+    setShowLoginDialog(false);
+    navigate("/login");
   };
 
   // Format date
@@ -190,7 +242,15 @@ const SharedViewPage = () => {
           <Typography variant="h5" sx={{ color: colors.primary_text, mb: 2 }}>
             Share Not Available
           </Typography>
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert
+            severity="error"
+            sx={{
+              mb: 3,
+              backgroundColor: colors.error + "15",
+              color: colors.error,
+              "& .MuiAlert-icon": { color: colors.error },
+            }}
+          >
             {accessError}
           </Alert>
           <Typography
@@ -382,7 +442,14 @@ const SharedViewPage = () => {
             borderRadius: 2,
           }}
         >
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
             <Typography variant="h6" sx={{ color: colors.primary_text }}>
               Shared Items ({data?.length || 0})
             </Typography>
@@ -402,7 +469,13 @@ const SharedViewPage = () => {
                 // ExpenseDTO structure: { id, date, categoryName, expense: { expenseName, amount, ... } }
                 const expense = expenseData.expense || {};
                 return (
-                  <Grid item xs={12} md={6} lg={4} key={expenseData.id || index}>
+                  <Grid
+                    item
+                    xs={12}
+                    md={6}
+                    lg={4}
+                    key={expenseData.id || index}
+                  >
                     <Card
                       sx={{
                         backgroundColor: colors.modal_bg,
@@ -425,9 +498,14 @@ const SharedViewPage = () => {
                           <Box>
                             <Typography
                               variant="h5"
-                              sx={{ color: colors.primary_text, fontWeight: 600 }}
+                              sx={{
+                                color: colors.primary_text,
+                                fontWeight: 600,
+                              }}
                             >
-                              {formatCurrency(expense.amount || expense.netAmount || 0)}
+                              {formatCurrency(
+                                expense.amount || expense.netAmount || 0,
+                              )}
                             </Typography>
                             <Typography
                               variant="subtitle1"
@@ -447,26 +525,66 @@ const SharedViewPage = () => {
                         </Box>
 
                         {/* Details Grid */}
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1.5,
+                          }}
+                        >
                           {/* Date */}
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <DateIcon sx={{ fontSize: 18, color: colors.secondary_text }} />
-                            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <DateIcon
+                              sx={{
+                                fontSize: 18,
+                                color: colors.secondary_text,
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              sx={{ color: colors.secondary_text }}
+                            >
                               Date:
                             </Typography>
-                            <Typography variant="body2" sx={{ color: colors.primary_text }}>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: colors.primary_text }}
+                            >
                               {expenseData.date || "N/A"}
                             </Typography>
                           </Box>
 
                           {/* Payment Method */}
                           {expense.paymentMethod && (
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                              <PaymentIcon sx={{ fontSize: 18, color: colors.secondary_text }} />
-                              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <PaymentIcon
+                                sx={{
+                                  fontSize: 18,
+                                  color: colors.secondary_text,
+                                }}
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{ color: colors.secondary_text }}
+                              >
                                 Payment:
                               </Typography>
-                              <Typography variant="body2" sx={{ color: colors.primary_text }}>
+                              <Typography
+                                variant="body2"
+                                sx={{ color: colors.primary_text }}
+                              >
                                 {expense.paymentMethod}
                               </Typography>
                             </Box>
@@ -474,42 +592,90 @@ const SharedViewPage = () => {
 
                           {/* Type */}
                           {expense.type && (
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                              <ReceiptIcon sx={{ fontSize: 18, color: colors.secondary_text }} />
-                              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <ReceiptIcon
+                                sx={{
+                                  fontSize: 18,
+                                  color: colors.secondary_text,
+                                }}
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{ color: colors.secondary_text }}
+                              >
                                 Type:
                               </Typography>
-                              <Chip 
-                                label={expense.type} 
-                                size="small" 
-                                sx={{ 
+                              <Chip
+                                label={expense.type}
+                                size="small"
+                                sx={{
                                   height: 22,
-                                  backgroundColor: expense.type === "CREDIT" ? colors.warning + "20" : colors.success + "20",
-                                  color: expense.type === "CREDIT" ? colors.warning : colors.success,
+                                  backgroundColor:
+                                    expense.type === "CREDIT"
+                                      ? colors.warning + "20"
+                                      : colors.success + "20",
+                                  color:
+                                    expense.type === "CREDIT"
+                                      ? colors.warning
+                                      : colors.success,
                                 }}
                               />
                             </Box>
                           )}
 
                           {/* Net Amount (if different from amount) */}
-                          {expense.netAmount && expense.netAmount !== expense.amount && (
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-                                Net Amount:
-                              </Typography>
-                              <Typography variant="body2" sx={{ color: colors.primary_text, fontWeight: 500 }}>
-                                {formatCurrency(expense.netAmount)}
-                              </Typography>
-                            </Box>
-                          )}
+                          {expense.netAmount &&
+                            expense.netAmount !== expense.amount && (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  sx={{ color: colors.secondary_text }}
+                                >
+                                  Net Amount:
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    color: colors.primary_text,
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {formatCurrency(expense.netAmount)}
+                                </Typography>
+                              </Box>
+                            )}
 
                           {/* Credit Due */}
                           {expense.creditDue > 0 && (
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                              <Typography variant="body2" sx={{ color: colors.warning }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{ color: colors.warning }}
+                              >
                                 Credit Due:
                               </Typography>
-                              <Typography variant="body2" sx={{ color: colors.warning, fontWeight: 500 }}>
+                              <Typography
+                                variant="body2"
+                                sx={{ color: colors.warning, fontWeight: 500 }}
+                              >
                                 {formatCurrency(expense.creditDue)}
                               </Typography>
                             </Box>
@@ -517,11 +683,24 @@ const SharedViewPage = () => {
 
                           {/* Comments */}
                           {expense.comments && (
-                            <Box sx={{ mt: 1, p: 1.5, backgroundColor: colors.background, borderRadius: 1 }}>
-                              <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+                            <Box
+                              sx={{
+                                mt: 1,
+                                p: 1.5,
+                                backgroundColor: colors.background,
+                                borderRadius: 1,
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{ color: colors.secondary_text }}
+                              >
                                 Notes:
                               </Typography>
-                              <Typography variant="body2" sx={{ color: colors.primary_text, mt: 0.5 }}>
+                              <Typography
+                                variant="body2"
+                                sx={{ color: colors.primary_text, mt: 0.5 }}
+                              >
                                 {expense.comments}
                               </Typography>
                             </Box>
@@ -539,10 +718,11 @@ const SharedViewPage = () => {
                             disabled
                             sx={{
                               backgroundColor: colors.success,
-                              color: "#fff",
+                              color: colors.button_text || "#fff",
                               "&.Mui-disabled": {
                                 backgroundColor: colors.success,
-                                color: "#fff",
+                                color: colors.button_text || "#fff",
+                                opacity: 0.9,
                               },
                             }}
                           >
@@ -552,7 +732,13 @@ const SharedViewPage = () => {
                           <Button
                             fullWidth
                             variant="outlined"
-                            startIcon={addingExpense === expenseData.id ? <CircularProgress size={20} /> : <AddIcon />}
+                            startIcon={
+                              addingExpense === expenseData.id ? (
+                                <CircularProgress size={20} />
+                              ) : (
+                                <AddIcon />
+                              )
+                            }
                             onClick={() => handleAddToMyAccount(expenseData)}
                             disabled={addingExpense === expenseData.id}
                             sx={{
@@ -564,7 +750,9 @@ const SharedViewPage = () => {
                               },
                             }}
                           >
-                            {addingExpense === expenseData.id ? "Adding..." : "Add to My Account"}
+                            {addingExpense === expenseData.id
+                              ? "Adding..."
+                              : "Add to My Account"}
                           </Button>
                         )}
                       </CardActions>
@@ -710,12 +898,28 @@ const SharedViewPage = () => {
                 No data available in this share.
               </Typography>
               {warnings && warnings.length > 0 && (
-                <Alert severity="warning" sx={{ textAlign: "left", mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                <Alert
+                  severity="warning"
+                  sx={{
+                    textAlign: "left",
+                    mt: 2,
+                    backgroundColor: colors.warning + "15",
+                    color: colors.warning,
+                    "& .MuiAlert-icon": { color: colors.warning },
+                  }}
+                >
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ mb: 1, color: colors.warning }}
+                  >
                     Some items are no longer available:
                   </Typography>
                   {warnings.map((warning, index) => (
-                    <Typography key={index} variant="body2">
+                    <Typography
+                      key={index}
+                      variant="body2"
+                      sx={{ color: colors.warning }}
+                    >
                       • {warning}
                     </Typography>
                   ))}
@@ -726,12 +930,27 @@ const SharedViewPage = () => {
 
           {/* Warnings for partial data */}
           {data && data.length > 0 && warnings && warnings.length > 0 && (
-            <Alert severity="info" sx={{ mt: 3 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Alert
+              severity="info"
+              sx={{
+                mt: 3,
+                backgroundColor: colors.info + "15",
+                color: colors.info,
+                "& .MuiAlert-icon": { color: colors.info },
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{ mb: 1, color: colors.info }}
+              >
                 Note: Some shared items are no longer available:
               </Typography>
               {warnings.map((warning, index) => (
-                <Typography key={index} variant="body2">
+                <Typography
+                  key={index}
+                  variant="body2"
+                  sx={{ color: colors.info }}
+                >
                   • {warning}
                 </Typography>
               ))}
@@ -763,6 +982,87 @@ const SharedViewPage = () => {
           </Button>
         </Box>
       </Container>
+
+      {/* Login Required Dialog */}
+      <Dialog
+        open={showLoginDialog}
+        onClose={() => setShowLoginDialog(false)}
+        BackdropProps={{
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(4px)",
+          },
+        }}
+        PaperProps={{
+          sx: {
+            backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
+            borderRadius: 3,
+            minWidth: 400,
+            border: isDark
+              ? "1px solid rgba(255, 255, 255, 0.1)"
+              : "1px solid rgba(0, 0, 0, 0.1)",
+            boxShadow: isDark
+              ? "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+              : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            color: isDark ? "#fff" : "#1a1a1a",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            borderBottom: `1px solid ${isDark ? "#333" : "#e5e5e5"}`,
+            pb: 2,
+          }}
+        >
+          <LoginIcon sx={{ color: colors.accent }} />
+          Login Required
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography sx={{ color: isDark ? "#ccc" : "#444", mb: 2 }}>
+            To add this expense to your account, you need to be logged in.
+          </Typography>
+          <Typography variant="body2" sx={{ color: isDark ? "#888" : "#666" }}>
+            Don't have an account? You can create one during the login process.
+          </Typography>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            p: 2,
+            pt: 0,
+            borderTop: `1px solid ${isDark ? "#333" : "#e5e5e5"}`,
+            mt: 2,
+          }}
+        >
+          <Button
+            onClick={() => setShowLoginDialog(false)}
+            sx={{
+              color: isDark ? "#888" : "#666",
+              "&:hover": {
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.05)"
+                  : "rgba(0,0,0,0.05)",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<LoginIcon />}
+            onClick={handleLoginRedirect}
+            sx={{
+              backgroundColor: colors.accent,
+              color: "#fff",
+              "&:hover": { backgroundColor: colors.accent_hover },
+            }}
+          >
+            Go to Login
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
