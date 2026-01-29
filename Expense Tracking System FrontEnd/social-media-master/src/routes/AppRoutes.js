@@ -64,12 +64,19 @@ import {
   TermsOfService,
   PrivacyPolicy,
 } from "../pages/Landingpage/HelpSupport";
+import SharedViewPage from "../pages/SharedViewPage";
 
 /**
  * Authentication Routes - Returns Route element directly
+ * Also includes public routes like shared view page
  */
 export const getAuthRoutes = () => (
-  <Route path="/*" element={<Authentication />} />
+  <>
+    {/* Public Share View Route - accessible without authentication */}
+    <Route path="/share/:token" element={<SharedViewPage />} />
+    {/* Authentication routes */}
+    <Route path="/*" element={<Authentication />} />
+  </>
 );
 
 /**
@@ -77,6 +84,9 @@ export const getAuthRoutes = () => (
  */
 export const getAppRoutes = () => (
   <>
+    {/* Public Share View Route - accessible for authenticated users too */}
+    <Route path="/share/:token" element={<SharedViewPage />} />
+    
     <Route path="/" element={<Home />}>
       <Route index element={<Navigate to="/dashboard" />} />
       <Route path="/chats" element={<Chat />} />

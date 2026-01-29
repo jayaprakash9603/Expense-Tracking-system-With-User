@@ -76,11 +76,13 @@ const GenericFlowLayout = ({
     CardsComponent,
     SummaryBar,
     DeleteSelectedButton,
+    ShareSelectedButton,
   },
   // Extra props passed through to individual components
   cardsExtraProps = {},
   summaryExtraProps = {},
   deleteButtonExtraProps = {},
+  shareButtonExtraProps = {},
   formatters: { formatCompactNumber, formatCurrencyCompact, formatNumberFull },
 }) => {
   const { colors } = useTheme();
@@ -135,6 +137,13 @@ const GenericFlowLayout = ({
           zIndex: 5,
         }}
       >
+        {ShareSelectedButton && (
+          <ShareSelectedButton
+            count={shareButtonExtraProps.count ?? selectedCardIdx.length}
+            selectedItems={shareButtonExtraProps.selectedItems ?? []}
+            resourceType={shareButtonExtraProps.resourceType ?? "EXPENSE"}
+          />
+        )}
         <DeleteSelectedButton
           count={deleteButtonExtraProps.count ?? selectedCardIdx.length}
           isMobile={isMobile}
