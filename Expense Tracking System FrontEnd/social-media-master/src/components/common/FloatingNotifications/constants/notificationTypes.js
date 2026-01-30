@@ -27,6 +27,8 @@ import {
   Group,
   Chat,
   Comment,
+  Share,
+  QrCode2,
 } from "@mui/icons-material";
 
 /**
@@ -86,6 +88,26 @@ export const NOTIFICATION_TYPE_CONFIG = {
     defaultDuration: 4000,
     priority: PRIORITY_LEVELS.MEDIUM,
     sound: false,
+  },
+  DATA_SHARED: {
+    icon: QrCode2,
+    color: "#14b8a6", // Teal
+    gradient: "linear-gradient(135deg, #14b8a6, #0d9488)",
+    bgColor: "rgba(20, 184, 166, 0.1)",
+    borderColor: "rgba(20, 184, 166, 0.3)",
+    defaultDuration: 8000,
+    priority: PRIORITY_LEVELS.HIGH,
+    sound: true,
+  },
+  dataShared: {
+    icon: QrCode2,
+    color: "#14b8a6", // Teal
+    gradient: "linear-gradient(135deg, #14b8a6, #0d9488)",
+    bgColor: "rgba(20, 184, 166, 0.1)",
+    borderColor: "rgba(20, 184, 166, 0.3)",
+    defaultDuration: 8000,
+    priority: PRIORITY_LEVELS.HIGH,
+    sound: true,
   },
 
   // ==========================================

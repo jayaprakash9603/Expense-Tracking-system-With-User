@@ -3,18 +3,18 @@
  * MySharesPage - View and Manage All Shared QR Codes
  * =============================================================================
  *
- * Production-grade My Shares page following the MFA/Settings pattern:
+ * Production-grade My Shares page following the Budget.jsx pattern:
  * 1. Display all shared QR codes in card/list view
  * 2. Show share status (active, expired, revoked)
  * 3. Quick actions (view QR, copy link, revoke)
- * 4. Statistics dashboard
+ * 4. Statistics dashboard with SharedOverviewCards
  *
  * @author Expense Tracking System
- * @version 1.0
+ * @version 2.0
  * =============================================================================
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
@@ -37,17 +37,15 @@ import {
   ListItemText,
   TextField,
   InputAdornment,
-  ToggleButtonGroup,
-  ToggleButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Tabs,
   Tab,
-  Badge,
   Skeleton,
   useMediaQuery,
+  LinearProgress,
 } from "@mui/material";
 import {
   QrCode2 as QrCodeIcon,
@@ -80,6 +78,7 @@ import {
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { useTheme } from "../../hooks/useTheme";
+import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
 import {
   fetchMyShares,
   fetchShareStats,
@@ -127,7 +126,6 @@ const MySharesPage = () => {
 
   // Local state
   const [viewMode, setViewMode] = useState("grid");
-  const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedShare, setSelectedShare] = useState(null);
   const [showQrModal, setShowQrModal] = useState(false);
@@ -303,136 +301,73 @@ const MySharesPage = () => {
   };
 
   // ---------------------------------------------------------------------------
-  // Filtered Data
+  // Filtered Data & Statistics
   // ---------------------------------------------------------------------------
 
-  const filteredShares = myShares.filter((share) => {
-    // Filter by status
-    const status = getShareStatus(share);
-    if (filterStatus !== "all" && status !== filterStatus) return false;
+  const activeCount = useMemo(
+    () => myShares.filter((s) => getShareStatus(s) === "active").length,
+    [myShares],
+  );
+  const expiredCount = useMemo(
+    () => myShares.filter((s) => getShareStatus(s) === "expired").length,
+    [myShares],
+  );
+  const revokedCount = useMemo(
+    () => myShares.filter((s) => getShareStatus(s) === "revoked").length,
+    [myShares],
+  );
 
-    // Filter by search
+  // Filter shares based on active tab and search term
+  const filteredShares = useMemo(() => {
+    let filtered = [...myShares];
+
+    // Filter by search term
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      return (
-        share.shareName?.toLowerCase().includes(search) ||
-        share.resourceType?.toLowerCase().includes(search) ||
-        share.token?.toLowerCase().includes(search)
+      filtered = filtered.filter(
+        (share) =>
+          share.shareName?.toLowerCase().includes(search) ||
+          share.resourceType?.toLowerCase().includes(search) ||
+          share.token?.toLowerCase().includes(search),
       );
     }
-    return true;
-  });
 
-  const activeCount = myShares.filter(
-    (s) => getShareStatus(s) === "active",
-  ).length;
-  const expiredCount = myShares.filter(
-    (s) => getShareStatus(s) === "expired",
-  ).length;
-  const revokedCount = myShares.filter(
-    (s) => getShareStatus(s) === "revoked",
-  ).length;
+    // Filter by tab
+    if (activeTab === 1) {
+      filtered = filtered.filter((s) => getShareStatus(s) === "active");
+    } else if (activeTab === 2) {
+      filtered = filtered.filter((s) => getShareStatus(s) === "expired");
+    } else if (activeTab === 3) {
+      filtered = filtered.filter((s) => getShareStatus(s) === "revoked");
+    }
+
+    return filtered;
+  }, [myShares, searchTerm, activeTab]);
+
+  // Prepare data for SharedOverviewCards (shares mode)
+  const overviewCardsData = useMemo(
+    () => [
+      {
+        totalShares: myShares.length,
+        activeShares: activeCount,
+        totalViews: shareStats?.totalAccessCount || 0,
+        expiredShares: expiredCount,
+      },
+    ],
+    [myShares.length, activeCount, expiredCount, shareStats],
+  );
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const handleViewModeToggle = () => {
+    setViewMode(viewMode === "grid" ? "list" : "grid");
+  };
 
   // ---------------------------------------------------------------------------
   // Render Functions
   // ---------------------------------------------------------------------------
-
-  const renderStatsCards = () => (
-    <Grid container spacing={2} sx={{ mb: 3 }}>
-      <Grid item xs={6} sm={3}>
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2,
-            textAlign: "center",
-            backgroundColor: "transparent",
-            border: `1px solid ${colors.border}`,
-            borderLeft: `4px solid ${colors.accent}`,
-            borderRadius: "8px",
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{ color: colors.accent, fontWeight: "bold" }}
-          >
-            {myShares.length}
-          </Typography>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-            Total Shares
-          </Typography>
-        </Paper>
-      </Grid>
-      <Grid item xs={6} sm={3}>
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2,
-            textAlign: "center",
-            backgroundColor: "transparent",
-            border: `1px solid ${colors.border}`,
-            borderLeft: `4px solid ${STATUS_COLORS.active}`,
-            borderRadius: "8px",
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{ color: STATUS_COLORS.active, fontWeight: "bold" }}
-          >
-            {activeCount}
-          </Typography>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-            Active
-          </Typography>
-        </Paper>
-      </Grid>
-      <Grid item xs={6} sm={3}>
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2,
-            textAlign: "center",
-            backgroundColor: "transparent",
-            border: `1px solid ${colors.border}`,
-            borderLeft: `4px solid ${STATUS_COLORS.expired}`,
-            borderRadius: "8px",
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{ color: STATUS_COLORS.expired, fontWeight: "bold" }}
-          >
-            {expiredCount}
-          </Typography>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-            Expired
-          </Typography>
-        </Paper>
-      </Grid>
-      <Grid item xs={6} sm={3}>
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2,
-            textAlign: "center",
-            backgroundColor: "transparent",
-            border: `1px solid ${colors.border}`,
-            borderLeft: `4px solid ${shareStats?.totalAccessCount || 0 > 0 ? colors.info : colors.secondary_text}`,
-            borderRadius: "8px",
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{ color: colors.info, fontWeight: "bold" }}
-          >
-            {shareStats?.totalAccessCount || 0}
-          </Typography>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-            Total Views
-          </Typography>
-        </Paper>
-      </Grid>
-    </Grid>
-  );
 
   const renderShareCard = (share) => {
     const status = getShareStatus(share);
@@ -447,151 +382,196 @@ const MySharesPage = () => {
     return (
       <Card
         key={share.id}
-        elevation={0}
         sx={{
-          backgroundColor: colors.card_bg,
+          background: `linear-gradient(135deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
           border: `1px solid ${colors.border}`,
-          borderTop: `3px solid ${statusColor}`,
-          borderRadius: "8px",
-          transition: "transform 0.2s, box-shadow 0.2s",
+          borderRadius: "12px",
+          transition: "all 0.3s ease",
+          position: "relative",
           "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: `0 4px 20px rgba(0, 0, 0, 0.3)`,
+            transform: "translateY(-4px)",
+            boxShadow: `0 8px 24px rgba(20, 184, 166, 0.15)`,
+            borderColor: colors.accent,
           },
         }}
       >
-        <CardContent>
+        <CardContent sx={{ pb: 1, pt: 1.5, px: 2 }}>
+          {/* Header */}
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              mb: 2,
+              mb: 1,
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              {RESOURCE_ICONS[share.resourceType] || <QrCodeIcon />}
-              <Typography variant="h6" sx={{ color: colors.primary_text }}>
-                {share.shareName || `${share.resourceType} Share`}
-              </Typography>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}
+              >
+                {RESOURCE_ICONS[share.resourceType] || (
+                  <QrCodeIcon sx={{ color: colors.accent, fontSize: 20 }} />
+                )}
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    color: colors.primary_text,
+                    fontWeight: 600,
+                    fontSize: "0.95rem",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {share.shareName || `${share.resourceType} Share`}
+                </Typography>
+              </Box>
+              <Chip
+                label={status.charAt(0).toUpperCase() + status.slice(1)}
+                size="small"
+                sx={{
+                  bgcolor: `${statusColor}20`,
+                  color: statusColor,
+                  fontWeight: 600,
+                  fontSize: "0.7rem",
+                  height: "20px",
+                }}
+              />
             </Box>
             <IconButton
               size="small"
               onClick={(e) => handleMenuOpen(e, share.id)}
+              sx={{
+                color: colors.accent,
+                "&:hover": { bgcolor: colors.hover_bg },
+              }}
             >
-              <MoreIcon sx={{ color: colors.secondary_text }} />
+              <MoreIcon fontSize="small" />
             </IconButton>
           </Box>
 
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
-            <Chip
-              icon={<StatusIcon sx={{ fontSize: 16 }} />}
-              label={status.charAt(0).toUpperCase() + status.slice(1)}
-              size="small"
-              sx={{
-                backgroundColor: `${statusColor}20`,
-                color: statusColor,
-                fontWeight: 500,
-              }}
-            />
+          {/* Info Row */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              mb: 1,
+              flexWrap: "wrap",
+            }}
+          >
             <Chip
               icon={
                 share.permission === "VIEW" ? (
-                  <ViewIcon sx={{ fontSize: 16 }} />
+                  <ViewIcon sx={{ fontSize: 14 }} />
                 ) : (
-                  <EditIcon sx={{ fontSize: 16 }} />
+                  <EditIcon sx={{ fontSize: 14 }} />
                 )
               }
               label={share.permission}
               size="small"
               sx={{
-                backgroundColor: colors.hover_bg,
+                bgcolor: colors.hover_bg,
                 color: colors.primary_text,
+                height: "22px",
+                fontSize: "0.7rem",
               }}
             />
             <Chip
               label={`${share.resourceCount || 0} items`}
               size="small"
               sx={{
-                backgroundColor: colors.hover_bg,
+                bgcolor: colors.hover_bg,
                 color: colors.secondary_text,
+                height: "22px",
+                fontSize: "0.7rem",
               }}
             />
           </Box>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <TimeIcon sx={{ fontSize: 16, color: colors.secondary_text }} />
-              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+          {/* Stats Row */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <TimeIcon sx={{ fontSize: 14, color: colors.secondary_text }} />
+              <Typography
+                variant="caption"
+                sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+              >
                 {getTimeRemaining(share.expiresAt)}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <PersonIcon sx={{ fontSize: 16, color: colors.secondary_text }} />
-              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <PersonIcon sx={{ fontSize: 14, color: colors.secondary_text }} />
+              <Typography
+                variant="caption"
+                sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+              >
                 {share.accessCount || 0} views
               </Typography>
             </Box>
-            {/* Share URL */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                mt: 1,
-                p: 1,
-                backgroundColor: colors.hover_bg || colors.background,
-                borderRadius: 1,
-                cursor: "pointer",
-                "&:hover": {
-                  backgroundColor: colors.border,
-                },
-              }}
-              onClick={() =>
-                copyToClipboard(
-                  share.shareUrl ||
-                    `${window.location.origin}/share/${share.token}`,
-                  share.id,
-                )
-              }
-            >
-              <LinkIcon sx={{ fontSize: 14, color: colors.accent }} />
-              <Typography
-                variant="caption"
-                sx={{
-                  color: colors.secondary_text,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  flex: 1,
-                }}
-              >
-                {share.shareUrl ||
-                  `${window.location.origin}/share/${share.token}`}
-              </Typography>
-              {copied === share.id ? (
-                <CheckIcon sx={{ fontSize: 14, color: STATUS_COLORS.active }} />
-              ) : (
-                <CopyIcon sx={{ fontSize: 14, color: colors.secondary_text }} />
-              )}
-            </Box>
+          </Box>
+
+          {/* Share URL - Compact */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              p: 0.75,
+              bgcolor: colors.hover_bg,
+              borderRadius: "6px",
+              cursor: "pointer",
+              "&:hover": {
+                bgcolor: colors.border,
+              },
+            }}
+            onClick={() =>
+              copyToClipboard(
+                share.shareUrl ||
+                  `${window.location.origin}/share/${share.token}`,
+                share.id,
+              )
+            }
+          >
+            <LinkIcon sx={{ fontSize: 12, color: colors.accent }} />
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, mt: 0.5 }}
+              sx={{
+                color: colors.secondary_text,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                flex: 1,
+                fontSize: "0.7rem",
+              }}
             >
-              Created: {formatDate(share.createdAt)}
+              {share.shareUrl ||
+                `${window.location.origin}/share/${share.token}`}
             </Typography>
+            {copied === share.id ? (
+              <CheckIcon sx={{ fontSize: 12, color: STATUS_COLORS.active }} />
+            ) : (
+              <CopyIcon sx={{ fontSize: 12, color: colors.secondary_text }} />
+            )}
           </Box>
         </CardContent>
 
-        <Divider sx={{ borderColor: colors.border }} />
-
-        <CardActions sx={{ justifyContent: "space-between", px: 2, py: 1 }}>
+        <CardActions
+          sx={{
+            justifyContent: "flex-end",
+            px: 1.5,
+            pb: 1,
+            pt: 0,
+            borderTop: `1px solid ${colors.border}`,
+          }}
+        >
           <Tooltip title="View QR Code">
             <IconButton
               size="small"
               onClick={() => handleViewQr(share)}
-              sx={{ color: colors.accent }}
+              sx={{
+                color: colors.accent,
+                "&:hover": { bgcolor: colors.hover_bg },
+              }}
               disabled={status === "revoked" || qrLoading}
             >
               <QrCodeIcon />
@@ -622,20 +602,26 @@ const MySharesPage = () => {
             <IconButton
               size="small"
               onClick={() => handleDownloadQr(share)}
-              sx={{ color: colors.secondary_text }}
+              sx={{
+                color: colors.secondary_text,
+                "&:hover": { bgcolor: colors.hover_bg },
+              }}
               disabled={status === "revoked" || qrLoading}
             >
-              <DownloadIcon />
+              <DownloadIcon fontSize="small" />
             </IconButton>
           </Tooltip>
           <Tooltip title="Revoke Share">
             <IconButton
               size="small"
               onClick={() => handleRevokeClick(share)}
-              sx={{ color: colors.error }}
+              sx={{
+                color: colors.error,
+                "&:hover": { bgcolor: `${colors.error}20` },
+              }}
               disabled={status !== "active"}
             >
-              <DeleteIcon />
+              <DeleteIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </CardActions>
@@ -644,36 +630,46 @@ const MySharesPage = () => {
   };
 
   const renderEmptyState = () => (
-    <Paper
-      elevation={0}
+    <Box
       sx={{
-        p: 6,
+        p: 4,
         textAlign: "center",
         backgroundColor: "transparent",
         border: `2px dashed ${colors.border}`,
         borderRadius: "12px",
       }}
     >
-      <QrCodeIcon sx={{ fontSize: 64, color: colors.secondary_text, mb: 2 }} />
-      <Typography variant="h6" sx={{ color: colors.primary_text, mb: 1 }}>
+      <QrCodeIcon
+        sx={{ fontSize: 48, color: colors.secondary_text, mb: 1.5 }}
+      />
+      <Typography
+        variant="h6"
+        sx={{ color: colors.primary_text, mb: 0.5, fontSize: "1rem" }}
+      >
         No shares yet
       </Typography>
-      <Typography variant="body2" sx={{ color: colors.secondary_text, mb: 3 }}>
-        Create your first share to generate a QR code and share your data with
-        friends.
+      <Typography
+        variant="body2"
+        sx={{ color: colors.secondary_text, mb: 2, fontSize: "0.85rem" }}
+      >
+        Create your first share to generate a QR code.
       </Typography>
       <Button
         variant="contained"
-        startIcon={<AddIcon />}
+        startIcon={<AddIcon fontSize="small" />}
         onClick={() => setShowShareModal(true)}
         sx={{
+          textTransform: "none",
           backgroundColor: colors.accent,
+          px: 2,
+          py: 0.75,
+          fontSize: "0.875rem",
           "&:hover": { backgroundColor: colors.accent_hover },
         }}
       >
         Create New Share
       </Button>
-    </Paper>
+    </Box>
   );
 
   // ---------------------------------------------------------------------------
@@ -685,35 +681,41 @@ const MySharesPage = () => {
       <Box
         sx={{
           backgroundColor: colors.secondary_bg,
-          width: isSmallScreen
-            ? "100vw"
-            : isTablet
-              ? "100vw"
-              : "calc(100vw - 370px)",
-          height: isSmallScreen
-            ? "auto"
-            : isTablet
-              ? "auto"
-              : "calc(100vh - 100px)",
-          minHeight: isSmallScreen ? "100vh" : "auto",
-          marginRight: isSmallScreen ? 0 : isTablet ? 0 : "20px",
-          borderRadius: isSmallScreen ? 0 : "8px",
-          boxSizing: "border-box",
-          overflow: "auto",
-          p: isSmallScreen ? 2 : 3,
+          width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
+          height: "calc(100vh - 100px)",
+          borderRadius: "8px",
+          border: `1px solid ${colors.border}`,
+          p: isSmallScreen ? 1.5 : 2,
+          mr: isSmallScreen ? 0 : "20px",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
         }}
       >
+        <Skeleton variant="text" height={40} width={200} sx={{ mb: 1 }} />
+        <Divider sx={{ mb: 1.5 }} />
         <Skeleton
           variant="rectangular"
           height={100}
-          sx={{ mb: 2, borderRadius: 2 }}
+          sx={{ mb: 1.5, borderRadius: 2 }}
         />
-        <Grid container spacing={2}>
-          {[1, 2, 3, 4].map((i) => (
-            <Grid item xs={12} sm={6} md={4} key={i}>
+        <Skeleton
+          variant="rectangular"
+          height={48}
+          sx={{ mb: 1.5, borderRadius: 2 }}
+        />
+        <Skeleton
+          variant="rectangular"
+          height={40}
+          width={400}
+          sx={{ mb: 1.5, borderRadius: 2 }}
+        />
+        <Grid container spacing={1.5}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
               <Skeleton
                 variant="rectangular"
-                height={200}
+                height={150}
                 sx={{ borderRadius: 2 }}
               />
             </Grid>
@@ -727,206 +729,262 @@ const MySharesPage = () => {
     <Box
       sx={{
         backgroundColor: colors.secondary_bg,
-        width: isSmallScreen
-          ? "100vw"
-          : isTablet
-            ? "100vw"
-            : "calc(100vw - 370px)",
-        height: isSmallScreen
-          ? "auto"
-          : isTablet
-            ? "auto"
-            : "calc(100vh - 100px)",
-        minHeight: isSmallScreen ? "100vh" : "auto",
-        marginRight: isSmallScreen ? 0 : isTablet ? 0 : "20px",
-        borderRadius: isSmallScreen ? 0 : "8px",
-        boxSizing: "border-box",
-        overflow: "auto",
-        p: isSmallScreen ? 2 : 3,
+        width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
+        height: "calc(100vh - 100px)",
+        borderRadius: "8px",
+        border: `1px solid ${colors.border}`,
+        p: isSmallScreen ? 1.5 : 2,
+        mr: isSmallScreen ? 0 : "20px",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
       }}
     >
-      {/* Header */}
+      {/* Header Section */}
       <Box
         sx={{
           display: "flex",
+          flexDirection: isSmallScreen ? "column" : "row",
           justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
+          alignItems: isSmallScreen ? "flex-start" : "center",
+          mb: 1.5,
+          gap: isSmallScreen ? 1 : 2,
         }}
       >
-        <Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Typography
-            variant="h4"
-            sx={{ color: colors.primary_text, fontWeight: "bold" }}
+            variant="h3"
+            sx={{
+              color: colors.primary_text,
+              fontWeight: "bold",
+              fontSize: isSmallScreen ? "1.25rem" : "1.5rem",
+            }}
           >
             My Shares
           </Typography>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-            Manage your shared QR codes and track access
-          </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 1 }}>
+
+        {/* Action Buttons */}
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
           <Tooltip title="Refresh">
-            <IconButton onClick={loadData} disabled={mySharesLoading}>
-              <RefreshIcon sx={{ color: colors.secondary_text }} />
+            <IconButton
+              onClick={loadData}
+              disabled={mySharesLoading}
+              sx={{
+                color: colors.accent,
+                bgcolor: colors.card_bg,
+                border: `1px solid ${colors.border}`,
+                borderRadius: "6px",
+                width: 36,
+                height: 36,
+                "&:hover": {
+                  bgcolor: colors.hover_bg,
+                  borderColor: colors.accent,
+                },
+              }}
+            >
+              <RefreshIcon fontSize="small" />
             </IconButton>
           </Tooltip>
           <Button
             variant="contained"
-            startIcon={<AddIcon />}
+            startIcon={<AddIcon fontSize="small" />}
             onClick={() => setShowShareModal(true)}
             sx={{
-              backgroundColor: colors.accent,
-              "&:hover": { backgroundColor: colors.accent_hover },
+              textTransform: "none",
+              bgcolor: colors.accent,
+              color: "#fff",
+              fontWeight: 600,
+              px: 2,
+              py: 0.75,
+              fontSize: "0.875rem",
+              borderRadius: "6px",
+              "&:hover": {
+                bgcolor: colors.accent_hover,
+              },
             }}
           >
             New Share
           </Button>
+          <IconButton
+            onClick={handleViewModeToggle}
+            sx={{
+              color: colors.accent,
+              bgcolor: colors.card_bg,
+              border: `1px solid ${colors.border}`,
+              borderRadius: "6px",
+              width: 36,
+              height: 36,
+              "&:hover": {
+                bgcolor: colors.hover_bg,
+                borderColor: colors.accent,
+              },
+            }}
+          >
+            {viewMode === "grid" ? (
+              <ListViewIcon fontSize="small" />
+            ) : (
+              <GridViewIcon fontSize="small" />
+            )}
+          </IconButton>
         </Box>
       </Box>
 
+      <Divider sx={{ borderColor: colors.border, mb: 1.5 }} />
+
       {/* Error Alert */}
       {mySharesError && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => {}}>
+        <Alert severity="error" sx={{ mb: 1.5 }} onClose={() => {}}>
           {mySharesError}
         </Alert>
       )}
 
-      {/* Stats Cards */}
-      {renderStatsCards()}
+      {/* Statistics Cards */}
+      <SharedOverviewCards data={overviewCardsData} mode="shares" />
 
-      {/* Filters & Controls */}
-      <Paper
-        elevation={0}
+      {/* Tabs */}
+      <Box
         sx={{
-          p: 2,
-          mb: 3,
-          backgroundColor: "transparent",
-          border: `1px solid ${colors.border}`,
-          borderRadius: "8px",
+          mb: 1.5,
+          borderRadius: "12px",
+          overflow: "hidden",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+          backgroundColor: colors.card_bg,
+          border: "none",
         }}
       >
-        <Box
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="fullWidth"
           sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 2,
-            alignItems: "center",
+            "& .MuiTab-root": {
+              fontWeight: 600,
+              fontSize: "0.9rem",
+              textTransform: "none",
+              py: 1.5,
+              minHeight: 48,
+              color: colors.secondary_text,
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              "&.Mui-selected": {
+                color: colors.accent,
+                transform: "scale(1.02)",
+              },
+              "&:hover": {
+                color: colors.accent,
+                backgroundColor: `${colors.accent}14`,
+              },
+            },
+            "& .MuiTabs-indicator": {
+              height: 3,
+              borderRadius: "3px 3px 0 0",
+              backgroundColor: colors.accent,
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            },
           }}
         >
-          <TextField
-            size="small"
-            placeholder="Search shares..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: colors.secondary_text }} />
-                </InputAdornment>
-              ),
-              sx: {
-                color: colors.primary_text,
-                backgroundColor: colors.card_bg,
-                borderRadius: "8px",
-                "& fieldset": {
-                  borderColor: colors.border,
-                },
-                "&:hover fieldset": {
-                  borderColor: colors.accent,
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: colors.accent,
-                },
-              },
-            }}
-            sx={{ minWidth: 200, flexGrow: 1, maxWidth: 300 }}
-          />
+          <Tab label={`All (${myShares.length})`} />
+          <Tab label={`Active (${activeCount})`} />
+          <Tab label={`Expired (${expiredCount})`} />
+          <Tab label={`Revoked (${revokedCount})`} />
+        </Tabs>
+      </Box>
 
-          <ToggleButtonGroup
-            value={filterStatus}
-            exclusive
-            onChange={(_, v) => v && setFilterStatus(v)}
-            size="small"
-            sx={{
-              "& .MuiToggleButton-root": {
-                color: colors.secondary_text,
+      {/* Search & Filter Bar */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
+          border: `1px solid ${colors.border}`,
+          borderRadius: "12px",
+          p: 1.5,
+          mb: 1.5,
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <TextField
+          placeholder="Search by name, type, or token..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          size="small"
+          fullWidth
+          variant="outlined"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: colors.accent, fontSize: "1.2rem" }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            maxWidth: isSmallScreen ? "100%" : 400,
+            "& .MuiOutlinedInput-root": {
+              bgcolor: colors.secondary_bg,
+              color: colors.primary_text,
+              borderRadius: "8px",
+              height: "40px",
+              "& fieldset": {
                 borderColor: colors.border,
-                "&.Mui-selected": {
-                  backgroundColor: colors.accent,
-                  color: "#fff",
-                  "&:hover": {
-                    backgroundColor: colors.accent_hover,
-                  },
-                },
+                borderWidth: "1.5px",
               },
-            }}
-          >
-            <ToggleButton value="all">All ({myShares.length})</ToggleButton>
-            <ToggleButton value="active">
-              <Badge
-                badgeContent={activeCount}
-                color="success"
-                sx={{ "& .MuiBadge-badge": { right: -8 } }}
+              "&:hover fieldset": {
+                borderColor: colors.accent,
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: colors.accent,
+                borderWidth: "2px",
+              },
+            },
+            "& .MuiInputBase-input": {
+              fontSize: "0.875rem",
+              "&::placeholder": {
+                color: colors.secondary_text,
+                opacity: 0.8,
+              },
+            },
+          }}
+        />
+      </Box>
+
+      {/* Shares Grid/List - Scrollable Area */}
+      <Box
+        sx={{
+          flex: 1,
+          overflow: "auto",
+          pr: 0.5,
+          "&::-webkit-scrollbar": {
+            width: "6px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: colors.border,
+            borderRadius: "3px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: colors.accent,
+          },
+        }}
+      >
+        {filteredShares.length === 0 ? (
+          renderEmptyState()
+        ) : (
+          <Grid container spacing={1.5}>
+            {filteredShares.map((share) => (
+              <Grid
+                item
+                xs={12}
+                sm={viewMode === "list" ? 12 : 6}
+                md={viewMode === "list" ? 12 : 4}
+                lg={viewMode === "list" ? 12 : 3}
+                key={share.id}
               >
-                Active
-              </Badge>
-            </ToggleButton>
-            <ToggleButton value="expired">
-              Expired ({expiredCount})
-            </ToggleButton>
-            <ToggleButton value="revoked">
-              Revoked ({revokedCount})
-            </ToggleButton>
-          </ToggleButtonGroup>
-
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={(_, v) => v && setViewMode(v)}
-            size="small"
-            sx={{
-              "& .MuiToggleButton-root": {
-                color: colors.secondary_text,
-                borderColor: colors.border,
-                "&.Mui-selected": {
-                  backgroundColor: colors.accent,
-                  color: "#fff",
-                  "&:hover": {
-                    backgroundColor: colors.accent_hover,
-                  },
-                },
-              },
-            }}
-          >
-            <ToggleButton value="grid">
-              <GridViewIcon />
-            </ToggleButton>
-            <ToggleButton value="list">
-              <ListViewIcon />
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
-      </Paper>
-
-      {/* Shares Grid/List */}
-      {filteredShares.length === 0 ? (
-        renderEmptyState()
-      ) : (
-        <Grid container spacing={2}>
-          {filteredShares.map((share) => (
-            <Grid
-              item
-              xs={12}
-              sm={viewMode === "list" ? 12 : 6}
-              md={viewMode === "list" ? 12 : 4}
-              key={share.id}
-            >
-              {renderShareCard(share)}
-            </Grid>
-          ))}
-        </Grid>
-      )}
+                {renderShareCard(share)}
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Box>
 
       {/* Context Menu */}
       <Menu

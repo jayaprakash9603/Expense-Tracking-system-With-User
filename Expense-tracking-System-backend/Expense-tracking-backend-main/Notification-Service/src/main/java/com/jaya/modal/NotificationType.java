@@ -57,6 +57,7 @@ public enum NotificationType {
     ACCESS_LEVEL_CHANGED,
     USER_BLOCKED,
     USER_UNBLOCKED,
+    DATA_SHARED, // Share data with friend notification
 
     // Friend Activity Notifications (actions performed by friends on user's behalf)
     // Expense

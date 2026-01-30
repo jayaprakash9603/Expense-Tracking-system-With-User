@@ -12,6 +12,7 @@ import { useTheme } from "../../hooks/useTheme";
  * For admin-users mode we show: Total Users, Active Users, Admins, New This Month
  * For admin-audit mode we show: Total Logs, User Management, Data Changes, Authentication
  * For admin-reports mode we show: Report Types, Generated This Month, Total Reports, Avg Size
+ * For shares mode we show: Total Shares, Active Shares, Total Views, Expired Shares
  */
 const SharedOverviewCards = ({
   data = [],
@@ -27,6 +28,7 @@ const SharedOverviewCards = ({
   const isExpenses = mode === "expenses";
   const isBudget = mode === "budget";
   const isFriendship = mode === "friendship";
+  const isShares = mode === "shares";
   const isAdminAnalytics = mode === "admin-analytics";
   const isAdminUsers = mode === "admin-users";
   const isAdminAudit = mode === "admin-audit";
@@ -276,6 +278,126 @@ const SharedOverviewCards = ({
               style={{ ...cardChangeStyle, color: "#10b981" }}
             >
               Available budget
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Shares mode renders different cards
+  if (isShares) {
+    const sharesData = safe[0] || {};
+    const totalShares = sharesData.totalShares || 0;
+    const activeShares = sharesData.activeShares || 0;
+    const totalViews = sharesData.totalViews || 0;
+    const expiredShares = sharesData.expiredShares || 0;
+
+    return (
+      <div
+        className="shared-overview-cards shares-overview-cards"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "16px",
+          marginBottom: "16px",
+        }}
+      >
+        {/* Total Shares */}
+        <div
+          className="overview-card primary"
+          style={getCardStyleWithBorder(borderColors.primary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            📤
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Shares</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {totalShares}
+            </div>
+            <div
+              className="card-change"
+              style={{ ...cardChangeStyle, color: "#14b8a6" }}
+            >
+              All shares created
+            </div>
+          </div>
+        </div>
+
+        {/* Active Shares */}
+        <div
+          className="overview-card secondary"
+          style={getCardStyleWithBorder(borderColors.secondary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            ✅
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Active Shares</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {activeShares}
+            </div>
+            <div
+              className="card-change positive"
+              style={{ ...cardChangeStyle, color: "#10b981" }}
+            >
+              Currently active
+            </div>
+          </div>
+        </div>
+
+        {/* Total Views */}
+        <div
+          className="overview-card tertiary"
+          style={getCardStyleWithBorder(borderColors.tertiary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            👁️
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Total Views</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {totalViews}
+            </div>
+            <div
+              className="card-change"
+              style={{
+                ...cardChangeStyle,
+                color: themeMode === "dark" ? "#888" : "#666",
+              }}
+            >
+              Share accesses
+            </div>
+          </div>
+        </div>
+
+        {/* Expired Shares */}
+        <div
+          className="overview-card quaternary"
+          style={getCardStyleWithBorder(borderColors.quaternary)}
+          onMouseEnter={hoverEffect}
+          onMouseLeave={removeHoverEffect}
+        >
+          <div className="card-icon" style={cardIconStyle}>
+            ⏱️
+          </div>
+          <div className="card-content">
+            <h3 style={cardTitleStyle}>Expired Shares</h3>
+            <div className="card-value" style={cardValueStyle}>
+              {expiredShares}
+            </div>
+            <div
+              className="card-change"
+              style={{ ...cardChangeStyle, color: "#f59e0b" }}
+            >
+              No longer valid
             </div>
           </div>
         </div>

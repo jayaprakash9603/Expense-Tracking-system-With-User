@@ -169,6 +169,17 @@ const NotificationsPanel = ({
         case "PAYMENT_METHOD_UPDATED":
           navigate("/payment-methods");
           break;
+        case "DATA_SHARED":
+        case "dataShared":
+          // Navigate to shared data view if URL is available
+          if (metadata.shareUrl) {
+            window.open(metadata.shareUrl, "_blank");
+          } else if (metadata.shareToken) {
+            navigate(`/shared/${metadata.shareToken}`);
+          } else {
+            navigate("/shares/received");
+          }
+          break;
         default:
           // Do nothing for unknown types
           break;

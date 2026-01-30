@@ -73,7 +73,7 @@ const themeColor = "#14b8a6";
 // Update the color of edit, lock, and view icons
 const iconColor = "#14b8a6";
 
-const Friends = () => {
+const Friends = ({ defaultTab = 0 }) => {
   const { colors } = useTheme();
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const dispatch = useDispatch();
@@ -157,7 +157,7 @@ const Friends = () => {
   const [requestsFilterOn, setRequestsFilterOn] = useState(false);
   const [friendsFilterOn, setFriendsFilterOn] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState(null);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -184,31 +184,16 @@ const Friends = () => {
     (state) => state.friendActivity?.unreadCount || 0,
   );
 
-  // Sync activeTab with URL parameter - runs on mount AND when searchParams change
-  // This is the source of truth approach - URL drives the state
-  const lastProcessedTabRef = useRef(null);
+  // Sync activeTab with URL parameter - URL is source of truth
   useEffect(() => {
     const tabParam = searchParams.get("tab");
     if (tabParam !== null) {
       const tabIndex = parseInt(tabParam, 10);
-      // Only update if it's a valid tab and different from what we last processed
-      if (
-        !isNaN(tabIndex) &&
-        tabIndex >= 0 &&
-        tabIndex <= 3 &&
-        lastProcessedTabRef.current !== tabParam
-      ) {
-        lastProcessedTabRef.current = tabParam;
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
         setActiveTab(tabIndex);
-        // Clean up URL after applying the tab (use setTimeout to avoid state update during render)
-        setTimeout(() => {
-          const newSearchParams = new URLSearchParams(searchParams);
-          newSearchParams.delete("tab");
-          setSearchParams(newSearchParams, { replace: true });
-        }, 0);
       }
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams]);
 
   // Persist filters across navigation (localStorage)
   useEffect(() => {
@@ -376,10 +361,13 @@ const Friends = () => {
   //   }
   // }, [respondToRequestError]);
 
-  // Handle tab change
+  // Handle tab change - update URL to keep tab in sync
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
     setSelectedFriend(null);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("tab", newValue.toString());
+    setSearchParams(newSearchParams, { replace: true });
   };
 
   // Handle search input change - just filter locally

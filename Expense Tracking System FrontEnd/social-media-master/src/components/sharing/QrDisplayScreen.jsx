@@ -138,23 +138,31 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
-      BackdropProps={{
-        sx: {
-          backgroundColor: "rgba(0, 0, 0, 0.6)",
-          backdropFilter: "blur(4px)",
+      slotProps={{
+        backdrop: {
+          sx: {
+            backgroundColor: isDark
+              ? "rgba(0, 0, 0, 0.75)"
+              : "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(4px)",
+          },
         },
       }}
       PaperProps={{
         sx: {
-          backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
-          color: isDark ? "#fff" : "#1a1a1a",
+          backgroundColor: colors.modal_bg,
+          color: colors.primary_text,
           borderRadius: 3,
-          border: isDark
-            ? "1px solid rgba(255, 255, 255, 0.1)"
-            : "1px solid rgba(0, 0, 0, 0.1)",
+          width: 520,
+          maxWidth: "95vw",
+          height: "auto",
+          maxHeight: "92vh",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
           boxShadow: isDark
-            ? "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
-            : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            ? "0 24px 48px rgba(0, 0, 0, 0.4)"
+            : "0 24px 48px rgba(0, 0, 0, 0.15)",
         },
       }}
     >
@@ -163,40 +171,75 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          borderBottom: `1px solid ${isDark ? "#333" : "#e5e5e5"}`,
-          color: isDark ? "#fff" : "#1a1a1a",
+          borderBottom: `1px solid ${colors.border}`,
+          py: 2,
+          px: 3,
+          backgroundColor: colors.card_bg,
+          flexShrink: 0,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <QrCodeIcon sx={{ color: colors.accent }} />
-          <Typography variant="h6" sx={{ color: isDark ? "#fff" : "#1a1a1a" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: 1.5,
+              backgroundColor: colors.accent,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <QrCodeIcon sx={{ color: "#fff", fontSize: 20 }} />
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{ color: colors.primary_text, fontWeight: 600 }}
+          >
             {share.shareName || "Share QR Code"}
           </Typography>
         </Box>
-        <IconButton onClick={handleClose} size="small">
-          <CloseIcon sx={{ color: isDark ? "#888" : "#666" }} />
+        <IconButton
+          onClick={handleClose}
+          size="small"
+          sx={{ color: colors.secondary_text }}
+        >
+          <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3, textAlign: "center" }}>
+      <DialogContent
+        sx={{
+          pt: 3,
+          pb: 2,
+          px: 3,
+          textAlign: "center",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          overflow: "hidden",
+        }}
+      >
         {/* QR Code Display */}
         <Box
           sx={{
             display: "flex",
             justifyContent: "center",
-            mb: 3,
+            mb: 2,
             p: 2,
             backgroundColor: "#fff",
             borderRadius: 2,
-            width: "fit-content",
-            margin: "0 auto",
+            boxShadow: isDark
+              ? "0 4px 12px rgba(0, 0, 0, 0.3)"
+              : "0 4px 12px rgba(0, 0, 0, 0.1)",
           }}
         >
           {regenerating ? (
             <Box
               sx={{
-                width: 250,
-                height: 250,
+                width: 200,
+                height: 200,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -213,13 +256,13 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             <img
               src={currentQrCode}
               alt="Share QR Code"
-              style={{ width: 250, height: 250 }}
+              style={{ width: 200, height: 200 }}
             />
           ) : (
             <Box
               sx={{
-                width: 250,
-                height: 250,
+                width: 200,
+                height: 200,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -236,7 +279,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
         </Box>
 
         {/* QR Actions */}
-        <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 2 }}>
           <Tooltip title="Download QR Code">
             <span>
               <IconButton
@@ -280,18 +323,19 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           InputProps={{
             readOnly: true,
             sx: {
-              color: isDark ? "#fff" : "#1a1a1a",
-              fontSize: "0.9rem",
-              backgroundColor: isDark ? "#333" : "#f5f5f5",
+              color: colors.primary_text,
+              fontSize: "0.85rem",
+              backgroundColor: colors.card_bg,
+              borderRadius: 2,
             },
             endAdornment: (
               <InputAdornment position="end">
                 <Tooltip title={copied ? "Copied!" : "Copy Link"}>
-                  <IconButton onClick={handleCopyLink}>
+                  <IconButton onClick={handleCopyLink} size="small">
                     {copied ? (
-                      <CheckIcon sx={{ color: "green" }} />
+                      <CheckIcon sx={{ color: colors.success, fontSize: 20 }} />
                     ) : (
-                      <CopyIcon sx={{ color: colors.accent }} />
+                      <CopyIcon sx={{ color: colors.accent, fontSize: 20 }} />
                     )}
                   </IconButton>
                 </Tooltip>
@@ -299,10 +343,10 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             ),
           }}
           sx={{
-            mb: 3,
+            mb: 2,
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
-                borderColor: isDark ? "#444" : "#ddd",
+                borderColor: colors.border,
               },
               "&:hover fieldset": {
                 borderColor: colors.accent,
@@ -311,14 +355,12 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           }}
         />
 
-        <Divider sx={{ my: 2, borderColor: isDark ? "#333" : "#e5e5e5" }} />
-
         {/* Share Info */}
         <Box
           sx={{
             display: "flex",
             justifyContent: "center",
-            gap: 2,
+            gap: 1.5,
             flexWrap: "wrap",
             mb: 2,
           }}
@@ -327,10 +369,12 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           <Chip
             icon={share.permission === "VIEW" ? <ViewIcon /> : <EditIcon />}
             label={share.permission === "VIEW" ? "View Only" : "Edit Access"}
+            size="small"
             sx={{
-              backgroundColor:
-                share.permission === "VIEW" ? colors.info : colors.warning,
-              color: "#fff",
+              backgroundColor: `${colors.accent}20`,
+              color: colors.accent,
+              fontWeight: 500,
+              "& .MuiChip-icon": { color: colors.accent },
             }}
           />
 
@@ -338,25 +382,30 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           <Chip
             icon={<TimeIcon />}
             label={formatExpiry(share.expiresAt)}
+            size="small"
             sx={{
-              backgroundColor: isDark ? "#333" : "#f0f0f0",
-              color: isDark ? "#ccc" : "#444",
+              backgroundColor: colors.card_bg,
+              color: colors.secondary_text,
+              border: `1px solid ${colors.border}`,
+              "& .MuiChip-icon": { color: colors.secondary_text },
             }}
           />
 
           {/* Resource Count */}
           <Chip
             label={`${share.resourceCount || 0} items`}
+            size="small"
             sx={{
-              backgroundColor: isDark ? "#333" : "#f0f0f0",
-              color: isDark ? "#ccc" : "#444",
+              backgroundColor: colors.card_bg,
+              color: colors.secondary_text,
+              border: `1px solid ${colors.border}`,
             }}
           />
         </Box>
 
         {/* Status */}
         {share.isActive === false && (
-          <Alert severity="warning" sx={{ mt: 2 }}>
+          <Alert severity="warning" sx={{ mt: 1, width: "100%" }}>
             This share has been revoked and is no longer accessible.
           </Alert>
         )}
@@ -364,7 +413,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
         {/* Instructions */}
         <Typography
           variant="body2"
-          sx={{ color: colors.secondary_text, mt: 2 }}
+          sx={{ color: colors.secondary_text, mt: 1, fontSize: "0.8rem" }}
         >
           Scan the QR code or share the link with friends to give them access to
           your data.
@@ -374,9 +423,11 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
       <DialogActions
         sx={{
           px: 3,
-          pb: 3,
+          py: 2,
           borderTop: `1px solid ${colors.border}`,
+          backgroundColor: colors.card_bg,
           justifyContent: "space-between",
+          flexShrink: 0,
         }}
       >
         {/* Revoke Button */}

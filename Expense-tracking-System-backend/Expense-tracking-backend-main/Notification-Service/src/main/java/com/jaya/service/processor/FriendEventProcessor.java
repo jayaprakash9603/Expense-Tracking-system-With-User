@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 /**
  * Processor for Friend events
  * Follows Single Responsibility Principle - only handles friend/friendship
@@ -57,6 +59,8 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
                 return "userBlocked";
             case "USER_UNBLOCKED":
                 return "userUnblocked";
+            case "DATA_SHARED":
+                return "dataShared";
 
             default:
                 log.warn("Unknown friend event action: {}", event.getAction());
@@ -141,6 +145,28 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
                 priority = "LOW";
                 break;
 
+            case "DATA_SHARED":
+                title = "📊 Data Shared With You";
+                Map<String, Object> meta = event.getMetadataAsMap();
+                String shareName = meta != null && meta.get("shareName") != null
+                        ? meta.get("shareName").toString()
+                        : "Expense Data";
+                String resourceCount = meta != null && meta.get("resourceCount") != null
+                        ? meta.get("resourceCount").toString()
+                        : "some";
+                String personalMessage = meta != null && meta.get("personalMessage") != null
+                        ? meta.get("personalMessage").toString()
+                        : null;
+                if (personalMessage != null && !personalMessage.isEmpty()) {
+                    message = String.format("%s shared \"%s\" (%s items) with you: \"%s\"",
+                            friendName, shareName, resourceCount, personalMessage);
+                } else {
+                    message = String.format("%s shared \"%s\" (%s items) with you",
+                            friendName, shareName, resourceCount);
+                }
+                priority = "HIGH";
+                break;
+
             default:
                 log.warn("Unknown friend event action: {}", event.getAction());
                 title = "Friend Activity";
@@ -157,6 +183,20 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
 
         notification.setRelatedEntityId(event.getFriendshipId());
         notification.setRelatedEntityType("FRIENDSHIP");
+
+        // For DATA_SHARED events, include shareUrl in metadata for navigation
+        if ("DATA_SHARED".equals(event.getAction())) {
+            Map<String, Object> eventMeta = event.getMetadataAsMap();
+            if (eventMeta != null) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    notification.setMetadata(mapper.writeValueAsString(eventMeta));
+                    notification.setRelatedEntityType("SHARE");
+                } catch (Exception e) {
+                    log.error("Failed to serialize DATA_SHARED metadata: {}", e.getMessage());
+                }
+            }
+        }
 
         return notification;
     }
