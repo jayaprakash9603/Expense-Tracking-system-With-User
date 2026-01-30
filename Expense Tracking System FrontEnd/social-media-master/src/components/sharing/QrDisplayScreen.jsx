@@ -44,13 +44,16 @@ import ShareWithFriendModal from "./ShareWithFriendModal";
  */
 const QrDisplayScreen = ({ open, onClose, share }) => {
   const dispatch = useDispatch();
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
 
   const { revokeLoading } = useSelector((state) => state.shares);
 
   const [copied, setCopied] = useState(false);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
   const [showShareWithFriend, setShowShareWithFriend] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [localQrCode, setLocalQrCode] = useState(null);
 
   // Copy share URL to clipboard
   const handleCopyLink = useCallback(async () => {
@@ -67,20 +70,29 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
 
   // Download QR code as image
   const handleDownloadQr = useCallback(() => {
-    if (share?.qrCodeDataUri) {
+    const qrCode = localQrCode || share?.qrCodeDataUri;
+    if (qrCode) {
       const link = document.createElement("a");
-      link.href = share.qrCodeDataUri;
-      link.download = `share-qr-${share.token?.substring(0, 8) || "code"}.png`;
+      link.href = qrCode;
+      link.download = `share-qr-${share?.shareName || share?.token?.substring(0, 8) || "code"}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
-  }, [share]);
+  }, [share, localQrCode]);
 
   // Regenerate QR code
-  const handleRegenerateQr = useCallback(() => {
+  const handleRegenerateQr = useCallback(async () => {
     if (share?.token) {
-      dispatch(regenerateQr(share.token));
+      setRegenerating(true);
+      try {
+        const result = await dispatch(regenerateQr(share.token));
+        if (result.success && result.data?.qrCodeDataUri) {
+          setLocalQrCode(result.data.qrCodeDataUri);
+        }
+      } finally {
+        setRegenerating(false);
+      }
     }
   }, [dispatch, share?.token]);
 
@@ -98,8 +110,12 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
   // Handle close
   const handleClose = () => {
     dispatch(clearCurrentShare());
+    setLocalQrCode(null);
     onClose();
   };
+
+  // Get current QR code (local or from share prop)
+  const currentQrCode = localQrCode || share?.qrCodeDataUri;
 
   // Format expiry date
   const formatExpiry = (expiresAt) => {
@@ -122,11 +138,23 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
+      BackdropProps={{
+        sx: {
+          backgroundColor: "rgba(0, 0, 0, 0.6)",
+          backdropFilter: "blur(4px)",
+        },
+      }}
       PaperProps={{
         sx: {
-          backgroundColor: colors.modal_bg,
-          color: colors.primary_text,
-          borderRadius: 2,
+          backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
+          color: isDark ? "#fff" : "#1a1a1a",
+          borderRadius: 3,
+          border: isDark
+            ? "1px solid rgba(255, 255, 255, 0.1)"
+            : "1px solid rgba(0, 0, 0, 0.1)",
+          boxShadow: isDark
+            ? "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+            : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
         },
       }}
     >
@@ -135,17 +163,18 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          borderBottom: `1px solid ${colors.border}`,
+          borderBottom: `1px solid ${isDark ? "#333" : "#e5e5e5"}`,
+          color: isDark ? "#fff" : "#1a1a1a",
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <QrCodeIcon sx={{ color: colors.accent }} />
-          <Typography variant="h6">
+          <Typography variant="h6" sx={{ color: isDark ? "#fff" : "#1a1a1a" }}>
             {share.shareName || "Share QR Code"}
           </Typography>
         </Box>
         <IconButton onClick={handleClose} size="small">
-          <CloseIcon sx={{ color: colors.secondary_text }} />
+          <CloseIcon sx={{ color: isDark ? "#888" : "#666" }} />
         </IconButton>
       </DialogTitle>
 
@@ -163,9 +192,26 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             margin: "0 auto",
           }}
         >
-          {share.qrCodeDataUri ? (
+          {regenerating ? (
+            <Box
+              sx={{
+                width: 250,
+                height: 250,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+                gap: 2,
+              }}
+            >
+              <CircularProgress sx={{ color: colors.accent }} />
+              <Typography variant="body2" sx={{ color: "#666" }}>
+                Regenerating...
+              </Typography>
+            </Box>
+          ) : currentQrCode ? (
             <img
-              src={share.qrCodeDataUri}
+              src={currentQrCode}
               alt="Share QR Code"
               style={{ width: 250, height: 250 }}
             />
@@ -177,9 +223,14 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                flexDirection: "column",
+                gap: 2,
               }}
             >
-              <CircularProgress />
+              <QrCodeIcon sx={{ fontSize: 64, color: "#ccc" }} />
+              <Typography variant="body2" sx={{ color: "#666" }}>
+                QR Code Ready
+              </Typography>
             </Box>
           )}
         </Box>
@@ -187,20 +238,30 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
         {/* QR Actions */}
         <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 3 }}>
           <Tooltip title="Download QR Code">
-            <IconButton
-              onClick={handleDownloadQr}
-              sx={{ color: colors.accent }}
-            >
-              <DownloadIcon />
-            </IconButton>
+            <span>
+              <IconButton
+                onClick={handleDownloadQr}
+                sx={{ color: colors.accent }}
+                disabled={!currentQrCode || regenerating}
+              >
+                <DownloadIcon />
+              </IconButton>
+            </span>
           </Tooltip>
           <Tooltip title="Regenerate QR Code">
-            <IconButton
-              onClick={handleRegenerateQr}
-              sx={{ color: colors.accent }}
-            >
-              <RefreshIcon />
-            </IconButton>
+            <span>
+              <IconButton
+                onClick={handleRegenerateQr}
+                sx={{ color: colors.accent }}
+                disabled={regenerating}
+              >
+                {regenerating ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  <RefreshIcon />
+                )}
+              </IconButton>
+            </span>
           </Tooltip>
           <Tooltip title="Share with Friends">
             <IconButton
@@ -218,7 +279,11 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           value={share.shareUrl || ""}
           InputProps={{
             readOnly: true,
-            sx: { color: colors.primary_text, fontSize: "0.9rem" },
+            sx: {
+              color: isDark ? "#fff" : "#1a1a1a",
+              fontSize: "0.9rem",
+              backgroundColor: isDark ? "#333" : "#f5f5f5",
+            },
             endAdornment: (
               <InputAdornment position="end">
                 <Tooltip title={copied ? "Copied!" : "Copy Link"}>
@@ -233,10 +298,20 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
               </InputAdornment>
             ),
           }}
-          sx={{ mb: 3 }}
+          sx={{
+            mb: 3,
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: isDark ? "#444" : "#ddd",
+              },
+              "&:hover fieldset": {
+                borderColor: colors.accent,
+              },
+            },
+          }}
         />
 
-        <Divider sx={{ my: 2, borderColor: colors.border }} />
+        <Divider sx={{ my: 2, borderColor: isDark ? "#333" : "#e5e5e5" }} />
 
         {/* Share Info */}
         <Box
@@ -264,8 +339,8 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             icon={<TimeIcon />}
             label={formatExpiry(share.expiresAt)}
             sx={{
-              backgroundColor: colors.card_bg,
-              color: colors.primary_text,
+              backgroundColor: isDark ? "#333" : "#f0f0f0",
+              color: isDark ? "#ccc" : "#444",
             }}
           />
 
@@ -273,8 +348,8 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           <Chip
             label={`${share.resourceCount || 0} items`}
             sx={{
-              backgroundColor: colors.card_bg,
-              color: colors.primary_text,
+              backgroundColor: isDark ? "#333" : "#f0f0f0",
+              color: isDark ? "#ccc" : "#444",
             }}
           />
         </Box>

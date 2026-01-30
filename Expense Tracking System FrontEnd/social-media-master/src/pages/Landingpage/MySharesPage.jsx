@@ -85,6 +85,7 @@ import {
   fetchShareStats,
   revokeShare,
   clearCurrentShare,
+  regenerateQr,
 } from "../../Redux/Shares/shares.actions";
 import QrDisplayScreen from "../../components/sharing/QrDisplayScreen";
 import ShareModal from "../../components/sharing/ShareModal";
@@ -137,6 +138,7 @@ const MySharesPage = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuShareId, setMenuShareId] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [qrLoading, setQrLoading] = useState(false);
 
   // ---------------------------------------------------------------------------
   // Data Fetching
@@ -214,14 +216,32 @@ const MySharesPage = () => {
     setMenuShareId(null);
   };
 
-  const handleViewQr = (share) => {
-    setSelectedShare({
-      ...share,
-      shareUrl:
-        share.shareUrl || `${window.location.origin}/share/${share.token}`,
-    });
-    setShowQrModal(true);
+  const handleViewQr = async (share) => {
     handleMenuClose();
+    setQrLoading(true);
+
+    try {
+      // Generate QR code on-demand
+      const result = await dispatch(regenerateQr(share.token));
+
+      if (result.success) {
+        setSelectedShare({
+          ...share,
+          shareUrl:
+            result.data?.shareUrl ||
+            share.shareUrl ||
+            `${window.location.origin}/share/${share.token}`,
+          qrCodeDataUri: result.data?.qrCodeDataUri,
+        });
+        setShowQrModal(true);
+      } else {
+        toast.error(result.error || "Failed to generate QR code");
+      }
+    } catch (err) {
+      toast.error("Failed to generate QR code");
+    } finally {
+      setQrLoading(false);
+    }
   };
 
   const handleRevokeClick = (share) => {
@@ -244,17 +264,42 @@ const MySharesPage = () => {
     setShareToRevoke(null);
   };
 
-  const handleDownloadQr = (share) => {
-    if (share.qrCodeDataUri) {
-      const link = document.createElement("a");
-      link.href = share.qrCodeDataUri;
-      link.download = `share-qr-${share.token?.substring(0, 8) || "code"}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast.success("QR code downloaded!");
-    }
+  const handleDownloadQr = async (share) => {
     handleMenuClose();
+
+    try {
+      // Generate QR code first if not available
+      let qrCodeDataUri = share.qrCodeDataUri;
+      let shareUrl =
+        share.shareUrl || `${window.location.origin}/share/${share.token}`;
+
+      if (!qrCodeDataUri) {
+        setQrLoading(true);
+        const result = await dispatch(regenerateQr(share.token));
+        if (result.success) {
+          qrCodeDataUri = result.data?.qrCodeDataUri;
+          shareUrl = result.data?.shareUrl || shareUrl;
+        } else {
+          toast.error("Failed to generate QR code for download");
+          setQrLoading(false);
+          return;
+        }
+        setQrLoading(false);
+      }
+
+      if (qrCodeDataUri) {
+        // Download as PNG
+        const link = document.createElement("a");
+        link.href = qrCodeDataUri;
+        link.download = `share-qr-${share.shareName || share.token?.substring(0, 8) || "code"}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("QR code downloaded!");
+      }
+    } catch (err) {
+      toast.error("Failed to download QR code");
+    }
   };
 
   // ---------------------------------------------------------------------------
@@ -487,7 +532,53 @@ const MySharesPage = () => {
                 {share.accessCount || 0} views
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+            {/* Share URL */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mt: 1,
+                p: 1,
+                backgroundColor: colors.hover_bg || colors.background,
+                borderRadius: 1,
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: colors.border,
+                },
+              }}
+              onClick={() =>
+                copyToClipboard(
+                  share.shareUrl ||
+                    `${window.location.origin}/share/${share.token}`,
+                  share.id,
+                )
+              }
+            >
+              <LinkIcon sx={{ fontSize: 14, color: colors.accent }} />
+              <Typography
+                variant="caption"
+                sx={{
+                  color: colors.secondary_text,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  flex: 1,
+                }}
+              >
+                {share.shareUrl ||
+                  `${window.location.origin}/share/${share.token}`}
+              </Typography>
+              {copied === share.id ? (
+                <CheckIcon sx={{ fontSize: 14, color: STATUS_COLORS.active }} />
+              ) : (
+                <CopyIcon sx={{ fontSize: 14, color: colors.secondary_text }} />
+              )}
+            </Box>
+            <Typography
+              variant="caption"
+              sx={{ color: colors.secondary_text, mt: 0.5 }}
+            >
               Created: {formatDate(share.createdAt)}
             </Typography>
           </Box>
@@ -501,7 +592,7 @@ const MySharesPage = () => {
               size="small"
               onClick={() => handleViewQr(share)}
               sx={{ color: colors.accent }}
-              disabled={status === "revoked"}
+              disabled={status === "revoked" || qrLoading}
             >
               <QrCodeIcon />
             </IconButton>
@@ -532,7 +623,7 @@ const MySharesPage = () => {
               size="small"
               onClick={() => handleDownloadQr(share)}
               sx={{ color: colors.secondary_text }}
-              disabled={status === "revoked" || !share.qrCodeDataUri}
+              disabled={status === "revoked" || qrLoading}
             >
               <DownloadIcon />
             </IconButton>
