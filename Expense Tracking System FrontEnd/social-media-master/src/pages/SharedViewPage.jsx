@@ -314,7 +314,13 @@ const SharedViewPage = () => {
   // Handle signup redirect
   const handleSignupRedirect = () => {
     sessionStorage.setItem("redirectAfterLogin", window.location.pathname);
-    navigate("/signup");
+    navigate("/register");
+  };
+
+  // Helper to navigate to login with redirect
+  const navigateToLogin = () => {
+    sessionStorage.setItem("redirectAfterLogin", window.location.pathname);
+    navigate("/login");
   };
 
   // Handle load more
@@ -681,7 +687,7 @@ const SharedViewPage = () => {
                   {/* Login / Signup buttons for non-logged in users */}
                   <Button
                     variant="outlined"
-                    onClick={() => navigate("/login")}
+                    onClick={navigateToLogin}
                     sx={{
                       borderColor: colors.accent,
                       color: colors.accent,
@@ -1076,7 +1082,7 @@ const SharedViewPage = () => {
                   <Button
                     size="small"
                     variant="outlined"
-                    onClick={() => navigate("/login")}
+                    onClick={navigateToLogin}
                     sx={{
                       borderColor: colors.accent,
                       color: colors.accent,
@@ -1804,7 +1810,7 @@ const SharedViewPage = () => {
             <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
               <Button
                 variant="outlined"
-                onClick={() => navigate("/login")}
+                onClick={navigateToLogin}
                 sx={{
                   borderColor: colors.accent,
                   color: colors.accent,

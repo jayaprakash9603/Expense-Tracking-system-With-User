@@ -127,9 +127,15 @@ const Register = () => {
     if (isEmailAvailable) {
       const result = await dispatch(registerUserAction({ data: values }));
       if (result?.success) {
+        // Check if there's a pending redirect (e.g., from shared page)
+        const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
+        const message = redirectUrl
+          ? "Registration successful! Please login to continue to the shared page."
+          : "Registration successful. Please login.";
+
         setToast({
           open: true,
-          message: "Registration successful. Please login.",
+          message,
           severity: "success",
         });
         setTimeout(() => navigate("/login"), 1200);
