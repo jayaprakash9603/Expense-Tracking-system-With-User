@@ -154,7 +154,7 @@ const defaultColumns = [
   { field: "date", headerName: "Date", flex: 1, minWidth: 120 },
 ];
 
-const Reports = () => {
+const Reports = ({ defaultTab = 0 }) => {
   const [selectedReport, setSelectedReport] = useState("select");
   const muiTheme = useMuiTheme();
   const { colors } = useTheme();
@@ -171,34 +171,20 @@ const Reports = () => {
     (state) => state.reportHistory,
   );
 
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [Url, setUrl] = useState(null);
 
   // Sync activeTab with URL parameter - runs on mount AND when searchParams change
   // This is the source of truth approach - URL drives the state
-  const lastProcessedTabRef = useRef(null);
   useEffect(() => {
     const tabParam = searchParams.get("tab");
     if (tabParam !== null) {
       const tabIndex = parseInt(tabParam, 10);
-      // Only update if it's a valid tab and different from what we last processed
-      if (
-        !isNaN(tabIndex) &&
-        tabIndex >= 0 &&
-        tabIndex <= 2 &&
-        lastProcessedTabRef.current !== tabParam
-      ) {
-        lastProcessedTabRef.current = tabParam;
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
         setActiveTab(tabIndex);
-        // Clean up URL after applying the tab (use setTimeout to avoid state update during render)
-        setTimeout(() => {
-          const newSearchParams = new URLSearchParams(searchParams);
-          newSearchParams.delete("tab");
-          setSearchParams(newSearchParams, { replace: true });
-        }, 0);
       }
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams]);
 
   // Fetch report history when Reports History tab is active
   useEffect(() => {

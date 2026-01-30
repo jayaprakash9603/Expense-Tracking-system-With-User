@@ -26,6 +26,15 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
+  InputAdornment,
+  FormControl,
+  Select,
+  MenuItem,
+  Tabs,
+  Tab,
+  Badge,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -44,14 +53,129 @@ import {
   Add as AddIcon,
   ContentCopy as CopyIcon,
   Login as LoginIcon,
+  Home as HomeIcon,
+  Search as SearchIcon,
+  FilterList as FilterIcon,
+  Sort as SortIcon,
+  Notifications as NotificationsIcon,
+  ExpandMore as ExpandMoreIcon,
+  CreditCard as CreditCardIcon,
+  ReceiptLong as BillIcon,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { useTheme } from "../hooks/useTheme";
 import { accessShare, clearShareError } from "../Redux/Shares/shares.actions";
 import { createExpenseAction } from "../Redux/Expenses/expense.action";
+import { BRAND_GRADIENT_COLORS } from "../config/themeConfig";
 
 // LocalStorage key for tracking added items per share token
 const getAddedItemsKey = (token) => `shared_added_items_${token}`;
+
+// Page size for pagination
+const PAGE_SIZE = 50;
+
+// Resource type icons mapping
+const RESOURCE_ICONS = {
+  EXPENSE: <ReceiptIcon />,
+  CATEGORY: <CategoryIcon />,
+  BUDGET: <BudgetIcon />,
+  BILL: <BillIcon />,
+  PAYMENT_METHOD: <PaymentIcon />,
+};
+
+// Resource type colors mapping
+const RESOURCE_COLORS = {
+  EXPENSE: "#10b981",
+  CATEGORY: "#8b5cf6",
+  BUDGET: "#f59e0b",
+  BILL: "#ef4444",
+  PAYMENT_METHOD: "#3b82f6",
+};
+
+/**
+ * Brand Logo Component
+ */
+const BrandLogo = ({ size = "medium" }) => {
+  const fontSize =
+    size === "small" ? "16px" : size === "large" ? "24px" : "20px";
+
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+      <span
+        style={{
+          color: BRAND_GRADIENT_COLORS[0].color,
+          fontSize,
+          fontWeight: 700,
+          fontFamily: "Syncopate, sans-serif",
+        }}
+      >
+        Ex
+      </span>
+      <span
+        style={{
+          color: BRAND_GRADIENT_COLORS[1].color,
+          fontSize,
+          fontWeight: 700,
+          fontFamily: "Syncopate, sans-serif",
+        }}
+      >
+        p
+      </span>
+      <span
+        style={{
+          color: BRAND_GRADIENT_COLORS[2].color,
+          fontSize,
+          fontWeight: 700,
+          fontFamily: "Syncopate, sans-serif",
+        }}
+      >
+        en
+      </span>
+      <span
+        style={{
+          color: BRAND_GRADIENT_COLORS[3].color,
+          fontSize,
+          fontWeight: 700,
+          fontFamily: "Syncopate, sans-serif",
+        }}
+      >
+        s
+      </span>
+      <span
+        style={{
+          color: BRAND_GRADIENT_COLORS[4].color,
+          fontSize,
+          fontWeight: 700,
+          fontFamily: "Syncopate, sans-serif",
+        }}
+      >
+        i
+      </span>
+      <span
+        style={{
+          color: BRAND_GRADIENT_COLORS[5].color,
+          fontSize,
+          fontWeight: 700,
+          fontFamily: "Syncopate, sans-serif",
+        }}
+      >
+        o
+      </span>
+      <span
+        style={{
+          color: BRAND_GRADIENT_COLORS[6].color,
+          fontSize,
+          fontWeight: 700,
+          fontFamily: "Syncopate, sans-serif",
+          ml: 0.5,
+        }}
+      >
+        {" "}
+        Finance
+      </span>
+    </Box>
+  );
+};
 
 /**
  * Page to display shared data when accessing a share link.
@@ -63,6 +187,8 @@ const SharedViewPage = () => {
   const dispatch = useDispatch();
   const { colors, mode } = useTheme();
   const isDark = mode === "dark";
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isTablet = useMediaQuery("(max-width: 1024px)");
 
   const {
     sharedData: accessedShare,
@@ -76,6 +202,16 @@ const SharedViewPage = () => {
   const [addedExpenses, setAddedExpenses] = useState(new Set());
   const [addingExpense, setAddingExpense] = useState(null);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+
+  // Pagination state
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Filter and search state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("default");
+  const [filterType, setFilterType] = useState("all");
+  const [activeTab, setActiveTab] = useState(0);
 
   // Load previously added items from localStorage on mount
   useEffect(() => {
@@ -175,6 +311,21 @@ const SharedViewPage = () => {
     navigate("/login");
   };
 
+  // Handle signup redirect
+  const handleSignupRedirect = () => {
+    sessionStorage.setItem("redirectAfterLogin", window.location.pathname);
+    navigate("/signup");
+  };
+
+  // Handle load more
+  const handleLoadMore = useCallback(() => {
+    setLoadingMore(true);
+    setTimeout(() => {
+      setDisplayCount((prev) => prev + PAGE_SIZE);
+      setLoadingMore(false);
+    }, 300);
+  }, []);
+
   // Format date
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -194,6 +345,116 @@ const SharedViewPage = () => {
       currency: "USD",
     }).format(amount || 0);
   };
+
+  // ==========================================
+  // DATA PROCESSING - Must be before early returns to avoid conditional hook calls
+  // ==========================================
+
+  // Map response to expected format - backend returns flat structure
+  const shareInfo = accessedShare
+    ? {
+        shareName: accessedShare.shareName,
+        permission: accessedShare.permission,
+        resourceType: accessedShare.resourceType,
+        expiresAt: accessedShare.expiresAt,
+        owner: accessedShare.owner,
+        originalCount: accessedShare.originalCount,
+        returnedCount: accessedShare.returnedCount,
+      }
+    : null;
+
+  // Extract actual data from SharedItem wrapper - items have { type, externalRef, data, found }
+  const rawItems = accessedShare?.items || [];
+  const allData = rawItems
+    .filter((item) => item.found && item.data) // Only show items that were found
+    .map((item) => item.data); // Extract the actual data
+  const warnings = accessedShare?.warnings || [];
+
+  // Filter and search data - useMemo must be called unconditionally
+  const filteredData = useMemo(() => {
+    if (!allData || allData.length === 0) return [];
+    let result = [...allData];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter((item) => {
+        const expense = item.expense || {};
+        return (
+          expense.expenseName?.toLowerCase().includes(term) ||
+          item.categoryName?.toLowerCase().includes(term) ||
+          item.name?.toLowerCase().includes(term) ||
+          expense.comments?.toLowerCase().includes(term)
+        );
+      });
+    }
+
+    // Apply sorting
+    if (sortBy === "amount-high") {
+      result.sort(
+        (a, b) =>
+          (b.expense?.amount || b.amount || 0) -
+          (a.expense?.amount || a.amount || 0),
+      );
+    } else if (sortBy === "amount-low") {
+      result.sort(
+        (a, b) =>
+          (a.expense?.amount || a.amount || 0) -
+          (b.expense?.amount || b.amount || 0),
+      );
+    } else if (sortBy === "date-new") {
+      result.sort(
+        (a, b) =>
+          new Date(b.date || b.createdAt || 0) -
+          new Date(a.date || a.createdAt || 0),
+      );
+    } else if (sortBy === "date-old") {
+      result.sort(
+        (a, b) =>
+          new Date(a.date || a.createdAt || 0) -
+          new Date(b.date || b.createdAt || 0),
+      );
+    } else if (sortBy === "name") {
+      result.sort((a, b) => {
+        const nameA = a.expense?.expenseName || a.name || "";
+        const nameB = b.expense?.expenseName || b.name || "";
+        return nameA.localeCompare(nameB);
+      });
+    }
+
+    return result;
+  }, [allData, searchTerm, sortBy]);
+
+  // Paginated data - useMemo must be called unconditionally
+  const paginatedData = useMemo(() => {
+    return filteredData.slice(0, displayCount);
+  }, [filteredData, displayCount]);
+
+  const hasMore = displayCount < filteredData.length;
+  const totalItems = filteredData.length;
+  const displayedItems = paginatedData.length;
+
+  // Stats summary - useMemo must be called unconditionally
+  const stats = useMemo(() => {
+    if (shareInfo?.resourceType === "EXPENSE" && allData.length > 0) {
+      const totalAmount = allData.reduce(
+        (sum, item) => sum + (item.expense?.amount || 0),
+        0,
+      );
+      const creditCount = allData.filter(
+        (item) => item.expense?.type === "CREDIT",
+      ).length;
+      const debitCount = allData.filter(
+        (item) => item.expense?.type === "DEBIT",
+      ).length;
+      return { totalAmount, creditCount, debitCount };
+    }
+    return {};
+  }, [allData, shareInfo?.resourceType]);
+
+  // ==========================================
+  // EARLY RETURNS - After all hooks
+  // ==========================================
 
   // Loading state
   if (accessLoading) {
@@ -295,39 +556,178 @@ const SharedViewPage = () => {
     );
   }
 
-  // Map response to expected format - backend returns flat structure
-  const shareInfo = {
-    shareName: accessedShare.shareName,
-    permission: accessedShare.permission,
-    resourceType: accessedShare.resourceType,
-    expiresAt: accessedShare.expiresAt,
-    owner: accessedShare.owner,
-    originalCount: accessedShare.originalCount,
-    returnedCount: accessedShare.returnedCount,
-  };
-  // Extract actual data from SharedItem wrapper - items have { type, externalRef, data, found }
-  const rawItems = accessedShare.items || [];
-  const data = rawItems
-    .filter((item) => item.found && item.data) // Only show items that were found
-    .map((item) => item.data); // Extract the actual data
-  const warnings = accessedShare.warnings || [];
-
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        backgroundColor: colors.background,
-        py: 4,
+        backgroundColor: colors.secondary_bg,
       }}
     >
-      <Container maxWidth="lg">
-        {/* Header */}
+      {/* Fixed Header */}
+      <Box
+        sx={{
+          position: "sticky",
+          top: 0,
+          zIndex: 1100,
+          backgroundColor: colors.primary_bg,
+          borderBottom: `1px solid ${colors.border}`,
+          boxShadow: isDark
+            ? "0 2px 8px rgba(0,0,0,0.3)"
+            : "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        <Container maxWidth="xl">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              height: isMobile ? 56 : 64,
+              px: isMobile ? 1 : 2,
+            }}
+          >
+            {/* Left Section: Logo & Back Button */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              {/* Logo */}
+              <Box
+                sx={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onClick={() => navigate("/")}
+              >
+                <BrandLogo size={isMobile ? "small" : "medium"} />
+              </Box>
+
+              {/* Back to Dashboard - Only for logged in users */}
+              {isLoggedIn && (
+                <Tooltip title="Back to Dashboard">
+                  <Button
+                    variant="text"
+                    startIcon={<HomeIcon />}
+                    onClick={() => navigate("/dashboard")}
+                    sx={{
+                      color: colors.primary_text,
+                      textTransform: "none",
+                      "&:hover": {
+                        backgroundColor: colors.hover_bg,
+                      },
+                      display: isMobile ? "none" : "flex",
+                    }}
+                  >
+                    Dashboard
+                  </Button>
+                </Tooltip>
+              )}
+              {isLoggedIn && isMobile && (
+                <Tooltip title="Back to Dashboard">
+                  <IconButton
+                    onClick={() => navigate("/dashboard")}
+                    sx={{ color: colors.primary_text }}
+                  >
+                    <HomeIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+
+            {/* Right Section: Auth buttons or Profile */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              {isLoggedIn ? (
+                <>
+                  {/* Notifications - Only for logged in */}
+                  <Tooltip title="Notifications">
+                    <IconButton
+                      sx={{
+                        color: colors.primary_text,
+                        backgroundColor: colors.hover_bg,
+                        "&:hover": { backgroundColor: colors.active_bg },
+                      }}
+                    >
+                      <Badge badgeContent={0} color="error">
+                        <NotificationsIcon />
+                      </Badge>
+                    </IconButton>
+                  </Tooltip>
+
+                  {/* Profile Avatar */}
+                  <Tooltip
+                    title={`${currentUser?.firstName || "User"}'s Profile`}
+                  >
+                    <IconButton
+                      onClick={() => navigate("/profile")}
+                      sx={{ p: 0.5 }}
+                    >
+                      <Avatar
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          bgcolor: colors.accent,
+                          fontSize: "14px",
+                          fontWeight: 600,
+                        }}
+                        src={currentUser?.profileImage}
+                      >
+                        {currentUser?.firstName?.charAt(0)?.toUpperCase() ||
+                          "U"}
+                        {currentUser?.lastName?.charAt(0)?.toUpperCase() || ""}
+                      </Avatar>
+                    </IconButton>
+                  </Tooltip>
+                </>
+              ) : (
+                <>
+                  {/* Login / Signup buttons for non-logged in users */}
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate("/login")}
+                    sx={{
+                      borderColor: colors.accent,
+                      color: colors.accent,
+                      textTransform: "none",
+                      fontWeight: 600,
+                      "&:hover": {
+                        borderColor: colors.accent,
+                        backgroundColor: colors.accent + "10",
+                      },
+                    }}
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={handleSignupRedirect}
+                    sx={{
+                      backgroundColor: colors.accent,
+                      color: colors.button_text || "#fff",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      "&:hover": {
+                        backgroundColor: colors.accent_hover || colors.accent,
+                      },
+                      display: isMobile ? "none" : "flex",
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Main Content */}
+      <Container maxWidth="xl" sx={{ py: 3 }}>
+        {/* Share Info Header Card */}
         <Paper
           sx={{
-            backgroundColor: colors.card_bg,
+            background: `linear-gradient(135deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
+            border: `1px solid ${colors.border}`,
+            borderRadius: 3,
             p: 3,
             mb: 3,
-            borderRadius: 2,
           }}
         >
           <Box
@@ -339,154 +739,390 @@ const SharedViewPage = () => {
               gap: 2,
             }}
           >
-            <Box>
-              <Typography
-                variant="h4"
-                sx={{ color: colors.primary_text, mb: 1 }}
-              >
-                {shareInfo?.shareName || "Shared Content"}
-              </Typography>
+            {/* Left: Share Title and Info */}
+            <Box sx={{ flex: 1, minWidth: 280 }}>
               <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  flexWrap: "wrap",
-                }}
+                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
               >
-                <Chip
-                  icon={<ValidIcon />}
-                  label="Valid Share"
-                  size="small"
+                <Avatar
                   sx={{
-                    backgroundColor: colors.success + "20",
-                    color: colors.success,
+                    width: 56,
+                    height: 56,
+                    bgcolor:
+                      RESOURCE_COLORS[shareInfo?.resourceType] || colors.accent,
                   }}
-                />
-                <Chip
-                  icon={
-                    shareInfo?.permission === "VIEW" ? (
-                      <ViewIcon />
-                    ) : (
-                      <EditIcon />
-                    )
-                  }
-                  label={
-                    shareInfo?.permission === "VIEW"
-                      ? "View Only"
-                      : "Edit Access"
-                  }
-                  size="small"
-                  sx={{
-                    backgroundColor:
-                      shareInfo?.permission === "VIEW"
-                        ? colors.info + "20"
-                        : colors.warning + "20",
-                    color:
-                      shareInfo?.permission === "VIEW"
-                        ? colors.info
-                        : colors.warning,
-                  }}
-                />
-                <Chip
-                  icon={<CategoryIcon />}
-                  label={shareInfo?.resourceType}
-                  size="small"
-                  sx={{
-                    backgroundColor: colors.accent + "20",
-                    color: colors.accent,
-                  }}
-                />
+                >
+                  {RESOURCE_ICONS[shareInfo?.resourceType] || <ReceiptIcon />}
+                </Avatar>
+                <Box>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      color: colors.primary_text,
+                      fontWeight: 600,
+                      mb: 0.5,
+                    }}
+                  >
+                    {shareInfo?.shareName || "Shared Content"}
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Chip
+                      icon={<ValidIcon sx={{ fontSize: 16 }} />}
+                      label="Valid Share"
+                      size="small"
+                      sx={{
+                        backgroundColor: "#10b98120",
+                        color: "#10b981",
+                        fontWeight: 500,
+                        height: 24,
+                      }}
+                    />
+                    <Chip
+                      icon={
+                        shareInfo?.permission === "VIEW" ? (
+                          <ViewIcon sx={{ fontSize: 16 }} />
+                        ) : (
+                          <EditIcon sx={{ fontSize: 16 }} />
+                        )
+                      }
+                      label={
+                        shareInfo?.permission === "VIEW"
+                          ? "View Only"
+                          : "Edit Access"
+                      }
+                      size="small"
+                      sx={{
+                        backgroundColor:
+                          shareInfo?.permission === "VIEW"
+                            ? "#3b82f620"
+                            : "#f59e0b20",
+                        color:
+                          shareInfo?.permission === "VIEW"
+                            ? "#3b82f6"
+                            : "#f59e0b",
+                        fontWeight: 500,
+                        height: 24,
+                      }}
+                    />
+                    <Chip
+                      label={shareInfo?.resourceType}
+                      size="small"
+                      sx={{
+                        backgroundColor:
+                          (RESOURCE_COLORS[shareInfo?.resourceType] ||
+                            colors.accent) + "20",
+                        color:
+                          RESOURCE_COLORS[shareInfo?.resourceType] ||
+                          colors.accent,
+                        fontWeight: 500,
+                        height: 24,
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Owner and Expiry Info */}
+              <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap", mt: 2 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <PersonIcon
+                    sx={{ fontSize: 18, color: colors.secondary_text }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{ color: colors.secondary_text }}
+                  >
+                    Shared by{" "}
+                    <strong style={{ color: colors.primary_text }}>
+                      {shareInfo?.owner?.firstName || "User"}{" "}
+                      {shareInfo?.owner?.lastName || ""}
+                    </strong>
+                  </Typography>
+                </Box>
+                {shareInfo?.expiresAt && (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <TimeIcon
+                      sx={{ fontSize: 18, color: colors.secondary_text }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{ color: colors.secondary_text }}
+                    >
+                      Expires:{" "}
+                      <strong style={{ color: colors.primary_text }}>
+                        {formatDate(shareInfo.expiresAt)}
+                      </strong>
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </Box>
 
-            <Box sx={{ textAlign: "right" }}>
-              <Box
+            {/* Right: Stats Summary */}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
+            >
+              {/* Total Items Card */}
+              <Paper
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  color: colors.secondary_text,
+                  p: 2,
+                  minWidth: 120,
+                  textAlign: "center",
+                  backgroundColor: colors.hover_bg,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: 2,
                 }}
               >
-                <PersonIcon fontSize="small" />
-                <Typography variant="body2">
-                  Shared by User #{shareInfo?.ownerUserId}
-                </Typography>
-              </Box>
-              {shareInfo?.expiresAt && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    color: colors.secondary_text,
-                    mt: 1,
-                  }}
+                <Typography
+                  variant="h4"
+                  sx={{ color: colors.accent, fontWeight: 700 }}
                 >
-                  <TimeIcon fontSize="small" />
-                  <Typography variant="body2">
-                    Expires: {formatDate(shareInfo.expiresAt)}
-                  </Typography>
-                </Box>
-              )}
+                  {totalItems}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: colors.secondary_text }}
+                >
+                  Total Items
+                </Typography>
+              </Paper>
+
+              {/* Resource-specific stats */}
+              {shareInfo?.resourceType === "EXPENSE" &&
+                stats.totalAmount > 0 && (
+                  <Paper
+                    sx={{
+                      p: 2,
+                      minWidth: 140,
+                      textAlign: "center",
+                      backgroundColor: colors.hover_bg,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{ color: "#10b981", fontWeight: 700 }}
+                    >
+                      {formatCurrency(stats.totalAmount)}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: colors.secondary_text }}
+                    >
+                      Total Amount
+                    </Typography>
+                  </Paper>
+                )}
             </Box>
           </Box>
         </Paper>
 
-        {/* Shared Data Display */}
+        {/* Filter and Search Bar */}
         <Paper
           sx={{
             backgroundColor: colors.card_bg,
-            p: 3,
+            border: `1px solid ${colors.border}`,
             borderRadius: 2,
+            p: 2,
+            mb: 3,
           }}
         >
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              mb: 2,
+              gap: 2,
+              flexWrap: "wrap",
             }}
           >
-            <Typography variant="h6" sx={{ color: colors.primary_text }}>
-              Shared Items ({data?.length || 0})
-            </Typography>
-            {data?.length > 0 && (
-              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-                Click "Add to My Account" to copy any expense to your records
-              </Typography>
-            )}
+            {/* Search Field */}
+            <TextField
+              placeholder="Search items..."
+              size="small"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{
+                flex: 1,
+                minWidth: 200,
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: colors.secondary_bg,
+                  "& fieldset": { borderColor: colors.border },
+                  "&:hover fieldset": { borderColor: colors.accent },
+                  "&.Mui-focused fieldset": { borderColor: colors.accent },
+                },
+                "& .MuiInputBase-input": { color: colors.primary_text },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: colors.secondary_text }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            {/* Sort Dropdown */}
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                displayEmpty
+                sx={{
+                  backgroundColor: colors.secondary_bg,
+                  color: colors.primary_text,
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: colors.border,
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: colors.accent,
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: colors.accent,
+                  },
+                  "& .MuiSvgIcon-root": { color: colors.primary_text },
+                }}
+                startAdornment={
+                  <InputAdornment position="start">
+                    <SortIcon sx={{ color: colors.secondary_text, mr: 0.5 }} />
+                  </InputAdornment>
+                }
+              >
+                <MenuItem value="default">Default Order</MenuItem>
+                <MenuItem value="name">Sort by Name</MenuItem>
+                <MenuItem value="amount-high">Amount: High to Low</MenuItem>
+                <MenuItem value="amount-low">Amount: Low to High</MenuItem>
+                <MenuItem value="date-new">Date: Newest First</MenuItem>
+                <MenuItem value="date-old">Date: Oldest First</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Items Count Badge */}
+            <Chip
+              label={`Showing ${displayedItems} of ${totalItems}`}
+              sx={{
+                backgroundColor: colors.accent + "20",
+                color: colors.accent,
+                fontWeight: 500,
+              }}
+            />
           </Box>
+        </Paper>
 
-          <Divider sx={{ mb: 3, borderColor: colors.border }} />
+        {/* Warnings Alert */}
+        {warnings && warnings.length > 0 && (
+          <Alert
+            severity="warning"
+            sx={{
+              mb: 3,
+              backgroundColor: "#f59e0b15",
+              color: "#f59e0b",
+              border: `1px solid #f59e0b40`,
+              "& .MuiAlert-icon": { color: "#f59e0b" },
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+              Some items are no longer available:
+            </Typography>
+            {warnings.map((warning, index) => (
+              <Typography key={index} variant="body2">
+                • {warning}
+              </Typography>
+            ))}
+          </Alert>
+        )}
 
-          {/* Expenses */}
+        {/* Shared Data Display */}
+        <Paper
+          sx={{
+            backgroundColor: colors.card_bg,
+            border: `1px solid ${colors.border}`,
+            borderRadius: 2,
+            p: 3,
+          }}
+        >
+          {/* Add to account info for expenses */}
+          {shareInfo?.resourceType === "EXPENSE" &&
+            paginatedData?.length > 0 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  mb: 3,
+                  p: 2,
+                  backgroundColor: colors.accent + "10",
+                  borderRadius: 2,
+                  border: `1px solid ${colors.accent}30`,
+                }}
+              >
+                <Typography variant="body2" sx={{ color: colors.primary_text }}>
+                  💡 Click <strong>"Add to My Account"</strong> to copy any
+                  expense to your records
+                </Typography>
+                {!isLoggedIn && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => navigate("/login")}
+                    sx={{
+                      borderColor: colors.accent,
+                      color: colors.accent,
+                      textTransform: "none",
+                      "&:hover": { backgroundColor: colors.accent + "10" },
+                    }}
+                  >
+                    Login to Add
+                  </Button>
+                )}
+              </Box>
+            )}
+
+          {/* Expenses Grid */}
           {shareInfo?.resourceType === "EXPENSE" && (
             <Grid container spacing={3}>
-              {data?.map((expenseData, index) => {
+              {paginatedData?.map((expenseData, index) => {
                 // ExpenseDTO structure: { id, date, categoryName, expense: { expenseName, amount, ... } }
                 const expense = expenseData.expense || {};
                 return (
                   <Grid
                     item
                     xs={12}
-                    md={6}
-                    lg={4}
+                    sm={6}
+                    md={4}
+                    lg={3}
                     key={expenseData.id || index}
                   >
                     <Card
                       sx={{
-                        backgroundColor: colors.modal_bg,
+                        background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
                         border: `1px solid ${colors.border}`,
+                        borderRadius: 2,
                         height: "100%",
                         display: "flex",
                         flexDirection: "column",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          transform: "translateY(-4px)",
+                          boxShadow: `0 8px 24px rgba(20, 184, 166, 0.15)`,
+                          borderColor: colors.accent,
+                        },
                       }}
                     >
-                      <CardContent sx={{ flex: 1 }}>
-                        {/* Header with amount and category */}
+                      <CardContent sx={{ flex: 1, p: 2 }}>
+                        {/* Header with amount and type badge */}
                         <Box
                           sx={{
                             display: "flex",
@@ -499,37 +1135,67 @@ const SharedViewPage = () => {
                             <Typography
                               variant="h5"
                               sx={{
-                                color: colors.primary_text,
-                                fontWeight: 600,
+                                color:
+                                  expense.type === "CREDIT"
+                                    ? "#f59e0b"
+                                    : "#10b981",
+                                fontWeight: 700,
                               }}
                             >
+                              {expense.type === "CREDIT" ? "-" : "+"}
                               {formatCurrency(
                                 expense.amount || expense.netAmount || 0,
                               )}
                             </Typography>
                             <Typography
-                              variant="subtitle1"
-                              sx={{ color: colors.accent }}
+                              variant="subtitle2"
+                              sx={{
+                                color: colors.primary_text,
+                                fontWeight: 500,
+                                mt: 0.5,
+                              }}
                             >
                               {expense.expenseName || "Unnamed Expense"}
                             </Typography>
                           </Box>
                           <Chip
-                            label={expenseData.categoryName || "Uncategorized"}
+                            label={expense.type || "DEBIT"}
                             size="small"
                             sx={{
-                              backgroundColor: colors.accent + "20",
-                              color: colors.accent,
+                              backgroundColor:
+                                expense.type === "CREDIT"
+                                  ? "#f59e0b20"
+                                  : "#10b98120",
+                              color:
+                                expense.type === "CREDIT"
+                                  ? "#f59e0b"
+                                  : "#10b981",
+                              fontWeight: 600,
+                              fontSize: "0.7rem",
                             }}
                           />
                         </Box>
 
-                        {/* Details Grid */}
+                        {/* Category Badge */}
+                        <Chip
+                          icon={<CategoryIcon sx={{ fontSize: 14 }} />}
+                          label={expenseData.categoryName || "Uncategorized"}
+                          size="small"
+                          sx={{
+                            backgroundColor: colors.accent + "15",
+                            color: colors.accent,
+                            mb: 2,
+                            height: 24,
+                            "& .MuiChip-icon": { color: colors.accent },
+                          }}
+                        />
+
+                        {/* Details */}
                         <Box
                           sx={{
                             display: "flex",
                             flexDirection: "column",
-                            gap: 1.5,
+                            gap: 1,
                           }}
                         >
                           {/* Date */}
@@ -542,19 +1208,13 @@ const SharedViewPage = () => {
                           >
                             <DateIcon
                               sx={{
-                                fontSize: 18,
+                                fontSize: 16,
                                 color: colors.secondary_text,
                               }}
                             />
                             <Typography
                               variant="body2"
                               sx={{ color: colors.secondary_text }}
-                            >
-                              Date:
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{ color: colors.primary_text }}
                             >
                               {expenseData.date || "N/A"}
                             </Typography>
@@ -571,139 +1231,35 @@ const SharedViewPage = () => {
                             >
                               <PaymentIcon
                                 sx={{
-                                  fontSize: 18,
+                                  fontSize: 16,
                                   color: colors.secondary_text,
                                 }}
                               />
                               <Typography
                                 variant="body2"
                                 sx={{ color: colors.secondary_text }}
-                              >
-                                Payment:
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                sx={{ color: colors.primary_text }}
                               >
                                 {expense.paymentMethod}
                               </Typography>
                             </Box>
                           )}
 
-                          {/* Type */}
-                          {expense.type && (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                              }}
-                            >
-                              <ReceiptIcon
-                                sx={{
-                                  fontSize: 18,
-                                  color: colors.secondary_text,
-                                }}
-                              />
-                              <Typography
-                                variant="body2"
-                                sx={{ color: colors.secondary_text }}
-                              >
-                                Type:
-                              </Typography>
-                              <Chip
-                                label={expense.type}
-                                size="small"
-                                sx={{
-                                  height: 22,
-                                  backgroundColor:
-                                    expense.type === "CREDIT"
-                                      ? colors.warning + "20"
-                                      : colors.success + "20",
-                                  color:
-                                    expense.type === "CREDIT"
-                                      ? colors.warning
-                                      : colors.success,
-                                }}
-                              />
-                            </Box>
-                          )}
-
-                          {/* Net Amount (if different from amount) */}
-                          {expense.netAmount &&
-                            expense.netAmount !== expense.amount && (
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                }}
-                              >
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: colors.secondary_text }}
-                                >
-                                  Net Amount:
-                                </Typography>
-                                <Typography
-                                  variant="body2"
-                                  sx={{
-                                    color: colors.primary_text,
-                                    fontWeight: 500,
-                                  }}
-                                >
-                                  {formatCurrency(expense.netAmount)}
-                                </Typography>
-                              </Box>
-                            )}
-
-                          {/* Credit Due */}
-                          {expense.creditDue > 0 && (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                              }}
-                            >
-                              <Typography
-                                variant="body2"
-                                sx={{ color: colors.warning }}
-                              >
-                                Credit Due:
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                sx={{ color: colors.warning, fontWeight: 500 }}
-                              >
-                                {formatCurrency(expense.creditDue)}
-                              </Typography>
-                            </Box>
-                          )}
-
-                          {/* Comments */}
+                          {/* Comments Preview */}
                           {expense.comments && (
-                            <Box
+                            <Typography
+                              variant="caption"
                               sx={{
+                                color: colors.secondary_text,
                                 mt: 1,
-                                p: 1.5,
-                                backgroundColor: colors.background,
-                                borderRadius: 1,
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                                fontStyle: "italic",
                               }}
                             >
-                              <Typography
-                                variant="caption"
-                                sx={{ color: colors.secondary_text }}
-                              >
-                                Notes:
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                sx={{ color: colors.primary_text, mt: 0.5 }}
-                              >
-                                {expense.comments}
-                              </Typography>
-                            </Box>
+                              "{expense.comments}"
+                            </Typography>
                           )}
                         </Box>
                       </CardContent>
@@ -717,16 +1273,16 @@ const SharedViewPage = () => {
                             startIcon={<ValidIcon />}
                             disabled
                             sx={{
-                              backgroundColor: colors.success,
-                              color: colors.button_text || "#fff",
+                              backgroundColor: "#10b981",
+                              color: "#fff",
                               "&.Mui-disabled": {
-                                backgroundColor: colors.success,
-                                color: colors.button_text || "#fff",
+                                backgroundColor: "#10b981",
+                                color: "#fff",
                                 opacity: 0.9,
                               },
                             }}
                           >
-                            Added to Your Account
+                            Added ✓
                           </Button>
                         ) : (
                           <Button
@@ -734,7 +1290,7 @@ const SharedViewPage = () => {
                             variant="outlined"
                             startIcon={
                               addingExpense === expenseData.id ? (
-                                <CircularProgress size={20} />
+                                <CircularProgress size={18} />
                               ) : (
                                 <AddIcon />
                               )
@@ -744,8 +1300,10 @@ const SharedViewPage = () => {
                             sx={{
                               borderColor: colors.accent,
                               color: colors.accent,
+                              textTransform: "none",
+                              fontWeight: 500,
                               "&:hover": {
-                                borderColor: colors.accent_hover,
+                                borderColor: colors.accent,
                                 backgroundColor: colors.accent + "10",
                               },
                             }}
@@ -763,61 +1321,145 @@ const SharedViewPage = () => {
             </Grid>
           )}
 
-          {/* Categories */}
+          {/* Categories Grid */}
           {shareInfo?.resourceType === "CATEGORY" && (
-            <List>
-              {data?.map((category, index) => (
-                <ListItem
+            <Grid container spacing={3}>
+              {paginatedData?.map((category, index) => (
+                <Grid
+                  item
+                  xs={12}
+                  sm={6}
+                  md={4}
+                  lg={3}
                   key={category.id || index}
-                  sx={{
-                    backgroundColor: colors.modal_bg,
-                    mb: 1,
-                    borderRadius: 1,
-                    border: `1px solid ${colors.border}`,
-                  }}
                 >
-                  <ListItemIcon>
-                    <Avatar
-                      sx={{
-                        backgroundColor: category.color || colors.accent,
-                      }}
-                    >
-                      <CategoryIcon />
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={category.name}
-                    secondary={category.description || "No description"}
-                    primaryTypographyProps={{
-                      sx: { color: colors.primary_text },
-                    }}
-                    secondaryTypographyProps={{
-                      sx: { color: colors.secondary_text },
-                    }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          )}
-
-          {/* Budgets */}
-          {shareInfo?.resourceType === "BUDGET" && (
-            <Grid container spacing={2}>
-              {data?.map((budget, index) => (
-                <Grid item xs={12} md={6} key={budget.id || index}>
                   <Card
                     sx={{
-                      backgroundColor: colors.modal_bg,
+                      background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
                       border: `1px solid ${colors.border}`,
+                      borderRadius: 2,
+                      height: "100%",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: `0 8px 24px rgba(139, 92, 246, 0.15)`,
+                        borderColor: "#8b5cf6",
+                      },
                     }}
                   >
-                    <CardContent>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: colors.primary_text, mb: 1 }}
+                    <CardContent sx={{ p: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          mb: 2,
+                        }}
                       >
-                        {budget.name || "Budget"}
-                      </Typography>
+                        <Avatar
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            bgcolor: category.color || "#8b5cf6",
+                          }}
+                        >
+                          <CategoryIcon />
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ color: colors.primary_text, fontWeight: 600 }}
+                          >
+                            {category.name}
+                          </Typography>
+                          {category.type && (
+                            <Chip
+                              label={category.type}
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: "0.65rem",
+                                backgroundColor: "#8b5cf620",
+                                color: "#8b5cf6",
+                                mt: 0.5,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </Box>
+                      {category.description && (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: colors.secondary_text,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {category.description}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          {/* Budgets Grid */}
+          {shareInfo?.resourceType === "BUDGET" && (
+            <Grid container spacing={3}>
+              {paginatedData?.map((budget, index) => (
+                <Grid item xs={12} sm={6} md={4} key={budget.id || index}>
+                  <Card
+                    sx={{
+                      background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: 2,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: `0 8px 24px rgba(245, 158, 11, 0.15)`,
+                        borderColor: "#f59e0b",
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ p: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          mb: 2,
+                        }}
+                      >
+                        <Avatar sx={{ bgcolor: "#f59e0b" }}>
+                          <BudgetIcon />
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ color: colors.primary_text, fontWeight: 600 }}
+                          >
+                            {budget.name || "Budget"}
+                          </Typography>
+                          <Chip
+                            label={budget.period || "Monthly"}
+                            size="small"
+                            sx={{
+                              height: 20,
+                              fontSize: "0.65rem",
+                              backgroundColor: "#f59e0b20",
+                              color: "#f59e0b",
+                              mt: 0.5,
+                            }}
+                          />
+                        </Box>
+                      </Box>
+
+                      {/* Budget Progress */}
                       <Box sx={{ mb: 2 }}>
                         <Box
                           sx={{
@@ -834,7 +1476,7 @@ const SharedViewPage = () => {
                           </Typography>
                           <Typography
                             variant="body2"
-                            sx={{ color: colors.primary_text }}
+                            sx={{ color: colors.primary_text, fontWeight: 500 }}
                           >
                             {formatCurrency(budget.spentAmount)} /{" "}
                             {formatCurrency(budget.amount)}
@@ -851,34 +1493,34 @@ const SharedViewPage = () => {
                           <Box
                             sx={{
                               height: "100%",
-                              width: `${Math.min(
-                                ((budget.spentAmount || 0) /
-                                  (budget.amount || 1)) *
-                                  100,
-                                100,
-                              )}%`,
+                              width: `${Math.min(((budget.spentAmount || 0) / (budget.amount || 1)) * 100, 100)}%`,
                               backgroundColor:
                                 budget.spentAmount > budget.amount
-                                  ? colors.error
-                                  : colors.accent,
+                                  ? "#ef4444"
+                                  : "#f59e0b",
                               transition: "width 0.3s ease",
                             }}
                           />
                         </Box>
                       </Box>
+
                       <Box
                         sx={{
                           display: "flex",
                           justifyContent: "space-between",
-                          color: colors.secondary_text,
                         }}
                       >
-                        <Typography variant="caption">
-                          {budget.period || "Monthly"}
+                        <Typography
+                          variant="caption"
+                          sx={{ color: colors.secondary_text }}
+                        >
+                          {formatDate(budget.startDate)?.split(",")[0]}
                         </Typography>
-                        <Typography variant="caption">
-                          {formatDate(budget.startDate)} -{" "}
-                          {formatDate(budget.endDate)}
+                        <Typography
+                          variant="caption"
+                          sx={{ color: colors.secondary_text }}
+                        >
+                          {formatDate(budget.endDate)?.split(",")[0]}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -888,98 +1530,305 @@ const SharedViewPage = () => {
             </Grid>
           )}
 
-          {/* Empty state */}
-          {(!data || data.length === 0) && (
-            <Box sx={{ textAlign: "center", py: 4 }}>
-              <LockIcon
-                sx={{ fontSize: 48, color: colors.secondary_text, mb: 2 }}
-              />
-              <Typography sx={{ color: colors.secondary_text, mb: 2 }}>
-                No data available in this share.
-              </Typography>
-              {warnings && warnings.length > 0 && (
-                <Alert
-                  severity="warning"
-                  sx={{
-                    textAlign: "left",
-                    mt: 2,
-                    backgroundColor: colors.warning + "15",
-                    color: colors.warning,
-                    "& .MuiAlert-icon": { color: colors.warning },
-                  }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ mb: 1, color: colors.warning }}
+          {/* Bills Grid */}
+          {shareInfo?.resourceType === "BILL" && (
+            <Grid container spacing={3}>
+              {paginatedData?.map((bill, index) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={bill.id || index}>
+                  <Card
+                    sx={{
+                      background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: 2,
+                      height: "100%",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: `0 8px 24px rgba(239, 68, 68, 0.15)`,
+                        borderColor: "#ef4444",
+                      },
+                    }}
                   >
-                    Some items are no longer available:
-                  </Typography>
-                  {warnings.map((warning, index) => (
-                    <Typography
-                      key={index}
-                      variant="body2"
-                      sx={{ color: colors.warning }}
-                    >
-                      • {warning}
-                    </Typography>
-                  ))}
-                </Alert>
-              )}
+                    <CardContent sx={{ p: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          mb: 2,
+                        }}
+                      >
+                        <Avatar sx={{ bgcolor: "#ef4444" }}>
+                          <BillIcon />
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ color: colors.primary_text, fontWeight: 600 }}
+                          >
+                            {bill.name || bill.billName || "Bill"}
+                          </Typography>
+                          <Typography
+                            variant="h6"
+                            sx={{ color: "#ef4444", fontWeight: 700 }}
+                          >
+                            {formatCurrency(bill.amount)}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      {bill.dueDate && (
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <DateIcon
+                            sx={{ fontSize: 16, color: colors.secondary_text }}
+                          />
+                          <Typography
+                            variant="body2"
+                            sx={{ color: colors.secondary_text }}
+                          >
+                            Due: {formatDate(bill.dueDate)?.split(",")[0]}
+                          </Typography>
+                        </Box>
+                      )}
+                      {bill.frequency && (
+                        <Chip
+                          label={bill.frequency}
+                          size="small"
+                          sx={{
+                            mt: 1,
+                            height: 22,
+                            backgroundColor: "#ef444420",
+                            color: "#ef4444",
+                          }}
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          {/* Payment Methods Grid */}
+          {shareInfo?.resourceType === "PAYMENT_METHOD" && (
+            <Grid container spacing={3}>
+              {paginatedData?.map((paymentMethod, index) => (
+                <Grid
+                  item
+                  xs={12}
+                  sm={6}
+                  md={4}
+                  lg={3}
+                  key={paymentMethod.id || index}
+                >
+                  <Card
+                    sx={{
+                      background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: 2,
+                      height: "100%",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: `0 8px 24px rgba(59, 130, 246, 0.15)`,
+                        borderColor: "#3b82f6",
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ p: 2 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
+                        <Avatar sx={{ bgcolor: "#3b82f6" }}>
+                          <CreditCardIcon />
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ color: colors.primary_text, fontWeight: 600 }}
+                          >
+                            {paymentMethod.name ||
+                              paymentMethod.methodName ||
+                              "Payment Method"}
+                          </Typography>
+                          {paymentMethod.type && (
+                            <Chip
+                              label={paymentMethod.type}
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: "0.65rem",
+                                backgroundColor: "#3b82f620",
+                                color: "#3b82f6",
+                                mt: 0.5,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </Box>
+                      {paymentMethod.description && (
+                        <Typography
+                          variant="body2"
+                          sx={{ color: colors.secondary_text, mt: 2 }}
+                        >
+                          {paymentMethod.description}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          {/* Empty state */}
+          {(!paginatedData || paginatedData.length === 0) && (
+            <Box sx={{ textAlign: "center", py: 6 }}>
+              <LockIcon
+                sx={{ fontSize: 64, color: colors.secondary_text, mb: 2 }}
+              />
+              <Typography
+                variant="h6"
+                sx={{ color: colors.primary_text, mb: 1 }}
+              >
+                No Items Found
+              </Typography>
+              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+                {searchTerm
+                  ? "Try adjusting your search terms"
+                  : "No data available in this share."}
+              </Typography>
             </Box>
           )}
 
-          {/* Warnings for partial data */}
-          {data && data.length > 0 && warnings && warnings.length > 0 && (
-            <Alert
-              severity="info"
+          {/* Load More Button */}
+          {hasMore && paginatedData.length > 0 && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+              <Button
+                variant="outlined"
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                startIcon={
+                  loadingMore ? (
+                    <CircularProgress size={18} />
+                  ) : (
+                    <ExpandMoreIcon />
+                  )
+                }
+                sx={{
+                  minWidth: 200,
+                  borderColor: colors.accent,
+                  color: colors.accent,
+                  textTransform: "none",
+                  fontWeight: 500,
+                  py: 1.5,
+                  "&:hover": {
+                    borderColor: colors.accent,
+                    backgroundColor: colors.accent + "10",
+                  },
+                }}
+              >
+                {loadingMore
+                  ? "Loading..."
+                  : `Load More (${filteredData.length - displayCount} remaining)`}
+              </Button>
+            </Box>
+          )}
+
+          {/* Summary Footer */}
+          {paginatedData.length > 0 && (
+            <Box
               sx={{
-                mt: 3,
-                backgroundColor: colors.info + "15",
-                color: colors.info,
-                "& .MuiAlert-icon": { color: colors.info },
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 2,
+                mt: 4,
+                pt: 3,
+                borderTop: `1px solid ${colors.border}`,
               }}
             >
-              <Typography
-                variant="subtitle2"
-                sx={{ mb: 1, color: colors.info }}
-              >
-                Note: Some shared items are no longer available:
+              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+                Showing{" "}
+                <strong style={{ color: colors.primary_text }}>
+                  {displayedItems}
+                </strong>{" "}
+                of{" "}
+                <strong style={{ color: colors.primary_text }}>
+                  {totalItems}
+                </strong>{" "}
+                items
               </Typography>
-              {warnings.map((warning, index) => (
-                <Typography
-                  key={index}
-                  variant="body2"
-                  sx={{ color: colors.info }}
-                >
-                  • {warning}
-                </Typography>
-              ))}
-            </Alert>
+              {!hasMore && totalItems > PAGE_SIZE && (
+                <Chip
+                  label="All items loaded"
+                  size="small"
+                  sx={{
+                    backgroundColor: "#10b98120",
+                    color: "#10b981",
+                  }}
+                />
+              )}
+            </Box>
           )}
         </Paper>
 
         {/* Footer */}
-        <Box sx={{ textAlign: "center", mt: 3 }}>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-            This content was shared using the Expense Tracking System secure
-            sharing feature.
-          </Typography>
-          <Button
-            variant="outlined"
-            startIcon={<BackIcon />}
-            onClick={() => navigate("/")}
-            sx={{
-              mt: 2,
-              borderColor: colors.accent,
-              color: colors.accent,
-              "&:hover": {
-                borderColor: colors.accent_hover,
-                backgroundColor: colors.accent + "10",
-              },
-            }}
+        <Box sx={{ textAlign: "center", mt: 4, pb: 4 }}>
+          <Typography
+            variant="body2"
+            sx={{ color: colors.secondary_text, mb: 2 }}
           >
-            Go to Home
-          </Button>
+            This content was shared using <strong>Expensio Finance</strong>{" "}
+            secure sharing feature.
+          </Typography>
+          {isLoggedIn ? (
+            <Button
+              variant="outlined"
+              startIcon={<HomeIcon />}
+              onClick={() => navigate("/dashboard")}
+              sx={{
+                borderColor: colors.accent,
+                color: colors.accent,
+                textTransform: "none",
+                "&:hover": {
+                  borderColor: colors.accent,
+                  backgroundColor: colors.accent + "10",
+                },
+              }}
+            >
+              Go to Dashboard
+            </Button>
+          ) : (
+            <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
+              <Button
+                variant="outlined"
+                onClick={() => navigate("/login")}
+                sx={{
+                  borderColor: colors.accent,
+                  color: colors.accent,
+                  textTransform: "none",
+                }}
+              >
+                Login
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSignupRedirect}
+                sx={{
+                  backgroundColor: colors.accent,
+                  color: "#fff",
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: colors.accent_hover || colors.accent,
+                  },
+                }}
+              >
+                Create Account
+              </Button>
+            </Box>
+          )}
         </Box>
       </Container>
 
@@ -997,7 +1846,7 @@ const SharedViewPage = () => {
           sx: {
             backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
             borderRadius: 3,
-            minWidth: 400,
+            minWidth: isMobile ? 320 : 400,
             border: isDark
               ? "1px solid rgba(255, 255, 255, 0.1)"
               : "1px solid rgba(0, 0, 0, 0.1)",
@@ -1040,6 +1889,7 @@ const SharedViewPage = () => {
             onClick={() => setShowLoginDialog(false)}
             sx={{
               color: isDark ? "#888" : "#666",
+              textTransform: "none",
               "&:hover": {
                 backgroundColor: isDark
                   ? "rgba(255,255,255,0.05)"
@@ -1056,7 +1906,10 @@ const SharedViewPage = () => {
             sx={{
               backgroundColor: colors.accent,
               color: "#fff",
-              "&:hover": { backgroundColor: colors.accent_hover },
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: colors.accent_hover || colors.accent,
+              },
             }}
           >
             Go to Login
