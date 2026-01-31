@@ -57,6 +57,7 @@ import dayjs from "dayjs";
 import { useTheme } from "../hooks/useTheme";
 import { useMasking } from "../hooks/useMasking";
 import useUserSettings from "../hooks/useUserSettings";
+import { getCategoryIcon, getPaymentMethodIcon } from "../utils/iconMapping";
 import {
   clearShareError,
   accessSharePaginated,
@@ -1602,7 +1603,7 @@ const SharedViewPage = () => {
             {/* Expenses Grid */}
             {activeResourceType === "EXPENSE" && (
               <Grid container spacing={3}>
-                {currentItems?.map((item, index) => {
+                {filteredData?.map((item, index) => {
                   // SharedItem structure: { type, externalRef, data: { id, date, categoryName, expense: {...} }, found }
                   const sharedData = item.data || {};
                   const expense = sharedData.expense || sharedData;
@@ -1647,13 +1648,17 @@ const SharedViewPage = () => {
                                 variant="h5"
                                 sx={{
                                   color:
+                                    expense.type?.toLowerCase() === "loss" ||
                                     expense.type === "CREDIT"
-                                      ? "#f59e0b"
+                                      ? "#ef4444"
                                       : "#10b981",
                                   fontWeight: 700,
                                 }}
                               >
-                                {expense.type === "CREDIT" ? "-" : "+"}
+                                {expense.type?.toLowerCase() === "loss" ||
+                                expense.type === "CREDIT"
+                                  ? "-"
+                                  : "+"}
                                 {formatCurrency(
                                   expense.amount || expense.netAmount || 0,
                                 )}
@@ -1670,16 +1675,23 @@ const SharedViewPage = () => {
                               </Typography>
                             </Box>
                             <Chip
-                              label={expense.type || "DEBIT"}
+                              label={
+                                expense.type?.toLowerCase() === "loss" ||
+                                expense.type === "CREDIT"
+                                  ? "loss"
+                                  : "gain"
+                              }
                               size="small"
                               sx={{
                                 backgroundColor:
+                                  expense.type?.toLowerCase() === "loss" ||
                                   expense.type === "CREDIT"
-                                    ? "#f59e0b20"
+                                    ? "#ef444420"
                                     : "#10b98120",
                                 color:
+                                  expense.type?.toLowerCase() === "loss" ||
                                   expense.type === "CREDIT"
-                                    ? "#f59e0b"
+                                    ? "#ef4444"
                                     : "#10b981",
                                 fontWeight: 600,
                                 fontSize: "0.7rem",
@@ -1689,7 +1701,9 @@ const SharedViewPage = () => {
 
                           {/* Category Badge */}
                           <Chip
-                            icon={<CategoryIcon sx={{ fontSize: 14 }} />}
+                            icon={getCategoryIcon(sharedData.categoryName, {
+                              sx: { fontSize: 14, color: colors.accent },
+                            })}
                             label={sharedData.categoryName || "Uncategorized"}
                             size="small"
                             sx={{
@@ -1740,12 +1754,12 @@ const SharedViewPage = () => {
                                   gap: 1,
                                 }}
                               >
-                                <PaymentIcon
-                                  sx={{
+                                {getPaymentMethodIcon(expense.paymentMethod, {
+                                  sx: {
                                     fontSize: 16,
                                     color: colors.secondary_text,
-                                  }}
-                                />
+                                  },
+                                })}
                                 <Typography
                                   variant="body2"
                                   sx={{ color: colors.secondary_text }}
@@ -1840,7 +1854,7 @@ const SharedViewPage = () => {
             {/* Categories Grid */}
             {activeResourceType === "CATEGORY" && (
               <Grid container spacing={3}>
-                {currentItems?.map((item, index) => {
+                {filteredData?.map((item, index) => {
                   const category = item.data || item;
                   return (
                     <Grid
@@ -1933,7 +1947,7 @@ const SharedViewPage = () => {
             {/* Budgets Grid */}
             {activeResourceType === "BUDGET" && (
               <Grid container spacing={3}>
-                {currentItems?.map((item, index) => {
+                {filteredData?.map((item, index) => {
                   const budget = item.data || item;
                   return (
                     <Grid
@@ -2070,7 +2084,7 @@ const SharedViewPage = () => {
             {/* Bills Grid */}
             {activeResourceType === "BILL" && (
               <Grid container spacing={3}>
-                {currentItems?.map((item, index) => {
+                {filteredData?.map((item, index) => {
                   const bill = item.data || item;
                   return (
                     <Grid
@@ -2170,7 +2184,7 @@ const SharedViewPage = () => {
             {/* Payment Methods Grid */}
             {activeResourceType === "PAYMENT_METHOD" && (
               <Grid container spacing={3}>
-                {currentItems?.map((item, index) => {
+                {filteredData?.map((item, index) => {
                   const paymentMethod = item.data || item;
                   return (
                     <Grid

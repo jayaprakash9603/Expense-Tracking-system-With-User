@@ -20,9 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.jaya.dto.ExpenseDTO;
 
 /**
  * Service for managing shared resources with QR code access.
@@ -258,40 +262,46 @@ public class SharedResourceService {
                 ? search.trim().toLowerCase()
                 : null;
 
-        // If search is provided, fetch all data first, filter, then paginate
+        // Batch fetch data based on type to avoid N+1 query problem
         List<SharedDataResponse.SharedItem> allItems = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
-        for (ResourceRef ref : typeRefs) {
-            try {
-                Object data = fetchResourceData(ref, share.getOwnerUserId());
-                if (data != null) {
-                    SharedDataResponse.SharedItem item = SharedDataResponse.SharedItem.builder()
-                            .type(ref.getType())
-                            .externalRef(ref.getExternalRef())
-                            .data(data)
-                            .found(true)
-                            .build();
+        if ("EXPENSE".equals(normalizedType)) {
+            // Batch fetch all expenses in a single query
+            allItems = fetchExpensesBatch(typeRefs, share.getOwnerUserId(), searchQuery, warnings);
+        } else {
+            // For other types, use individual fetch (can be optimized later)
+            for (ResourceRef ref : typeRefs) {
+                try {
+                    Object data = fetchResourceData(ref, share.getOwnerUserId());
+                    if (data != null) {
+                        SharedDataResponse.SharedItem item = SharedDataResponse.SharedItem.builder()
+                                .type(ref.getType())
+                                .externalRef(ref.getExternalRef())
+                                .data(data)
+                                .found(true)
+                                .build();
 
-                    // If search is provided, filter items
-                    if (searchQuery == null || matchesSearch(item, searchQuery)) {
-                        allItems.add(item);
+                        // If search is provided, filter items
+                        if (searchQuery == null || matchesSearch(item, searchQuery)) {
+                            allItems.add(item);
+                        }
+                    } else if (searchQuery == null) {
+                        // Only add not-found items when not searching
+                        allItems.add(SharedDataResponse.SharedItem.builder()
+                                .type(ref.getType())
+                                .externalRef(ref.getExternalRef())
+                                .data(null)
+                                .found(false)
+                                .build());
+                        warnings.add(String.format("%s '%s' no longer exists", ref.getType(),
+                                ref.getDisplayName() != null ? ref.getDisplayName() : ref.getExternalRef()));
                     }
-                } else if (searchQuery == null) {
-                    // Only add not-found items when not searching
-                    allItems.add(SharedDataResponse.SharedItem.builder()
-                            .type(ref.getType())
-                            .externalRef(ref.getExternalRef())
-                            .data(null)
-                            .found(false)
-                            .build());
-                    warnings.add(String.format("%s '%s' no longer exists", ref.getType(),
-                            ref.getDisplayName() != null ? ref.getDisplayName() : ref.getExternalRef()));
-                }
-            } catch (Exception e) {
-                log.warn("Failed to fetch resource: {} - {}", ref.getExternalRef(), e.getMessage());
-                if (searchQuery == null) {
-                    warnings.add(String.format("Could not retrieve %s '%s'", ref.getType(), ref.getExternalRef()));
+                } catch (Exception e) {
+                    log.warn("Failed to fetch resource: {} - {}", ref.getExternalRef(), e.getMessage());
+                    if (searchQuery == null) {
+                        warnings.add(String.format("Could not retrieve %s '%s'", ref.getType(), ref.getExternalRef()));
+                    }
                 }
             }
         }
@@ -466,6 +476,112 @@ public class SharedResourceService {
                     .id(userId)
                     .build();
         }
+    }
+
+    /**
+     * Batch fetch expenses to avoid N+1 query problem.
+     * Fetches all expenses in a single query and maps them to SharedItem objects.
+     *
+     * @param typeRefs    List of resource references for expenses
+     * @param ownerUserId Owner user ID for the expenses
+     * @param searchQuery Optional search query to filter results
+     * @param warnings    List to collect any warnings about missing data
+     * @return List of SharedItem objects containing expense data
+     */
+    private List<SharedDataResponse.SharedItem> fetchExpensesBatch(
+            List<ResourceRef> typeRefs,
+            Integer ownerUserId,
+            String searchQuery,
+            List<String> warnings) {
+
+        List<SharedDataResponse.SharedItem> items = new ArrayList<>();
+
+        if (typeRefs.isEmpty()) {
+            return items;
+        }
+
+        // Collect all expense IDs from refs
+        Map<Integer, ResourceRef> idToRefMap = new HashMap<>();
+        Set<Integer> expenseIds = new HashSet<>();
+
+        for (ResourceRef ref : typeRefs) {
+            Integer expenseId = ref.getInternalId();
+            if (expenseId == null) {
+                expenseId = parseIdFromExternalRef(ref.getExternalRef());
+            }
+            if (expenseId != null) {
+                expenseIds.add(expenseId);
+                idToRefMap.put(expenseId, ref);
+            } else {
+                log.warn("Could not determine expense ID for ref: {}", ref.getExternalRef());
+                if (searchQuery == null) {
+                    warnings.add(String.format("Could not parse ID for expense '%s'",
+                            ref.getDisplayName() != null ? ref.getDisplayName() : ref.getExternalRef()));
+                }
+            }
+        }
+
+        if (expenseIds.isEmpty()) {
+            return items;
+        }
+
+        try {
+            // Batch fetch all expenses in a single query
+            log.debug("Batch fetching {} expenses for user {}", expenseIds.size(), ownerUserId);
+            List<ExpenseDTO> expenses = expenseService.getExpensesByIds(ownerUserId, expenseIds);
+
+            // Create a map for quick lookup
+            Map<Integer, ExpenseDTO> expenseMap = new HashMap<>();
+            for (ExpenseDTO expense : expenses) {
+                expenseMap.put(expense.getId(), expense);
+            }
+
+            // Build SharedItem list preserving original order
+            for (ResourceRef ref : typeRefs) {
+                Integer expenseId = ref.getInternalId();
+                if (expenseId == null) {
+                    expenseId = parseIdFromExternalRef(ref.getExternalRef());
+                }
+
+                if (expenseId == null) {
+                    continue; // Already handled above
+                }
+
+                ExpenseDTO expense = expenseMap.get(expenseId);
+                if (expense != null) {
+                    SharedDataResponse.SharedItem item = SharedDataResponse.SharedItem.builder()
+                            .type(ref.getType())
+                            .externalRef(ref.getExternalRef())
+                            .data(expense)
+                            .found(true)
+                            .build();
+
+                    // If search is provided, filter items
+                    if (searchQuery == null || matchesSearch(item, searchQuery)) {
+                        items.add(item);
+                    }
+                } else if (searchQuery == null) {
+                    // Expense not found - add as not found item
+                    items.add(SharedDataResponse.SharedItem.builder()
+                            .type(ref.getType())
+                            .externalRef(ref.getExternalRef())
+                            .data(null)
+                            .found(false)
+                            .build());
+                    warnings.add(String.format("EXPENSE '%s' no longer exists",
+                            ref.getDisplayName() != null ? ref.getDisplayName() : ref.getExternalRef()));
+                }
+            }
+
+            log.debug("Batch fetch complete: {} items returned", items.size());
+
+        } catch (Exception e) {
+            log.error("Failed to batch fetch expenses: {}", e.getMessage(), e);
+            // Fallback: return empty list with warning
+            warnings.add("Failed to fetch expenses: " + e.getMessage());
+        }
+
+        return items;
     }
 
     private Object fetchResourceData(ResourceRef ref, Integer ownerUserId) {
