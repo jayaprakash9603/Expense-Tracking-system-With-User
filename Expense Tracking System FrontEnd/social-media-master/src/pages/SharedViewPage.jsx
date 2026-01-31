@@ -22,10 +22,6 @@ import {
   ListItemIcon,
   Avatar,
   CardActions,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   InputAdornment,
   FormControl,
@@ -40,6 +36,7 @@ import {
   Person as PersonIcon,
   AccessTime as TimeIcon,
   Visibility as ViewIcon,
+  VisibilityOff as VisibilityOffIcon,
   Edit as EditIcon,
   ArrowBack as BackIcon,
   Category as CategoryIcon,
@@ -58,15 +55,25 @@ import {
   FilterList as FilterIcon,
   Sort as SortIcon,
   Notifications as NotificationsIcon,
-  ExpandMore as ExpandMoreIcon,
   CreditCard as CreditCardIcon,
   ReceiptLong as BillIcon,
+  ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { useTheme } from "../hooks/useTheme";
+import { useMasking } from "../hooks/useMasking";
 import { accessShare, clearShareError } from "../Redux/Shares/shares.actions";
 import { createExpenseAction } from "../Redux/Expenses/expense.action";
+import { toggleTheme } from "../Redux/Theme/theme.actions";
+import { updateUserSettings } from "../Redux/UserSettings/userSettings.action";
 import { BRAND_GRADIENT_COLORS } from "../config/themeConfig";
+import Modal from "./Landingpage/Modal";
+import {
+  InlineSearchBar,
+  UniversalSearchModal,
+} from "../components/common/UniversalSearch";
+import NotificationsPanelRedux from "../components/common/NotificationsPanelRedux";
+import ProfileDropdown from "../components/common/ProfileDropdown";
 
 // LocalStorage key for tracking added items per share token
 const getAddedItemsKey = (token) => `shared_added_items_${token}`;
@@ -190,6 +197,10 @@ const SharedViewPage = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
+  // Masking hook for hiding amounts
+  const { isMasking, toggleMasking } = useMasking();
+  const maskingEnabled = isMasking();
+
   const {
     sharedData: accessedShare,
     sharedDataLoading: accessLoading,
@@ -202,6 +213,9 @@ const SharedViewPage = () => {
   const [addedExpenses, setAddedExpenses] = useState(new Set());
   const [addingExpense, setAddingExpense] = useState(null);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+
+  // Header dropdown states
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   // Pagination state
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
@@ -321,6 +335,18 @@ const SharedViewPage = () => {
   const navigateToLogin = () => {
     sessionStorage.setItem("redirectAfterLogin", window.location.pathname);
     navigate("/login");
+  };
+
+  // Handle theme toggle
+  const handleThemeToggle = () => {
+    dispatch(toggleTheme());
+    // Update user settings in backend if logged in
+    if (isLoggedIn) {
+      const newMode = isDark ? "light" : "dark";
+      dispatch(updateUserSettings({ themeMode: newMode })).catch((error) => {
+        console.error("Failed to update theme setting:", error);
+      });
+    }
   };
 
   // Handle load more
@@ -569,159 +595,270 @@ const SharedViewPage = () => {
         backgroundColor: colors.secondary_bg,
       }}
     >
-      {/* Fixed Header */}
+      {/* Universal Search Modal - Opens with Ctrl/Cmd + K */}
+      {isLoggedIn && <UniversalSearchModal />}
+
+      {/* Fixed Header - Matching dashboard header height (50px) */}
       <Box
         sx={{
           position: "sticky",
           top: 0,
           zIndex: 1100,
-          backgroundColor: colors.primary_bg,
+          height: 50,
+          backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
           borderBottom: `1px solid ${colors.border}`,
-          boxShadow: isDark
-            ? "0 2px 8px rgba(0,0,0,0.3)"
-            : "0 2px 8px rgba(0,0,0,0.1)",
         }}
       >
-        <Container maxWidth="xl">
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            height: "100%",
+            px: isMobile ? 2 : 3,
+            maxWidth: "1536px",
+            mx: "auto",
+          }}
+        >
+          {/* Left Section: Logo */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {/* Logo */}
+            <Box
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
+              onClick={() => navigate("/")}
+            >
+              <BrandLogo size={isMobile ? "small" : "medium"} />
+            </Box>
+
+            {/* Back to Dashboard - Only for logged in users on desktop */}
+            {isLoggedIn && !isMobile && (
+              <Button
+                variant="text"
+                startIcon={<HomeIcon sx={{ fontSize: 18 }} />}
+                onClick={() => navigate("/dashboard")}
+                sx={{
+                  color: colors.primary_text,
+                  textTransform: "none",
+                  fontSize: "0.875rem",
+                  py: 0.5,
+                  "&:hover": {
+                    backgroundColor: isDark
+                      ? "rgba(255,255,255,0.05)"
+                      : "rgba(0,0,0,0.05)",
+                  },
+                }}
+              >
+                Dashboard
+              </Button>
+            )}
+          </Box>
+
+          {/* Right Section: Auth buttons or Full Header Controls */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
-              height: isMobile ? 56 : 64,
-              px: isMobile ? 1 : 2,
+              gap: isMobile ? 1 : 1.5,
             }}
           >
-            {/* Left Section: Logo & Back Button */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              {/* Logo */}
-              <Box
-                sx={{
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onClick={() => navigate("/")}
-              >
-                <BrandLogo size={isMobile ? "small" : "medium"} />
-              </Box>
+            {isLoggedIn ? (
+              <>
+                {/* Inline Search Bar - Desktop only */}
+                {!isMobile && <InlineSearchBar />}
 
-              {/* Back to Dashboard - Only for logged in users */}
-              {isLoggedIn && (
-                <Tooltip title="Back to Dashboard">
-                  <Button
-                    variant="text"
-                    startIcon={<HomeIcon />}
-                    onClick={() => navigate("/dashboard")}
+                {/* Masking Toggle Button */}
+                <Tooltip
+                  title={maskingEnabled ? "Show Amounts" : "Hide Amounts"}
+                >
+                  <IconButton
+                    onClick={toggleMasking}
                     sx={{
-                      color: colors.primary_text,
-                      textTransform: "none",
+                      p: 1,
+                      borderRadius: 2,
+                      backgroundColor: isDark ? "#2d2d2d" : "#f3f4f6",
                       "&:hover": {
-                        backgroundColor: colors.hover_bg,
+                        backgroundColor: isDark ? "#3d3d3d" : "#e5e7eb",
+                        transform: "scale(1.05)",
                       },
-                      display: isMobile ? "none" : "flex",
+                      transition: "all 0.2s",
                     }}
                   >
-                    Dashboard
-                  </Button>
-                </Tooltip>
-              )}
-              {isLoggedIn && isMobile && (
-                <Tooltip title="Back to Dashboard">
-                  <IconButton
-                    onClick={() => navigate("/dashboard")}
-                    sx={{ color: colors.primary_text }}
-                  >
-                    <HomeIcon />
+                    {maskingEnabled ? (
+                      <VisibilityOffIcon
+                        sx={{
+                          fontSize: 20,
+                          color: isDark ? "#d1d5db" : "#374151",
+                        }}
+                      />
+                    ) : (
+                      <ViewIcon
+                        sx={{
+                          fontSize: 20,
+                          color: isDark ? "#d1d5db" : "#374151",
+                        }}
+                      />
+                    )}
                   </IconButton>
                 </Tooltip>
-              )}
-            </Box>
 
-            {/* Right Section: Auth buttons or Profile */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              {isLoggedIn ? (
-                <>
-                  {/* Notifications - Only for logged in */}
+                {/* Theme Toggle Button */}
+                <Tooltip
+                  title={
+                    isDark ? "Switch to Light Mode" : "Switch to Dark Mode"
+                  }
+                >
+                  <IconButton
+                    onClick={handleThemeToggle}
+                    sx={{
+                      p: 1,
+                      borderRadius: 2,
+                      backgroundColor: isDark ? "#2d2d2d" : "#f3f4f6",
+                      "&:hover": {
+                        backgroundColor: isDark ? "#3d3d3d" : "#e5e7eb",
+                        transform: "scale(1.05)",
+                      },
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {isDark ? (
+                      <Box
+                        component="span"
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          style={{ color: "#facc15" }}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </Box>
+                    ) : (
+                      <Box
+                        component="span"
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          style={{ color: "#374151" }}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                        </svg>
+                      </Box>
+                    )}
+                  </IconButton>
+                </Tooltip>
+
+                {/* Notifications Button */}
+                <Box sx={{ position: "relative" }}>
                   <Tooltip title="Notifications">
                     <IconButton
+                      onClick={() =>
+                        setIsNotificationsOpen(!isNotificationsOpen)
+                      }
                       sx={{
-                        color: colors.primary_text,
-                        backgroundColor: colors.hover_bg,
-                        "&:hover": { backgroundColor: colors.active_bg },
+                        p: 1,
+                        borderRadius: 2,
+                        backgroundColor: isDark ? "#2d2d2d" : "#f3f4f6",
+                        "&:hover": {
+                          backgroundColor: isDark ? "#3d3d3d" : "#e5e7eb",
+                          transform: "scale(1.05)",
+                        },
+                        transition: "all 0.2s",
                       }}
                     >
-                      <Badge badgeContent={0} color="error">
-                        <NotificationsIcon />
+                      <Badge badgeContent={0} color="error" max={99}>
+                        <NotificationsIcon
+                          sx={{
+                            fontSize: 20,
+                            color: isDark ? "#d1d5db" : "#374151",
+                          }}
+                        />
                       </Badge>
                     </IconButton>
                   </Tooltip>
+                  {/* Notifications Panel */}
+                  {isNotificationsOpen && (
+                    <NotificationsPanelRedux
+                      isOpen={isNotificationsOpen}
+                      onClose={() => setIsNotificationsOpen(false)}
+                    />
+                  )}
+                </Box>
 
-                  {/* Profile Avatar */}
-                  <Tooltip
-                    title={`${currentUser?.firstName || "User"}'s Profile`}
-                  >
-                    <IconButton
-                      onClick={() => navigate("/profile")}
-                      sx={{ p: 0.5 }}
-                    >
-                      <Avatar
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          bgcolor: colors.accent,
-                          fontSize: "14px",
-                          fontWeight: 600,
-                        }}
-                        src={currentUser?.profileImage}
-                      >
-                        {currentUser?.firstName?.charAt(0)?.toUpperCase() ||
-                          "U"}
-                        {currentUser?.lastName?.charAt(0)?.toUpperCase() || ""}
-                      </Avatar>
-                    </IconButton>
-                  </Tooltip>
-                </>
-              ) : (
-                <>
-                  {/* Login / Signup buttons for non-logged in users */}
-                  <Button
-                    variant="outlined"
-                    onClick={navigateToLogin}
-                    sx={{
+                {/* Profile Dropdown */}
+                <ProfileDropdown showModeSwitch={true} />
+              </>
+            ) : (
+              <>
+                {/* Login / Signup buttons for non-logged in users */}
+                <Button
+                  variant="outlined"
+                  onClick={navigateToLogin}
+                  sx={{
+                    borderColor: colors.accent,
+                    color: colors.accent,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    py: 0.5,
+                    px: 2,
+                    minHeight: 32,
+                    "&:hover": {
                       borderColor: colors.accent,
-                      color: colors.accent,
-                      textTransform: "none",
-                      fontWeight: 600,
-                      "&:hover": {
-                        borderColor: colors.accent,
-                        backgroundColor: colors.accent + "10",
-                      },
-                    }}
-                  >
-                    Login
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={handleSignupRedirect}
-                    sx={{
-                      backgroundColor: colors.accent,
-                      color: colors.button_text || "#fff",
-                      textTransform: "none",
-                      fontWeight: 600,
-                      "&:hover": {
-                        backgroundColor: colors.accent_hover || colors.accent,
-                      },
-                      display: isMobile ? "none" : "flex",
-                    }}
-                  >
-                    Sign Up
-                  </Button>
-                </>
-              )}
-            </Box>
+                      backgroundColor: colors.accent + "10",
+                    },
+                  }}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleSignupRedirect}
+                  sx={{
+                    backgroundColor: colors.accent,
+                    color: "#fff",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    py: 0.5,
+                    px: 2,
+                    minHeight: 32,
+                    "&:hover": {
+                      backgroundColor: colors.accent_hover || colors.accent,
+                    },
+                    display: isMobile ? "none" : "flex",
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </Box>
-        </Container>
+        </Box>
       </Box>
 
       {/* Main Content */}
@@ -1838,90 +1975,19 @@ const SharedViewPage = () => {
         </Box>
       </Container>
 
-      {/* Login Required Dialog */}
-      <Dialog
-        open={showLoginDialog}
+      {/* Login Required Modal */}
+      <Modal
+        isOpen={showLoginDialog}
         onClose={() => setShowLoginDialog(false)}
-        BackdropProps={{
-          sx: {
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
-            backdropFilter: "blur(4px)",
-          },
-        }}
-        PaperProps={{
-          sx: {
-            backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
-            borderRadius: 3,
-            minWidth: isMobile ? 320 : 400,
-            border: isDark
-              ? "1px solid rgba(255, 255, 255, 0.1)"
-              : "1px solid rgba(0, 0, 0, 0.1)",
-            boxShadow: isDark
-              ? "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
-              : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            color: isDark ? "#fff" : "#1a1a1a",
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            borderBottom: `1px solid ${isDark ? "#333" : "#e5e5e5"}`,
-            pb: 2,
-          }}
-        >
-          <LoginIcon sx={{ color: colors.accent }} />
-          Login Required
-        </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
-          <Typography sx={{ color: isDark ? "#ccc" : "#444", mb: 2 }}>
-            To add this expense to your account, you need to be logged in.
-          </Typography>
-          <Typography variant="body2" sx={{ color: isDark ? "#888" : "#666" }}>
-            Don't have an account? You can create one during the login process.
-          </Typography>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            p: 2,
-            pt: 0,
-            borderTop: `1px solid ${isDark ? "#333" : "#e5e5e5"}`,
-            mt: 2,
-          }}
-        >
-          <Button
-            onClick={() => setShowLoginDialog(false)}
-            sx={{
-              color: isDark ? "#888" : "#666",
-              textTransform: "none",
-              "&:hover": {
-                backgroundColor: isDark
-                  ? "rgba(255,255,255,0.05)"
-                  : "rgba(0,0,0,0.05)",
-              },
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<LoginIcon />}
-            onClick={handleLoginRedirect}
-            sx={{
-              backgroundColor: colors.accent,
-              color: "#fff",
-              textTransform: "none",
-              "&:hover": {
-                backgroundColor: colors.accent_hover || colors.accent,
-              },
-            }}
-          >
-            Go to Login
-          </Button>
-        </DialogActions>
-      </Dialog>
+        title="Login Required"
+        confirmationText="To add this expense to your account, you need to be logged in. Don't have an account? You can create one during the login process."
+        approveText="Go to Login"
+        declineText="Cancel"
+        approveIcon={<LoginIcon sx={{ fontSize: 18 }} />}
+        declineIcon={<BackIcon sx={{ fontSize: 18 }} />}
+        onApprove={handleLoginRedirect}
+        onDecline={() => setShowLoginDialog(false)}
+      />
     </Box>
   );
 };
