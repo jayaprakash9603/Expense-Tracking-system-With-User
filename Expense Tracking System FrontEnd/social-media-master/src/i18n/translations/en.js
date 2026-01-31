@@ -53,6 +53,8 @@ export const en = {
     paymentMethod: "Payment Method",
     calendar: "Calendar",
     myShares: "My Shares",
+    publicShares: "Public Shares",
+    sharedWithMe: "Shared With Me",
   },
 
   // Flows
@@ -1446,6 +1448,50 @@ export const en = {
       reduceMotionDesc: "Minimize animations for better accessibility",
       focusIndicators: "Enhanced Focus Indicators",
       focusIndicatorsDesc: "Highlight focused elements more prominently",
+    },
+  },
+
+  // Public Shares Page
+  publicShares: {
+    title: "Public Shares",
+    subtitle: "Browse publicly shared QR codes from all users",
+    searchPlaceholder: "Search by name, type, or owner...",
+    comingSoon: "Coming Soon!",
+    comingSoonDescription:
+      "Public sharing feature is currently under development. Soon you'll be able to browse and discover publicly shared expense reports and data from the community.",
+    goToMyShares: "Go to My Shares",
+    features: {
+      browse: "Browse Public Shares",
+      scanQr: "Scan QR Codes",
+      quickLinks: "Quick Access Links",
+    },
+  },
+
+  // Shared With Me Page
+  sharedWithMe: {
+    title: "Shared With Me",
+    subtitle: "Friends who have given you access to their expenses",
+    searchPlaceholder: "Search friends...",
+    noAccessFound: "No Shared Access Found",
+    noAccessDescription:
+      "When friends share their expense access with you, they'll appear here",
+    noSearchMatch: "No friends match your search",
+    viewExpenses: "View Expenses",
+    stats: {
+      totalFriends: "Total Friends",
+      fullAccess: "Full Access",
+      editAccess: "Edit Access",
+      viewOnly: "View Only",
+    },
+    accessLevel: {
+      full: "Full Access",
+      fullDesc: "Can view, edit, and manage",
+      write: "Edit Access",
+      writeDesc: "Can view and edit",
+      read: "View Only",
+      readDesc: "Can only view",
+      none: "No Access",
+      noneDesc: "Access revoked",
     },
   },
 

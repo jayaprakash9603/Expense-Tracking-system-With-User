@@ -555,3 +555,219 @@ export const untrackItem = (token, externalRef) => async (dispatch) => {
     return { success: false, error: errorMessage };
   }
 };
+
+// ========== Public Shares Actions ==========
+
+/**
+ * Fetch all public shares visible to all users.
+ * NOTE: This endpoint may not exist yet - returns empty array as fallback.
+ * @param {Object} options - { page, size, search, resourceType }
+ */
+export const fetchPublicShares =
+  (options = {}) =>
+  async (dispatch) => {
+    dispatch({ type: SHARES_ACTION_TYPES.FETCH_PUBLIC_SHARES_REQUEST });
+
+    try {
+      const { page = 0, size = 50, search = "", resourceType = "" } = options;
+      let url = `/api/shares/public?page=${page}&size=${size}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (resourceType) url += `&resourceType=${resourceType}`;
+
+      const response = await api.get(url);
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.FETCH_PUBLIC_SHARES_SUCCESS,
+        payload: response.data,
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      // If endpoint doesn't exist, return empty data instead of error
+      if (error.response?.status === 404 || error.response?.status === 500) {
+        dispatch({
+          type: SHARES_ACTION_TYPES.FETCH_PUBLIC_SHARES_SUCCESS,
+          payload: { shares: [], message: "Public shares feature coming soon" },
+        });
+        return { success: true, data: { shares: [] } };
+      }
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch public shares";
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.FETCH_PUBLIC_SHARES_FAILURE,
+        payload: errorMessage,
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
+// ========== Shared With Me Actions ==========
+
+/**
+ * Fetch QR-code based shares that have been shared with the current user.
+ * Uses the shares endpoint /api/shares/shared-with-me
+ * @param {Object} options - { savedOnly }
+ */
+export const fetchSharedWithMe =
+  (options = {}) =>
+  async (dispatch) => {
+    dispatch({ type: SHARES_ACTION_TYPES.FETCH_SHARED_WITH_ME_REQUEST });
+
+    try {
+      const { savedOnly = false } = options;
+      const response = await api.get(
+        `/api/shares/shared-with-me?savedOnly=${savedOnly}`,
+      );
+
+      // Response is already in the correct format from backend
+      // SharedWithMeItem: { shareId, token, shareUrl, resourceType, permission, shareName,
+      //                     resourceCount, expiresAt, isActive, firstAccessedAt, lastAccessedAt,
+      //                     myAccessCount, isSaved, owner: { id, firstName, lastName, username, email, profileImage } }
+      const shares = response.data || [];
+
+      // Map to frontend expected format
+      const transformedShares = shares.map((item) => ({
+        id: item.shareId,
+        token: item.token,
+        shareUrl: item.shareUrl,
+        shareName: item.shareName,
+        resourceType: item.resourceType,
+        permission: item.permission,
+        resourceCount: item.resourceCount,
+        expiresAt: item.expiresAt,
+        isActive: item.isActive,
+        firstAccessedAt: item.firstAccessedAt,
+        lastAccessedAt: item.lastAccessedAt,
+        accessCount: item.myAccessCount,
+        isSaved: item.isSaved,
+        status: item.status,
+        owner: item.owner
+          ? {
+              id: item.owner.id,
+              firstName: item.owner.firstName,
+              lastName: item.owner.lastName,
+              username: item.owner.username,
+              email: item.owner.email,
+              profileImage: item.owner.profileImage,
+            }
+          : null,
+        // For compatibility with old code
+        accessLevel: item.permission === "EDIT" ? "WRITE" : "READ",
+        canModify: item.permission === "EDIT",
+      }));
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.FETCH_SHARED_WITH_ME_SUCCESS,
+        payload: { shares: transformedShares },
+      });
+
+      return { success: true, data: transformedShares };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch shared with me";
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.FETCH_SHARED_WITH_ME_FAILURE,
+        payload: errorMessage,
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
+/**
+ * Fetch friend expense access shared with the current user.
+ * Uses the friendship endpoint /api/friends/shared-with-me for direct friend sharing.
+ * @param {Object} options - { page, size, search }
+ */
+export const fetchFriendSharedWithMe =
+  (options = {}) =>
+  async (dispatch) => {
+    dispatch({ type: SHARES_ACTION_TYPES.FETCH_FRIEND_SHARED_WITH_ME_REQUEST });
+
+    try {
+      const response = await api.get(`/api/friends/shared-with-me`);
+
+      // Transform friendship shared data to share-like format
+      const sharedData = response.data || [];
+      const transformedShares = sharedData.map((item, index) => ({
+        id: item.userId || index,
+        shareName: `${item.name}'s Expenses`,
+        resourceType: "EXPENSE",
+        permission: item.canModify ? "EDIT" : "VIEW",
+        isActive: true,
+        owner: {
+          id: item.userId,
+          firstName: item.name?.split(" ")[0] || "",
+          lastName: item.name?.split(" ").slice(1).join(" ") || "",
+          username: item.username,
+          email: item.email,
+          profileImage: item.profileImage || item.image,
+        },
+        accessLevel: item.accessLevel,
+        canModify: item.canModify,
+        // For friend expense sharing, we don't have tokens or expiry
+        token: null,
+        expiresAt: null,
+        accessCount: 0,
+        resourceCount: 0,
+      }));
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.FETCH_FRIEND_SHARED_WITH_ME_SUCCESS,
+        payload: { shares: transformedShares },
+      });
+
+      return { success: true, data: transformedShares };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch friend shared with me";
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.FETCH_FRIEND_SHARED_WITH_ME_FAILURE,
+        payload: errorMessage,
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
+/**
+ * Toggle save/bookmark status for a share.
+ * @param {string} token - Share token
+ */
+export const toggleSaveShare = (token) => async (dispatch) => {
+  dispatch({ type: SHARES_ACTION_TYPES.TOGGLE_SAVE_SHARE_REQUEST });
+
+  try {
+    const response = await api.post(`/api/shares/${token}/toggle-save`);
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.TOGGLE_SAVE_SHARE_SUCCESS,
+      payload: response.data,
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to toggle save status";
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.TOGGLE_SAVE_SHARE_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};

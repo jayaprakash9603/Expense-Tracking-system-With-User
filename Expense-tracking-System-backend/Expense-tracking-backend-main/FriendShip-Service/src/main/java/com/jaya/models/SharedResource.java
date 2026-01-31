@@ -122,6 +122,14 @@ public class SharedResource {
     private LocalDateTime lastAccessedAt;
 
     /**
+     * Whether the share is public (discoverable by other users).
+     * Public shares can be listed on the public shares page.
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isPublic = false;
+
+    /**
      * Check if the share is currently valid (active and not expired).
      */
     public boolean isValid() {

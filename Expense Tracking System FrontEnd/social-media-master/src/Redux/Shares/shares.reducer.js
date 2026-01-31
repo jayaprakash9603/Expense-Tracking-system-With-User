@@ -6,6 +6,26 @@ const initialState = {
   mySharesLoading: false,
   mySharesError: null,
 
+  // Public shares
+  publicShares: [],
+  publicSharesLoading: false,
+  publicSharesError: null,
+  publicSharesStats: null,
+
+  // Shares shared with me (QR-code based)
+  sharedWithMe: [],
+  sharedWithMeLoading: false,
+  sharedWithMeError: null,
+  sharedWithMeStats: null,
+
+  // Friend expense access shared with me
+  friendSharedWithMe: [],
+  friendSharedWithMeLoading: false,
+  friendSharedWithMeError: null,
+
+  // Toggle save share
+  toggleSaveLoading: false,
+
   // Currently created/viewing share
   currentShare: null,
   createShareLoading: false,
@@ -541,6 +561,100 @@ const sharesReducer = (state = initialState, action) => {
           loading: false,
           error: action.payload,
         },
+      };
+
+    // ========== Public Shares ==========
+    case SHARES_ACTION_TYPES.FETCH_PUBLIC_SHARES_REQUEST:
+      return {
+        ...state,
+        publicSharesLoading: true,
+        publicSharesError: null,
+      };
+    case SHARES_ACTION_TYPES.FETCH_PUBLIC_SHARES_SUCCESS: {
+      const shares =
+        action.payload.shares || action.payload.content || action.payload || [];
+      return {
+        ...state,
+        publicSharesLoading: false,
+        publicShares: Array.isArray(shares) ? shares : [],
+        publicSharesStats: action.payload.stats || null,
+      };
+    }
+    case SHARES_ACTION_TYPES.FETCH_PUBLIC_SHARES_FAILURE:
+      return {
+        ...state,
+        publicSharesLoading: false,
+        publicSharesError: action.payload,
+      };
+
+    // ========== Shared With Me (QR-code shares) ==========
+    case SHARES_ACTION_TYPES.FETCH_SHARED_WITH_ME_REQUEST:
+      return {
+        ...state,
+        sharedWithMeLoading: true,
+        sharedWithMeError: null,
+      };
+    case SHARES_ACTION_TYPES.FETCH_SHARED_WITH_ME_SUCCESS: {
+      const shares =
+        action.payload.shares || action.payload.content || action.payload || [];
+      return {
+        ...state,
+        sharedWithMeLoading: false,
+        sharedWithMe: Array.isArray(shares) ? shares : [],
+        sharedWithMeStats: action.payload.stats || null,
+      };
+    }
+    case SHARES_ACTION_TYPES.FETCH_SHARED_WITH_ME_FAILURE:
+      return {
+        ...state,
+        sharedWithMeLoading: false,
+        sharedWithMeError: action.payload,
+      };
+
+    // ========== Friend Expense Access Shared With Me ==========
+    case SHARES_ACTION_TYPES.FETCH_FRIEND_SHARED_WITH_ME_REQUEST:
+      return {
+        ...state,
+        friendSharedWithMeLoading: true,
+        friendSharedWithMeError: null,
+      };
+    case SHARES_ACTION_TYPES.FETCH_FRIEND_SHARED_WITH_ME_SUCCESS: {
+      const shares = action.payload.shares || action.payload || [];
+      return {
+        ...state,
+        friendSharedWithMeLoading: false,
+        friendSharedWithMe: Array.isArray(shares) ? shares : [],
+      };
+    }
+    case SHARES_ACTION_TYPES.FETCH_FRIEND_SHARED_WITH_ME_FAILURE:
+      return {
+        ...state,
+        friendSharedWithMeLoading: false,
+        friendSharedWithMeError: action.payload,
+      };
+
+    // ========== Toggle Save Share ==========
+    case SHARES_ACTION_TYPES.TOGGLE_SAVE_SHARE_REQUEST:
+      return {
+        ...state,
+        toggleSaveLoading: true,
+      };
+    case SHARES_ACTION_TYPES.TOGGLE_SAVE_SHARE_SUCCESS: {
+      const { token, isSaved } = action.payload;
+      return {
+        ...state,
+        toggleSaveLoading: false,
+        // Update the share in sharedWithMe list
+        sharedWithMe: state.sharedWithMe.map((share) =>
+          share.token === token ? { ...share, isSaved } : share,
+        ),
+      };
+    }
+    case SHARES_ACTION_TYPES.TOGGLE_SAVE_SHARE_FAILURE:
+      return {
+        ...state,
+        toggleSaveLoading: false,
+        error: action.payload,
       };
 
     default:

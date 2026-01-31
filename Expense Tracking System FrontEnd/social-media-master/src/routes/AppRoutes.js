@@ -67,6 +67,8 @@ import {
 import SharedViewPage from "../pages/SharedViewPage";
 import MySharesPage from "../pages/Landingpage/MySharesPage";
 import CreateSharePage from "../pages/Landingpage/CreateSharePage";
+import PublicSharesPage from "../pages/Landingpage/PublicSharesPage";
+import SharedWithMePage from "../pages/Landingpage/SharedWithMePage";
 
 /**
  * Authentication Routes - Returns Route element directly
@@ -112,6 +114,8 @@ export const getAppRoutes = () => (
       {/* Shared Data Routes */}
       <Route path="my-shares" element={<MySharesPage />} />
       <Route path="my-shares/create" element={<CreateSharePage />} />
+      <Route path="public-shares" element={<PublicSharesPage />} />
+      <Route path="shared-with-me" element={<SharedWithMePage />} />
 
       {/* Help & Support Routes */}
       <Route path="support">

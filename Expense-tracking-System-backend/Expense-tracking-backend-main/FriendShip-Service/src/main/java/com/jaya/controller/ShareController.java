@@ -26,6 +26,8 @@ import java.util.Map;
  * - GET /api/shares/{token} - Access shared data via token
  * - DELETE /api/shares/{token} - Revoke a share (owner only)
  * - GET /api/shares/my-shares - List user's shares
+ * - GET /api/shares/shared-with-me - List shares accessed by user
+ * - GET /api/shares/public - List public shares
  * - GET /api/shares/stats - Get share statistics
  * - POST /api/shares/{token}/share-with-friend - Share directly with a friend
  */
@@ -212,6 +214,108 @@ public class ShareController {
         }
 
         return ResponseEntity.ok(shares);
+    }
+
+    /**
+     * Get all shares that have been shared with the authenticated user.
+     * Returns shares that the user has accessed.
+     * 
+     * @param jwt       Authorization header
+     * @param savedOnly If true, return only saved/bookmarked shares
+     * @return List of shares shared with the user
+     */
+    @GetMapping("/shared-with-me")
+    public ResponseEntity<List<SharedWithMeItem>> getSharedWithMe(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(defaultValue = "false") boolean savedOnly) throws Exception {
+
+        UserDto user = userService.getuserProfile(jwt);
+        log.info("User {} fetching shares shared with them, savedOnly={}", user.getId(), savedOnly);
+
+        List<SharedWithMeItem> shares;
+        if (savedOnly) {
+            shares = sharedResourceService.getSavedShares(user.getId());
+        } else {
+            shares = sharedResourceService.getSharesSharedWithMe(user.getId());
+        }
+
+        return ResponseEntity.ok(shares);
+    }
+
+    /**
+     * Get all public shares.
+     * Returns active, non-expired public shares from all users (excluding own
+     * shares when authenticated).
+     * 
+     * @param jwt Optional authorization header
+     * @return List of public shares
+     */
+    @GetMapping("/public")
+    public ResponseEntity<List<PublicShareItem>> getPublicShares(
+            @RequestHeader(value = "Authorization", required = false) String jwt) {
+
+        Integer excludeUserId = null;
+        if (jwt != null && !jwt.isEmpty()) {
+            try {
+                UserDto user = userService.getuserProfile(jwt);
+                excludeUserId = user.getId();
+            } catch (Exception e) {
+                log.debug("Could not get user from JWT for public shares");
+            }
+        }
+
+        List<PublicShareItem> shares = sharedResourceService.getPublicShares(excludeUserId);
+        return ResponseEntity.ok(shares);
+    }
+
+    /**
+     * Toggle save/bookmark status for a share.
+     * 
+     * @param jwt   Authorization header
+     * @param token Share token
+     * @return Updated save status
+     */
+    @PostMapping("/{token}/toggle-save")
+    public ResponseEntity<Map<String, Object>> toggleSaveShare(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String token) throws Exception {
+
+        UserDto user = userService.getuserProfile(jwt);
+        log.info("User {} toggling save for share token: {}...", user.getId(),
+                token.substring(0, Math.min(8, token.length())));
+
+        boolean isSaved = sharedResourceService.toggleSaveShare(token, user.getId());
+
+        return ResponseEntity.ok(Map.of(
+                "token", token,
+                "isSaved", isSaved,
+                "message", isSaved ? "Share saved successfully" : "Share unsaved successfully"));
+    }
+
+    /**
+     * Set a share's public visibility.
+     * 
+     * @param jwt      Authorization header
+     * @param token    Share token
+     * @param isPublic Whether the share should be public
+     * @return Success message
+     */
+    @PutMapping("/{token}/public")
+    public ResponseEntity<Map<String, Object>> setSharePublic(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String token,
+            @RequestParam boolean isPublic) throws Exception {
+
+        UserDto user = userService.getuserProfile(jwt);
+        log.info("User {} setting share {}... to public={}", user.getId(),
+                token.substring(0, Math.min(8, token.length())), isPublic);
+
+        sharedResourceService.setSharePublic(token, user.getId(), isPublic);
+
+        return ResponseEntity.ok(Map.of(
+                "token", token,
+                "isPublic", isPublic,
+                "message", isPublic ? "Share is now public" : "Share is now private"));
     }
 
     /**

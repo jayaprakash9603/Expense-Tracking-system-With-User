@@ -53,6 +53,8 @@ export const hi = {
     paymentMethod: "भुगतान विधि",
     calendar: "कैलेंडर",
     myShares: "मेरे शेयर्स",
+    publicShares: "सार्वजनिक शेयर्स",
+    sharedWithMe: "मेरे साथ साझा",
   },
 
   // Flows

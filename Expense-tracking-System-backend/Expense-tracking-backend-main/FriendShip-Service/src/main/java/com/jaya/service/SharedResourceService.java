@@ -5,10 +5,12 @@ import com.jaya.exceptions.ShareNotFoundException;
 import com.jaya.exceptions.ShareAccessDeniedException;
 import com.jaya.exceptions.ShareExpiredException;
 import com.jaya.exceptions.ShareRateLimitException;
+import com.jaya.models.ShareAccessLog;
 import com.jaya.models.SharedResource;
 import com.jaya.models.SharedResource.ResourceRef;
 import com.jaya.models.SharedResourceType;
 import com.jaya.models.UserDto;
+import com.jaya.repository.ShareAccessLogRepository;
 import com.jaya.repository.SharedResourceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,6 +41,7 @@ import com.jaya.dto.ExpenseDTO;
 public class SharedResourceService {
 
     private final SharedResourceRepository sharedResourceRepository;
+    private final ShareAccessLogRepository shareAccessLogRepository;
     private final SecureTokenService secureTokenService;
     private final QrCodeService qrCodeService;
     private final UserService userService;
@@ -132,9 +136,12 @@ public class SharedResourceService {
             return buildInvalidResponse("This share has expired");
         }
 
-        // Record access
+        // Record access on the share itself
         share.recordAccess();
         sharedResourceRepository.save(share);
+
+        // Record user access for "Shared With Me" tracking
+        recordUserAccess(token, accessingUserId);
 
         // Fetch owner info
         SharedDataResponse.OwnerInfo ownerInfo = fetchOwnerInfo(share.getOwnerUserId());
@@ -735,5 +742,225 @@ public class SharedResourceService {
         }
 
         return false;
+    }
+
+    // ==========================================================================
+    // SHARED WITH ME - Track and retrieve shares accessed by users
+    // ==========================================================================
+
+    /**
+     * Record that a user has accessed a share.
+     * Creates or updates the access log.
+     */
+    @Transactional
+    public void recordUserAccess(String token, Integer accessingUserId) {
+        if (accessingUserId == null) {
+            return; // Anonymous access, don't track
+        }
+
+        SharedResource share = sharedResourceRepository.findByShareToken(token)
+                .orElse(null);
+
+        if (share == null || share.getOwnerUserId().equals(accessingUserId)) {
+            return; // Share not found or user is accessing their own share
+        }
+
+        Optional<ShareAccessLog> existingLog = shareAccessLogRepository
+                .findByAccessingUserIdAndSharedResource(accessingUserId, share);
+
+        if (existingLog.isPresent()) {
+            ShareAccessLog log = existingLog.get();
+            log.recordAccess();
+            shareAccessLogRepository.save(log);
+        } else {
+            ShareAccessLog newLog = ShareAccessLog.builder()
+                    .accessingUserId(accessingUserId)
+                    .sharedResource(share)
+                    .lastAccessedAt(LocalDateTime.now())
+                    .build();
+            shareAccessLogRepository.save(newLog);
+        }
+    }
+
+    /**
+     * Get all shares that have been shared with the user (accessed by them).
+     */
+    @Transactional(readOnly = true)
+    public List<SharedWithMeItem> getSharesSharedWithMe(Integer userId) {
+        List<ShareAccessLog> accessLogs = shareAccessLogRepository.findByAccessingUserId(userId);
+
+        return accessLogs.stream()
+                .map(log -> mapToSharedWithMeItem(log))
+                .filter(item -> item != null)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get saved shares for a user.
+     */
+    @Transactional(readOnly = true)
+    public List<SharedWithMeItem> getSavedShares(Integer userId) {
+        List<ShareAccessLog> accessLogs = shareAccessLogRepository.findSavedByAccessingUserId(userId);
+
+        return accessLogs.stream()
+                .map(log -> mapToSharedWithMeItem(log))
+                .filter(item -> item != null)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Toggle save status for a share.
+     */
+    @Transactional
+    public boolean toggleSaveShare(String token, Integer userId) {
+        SharedResource share = sharedResourceRepository.findByShareToken(token)
+                .orElseThrow(() -> new ShareNotFoundException("Share not found"));
+
+        Optional<ShareAccessLog> existingLog = shareAccessLogRepository
+                .findByAccessingUserIdAndSharedResource(userId, share);
+
+        if (existingLog.isPresent()) {
+            ShareAccessLog log = existingLog.get();
+            log.setIsSaved(!Boolean.TRUE.equals(log.getIsSaved()));
+            shareAccessLogRepository.save(log);
+            return log.getIsSaved();
+        } else {
+            // Create new log with saved status
+            ShareAccessLog newLog = ShareAccessLog.builder()
+                    .accessingUserId(userId)
+                    .sharedResource(share)
+                    .lastAccessedAt(LocalDateTime.now())
+                    .isSaved(true)
+                    .build();
+            shareAccessLogRepository.save(newLog);
+            return true;
+        }
+    }
+
+    private SharedWithMeItem mapToSharedWithMeItem(ShareAccessLog log) {
+        SharedResource share = log.getSharedResource();
+        if (share == null) {
+            return null;
+        }
+
+        SharedWithMeItem.OwnerInfo ownerInfo = fetchSharedWithMeOwnerInfo(share.getOwnerUserId());
+
+        return SharedWithMeItem.builder()
+                .shareId(share.getId())
+                .token(share.getShareToken())
+                .shareUrl(qrCodeService.buildShareUrl(share.getShareToken()))
+                .resourceType(share.getResourceType())
+                .permission(share.getPermission())
+                .shareName(share.getShareName())
+                .resourceCount(share.getResourceRefs() != null ? share.getResourceRefs().size() : 0)
+                .expiresAt(share.getExpiresAt())
+                .isActive(share.getIsActive())
+                .firstAccessedAt(log.getFirstAccessedAt())
+                .lastAccessedAt(log.getLastAccessedAt())
+                .myAccessCount(log.getAccessCount())
+                .isSaved(log.getIsSaved())
+                .owner(ownerInfo)
+                .build();
+    }
+
+    private SharedWithMeItem.OwnerInfo fetchSharedWithMeOwnerInfo(Integer ownerId) {
+        try {
+            UserDto owner = userService.getUserById(ownerId);
+            if (owner != null) {
+                return SharedWithMeItem.OwnerInfo.builder()
+                        .id(owner.getId())
+                        .firstName(owner.getFirstName())
+                        .lastName(owner.getLastName())
+                        .username(owner.getUsername())
+                        .email(owner.getEmail())
+                        .profileImage(owner.getImage())
+                        .build();
+            }
+        } catch (Exception e) {
+            log.debug("Could not fetch owner info for user {}: {}", ownerId, e.getMessage());
+        }
+        return SharedWithMeItem.OwnerInfo.builder()
+                .id(ownerId)
+                .firstName("User")
+                .lastName("#" + ownerId)
+                .build();
+    }
+
+    // ==========================================================================
+    // PUBLIC SHARES - Get publicly discoverable shares
+    // ==========================================================================
+
+    /**
+     * Get all public shares (excluding the requesting user's own shares).
+     */
+    @Transactional(readOnly = true)
+    public List<PublicShareItem> getPublicShares(Integer excludeUserId) {
+        List<SharedResource> publicShares;
+
+        if (excludeUserId != null) {
+            publicShares = sharedResourceRepository.findPublicSharesExcludingUser(
+                    LocalDateTime.now(), excludeUserId);
+        } else {
+            publicShares = sharedResourceRepository.findAllPublicShares(LocalDateTime.now());
+        }
+
+        return publicShares.stream()
+                .map(this::mapToPublicShareItem)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Make a share public or private.
+     */
+    @Transactional
+    public void setSharePublic(String token, Integer userId, boolean isPublic) {
+        SharedResource share = sharedResourceRepository.findByTokenAndOwner(token, userId)
+                .orElseThrow(() -> new ShareAccessDeniedException(
+                        "Share not found or you don't have permission to modify it"));
+
+        share.setIsPublic(isPublic);
+        sharedResourceRepository.save(share);
+
+        log.info("Share {} set to public={} by user {}", share.getId(), isPublic, userId);
+    }
+
+    private PublicShareItem mapToPublicShareItem(SharedResource share) {
+        PublicShareItem.OwnerInfo ownerInfo = fetchPublicOwnerInfo(share.getOwnerUserId());
+
+        return PublicShareItem.builder()
+                .id(share.getId())
+                .token(share.getShareToken())
+                .shareUrl(qrCodeService.buildShareUrl(share.getShareToken()))
+                .resourceType(share.getResourceType())
+                .permission(share.getPermission())
+                .shareName(share.getShareName())
+                .resourceCount(share.getResourceRefs() != null ? share.getResourceRefs().size() : 0)
+                .expiresAt(share.getExpiresAt())
+                .createdAt(share.getCreatedAt())
+                .accessCount(share.getAccessCount())
+                .owner(ownerInfo)
+                .build();
+    }
+
+    private PublicShareItem.OwnerInfo fetchPublicOwnerInfo(Integer ownerId) {
+        try {
+            UserDto owner = userService.getUserById(ownerId);
+            if (owner != null) {
+                return PublicShareItem.OwnerInfo.builder()
+                        .id(owner.getId())
+                        .firstName(owner.getFirstName())
+                        .lastName(owner.getLastName())
+                        .username(owner.getUsername())
+                        .profileImage(owner.getImage())
+                        .build();
+            }
+        } catch (Exception e) {
+            log.debug("Could not fetch owner info for user {}: {}", ownerId, e.getMessage());
+        }
+        return PublicShareItem.OwnerInfo.builder()
+                .id(ownerId)
+                .firstName("User")
+                .lastName("#" + ownerId)
+                .build();
     }
 }
