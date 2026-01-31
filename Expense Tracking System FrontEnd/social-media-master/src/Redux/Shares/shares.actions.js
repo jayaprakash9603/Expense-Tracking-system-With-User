@@ -294,3 +294,264 @@ export const shareWithFriend =
       return { success: false, error: errorMessage };
     }
   };
+
+// ========== Paginated Access Actions ==========
+
+/**
+ * Access shared data with pagination support.
+ * @param {string} token - Share token
+ * @param {string} resourceType - Type of resource (EXPENSE, CATEGORY, BUDGET, BILL, PAYMENT_METHOD, or ALL for overview)
+ * @param {number} page - Page number (0-indexed)
+ * @param {number} size - Page size
+ * @param {string} search - Optional search query
+ */
+export const accessSharePaginated =
+  (token, resourceType = "ALL", page = 0, size = 50, search = "") =>
+  async (dispatch) => {
+    dispatch({ type: SHARES_ACTION_TYPES.ACCESS_SHARE_PAGINATED_REQUEST });
+
+    try {
+      const jwt = localStorage.getItem("jwt");
+      const config = jwt ? {} : { skipAuth: true };
+
+      let url = `/api/shares/${token}/paginated?type=${resourceType}&page=${page}&size=${size}`;
+      if (search && search.trim()) {
+        url += `&search=${encodeURIComponent(search.trim())}`;
+      }
+
+      const response = await api.get(url, config);
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.ACCESS_SHARE_PAGINATED_SUCCESS,
+        payload: {
+          ...response.data,
+          token,
+          resourceType,
+          page,
+          search: search || "",
+        },
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.invalidReason ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to access share";
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.ACCESS_SHARE_PAGINATED_FAILURE,
+        payload: errorMessage,
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
+/**
+ * Load more items for current resource type (append to existing).
+ * @param {string} token - Share token
+ * @param {string} resourceType - Type of resource
+ * @param {number} page - Next page number
+ * @param {number} size - Page size
+ * @param {string} search - Optional search query
+ */
+export const loadMoreSharedItems =
+  (token, resourceType, page, size = 50, search = "") =>
+  async (dispatch) => {
+    dispatch({ type: SHARES_ACTION_TYPES.LOAD_MORE_SHARED_ITEMS_REQUEST });
+
+    try {
+      const jwt = localStorage.getItem("jwt");
+      const config = jwt ? {} : { skipAuth: true };
+
+      let url = `/api/shares/${token}/paginated?type=${resourceType}&page=${page}&size=${size}`;
+      if (search && search.trim()) {
+        url += `&search=${encodeURIComponent(search.trim())}`;
+      }
+
+      const response = await api.get(url, config);
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.LOAD_MORE_SHARED_ITEMS_SUCCESS,
+        payload: {
+          ...response.data,
+          resourceType,
+          page,
+          search: search || "",
+        },
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to load more items";
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.LOAD_MORE_SHARED_ITEMS_FAILURE,
+        payload: errorMessage,
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
+/**
+ * Set the active resource tab.
+ * @param {string} resourceType - Type of resource tab to set active
+ */
+export const setActiveResourceTab = (resourceType) => ({
+  type: SHARES_ACTION_TYPES.SET_ACTIVE_RESOURCE_TAB,
+  payload: resourceType,
+});
+
+// ========== User Added Items Tracking Actions ==========
+
+/**
+ * Fetch items that the user has already added from a share.
+ * @param {string} token - Share token
+ */
+export const fetchAddedItems = (token) => async (dispatch) => {
+  dispatch({ type: SHARES_ACTION_TYPES.FETCH_ADDED_ITEMS_REQUEST });
+
+  try {
+    const response = await api.get(`/api/shares/${token}/added-items`);
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.FETCH_ADDED_ITEMS_SUCCESS,
+      payload: {
+        token,
+        ...response.data,
+      },
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch added items";
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.FETCH_ADDED_ITEMS_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+/**
+ * Track that a user has added an item from a share.
+ * @param {string} token - Share token
+ * @param {Object} itemData - { externalRef, resourceType, originalOwnerId, newItemId }
+ */
+export const trackAddedItem = (token, itemData) => async (dispatch) => {
+  dispatch({ type: SHARES_ACTION_TYPES.TRACK_ADDED_ITEM_REQUEST });
+
+  try {
+    const response = await api.post(
+      `/api/shares/${token}/added-items`,
+      itemData,
+    );
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.TRACK_ADDED_ITEM_SUCCESS,
+      payload: {
+        token,
+        externalRef: itemData.externalRef,
+        ...response.data,
+      },
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to track added item";
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.TRACK_ADDED_ITEM_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+/**
+ * Track multiple items at once.
+ * @param {string} token - Share token
+ * @param {Array} items - Array of { externalRef, resourceType, originalOwnerId, newItemId }
+ */
+export const trackAddedItemsBulk = (token, items) => async (dispatch) => {
+  dispatch({ type: SHARES_ACTION_TYPES.TRACK_ADDED_ITEMS_BULK_REQUEST });
+
+  try {
+    const response = await api.post(`/api/shares/${token}/added-items/bulk`, {
+      items,
+    });
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.TRACK_ADDED_ITEMS_BULK_SUCCESS,
+      payload: {
+        token,
+        items: items.map((i) => i.externalRef),
+        ...response.data,
+      },
+    });
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to track added items";
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.TRACK_ADDED_ITEMS_BULK_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};
+
+/**
+ * Untrack an item (allow re-adding later).
+ * @param {string} token - Share token
+ * @param {string} externalRef - External reference of the item
+ */
+export const untrackItem = (token, externalRef) => async (dispatch) => {
+  dispatch({ type: SHARES_ACTION_TYPES.UNTRACK_ITEM_REQUEST });
+
+  try {
+    await api.delete(`/api/shares/${token}/added-items/${externalRef}`);
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.UNTRACK_ITEM_SUCCESS,
+      payload: {
+        token,
+        externalRef,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to untrack item";
+
+    dispatch({
+      type: SHARES_ACTION_TYPES.UNTRACK_ITEM_FAILURE,
+      payload: errorMessage,
+    });
+
+    return { success: false, error: errorMessage };
+  }
+};

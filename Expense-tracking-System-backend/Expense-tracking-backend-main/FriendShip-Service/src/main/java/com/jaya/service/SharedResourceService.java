@@ -19,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -176,6 +178,163 @@ public class SharedResourceService {
                 .originalCount(share.getResourceRefs().size())
                 .returnedCount(foundCount)
                 .shareName(share.getShareName())
+                .build();
+    }
+
+    /**
+     * Access shared data with pagination support.
+     * Returns paginated items for a specific resource type.
+     *
+     * @param token           The share token
+     * @param accessingUserId The user accessing the share (can be null for
+     *                        unauthenticated access)
+     * @param resourceType    The type of resource to fetch (EXPENSE, CATEGORY,
+     *                        BUDGET, BILL, PAYMENT_METHOD)
+     * @param page            Page number (0-indexed)
+     * @param size            Page size
+     * @return Paginated shared data response
+     */
+    @Transactional
+    public SharedDataPageResponse accessSharePaginated(String token, Integer accessingUserId,
+            String resourceType, int page, int size, String search) {
+        log.debug("Accessing share with pagination: token={}, type={}, page={}, size={}, search={}",
+                token.substring(0, Math.min(8, token.length())) + "...", resourceType, page, size,
+                search != null ? search : "none");
+
+        SharedResource share = sharedResourceRepository.findByShareToken(token)
+                .orElseThrow(() -> new ShareNotFoundException("Share not found"));
+
+        // Check if active
+        if (!Boolean.TRUE.equals(share.getIsActive())) {
+            return buildInvalidPageResponse("This share has been revoked");
+        }
+
+        // Check expiry
+        if (share.getExpiresAt() != null && LocalDateTime.now().isAfter(share.getExpiresAt())) {
+            return buildInvalidPageResponse("This share has expired");
+        }
+
+        // Record access (only on first page to avoid inflating counts)
+        if (page == 0) {
+            share.recordAccess();
+            sharedResourceRepository.save(share);
+        }
+
+        // Fetch owner info
+        SharedDataResponse.OwnerInfo ownerInfo = fetchOwnerInfo(share.getOwnerUserId());
+
+        // Group resources by type and count
+        Map<String, List<ResourceRef>> refsByType = share.getResourceRefs().stream()
+                .collect(Collectors.groupingBy(ref -> ref.getType().toUpperCase()));
+
+        Map<String, Integer> countsByType = new HashMap<>();
+        for (Map.Entry<String, List<ResourceRef>> entry : refsByType.entrySet()) {
+            countsByType.put(entry.getKey(), entry.getValue().size());
+        }
+
+        // If no specific type requested, default to first available or EXPENSE
+        String normalizedType = resourceType != null ? resourceType.toUpperCase() : null;
+        if (normalizedType == null || normalizedType.isEmpty() || normalizedType.equals("ALL")) {
+            // Return overview with counts only
+            return SharedDataPageResponse.builder()
+                    .isValid(true)
+                    .permission(share.getPermission())
+                    .resourceType(share.getResourceType())
+                    .expiresAt(share.getExpiresAt())
+                    .owner(ownerInfo)
+                    .shareName(share.getShareName())
+                    .totalCount(share.getResourceRefs().size())
+                    .countsByType(countsByType)
+                    .pagedItems(null)
+                    .warnings(new ArrayList<>())
+                    .build();
+        }
+
+        // Get refs for the requested type
+        List<ResourceRef> typeRefs = refsByType.getOrDefault(normalizedType, new ArrayList<>());
+
+        // Normalize search query
+        String searchQuery = (search != null && !search.trim().isEmpty())
+                ? search.trim().toLowerCase()
+                : null;
+
+        // If search is provided, fetch all data first, filter, then paginate
+        List<SharedDataResponse.SharedItem> allItems = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        for (ResourceRef ref : typeRefs) {
+            try {
+                Object data = fetchResourceData(ref, share.getOwnerUserId());
+                if (data != null) {
+                    SharedDataResponse.SharedItem item = SharedDataResponse.SharedItem.builder()
+                            .type(ref.getType())
+                            .externalRef(ref.getExternalRef())
+                            .data(data)
+                            .found(true)
+                            .build();
+
+                    // If search is provided, filter items
+                    if (searchQuery == null || matchesSearch(item, searchQuery)) {
+                        allItems.add(item);
+                    }
+                } else if (searchQuery == null) {
+                    // Only add not-found items when not searching
+                    allItems.add(SharedDataResponse.SharedItem.builder()
+                            .type(ref.getType())
+                            .externalRef(ref.getExternalRef())
+                            .data(null)
+                            .found(false)
+                            .build());
+                    warnings.add(String.format("%s '%s' no longer exists", ref.getType(),
+                            ref.getDisplayName() != null ? ref.getDisplayName() : ref.getExternalRef()));
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch resource: {} - {}", ref.getExternalRef(), e.getMessage());
+                if (searchQuery == null) {
+                    warnings.add(String.format("Could not retrieve %s '%s'", ref.getType(), ref.getExternalRef()));
+                }
+            }
+        }
+
+        // Now paginate the filtered results
+        int totalItems = allItems.size();
+        int totalPages = (int) Math.ceil((double) totalItems / size);
+
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, totalItems);
+
+        List<SharedDataResponse.SharedItem> items = (startIndex < totalItems)
+                ? allItems.subList(startIndex, endIndex)
+                : new ArrayList<>();
+
+        SharedDataPageResponse.PagedItems pagedItems = SharedDataPageResponse.PagedItems.builder()
+                .resourceType(normalizedType)
+                .items(items)
+                .page(page)
+                .size(size)
+                .totalItems(totalItems)
+                .totalPages(totalPages)
+                .hasMore(page < totalPages - 1)
+                .build();
+
+        return SharedDataPageResponse.builder()
+                .isValid(true)
+                .permission(share.getPermission())
+                .resourceType(share.getResourceType())
+                .expiresAt(share.getExpiresAt())
+                .owner(ownerInfo)
+                .shareName(share.getShareName())
+                .totalCount(share.getResourceRefs().size())
+                .countsByType(countsByType)
+                .pagedItems(pagedItems)
+                .warnings(warnings)
+                .build();
+    }
+
+    private SharedDataPageResponse buildInvalidPageResponse(String reason) {
+        return SharedDataPageResponse.builder()
+                .isValid(false)
+                .invalidReason(reason)
                 .build();
     }
 
@@ -403,5 +562,62 @@ public class SharedResourceService {
                 .lastAccessedAt(share.getLastAccessedAt())
                 .resources(resources)
                 .build();
+    }
+
+    /**
+     * Check if a SharedItem matches the search query.
+     * Searches across various fields based on the item type.
+     */
+    private boolean matchesSearch(SharedDataResponse.SharedItem item, String searchQuery) {
+        if (item.getData() == null) {
+            return false;
+        }
+
+        // Convert data to string representation and search
+        String dataStr = item.getData().toString().toLowerCase();
+        if (dataStr.contains(searchQuery)) {
+            return true;
+        }
+
+        // Also check externalRef
+        if (item.getExternalRef() != null &&
+                item.getExternalRef().toLowerCase().contains(searchQuery)) {
+            return true;
+        }
+
+        // Type-specific field extraction using reflection or map access
+        try {
+            Object data = item.getData();
+            if (data instanceof java.util.Map) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, Object> dataMap = (java.util.Map<String, Object>) data;
+
+                // Check common fields
+                for (String key : new String[] { "title", "name", "description", "category",
+                        "merchant", "notes", "categoryName", "budgetName", "billName" }) {
+                    Object value = dataMap.get(key);
+                    if (value != null && value.toString().toLowerCase().contains(searchQuery)) {
+                        return true;
+                    }
+                }
+
+                // Check nested expense object if present
+                Object expense = dataMap.get("expense");
+                if (expense instanceof java.util.Map) {
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> expenseMap = (java.util.Map<String, Object>) expense;
+                    for (String key : new String[] { "title", "description", "category" }) {
+                        Object value = expenseMap.get(key);
+                        if (value != null && value.toString().toLowerCase().contains(searchQuery)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Error during search field extraction: {}", e.getMessage());
+        }
+
+        return false;
     }
 }

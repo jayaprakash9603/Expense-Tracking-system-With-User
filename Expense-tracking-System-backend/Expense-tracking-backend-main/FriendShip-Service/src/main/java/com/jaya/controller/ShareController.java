@@ -5,6 +5,7 @@ import com.jaya.models.UserDto;
 import com.jaya.service.FriendshipNotificationService;
 import com.jaya.service.QrCodeService;
 import com.jaya.service.SharedResourceService;
+import com.jaya.service.UserAddedItemsService;
 import com.jaya.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class ShareController {
     private final UserService userService;
     private final QrCodeService qrCodeService;
     private final FriendshipNotificationService notificationService;
+    private final UserAddedItemsService userAddedItemsService;
 
     /**
      * Create a new share and generate QR code.
@@ -85,6 +87,55 @@ public class ShareController {
         log.debug("Accessing share with token (first 8 chars): {}", token.substring(0, Math.min(8, token.length())));
 
         SharedDataResponse response = sharedResourceService.accessShare(token, accessingUserId);
+
+        if (!Boolean.TRUE.equals(response.getIsValid())) {
+            return ResponseEntity.status(HttpStatus.GONE).body(response);
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Access shared data with pagination support.
+     * Returns paginated items for a specific resource type (EXPENSE, CATEGORY,
+     * BUDGET, BILL, PAYMENT_METHOD).
+     * 
+     * @param token  Share token from QR code URL
+     * @param type   Resource type to fetch (defaults to ALL for overview)
+     * @param page   Page number (0-indexed, defaults to 0)
+     * @param size   Page size (defaults to 50)
+     * @param search Optional search query to filter items
+     * @param jwt    Optional authorization header
+     * @return SharedDataPageResponse with paginated data
+     */
+    @GetMapping("/{token}/paginated")
+    public ResponseEntity<SharedDataPageResponse> accessSharePaginated(
+            @PathVariable String token,
+            @RequestParam(defaultValue = "ALL") String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(required = false) String search,
+            @RequestHeader(value = "Authorization", required = false) String jwt) {
+
+        Integer accessingUserId = null;
+        if (jwt != null && !jwt.isEmpty()) {
+            try {
+                UserDto user = userService.getuserProfile(jwt);
+                accessingUserId = user.getId();
+            } catch (Exception e) {
+                log.debug("Could not get user from JWT, proceeding as anonymous");
+            }
+        }
+
+        log.debug("Accessing paginated share: token={}..., type={}, page={}, size={}, search={}",
+                token.substring(0, Math.min(8, token.length())), type, page, size,
+                search != null ? search : "none");
+
+        // Clamp size to reasonable bounds
+        size = Math.max(1, Math.min(100, size));
+
+        SharedDataPageResponse response = sharedResourceService.accessSharePaginated(
+                token, accessingUserId, type, page, size, search);
 
         if (!Boolean.TRUE.equals(response.getIsValid())) {
             return ResponseEntity.status(HttpStatus.GONE).body(response);
@@ -282,5 +333,115 @@ public class ShareController {
                 .shareUrl(shareUrl)
                 .sharedAt(LocalDateTime.now())
                 .build());
+    }
+
+    // ========== User Added Items Tracking Endpoints ==========
+
+    /**
+     * Get items that the authenticated user has already added from a share.
+     * 
+     * @param jwt   Authorization header
+     * @param token Share token
+     * @return UserAddedItemsDTO with added external refs
+     */
+    @GetMapping("/{token}/added-items")
+    public ResponseEntity<UserAddedItemsDTO> getAddedItems(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String token) throws Exception {
+
+        UserDto user = userService.getuserProfile(jwt);
+        UserAddedItemsDTO addedItems = userAddedItemsService.getAddedItems(user.getId(), token);
+
+        return ResponseEntity.ok(addedItems);
+    }
+
+    /**
+     * Track that a user has added an item from a share to their account.
+     * 
+     * @param jwt     Authorization header
+     * @param token   Share token
+     * @param request Add item request with external ref and type
+     * @return Response indicating success/already added
+     */
+    @PostMapping("/{token}/added-items")
+    public ResponseEntity<UserAddedItemsDTO.AddItemResponse> trackAddedItem(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String token,
+            @Valid @RequestBody UserAddedItemsDTO.AddItemRequest request) throws Exception {
+
+        UserDto user = userService.getuserProfile(jwt);
+        log.debug("User {} tracking added item {} from share {}",
+                user.getId(), request.getExternalRef(), token);
+
+        UserAddedItemsDTO.AddItemResponse response = userAddedItemsService.trackAddedItem(
+                user.getId(), token, request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Track multiple items at once.
+     * 
+     * @param jwt     Authorization header
+     * @param token   Share token
+     * @param request Bulk add request with list of items
+     * @return Bulk response with counts
+     */
+    @PostMapping("/{token}/added-items/bulk")
+    public ResponseEntity<UserAddedItemsDTO.BulkAddResponse> trackAddedItemsBulk(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String token,
+            @Valid @RequestBody UserAddedItemsDTO.BulkAddRequest request) throws Exception {
+
+        UserDto user = userService.getuserProfile(jwt);
+        log.debug("User {} bulk tracking {} items from share {}",
+                user.getId(), request.getItems().size(), token);
+
+        UserAddedItemsDTO.BulkAddResponse response = userAddedItemsService.trackAddedItems(
+                user.getId(), token, request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Check if a specific item has been added.
+     * 
+     * @param jwt         Authorization header
+     * @param token       Share token
+     * @param externalRef External reference of the item
+     * @return Boolean indicating if item was added
+     */
+    @GetMapping("/{token}/added-items/{externalRef}")
+    public ResponseEntity<Map<String, Object>> isItemAdded(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String token,
+            @PathVariable String externalRef) throws Exception {
+
+        UserDto user = userService.getuserProfile(jwt);
+        boolean isAdded = userAddedItemsService.isItemAdded(user.getId(), token, externalRef);
+
+        return ResponseEntity.ok(Map.of(
+                "externalRef", externalRef,
+                "isAdded", isAdded));
+    }
+
+    /**
+     * Untrack an item (allow re-adding later).
+     * 
+     * @param jwt         Authorization header
+     * @param token       Share token
+     * @param externalRef External reference of the item
+     * @return Success message
+     */
+    @DeleteMapping("/{token}/added-items/{externalRef}")
+    public ResponseEntity<Map<String, String>> untrackItem(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable String token,
+            @PathVariable String externalRef) throws Exception {
+
+        UserDto user = userService.getuserProfile(jwt);
+        userAddedItemsService.untrackItem(user.getId(), token, externalRef);
+
+        return ResponseEntity.ok(Map.of("message", "Item untracked successfully"));
     }
 }
