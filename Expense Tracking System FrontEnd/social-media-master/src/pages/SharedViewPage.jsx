@@ -1142,15 +1142,19 @@ const SharedViewPage = () => {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    {searchInput && (
+                    {(searchInput || searchTerm) && (
                       <IconButton
                         size="small"
-                        onClick={() => setSearchInput("")}
-                        sx={{ mr: 0.5 }}
+                        onClick={() => {
+                          setSearchInput("");
+                          if (searchTerm) {
+                            handleClearSearch();
+                          }
+                        }}
+                        sx={{ mr: 0.5, color: colors.secondary_text }}
+                        title="Clear search"
                       >
-                        <Typography
-                          sx={{ color: colors.secondary_text, fontSize: 12 }}
-                        >
+                        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
                           ✕
                         </Typography>
                       </IconButton>
@@ -1173,21 +1177,6 @@ const SharedViewPage = () => {
                 ),
               }}
             />
-            {searchTerm && (
-              <Chip
-                label={`Searching: "${searchTerm}"`}
-                onDelete={handleClearSearch}
-                size="small"
-                sx={{
-                  alignSelf: "flex-start",
-                  backgroundColor: colors.accent + "20",
-                  color: colors.accent,
-                  "& .MuiChip-deleteIcon": {
-                    color: colors.accent,
-                  },
-                }}
-              />
-            )}
           </Box>
 
           {/* Center: Share Title */}
