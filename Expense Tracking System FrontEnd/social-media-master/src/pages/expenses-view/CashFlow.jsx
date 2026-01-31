@@ -425,9 +425,20 @@ const Cashflow = () => {
               expense?.name ||
               expense?.description ||
               `Expense #${expense?.id || expense?.expenseId}`,
+            subtitle: expense?.categoryName || expense?.category?.name || "",
+            amount: expense?.amount,
+            date: expense?.date || expense?.createdAt,
           };
         }),
         resourceType: "EXPENSE",
+        // Pass current flow state for return navigation
+        returnRouteState: {
+          activeRange,
+          offset,
+          flowTab,
+          search: searchInput,
+          selectedCardIdx,
+        },
       }}
       formatters={{
         formatCompactNumber,

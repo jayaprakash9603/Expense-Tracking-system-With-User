@@ -106,6 +106,49 @@ export const getExpensesAction =
     }
   };
 
+// Paginated expenses action for share page - fetches 100 at a time
+export const getPaginatedExpensesAction =
+  (page = 0, size = 100, sortOrder = "desc", targetId, append = false) =>
+  async (dispatch) => {
+    dispatch({
+      type: "GET_PAGINATED_EXPENSES_REQUEST",
+      payload: { page, append },
+    });
+
+    try {
+      const { data } = await api.get(`/api/expenses/fetch-expenses-paginated`, {
+        params: {
+          page,
+          size,
+          sort: sortOrder,
+          targetId: targetId || "",
+        },
+      });
+
+      console.log("paginated expenses", data);
+      dispatch({
+        type: append
+          ? "GET_PAGINATED_EXPENSES_MORE_SUCCESS"
+          : "GET_PAGINATED_EXPENSES_SUCCESS",
+        payload: data,
+      });
+
+      return data;
+    } catch (error) {
+      console.log("Error fetching paginated expenses: ", error);
+      dispatch({
+        type: "GET_PAGINATED_EXPENSES_FAILURE",
+        payload: error.message || "Failed to fetch expenses",
+      });
+      throw error;
+    }
+  };
+
+// Reset paginated expenses
+export const resetPaginatedExpenses = () => ({
+  type: "RESET_PAGINATED_EXPENSES",
+});
+
 export const getExpensesSuggestions = (targetId) => async (dispatch) => {
   dispatch({ type: GET_EXPENSES_SUGGESTIONS_REQUEST });
 

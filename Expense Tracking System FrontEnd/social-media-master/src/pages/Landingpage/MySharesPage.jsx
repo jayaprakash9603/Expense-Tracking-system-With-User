@@ -16,6 +16,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -87,7 +88,7 @@ import {
   regenerateQr,
 } from "../../Redux/Shares/shares.actions";
 import QrDisplayScreen from "../../components/sharing/QrDisplayScreen";
-import ShareModal from "../../components/sharing/ShareModal";
+// ShareModal removed - now using CreateSharePage route
 
 // =============================================================================
 // Constants
@@ -111,6 +112,7 @@ const RESOURCE_ICONS = {
 
 const MySharesPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { colors } = useTheme();
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(min-width: 769px) and (max-width: 1024px)");
@@ -129,7 +131,6 @@ const MySharesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedShare, setSelectedShare] = useState(null);
   const [showQrModal, setShowQrModal] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
   const [shareToRevoke, setShareToRevoke] = useState(null);
   const [copied, setCopied] = useState(null);
@@ -657,7 +658,7 @@ const MySharesPage = () => {
       <Button
         variant="contained"
         startIcon={<AddIcon fontSize="small" />}
-        onClick={() => setShowShareModal(true)}
+        onClick={() => navigate("/my-shares/create")}
         sx={{
           textTransform: "none",
           backgroundColor: colors.accent,
@@ -789,7 +790,7 @@ const MySharesPage = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon fontSize="small" />}
-            onClick={() => setShowShareModal(true)}
+            onClick={() => navigate("/my-shares/create")}
             sx={{
               textTransform: "none",
               bgcolor: colors.accent,
@@ -1051,18 +1052,6 @@ const MySharesPage = () => {
           setSelectedShare(null);
         }}
         share={selectedShare}
-      />
-
-      {/* Create Share Modal */}
-      <ShareModal
-        open={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        onShareCreated={(share) => {
-          setShowShareModal(false);
-          loadData();
-          setSelectedShare(share);
-          setShowQrModal(true);
-        }}
       />
 
       {/* Revoke Confirmation Dialog */}

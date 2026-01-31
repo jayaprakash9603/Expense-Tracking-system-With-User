@@ -142,6 +142,7 @@ const GenericFlowLayout = ({
             count={shareButtonExtraProps.count ?? selectedCardIdx.length}
             selectedItems={shareButtonExtraProps.selectedItems ?? []}
             resourceType={shareButtonExtraProps.resourceType ?? "EXPENSE"}
+            returnRouteState={shareButtonExtraProps.returnRouteState ?? null}
           />
         )}
         <DeleteSelectedButton

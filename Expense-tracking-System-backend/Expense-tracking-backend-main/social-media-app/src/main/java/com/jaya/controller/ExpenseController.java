@@ -287,6 +287,40 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    @GetMapping("/fetch-expenses-paginated")
+    public ResponseEntity<Map<String, Object>> getExpensesPaginated(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(defaultValue = "desc") String sort,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
+
+        List<Expense> allExpenses = sort.equalsIgnoreCase("asc")
+                ? expenseService.getExpensesByUserAndSort(targetUser.getId(), "asc")
+                : expenseService.getExpensesByUserAndSort(targetUser.getId(), "desc");
+
+        int totalElements = allExpenses.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, totalElements);
+
+        List<Expense> paginatedExpenses = fromIndex < totalElements
+                ? allExpenses.subList(fromIndex, toIndex)
+                : List.of();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", paginatedExpenses);
+        response.put("currentPage", page);
+        response.put("totalPages", totalPages);
+        response.put("totalElements", totalElements);
+        response.put("size", size);
+        response.put("hasMore", page < totalPages - 1);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/summary-expenses")
     public ResponseEntity<Map<String, Object>> summary(
             @RequestHeader("Authorization") String jwt,
