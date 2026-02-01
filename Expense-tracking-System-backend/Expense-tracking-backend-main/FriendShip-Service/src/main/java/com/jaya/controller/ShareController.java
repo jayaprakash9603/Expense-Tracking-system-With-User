@@ -368,6 +368,42 @@ public class ShareController {
     }
 
     /**
+     * Generate QR code for any valid share (including public shares).
+     * This endpoint doesn't require ownership - useful for viewing others' public
+     * shares.
+     * 
+     * @param token Share token
+     * @param size  QR code size (default 300)
+     * @return QR code data URI and share URL
+     */
+    @GetMapping("/{token}/qr")
+    public ResponseEntity<Map<String, String>> getShareQr(
+            @PathVariable String token,
+            @RequestParam(defaultValue = "300") int size) {
+
+        log.debug("Generating QR for share token: {}...", token.substring(0, Math.min(8, token.length())));
+
+        // Validate that the share exists and is active
+        try {
+            SharedDataResponse response = sharedResourceService.accessShare(token, null);
+            if (!Boolean.TRUE.equals(response.getIsValid())) {
+                return ResponseEntity.status(HttpStatus.GONE)
+                        .body(Map.of("error", "Share is no longer valid: " + response.getInvalidReason()));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Share not found"));
+        }
+
+        String qrCode = qrCodeService.generateQrCodeWithSize(token, size);
+        String shareUrl = qrCodeService.buildShareUrl(token);
+
+        return ResponseEntity.ok(Map.of(
+                "qrCodeDataUri", qrCode,
+                "shareUrl", shareUrl));
+    }
+
+    /**
      * Share directly with a friend and notify them.
      * 
      * @param jwt     Authorization header

@@ -30,6 +30,7 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import ShareIcon from "@mui/icons-material/Share";
 import PublicIcon from "@mui/icons-material/Public";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import BuildIcon from "@mui/icons-material/Build";
 
 const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
@@ -290,21 +291,9 @@ const Left = () => {
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
                 <MenuItem
-                  name={t("navigation.myShares")}
-                  path="/my-shares"
-                  icon={<ShareIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.publicShares")}
-                  path="/public-shares"
-                  icon={<PublicIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.sharedWithMe")}
-                  path="/shared-with-me"
-                  icon={<PersonAddIcon />}
+                  name={t("navigation.utilities")}
+                  path="/utilities"
+                  icon={<BuildIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
               </>

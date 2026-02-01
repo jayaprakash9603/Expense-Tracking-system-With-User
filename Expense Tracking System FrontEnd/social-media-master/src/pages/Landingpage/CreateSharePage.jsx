@@ -43,6 +43,7 @@ import useShareData, {
   STEPS,
   DATA_TYPE_OPTIONS,
   EXPIRY_OPTIONS,
+  VISIBILITY_OPTIONS,
 } from "../../hooks/useShareData";
 import ShareDataSelector from "../../components/sharing/ShareDataSelector";
 import ShareConfigStep from "../../components/sharing/ShareConfigStep";
@@ -76,6 +77,11 @@ const CreateSharePage = () => {
     permission,
     expiryOption,
     customExpiry,
+    visibility,
+    selectedFriends,
+    // Friends data
+    friends,
+    loadingFriends,
     // QR
     showQrModal,
     createdShare,
@@ -93,6 +99,8 @@ const CreateSharePage = () => {
     setPermission,
     setExpiryOption,
     setCustomExpiry,
+    setVisibility,
+    setSelectedFriends,
     // Handlers
     handleTabChange,
     handleToggleItem,
@@ -119,7 +127,13 @@ const CreateSharePage = () => {
       return selectedItems.length === 0;
     }
     if (activeStep === 1) {
-      return !permission || !expiryOption;
+      // Check basic requirements
+      if (!permission || !expiryOption) return true;
+      // Check if SPECIFIC_USERS selected but no friends chosen
+      if (visibility === "SPECIFIC_USERS" && selectedFriends.length === 0) {
+        return true;
+      }
+      return false;
     }
     return false;
   };
@@ -160,10 +174,17 @@ const CreateSharePage = () => {
             expiryOption={expiryOption}
             customExpiry={customExpiry}
             expiryOptions={EXPIRY_OPTIONS}
+            visibility={visibility}
+            visibilityOptions={VISIBILITY_OPTIONS}
+            selectedFriends={selectedFriends}
+            friends={friends}
+            loadingFriends={loadingFriends}
             onShareNameChange={setShareName}
             onPermissionChange={setPermission}
             onExpiryOptionChange={setExpiryOption}
             onCustomExpiryChange={setCustomExpiry}
+            onVisibilityChange={setVisibility}
+            onSelectedFriendsChange={setSelectedFriends}
           />
         );
       case 2:
@@ -177,6 +198,9 @@ const CreateSharePage = () => {
             customExpiry={customExpiry}
             dataTypeOptions={DATA_TYPE_OPTIONS}
             expiryOptions={EXPIRY_OPTIONS}
+            visibility={visibility}
+            visibilityOptions={VISIBILITY_OPTIONS}
+            selectedFriends={selectedFriends}
             error={error}
             createShareError={createShareError}
           />

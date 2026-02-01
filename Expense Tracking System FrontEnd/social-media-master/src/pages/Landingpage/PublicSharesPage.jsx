@@ -71,7 +71,7 @@ import { useTheme } from "../../hooks/useTheme";
 import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
 import {
   fetchPublicShares,
-  regenerateQr,
+  getShareQr,
 } from "../../Redux/Shares/shares.actions";
 import QrDisplayScreen from "../../components/sharing/QrDisplayScreen";
 
@@ -177,7 +177,7 @@ const PublicSharesPage = () => {
     handleMenuClose();
     setQrLoading(true);
     try {
-      const result = await dispatch(regenerateQr(share.token));
+      const result = await dispatch(getShareQr(share.token));
       if (result.success) {
         setSelectedShare({
           ...share,
@@ -204,7 +204,7 @@ const PublicSharesPage = () => {
       let qrCodeDataUri = share.qrCodeDataUri;
       if (!qrCodeDataUri) {
         setQrLoading(true);
-        const result = await dispatch(regenerateQr(share.token));
+        const result = await dispatch(getShareQr(share.token));
         if (result.success) {
           qrCodeDataUri = result.data?.qrCodeDataUri;
         } else {
@@ -370,6 +370,19 @@ const PublicSharesPage = () => {
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
+                {share.isOwnShare && (
+                  <Chip
+                    label="Your Share"
+                    size="small"
+                    sx={{
+                      bgcolor: `#8b5cf620`,
+                      color: "#8b5cf6",
+                      fontWeight: 600,
+                      fontSize: "0.65rem",
+                      height: "20px",
+                    }}
+                  />
+                )}
                 <Chip
                   label={status.charAt(0).toUpperCase() + status.slice(1)}
                   size="small"

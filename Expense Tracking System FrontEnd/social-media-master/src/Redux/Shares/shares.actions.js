@@ -198,7 +198,7 @@ export const fetchShareStats = () => async (dispatch) => {
 };
 
 /**
- * Regenerate QR code for an existing share.
+ * Regenerate QR code for an existing share (owner only).
  * @param {string} token - Share token
  * @param {number} size - QR code size in pixels
  */
@@ -223,6 +223,42 @@ export const regenerateQr =
         error.response?.data?.message ||
         error.message ||
         "Failed to regenerate QR code";
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.REGENERATE_QR_FAILURE,
+        payload: errorMessage,
+      });
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
+/**
+ * Get QR code for any valid share (including public shares).
+ * Unlike regenerateQr, this doesn't require ownership.
+ * @param {string} token - Share token
+ * @param {number} size - QR code size in pixels
+ */
+export const getShareQr =
+  (token, size = 300) =>
+  async (dispatch) => {
+    dispatch({ type: SHARES_ACTION_TYPES.REGENERATE_QR_REQUEST });
+
+    try {
+      const response = await api.get(`/api/shares/${token}/qr?size=${size}`);
+
+      dispatch({
+        type: SHARES_ACTION_TYPES.REGENERATE_QR_SUCCESS,
+        payload: { token, ...response.data },
+      });
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to get QR code";
 
       dispatch({
         type: SHARES_ACTION_TYPES.REGENERATE_QR_FAILURE,

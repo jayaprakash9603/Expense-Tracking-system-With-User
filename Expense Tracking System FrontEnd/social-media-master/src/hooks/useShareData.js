@@ -23,6 +23,7 @@ import {
 import { fetchCategories } from "../Redux/Category/categoryActions";
 import { getBudgetData } from "../Redux/Budget/budget.action";
 import { createShare, clearShareError } from "../Redux/Shares/shares.actions";
+import { fetchFriends } from "../Redux/Friends/friendsActions";
 
 // =============================================================================
 // Constants
@@ -53,6 +54,33 @@ export const EXPIRY_OPTIONS = [
   { value: "90", label: "90 Days" },
   { value: "never", label: "Never" },
   { value: "custom", label: "Custom" },
+];
+
+export const VISIBILITY_OPTIONS = [
+  {
+    value: "LINK_ONLY",
+    label: "Link Only",
+    description: "Anyone with the link can access",
+    icon: "Link",
+  },
+  {
+    value: "PUBLIC",
+    label: "Public",
+    description: "Visible on public shares page",
+    icon: "Public",
+  },
+  {
+    value: "FRIENDS_ONLY",
+    label: "Friends Only",
+    description: "Only your friends can access",
+    icon: "People",
+  },
+  {
+    value: "SPECIFIC_USERS",
+    label: "Specific Friends",
+    description: "Only selected friends can access",
+    icon: "PersonAdd",
+  },
 ];
 
 export const STEPS = ["Select Data", "Configure Access", "Review & Generate"];
@@ -86,6 +114,9 @@ const useShareData = () => {
   const { createShareLoading, createShareError, currentShare } = useSelector(
     (state) => state.shares,
   );
+  const { friends = [], loadingFriends } = useSelector(
+    (state) => state.friends,
+  );
 
   // Step management
   const [activeStep, setActiveStep] = useState(0);
@@ -101,6 +132,8 @@ const useShareData = () => {
   const [permission, setPermission] = useState("VIEW");
   const [expiryOption, setExpiryOption] = useState("7");
   const [customExpiry, setCustomExpiry] = useState("");
+  const [visibility, setVisibility] = useState("LINK_ONLY");
+  const [selectedFriends, setSelectedFriends] = useState([]);
 
   // UI state
   const [error, setError] = useState("");
@@ -130,6 +163,9 @@ const useShareData = () => {
       dispatch(fetchCategories());
       dispatch(getBudgetData());
     }
+
+    // Fetch friends for visibility selection
+    dispatch(fetchFriends());
 
     // Cleanup on unmount
     return () => {
@@ -381,6 +417,12 @@ const useShareData = () => {
       return;
     }
 
+    // Validate specific friends selection
+    if (visibility === "SPECIFIC_USERS" && selectedFriends.length === 0) {
+      setError("Please select at least one friend for specific sharing");
+      return;
+    }
+
     const shareData = {
       resourceType,
       resourceRefs: selectedItems.map((item) => ({
@@ -396,6 +438,11 @@ const useShareData = () => {
           : null,
       customExpiry: expiryOption === "custom" ? customExpiry : null,
       shareName: shareName || null,
+      visibility,
+      allowedUserIds:
+        visibility === "SPECIFIC_USERS"
+          ? selectedFriends.map((f) => f.id)
+          : null,
     };
 
     const result = await dispatch(createShare(shareData));
@@ -411,6 +458,8 @@ const useShareData = () => {
     expiryOption,
     customExpiry,
     shareName,
+    visibility,
+    selectedFriends,
     dispatch,
   ]);
 
@@ -447,6 +496,14 @@ const useShareData = () => {
     setExpiryOption,
     customExpiry,
     setCustomExpiry,
+    visibility,
+    setVisibility,
+    selectedFriends,
+    setSelectedFriends,
+
+    // Friends data
+    friends,
+    loadingFriends,
 
     // UI state
     error,
@@ -483,6 +540,7 @@ const useShareData = () => {
     // Constants
     DATA_TYPE_OPTIONS,
     EXPIRY_OPTIONS,
+    VISIBILITY_OPTIONS,
     STEPS,
   };
 };

@@ -52,6 +52,7 @@ export const en = {
     history: "History",
     paymentMethod: "Payment Method",
     calendar: "Calendar",
+    utilities: "Utilities",
     myShares: "My Shares",
     publicShares: "Public Shares",
     sharedWithMe: "Shared With Me",

@@ -9,6 +9,7 @@ import com.jaya.models.ShareAccessLog;
 import com.jaya.models.SharedResource;
 import com.jaya.models.SharedResource.ResourceRef;
 import com.jaya.models.SharedResourceType;
+import com.jaya.models.ShareVisibility;
 import com.jaya.models.UserDto;
 import com.jaya.repository.ShareAccessLogRepository;
 import com.jaya.repository.SharedResourceRepository;
@@ -46,6 +47,7 @@ public class SharedResourceService {
     private final QrCodeService qrCodeService;
     private final UserService userService;
     private final ExpenseService expenseService;
+    private final FriendshipService friendshipService;
 
     @Value("${app.share.rate-limit.max-shares-per-hour:10}")
     private int maxSharesPerHour;
@@ -79,6 +81,19 @@ public class SharedResourceService {
                         .build())
                 .collect(Collectors.toList());
 
+        // Parse visibility (default to LINK_ONLY for backward compatibility)
+        ShareVisibility visibility = ShareVisibility.LINK_ONLY;
+        if (request.getVisibility() != null && !request.getVisibility().isEmpty()) {
+            try {
+                visibility = ShareVisibility.valueOf(request.getVisibility().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid visibility value '{}', defaulting to LINK_ONLY", request.getVisibility());
+            }
+        }
+
+        // Determine isPublic from visibility for backward compatibility
+        boolean isPublic = visibility == ShareVisibility.PUBLIC;
+
         // Build entity
         SharedResource share = SharedResource.builder()
                 .shareToken(token)
@@ -90,11 +105,14 @@ public class SharedResourceService {
                 .isActive(true)
                 .shareName(request.getShareName())
                 .accessCount(0)
+                .visibility(visibility)
+                .isPublic(isPublic)
+                .allowedUserIds(request.getAllowedUserIds())
                 .build();
 
         // Save
         share = sharedResourceRepository.save(share);
-        log.info("Created share {} for user {}", share.getId(), userId);
+        log.info("Created share {} for user {} with visibility {}", share.getId(), userId, visibility);
 
         // Generate QR code
         String qrCodeDataUri = qrCodeService.generateQrCodeDataUri(token);
@@ -113,6 +131,8 @@ public class SharedResourceService {
                 .shareName(share.getShareName())
                 .resourceCount(resourceRefs.size())
                 .accessCount(share.getAccessCount())
+                .visibility(share.getVisibility() != null ? share.getVisibility().name() : "LINK_ONLY")
+                .allowedUserIds(share.getAllowedUserIds())
                 .build();
     }
 
@@ -134,6 +154,12 @@ public class SharedResourceService {
         // Check expiry
         if (share.getExpiresAt() != null && LocalDateTime.now().isAfter(share.getExpiresAt())) {
             return buildInvalidResponse("This share has expired");
+        }
+
+        // Check visibility-based access
+        String accessDeniedReason = checkVisibilityAccess(share, accessingUserId);
+        if (accessDeniedReason != null) {
+            return buildInvalidResponse(accessDeniedReason);
         }
 
         // Record access on the share itself
@@ -468,6 +494,74 @@ public class SharedResourceService {
                 .isValid(false)
                 .invalidReason(reason)
                 .build();
+    }
+
+    /**
+     * Check if the accessing user is allowed based on share visibility.
+     * 
+     * @param share           The shared resource
+     * @param accessingUserId The ID of the user trying to access (can be null for
+     *                        anonymous)
+     * @return Error message if access denied, null if access allowed
+     */
+    private String checkVisibilityAccess(SharedResource share, Integer accessingUserId) {
+        ShareVisibility visibility = share.getVisibility();
+        if (visibility == null) {
+            visibility = ShareVisibility.LINK_ONLY; // Default for backward compatibility
+        }
+
+        // Owner always has access
+        if (accessingUserId != null && accessingUserId.equals(share.getOwnerUserId())) {
+            return null;
+        }
+
+        switch (visibility) {
+            case PUBLIC:
+            case LINK_ONLY:
+                // Anyone with the link can access
+                return null;
+
+            case FRIENDS_ONLY:
+                // Must be logged in and be a friend of the owner
+                if (accessingUserId == null) {
+                    return "This share is only accessible to friends. Please log in.";
+                }
+                if (!isFriendOf(share.getOwnerUserId(), accessingUserId)) {
+                    return "This share is only accessible to the owner's friends.";
+                }
+                return null;
+
+            case SPECIFIC_USERS:
+                // Must be logged in and be in the allowed users list
+                if (accessingUserId == null) {
+                    return "This share is private. Please log in to check your access.";
+                }
+                List<Integer> allowedIds = share.getAllowedUserIds();
+                if (allowedIds == null || !allowedIds.contains(accessingUserId)) {
+                    return "You don't have permission to access this share.";
+                }
+                return null;
+
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Check if two users are friends.
+     * 
+     * @param ownerId The owner user ID
+     * @param userId  The user ID to check
+     * @return true if they are friends, false otherwise
+     */
+    private boolean isFriendOf(Integer ownerId, Integer userId) {
+        try {
+            // Call the FriendshipService to check friendship status
+            return friendshipService.areFriends(ownerId, userId);
+        } catch (Exception e) {
+            log.warn("Failed to check friendship between {} and {}: {}", ownerId, userId, e.getMessage());
+            return false;
+        }
     }
 
     private SharedDataResponse.OwnerInfo fetchOwnerInfo(Integer userId) {
@@ -865,7 +959,7 @@ public class SharedResourceService {
 
     private SharedWithMeItem.OwnerInfo fetchSharedWithMeOwnerInfo(Integer ownerId) {
         try {
-            UserDto owner = userService.getUserById(ownerId);
+            UserDto owner = userService.getUserProfileById(ownerId);
             if (owner != null) {
                 return SharedWithMeItem.OwnerInfo.builder()
                         .id(owner.getId())
@@ -891,26 +985,25 @@ public class SharedResourceService {
     // ==========================================================================
 
     /**
-     * Get all public shares (excluding the requesting user's own shares).
+     * Get all public shares (including all users' shares).
+     * Uses visibility = PUBLIC to determine public shares.
+     * Public shares are visible to everyone by design.
      */
     @Transactional(readOnly = true)
-    public List<PublicShareItem> getPublicShares(Integer excludeUserId) {
-        List<SharedResource> publicShares;
-
-        if (excludeUserId != null) {
-            publicShares = sharedResourceRepository.findPublicSharesExcludingUser(
-                    LocalDateTime.now(), excludeUserId);
-        } else {
-            publicShares = sharedResourceRepository.findAllPublicShares(LocalDateTime.now());
-        }
+    public List<PublicShareItem> getPublicShares(Integer requestingUserId) {
+        // Public shares are visible to everyone, including the owner
+        // This allows users to verify their public shares appear correctly
+        List<SharedResource> publicShares = sharedResourceRepository.findAllPublicShares(
+                LocalDateTime.now(), ShareVisibility.PUBLIC);
 
         return publicShares.stream()
-                .map(this::mapToPublicShareItem)
+                .map(share -> mapToPublicShareItem(share, requestingUserId))
                 .collect(Collectors.toList());
     }
 
     /**
      * Make a share public or private.
+     * Updates both visibility and isPublic fields for backward compatibility.
      */
     @Transactional
     public void setSharePublic(String token, Integer userId, boolean isPublic) {
@@ -919,13 +1012,18 @@ public class SharedResourceService {
                         "Share not found or you don't have permission to modify it"));
 
         share.setIsPublic(isPublic);
+        // Also update visibility for consistency
+        share.setVisibility(isPublic ? ShareVisibility.PUBLIC : ShareVisibility.LINK_ONLY);
         sharedResourceRepository.save(share);
 
         log.info("Share {} set to public={} by user {}", share.getId(), isPublic, userId);
     }
 
-    private PublicShareItem mapToPublicShareItem(SharedResource share) {
+    private PublicShareItem mapToPublicShareItem(SharedResource share, Integer requestingUserId) {
         PublicShareItem.OwnerInfo ownerInfo = fetchPublicOwnerInfo(share.getOwnerUserId());
+
+        // Determine if this share belongs to the requesting user
+        boolean isOwnShare = requestingUserId != null && requestingUserId.equals(share.getOwnerUserId());
 
         return PublicShareItem.builder()
                 .id(share.getId())
@@ -938,13 +1036,16 @@ public class SharedResourceService {
                 .expiresAt(share.getExpiresAt())
                 .createdAt(share.getCreatedAt())
                 .accessCount(share.getAccessCount())
+                .visibility(share.getVisibility() != null ? share.getVisibility().name() : "PUBLIC")
+                .isActive(share.getIsActive())
+                .isOwnShare(isOwnShare)
                 .owner(ownerInfo)
                 .build();
     }
 
     private PublicShareItem.OwnerInfo fetchPublicOwnerInfo(Integer ownerId) {
         try {
-            UserDto owner = userService.getUserById(ownerId);
+            UserDto owner = userService.getUserProfileById(ownerId);
             if (owner != null) {
                 return PublicShareItem.OwnerInfo.builder()
                         .id(owner.getId())

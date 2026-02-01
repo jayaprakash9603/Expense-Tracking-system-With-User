@@ -9,12 +9,20 @@
  * - Generate the QR code
  *
  * @author Expense Tracking System
- * @version 1.0
+ * @version 1.1
  * =============================================================================
  */
 
 import React from "react";
-import { Box, Typography, Paper, Grid, Chip, Alert } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  Chip,
+  Alert,
+  Avatar,
+} from "@mui/material";
 import {
   Receipt as ReceiptIcon,
   Category as CategoryIcon,
@@ -22,6 +30,10 @@ import {
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
   Schedule as ScheduleIcon,
+  Link as LinkIcon,
+  Public as PublicIcon,
+  People as PeopleIcon,
+  PersonAdd as PersonAddIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -33,6 +45,20 @@ const ICONS = {
   EXPENSE: <ReceiptIcon />,
   CATEGORY: <CategoryIcon />,
   BUDGET: <BudgetIcon />,
+};
+
+const VISIBILITY_ICONS = {
+  LINK_ONLY: <LinkIcon />,
+  PUBLIC: <PublicIcon />,
+  FRIENDS_ONLY: <PeopleIcon />,
+  SPECIFIC_USERS: <PersonAddIcon />,
+};
+
+const VISIBILITY_LABELS = {
+  LINK_ONLY: "Link Only",
+  PUBLIC: "Public",
+  FRIENDS_ONLY: "Friends Only",
+  SPECIFIC_USERS: "Specific Friends",
 };
 
 // =============================================================================
@@ -48,6 +74,9 @@ const ShareReviewStep = ({
   customExpiry,
   dataTypeOptions,
   expiryOptions,
+  visibility,
+  visibilityOptions,
+  selectedFriends,
   error,
   createShareError,
 }) => {
@@ -197,6 +226,66 @@ const ShareReviewStep = ({
               </Typography>
             </Box>
           </Grid>
+
+          {/* Visibility */}
+          <Grid item xs={12} sm={6}>
+            <Typography
+              variant="caption"
+              sx={{ color: colors.secondary_text, textTransform: "uppercase" }}
+            >
+              Visibility
+            </Typography>
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
+            >
+              <Box sx={{ color: colors.primary, "& svg": { fontSize: 20 } }}>
+                {VISIBILITY_ICONS[visibility] || <LinkIcon />}
+              </Box>
+              <Typography
+                variant="body1"
+                sx={{ color: colors.primary_text, fontWeight: 500 }}
+              >
+                {VISIBILITY_LABELS[visibility] || visibility}
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* Selected Friends (if SPECIFIC_USERS) */}
+          {visibility === "SPECIFIC_USERS" && selectedFriends?.length > 0 && (
+            <Grid item xs={12}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: colors.secondary_text,
+                  textTransform: "uppercase",
+                }}
+              >
+                Shared With
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+                {selectedFriends.map((friend) => (
+                  <Chip
+                    key={friend.id}
+                    avatar={
+                      <Avatar src={friend.image} sx={{ width: 24, height: 24 }}>
+                        {friend.firstName?.[0] || friend.email?.[0]}
+                      </Avatar>
+                    }
+                    label={
+                      `${friend.firstName || ""} ${friend.lastName || ""}`.trim() ||
+                      friend.email
+                    }
+                    size="small"
+                    sx={{
+                      backgroundColor: isDark ? "#2a2a2a" : colors.card_bg,
+                      color: colors.primary_text,
+                      border: `1px solid ${isDark ? "#444" : colors.border}`,
+                    }}
+                  />
+                ))}
+              </Box>
+            </Grid>
+          )}
         </Grid>
       </Paper>
 

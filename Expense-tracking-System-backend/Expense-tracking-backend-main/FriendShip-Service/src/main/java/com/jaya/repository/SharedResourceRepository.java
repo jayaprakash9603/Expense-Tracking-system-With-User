@@ -2,6 +2,7 @@ package com.jaya.repository;
 
 import com.jaya.models.SharedResource;
 import com.jaya.models.SharedResourceType;
+import com.jaya.models.ShareVisibility;
 import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -126,27 +127,31 @@ public interface SharedResourceRepository extends JpaRepository<SharedResource, 
 
         /**
          * Find all public shares (excluding a specific user's own shares).
-         * Returns active, non-expired public shares.
+         * Returns active, non-expired public shares using the visibility field.
          */
-        @Query("SELECT sr FROM SharedResource sr WHERE sr.isPublic = true AND sr.isActive = true " +
+        @Query("SELECT sr FROM SharedResource sr WHERE sr.visibility = :visibility AND sr.isActive = true " +
                         "AND (sr.expiresAt IS NULL OR sr.expiresAt > :now) " +
                         "AND sr.ownerUserId != :excludeUserId " +
                         "ORDER BY sr.createdAt DESC")
         List<SharedResource> findPublicSharesExcludingUser(@Param("now") LocalDateTime now,
-                        @Param("excludeUserId") Integer excludeUserId);
+                        @Param("excludeUserId") Integer excludeUserId,
+                        @Param("visibility") ShareVisibility visibility);
 
         /**
          * Find all public shares (for non-authenticated access).
+         * Uses the visibility field to determine public visibility.
          */
-        @Query("SELECT sr FROM SharedResource sr WHERE sr.isPublic = true AND sr.isActive = true " +
+        @Query("SELECT sr FROM SharedResource sr WHERE sr.visibility = :visibility AND sr.isActive = true " +
                         "AND (sr.expiresAt IS NULL OR sr.expiresAt > :now) " +
                         "ORDER BY sr.createdAt DESC")
-        List<SharedResource> findAllPublicShares(@Param("now") LocalDateTime now);
+        List<SharedResource> findAllPublicShares(@Param("now") LocalDateTime now,
+                        @Param("visibility") ShareVisibility visibility);
 
         /**
          * Count public shares.
          */
-        @Query("SELECT COUNT(sr) FROM SharedResource sr WHERE sr.isPublic = true AND sr.isActive = true " +
+        @Query("SELECT COUNT(sr) FROM SharedResource sr WHERE sr.visibility = :visibility AND sr.isActive = true " +
                         "AND (sr.expiresAt IS NULL OR sr.expiresAt > :now)")
-        long countPublicShares(@Param("now") LocalDateTime now);
+        long countPublicShares(@Param("now") LocalDateTime now,
+                        @Param("visibility") ShareVisibility visibility);
 }

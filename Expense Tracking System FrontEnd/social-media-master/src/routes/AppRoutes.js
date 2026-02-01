@@ -170,7 +170,7 @@ export const getAppRoutes = () => (
       </Route>
 
       {/* Utilities & Upload Routes */}
-      <Route path="all" element={<Utilities />} />
+      <Route path="utilities" element={<Utilities />} />
       <Route path="upload">
         <Route path="expenses" element={<Upload />} />
         <Route path="categories" element={<Upload />} />

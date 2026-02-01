@@ -81,4 +81,15 @@ public class ShareResponse {
      * Access count.
      */
     private Integer accessCount;
+
+    /**
+     * Visibility level of the share.
+     * Values: LINK_ONLY, PUBLIC, FRIENDS_ONLY, SPECIFIC_USERS
+     */
+    private String visibility;
+
+    /**
+     * List of user IDs allowed to access (for SPECIFIC_USERS visibility).
+     */
+    private List<Integer> allowedUserIds;
 }

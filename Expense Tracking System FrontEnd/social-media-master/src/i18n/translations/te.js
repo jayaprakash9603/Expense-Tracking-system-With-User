@@ -52,6 +52,7 @@ export const te = {
     history: "చరిత్ర",
     paymentMethod: "చెల్లింపు విధానం",
     calendar: "క్యాలెండర్",
+    utilities: "యుటిలిటీస్",
     myShares: "నా షేర్లు",
     publicShares: "పబ్లిక్ షేర్లు",
     sharedWithMe: "నాతో షేర్ చేయబడినవి",

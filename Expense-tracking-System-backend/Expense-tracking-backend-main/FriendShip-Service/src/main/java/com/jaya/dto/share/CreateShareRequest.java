@@ -58,6 +58,18 @@ public class CreateShareRequest {
     private String shareName;
 
     /**
+     * Visibility level of the share.
+     * Options: PUBLIC, FRIENDS_ONLY, SPECIFIC_USERS, LINK_ONLY (default)
+     */
+    private String visibility;
+
+    /**
+     * List of user IDs allowed to access this share.
+     * Only required when visibility is SPECIFIC_USERS.
+     */
+    private List<Integer> allowedUserIds;
+
+    /**
      * Calculate the expiration datetime based on input.
      */
     public LocalDateTime calculateExpiresAt() {

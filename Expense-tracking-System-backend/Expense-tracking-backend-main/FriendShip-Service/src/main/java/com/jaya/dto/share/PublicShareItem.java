@@ -31,6 +31,22 @@ public class PublicShareItem {
     private Integer accessCount;
 
     /**
+     * Visibility type (PUBLIC, FRIENDS_ONLY, etc.).
+     */
+    private String visibility;
+
+    /**
+     * Whether the share is currently active.
+     */
+    private Boolean isActive;
+
+    /**
+     * Whether this share belongs to the requesting user.
+     * Helps frontend distinguish own shares from others.
+     */
+    private Boolean isOwnShare;
+
+    /**
      * Owner information (public view).
      */
     private OwnerInfo owner;

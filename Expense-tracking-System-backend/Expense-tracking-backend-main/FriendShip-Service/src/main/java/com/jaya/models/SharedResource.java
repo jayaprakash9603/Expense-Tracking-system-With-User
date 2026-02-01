@@ -124,10 +124,30 @@ public class SharedResource {
     /**
      * Whether the share is public (discoverable by other users).
      * Public shares can be listed on the public shares page.
+     * 
+     * @deprecated Use visibility field instead. Kept for backward compatibility.
      */
     @Column(nullable = false)
     @Builder.Default
     private Boolean isPublic = false;
+
+    /**
+     * Visibility level of the share.
+     * Controls who can access the shared data.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private ShareVisibility visibility = ShareVisibility.LINK_ONLY;
+
+    /**
+     * List of user IDs allowed to access this share.
+     * Only applicable when visibility is SPECIFIC_USERS.
+     * Stored as JSON array.
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private List<Integer> allowedUserIds;
 
     /**
      * Check if the share is currently valid (active and not expired).
