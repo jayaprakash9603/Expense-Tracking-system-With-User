@@ -56,6 +56,12 @@ public class Budget {
     @Column(nullable = false)
     private boolean notification100PercentSent = false;
 
+    @Column(nullable = false)
+    private int editCount = 0;
+
+    @Column(nullable = false)
+    private boolean isEdited = false;
+
     public void deductAmount(double expenseAmount) {
         this.amount -= expenseAmount;
     }

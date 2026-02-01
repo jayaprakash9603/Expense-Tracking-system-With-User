@@ -1058,10 +1058,10 @@ public class SharedResourceService {
         } catch (Exception e) {
             log.debug("Could not fetch owner info for user {}: {}", ownerId, e.getMessage());
         }
-        return PublicShareItem.OwnerInfo.builder()
-                .id(ownerId)
-                .firstName("User")
-                .lastName("#" + ownerId)
-                .build();
+            return PublicShareItem.OwnerInfo.builder()
+                    .id(ownerId)
+                    .firstName("User")
+                    .lastName("#" + ownerId)
+                    .build();
+        }
     }
-}
