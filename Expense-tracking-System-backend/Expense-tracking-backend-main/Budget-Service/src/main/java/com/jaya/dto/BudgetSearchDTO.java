@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  * Lightweight DTO for budget search results.
@@ -17,9 +17,9 @@ public class BudgetSearchDTO {
     private Integer id;
     private String name;
     private String description;
-    private Double amount;
-    private Double remainingAmount;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private double amount;
+    private double remainingAmount;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private Integer userId;
 }

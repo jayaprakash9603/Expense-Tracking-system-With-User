@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, memo } from "react";
 import { Box, Typography } from "@mui/material";
 import { TYPE_ICONS, SEARCH_TYPES } from "./quickActions.config";
 
@@ -6,7 +6,7 @@ import { TYPE_ICONS, SEARCH_TYPES } from "./quickActions.config";
  * Highlight ALL matching text occurrences in search results
  * Supports fuzzy matching by highlighting each character match
  */
-const HighlightedText = ({ text, query, isDark }) => {
+const HighlightedText = memo(({ text, query, isDark }) => {
   if (!query || !text) {
     return <span>{text}</span>;
   }
@@ -99,7 +99,10 @@ const HighlightedText = ({ text, query, isDark }) => {
   }
 
   return <span>{parts}</span>;
-};
+});
+
+// Display name for debugging
+HighlightedText.displayName = "HighlightedText";
 
 /**
  * Get icon for result type
@@ -161,147 +164,218 @@ const getIconBackground = (result, isDark) => {
 
 /**
  * SearchResultItem - Individual search result item
+ * Performance optimized: Receives pre-formatted values as props instead of using useSelector
+ * This prevents re-renders when global state changes
  */
-const SearchResultItem = ({
-  result,
-  isSelected,
-  onClick,
-  onMouseEnter,
-  isDark,
-  query,
-  dataIndex,
-}) => {
-  const icon = useMemo(() => getResultIcon(result), [result]);
-  const iconBg = useMemo(
-    () => getIconBackground(result, isDark),
-    [result, isDark],
-  );
+const SearchResultItem = memo(
+  ({
+    result,
+    isSelected,
+    onClick,
+    onMouseEnter,
+    isDark,
+    query,
+    dataIndex,
+    formattedAmount, // Pre-formatted by parent
+    formattedDate, // Pre-formatted by parent
+    isGain, // For expense: true if gain (income), false if loss
+  }) => {
+    const icon = useMemo(() => getResultIcon(result), [result]);
+    const iconBg = useMemo(
+      () => getIconBackground(result, isDark),
+      [result, isDark],
+    );
 
-  return (
-    <Box
-      data-index={dataIndex}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-        padding: "10px 12px",
-        borderRadius: "8px",
-        cursor: "pointer",
-        backgroundColor: isSelected
-          ? isDark
-            ? "rgba(20, 184, 166, 0.15)"
-            : "rgba(20, 184, 166, 0.1)"
-          : "transparent",
-        border: isSelected
-          ? `1px solid ${isDark ? "rgba(20, 184, 166, 0.3)" : "rgba(20, 184, 166, 0.2)"}`
-          : "1px solid transparent",
-        transition: "all 0.15s ease",
-        "&:hover": {
+    // Check if this is an expense or bill type that should show amount/date on right
+    const showAmountDate =
+      result?.type === SEARCH_TYPES.EXPENSE ||
+      result?.type === SEARCH_TYPES.BILL;
+
+    // Determine amount color for expenses: green for gain, red for loss
+    const amountColor = useMemo(() => {
+      if (result?.type !== SEARCH_TYPES.EXPENSE) {
+        return isDark ? "#fff" : "#1a1a1a"; // Default color for non-expenses
+      }
+      // Green for gain, red for loss
+      return isGain
+        ? isDark
+          ? "#4ade80"
+          : "#16a34a" // Green colors
+        : isDark
+          ? "#f87171"
+          : "#dc2626"; // Red colors
+    }, [result?.type, isGain, isDark]);
+
+    return (
+      <Box
+        data-index={dataIndex}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          padding: "10px 12px",
+          borderRadius: "8px",
+          cursor: "pointer",
           backgroundColor: isSelected
             ? isDark
               ? "rgba(20, 184, 166, 0.15)"
               : "rgba(20, 184, 166, 0.1)"
-            : isDark
-              ? "rgba(255, 255, 255, 0.08)"
-              : "rgba(0, 0, 0, 0.04)",
-        },
-      }}
-    >
-      {/* Icon */}
-      <Box
-        sx={{
-          width: "40px",
-          height: "40px",
-          borderRadius: "10px",
-          backgroundColor: iconBg,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "18px",
-          flexShrink: 0,
+            : "transparent",
+          border: isSelected
+            ? `1px solid ${isDark ? "rgba(20, 184, 166, 0.3)" : "rgba(20, 184, 166, 0.2)"}`
+            : "1px solid transparent",
+          transition: "all 0.15s ease",
+          "&:hover": {
+            backgroundColor: isSelected
+              ? isDark
+                ? "rgba(20, 184, 166, 0.15)"
+                : "rgba(20, 184, 166, 0.1)"
+              : isDark
+                ? "rgba(255, 255, 255, 0.08)"
+                : "rgba(0, 0, 0, 0.04)",
+          },
         }}
       >
-        {icon}
-      </Box>
-
-      {/* Content */}
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography
+        {/* Icon */}
+        <Box
           sx={{
-            fontSize: "14px",
-            fontWeight: 500,
-            color: isDark ? "#fff" : "#1a1a1a",
-            lineHeight: 1.3,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
+            width: "40px",
+            height: "40px",
+            borderRadius: "10px",
+            backgroundColor: iconBg,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "18px",
+            flexShrink: 0,
           }}
         >
-          <HighlightedText text={result.title} query={query} isDark={isDark} />
-        </Typography>
-        {result.subtitle && (
+          {icon}
+        </Box>
+
+        {/* Content */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
             sx={{
-              fontSize: "12px",
-              color: isDark ? "rgba(255, 255, 255, 0.6)" : "#666",
+              fontSize: "14px",
+              fontWeight: 500,
+              color: isDark ? "#fff" : "#1a1a1a",
               lineHeight: 1.3,
-              marginTop: "2px",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
             }}
           >
             <HighlightedText
-              text={result.subtitle}
+              text={result.title}
               query={query}
               isDark={isDark}
             />
           </Typography>
-        )}
-      </Box>
+          {result.subtitle && (
+            <Typography
+              sx={{
+                fontSize: "12px",
+                color: isDark ? "rgba(255, 255, 255, 0.6)" : "#666",
+                lineHeight: 1.3,
+                marginTop: "2px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <HighlightedText
+                text={result.subtitle}
+                query={query}
+                isDark={isDark}
+              />
+            </Typography>
+          )}
+        </Box>
 
-      {/* Type Badge (for non-action items) */}
-      {result.type !== SEARCH_TYPES.ACTION && (
-        <Box
-          sx={{
-            padding: "2px 8px",
-            borderRadius: "4px",
-            backgroundColor: isDark
-              ? "rgba(0, 218, 198, 0.15)" // Teal tint for dark mode
-              : "rgba(0, 0, 0, 0.05)",
-            flexShrink: 0,
-          }}
-        >
-          <Typography
+        {/* Amount and Date display for Expense/Bill (on right side) */}
+        {showAmountDate && (formattedAmount || formattedDate) && (
+          <Box
             sx={{
-              fontSize: "10px",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.3px",
-              color: isDark ? "#00dac6" : "#0d9488", // Theme accent color
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              flexShrink: 0,
+              minWidth: "80px",
             }}
           >
-            {result.type?.toLowerCase().replace("_", " ")}
-          </Typography>
-        </Box>
-      )}
+            {formattedAmount && (
+              <Typography
+                sx={{
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: amountColor,
+                  lineHeight: 1.3,
+                }}
+              >
+                {formattedAmount}
+              </Typography>
+            )}
+            {formattedDate && (
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  color: isDark ? "rgba(255, 255, 255, 0.5)" : "#888",
+                  lineHeight: 1.3,
+                }}
+              >
+                {formattedDate}
+              </Typography>
+            )}
+          </Box>
+        )}
 
-      {/* Arrow indicator for selected item */}
-      {isSelected && (
-        <Box
-          sx={{
-            color: isDark ? "#14b8a6" : "#0d9488",
-            fontSize: "16px",
-            flexShrink: 0,
-          }}
-        >
-          →
-        </Box>
-      )}
-    </Box>
-  );
-};
+        {/* Type Badge (for non-action items) */}
+        {result.type !== SEARCH_TYPES.ACTION && (
+          <Box
+            sx={{
+              padding: "2px 8px",
+              borderRadius: "4px",
+              backgroundColor: isDark
+                ? "rgba(0, 218, 198, 0.15)" // Teal tint for dark mode
+                : "rgba(0, 0, 0, 0.05)",
+              flexShrink: 0,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "10px",
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.3px",
+                color: isDark ? "#00dac6" : "#0d9488", // Theme accent color
+              }}
+            >
+              {result.type?.toLowerCase().replace("_", " ")}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Arrow indicator for selected item */}
+        {isSelected && (
+          <Box
+            sx={{
+              color: isDark ? "#14b8a6" : "#0d9488",
+              fontSize: "16px",
+              flexShrink: 0,
+            }}
+          >
+            →
+          </Box>
+        )}
+      </Box>
+    );
+  },
+);
+
+// Display name for debugging
+SearchResultItem.displayName = "SearchResultItem";
 
 export default SearchResultItem;

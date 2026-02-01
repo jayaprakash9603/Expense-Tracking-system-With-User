@@ -1,4 +1,11 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+  useDeferredValue,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../../config/api";
@@ -11,6 +18,7 @@ import {
 } from "./quickActions.config";
 import { sortByRelevance, memoize, createDebouncer } from "./searchUtils";
 import UserSettingsHelper from "../../../utils/UserSettingsHelper";
+import { formatDate } from "../../../utils/dateFormatter";
 
 // Debounce delay in ms - Reduced for better UX
 const DEBOUNCE_DELAY = 150;
@@ -105,6 +113,11 @@ export const useUniversalSearch = () => {
     (state) => state.userSettings?.settings?.currency || "INR",
   );
 
+  // Get user's date format preference
+  const dateFormat = useSelector(
+    (state) => state.userSettings?.settings?.dateFormat || "DD/MM/YYYY",
+  );
+
   // Get current mode (USER or ADMIN) from auth state
   const currentMode = useSelector(
     (state) => state.auth?.currentMode || SEARCH_MODES.USER,
@@ -119,6 +132,17 @@ export const useUniversalSearch = () => {
       return UserSettingsHelper.formatCurrency(amount, userCurrency);
     },
     [userCurrency],
+  );
+
+  /**
+   * Format date using user's preferred date format
+   */
+  const formatDateForSearch = useCallback(
+    (date) => {
+      if (!date) return "";
+      return formatDate(date, dateFormat);
+    },
+    [dateFormat],
   );
 
   /**
@@ -185,10 +209,12 @@ export const useUniversalSearch = () => {
           const description =
             exp?.description || exp?.expense?.description || "";
           const categoryName = exp?.categoryName || exp?.category?.name || "";
+          const comments = exp?.comments || exp?.expense?.comments || "";
           return (
             name.toLowerCase().includes(queryLower) ||
             description.toLowerCase().includes(queryLower) ||
-            categoryName.toLowerCase().includes(queryLower)
+            categoryName.toLowerCase().includes(queryLower) ||
+            comments.toLowerCase().includes(queryLower)
           );
         })
         .slice(0, MAX_RESULTS_PER_SECTION)
@@ -197,15 +223,20 @@ export const useUniversalSearch = () => {
           const amount = exp?.amount || exp?.expense?.amount || 0;
           const categoryName =
             exp?.categoryName || exp?.category?.name || "Uncategorized";
+          const comments = exp?.comments || exp?.expense?.comments || "";
+          const expDate = exp?.date || exp?.expense?.date;
+          // Show comments if available, otherwise show category
+          const subtitle = comments || categoryName;
           return {
             id: exp.id,
             type: SEARCH_TYPES.EXPENSE,
             title: expName,
-            subtitle: `${categoryName} • ${formatAmount(amount)}`,
+            subtitle: subtitle,
             metadata: {
               amount: amount,
-              date: exp?.date,
+              date: expDate,
               categoryName: categoryName,
+              comments: comments,
             },
             route: getRouteForResult(SEARCH_TYPES.EXPENSE, exp.id),
           };
@@ -263,18 +294,26 @@ export const useUniversalSearch = () => {
           );
         })
         .slice(0, MAX_RESULTS_PER_SECTION)
-        .map((bill) => ({
-          id: bill.id,
-          type: SEARCH_TYPES.BILL,
-          title: bill.name || "Bill",
-          subtitle: `${bill?.frequency || "One-time"} • ${formatAmount(bill?.amount || 0)}`,
-          metadata: {
-            amount: bill?.amount,
-            dueDate: bill?.dueDate,
-            frequency: bill?.frequency,
-          },
-          route: getRouteForResult(SEARCH_TYPES.BILL, bill.id),
-        }));
+        .map((bill) => {
+          const dueDate = bill?.dueDate;
+          const description = bill?.description || "";
+          const frequency = bill?.frequency || "One-time";
+          // Show description if available, otherwise show frequency
+          const subtitle = description || frequency;
+          return {
+            id: bill.id,
+            type: SEARCH_TYPES.BILL,
+            title: bill.name || "Bill",
+            subtitle: subtitle,
+            metadata: {
+              amount: bill?.amount,
+              dueDate: dueDate,
+              frequency: frequency,
+              description: description,
+            },
+            route: getRouteForResult(SEARCH_TYPES.BILL, bill.id),
+          };
+        });
 
       // Search payment methods
       const matchedPaymentMethods = (paymentMethods || [])
@@ -340,6 +379,7 @@ export const useUniversalSearch = () => {
       paymentMethods,
       friends,
       formatAmount,
+      formatDateForSearch,
     ],
   );
 
@@ -376,17 +416,22 @@ export const useUniversalSearch = () => {
           // Use formatAmount to format amounts with user's currency preference
           const transformedResults = {
             expenses: (response.data.expenses || []).map((exp) => {
-              // Get amount from metadata or direct field
+              // Get fields from metadata or direct field
               const amount = exp.metadata?.amount || exp.amount || 0;
               const categoryName =
                 exp.metadata?.categoryName ||
                 exp.categoryName ||
                 "Uncategorized";
+              const comments = exp.metadata?.comments || "";
+              const expDate = exp.metadata?.date;
+              // Use subtitle from API (which contains comments or category)
+              // or fallback to comments/category
+              const subtitle = exp.subtitle || comments || categoryName;
               return {
                 id: exp.id,
                 type: SEARCH_TYPES.EXPENSE,
                 title: exp.title || exp.name,
-                subtitle: `${categoryName} • ${formatAmount(amount)}`,
+                subtitle: subtitle,
                 metadata: exp.metadata || {},
                 route: getRouteForResult(SEARCH_TYPES.EXPENSE, exp.id),
               };
@@ -417,15 +462,19 @@ export const useUniversalSearch = () => {
               route: getRouteForResult(SEARCH_TYPES.CATEGORY, cat.id),
             })),
             bills: (response.data.bills || []).map((bill) => {
-              // Get amount from metadata or direct field
+              // Get fields from metadata or direct field
               const amount = bill.metadata?.amount || bill.amount || 0;
               const frequency =
                 bill.metadata?.frequency || bill.frequency || "One-time";
+              const description = bill.metadata?.description || "";
+              const dueDate = bill.metadata?.dueDate;
+              // Use subtitle from API or fallback to description/frequency
+              const subtitle = bill.subtitle || description || frequency;
               return {
                 id: bill.id,
                 type: SEARCH_TYPES.BILL,
                 title: bill.title || bill.name,
-                subtitle: `${frequency} • ${formatAmount(amount)}`,
+                subtitle: subtitle,
                 metadata: bill.metadata || {},
                 route: getRouteForResult(SEARCH_TYPES.BILL, bill.id),
               };
@@ -461,7 +510,7 @@ export const useUniversalSearch = () => {
         setApiLoading(false);
       }
     },
-    [formatAmount],
+    [formatAmount, formatDateForSearch],
   );
 
   /**
@@ -539,13 +588,17 @@ export const useUniversalSearch = () => {
     return results;
   }, [quickActionResults, apiResults, query]);
 
+  // Defer the results to prevent blocking input - React 18 concurrent feature
+  const deferredResults = useDeferredValue(allResults);
+
   /**
    * Group results by section for display
+   * Uses deferred results to avoid blocking input during typing
    */
   const groupedResults = useMemo(() => {
     const groups = {};
 
-    allResults.forEach((result) => {
+    deferredResults.forEach((result) => {
       const section = result.section || "actions";
       if (!groups[section]) {
         groups[section] = [];
@@ -562,7 +615,7 @@ export const useUniversalSearch = () => {
     });
 
     return sortedGroups;
-  }, [allResults]);
+  }, [deferredResults]);
 
   /**
    * Navigate to selected result

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Box,
   InputBase,
@@ -8,13 +8,20 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material";
+import { useSelector } from "react-redux";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import { useTheme } from "../../../hooks/useTheme";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { useUniversalSearch } from "./useUniversalSearch";
 import SearchResultItem from "./SearchResultItem";
-import { SECTION_ORDER, SECTION_LABELS } from "./quickActions.config";
+import {
+  SECTION_ORDER,
+  SECTION_LABELS,
+  SEARCH_TYPES,
+} from "./quickActions.config";
+import UserSettingsHelper from "../../../utils/UserSettingsHelper";
+import { formatDate } from "../../../utils/dateFormatter";
 
 /**
  * InlineSearchBar - Expandable search bar in the header
@@ -25,6 +32,14 @@ const InlineSearchBar = () => {
   const { t } = useTranslation();
   const isDark = mode === "dark";
   const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+
+  // Get user settings at parent level for performance
+  const userCurrency = useSelector(
+    (state) => state.userSettings?.settings?.currency || "INR",
+  );
+  const dateFormat = useSelector(
+    (state) => state.userSettings?.settings?.dateFormat || "DD/MM/YYYY",
+  );
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -42,6 +57,37 @@ const InlineSearchBar = () => {
     allResults,
     setQuery,
   } = useUniversalSearch();
+
+  // Helper to format amount and date for search results
+  const getFormattedAmountDate = useCallback(
+    (result) => {
+      const isExpenseOrBill =
+        result.type === SEARCH_TYPES.EXPENSE ||
+        result.type === SEARCH_TYPES.BILL;
+      if (!isExpenseOrBill)
+        return { formattedAmount: null, formattedDate: null, isGain: false };
+
+      const amount = result.metadata?.amount;
+      const date =
+        result.type === SEARCH_TYPES.BILL
+          ? result.metadata?.dueDate
+          : result.metadata?.date;
+
+      // Check if expense is a gain (type = "Gain") or loss (type = "Loss")
+      const expenseType = result.metadata?.type;
+      const isGain = expenseType?.toLowerCase() === "gain";
+
+      return {
+        formattedAmount:
+          amount != null
+            ? UserSettingsHelper.formatCurrency(amount, userCurrency)
+            : null,
+        formattedDate: date ? formatDate(date, dateFormat) : null,
+        isGain,
+      };
+    },
+    [userCurrency, dateFormat],
+  );
 
   // Reset selection when results change
   useEffect(() => {
@@ -463,6 +509,7 @@ const InlineSearchBar = () => {
                         isSelected={localSelectedIndex === globalIndex}
                         isDark={isDark}
                         query={query}
+                        {...getFormattedAmountDate(result)}
                       />
                     </Box>
                   );

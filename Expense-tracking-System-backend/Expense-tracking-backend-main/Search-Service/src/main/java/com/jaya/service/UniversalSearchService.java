@@ -430,13 +430,19 @@ public class UniversalSearchService {
                     metadata.put("includeInBudget", exp.getOrDefault("includeInBudget", false));
                     metadata.put("isBill", exp.getOrDefault("isBill", false));
 
+                    // Format date for subtitle
+                    String dateStr = formatDate(exp.get("date"));
+
+                    // Build subtitle - show comments if available, otherwise show category
+                    String subtitle = (comments != null && !comments.isEmpty())
+                            ? comments
+                            : categoryName;
+
                     return SearchResultDTO.builder()
                             .id(String.valueOf(exp.get("id")))
                             .type(SearchResultType.EXPENSE)
                             .title(name != null && !name.isEmpty() ? name : "Expense")
-                            .subtitle(String.format("%s • %s",
-                                    categoryName,
-                                    formatAmount(amount)))
+                            .subtitle(subtitle)
                             .icon(categoryIcon)
                             .color(categoryColor)
                             .metadata(metadata)
@@ -521,13 +527,18 @@ public class UniversalSearchService {
                     metadata.put("reminder", bill.get("reminder"));
                     metadata.put("paymentMethod", bill.get("paymentMethod"));
 
+                    // Build subtitle - show description if available, otherwise show frequency
+                    String description = (String) bill.get("description");
+                    String frequency = (String) bill.getOrDefault("frequency", "One-time");
+                    String subtitle = (description != null && !description.isEmpty())
+                            ? description
+                            : frequency;
+
                     return SearchResultDTO.builder()
                             .id(String.valueOf(bill.get("id")))
                             .type(SearchResultType.BILL)
                             .title((String) bill.getOrDefault("billName", bill.getOrDefault("name", "Bill")))
-                            .subtitle(String.format("%s • %s",
-                                    bill.getOrDefault("frequency", "One-time"),
-                                    formatAmount(bill.get("amount"))))
+                            .subtitle(subtitle)
                             .icon((String) bill.get("icon"))
                             .color((String) bill.get("color"))
                             .metadata(metadata)
@@ -617,5 +628,22 @@ public class UniversalSearchService {
             return String.format("$%.2f", ((Number) amount).doubleValue());
         }
         return amount.toString();
+    }
+
+    private String formatDate(Object date) {
+        if (date == null)
+            return "N/A";
+        String dateStr = date.toString();
+        // Try to parse and format common date formats
+        try {
+            // Handle ISO date format (e.g., "2025-10-09")
+            if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}.*")) {
+                java.time.LocalDate localDate = java.time.LocalDate.parse(dateStr.substring(0, 10));
+                return localDate.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy"));
+            }
+        } catch (Exception e) {
+            // Fall back to original string if parsing fails
+        }
+        return dateStr;
     }
 }

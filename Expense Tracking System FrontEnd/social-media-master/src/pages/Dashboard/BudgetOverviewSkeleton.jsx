@@ -1,5 +1,29 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useTheme } from "../../hooks/useTheme";
+
+// Inject skeleton keyframes once into document head
+const SKELETON_STYLE_ID = "skeleton-keyframes-style";
+const injectSkeletonStyles = () => {
+  if (typeof document !== "undefined" && !document.getElementById(SKELETON_STYLE_ID)) {
+    const style = document.createElement("style");
+    style.id = SKELETON_STYLE_ID;
+    style.textContent = `
+      @keyframes skeletonShimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      @keyframes skeletonPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+      @keyframes skeletonRotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+};
 
 // BudgetOverviewSkeleton supports two modes:
 //  summary: circle progress + two metric lines (Remaining / Total Spent)
@@ -23,21 +47,10 @@ const BudgetOverviewSkeleton = ({
   const ringColor =
     theme === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
 
-  // Inline keyframes for shimmer animation
-  const shimmerKeyframes = `
-    @keyframes skeletonShimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    @keyframes skeletonPulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
-    @keyframes skeletonRotate {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  `;
+  // Inject skeleton styles on mount
+  useEffect(() => {
+    injectSkeletonStyles();
+  }, []);
 
   const shimmerStyle = {
     background: `linear-gradient(90deg, ${shimmerBase} 25%, ${shimmerPeak} 50%, ${shimmerBase} 75%)`,
@@ -62,12 +75,10 @@ const BudgetOverviewSkeleton = ({
 
   if (mode === "summary") {
     return (
-      <>
-        <style>{shimmerKeyframes}</style>
-        <div
-          className={`budget-overview skeleton summary ${isCompact ? "compact" : ""}`}
-          style={containerStyle}
-        >
+      <div
+        className={`budget-overview skeleton summary ${isCompact ? "compact" : ""}`}
+        style={containerStyle}
+      >
           {/* Header */}
           <div
             style={{
@@ -251,18 +262,15 @@ const BudgetOverviewSkeleton = ({
             ))}
           </div>
         </div>
-      </>
     );
   }
 
   // List mode skeleton
   return (
-    <>
-      <style>{shimmerKeyframes}</style>
-      <div
-        className={`budget-overview skeleton list ${isCompact ? "compact" : ""}`}
-        style={containerStyle}
-      >
+    <div
+      className={`budget-overview skeleton list ${isCompact ? "compact" : ""}`}
+      style={containerStyle}
+    >
         {/* Header */}
         <div
           style={{
@@ -417,7 +425,6 @@ const BudgetOverviewSkeleton = ({
           ))}
         </div>
       </div>
-    </>
   );
 };
 

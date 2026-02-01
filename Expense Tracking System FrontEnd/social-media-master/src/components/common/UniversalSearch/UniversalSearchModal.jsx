@@ -1,5 +1,6 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import { Box, Typography, CircularProgress, Chip } from "@mui/material";
+import { useSelector } from "react-redux";
 import SearchIcon from "@mui/icons-material/Search";
 import KeyboardIcon from "@mui/icons-material/Keyboard";
 import CloseIcon from "@mui/icons-material/Close";
@@ -7,7 +8,13 @@ import { useTheme } from "../../../hooks/useTheme";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { useUniversalSearch } from "./useUniversalSearch";
 import SearchResultItem from "./SearchResultItem";
-import { SECTION_LABELS, TYPE_ICONS } from "./quickActions.config";
+import {
+  SECTION_LABELS,
+  TYPE_ICONS,
+  SEARCH_TYPES,
+} from "./quickActions.config";
+import UserSettingsHelper from "../../../utils/UserSettingsHelper";
+import { formatDate } from "../../../utils/dateFormatter";
 
 /**
  * UniversalSearchModal - Spotlight-like search overlay
@@ -18,6 +25,14 @@ const UniversalSearchModal = () => {
   const { t } = useTranslation();
   const inputRef = useRef(null);
   const resultsContainerRef = useRef(null);
+
+  // Get user settings at parent level for performance
+  const userCurrency = useSelector(
+    (state) => state.userSettings?.settings?.currency || "INR",
+  );
+  const dateFormat = useSelector(
+    (state) => state.userSettings?.settings?.dateFormat || "DD/MM/YYYY",
+  );
 
   const {
     isOpen,
@@ -36,6 +51,37 @@ const UniversalSearchModal = () => {
   } = useUniversalSearch();
 
   const isDark = mode === "dark";
+
+  // Helper to format amount and date for search results
+  const getFormattedAmountDate = useCallback(
+    (result) => {
+      const isExpenseOrBill =
+        result.type === SEARCH_TYPES.EXPENSE ||
+        result.type === SEARCH_TYPES.BILL;
+      if (!isExpenseOrBill)
+        return { formattedAmount: null, formattedDate: null, isGain: false };
+
+      const amount = result.metadata?.amount;
+      const date =
+        result.type === SEARCH_TYPES.BILL
+          ? result.metadata?.dueDate
+          : result.metadata?.date;
+
+      // Check if expense is a gain (type = "Gain") or loss (type = "Loss")
+      const expenseType = result.metadata?.type;
+      const isGain = expenseType?.toLowerCase() === "gain";
+
+      return {
+        formattedAmount:
+          amount != null
+            ? UserSettingsHelper.formatCurrency(amount, userCurrency)
+            : null,
+        formattedDate: date ? formatDate(date, dateFormat) : null,
+        isGain,
+      };
+    },
+    [userCurrency, dateFormat],
+  );
 
   // Focus input when modal opens
   useEffect(() => {
@@ -350,6 +396,8 @@ const UniversalSearchModal = () => {
                     const flatIndex = flatIndexMap.get(
                       `${section}-${result.id}`,
                     );
+                    const { formattedAmount, formattedDate, isGain } =
+                      getFormattedAmountDate(result);
                     return (
                       <SearchResultItem
                         key={`${section}-${result.id}`}
@@ -360,6 +408,9 @@ const UniversalSearchModal = () => {
                         isDark={isDark}
                         query={query}
                         dataIndex={flatIndex}
+                        formattedAmount={formattedAmount}
+                        formattedDate={formattedDate}
+                        isGain={isGain}
                       />
                     );
                   })}
