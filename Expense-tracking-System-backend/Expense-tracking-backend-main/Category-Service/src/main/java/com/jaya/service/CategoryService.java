@@ -1,5 +1,6 @@
 package com.jaya.service;
 
+import com.jaya.dto.CategorySearchDTO;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.models.Category;
 import com.jaya.models.User;
@@ -1568,6 +1569,45 @@ public class CategoryService {
 
     public Category save(Category category) {
         return categoryRepository.save(category);
+    }
+
+    /**
+     * Fuzzy search categories by name or type.
+     * Includes both user-specific and global categories.
+     * Supports partial text matching for typeahead/search functionality.
+     * Optimized query - avoids N+1 problem.
+     * 
+     * @param userId the user whose categories to search (plus global)
+     * @param query  the search query (partial match supported)
+     * @param limit  maximum number of results to return
+     * @return List of categories matching the search criteria
+     */
+    public List<CategorySearchDTO> searchCategories(Integer userId, String query, int limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
+        String subsequencePattern = convertToSubsequencePattern(query.trim());
+        logger.debug("Searching categories for user {} with query '{}' (pattern: '{}') limit {}", userId, query,
+                subsequencePattern, limit);
+        List<CategorySearchDTO> results = categoryRepository.searchCategoriesFuzzyWithLimit(userId, subsequencePattern);
+        // Apply limit in memory since JPQL constructor expressions don't support LIMIT
+        return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a search query to a subsequence pattern for SQL LIKE.
+     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
+     */
+    private String convertToSubsequencePattern(String query) {
+        if (query == null || query.isEmpty()) {
+            return "%";
+        }
+        StringBuilder pattern = new StringBuilder("%");
+        for (char c : query.toCharArray()) {
+            pattern.append(c).append("%");
+        }
+        return pattern.toString();
     }
 
 }

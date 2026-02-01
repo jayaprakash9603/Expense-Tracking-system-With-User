@@ -131,6 +131,7 @@ public class UniversalSearchService {
 
     /**
      * Search expenses with category enrichment
+     * Uses optimized fuzzy search endpoint to avoid N+1 queries
      */
     private CompletableFuture<List<SearchResultDTO>> searchExpenses(
             String query, int limit, String authToken, Integer targetId) {
@@ -165,10 +166,11 @@ public class UniversalSearchService {
                     return Mono.just(new HashMap<>());
                 });
 
-        // Then fetch expenses and enrich with category data
+        // Use optimized fuzzy search endpoint instead of fetching all and filtering
         Mono<List<Map<String, Object>>> expensesMono = webClient.get()
-                .uri(expenseServiceUrl + "/api/expenses/search", uriBuilder -> {
-                    uriBuilder.queryParam("expenseName", query);
+                .uri(expenseServiceUrl + "/api/expenses/search/fuzzy", uriBuilder -> {
+                    uriBuilder.queryParam("query", query);
+                    uriBuilder.queryParam("limit", limit);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -195,13 +197,15 @@ public class UniversalSearchService {
     }
 
     /**
-     * Search budgets
+     * Search budgets using optimized fuzzy search endpoint
      */
     private CompletableFuture<List<SearchResultDTO>> searchBudgets(
             String query, int limit, String authToken, Integer targetId) {
 
         return webClient.get()
-                .uri(budgetServiceUrl + "/api/budgets", uriBuilder -> {
+                .uri(budgetServiceUrl + "/api/budgets/search", uriBuilder -> {
+                    uriBuilder.queryParam("query", query);
+                    uriBuilder.queryParam("limit", limit);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -212,7 +216,7 @@ public class UniversalSearchService {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
                 })
                 .timeout(Duration.ofMillis(searchTimeoutMs))
-                .map(budgets -> filterAndMapBudgetResults(budgets, query, limit))
+                .map(budgets -> mapBudgetResults(budgets, limit))
                 .onErrorResume(e -> {
                     log.error("Error searching budgets: {}", e.getMessage());
                     return Mono.just(Collections.emptyList());
@@ -221,13 +225,15 @@ public class UniversalSearchService {
     }
 
     /**
-     * Search categories
+     * Search categories using optimized fuzzy search endpoint
      */
     private CompletableFuture<List<SearchResultDTO>> searchCategories(
             String query, int limit, String authToken, Integer targetId) {
 
         return webClient.get()
-                .uri(categoryServiceUrl + "/api/categories", uriBuilder -> {
+                .uri(categoryServiceUrl + "/api/categories/search", uriBuilder -> {
+                    uriBuilder.queryParam("query", query);
+                    uriBuilder.queryParam("limit", limit);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -238,7 +244,7 @@ public class UniversalSearchService {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
                 })
                 .timeout(Duration.ofMillis(searchTimeoutMs))
-                .map(categories -> filterAndMapCategoryResults(categories, query, limit))
+                .map(categories -> mapCategoryResults(categories, limit))
                 .onErrorResume(e -> {
                     log.error("Error searching categories: {}", e.getMessage());
                     return Mono.just(Collections.emptyList());
@@ -247,13 +253,15 @@ public class UniversalSearchService {
     }
 
     /**
-     * Search bills
+     * Search bills using optimized fuzzy search endpoint
      */
     private CompletableFuture<List<SearchResultDTO>> searchBills(
             String query, int limit, String authToken, Integer targetId) {
 
         return webClient.get()
-                .uri(billServiceUrl + "/api/bills", uriBuilder -> {
+                .uri(billServiceUrl + "/api/bills/search", uriBuilder -> {
+                    uriBuilder.queryParam("query", query);
+                    uriBuilder.queryParam("limit", limit);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -264,7 +272,7 @@ public class UniversalSearchService {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
                 })
                 .timeout(Duration.ofMillis(searchTimeoutMs))
-                .map(bills -> filterAndMapBillResults(bills, query, limit))
+                .map(bills -> mapBillResults(bills, limit))
                 .onErrorResume(e -> {
                     log.error("Error searching bills: {}", e.getMessage());
                     return Mono.just(Collections.emptyList());
@@ -273,13 +281,15 @@ public class UniversalSearchService {
     }
 
     /**
-     * Search payment methods
+     * Search payment methods using optimized fuzzy search endpoint
      */
     private CompletableFuture<List<SearchResultDTO>> searchPaymentMethods(
             String query, int limit, String authToken, Integer targetId) {
 
         return webClient.get()
-                .uri(paymentMethodServiceUrl + "/api/payment-methods", uriBuilder -> {
+                .uri(paymentMethodServiceUrl + "/api/payment-methods/search", uriBuilder -> {
+                    uriBuilder.queryParam("query", query);
+                    uriBuilder.queryParam("limit", limit);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -290,7 +300,7 @@ public class UniversalSearchService {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
                 })
                 .timeout(Duration.ofMillis(searchTimeoutMs))
-                .map(paymentMethods -> filterAndMapPaymentMethodResults(paymentMethods, query, limit))
+                .map(paymentMethods -> mapPaymentMethodResults(paymentMethods, limit))
                 .onErrorResume(e -> {
                     log.error("Error searching payment methods: {}", e.getMessage());
                     return Mono.just(Collections.emptyList());
@@ -332,12 +342,13 @@ public class UniversalSearchService {
         return expenses.stream()
                 .limit(limit)
                 .map(exp -> {
-                    // Get expense details from nested object
+                    // Get expense details from nested object (for full Expense entities)
                     Map<String, Object> expenseDetails = (Map<String, Object>) exp.get("expense");
 
-                    // Extract name - from expense details or direct
-                    String name = null;
-                    if (expenseDetails != null) {
+                    // Extract name - try flat structure first (ExpenseSearchDTO), then nested
+                    // (Expense entity)
+                    String name = (String) exp.get("expenseName");
+                    if (name == null && expenseDetails != null) {
                         name = (String) expenseDetails.get("expenseName");
                         if (name == null) {
                             name = (String) expenseDetails.get("name");
@@ -347,28 +358,31 @@ public class UniversalSearchService {
                         name = (String) exp.get("name");
                     }
 
-                    // Extract amount - from expense details or direct
-                    Object amount = null;
-                    if (expenseDetails != null) {
+                    // Extract amount - try flat structure first, then nested
+                    Object amount = exp.get("amount");
+                    if (amount == null && expenseDetails != null) {
                         amount = expenseDetails.get("amount");
                     }
-                    if (amount == null) {
-                        amount = exp.get("amount");
-                    }
 
-                    // Extract other fields from expense details
-                    String type = null;
-                    String paymentMethod = null;
-                    String comments = null;
-                    Object netAmount = null;
-                    Object creditDue = null;
+                    // Extract other fields - try flat structure first (ExpenseSearchDTO), then
+                    // nested
+                    String type = (String) exp.get("type");
+                    String paymentMethod = (String) exp.get("paymentMethod");
+                    String comments = (String) exp.get("comments");
+                    Object netAmount = exp.get("netAmount");
+                    Object creditDue = exp.get("creditDue");
 
                     if (expenseDetails != null) {
-                        type = (String) expenseDetails.get("type");
-                        paymentMethod = (String) expenseDetails.get("paymentMethod");
-                        comments = (String) expenseDetails.get("comments");
-                        netAmount = expenseDetails.get("netAmount");
-                        creditDue = expenseDetails.get("creditDue");
+                        if (type == null)
+                            type = (String) expenseDetails.get("type");
+                        if (paymentMethod == null)
+                            paymentMethod = (String) expenseDetails.get("paymentMethod");
+                        if (comments == null)
+                            comments = (String) expenseDetails.get("comments");
+                        if (netAmount == null)
+                            netAmount = expenseDetails.get("netAmount");
+                        if (creditDue == null)
+                            creditDue = expenseDetails.get("creditDue");
                     }
 
                     // Get category info - first try from expense, then from category map
@@ -431,16 +445,9 @@ public class UniversalSearchService {
                 .collect(Collectors.toList());
     }
 
-    private List<SearchResultDTO> filterAndMapBudgetResults(
-            List<Map<String, Object>> budgets, String query, int limit) {
-        String queryLower = query.toLowerCase();
+    private List<SearchResultDTO> mapBudgetResults(
+            List<Map<String, Object>> budgets, int limit) {
         return budgets.stream()
-                .filter(budget -> {
-                    String name = (String) budget.get("name");
-                    String categoryName = (String) budget.get("categoryName");
-                    return (name != null && name.toLowerCase().contains(queryLower)) ||
-                            (categoryName != null && categoryName.toLowerCase().contains(queryLower));
-                })
                 .limit(limit)
                 .map(budget -> {
                     // Build comprehensive metadata for budgets
@@ -471,16 +478,9 @@ public class UniversalSearchService {
                 .collect(Collectors.toList());
     }
 
-    private List<SearchResultDTO> filterAndMapCategoryResults(
-            List<Map<String, Object>> categories, String query, int limit) {
-        String queryLower = query.toLowerCase();
+    private List<SearchResultDTO> mapCategoryResults(
+            List<Map<String, Object>> categories, int limit) {
         return categories.stream()
-                .filter(cat -> {
-                    String name = (String) cat.get("name");
-                    String description = (String) cat.get("description");
-                    return (name != null && name.toLowerCase().contains(queryLower)) ||
-                            (description != null && description.toLowerCase().contains(queryLower));
-                })
                 .limit(limit)
                 .map(cat -> {
                     // Build comprehensive metadata for categories
@@ -503,18 +503,9 @@ public class UniversalSearchService {
                 .collect(Collectors.toList());
     }
 
-    private List<SearchResultDTO> filterAndMapBillResults(
-            List<Map<String, Object>> bills, String query, int limit) {
-        String queryLower = query.toLowerCase();
+    private List<SearchResultDTO> mapBillResults(
+            List<Map<String, Object>> bills, int limit) {
         return bills.stream()
-                .filter(bill -> {
-                    String name = (String) bill.get("name");
-                    String description = (String) bill.get("description");
-                    String categoryName = (String) bill.get("categoryName");
-                    return (name != null && name.toLowerCase().contains(queryLower)) ||
-                            (description != null && description.toLowerCase().contains(queryLower)) ||
-                            (categoryName != null && categoryName.toLowerCase().contains(queryLower));
-                })
                 .limit(limit)
                 .map(bill -> {
                     // Build comprehensive metadata for bills
@@ -533,7 +524,7 @@ public class UniversalSearchService {
                     return SearchResultDTO.builder()
                             .id(String.valueOf(bill.get("id")))
                             .type(SearchResultType.BILL)
-                            .title((String) bill.getOrDefault("name", "Bill"))
+                            .title((String) bill.getOrDefault("billName", bill.getOrDefault("name", "Bill")))
                             .subtitle(String.format("%s • %s",
                                     bill.getOrDefault("frequency", "One-time"),
                                     formatAmount(bill.get("amount"))))
@@ -545,18 +536,9 @@ public class UniversalSearchService {
                 .collect(Collectors.toList());
     }
 
-    private List<SearchResultDTO> filterAndMapPaymentMethodResults(
-            List<Map<String, Object>> paymentMethods, String query, int limit) {
-        String queryLower = query.toLowerCase();
+    private List<SearchResultDTO> mapPaymentMethodResults(
+            List<Map<String, Object>> paymentMethods, int limit) {
         return paymentMethods.stream()
-                .filter(pm -> {
-                    String name = (String) pm.get("name");
-                    String type = (String) pm.get("type");
-                    String accountNumber = (String) pm.get("accountNumber");
-                    return (name != null && name.toLowerCase().contains(queryLower)) ||
-                            (type != null && type.toLowerCase().contains(queryLower)) ||
-                            (accountNumber != null && accountNumber.toLowerCase().contains(queryLower));
-                })
                 .limit(limit)
                 .map(pm -> {
                     // Build comprehensive metadata for payment methods

@@ -10,15 +10,62 @@ import {
   storyReceived,
   storyUpdated,
   storyDeleted,
+  refreshStories,
   wsConnected,
   wsDisconnected,
-} from "../../../Redux/Stories/story.action";
+} from "../../Redux/Stories/story.action";
 
 const STORY_WS_URL = "http://localhost:6010/ws-stories";
 
 const useStoryWebSocket = (userId) => {
   const dispatch = useDispatch();
   const clientRef = useRef(null);
+  const dispatchRef = useRef(dispatch);
+
+  // Keep dispatch ref updated
+  useEffect(() => {
+    dispatchRef.current = dispatch;
+  }, [dispatch]);
+
+  // Handle story events - defined inside hook to use dispatchRef
+  const handleStoryEvent = useCallback((event) => {
+    const eventType = event.type || event.eventType;
+    const { story, storyId } = event;
+
+    switch (eventType) {
+      case "STORY_CREATED":
+        if (story) {
+          dispatchRef.current(storyReceived(story));
+        }
+        break;
+
+      case "STORY_UPDATED":
+        if (story) {
+          dispatchRef.current(storyUpdated(story));
+        }
+        break;
+
+      case "STORY_DELETED":
+        if (storyId) {
+          dispatchRef.current(storyDeleted(storyId));
+        }
+        break;
+
+      case "STORY_EXPIRED":
+        if (storyId) {
+          dispatchRef.current(storyDeleted(storyId));
+        }
+        break;
+
+      case "REFRESH_STORIES":
+        // Signal components to refetch all stories
+        dispatchRef.current(refreshStories());
+        break;
+
+      default:
+        break;
+    }
+  }, []);
 
   const connect = useCallback(() => {
     if (clientRef.current?.connected) {
@@ -31,14 +78,10 @@ const useStoryWebSocket = (userId) => {
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-      debug: function (str) {
-        console.debug("STOMP:", str);
-      },
     });
 
     client.onConnect = () => {
-      console.log("Story WebSocket connected");
-      dispatch(wsConnected());
+      dispatchRef.current(wsConnected());
 
       // Subscribe to global stories
       client.subscribe("/topic/stories/global", (message) => {
@@ -46,7 +89,7 @@ const useStoryWebSocket = (userId) => {
           const event = JSON.parse(message.body);
           handleStoryEvent(event);
         } catch (e) {
-          console.error("Error parsing story event:", e);
+          console.error("Failed to parse global story event:", e);
         }
       });
 
@@ -57,55 +100,23 @@ const useStoryWebSocket = (userId) => {
             const event = JSON.parse(message.body);
             handleStoryEvent(event);
           } catch (e) {
-            console.error("Error parsing user story event:", e);
+            console.error("Failed to parse user story event:", e);
           }
         });
       }
     };
 
     client.onDisconnect = () => {
-      console.log("Story WebSocket disconnected");
-      dispatch(wsDisconnected());
+      dispatchRef.current(wsDisconnected());
     };
 
     client.onStompError = (frame) => {
       console.error("STOMP error:", frame.headers["message"]);
-      console.error("Details:", frame.body);
     };
 
     client.activate();
     clientRef.current = client;
-  }, [userId, dispatch]);
-
-  const handleStoryEvent = useCallback(
-    (event) => {
-      const { eventType, story, storyId } = event;
-
-      switch (eventType) {
-        case "STORY_CREATED":
-          if (story) {
-            dispatch(storyReceived(story));
-          }
-          break;
-
-        case "STORY_UPDATED":
-          if (story) {
-            dispatch(storyUpdated(story));
-          }
-          break;
-
-        case "STORY_DELETED":
-          if (storyId) {
-            dispatch(storyDeleted(storyId));
-          }
-          break;
-
-        default:
-          console.debug("Unknown story event type:", eventType);
-      }
-    },
-    [dispatch],
-  );
+  }, [userId, handleStoryEvent]);
 
   const disconnect = useCallback(() => {
     if (clientRef.current) {
@@ -114,7 +125,6 @@ const useStoryWebSocket = (userId) => {
     }
   }, []);
 
-  // Connect on mount, disconnect on unmount
   useEffect(() => {
     if (userId) {
       connect();

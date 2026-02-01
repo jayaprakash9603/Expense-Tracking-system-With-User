@@ -59,6 +59,7 @@ import ReportsAdmin from "../pages/Landingpage/Admin/Reports";
 import AdminSettings from "../pages/Landingpage/Admin/AdminSettings";
 import AdminStoryManagement from "../pages/Admin/AdminStoryManagement";
 import CreateStory from "../pages/Admin/CreateStory";
+import EditStory from "../pages/Admin/EditStory";
 import NotFound from "../pages/Landingpage/Errors/NotFound";
 import {
   HelpCenter,
@@ -287,6 +288,7 @@ export const getAppRoutes = () => (
         <Route path="settings" element={<AdminSettings />} />
         <Route path="stories" element={<AdminStoryManagement />} />
         <Route path="stories/create" element={<CreateStory />} />
+        <Route path="stories/edit/:id" element={<EditStory />} />
       </Route>
     </Route>
 

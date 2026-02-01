@@ -1,6 +1,7 @@
 package com.jaya.controller;
 
 import com.jaya.dto.BudgetReport;
+import com.jaya.dto.BudgetSearchDTO;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
@@ -90,15 +91,15 @@ public class BudgetController {
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDto reqUser = authenticate(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-        
+
         // Get old budget for audit tracking
         Budget oldBudget = budgetService.getBudgetById(budgetId, targetUser.getId());
-        
+
         Budget updatedBudget = budgetService.editBudget(budgetId, budget, targetUser.getId());
 
         // Send unified event (handles both own action and friend activity)
         unifiedActivityService.sendBudgetUpdatedEvent(updatedBudget, oldBudget, reqUser, targetUser);
-        
+
         return ResponseEntity.ok(updatedBudget);
     }
 
@@ -116,7 +117,7 @@ public class BudgetController {
 
         // Send unified event (handles both own action and friend activity)
         unifiedActivityService.sendBudgetDeletedEvent(budgetId, budgetName, budgetAmount, reqUser, targetUser);
-        
+
         return ResponseEntity.noContent().build();
     }
 
@@ -130,10 +131,10 @@ public class BudgetController {
         List<Budget> budgets = budgetService.getAllBudgetForUser(targetUser.getId());
         int count = budgets != null ? budgets.size() : 0;
         budgetService.deleteAllBudget(targetUser.getId());
-        
+
         // Send unified event for bulk deletion
         unifiedActivityService.sendAllBudgetsDeletedEvent(count, reqUser, targetUser);
-        
+
         return ResponseEntity.noContent().build();
     }
 
@@ -287,6 +288,23 @@ public class BudgetController {
         Map<String, Object> response = budgetService.getFilteredBudgetsWithExpenses(targetUser.getId(), fromDate,
                 toDate, rangeType, offset, effectiveFlowType);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Fuzzy search budgets by name or category name.
+     * Supports partial text matching for typeahead/search functionality.
+     * Optimized query - avoids N+1 problem by returning DTOs.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchBudgets(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+        UserDto reqUser = authenticate(jwt);
+        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        List<BudgetSearchDTO> budgets = budgetService.searchBudgets(targetUser.getId(), query, limit);
+        return ResponseEntity.ok(budgets);
     }
 
 }

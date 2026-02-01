@@ -14,6 +14,7 @@ import {
   fetchStories,
   openStoryViewer,
 } from "../../Redux/Stories/story.action";
+import useStoryWebSocket from "../../components/Stories/useStoryWebSocket";
 
 // Import MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
@@ -41,8 +42,9 @@ const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
   const { currentMode } = useSelector((state) => state.auth || {});
   const { mode } = useSelector((state) => state.theme || {});
-  const { stories, unseenCount } = useSelector(
-    (state) => state.story || { stories: [], unseenCount: 0 },
+  const { stories, unseenCount, needsRefresh } = useSelector(
+    (state) =>
+      state.story || { stories: [], unseenCount: 0, needsRefresh: false },
   );
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -51,6 +53,9 @@ const Left = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  // Connect to WebSocket for real-time story updates
+  useStoryWebSocket(user?.id);
 
   // Check if user has ADMIN role
   const hasAdminRole =
@@ -63,6 +68,13 @@ const Left = () => {
       dispatch(fetchStories(user.id));
     }
   }, [user?.id, dispatch]);
+
+  // Refetch stories when WebSocket signals a refresh is needed
+  useEffect(() => {
+    if (needsRefresh && user?.id) {
+      dispatch(fetchStories(user.id));
+    }
+  }, [needsRefresh, user?.id, dispatch]);
 
   // Handle story bubble click
   const handleStoryClick = () => {

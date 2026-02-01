@@ -113,6 +113,19 @@ public class AdminStoryController {
     }
 
     /**
+     * Unarchive a story
+     * POST /api/admin/stories/{storyId}/unarchive
+     */
+    @PostMapping("/{storyId}/unarchive")
+    public ResponseEntity<Map<String, String>> unarchiveStory(
+            @PathVariable UUID storyId,
+            @RequestHeader(value = "X-Admin-Id", defaultValue = "1") Integer adminId) {
+        log.info("Admin {} unarchiving story: {}", adminId, storyId);
+        storyService.unarchiveStory(storyId, adminId);
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Story unarchived"));
+    }
+
+    /**
      * Get all stories with pagination
      * GET /api/admin/stories?page=0&size=20
      */
@@ -123,6 +136,17 @@ public class AdminStoryController {
         Pageable pageable = PageRequest.of(page, size);
         Page<StoryDTO> stories = storyService.getAllStories(pageable);
         return ResponseEntity.ok(stories);
+    }
+
+    /**
+     * Get a single story by ID
+     * GET /api/admin/stories/{storyId}
+     */
+    @GetMapping("/{storyId}")
+    public ResponseEntity<StoryDTO> getStoryById(@PathVariable UUID storyId) {
+        log.info("Fetching story: {}", storyId);
+        StoryDTO story = storyService.getStoryById(storyId);
+        return ResponseEntity.ok(story);
     }
 
     /**

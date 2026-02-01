@@ -31,7 +31,6 @@ import {
   FormControlLabel,
   Tooltip,
   Alert,
-  Snackbar,
   Grid,
   Card,
   CardContent,
@@ -52,6 +51,8 @@ import {
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
 import { api } from "../../config/api";
+import AdminPanelContainer from "../Landingpage/Admin/components/AdminPanelContainer";
+import ToastNotification from "../Landingpage/ToastNotification";
 
 // Story types and severity options
 const STORY_TYPES = [
@@ -326,6 +327,18 @@ const AdminStoryManagement = () => {
     }
   };
 
+  const handleUnarchive = async (storyId) => {
+    try {
+      await api.post(`/api/admin/stories/${storyId}/unarchive`);
+      showSnackbar("Story unarchived successfully");
+      fetchStories();
+      fetchStats();
+    } catch (error) {
+      console.error("Error unarchiving story:", error);
+      showSnackbar("Failed to unarchive story", "error");
+    }
+  };
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
     setPage(0);
@@ -381,684 +394,659 @@ const AdminStoryManagement = () => {
   };
 
   return (
-    <div style={{ backgroundColor: colors.primary_bg, minHeight: "100vh" }}>
-      <div
-        className="flex lg:w-[calc(100vw-370px)] flex-col sm:w-full"
-        style={{
-          minHeight: "calc(100vh - 100px)",
-          backgroundColor: colors.secondary_bg,
-          borderRadius: "8px",
-          boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-          border: `1px solid ${colors.border_color}`,
-          padding: "24px",
-          marginRight: "20px",
-          overflow: "auto",
+    <AdminPanelContainer>
+      {/* Header */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
         }}
       >
-        {/* Header */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <AutoStories sx={{ fontSize: 32, color: colors.primary }} />
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: 600, color: colors.primary_text }}
-            >
-              Story Management
-            </Typography>
-          </Box>
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<Refresh />}
-              onClick={() => {
-                fetchStories();
-                fetchStats();
-              }}
-              sx={{
-                borderColor: colors.primary,
-                color: colors.primary,
-                "&:hover": {
-                  borderColor: colors.primary,
-                  backgroundColor: `${colors.primary}10`,
-                },
-              }}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => navigate("/admin/stories/create")}
-              sx={{
-                backgroundColor: colors.primary,
-                "&:hover": { backgroundColor: colors.primary },
-              }}
-            >
-              Create Story
-            </Button>
-          </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <AutoStories sx={{ fontSize: 32, color: colors.primary }} />
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 600, color: colors.primary_text }}
+          >
+            Story Management
+          </Typography>
         </Box>
-
-        {/* Stats Cards */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6} sm={3}>
-            <Card
-              sx={{
-                backgroundColor: colors.card_bg,
-                border: `1px solid ${colors.border_color}`,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: 700, color: colors.primary_text }}
-                >
-                  {stats.total}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: colors.secondary_text }}
-                >
-                  Total Stories
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Card
-              sx={{
-                backgroundColor: colors.card_bg,
-                border: `1px solid ${colors.border_color}`,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: 700, color: "#4caf50" }}
-                >
-                  {stats.active}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: colors.secondary_text }}
-                >
-                  Active
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Card
-              sx={{
-                backgroundColor: colors.card_bg,
-                border: `1px solid ${colors.border_color}`,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: 700, color: "#ff9800" }}
-                >
-                  {stats.expired}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: colors.secondary_text }}
-                >
-                  Expired
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Card
-              sx={{
-                backgroundColor: colors.card_bg,
-                border: `1px solid ${colors.border_color}`,
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: 700, color: "#9e9e9e" }}
-                >
-                  {stats.archived}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: colors.secondary_text }}
-                >
-                  Archived
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Tabs */}
-        <Paper
-          sx={{
-            mb: 2,
-            backgroundColor: colors.card_bg,
-            border: `1px solid ${colors.border_color}`,
-          }}
-        >
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<Refresh />}
+            onClick={() => {
+              fetchStories();
+              fetchStats();
+            }}
             sx={{
-              "& .MuiTab-root": { color: colors.secondary_text },
-              "& .Mui-selected": { color: colors.primary },
-              "& .MuiTabs-indicator": { backgroundColor: colors.primary },
+              borderColor: colors.primary,
+              color: colors.primary,
+              "&:hover": {
+                borderColor: colors.primary,
+                backgroundColor: `${colors.primary}10`,
+              },
             }}
           >
-            <Tab label="All Stories" />
-            <Tab label="Active" />
-            <Tab label="Expired" />
-            <Tab label="Archived" />
-          </Tabs>
-        </Paper>
+            Refresh
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => navigate("/admin/stories/create")}
+            sx={{
+              backgroundColor: colors.primary,
+              "&:hover": { backgroundColor: colors.primary },
+            }}
+          >
+            Create Story
+          </Button>
+        </Box>
+      </Box>
 
-        {/* Stories Table */}
-        <TableContainer
-          component={Paper}
+      {/* Stats Cards */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={6} sm={3}>
+          <Card
+            sx={{
+              backgroundColor: colors.card_bg,
+              border: `1px solid ${colors.border_color}`,
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="h4"
+                sx={{ fontWeight: 700, color: colors.primary_text }}
+              >
+                {stats.total}
+              </Typography>
+              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+                Total Stories
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={6} sm={3}>
+          <Card
+            sx={{
+              backgroundColor: colors.card_bg,
+              border: `1px solid ${colors.border_color}`,
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="h4"
+                sx={{ fontWeight: 700, color: "#4caf50" }}
+              >
+                {stats.active}
+              </Typography>
+              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+                Active
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={6} sm={3}>
+          <Card
+            sx={{
+              backgroundColor: colors.card_bg,
+              border: `1px solid ${colors.border_color}`,
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="h4"
+                sx={{ fontWeight: 700, color: "#ff9800" }}
+              >
+                {stats.expired}
+              </Typography>
+              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+                Expired
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={6} sm={3}>
+          <Card
+            sx={{
+              backgroundColor: colors.card_bg,
+              border: `1px solid ${colors.border_color}`,
+            }}
+          >
+            <CardContent>
+              <Typography
+                variant="h4"
+                sx={{ fontWeight: 700, color: "#9e9e9e" }}
+              >
+                {stats.archived}
+              </Typography>
+              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+                Archived
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Tabs */}
+      <Paper
+        sx={{
+          mb: 2,
+          backgroundColor: colors.card_bg,
+          border: `1px solid ${colors.border_color}`,
+        }}
+      >
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
           sx={{
-            backgroundColor: colors.card_bg,
-            border: `1px solid ${colors.border_color}`,
+            "& .MuiTab-root": { color: colors.secondary_text },
+            "& .Mui-selected": { color: colors.primary },
+            "& .MuiTabs-indicator": { backgroundColor: colors.primary },
           }}
         >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Title</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Severity</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Target</TableCell>
-                <TableCell>Created</TableCell>
-                <TableCell>Expires</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {stories.map((story) => (
-                <TableRow key={story.id} hover>
-                  <TableCell>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: "50%",
-                          backgroundColor: getSeverityColor(story.severity),
-                        }}
-                      />
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {story.title}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={story.storyType?.replace(/_/g, " ")}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={story.severity}
-                      size="small"
+          <Tab label="All Stories" />
+          <Tab label="Active" />
+          <Tab label="Expired" />
+          <Tab label="Archived" />
+        </Tabs>
+      </Paper>
+
+      {/* Stories Table */}
+      <TableContainer
+        component={Paper}
+        sx={{
+          backgroundColor: colors.card_bg,
+          border: `1px solid ${colors.border_color}`,
+        }}
+      >
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Title</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Severity</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Target</TableCell>
+              <TableCell>Created</TableCell>
+              <TableCell>Expires</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {stories.map((story) => (
+              <TableRow key={story.id} hover>
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box
                       sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
                         backgroundColor: getSeverityColor(story.severity),
-                        color: "#fff",
                       }}
                     />
-                  </TableCell>
-                  <TableCell>{getStatusChip(story.status)}</TableCell>
-                  <TableCell>
-                    {story.isGlobal ? (
-                      <Chip label="Global" size="small" color="info" />
-                    ) : (
-                      <Chip
-                        label={`User: ${story.targetUserId}`}
-                        size="small"
-                      />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(story.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {story.expiresAt
-                      ? new Date(story.expiresAt).toLocaleDateString()
-                      : "-"}
-                  </TableCell>
-                  <TableCell align="right">
-                    <Tooltip title="Edit">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDialog(story)}
-                      >
-                        <Edit fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    {story.status === "CREATED" && (
-                      <Tooltip title="Activate">
-                        <IconButton
-                          size="small"
-                          color="success"
-                          onClick={() => handleActivate(story.id)}
-                        >
-                          <PlayArrow fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                    {story.status === "ACTIVE" && (
-                      <Tooltip title="Deactivate">
-                        <IconButton
-                          size="small"
-                          color="warning"
-                          onClick={() => handleDeactivate(story.id)}
-                        >
-                          <Pause fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                    {story.status !== "ARCHIVED" && (
-                      <Tooltip title="Archive">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleArchive(story.id)}
-                        >
-                          <Archive fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                    <Tooltip title="Delete">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => {
-                          setStoryToDelete(story);
-                          setDeleteConfirmOpen(true);
-                        }}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {stories.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                    <Typography variant="body2" color="textSecondary">
-                      No stories found
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {story.title}
                     </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            component="div"
-            count={totalElements}
-            page={page}
-            onPageChange={(e, newPage) => setPage(newPage)}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) => {
-              setRowsPerPage(parseInt(e.target.value, 10));
-              setPage(0);
-            }}
-          />
-        </TableContainer>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={story.storyType?.replace(/_/g, " ")}
+                    size="small"
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={story.severity}
+                    size="small"
+                    sx={{
+                      backgroundColor: getSeverityColor(story.severity),
+                      color: "#fff",
+                    }}
+                  />
+                </TableCell>
+                <TableCell>{getStatusChip(story.status)}</TableCell>
+                <TableCell>
+                  {story.isGlobal ? (
+                    <Chip label="Global" size="small" color="info" />
+                  ) : (
+                    <Chip label={`User: ${story.targetUserId}`} size="small" />
+                  )}
+                </TableCell>
+                <TableCell>
+                  {new Date(story.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {story.expiresAt
+                    ? new Date(story.expiresAt).toLocaleDateString()
+                    : "-"}
+                </TableCell>
+                <TableCell align="right">
+                  <Tooltip title="Edit">
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        navigate(`/admin/stories/edit/${story.id}`)
+                      }
+                    >
+                      <Edit fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  {story.status === "CREATED" && (
+                    <Tooltip title="Activate">
+                      <IconButton
+                        size="small"
+                        color="success"
+                        onClick={() => handleActivate(story.id)}
+                      >
+                        <PlayArrow fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  {story.status === "ACTIVE" && (
+                    <Tooltip title="Deactivate">
+                      <IconButton
+                        size="small"
+                        color="warning"
+                        onClick={() => handleDeactivate(story.id)}
+                      >
+                        <Pause fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  {story.status !== "ARCHIVED" && (
+                    <Tooltip title="Archive">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleArchive(story.id)}
+                      >
+                        <Archive fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  {story.status === "ARCHIVED" && (
+                    <Tooltip title="Unarchive">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => handleUnarchive(story.id)}
+                      >
+                        <PlayArrow fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  <Tooltip title="Delete">
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => {
+                        setStoryToDelete(story);
+                        setDeleteConfirmOpen(true);
+                      }}
+                    >
+                      <Delete fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
+            {stories.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                  <Typography variant="body2" color="textSecondary">
+                    No stories found
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        <TablePagination
+          component="div"
+          count={totalElements}
+          page={page}
+          onPageChange={(e, newPage) => setPage(newPage)}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
+        />
+      </TableContainer>
 
-        {/* Create/Edit Dialog */}
-        <Dialog
-          open={openDialog}
-          onClose={handleCloseDialog}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            {editingStory ? "Edit Story" : "Create New Story"}
-          </DialogTitle>
-          <DialogContent>
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}
-            >
-              <TextField
-                label="Title"
-                value={formData.title}
-                onChange={(e) => handleFormChange("title", e.target.value)}
-                fullWidth
-                required
-              />
-              <TextField
-                label="Content"
-                value={formData.content}
-                onChange={(e) => handleFormChange("content", e.target.value)}
-                fullWidth
-                multiline
-                rows={3}
-                required
-              />
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Story Type</InputLabel>
-                    <Select
-                      value={formData.storyType}
-                      label="Story Type"
-                      onChange={(e) =>
-                        handleFormChange("storyType", e.target.value)
-                      }
-                    >
-                      {STORY_TYPES.map((type) => (
-                        <MenuItem key={type.value} value={type.value}>
-                          {type.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Severity</InputLabel>
-                    <Select
-                      value={formData.severity}
-                      label="Severity"
-                      onChange={(e) =>
-                        handleFormChange("severity", e.target.value)
-                      }
-                    >
-                      {SEVERITY_OPTIONS.map((sev) => (
-                        <MenuItem key={sev.value} value={sev.value}>
+      {/* Create/Edit Dialog */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {editingStory ? "Edit Story" : "Create New Story"}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
+            <TextField
+              label="Title"
+              value={formData.title}
+              onChange={(e) => handleFormChange("title", e.target.value)}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Content"
+              value={formData.content}
+              onChange={(e) => handleFormChange("content", e.target.value)}
+              fullWidth
+              multiline
+              rows={3}
+              required
+            />
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Story Type</InputLabel>
+                  <Select
+                    value={formData.storyType}
+                    label="Story Type"
+                    onChange={(e) =>
+                      handleFormChange("storyType", e.target.value)
+                    }
+                  >
+                    {STORY_TYPES.map((type) => (
+                      <MenuItem key={type.value} value={type.value}>
+                        {type.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Severity</InputLabel>
+                  <Select
+                    value={formData.severity}
+                    label="Severity"
+                    onChange={(e) =>
+                      handleFormChange("severity", e.target.value)
+                    }
+                  >
+                    {SEVERITY_OPTIONS.map((sev) => (
+                      <MenuItem key={sev.value} value={sev.value}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
                           <Box
                             sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
+                              width: 12,
+                              height: 12,
+                              borderRadius: "50%",
+                              backgroundColor: sev.color,
                             }}
-                          >
-                            <Box
-                              sx={{
-                                width: 12,
-                                height: 12,
-                                borderRadius: "50%",
-                                backgroundColor: sev.color,
-                              }}
-                            />
-                            {sev.label}
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
+                          />
+                          {sev.label}
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
-              <TextField
-                label="Image URL (optional)"
-                value={formData.imageUrl}
-                onChange={(e) => handleFormChange("imageUrl", e.target.value)}
-                fullWidth
+            </Grid>
+            <TextField
+              label="Image URL (optional)"
+              value={formData.imageUrl}
+              onChange={(e) => handleFormChange("imageUrl", e.target.value)}
+              fullWidth
+            />
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
+                  label="Background Color"
+                  type="color"
+                  value={formData.backgroundColor}
+                  onChange={(e) =>
+                    handleFormChange("backgroundColor", e.target.value)
+                  }
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Background Gradient (CSS)"
+                  value={formData.backgroundGradient}
+                  onChange={(e) =>
+                    handleFormChange("backgroundGradient", e.target.value)
+                  }
+                  fullWidth
+                  placeholder="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={4}>
+                <TextField
+                  label="Duration (seconds)"
+                  type="number"
+                  value={formData.durationSeconds}
+                  onChange={(e) =>
+                    handleFormChange(
+                      "durationSeconds",
+                      parseInt(e.target.value),
+                    )
+                  }
+                  fullWidth
+                  inputProps={{ min: 1, max: 30 }}
+                />
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  label="Expiration (hours)"
+                  type="number"
+                  value={formData.expirationHours}
+                  onChange={(e) =>
+                    handleFormChange(
+                      "expirationHours",
+                      parseInt(e.target.value),
+                    )
+                  }
+                  fullWidth
+                  inputProps={{ min: 1, max: 168 }}
+                />
+              </Grid>
+              <Grid item xs={4}>
+                <TextField
+                  label="Priority"
+                  type="number"
+                  value={formData.priority}
+                  onChange={(e) =>
+                    handleFormChange("priority", parseInt(e.target.value))
+                  }
+                  fullWidth
+                  inputProps={{ min: 0, max: 100 }}
+                />
+              </Grid>
+            </Grid>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.isGlobal}
+                    onChange={(e) =>
+                      handleFormChange("isGlobal", e.target.checked)
+                    }
+                  />
+                }
+                label="Global Story (visible to all users)"
               />
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    label="Background Color"
-                    type="color"
-                    value={formData.backgroundColor}
-                    onChange={(e) =>
-                      handleFormChange("backgroundColor", e.target.value)
-                    }
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    label="Background Gradient (CSS)"
-                    value={formData.backgroundGradient}
-                    onChange={(e) =>
-                      handleFormChange("backgroundGradient", e.target.value)
-                    }
-                    fullWidth
-                    placeholder="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                  />
-                </Grid>
-              </Grid>
-              <Grid container spacing={2}>
-                <Grid item xs={4}>
-                  <TextField
-                    label="Duration (seconds)"
-                    type="number"
-                    value={formData.durationSeconds}
-                    onChange={(e) =>
-                      handleFormChange(
-                        "durationSeconds",
-                        parseInt(e.target.value),
-                      )
-                    }
-                    fullWidth
-                    inputProps={{ min: 1, max: 30 }}
-                  />
-                </Grid>
-                <Grid item xs={4}>
-                  <TextField
-                    label="Expiration (hours)"
-                    type="number"
-                    value={formData.expirationHours}
-                    onChange={(e) =>
-                      handleFormChange(
-                        "expirationHours",
-                        parseInt(e.target.value),
-                      )
-                    }
-                    fullWidth
-                    inputProps={{ min: 1, max: 168 }}
-                  />
-                </Grid>
-                <Grid item xs={4}>
-                  <TextField
-                    label="Priority"
-                    type="number"
-                    value={formData.priority}
-                    onChange={(e) =>
-                      handleFormChange("priority", parseInt(e.target.value))
-                    }
-                    fullWidth
-                    inputProps={{ min: 0, max: 100 }}
-                  />
-                </Grid>
-              </Grid>
-              <Box sx={{ display: "flex", gap: 2 }}>
+              {!editingStory && (
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={formData.isGlobal}
+                      checked={formData.autoActivate}
                       onChange={(e) =>
-                        handleFormChange("isGlobal", e.target.checked)
+                        handleFormChange("autoActivate", e.target.checked)
                       }
                     />
                   }
-                  label="Global Story (visible to all users)"
-                />
-                {!editingStory && (
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={formData.autoActivate}
-                        onChange={(e) =>
-                          handleFormChange("autoActivate", e.target.checked)
-                        }
-                      />
-                    }
-                    label="Auto Activate"
-                  />
-                )}
-              </Box>
-              {!formData.isGlobal && (
-                <TextField
-                  label="Target User ID"
-                  type="number"
-                  value={formData.targetUserId}
-                  onChange={(e) =>
-                    handleFormChange("targetUserId", e.target.value)
-                  }
-                  fullWidth
+                  label="Auto Activate"
                 />
               )}
-
-              {/* CTA Buttons Section */}
-              <Box sx={{ mt: 2 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    CTA Buttons
-                  </Typography>
-                  <Button
-                    size="small"
-                    startIcon={<Add />}
-                    onClick={addCtaButton}
-                  >
-                    Add Button
-                  </Button>
-                </Box>
-                {formData.ctaButtons.map((cta, index) => (
-                  <Paper
-                    key={index}
-                    sx={{ p: 2, mb: 1, backgroundColor: colors.background }}
-                  >
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={3}>
-                        <TextField
-                          label="Label"
-                          value={cta.label}
-                          onChange={(e) =>
-                            updateCtaButton(index, "label", e.target.value)
-                          }
-                          fullWidth
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item xs={3}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Type</InputLabel>
-                          <Select
-                            value={cta.ctaType}
-                            label="Type"
-                            onChange={(e) =>
-                              updateCtaButton(index, "ctaType", e.target.value)
-                            }
-                          >
-                            {CTA_TYPES.map((type) => (
-                              <MenuItem key={type.value} value={type.value}>
-                                {type.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <TextField
-                          label="Route Path"
-                          value={cta.routePath}
-                          onChange={(e) =>
-                            updateCtaButton(index, "routePath", e.target.value)
-                          }
-                          fullWidth
-                          size="small"
-                          placeholder="/budgets/1"
-                        />
-                      </Grid>
-                      <Grid item xs={2}>
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              checked={cta.isPrimary}
-                              onChange={(e) =>
-                                updateCtaButton(
-                                  index,
-                                  "isPrimary",
-                                  e.target.checked,
-                                )
-                              }
-                              size="small"
-                            />
-                          }
-                          label="Primary"
-                        />
-                      </Grid>
-                      <Grid item xs={1}>
-                        <IconButton
-                          color="error"
-                          onClick={() => removeCtaButton(index)}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </Grid>
-                    </Grid>
-                  </Paper>
-                ))}
-              </Box>
             </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button variant="contained" onClick={handleSubmit}>
-              {editingStory ? "Update" : "Create"}
-            </Button>
-          </DialogActions>
-        </Dialog>
+            {!formData.isGlobal && (
+              <TextField
+                label="Target User ID"
+                type="number"
+                value={formData.targetUserId}
+                onChange={(e) =>
+                  handleFormChange("targetUserId", e.target.value)
+                }
+                fullWidth
+              />
+            )}
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog
-          open={deleteConfirmOpen}
-          onClose={() => setDeleteConfirmOpen(false)}
-        >
-          <DialogTitle>Confirm Delete</DialogTitle>
-          <DialogContent>
-            <Typography>
-              Are you sure you want to delete the story "{storyToDelete?.title}
-              "?
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-            <Button variant="contained" color="error" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+            {/* CTA Buttons Section */}
+            <Box sx={{ mt: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <Typography variant="subtitle1" fontWeight={600}>
+                  CTA Buttons
+                </Typography>
+                <Button size="small" startIcon={<Add />} onClick={addCtaButton}>
+                  Add Button
+                </Button>
+              </Box>
+              {formData.ctaButtons.map((cta, index) => (
+                <Paper
+                  key={index}
+                  sx={{ p: 2, mb: 1, backgroundColor: colors.background }}
+                >
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={3}>
+                      <TextField
+                        label="Label"
+                        value={cta.label}
+                        onChange={(e) =>
+                          updateCtaButton(index, "label", e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={3}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Type</InputLabel>
+                        <Select
+                          value={cta.ctaType}
+                          label="Type"
+                          onChange={(e) =>
+                            updateCtaButton(index, "ctaType", e.target.value)
+                          }
+                        >
+                          {CTA_TYPES.map((type) => (
+                            <MenuItem key={type.value} value={type.value}>
+                              {type.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={3}>
+                      <TextField
+                        label="Route Path"
+                        value={cta.routePath}
+                        onChange={(e) =>
+                          updateCtaButton(index, "routePath", e.target.value)
+                        }
+                        fullWidth
+                        size="small"
+                        placeholder="/budgets/1"
+                      />
+                    </Grid>
+                    <Grid item xs={2}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={cta.isPrimary}
+                            onChange={(e) =>
+                              updateCtaButton(
+                                index,
+                                "isPrimary",
+                                e.target.checked,
+                              )
+                            }
+                            size="small"
+                          />
+                        }
+                        label="Primary"
+                      />
+                    </Grid>
+                    <Grid item xs={1}>
+                      <IconButton
+                        color="error"
+                        onClick={() => removeCtaButton(index)}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              ))}
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button variant="contained" onClick={handleSubmit}>
+            {editingStory ? "Update" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-        {/* Snackbar */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        >
-          <Alert severity={snackbar.severity} onClose={handleCloseSnackbar}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </div>
-    </div>
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete the story "{storyToDelete?.title}
+            "?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleDelete}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Toast Notification */}
+      <ToastNotification
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      />
+    </AdminPanelContainer>
   );
 };
 

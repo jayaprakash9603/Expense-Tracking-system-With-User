@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.jaya.dto.ExpenseSearchDTO;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
 
@@ -110,6 +111,43 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         @Query("SELECT e FROM Expense e WHERE e.userId = ?1 AND e.expense.expenseName = ?2 ORDER BY e.date DESC")
         List<Expense> searchExpensesByUserAndName(@Param("userId") Integer userId,
                         @Param("expenseName") String expenseName);
+
+        /**
+         * Fuzzy search expenses by name - supports partial matching and sequence search
+         * Searches in expense name, comments, and payment method
+         * Optimized with JOIN FETCH to avoid N+1 queries
+         */
+        @QueryHints({
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "50"),
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
+        })
+        @Query("SELECT DISTINCT e FROM Expense e JOIN FETCH e.expense d WHERE e.userId = :userId AND " +
+                        "(LOWER(d.expenseName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+                        "LOWER(d.comments) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+                        "LOWER(d.paymentMethod) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+                        "ORDER BY e.date DESC")
+        List<Expense> searchExpensesFuzzy(@Param("userId") Integer userId, @Param("query") String query);
+
+        /**
+         * Fuzzy search expenses with limit - for search service optimization
+         * Uses JPQL with DTO constructor to avoid N+1 problem.
+         * Note: The query parameter should already be in pattern format (e.g.,
+         * "%j%c%e%")
+         */
+        @QueryHints({
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "20"),
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
+        })
+        @Query("SELECT new com.jaya.dto.ExpenseSearchDTO(e.id, e.date, d.expenseName, d.amount, d.type, d.paymentMethod, d.netAmount, d.comments, e.categoryId, e.categoryName, e.userId, e.includeInBudget) "
+                        +
+                        "FROM Expense e JOIN e.expense d " +
+                        "WHERE e.userId = :userId AND " +
+                        "(LOWER(d.expenseName) LIKE LOWER(:query) OR " +
+                        "LOWER(d.comments) LIKE LOWER(:query) OR " +
+                        "LOWER(d.paymentMethod) LIKE LOWER(:query)) " +
+                        "ORDER BY e.date DESC")
+        List<ExpenseSearchDTO> searchExpensesFuzzyWithLimit(@Param("userId") Integer userId,
+                        @Param("query") String query);
 
         @Query("SELECT SUM(ed.netAmount) FROM ExpenseDetails ed WHERE LOWER(ed.expenseName) = LOWER(:expenseName)")
         Double getTotalExpenseByName(@Param("expenseName") String expenseName);

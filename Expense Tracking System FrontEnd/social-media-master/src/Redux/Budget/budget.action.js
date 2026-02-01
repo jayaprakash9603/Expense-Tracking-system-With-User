@@ -54,7 +54,7 @@ export const createBudgetAction =
           params: {
             targetId: targetId, // Pass targetId as a query parameter
           },
-        }
+        },
       );
 
       console.log("budget creation response:", data);
@@ -166,9 +166,16 @@ export const getListOfBudgetsByExpenseId =
       });
     } catch (error) {
       console.error("Error fetching budgets by expense ID:", error);
+      const errorMessage =
+        typeof error.response?.data === "string"
+          ? error.response.data
+          : error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Failed to fetch budgets by expense ID";
       dispatch({
         type: GET_SELECT_BUDGETS_FAILURE_BY_EXPENSE_ID,
-        payload: error.response?.data || error.message,
+        payload: errorMessage,
       });
     }
   };
@@ -251,7 +258,7 @@ export const getDetailedBudgetReport =
     offset = 0,
     flowType = "all",
     fromDate = null,
-    toDate = null
+    toDate = null,
   ) =>
   async (dispatch) => {
     dispatch({ type: GET_DETAILED_BUDGET_REPORT_REQUEST });
@@ -332,7 +339,7 @@ export const getFilteredBudgetsReport =
         `/api/budgets/all-with-expenses/detailed/filtered`,
         {
           params,
-        }
+        },
       );
 
       console.log("Filtered Budgets Report response:", data);
@@ -340,9 +347,16 @@ export const getFilteredBudgetsReport =
       return data;
     } catch (error) {
       console.error("Error fetching filtered budgets report:", error);
+      const errorMessage =
+        typeof error.response?.data === "string"
+          ? error.response.data
+          : error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Failed to fetch filtered budgets report";
       dispatch({
         type: GET_FILTERED_BUDGETS_REPORT_FAILURE,
-        payload: error.response?.data || error.message,
+        payload: errorMessage,
       });
       return error;
     }

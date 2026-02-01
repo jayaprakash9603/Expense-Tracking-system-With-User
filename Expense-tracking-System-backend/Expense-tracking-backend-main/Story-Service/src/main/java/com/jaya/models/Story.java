@@ -137,6 +137,10 @@ public class Story {
     }
 
     public boolean isExpired() {
+        // If expiresAt is null, the story never expires
+        if (expiresAt == null) {
+            return false;
+        }
         return LocalDateTime.now().isAfter(expiresAt);
     }
 

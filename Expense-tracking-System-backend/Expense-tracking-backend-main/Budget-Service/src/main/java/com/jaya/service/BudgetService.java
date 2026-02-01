@@ -1,6 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.dto.BudgetReport;
+import com.jaya.dto.BudgetSearchDTO;
 import com.jaya.dto.DetailedBudgetReport;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.models.Budget;
@@ -100,4 +101,16 @@ public interface BudgetService {
          */
         Map<String, Object> getSingleBudgetDetailedReport(Integer userId, Integer budgetId, LocalDate fromDate,
                         LocalDate toDate, String rangeType, int offset, String flowType) throws Exception;
+
+        /**
+         * Fuzzy search budgets by name or category name
+         * Supports partial text matching for typeahead/search functionality
+         * Optimized query - avoids N+1 problem by returning DTOs.
+         * 
+         * @param userId the user whose budgets to search
+         * @param query  the search query (partial match supported)
+         * @param limit  maximum number of results to return
+         * @return List of BudgetSearchDTO matching the search criteria
+         */
+        List<BudgetSearchDTO> searchBudgets(Integer userId, String query, int limit);
 }

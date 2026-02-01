@@ -69,7 +69,7 @@ export const useUniversalSearch = () => {
   // State
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [apiLoading, setApiLoading] = useState(false); // Only for API calls, doesn't block typing
   const [error, setError] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -140,7 +140,7 @@ export const useUniversalSearch = () => {
     setIsOpen(false);
     setQuery("");
     setSelectedIndex(0);
-    setLoading(false);
+    setApiLoading(false);
     setError(null);
     setQuickActionResults([]);
     setApiResults({
@@ -360,7 +360,7 @@ export const useUniversalSearch = () => {
       abortControllerRef.current = new AbortController();
 
       try {
-        setLoading(true);
+        setApiLoading(true);
         setError(null);
 
         const response = await api.get(SEARCH_API_ENDPOINT, {
@@ -458,7 +458,7 @@ export const useUniversalSearch = () => {
           // setError('Search temporarily unavailable');
         }
       } finally {
-        setLoading(false);
+        setApiLoading(false);
       }
     },
     [formatAmount],
@@ -492,12 +492,13 @@ export const useUniversalSearch = () => {
 
       // Debounced API search for comprehensive results
       if (newQuery && newQuery.length >= MIN_QUERY_LENGTH) {
-        setLoading(true);
+        // Don't set loading here - let performApiSearch handle it
+        // This ensures typing is never blocked by loading state
         debouncerRef.current.debounce(() => {
           performApiSearch(newQuery);
         });
       } else {
-        setLoading(false);
+        setApiLoading(false);
         debouncerRef.current.cancel();
       }
     },
@@ -656,7 +657,7 @@ export const useUniversalSearch = () => {
     // State
     isOpen,
     query,
-    loading,
+    loading: apiLoading, // Only true when API is fetching, doesn't block typing
     error,
     selectedIndex,
 

@@ -288,13 +288,16 @@ const InlineSearchBar = () => {
               }}
             />
 
-            {/* Loading indicator or close button */}
-            {loading ? (
+            {/* Loading indicator - only shown when API is fetching */}
+            {loading && (
               <CircularProgress
                 size={16}
-                sx={{ mr: 1, color: isDark ? "#888" : "#666" }}
+                sx={{ mr: 0.5, color: isDark ? "#888" : "#666" }}
               />
-            ) : query ? (
+            )}
+
+            {/* Close button or keyboard hint */}
+            {query ? (
               <IconButton
                 size="small"
                 onClick={handleClose}

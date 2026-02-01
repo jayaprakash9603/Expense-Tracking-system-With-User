@@ -23,9 +23,7 @@ public class PaymentMethod {
     @Id
     private Integer id;
 
-
-
-    @Column(name= "payment_method_user_id")
+    @Column(name = "payment_method_user_id")
     private Integer userId;
 
     private String name = "";
@@ -40,17 +38,18 @@ public class PaymentMethod {
     private String icon = "";
     private String color = "";
 
+    @Column(name = "edit_count")
+    private Integer editCount = 0;
+
     @ElementCollection
     @CollectionTable(name = "payment_method_user_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
-    @Column(name = "user_id" , columnDefinition = "LONGBLOB")
+    @Column(name = "user_id", columnDefinition = "LONGBLOB")
     private Set<Integer> userIds = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "payment_method_edit_user_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
-    @Column(name = "edit_user_id" , columnDefinition = "LONGBLOB")
+    @Column(name = "edit_user_id", columnDefinition = "LONGBLOB")
     private Set<Integer> editUserIds = new HashSet<>();
-
-
 
     @ElementCollection
     @CollectionTable(name = "payment_method_expense_ids", joinColumns = @JoinColumn(name = "payment_method_id"))

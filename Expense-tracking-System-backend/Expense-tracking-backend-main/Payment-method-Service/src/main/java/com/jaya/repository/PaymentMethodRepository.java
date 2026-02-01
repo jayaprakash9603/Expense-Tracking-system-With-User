@@ -1,6 +1,7 @@
 
 package com.jaya.repository;
 
+import com.jaya.dto.PaymentMethodSearchDTO;
 import com.jaya.models.PaymentMethod;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -63,4 +64,41 @@ public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, In
     @EntityGraph(attributePaths = { "userIds", "editUserIds", "expenseIds" })
     @Query("SELECT pm FROM PaymentMethod pm WHERE pm.id = :id")
     Optional<PaymentMethod> findByIdWithDetails(@Param("id") Integer id);
+
+    /**
+     * Fuzzy search payment methods by name or type - supports partial matching
+     * Searches user's payment methods
+     */
+    @EntityGraph(attributePaths = { "userIds", "editUserIds", "expenseIds" })
+    @Query("SELECT DISTINCT pm FROM PaymentMethod pm WHERE pm.userId = :userId AND " +
+            "(LOWER(pm.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(pm.type) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+            "ORDER BY pm.name ASC")
+    List<PaymentMethod> searchPaymentMethodsFuzzy(@Param("userId") Integer userId, @Param("query") String query);
+
+    /**
+     * Fuzzy search payment methods with limit - for search service optimization
+     * Uses JPQL with DTO constructor to avoid N+1 problem.
+     * Note: The query parameter should already be in pattern format (e.g.,
+     * "%j%c%e%")
+     */
+    @Query("SELECT new com.jaya.dto.PaymentMethodSearchDTO(pm.id, pm.name, pm.description, pm.type, pm.amount, pm.isGlobal, pm.icon, pm.color, pm.userId) "
+            +
+            "FROM PaymentMethod pm WHERE pm.userId = :userId AND " +
+            "(LOWER(pm.name) LIKE LOWER(:query) OR " +
+            "LOWER(pm.type) LIKE LOWER(:query)) " +
+            "ORDER BY pm.name ASC")
+    List<PaymentMethodSearchDTO> searchPaymentMethodsFuzzyWithLimit(@Param("userId") Integer userId,
+            @Param("query") String query);
+
+    /**
+     * Fuzzy search including global payment methods
+     */
+    @EntityGraph(attributePaths = { "userIds", "editUserIds", "expenseIds" })
+    @Query("SELECT DISTINCT pm FROM PaymentMethod pm WHERE (pm.userId = :userId OR pm.isGlobal = true) AND " +
+            "(LOWER(pm.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(pm.type) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+            "ORDER BY pm.name ASC")
+    List<PaymentMethod> searchPaymentMethodsFuzzyIncludeGlobal(@Param("userId") Integer userId,
+            @Param("query") String query);
 }

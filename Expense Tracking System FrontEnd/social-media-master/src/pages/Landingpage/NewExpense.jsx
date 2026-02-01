@@ -64,7 +64,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
       paymentMethod: t("newExpense.fields.paymentMethod"),
       comments: t("newExpense.fields.comments"),
     }),
-    [t]
+    [t],
   );
 
   const fieldPlaceholders = useMemo(
@@ -77,7 +77,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
       paymentMethod: t("newExpense.placeholders.paymentMethod"),
       comments: t("newExpense.placeholders.comments"),
     }),
-    [t]
+    [t],
   );
 
   const tableHeaders = useMemo(
@@ -90,7 +90,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
       remainingAmount: t("newExpense.table.headers.remainingAmount"),
       amount: t("newExpense.table.headers.amount"),
     }),
-    [t]
+    [t],
   );
 
   const transactionTypeLabels = useMemo(
@@ -98,7 +98,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
       gain: t("newExpense.transactionTypes.gain"),
       loss: t("newExpense.transactionTypes.loss"),
     }),
-    [t]
+    [t],
   );
 
   // Use lowercase internal values for consistency (gain/loss)
@@ -143,7 +143,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
   const { budgets, error: budgetError } = useSelector(
-    (state) => state.budgets || {}
+    (state) => state.budgets || {},
   );
   const dispatch = useDispatch();
   const [expenseData, setExpenseData] = useState({
@@ -183,7 +183,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
     expenseData.expenseName,
     expenseData.date,
-    friendId
+    friendId,
   );
 
   // Auto-populate fields when previous expense is found
@@ -337,7 +337,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
       const lastDayOfMonth = new Date(
         newDate.getFullYear(),
         newDate.getMonth() + 1,
-        0
+        0,
       );
       let salaryDate = new Date(lastDayOfMonth);
       if (salaryDate.getDay() === 6) {
@@ -417,8 +417,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
             creditDue: derivedCreditDue,
           },
         },
-        friendId || ""
-      )
+        friendId || "",
+      ),
     );
 
     if (typeof onClose === "function") {
@@ -443,7 +443,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   const handleCheckboxChange = (index) => {
     setCheckboxStates((prev) =>
-      prev.map((state, i) => (i === index ? !state : state))
+      prev.map((state, i) => (i === index ? !state : state)),
     );
   };
   const renderInput = (id, type = "text", isTextarea = false) => {
@@ -465,7 +465,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           >
             {labelText}
             {["expenseName", "amount", "date", "transactionType"].includes(
-              id
+              id,
             ) && <span className="text-red-500"> *</span>}
           </label>
           <div
@@ -1092,7 +1092,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         size: 100,
       },
     ],
-    [checkboxStates, tableHeaders]
+    [checkboxStates, tableHeaders],
   );
 
   // DataGrid columns for budgets
@@ -1130,7 +1130,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         minWidth: 100,
       },
     ],
-    [tableHeaders]
+    [tableHeaders],
   );
 
   // DataGrid rows for budgets
@@ -1149,7 +1149,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const handleDataGridSelection = (newSelection) => {
     // Map DataGrid selection to checkboxStates
     const newCheckboxStates = dataGridRows.map((row, idx) =>
-      newSelection.includes(row.id)
+      newSelection.includes(row.id),
     );
     setCheckboxStates(newCheckboxStates);
   };
@@ -1411,7 +1411,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
             {errorLoadingBudgets}:{" "}
             {typeof budgetError === "string"
               ? budgetError
-              : budgetError.message || budgetError.error || tableNoRowsText}
+              : typeof budgetError === "object"
+                ? budgetError.message ||
+                  budgetError.error ||
+                  JSON.stringify(budgetError).substring(0, 100)
+                : tableNoRowsText}
           </div>
         )}
 

@@ -511,4 +511,31 @@ public class CategoryController {
     public List<Category> getAllForUser(@RequestParam Integer userId) throws Exception {
         return categoryService.getAllForUser(userId);
     }
+
+    /**
+     * Fuzzy search categories by name or type.
+     * Includes both user-specific and global categories.
+     * Supports partial text matching for typeahead/search functionality.
+     * Optimized query - returns DTOs to avoid N+1 problem.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchCategories(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User reqUser = userService.getuserProfile(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            }
+            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            return ResponseEntity.ok(categoryService.searchCategories(targetUser.getId(), query, limit));
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error searching categories: " + e.getMessage());
+        }
+    }
 }

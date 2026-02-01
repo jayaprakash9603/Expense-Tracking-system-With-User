@@ -175,13 +175,15 @@ const UniversalSearchModal = () => {
               autoComplete="off"
               spellCheck="false"
             />
+            {/* Loading indicator - only shown when API is fetching */}
             {loading && (
               <CircularProgress
                 size={20}
                 sx={{ color: colors.primary_accent }}
               />
             )}
-            {query && !loading && (
+            {/* Clear button - always shown when there's a query */}
+            {query && (
               <button
                 onClick={() => handleQueryChange("")}
                 style={{

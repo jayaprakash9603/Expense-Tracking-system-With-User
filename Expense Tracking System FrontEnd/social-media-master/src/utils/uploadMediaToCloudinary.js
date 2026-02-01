@@ -22,12 +22,20 @@ const getVideoDuration = (file) => {
     const video = document.createElement("video");
     video.preload = "metadata";
 
+    const timeout = setTimeout(() => {
+      window.URL.revokeObjectURL(video.src);
+      reject(new Error("Video metadata loading timeout"));
+    }, 10000); // 10 second timeout
+
     video.onloadedmetadata = () => {
+      clearTimeout(timeout);
       window.URL.revokeObjectURL(video.src);
       resolve(video.duration);
     };
 
     video.onerror = () => {
+      clearTimeout(timeout);
+      window.URL.revokeObjectURL(video.src);
       reject(new Error("Failed to load video metadata"));
     };
 
@@ -81,22 +89,28 @@ export const validateMediaFile = async (file, mediaType) => {
       };
     }
 
-    // Check video duration
+    // Check video duration - we'll trim if longer than 60 seconds
     try {
       const duration = await getVideoDuration(file);
       if (duration > MAX_VIDEO_DURATION_SECONDS) {
+        console.log(
+          `Video is ${Math.round(duration)}s, will be trimmed to ${MAX_VIDEO_DURATION_SECONDS}s`,
+        );
+        // Return valid but with flag indicating trimming needed
         return {
-          valid: false,
-          error: `Video duration should be less than ${MAX_VIDEO_DURATION_SECONDS} seconds (1 minute). Current duration: ${Math.round(duration)}s`,
+          valid: true,
+          error: null,
+          needsTrimming: true,
+          originalDuration: duration,
         };
       }
     } catch (error) {
       console.error("Error checking video duration:", error);
-      // Allow upload if we can't check duration (Cloudinary will reject if too long)
+      // Allow upload if we can't check duration
     }
   }
 
-  return { valid: true, error: null };
+  return { valid: true, error: null, needsTrimming: false };
 };
 
 /**
@@ -116,6 +130,8 @@ export const uploadMediaToCloudinary = async (
     return null;
   }
 
+  console.log(`Starting ${mediaType} upload:`, file.name, file.type, file.size);
+
   // Validate the file first
   const validation = await validateMediaFile(file, mediaType);
   if (!validation.valid) {
@@ -125,15 +141,24 @@ export const uploadMediaToCloudinary = async (
   const data = new FormData();
   data.append("file", file);
   data.append("upload_preset", upload_preset);
-  data.append("cloud_name", cloud_name);
 
-  // For videos, add eager transformation to optimize
-  if (mediaType === "video") {
-    data.append("resource_type", "video");
+  // Note: For unsigned uploads, we cannot use eager transformations
+  // We'll apply the trim transformation via URL after upload if needed
+  const needsTrimming = mediaType === "video" && validation.needsTrimming;
+  if (needsTrimming) {
+    console.log(
+      `Video is ${Math.round(validation.originalDuration)}s, will apply URL transformation to trim to ${MAX_VIDEO_DURATION_SECONDS}s`,
+    );
   }
 
   try {
+    // Cloudinary URL format: /v1_1/{cloud_name}/{resource_type}/upload
     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloud_name}/${mediaType}/upload`;
+    console.log(
+      "Uploading to:",
+      uploadUrl,
+      validation.needsTrimming ? "(with trimming)" : "",
+    );
 
     // Use XMLHttpRequest for progress tracking if callback provided
     if (onProgress) {
@@ -150,25 +175,81 @@ export const uploadMediaToCloudinary = async (
         });
 
         xhr.addEventListener("load", () => {
+          console.log("XHR load event, status:", xhr.status);
           if (xhr.status >= 200 && xhr.status < 300) {
-            const response = JSON.parse(xhr.responseText);
-            resolve({
-              url: response.secure_url || response.url,
-              publicId: response.public_id,
-              duration: response.duration,
-              width: response.width,
-              height: response.height,
-              format: response.format,
-            });
+            try {
+              const response = JSON.parse(xhr.responseText);
+              console.log("Upload successful:", response.secure_url);
+
+              let finalUrl = response.secure_url || response.url;
+              let finalDuration = response.duration;
+              let wasTrimmed = false;
+
+              // For videos that need trimming, apply URL-based transformation
+              if (needsTrimming && finalUrl) {
+                // Insert transformation into Cloudinary URL
+                // URL format: https://res.cloudinary.com/{cloud}/video/upload/{transformations}/{public_id}.{format}
+                finalUrl = finalUrl.replace(
+                  "/upload/",
+                  `/upload/du_${MAX_VIDEO_DURATION_SECONDS}/`,
+                );
+                finalDuration = Math.min(
+                  response.duration || MAX_VIDEO_DURATION_SECONDS,
+                  MAX_VIDEO_DURATION_SECONDS,
+                );
+                wasTrimmed = true;
+                console.log(
+                  "Applied URL trim transformation:",
+                  finalUrl,
+                  "Duration capped at:",
+                  finalDuration,
+                );
+              }
+
+              resolve({
+                url: finalUrl,
+                publicId: response.public_id,
+                duration: finalDuration,
+                width: response.width,
+                height: response.height,
+                format: response.format,
+                trimmed: wasTrimmed,
+              });
+            } catch (parseError) {
+              console.error("Failed to parse response:", xhr.responseText);
+              reject(new Error("Failed to parse upload response"));
+            }
           } else {
-            reject(new Error(`Upload failed with status ${xhr.status}`));
+            console.error(
+              "Upload failed, status:",
+              xhr.status,
+              xhr.responseText,
+            );
+            try {
+              const errorResponse = JSON.parse(xhr.responseText);
+              reject(
+                new Error(
+                  errorResponse.error?.message ||
+                    `Upload failed with status ${xhr.status}`,
+                ),
+              );
+            } catch {
+              reject(new Error(`Upload failed with status ${xhr.status}`));
+            }
           }
         });
 
-        xhr.addEventListener("error", () => {
-          reject(new Error("Upload failed"));
+        xhr.addEventListener("error", (e) => {
+          console.error("XHR error event:", e);
+          reject(new Error("Network error during upload"));
         });
 
+        xhr.addEventListener("timeout", () => {
+          console.error("XHR timeout");
+          reject(new Error("Upload timed out"));
+        });
+
+        xhr.timeout = 300000; // 5 minutes timeout for large videos
         xhr.open("POST", uploadUrl);
         xhr.send(data);
       });
@@ -187,13 +268,39 @@ export const uploadMediaToCloudinary = async (
     }
 
     const fileData = await res.json();
+
+    let finalUrl = fileData.secure_url || fileData.url;
+    let finalDuration = fileData.duration;
+    let wasTrimmed = false;
+
+    // For videos that need trimming, apply URL-based transformation
+    if (needsTrimming && finalUrl) {
+      // Insert transformation into Cloudinary URL
+      finalUrl = finalUrl.replace(
+        "/upload/",
+        `/upload/du_${MAX_VIDEO_DURATION_SECONDS}/`,
+      );
+      finalDuration = Math.min(
+        fileData.duration || MAX_VIDEO_DURATION_SECONDS,
+        MAX_VIDEO_DURATION_SECONDS,
+      );
+      wasTrimmed = true;
+      console.log(
+        "Applied URL trim transformation:",
+        finalUrl,
+        "Duration capped at:",
+        finalDuration,
+      );
+    }
+
     return {
-      url: fileData.secure_url || fileData.url,
+      url: finalUrl,
       publicId: fileData.public_id,
-      duration: fileData.duration,
+      duration: finalDuration,
       width: fileData.width,
       height: fileData.height,
       format: fileData.format,
+      trimmed: wasTrimmed,
     };
   } catch (error) {
     console.error("Upload failed:", error);

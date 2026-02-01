@@ -9,6 +9,7 @@ import { Box, Typography, IconButton, Skeleton, Tooltip } from "@mui/material";
 import { ChevronLeft, ChevronRight, AutoStories } from "@mui/icons-material";
 import { useTheme } from "../../../hooks/useTheme";
 import StoryBubble from "./StoryBubble";
+import useStoryWebSocket from "./useStoryWebSocket";
 import {
   fetchStories,
   openStoryViewer,
@@ -20,7 +21,10 @@ const StoryBar = ({ userId }) => {
   const [scrollPosition, setScrollPosition] = React.useState(0);
   const scrollContainerRef = React.useRef(null);
 
-  const { stories, loading, error, unseenCount } = useSelector(
+  // Connect to WebSocket for real-time story updates
+  useStoryWebSocket(userId);
+
+  const { stories, loading, error, unseenCount, wsConnected } = useSelector(
     (state) => state.story,
   );
 

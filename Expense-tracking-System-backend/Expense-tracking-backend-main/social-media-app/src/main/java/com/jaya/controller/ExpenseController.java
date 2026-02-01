@@ -1,6 +1,7 @@
 package com.jaya.controller;
 
 import com.jaya.dto.User;
+import com.jaya.dto.ExpenseSearchDTO;
 import com.jaya.dto.ProgressStatus;
 import com.jaya.exceptions.UserException;
 import com.jaya.kafka.service.UnifiedActivityService;
@@ -476,6 +477,23 @@ public class ExpenseController extends BaseExpenseController {
 
         User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> expenses = expenseService.searchExpensesByName(expenseName, targetUser.getId());
+        return ResponseEntity.ok(expenses);
+    }
+
+    /**
+     * Fuzzy search expenses by name, comments, or payment method.
+     * Supports partial text matching for typeahead/search functionality.
+     * Optimized query - avoids N+1 problem by returning DTOs.
+     */
+    @GetMapping("/search/fuzzy")
+    public ResponseEntity<List<ExpenseSearchDTO>> searchExpensesFuzzy(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+        List<ExpenseSearchDTO> expenses = expenseService.searchExpensesFuzzy(targetUser.getId(), query, limit);
         return ResponseEntity.ok(expenses);
     }
 

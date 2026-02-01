@@ -44,6 +44,9 @@ public class PaymentMethod {
     private String icon = "";
     private String color = "";
 
+    @Column(name = "edit_count")
+    private Integer editCount = 0;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "payment_method_user_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
     @Column(name = "user_id", columnDefinition = "LONGBLOB")

@@ -1,8 +1,10 @@
 /**
- * CreateStory Page
- * Full page component for creating new stories with media upload support
+ * EditStory Page
+ * Full page component for editing existing stories with media upload support
  */
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { CircularProgress, Box, Typography } from "@mui/material";
 import { AutoStories } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
 import { useStoryForm } from "../../hooks/useStoryForm";
@@ -10,8 +12,10 @@ import PageHeader from "../../components/PageHeader";
 import StoryFormFields from "../../components/Stories/StoryFormFields";
 import ToastNotification from "../Landingpage/ToastNotification";
 
-const CreateStory = () => {
+const EditStory = () => {
   const { colors } = useTheme();
+  const { id } = useParams();
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     formData,
@@ -32,7 +36,49 @@ const CreateStory = () => {
     snackbar,
     handleCloseSnackbar,
     isSubmitting,
-  } = useStoryForm(null, false, null);
+    loadStoryData,
+    setMediaType,
+    setMediaPreview,
+  } = useStoryForm(id, true, null);
+
+  // Load story data on mount
+  useEffect(() => {
+    const fetchStory = async () => {
+      setIsLoading(true);
+      try {
+        await loadStoryData(id);
+      } catch (error) {
+        console.error("Failed to load story:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchStory();
+    }
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          backgroundColor: colors.primary_bg,
+          height: "90vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Box sx={{ textAlign: "center" }}>
+          <CircularProgress sx={{ color: colors.primary, mb: 2 }} />
+          <Typography sx={{ color: colors.primary_text }}>
+            Loading story...
+          </Typography>
+        </Box>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -52,7 +98,7 @@ const CreateStory = () => {
       >
         {/* Header */}
         <PageHeader
-          title="Create New Story"
+          title="Edit Story"
           onClose={handleClose}
           icon={<AutoStories sx={{ fontSize: 28, color: colors.primary }} />}
         />
@@ -74,7 +120,7 @@ const CreateStory = () => {
           handleSubmit={handleSubmit}
           handleClose={handleClose}
           isSubmitting={isSubmitting}
-          isEditMode={false}
+          isEditMode={true}
         />
       </div>
 
@@ -90,4 +136,4 @@ const CreateStory = () => {
   );
 };
 
-export default CreateStory;
+export default EditStory;

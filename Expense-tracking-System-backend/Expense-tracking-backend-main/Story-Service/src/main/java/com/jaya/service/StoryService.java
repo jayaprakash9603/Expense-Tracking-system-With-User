@@ -12,64 +12,68 @@ import java.util.UUID;
 
 public interface StoryService {
 
-    // User-facing APIs
-    StoryListResponse getActiveStoriesForUser(Integer userId);
+        // User-facing APIs
+        StoryListResponse getActiveStoriesForUser(Integer userId);
 
-    StoryDTO getStoryById(UUID storyId, Integer userId);
+        StoryDTO getStoryById(UUID storyId, Integer userId);
 
-    void markStorySeen(UUID storyId, Integer userId);
+        void markStorySeen(UUID storyId, Integer userId);
 
-    void markStoryCtaClicked(UUID storyId, UUID ctaId, Integer userId);
+        void markStoryCtaClicked(UUID storyId, UUID ctaId, Integer userId);
 
-    void dismissStory(UUID storyId, Integer userId);
+        void dismissStory(UUID storyId, Integer userId);
 
-    // Admin APIs
-    StoryDTO createStory(CreateStoryRequest request, Integer adminId);
+        // Admin APIs
+        StoryDTO createStory(CreateStoryRequest request, Integer adminId);
 
-    StoryDTO updateStory(UUID storyId, UpdateStoryRequest request, Integer adminId);
+        StoryDTO updateStory(UUID storyId, UpdateStoryRequest request, Integer adminId);
 
-    void deleteStory(UUID storyId, Integer adminId);
+        void deleteStory(UUID storyId, Integer adminId);
 
-    void activateStory(UUID storyId, Integer adminId);
+        void activateStory(UUID storyId, Integer adminId);
 
-    void deactivateStory(UUID storyId, Integer adminId);
+        void deactivateStory(UUID storyId, Integer adminId);
 
-    void archiveStory(UUID storyId, Integer adminId);
+        void archiveStory(UUID storyId, Integer adminId);
 
-    // Admin listing
-    Page<StoryDTO> getAllStories(Pageable pageable);
+        void unarchiveStory(UUID storyId, Integer adminId);
 
-    Page<StoryDTO> getStoriesByStatus(StoryStatus status, Pageable pageable);
+        // Admin listing
+        StoryDTO getStoryById(UUID storyId);
 
-    Page<StoryDTO> getStoriesByType(StoryType type, Pageable pageable);
+        Page<StoryDTO> getAllStories(Pageable pageable);
 
-    // System story generation
-    Story createSystemStory(CreateStoryRequest request);
+        Page<StoryDTO> getStoriesByStatus(StoryStatus status, Pageable pageable);
 
-    void createBudgetThresholdStory(Integer userId, Integer budgetId, String budgetName,
-            double percentage, double amount, double spent);
+        Page<StoryDTO> getStoriesByType(StoryType type, Pageable pageable);
 
-    void createBillReminderStory(Integer userId, Integer billId, String billName,
-            double amount, String dueDate);
+        // System story generation
+        Story createSystemStory(CreateStoryRequest request);
 
-    void createExpenseSpikeStory(Integer userId, String categoryName,
-            double currentAmount, double averageAmount);
+        void createBudgetThresholdStory(Integer userId, Integer budgetId, String budgetName,
+                        double percentage, double amount, double spent);
 
-    // Lifecycle management
-    int expireOldStories();
+        void createBillReminderStory(Integer userId, Integer billId, String billName,
+                        double amount, String dueDate);
 
-    int archiveExpiredStories();
+        void createExpenseSpikeStory(Integer userId, String categoryName,
+                        double currentAmount, double averageAmount);
 
-    void cleanupOldArchivedStories(int daysOld);
+        // Lifecycle management
+        int expireOldStories();
 
-    // Scheduled story generation
-    void generateDailyWelcomeStory();
+        int archiveExpiredStories();
 
-    void checkAndGenerateBudgetStories();
+        void cleanupOldArchivedStories(int daysOld);
 
-    void checkAndGenerateBillReminders();
+        // Scheduled story generation
+        void generateDailyWelcomeStory();
 
-    void generateWeeklySummaryStories();
+        void checkAndGenerateBudgetStories();
 
-    void generateMonthlyAchievementStories();
+        void checkAndGenerateBillReminders();
+
+        void generateWeeklySummaryStories();
+
+        void generateMonthlyAchievementStories();
 }

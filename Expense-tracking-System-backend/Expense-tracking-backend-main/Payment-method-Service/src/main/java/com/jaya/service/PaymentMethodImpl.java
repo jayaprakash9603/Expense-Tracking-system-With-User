@@ -1,5 +1,6 @@
 package com.jaya.service;
 
+import com.jaya.dto.PaymentMethodSearchDTO;
 import com.jaya.models.PaymentMethod;
 import com.jaya.models.UserDto;
 import com.jaya.repository.PaymentMethodRepository;
@@ -376,6 +377,35 @@ public class PaymentMethodImpl implements PaymentMethodService {
             }
             return pm.getExpenseIds() == null || pm.getExpenseIds().isEmpty();
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PaymentMethodSearchDTO> searchPaymentMethods(Integer userId, String query, int limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
+        String subsequencePattern = convertToSubsequencePattern(query.trim());
+        List<PaymentMethodSearchDTO> results = paymentMethodRepository.searchPaymentMethodsFuzzyWithLimit(userId,
+                subsequencePattern);
+        // Apply limit in memory since JPQL doesn't support LIMIT with constructor
+        // expression
+        return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a search query to a subsequence pattern for SQL LIKE.
+     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
+     */
+    private String convertToSubsequencePattern(String query) {
+        if (query == null || query.isEmpty()) {
+            return "%";
+        }
+        StringBuilder pattern = new StringBuilder("%");
+        for (char c : query.toCharArray()) {
+            pattern.append(c).append("%");
+        }
+        return pattern.toString();
     }
 
 }

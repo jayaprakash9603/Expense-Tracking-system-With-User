@@ -79,6 +79,14 @@ public class StoryServiceImpl implements StoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public StoryDTO getStoryById(UUID storyId) {
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new RuntimeException("Story not found: " + storyId));
+        return storyMapper.toDTO(story, null);
+    }
+
+    @Override
     public void markStorySeen(UUID storyId, Integer userId) {
         log.debug("Marking story {} as seen by user {}", storyId, userId);
 
@@ -289,6 +297,19 @@ public class StoryServiceImpl implements StoryService {
         createAuditLog(storyId, adminId, "ARCHIVE", null, null);
 
         webSocketService.broadcastStoryDeleted(storyId);
+    }
+
+    @Override
+    public void unarchiveStory(UUID storyId, Integer adminId) {
+        log.info("Admin {} unarchiving story: {}", adminId, storyId);
+
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new RuntimeException("Story not found: " + storyId));
+
+        story.setStatus(StoryStatus.CREATED);
+        storyRepository.save(story);
+
+        createAuditLog(storyId, adminId, "UNARCHIVE", null, null);
     }
 
     // ==================== Admin Listing ====================

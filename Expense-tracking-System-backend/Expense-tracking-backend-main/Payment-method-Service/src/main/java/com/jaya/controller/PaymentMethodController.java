@@ -1,6 +1,7 @@
 package com.jaya.controller;
 
 import com.jaya.dto.ErrorDetails;
+import com.jaya.dto.PaymentMethodSearchDTO;
 import com.jaya.models.PaymentMethod;
 import com.jaya.models.UserDto;
 import com.jaya.service.FriendShipService;
@@ -288,6 +289,36 @@ public class PaymentMethodController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error fetching unused payment methods: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Fuzzy search payment methods by name or type.
+     * Includes both user-specific and global payment methods.
+     * Supports partial text matching for typeahead/search functionality.
+     * Optimized query - avoids N+1 problem by returning DTOs.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchPaymentMethods(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            UserDto reqUser = userService.getuserProfile(jwt);
+            if (reqUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            }
+            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            List<PaymentMethodSearchDTO> paymentMethods = paymentMethodService.searchPaymentMethods(targetUser.getId(),
+                    query,
+                    limit);
+            return ResponseEntity.ok(paymentMethods);
+        } catch (RuntimeException e) {
+            return handleTargetUserException(e);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error searching payment methods: " + e.getMessage());
         }
     }
 }

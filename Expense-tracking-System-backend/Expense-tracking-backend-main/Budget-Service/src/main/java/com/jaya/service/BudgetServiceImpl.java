@@ -1,6 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.dto.BudgetReport;
+import com.jaya.dto.BudgetSearchDTO;
 import com.jaya.dto.DetailedBudgetReport;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseBudgetLinkingEvent;
@@ -2132,6 +2133,36 @@ public class BudgetServiceImpl implements BudgetService {
             log.error("Failed to publish expense-budget link update for expense {} and budget {}",
                     expenseId, budgetId, e);
         }
+    }
+
+    @Override
+    public List<BudgetSearchDTO> searchBudgets(Integer userId, String query, int limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
+        String subsequencePattern = convertToSubsequencePattern(query.trim());
+        log.debug("Searching budgets for user {} with query '{}' (pattern: '{}') limit {}", userId, query,
+                subsequencePattern, limit);
+        List<BudgetSearchDTO> results = budgetRepository.searchBudgetsFuzzyWithLimit(userId, subsequencePattern);
+        // Apply limit in memory since JPQL doesn't support LIMIT with constructor
+        // expression
+        return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a search query to a subsequence pattern for SQL LIKE.
+     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
+     */
+    private String convertToSubsequencePattern(String query) {
+        if (query == null || query.isEmpty()) {
+            return "%";
+        }
+        StringBuilder pattern = new StringBuilder("%");
+        for (char c : query.toCharArray()) {
+            pattern.append(c).append("%");
+        }
+        return pattern.toString();
     }
 
 }

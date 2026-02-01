@@ -109,6 +109,13 @@ export const storyDeleted = (storyId) => ({
 });
 
 /**
+ * Trigger a refresh of all stories (called from WebSocket REFRESH_STORIES event)
+ */
+export const refreshStories = () => ({
+  type: STORY_ACTION_TYPES.REFRESH_STORIES,
+});
+
+/**
  * Viewing state actions
  */
 export const setCurrentStoryIndex = (index) => ({

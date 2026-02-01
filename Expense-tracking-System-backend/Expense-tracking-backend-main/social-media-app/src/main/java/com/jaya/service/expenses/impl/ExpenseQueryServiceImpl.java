@@ -1,6 +1,7 @@
 package com.jaya.service.expenses.impl;
 
 import com.jaya.dto.ExpenseDTO;
+import com.jaya.dto.ExpenseSearchDTO;
 import com.jaya.dto.User;
 import com.jaya.mapper.ExpenseMapper;
 import com.jaya.models.*;
@@ -1680,5 +1681,33 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }).forEach(entry -> sortedGroupedExpenses.put(entry.getKey(), entry.getValue()));
 
         return sortedGroupedExpenses;
+    }
+
+    @Override
+    public List<ExpenseSearchDTO> searchExpensesFuzzy(Integer userId, String query, int limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
+        String subsequencePattern = convertToSubsequencePattern(query.trim());
+        List<ExpenseSearchDTO> results = expenseRepository.searchExpensesFuzzyWithLimit(userId, subsequencePattern);
+        // Apply limit in memory since JPQL doesn't support LIMIT with constructor
+        // expression
+        return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a search query to a subsequence pattern for SQL LIKE.
+     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
+     */
+    private String convertToSubsequencePattern(String query) {
+        if (query == null || query.isEmpty()) {
+            return "%";
+        }
+        StringBuilder pattern = new StringBuilder("%");
+        for (char c : query.toCharArray()) {
+            pattern.append(c).append("%");
+        }
+        return pattern.toString();
     }
 }

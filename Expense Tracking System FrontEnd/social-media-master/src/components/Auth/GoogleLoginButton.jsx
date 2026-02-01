@@ -231,8 +231,7 @@ const GoogleLoginButton = ({
     }, 500);
   };
 
-  const buttonText =
-    mode === "signup" ? "Continue with Google" : "Sign in with Google";
+  const buttonText = "Continue with Google";
 
   return (
     <Button

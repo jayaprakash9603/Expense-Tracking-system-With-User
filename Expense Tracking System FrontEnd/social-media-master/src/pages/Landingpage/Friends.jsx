@@ -157,7 +157,17 @@ const Friends = ({ defaultTab = 0 }) => {
   const [requestsFilterOn, setRequestsFilterOn] = useState(false);
   const [friendsFilterOn, setFriendsFilterOn] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState(null);
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  // Initialize activeTab from URL first, then fall back to defaultTab
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam !== null) {
+      const tabIndex = parseInt(tabParam, 10);
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
+        return tabIndex;
+      }
+    }
+    return defaultTab;
+  });
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -185,15 +195,21 @@ const Friends = ({ defaultTab = 0 }) => {
   );
 
   // Sync activeTab with URL parameter - URL is source of truth
+  // This handles external URL changes (e.g., browser back/forward)
   useEffect(() => {
     const tabParam = searchParams.get("tab");
     if (tabParam !== null) {
       const tabIndex = parseInt(tabParam, 10);
-      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
+      if (
+        !isNaN(tabIndex) &&
+        tabIndex >= 0 &&
+        tabIndex <= 3 &&
+        tabIndex !== activeTab
+      ) {
         setActiveTab(tabIndex);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, activeTab]);
 
   // Persist filters across navigation (localStorage)
   useEffect(() => {

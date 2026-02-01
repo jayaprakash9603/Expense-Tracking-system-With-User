@@ -3,6 +3,7 @@ package com.jaya.controller;
 import com.jaya.models.Bill;
 import com.jaya.dto.BillRequestDTO;
 import com.jaya.dto.BillResponseDTO;
+import com.jaya.dto.BillSearchDTO;
 import com.jaya.dto.ProgressStatus;
 import com.jaya.dto.ocr.OcrReceiptResponseDTO;
 import com.jaya.models.UserDto;
@@ -622,6 +623,29 @@ public class BillController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Fuzzy search bills by name, description, or biller.
+     * Supports partial text matching for typeahead/search functionality.
+     * Optimized query - avoids N+1 problem by returning DTOs.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<?> searchBills(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
+            List<BillSearchDTO> bills = billService.searchBills(targetUser.getId(), query, limit);
+            return ResponseEntity.ok(bills);
+        } catch (Exception e) {
+            Error error = new Error();
+            error.setMessage("Error searching bills: " + e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

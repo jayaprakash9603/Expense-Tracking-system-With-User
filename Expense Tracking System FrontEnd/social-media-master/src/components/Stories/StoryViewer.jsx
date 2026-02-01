@@ -45,9 +45,11 @@ const StoryViewer = ({ userId }) => {
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef(null);
   const containerRef = useRef(null);
+  const videoRef = useRef(null);
 
   const currentStory = stories[currentStoryIndex];
   const storyDuration = (currentStory?.durationSeconds || 5) * 1000;
+  const hasMedia = currentStory?.imageUrl || currentStory?.videoUrl;
 
   // Mark current story as seen
   useEffect(() => {
@@ -60,7 +62,18 @@ const StoryViewer = ({ userId }) => {
   useEffect(() => {
     if (!isViewerOpen || isPaused) {
       clearInterval(intervalRef.current);
+      // Pause video when story is paused
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
       return;
+    }
+
+    // Play video when story is not paused
+    if (videoRef.current) {
+      videoRef.current
+        .play()
+        .catch((err) => console.log("Video play error:", err));
     }
 
     setProgress(0);
@@ -114,6 +127,11 @@ const StoryViewer = ({ userId }) => {
   }, [dispatch]);
 
   const handleNext = useCallback(() => {
+    // Reset video when changing stories
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
     if (currentStoryIndex < stories.length - 1) {
       dispatch(setCurrentStoryIndex(currentStoryIndex + 1));
       setProgress(0);
@@ -123,6 +141,11 @@ const StoryViewer = ({ userId }) => {
   }, [currentStoryIndex, stories.length, dispatch, handleClose]);
 
   const handlePrevious = useCallback(() => {
+    // Reset video when changing stories
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
     if (currentStoryIndex > 0) {
       dispatch(setCurrentStoryIndex(currentStoryIndex - 1));
       setProgress(0);
@@ -181,13 +204,13 @@ const StoryViewer = ({ userId }) => {
       <Box
         ref={containerRef}
         sx={{
-          width: "100%",
-          maxWidth: 420,
-          height: "100%",
-          maxHeight: "85vh",
+          width: { xs: "100%", sm: "100%", md: 420 },
+          maxWidth: { xs: "100%", sm: "100%", md: 420 },
+          height: { xs: "100%", sm: "100%", md: "85vh" },
+          maxHeight: { xs: "100%", sm: "100%", md: "85vh" },
           backgroundColor: currentStory.backgroundColor || "#1a1a2e",
           backgroundImage: currentStory.backgroundGradient,
-          borderRadius: { xs: 0, sm: 2 },
+          borderRadius: { xs: 0, md: 2 },
           position: "relative",
           overflow: "hidden",
           outline: "none",
@@ -296,49 +319,147 @@ const StoryViewer = ({ userId }) => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: hasMedia ? "flex-start" : "center",
             flex: 1,
-            p: 4,
+            p: hasMedia ? 0 : 4,
             textAlign: "center",
             minHeight: "50%",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          {currentStory.imageUrl && (
+          {/* Video Background */}
+          {currentStory.videoUrl && (
             <Box
-              component="img"
-              src={currentStory.imageUrl}
-              alt={currentStory.title}
               sx={{
-                maxWidth: "100%",
-                maxHeight: 200,
-                borderRadius: 2,
-                mb: 3,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#000",
               }}
-            />
+            >
+              <video
+                ref={videoRef}
+                src={currentStory.videoUrl}
+                autoPlay
+                muted
+                loop={false}
+                playsInline
+                preload="auto"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+                onLoadedMetadata={() => {
+                  if (!isPaused && videoRef.current) {
+                    videoRef.current
+                      .play()
+                      .catch((err) => console.log("Video play error:", err));
+                  }
+                }}
+                onCanPlay={() => {
+                  if (!isPaused && videoRef.current) {
+                    videoRef.current
+                      .play()
+                      .catch((err) => console.log("Video play error:", err));
+                  }
+                }}
+              />
+              {/* Gradient overlay for text readability */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: "40%",
+                  background: "linear-gradient(transparent, rgba(0,0,0,0.8))",
+                  pointerEvents: "none",
+                }}
+              />
+            </Box>
           )}
 
-          <Typography
-            variant="h5"
-            sx={{
-              color: "#fff",
-              fontWeight: 700,
-              mb: 2,
-              textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            }}
-          >
-            {currentStory.title}
-          </Typography>
+          {/* Image Background */}
+          {currentStory.imageUrl && !currentStory.videoUrl && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#000",
+              }}
+            >
+              <Box
+                component="img"
+                src={currentStory.imageUrl}
+                alt={currentStory.title}
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+              />
+              {/* Gradient overlay for text readability */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: "40%",
+                  background: "linear-gradient(transparent, rgba(0,0,0,0.8))",
+                  pointerEvents: "none",
+                }}
+              />
+            </Box>
+          )}
 
-          <Typography
-            variant="body1"
+          {/* Text Content - positioned at bottom for media, centered otherwise */}
+          <Box
             sx={{
-              color: "rgba(255,255,255,0.9)",
-              lineHeight: 1.6,
-              textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+              position: hasMedia ? "absolute" : "relative",
+              bottom: hasMedia ? 80 : "auto",
+              left: hasMedia ? 0 : "auto",
+              right: hasMedia ? 0 : "auto",
+              p: hasMedia ? 3 : 0,
+              zIndex: 2,
             }}
           >
-            {currentStory.content}
-          </Typography>
+            <Typography
+              variant="h5"
+              sx={{
+                color: "#fff",
+                fontWeight: 700,
+                mb: 2,
+                textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              {currentStory.title}
+            </Typography>
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: "rgba(255,255,255,0.9)",
+                lineHeight: 1.6,
+                textShadow: "0 1px 2px rgba(0,0,0,0.4)",
+              }}
+            >
+              {currentStory.content}
+            </Typography>
+          </Box>
         </Box>
 
         {/* CTA Buttons */}
