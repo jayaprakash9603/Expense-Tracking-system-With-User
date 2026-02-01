@@ -13,6 +13,7 @@ import { FloatingNotificationContainer } from "../../components/common/FloatingN
 import NotFound from "./Errors/NotFound";
 import Loader from "../../components/Loaders/Loader";
 import { GlobalShortcuts, RecommendationToast } from "../../features/keyboard";
+import StoryViewer from "../../components/Stories/StoryViewer";
 
 const Home = () => {
   const { colors } = useTheme();
@@ -117,6 +118,9 @@ const Home = () => {
 
       {/* Global Floating Notifications - Visible across all pages */}
       <FloatingNotificationContainer />
+
+      {/* Story Viewer Modal - Visible across all pages */}
+      <StoryViewer />
 
       <div className="md:w-[400px] lg:w-[450px]">
         <Left />

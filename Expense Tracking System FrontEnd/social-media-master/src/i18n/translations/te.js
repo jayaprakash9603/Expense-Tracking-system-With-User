@@ -41,6 +41,7 @@ export const te = {
     auditLogs: "ఆడిట్ లాగ్స్",
     reports: "రిపోర్టులు",
     settings: "సెట్టింగ్స్",
+    stories: "స్టోరీలు",
     home: "హోమ్",
     expenses: "ఖర్చులు",
     categories: "వర్గాలు",

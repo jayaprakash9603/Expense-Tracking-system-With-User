@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Avatar } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Avatar, Badge } from "@mui/material";
 import MenuItem from "./MenuItem";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,10 @@ import {
   getThemeColors,
   BRAND_GRADIENT_COLORS,
 } from "../../config/themeConfig";
+import {
+  fetchStories,
+  openStoryViewer,
+} from "../../Redux/Stories/story.action";
 
 // Import MUI Icons
 import HomeIcon from "@mui/icons-material/Home";
@@ -31,11 +35,15 @@ import ShareIcon from "@mui/icons-material/Share";
 import PublicIcon from "@mui/icons-material/Public";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import BuildIcon from "@mui/icons-material/Build";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 
 const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
   const { currentMode } = useSelector((state) => state.auth || {});
   const { mode } = useSelector((state) => state.theme || {});
+  const { stories, unseenCount } = useSelector(
+    (state) => state.story || { stories: [], unseenCount: 0 },
+  );
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const themeColors = getThemeColors(mode);
@@ -48,6 +56,20 @@ const Left = () => {
   const hasAdminRole =
     user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN");
   const isAdminMode = currentMode === "ADMIN";
+
+  // Fetch stories on mount
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchStories(user.id));
+    }
+  }, [user?.id, dispatch]);
+
+  // Handle story bubble click
+  const handleStoryClick = () => {
+    if (stories.length > 0) {
+      dispatch(openStoryViewer(0));
+    }
+  };
 
   const handleLogout = () => {
     dispatch(logoutAction());
@@ -128,20 +150,57 @@ const Left = () => {
       >
         {/* Top Section */}
         <div className="flex flex-col items-center w-full px-4">
-          {/* Profile */}
+          {/* Profile with Story Ring */}
           <div className="w-[90%] max-w-[260px] h-[180px] flex flex-col justify-center items-center mb-4">
-            <div className="w-20 h-20 mb-2">
-              <Avatar
+            <div
+              className="w-20 h-20 mb-2 relative cursor-pointer"
+              onClick={handleStoryClick}
+              style={{
+                padding: stories.length > 0 ? "3px" : "0",
+                borderRadius: "50%",
+                background:
+                  stories.length > 0
+                    ? unseenCount > 0
+                      ? `linear-gradient(45deg, ${BRAND_GRADIENT_COLORS.story_ring_start}, ${BRAND_GRADIENT_COLORS.story_ring_end})`
+                      : themeColors.border
+                    : "transparent",
+              }}
+              title={
+                stories.length > 0 ? `${unseenCount} new stories` : "No stories"
+              }
+            >
+              <Badge
+                badgeContent={unseenCount > 0 ? unseenCount : null}
+                color="error"
+                overlap="circular"
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 sx={{
                   width: "100%",
                   height: "100%",
-                  bgcolor: themeColors.avatar_bg,
-                  color: themeColors.avatar_text,
+                  "& .MuiBadge-badge": {
+                    fontSize: "0.65rem",
+                    minWidth: "18px",
+                    height: "18px",
+                    border: `2px solid ${themeColors.primary_bg}`,
+                  },
                 }}
-                src={avatarSrc}
               >
-                {!avatarSrc && getInitials()}
-              </Avatar>
+                <Avatar
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    bgcolor: themeColors.avatar_bg,
+                    color: themeColors.avatar_text,
+                    border:
+                      stories.length > 0
+                        ? `2px solid ${themeColors.primary_bg}`
+                        : "none",
+                  }}
+                  src={avatarSrc}
+                >
+                  {!avatarSrc && getInitials()}
+                </Avatar>
+              </Badge>
             </div>
             <p
               className="text-base font-semibold text-center"
@@ -221,6 +280,12 @@ const Left = () => {
                   name={t("navigation.settings")}
                   path="/admin/settings"
                   icon={<SettingsIcon />}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                />
+                <MenuItem
+                  name={t("navigation.stories") || "Stories"}
+                  path="/admin/stories"
+                  icon={<AutoStoriesIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
               </>

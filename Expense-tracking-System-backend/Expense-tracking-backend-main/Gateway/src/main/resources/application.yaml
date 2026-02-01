@@ -21,6 +21,11 @@ spring:
           uri: ${AUDIT_SERVICE_URL:http://localhost:6004}
           predicates:
             - Path=/api/admin/audit-logs/**, /api/admin/reports/**
+        # Story Service - Must come before USER-SERVICE to handle /api/admin/stories/**
+        - id: STORY-SERVICE
+          uri: ${STORY_SERVICE_URL:http://localhost:6010}
+          predicates:
+            - Path=/api/stories/**, /api/admin/stories/**, /ws-stories/**
         - id: USER-SERVICE
           uri: ${USER_SERVICE_URL:http://localhost:6001}
           predicates:

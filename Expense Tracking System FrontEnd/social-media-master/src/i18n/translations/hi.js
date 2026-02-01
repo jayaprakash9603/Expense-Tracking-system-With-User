@@ -41,6 +41,7 @@ export const hi = {
     auditLogs: "ऑडिट लॉग्स",
     reports: "रिपोर्ट्स",
     settings: "सेटिंग्स",
+    stories: "स्टोरीज़",
     home: "होम",
     expenses: "खर्चे",
     categories: "श्रेणियां",

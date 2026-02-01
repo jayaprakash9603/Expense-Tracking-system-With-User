@@ -28,6 +28,7 @@ import friendActivityReducer from "./FriendActivity/friendActivity.reducer";
 import { shortcutsReducer } from "./Shortcuts/shortcuts.reducer";
 import { adminReducer } from "./Admin";
 import { sharesReducer } from "./Shares";
+import storyReducer from "./Stories/story.reducer";
 
 // Combine reducers
 const appReducer = combineReducers({
@@ -51,6 +52,7 @@ const appReducer = combineReducers({
   shortcuts: shortcutsReducer,
   admin: adminReducer,
   shares: sharesReducer,
+  story: storyReducer,
 });
 
 const rootReducer = (state, action) => {

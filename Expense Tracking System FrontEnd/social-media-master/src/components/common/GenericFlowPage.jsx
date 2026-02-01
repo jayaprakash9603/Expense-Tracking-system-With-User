@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Skeleton,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -15,6 +14,8 @@ import FlowToggleButton from "../cashflow/FlowToggleButton";
 import FlowEntityCards from "./FlowEntityCards";
 import FlowExpenseTable from "./FlowExpenseTable";
 import NoDataPlaceholder from "../NoDataPlaceholder";
+import FlowChartSkeleton from "../skeletons/FlowChartSkeleton";
+import FlowEntityCardsSkeleton from "../skeletons/FlowEntityCardsSkeleton";
 import useFlowCards from "../../hooks/useFlowCards";
 import {
   getEntityExpenses,
@@ -293,13 +294,7 @@ const GenericFlowPage = ({
         }}
       >
         {loading ? (
-          <Skeleton
-            variant="rectangular"
-            width="100%"
-            height={isMobile ? 100 : isTablet ? 130 : 160}
-            animation="wave"
-            sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
-          />
+          <FlowChartSkeleton variant="bar" />
         ) : pieData.length === 0 ? (
           <NoDataPlaceholder
             size={isMobile ? "md" : "lg"}

@@ -41,6 +41,7 @@ export const en = {
     auditLogs: "Audit Logs",
     reports: "Reports",
     settings: "Settings",
+    stories: "Stories",
     home: "Home",
     expenses: "Expenses",
     categories: "Categories",

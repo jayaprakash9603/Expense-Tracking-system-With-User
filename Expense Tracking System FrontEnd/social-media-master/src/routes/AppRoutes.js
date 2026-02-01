@@ -57,6 +57,8 @@ import RoleManagement from "../pages/Landingpage/Admin/RoleManagement";
 import AuditLogsAdmin from "../pages/Landingpage/Admin/AuditLogs";
 import ReportsAdmin from "../pages/Landingpage/Admin/Reports";
 import AdminSettings from "../pages/Landingpage/Admin/AdminSettings";
+import AdminStoryManagement from "../pages/Admin/AdminStoryManagement";
+import CreateStory from "../pages/Admin/CreateStory";
 import NotFound from "../pages/Landingpage/Errors/NotFound";
 import {
   HelpCenter,
@@ -283,6 +285,8 @@ export const getAppRoutes = () => (
         <Route path="audit" element={<AuditLogsAdmin />} />
         <Route path="reports" element={<ReportsAdmin />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="stories" element={<AdminStoryManagement />} />
+        <Route path="stories/create" element={<CreateStory />} />
       </Route>
     </Route>
 

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Skeleton,
   IconButton,
   Menu,
   MenuItem,
@@ -12,6 +11,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import NoDataPlaceholder from "../NoDataPlaceholder";
+import FlowEntityCardsSkeleton from "../skeletons/FlowEntityCardsSkeleton";
 import { formatCurrencyCompact } from "../../utils/numberFormatters";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
@@ -75,30 +75,7 @@ const FlowEntityCards = ({
 
   if (loading && !search) {
     return (
-      <div
-        className="flex flex-wrap justify-start custom-scrollbar"
-        style={{
-          maxHeight: isMobile ? 200 : isTablet ? 250 : 360,
-          overflowY: "auto",
-          overflowX: "hidden",
-          paddingRight: isMobile ? 4 : isTablet ? 8 : 16,
-          gap: isMobile ? 8 : 16,
-          width: "100%",
-          paddingLeft: "16px",
-        }}
-      >
-        {Array.from({ length: 3 }).map((_, idx) => (
-          <Skeleton
-            key={idx}
-            variant="rectangular"
-            width={isMobile ? "100%" : 220}
-            height={130}
-            animation="wave"
-            sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
-            style={{ margin: "0 0 16px 0" }}
-          />
-        ))}
-      </div>
+      <FlowEntityCardsSkeleton cardCount={isMobile ? 2 : isTablet ? 4 : 6} />
     );
   }
 

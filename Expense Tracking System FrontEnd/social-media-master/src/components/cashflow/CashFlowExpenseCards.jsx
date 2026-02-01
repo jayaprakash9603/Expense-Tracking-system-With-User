@@ -1154,7 +1154,8 @@ function CashFlowExpenseCards({
     },
   };
 
-  if (loading && !search && data.length === 0) {
+  // Show skeleton when loading, regardless of existing data (important for month/range changes)
+  if (loading && !search) {
     return (
       <div className={wrapperClass} style={wrapperStyle}>
         <CashFlowExpenseCardsSkeleton />
