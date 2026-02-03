@@ -41,6 +41,12 @@ public class Category {
         @Column(name = "category_user_id")
         private Integer userId = 0;
 
+        @Column(name = "edit_count")
+        private Integer editCount = 0;
+
+        @Column(name = "is_edited")
+        private Boolean isEdited = false;
+
         @ElementCollection(fetch = FetchType.LAZY)
         @CollectionTable(name = "category_expense_ids", joinColumns = @JoinColumn(name = "category_id"))
         @MapKeyColumn(name = "expense_key")

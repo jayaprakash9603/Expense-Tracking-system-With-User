@@ -7,13 +7,22 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.jpa.JpaSystemException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -27,6 +36,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -333,6 +343,225 @@ public class GlobalExceptionHandler {
         }
 
         // ========================================
+        // DATABASE EXCEPTION HANDLERS
+        // ========================================
+
+        /**
+         * Handle JPA System Exception (e.g., missing column default values, schema
+         * mismatches)
+         */
+        @ExceptionHandler(JpaSystemException.class)
+        public ResponseEntity<ApiError> handleJpaSystemException(JpaSystemException ex, WebRequest request) {
+                String path = extractPath(request);
+                String rootCauseMessage = extractRootCauseMessage(ex);
+
+                log.error("JPA System error at path: {} - {}", path, rootCauseMessage, ex);
+
+                String userMessage = "Database operation failed. ";
+                if (rootCauseMessage.contains("doesn't have a default value")) {
+                        // Extract field name from error message
+                        String fieldName = extractFieldFromDefaultValueError(rootCauseMessage);
+                        userMessage += "Missing required database field: " + fieldName;
+                } else if (rootCauseMessage.contains("constraint")) {
+                        userMessage += "Data integrity constraint violated.";
+                } else {
+                        userMessage += "Please contact support if the issue persists.";
+                }
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_DATABASE_ERROR, path, userMessage)
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        /**
+         * Handle Data Integrity Violation (e.g., unique constraint violations, foreign
+         * key violations)
+         */
+        @ExceptionHandler(DataIntegrityViolationException.class)
+        public ResponseEntity<ApiError> handleDataIntegrityViolationException(
+                        DataIntegrityViolationException ex, WebRequest request) {
+
+                String path = extractPath(request);
+                String rootCauseMessage = extractRootCauseMessage(ex);
+
+                log.error("Data integrity violation at path: {} - {}", path, rootCauseMessage);
+
+                String userMessage = "Data integrity error. ";
+                HttpStatus status = HttpStatus.CONFLICT;
+
+                if (rootCauseMessage.toLowerCase().contains("duplicate")) {
+                        userMessage += "A record with the same unique identifier already exists.";
+                } else if (rootCauseMessage.toLowerCase().contains("foreign key")) {
+                        userMessage += "Referenced record does not exist or cannot be modified.";
+                        status = HttpStatus.BAD_REQUEST;
+                } else if (rootCauseMessage.contains("doesn't have a default value")) {
+                        String fieldName = extractFieldFromDefaultValueError(rootCauseMessage);
+                        userMessage = "Missing required field: " + fieldName;
+                        status = HttpStatus.INTERNAL_SERVER_ERROR;
+                } else {
+                        userMessage += "The operation violates data constraints.";
+                }
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_DATABASE_ERROR, path, userMessage)
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, status);
+        }
+
+        /**
+         * Handle optimistic locking failures (concurrent modification)
+         */
+        @ExceptionHandler({ OptimisticLockingFailureException.class, OptimisticLockException.class })
+        public ResponseEntity<ApiError> handleOptimisticLockingFailure(Exception ex, WebRequest request) {
+                String path = extractPath(request);
+
+                log.warn("Optimistic locking failure at path: {} - {}", path, ex.getMessage());
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_DATABASE_ERROR, path,
+                                "The record was modified by another user. Please refresh and try again.")
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+        }
+
+        /**
+         * Handle entity not found exceptions
+         */
+        @ExceptionHandler(EntityNotFoundException.class)
+        public ResponseEntity<ApiError> handleEntityNotFoundException(EntityNotFoundException ex, WebRequest request) {
+                String path = extractPath(request);
+
+                log.warn("Entity not found at path: {} - {}", path, ex.getMessage());
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_RESOURCE_NOT_FOUND, path, ex.getMessage())
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+
+        /**
+         * Handle empty result exceptions
+         */
+        @ExceptionHandler(EmptyResultDataAccessException.class)
+        public ResponseEntity<ApiError> handleEmptyResultDataAccessException(
+                        EmptyResultDataAccessException ex, WebRequest request) {
+
+                String path = extractPath(request);
+
+                log.warn("Empty result at path: {} - {}", path, ex.getMessage());
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_RESOURCE_NOT_FOUND, path,
+                                "The requested resource was not found.")
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+
+        /**
+         * Handle transaction system exceptions
+         */
+        @ExceptionHandler(TransactionSystemException.class)
+        public ResponseEntity<ApiError> handleTransactionSystemException(
+                        TransactionSystemException ex, WebRequest request) {
+
+                String path = extractPath(request);
+                Throwable rootCause = ex.getRootCause();
+                String rootCauseMessage = rootCause != null ? rootCause.getMessage() : ex.getMessage();
+
+                log.error("Transaction error at path: {} - {}", path, rootCauseMessage, ex);
+
+                // Check if it's a validation error wrapped in transaction exception
+                if (rootCause instanceof ConstraintViolationException) {
+                        return handleConstraintViolationException((ConstraintViolationException) rootCause, request);
+                }
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_DATABASE_ERROR, path,
+                                "Transaction failed. Please try again.")
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        /**
+         * Handle persistence exceptions
+         */
+        @ExceptionHandler(PersistenceException.class)
+        public ResponseEntity<ApiError> handlePersistenceException(PersistenceException ex, WebRequest request) {
+                String path = extractPath(request);
+                String rootCauseMessage = extractRootCauseMessage(ex);
+
+                log.error("Persistence error at path: {} - {}", path, rootCauseMessage, ex);
+
+                String userMessage = "Database operation failed. ";
+                if (rootCauseMessage.contains("doesn't have a default value")) {
+                        String fieldName = extractFieldFromDefaultValueError(rootCauseMessage);
+                        userMessage = "Missing required database field: " + fieldName;
+                } else {
+                        userMessage += "Please try again or contact support.";
+                }
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_DATABASE_ERROR, path, userMessage)
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        /**
+         * Handle SQL exceptions
+         */
+        @ExceptionHandler(SQLException.class)
+        public ResponseEntity<ApiError> handleSQLException(SQLException ex, WebRequest request) {
+                String path = extractPath(request);
+
+                log.error("SQL error at path: {} - SQLState: {}, ErrorCode: {}, Message: {}",
+                                path, ex.getSQLState(), ex.getErrorCode(), ex.getMessage(), ex);
+
+                String userMessage = "Database error occurred. ";
+                HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+                // Parse SQL state for better error messages
+                String sqlState = ex.getSQLState();
+                if (sqlState != null) {
+                        if (sqlState.startsWith("23")) {
+                                // Integrity constraint violation
+                                userMessage = "Data integrity constraint violated.";
+                                status = HttpStatus.CONFLICT;
+                        } else if (sqlState.startsWith("22")) {
+                                // Data exception
+                                userMessage = "Invalid data format provided.";
+                                status = HttpStatus.BAD_REQUEST;
+                        } else if (sqlState.startsWith("08")) {
+                                // Connection exception
+                                userMessage = "Database connection error. Please try again.";
+                                status = HttpStatus.SERVICE_UNAVAILABLE;
+                        }
+                }
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_DATABASE_ERROR, path, userMessage)
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, status);
+        }
+
+        /**
+         * Handle generic Data Access exceptions
+         */
+        @ExceptionHandler(DataAccessException.class)
+        public ResponseEntity<ApiError> handleDataAccessException(DataAccessException ex, WebRequest request) {
+                String path = extractPath(request);
+                String rootCauseMessage = extractRootCauseMessage(ex);
+
+                log.error("Data access error at path: {} - {}", path, rootCauseMessage, ex);
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_DATABASE_ERROR, path,
+                                "Database operation failed. Please try again.")
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // ========================================
         // ILLEGAL ARGUMENT HANDLER
         // ========================================
 
@@ -425,5 +654,36 @@ public class GlobalExceptionHandler {
                         log.warn("[{}] {} at path: {} - {}",
                                         ex.getErrorCodeString(), ex.getClass().getSimpleName(), path, ex.getMessage());
                 }
+        }
+
+        /**
+         * Extract root cause message from exception chain
+         */
+        private String extractRootCauseMessage(Throwable ex) {
+                Throwable rootCause = ex;
+                while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
+                        rootCause = rootCause.getCause();
+                }
+                return rootCause.getMessage() != null ? rootCause.getMessage() : ex.getMessage();
+        }
+
+        /**
+         * Extract field name from "Field 'xxx' doesn't have a default value" error
+         * message
+         */
+        private String extractFieldFromDefaultValueError(String message) {
+                if (message == null) {
+                        return "unknown";
+                }
+
+                // Pattern: Field 'field_name' doesn't have a default value
+                int startIdx = message.indexOf("'");
+                if (startIdx != -1) {
+                        int endIdx = message.indexOf("'", startIdx + 1);
+                        if (endIdx != -1) {
+                                return message.substring(startIdx + 1, endIdx);
+                        }
+                }
+                return "unknown";
         }
 }

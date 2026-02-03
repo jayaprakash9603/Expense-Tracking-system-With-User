@@ -31,7 +31,9 @@ export const fetchCategories = (targetId) => {
           targetId: targetId || "",
         },
       });
-      dispatch({ type: FETCH_CATEGORIES_SUCCESS, payload: response.data });
+      // Extract data from ApiResponse wrapper
+      const categories = response.data?.data || response.data || [];
+      dispatch({ type: FETCH_CATEGORIES_SUCCESS, payload: categories });
     } catch (error) {
       dispatch({ type: FETCH_CATEGORIES_FAILURE, payload: error.message });
     }
@@ -48,9 +50,11 @@ export const fetchUncategorizedExpenses =
           targetId: targetId || "",
         },
       });
+      // Extract data from ApiResponse wrapper
+      const expenses = response.data?.data || response.data || [];
       dispatch({
         type: "FETCH_UNCATEGORIZED_EXPENSES_SUCCESS",
-        payload: response.data,
+        payload: expenses,
       });
     } catch (error) {
       dispatch({
@@ -70,11 +74,13 @@ export const createCategory =
           targetId: targetId || "",
         },
       });
+      // Extract data from ApiResponse wrapper
+      const category = response.data?.data || response.data;
       dispatch({
         type: "CREATE_CATEGORY_SUCCESS",
-        payload: response.data,
+        payload: category,
       });
-      return response.data;
+      return category;
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
@@ -100,12 +106,14 @@ export const fetchCategoryById =
         },
       });
 
+      // Extract data from ApiResponse wrapper
+      const category = response.data?.data || response.data;
       dispatch({
         type: FETCH_CATEGORY_SUCCESS,
-        payload: response.data,
+        payload: category,
       });
 
-      return response.data;
+      return category;
     } catch (error) {
       dispatch({
         type: FETCH_CATEGORY_FAILURE,
@@ -131,18 +139,20 @@ export const updateCategory =
         },
       );
 
+      // Extract data from ApiResponse wrapper
+      const category = response.data?.data || response.data;
       dispatch({
         type: UPDATE_CATEGORY_SUCCESS,
-        payload: response.data,
+        payload: category,
       });
 
       // Also update the category in the categories list
       dispatch({
         type: UPDATE_CATEGORY_IN_LIST,
-        payload: response.data,
+        payload: category,
       });
 
-      return response.data;
+      return category;
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
@@ -175,12 +185,14 @@ export const fetchCategoryExpenses =
         },
       );
 
+      // Extract data from ApiResponse wrapper
+      const expenses = response.data?.data || response.data || [];
       dispatch({
         type: FETCH_CATEGORY_EXPENSES_SUCCESS,
-        payload: response.data,
+        payload: expenses,
       });
 
-      return response.data;
+      return expenses;
     } catch (error) {
       dispatch({
         type: FETCH_CATEGORY_EXPENSES_FAILURE,
@@ -236,16 +248,21 @@ export const fetchCategoryAnalytics =
         ...(targetId && { targetId }),
       };
 
-      const { data } = await api.get(`/api/analytics/categories/${categoryId}`, {
-        params,
-      });
+      const { data } = await api.get(
+        `/api/analytics/categories/${categoryId}`,
+        {
+          params,
+        },
+      );
 
+      // Extract data from ApiResponse wrapper
+      const analytics = data?.data || data;
       dispatch({
         type: FETCH_CATEGORY_ANALYTICS_SUCCESS,
-        payload: data,
+        payload: analytics,
       });
 
-      return data;
+      return analytics;
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
